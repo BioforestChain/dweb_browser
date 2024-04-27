@@ -1,4 +1,4 @@
-import { ConTasks } from "../helper/ConTasks.ts";
+import { ConTasks } from "../../scripts/helper/ConTasks.ts";
 
 export const toolkitTasks = new ConTasks(
   {

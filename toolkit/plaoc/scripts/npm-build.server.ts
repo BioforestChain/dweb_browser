@@ -2,7 +2,7 @@
 import * as semver from "https://deno.land/std@0.193.0/semver/mod.ts";
 import { copyFileSync, watch } from "node:fs";
 import path from "node:path";
-import { dnt } from "../../scripts/deps.ts";
+import * as dnt from "@deno/dnt";
 
 export const doBuidCore = async (config: {
   name: string;

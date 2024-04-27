@@ -1,3 +1,4 @@
+import type {} from "./ios.type.ts";
 function getIosIcon(preference_size = 64) {
   const iconLinks = Array.from(document.head.querySelectorAll(`link[rel*="icon"]`))
     .map((ele) => {

@@ -1,7 +1,7 @@
-import { npmBuilder } from "../../../dweb-core/scripts/npmBuilder.ts";
+import { npmBuilder } from "../../../../scripts/helper/npmBuilder.ts";
 
 npmBuilder({
-  rootUrl: import.meta.resolve("../"),
+  packageDir: import.meta.resolve("../"),
   importMap: import.meta.resolve("./import_map.json"),
   entryPointsDirName: false,
   options: {

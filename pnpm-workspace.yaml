@@ -1,14 +1,4 @@
 packages:
-  - "toolkit/*"
-  - "!toolkit/dweb-core"
-  - "toolkit/dweb-core/npm"
-  - "!toolkit/dweb-helper"
-  - "toolkit/dweb-helper/npm"
-  - "!toolkit/dweb-js-process-assets"
-  - "toolkit/dweb-js-process-assets/npm"
-  - "toolkit/plaoc/cli"
-  - "toolkit/plaoc/is-dweb"
-  - "toolkit/plaoc/server"
-  - "toolkit/plaoc/plugins"
+  - "npm/*"
+  - "toolkit/offscreen-web-canvas"
   - "toolkit/plaoc/examples/*"
-xxx:

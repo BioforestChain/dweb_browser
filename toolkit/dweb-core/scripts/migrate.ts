@@ -2,7 +2,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { WalkFiles } from "./WalkDir.ts";
+import { WalkFiles } from "../../../scripts/helper/WalkDir.ts";
 
 const resolveTo = (to: string) => fileURLToPath(import.meta.resolve(to));
 const easyWriteFile = (filepath: string, content: string | Uint8Array) => {

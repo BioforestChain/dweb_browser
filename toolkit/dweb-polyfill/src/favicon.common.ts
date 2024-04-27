@@ -1,10 +1,11 @@
+import type {} from "./favicon.type.ts";
 (() => {
   function getCommonIcon(preference_size = 64) {
-    const iconLinks = [...document.head.querySelectorAll(`link[rel*="icon"]`).values()]
+    const iconLinks = [...Object.values(document.head.querySelectorAll(`link[rel*="icon"]`))]
       .map((ele) => {
         return {
-          ele,
-          rel: ele.getAttribute("rel"),
+          ele: ele as HTMLLinkElement,
+          rel: ele.getAttribute("rel") || "",
         };
       })
       .filter((link) => {
@@ -16,7 +17,7 @@
         );
       })
       .map((link, index) => {
-        const sizes = parseInt(link.ele.getAttribute("sizes")) || 32;
+        const sizes = parseInt(link.ele.getAttribute("sizes") || "0") || 32;
         return {
           ...link,
           // 上古时代的图标默认大小是32
@@ -82,11 +83,3 @@
     watchCommonIcon();
   }
 })();
-
-declare global {
-  const __native_favicon_kit__:
-    | undefined
-    | {
-        emitChange(href: string): void;
-      };
-}

@@ -1,5 +1,5 @@
 {
-  "name": "@dweb-browser/websocket-polyfill",
+  "name": "@dweb-browser/polyfill",
   "version": "1.0.0",
   "description": "",
   "scripts": {

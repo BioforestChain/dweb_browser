@@ -1,4 +1,5 @@
 import path from "node:path";
+import process from "node:process";
 /**
  * 基于指定的roots和filenames，合并生成路径，并且目录会不断向上走。
  * 比如说:
@@ -59,12 +60,12 @@ export function* GenerateTryFilepaths(filenames: string[], dirs: string[]) {
 /**
  * 获取manifest文件目录
  * @param cwd 当前路径
- * @returns 
+ * @returns
  */
 export function getManifestFilePath(cwd?: string) {
-  if(cwd) {
-    return path.join(Deno.cwd(), cwd, "manifest.json");
+  if (cwd) {
+    return path.join(process.cwd(), cwd, "manifest.json");
   }
 
-  return path.join(Deno.cwd(), "manifest.json");
+  return path.join(process.cwd(), "manifest.json");
 }

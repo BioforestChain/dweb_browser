@@ -1,4 +1,3 @@
-import "./close-watcher/close-watcher.type.ts";
 declare global {
   interface IosWebkit {
     messageHandlers?: Record<string, { postMessage: (data: unknown) => void }> &
@@ -9,3 +8,4 @@ declare global {
     webkit?: IosWebkit;
   }
 }
+export {}

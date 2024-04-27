@@ -1,0 +1,16 @@
+{
+  "imports": {
+    "@dweb-browser/helper": "npm:@dweb-browser/helper",
+    "@dweb-browser/helper/": "npm:@dweb-browser/helper/",
+    "@dweb-browser/js-process": "npm:@dweb-browser/js-process",
+    "@dweb-browser/js-process/": "npm:@dweb-browser/js-process/",
+    "@dweb-browser/core": "npm:@dweb-browser/core",
+    "@dweb-browser/core/": "npm:@dweb-browser/core/",
+    "@dweb-browser/polyfill": "npm:@dweb-browser/polyfill",
+    "@dweb-browser/polyfill/": "npm:@dweb-browser/polyfill/",
+    "@plaoc/cli": "npm:@plaoc/cli",
+    "@plaoc/server": "npm:@plaoc/server",
+    "@plaoc/is-dweb": "npm:@plaoc/is-dweb",
+    "@plaoc/plugins": "npm:@plaoc/plugins"
+  }
+}

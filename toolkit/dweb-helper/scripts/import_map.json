@@ -1,6 +1,0 @@
-{
-    "imports": {
-        "vitest": "npm:vitest",
-        "cbor-x": "npm:cbor-x"
-    }
-}

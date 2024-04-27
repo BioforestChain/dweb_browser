@@ -1,6 +1,12 @@
+import type {} from "./ios.type.ts";
 (() => {
-  navigator;
-  const wsport = webkit.messageHandlers.websocket;
+  if (!webkit) {
+    return;
+  }
+  const wsport = webkit?.messageHandlers?.websocket;
+  if (!wsport) {
+    return wsport;
+  }
   const wsevent = new EventTarget();
   Object.assign(wsport, {
     event: wsevent,
@@ -40,7 +46,7 @@
       super();
       const ws_id = ws_id_acc++;
       this.#ws_id = ws_id;
-      void wsport.postMessage([ws_id, "connect", (this.#url = url)]);
+      void wsport!.postMessage([ws_id, "connect", (this.#url = url)]);
 
       let sendQueueResolver: () => void;
       this.#sendQueue = new Promise((resolve) => (sendQueueResolver = resolve));

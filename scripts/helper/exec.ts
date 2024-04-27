@@ -1,3 +1,4 @@
+import { WalkAny } from "./WalkDir.ts";
 import { createBaseResolveTo } from "./ConTasks.helper.ts";
 import { whichSync } from "./WhichCommand.ts";
 
@@ -13,8 +14,10 @@ export const $ = Object.assign(
     await command.output();
   },
   {
-    cwd: (dir: string | URL) => {
+    cd: (dir: string | URL) => {
       defaultResolveTo = createBaseResolveTo(defaultResolveTo(dir));
     },
+    pwd: () => defaultResolveTo(),
+    ls: (dir: string | URL) => WalkAny(defaultResolveTo(dir)),
   }
 );

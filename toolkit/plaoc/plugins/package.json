@@ -9,7 +9,7 @@
   "dependencies": {
     "@dweb-browser/core": "workspace:^",
     "@dweb-browser/helper": "workspace:^",
-    "@dweb-browser/websocket-polyfill": "workspace:^"
+    "@dweb-browser/polyfill": "workspace:^"
   },
   "keywords": [],
   "author": "",

@@ -1,3 +1,4 @@
+import type {} from "./user-agent-data.type.ts";
 /// 源码基于 https://gist.github.com/fuweichin/18522d21d3cd947026c2819bda25e0a6 进行ts化
 
 type Brands = {
