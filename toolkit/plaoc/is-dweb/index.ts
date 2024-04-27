@@ -1,3 +1,4 @@
+import "@dweb-browser/polyfill";
 /**
  * 判断是不是dweb
  * * @returns boolean

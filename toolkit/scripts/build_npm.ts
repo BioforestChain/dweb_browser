@@ -117,6 +117,6 @@ if (import.meta.main) {
   //   void dwebJsProcess();
   //   void plaocServer();
   //   void plaocCli();
-  void plaocPlugins();
-  //   void plaocIsDweb();
+  //   void plaocPlugins();
+    void plaocIsDweb();
 }

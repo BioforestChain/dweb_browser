@@ -104,7 +104,11 @@ importers:
         specifier: ^20.9.0
         version: 20.12.7
 
-  npm/@plaoc__is-dweb: {}
+  npm/@plaoc__is-dweb:
+    dependencies:
+      '@dweb-browser/polyfill':
+        specifier: workspace:^
+        version: link:../@dweb-browser__polyfill
 
   npm/@plaoc__plugins:
     dependencies:
