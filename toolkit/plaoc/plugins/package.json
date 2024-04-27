@@ -9,6 +9,7 @@
   "dependencies": {
     "@dweb-browser/core": "workspace:^",
     "@dweb-browser/helper": "workspace:^",
+    "@dweb-browser/js-process": "workspace:^",
     "@dweb-browser/polyfill": "workspace:^"
   },
   "keywords": [],

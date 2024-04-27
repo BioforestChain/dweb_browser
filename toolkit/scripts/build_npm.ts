@@ -51,6 +51,8 @@ export const dwebCore = once(async () => {
   });
 });
 export const dwebJsProcess = once(async () => {
+  await dwebCore();
+  await dwebHelper();
   await npmBuilder({
     packageDir: import.meta.resolve("../dweb-js-process-assets/"),
     version,
@@ -60,6 +62,9 @@ export const dwebJsProcess = once(async () => {
 });
 
 export const plaocServer = once(async () => {
+  await dwebCore();
+  await dwebHelper();
+  await dwebJsProcess();
   await npmBuilder({
     packageDir: import.meta.resolve("../plaoc/server/"),
     version,
@@ -72,6 +77,7 @@ export const plaocServer = once(async () => {
 });
 
 export const plaocCli = once(async () => {
+  await dwebCore();
   await npmBuilder({
     packageDir: import.meta.resolve("../plaoc/cli/"),
     version,
@@ -93,6 +99,9 @@ export const plaocCli = once(async () => {
   });
 });
 export const plaocPlugins = once(async () => {
+  await dwebCore();
+  await dwebHelper();
+  await dwebJsProcess();
   await dwebPolyfill();
   await npmBuilder({
     packageDir: import.meta.resolve("../plaoc/plugins/"),
@@ -102,6 +111,7 @@ export const plaocPlugins = once(async () => {
   });
 });
 export const plaocIsDweb = once(async () => {
+  await dwebPolyfill();
   await npmBuilder({
     packageDir: import.meta.resolve("../plaoc/is-dweb/"),
     version,
@@ -111,12 +121,12 @@ export const plaocIsDweb = once(async () => {
 });
 
 if (import.meta.main) {
-  //   void dwebHelper();
-  //   void dwebPolyfill();
-  //   void dwebCore();
-  //   void dwebJsProcess();
-  //   void plaocServer();
-  //   void plaocCli();
-  //   void plaocPlugins();
-    void plaocIsDweb();
+  void dwebHelper();
+  void dwebCore();
+  void dwebJsProcess();
+  void dwebPolyfill();
+  void plaocServer();
+  void plaocCli();
+  void plaocPlugins();
+  void plaocIsDweb();
 }
