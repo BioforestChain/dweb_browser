@@ -158,10 +158,10 @@ export class WindowPlugin extends BasePlugin {
       const data = event.data;
       streamout.controller.enqueue(data);
     };
-    ws.onclose = async () => {
+    ws.onclose = () => {
       streamout.controller?.close();
     };
-    ws.onerror = async (event) => {
+    ws.onerror = (event) => {
       streamout.controller.error(event);
     };
     ws.onopen = async () => {

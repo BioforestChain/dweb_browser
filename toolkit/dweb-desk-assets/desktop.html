@@ -1,31 +1,33 @@
 <!DOCTYPE html>
 <html data-theme="desktop">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>desktop</title>
-    <script type="module" src="./src/env.ts"></script>
-    <style>
-      html,
-      body {
-        height: 100%;
-        margin: 0;
-      }
-      body {
-        padding: 0;
-        margin: 0;
-        overflow-y: auto;
-        overflow-y: overlay;
-        background-size: cover;
-        background-position: center;
-        background-image: url(./src/assets/wallpaper.webp);
-      }
-    </style>
-  </head>
 
-  <body>
-    <div id="app"></div>
-    <script type="module" src="./src/pages/desktop/main.ts"></script>
-    <link rel="stylesheet" href="./src/styles/tailwind.scss" />
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>desktop</title>
+  <style>
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+    }
+
+    body {
+      padding: 0;
+      margin: 0;
+      overflow-y: auto;
+      overflow-y: overlay;
+      background-size: cover;
+      background-position: center;
+      background-image: url(./src/assets/wallpaper.webp);
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app"></div>
+  <script type="module" src="./src/pages/desktop/main.ts"></script>
+  <link rel="stylesheet" href="./src/styles/tailwind.scss" />
+</body>
+
 </html>

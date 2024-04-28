@@ -4,30 +4,29 @@ import { toolkitTasks } from "../toolkit/scripts/toolkit-dev.ts";
 
 import { ConTasks, ExitAbortController } from "./helper/ConTasks.ts";
 import { doInit } from "./init.ts";
-import { npmTasks } from "./pub.ts";
 export const devTasks = new ConTasks(
   {
     "plaoc:server": {
       cmd: "deno",
       args: "task bundle:watch:server",
-      cwd: "./plaoc",
+      cwd: "./toolkit/plaoc",
     },
     "plaoc:demo": {
       cmd: "deno",
       args: "task build:watch:demo",
-      cwd: "./plaoc",
+      cwd: "./toolkit/plaoc",
       startDeps: [{ name: "plaoc:demo", whenLog: "Complete!", logType: "stdout" }],
     },
     "plaoc:client": {
       cmd: "deno",
       args: "task build:client",
       devArgs: "task build:client:watch",
-      cwd: "./plaoc",
+      cwd: "./toolkit/plaoc",
     },
     "plaoc:is-dweb": {
       cmd: "deno",
       args: "task build:is-dweb",
-      cwd: "./plaoc",
+      cwd: "./toolkit/plaoc",
     },
     sync: {
       cmd: "deno",
@@ -37,8 +36,7 @@ export const devTasks = new ConTasks(
   import.meta.resolve("../")
 )
   .merge(assetsTasks, "assets:")
-  .merge(toolkitTasks, "toolkit:")
-  .merge(npmTasks, "npm:");
+  .merge(toolkitTasks, "toolkit:");
 
 if (import.meta.main) {
   Deno.addSignalListener("SIGINT", () => {

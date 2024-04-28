@@ -1,6 +1,6 @@
+import { PromiseOut } from "@dweb-browser/helper/PromiseOut.ts";
+import { ReadableStreamOut, streamRead } from "@dweb-browser/helper/stream/readableStreamHelper.ts";
 import picocolors from "npm:picocolors";
-import { PromiseOut } from "../../desktop-dev/src/helper/PromiseOut.ts";
-import { ReadableStreamOut, streamRead } from "../../desktop-dev/src/helper/stream/readableStreamHelper.ts";
 import { esbuild, esbuild_deno_loader } from "../deps.ts";
 export type $BuildOptions = esbuild.BuildOptions & {
   denoLoader?: boolean;

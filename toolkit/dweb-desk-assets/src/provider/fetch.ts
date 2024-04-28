@@ -1,6 +1,6 @@
 /// about:blank
 
-import { jsonlinesStreamReadText } from "helper/stream/jsonlinesStreamHelper.ts";
+import { jsonlinesStreamReadText } from "@dweb-browser/helper/stream/jsonlinesStreamHelper.ts";
 
 /// about:newtab
 
@@ -36,7 +36,7 @@ export const nativeFetch = async <T extends unknown>(pathname: string, init?: $B
 export const nativeFetchStream = <T>(
   pathname: string,
   init?: $BuildRequestInit,
-  options?: { signal?: AbortSignal }
+  options?: { signal?: AbortSignal },
 ) => {
   const [url] = buildApiRequestArgs(pathname, init);
   const wsUrl = url.href.replace("http", "ws").replace(/^dweb\+ws/, "ws");
@@ -63,7 +63,7 @@ export const nativeFetchStream = <T>(
         ws.close();
       },
     }),
-    options
+    options,
   );
 };
 
@@ -87,11 +87,11 @@ export function buildApiRequestArgs(pathname: string, init?: $BuildRequestInit) 
         Object.entries(search)
           .filter(
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            ([_, value]) => value != undefined /* null undefined 都不传输*/
+            ([_, value]) => value != undefined /* null undefined 都不传输*/,
           )
           .map(([key, value]) => {
             return [key, typeof value === "object" ? JSON.stringify(value) : String(value)] as [string, string];
-          })
+          }),
       );
     }
     extendsSearch.forEach((value, key) => {

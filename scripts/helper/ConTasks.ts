@@ -5,7 +5,7 @@ import { format } from "node:util";
 import picocolors from "npm:picocolors";
 import { PromiseOut } from "../../toolkit/dweb-helper/src/PromiseOut.ts";
 import { mapHelper } from "../../toolkit/dweb-helper/src/fun/mapHelper.ts";
-import { DenoOS } from "../deps.ts";
+import type { DenoOS } from "../deps.ts";
 import { whichSync } from "./WhichCommand.ts";
 
 export const ExitAbortController = new AbortController();

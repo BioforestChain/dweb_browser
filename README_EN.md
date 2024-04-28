@@ -1,6 +1,6 @@
 <p align="center">
-<!-- <h1>Dweb-Browser</h1> -->
-<img src="./desktop-dev/logo.png" width="240">
+<h1>Dweb-Browser</h1>
+<!-- <img src="./logo.png" width="240"> -->
 </p>
 
 [CHINESE DOC](./README.md.md)

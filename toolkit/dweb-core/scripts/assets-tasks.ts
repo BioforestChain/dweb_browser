@@ -20,7 +20,7 @@ export const assetsTasks = new ConTasks(
     //   baseDir,
     // }),
     "js-process.worker.js": esbuildTaskFactory({
-      input: "../dweb-js-process-assets/worker",
+      input: "../dweb-js-process-assets/",
       outfile: "../next/kmp/browser/src/commonMain/composeResources/files/browser/js-process.worker/index.js",
       baseDir,
     }),

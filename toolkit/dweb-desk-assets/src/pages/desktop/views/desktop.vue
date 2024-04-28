@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import { getWidgetInfo, watchDesktopAppInfo } from "@/provider/api.ts";
 import { type $TileSizeType, type $WidgetAppData, type $WidgetCustomData } from "@/types/app.type.ts";
+import { MICRO_MODULE_CATEGORY } from "@dweb-browser/core";
 import { Ref, onMounted, onUnmounted, ref } from "vue";
-import { MICRO_MODULE_CATEGORY } from "../../../../../../core";
 import TileItem from "../components/tile-item/tile-item.vue";
 import TilePanel from "../components/tile-panel/tile-panel.vue";
 import WidgetApp from "../components/widget-app/widget-app.vue";

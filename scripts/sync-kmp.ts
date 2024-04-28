@@ -3,7 +3,7 @@ import { SyncTask } from "./helper/SyncTask.ts";
 
 export const kmpSyncTask = SyncTask.from(
   {
-    from: import.meta.resolve("../desktop-dev/electron"),
+    from: import.meta.resolve("../toolkit/electron"),
     to: import.meta.resolve("../next/kmp/shared/src/commonMain/resources"),
   },
   [{ from: "assets/browser", to: "browser" }]
