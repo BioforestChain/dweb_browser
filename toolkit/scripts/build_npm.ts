@@ -5,7 +5,6 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { registryNpmBuilder } from "../../scripts/helper/npmBuilder.ts";
 import { npmInit } from "./toolkit-init.ts";
-
 /// 将 import_map.npm.json 和 deno.jsonc 两个文件进行合并
 const importMap = await (async () => {
   const { default: importMapNode } = await import("./import_map.npm.json", { with: { type: "json" } });
@@ -52,9 +51,16 @@ export const plaocServer = registryNpmBuilder({
   version,
   importMap,
   entryPointsDirName: false,
-  options: {
+  options: (ctx) => ({
     scriptModule: false,
-  },
+    entryPoints: [
+      { name: ".", path: ctx.packageResolve("./index.ts") },
+      { name: "./middlewares", path: ctx.packageResolve("./middlewares/index.ts") },
+    ],
+    postBuild: () => {
+      Deno.symlinkSync(ctx.packageResolve("./dist"), ctx.npmResolve("./dist"));
+    },
+  }),
 });
 
 export const plaocCli = registryNpmBuilder({

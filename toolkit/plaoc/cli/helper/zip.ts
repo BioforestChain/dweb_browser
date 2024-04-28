@@ -1,4 +1,4 @@
-import JSZip from "npm:jszip";
+import JSZip from "jszip";
 import { WalkAny } from "./walk-dir.ts";
 
 export const bundleDirToZip = (bundleDir: string, zip?: JSZip) => {

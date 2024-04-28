@@ -1,11 +1,6 @@
 import { isMobile } from "is-mobile";
-import { URLPattern } from "urlpattern-polyfill";
 import type { $PlaocConfig } from "./const.ts";
-import type {
-  $DwebHttpServerOptions,
-  $OnFetch,
-  $OnFetchReturn,
-} from "./deps.ts";
+import type { $DwebHttpServerOptions, $OnFetch, $OnFetchReturn } from "./deps.ts";
 import { IpcFetchEvent, IpcResponse, jsProcess } from "./deps.ts";
 import { HttpServer } from "./helper/http-helper.ts";
 import type { PlaocConfig } from "./plaoc-config.ts";
@@ -15,10 +10,7 @@ import { setupFetch } from "./shim/fetch.shim.ts";
 const CONFIG_PREFIX = "/config.sys.dweb/";
 /**给前端的文件服务 */
 export class Server_www extends HttpServer {
-  constructor(
-    readonly plaocConfig: PlaocConfig,
-    private handlers: $OnFetch[] = []
-  ) {
+  constructor(readonly plaocConfig: PlaocConfig, private handlers: $OnFetch[] = []) {
     super("wwww");
   }
   get jsonPlaoc() {
@@ -27,10 +19,7 @@ export class Server_www extends HttpServer {
   lang: string | null = null;
   private sessionInfo = jsProcess
     .nativeFetch("file:///usr/sys/session.json")
-    .then(
-      (res) =>
-        res.json() as Promise<{ installTime: number; installUrl: string }>
-    );
+    .then((res) => res.json() as Promise<{ installTime: number; installUrl: string }>);
   protected _getOptions(): $DwebHttpServerOptions {
     return {
       subdomain: "www",
@@ -39,24 +28,17 @@ export class Server_www extends HttpServer {
   private encoder = new TextEncoder();
   async start() {
     // 设置默认语言
-    const lang = await jsProcess
-      .nativeFetch("file://config.sys.dweb/getLang")
-      .text();
+    const lang = await jsProcess.nativeFetch("file://config.sys.dweb/getLang").text();
     if (lang) {
       this.lang = lang;
     } else if (this.jsonPlaoc) {
       this.lang = this.jsonPlaoc.defaultConfig.lang;
     }
     const serverIpc = await this._listener;
-    const res = serverIpc
-      .onFetch(...this.handlers, this._provider.bind(this))
-      .noFound();
+    const res = serverIpc.onFetch(...this.handlers, this._provider.bind(this)).noFound();
     return res;
   }
-  protected async _provider(
-    request: IpcFetchEvent,
-    root = "www"
-  ): Promise<$OnFetchReturn> {
+  protected async _provider(request: IpcFetchEvent, root = "www"): Promise<$OnFetchReturn> {
     let { pathname } = request;
     // 配置config
     if (pathname.startsWith(CONFIG_PREFIX)) {
@@ -68,18 +50,11 @@ export class Server_www extends HttpServer {
     if (this.jsonPlaoc) {
       const proxyRequest = await this._plaocForwarder(request, this.jsonPlaoc);
       pathname = proxyRequest.url.pathname;
-      const plaocShims = new Set(
-        (proxyRequest.url.searchParams.get("plaoc-shim") ?? "")
-          .split(",")
-          .filter(Boolean)
-      );
+      const plaocShims = new Set((proxyRequest.url.searchParams.get("plaoc-shim") ?? "").split(",").filter(Boolean));
       if (plaocShims.has("fetch")) {
-        remoteIpcResponse = await jsProcess.nativeRequest(
-          `file:///usr/${root}${pathname}`,
-          {
-            headers: proxyRequest.headers,
-          }
-        );
+        remoteIpcResponse = await jsProcess.nativeRequest(`file:///usr/${root}${pathname}`, {
+          headers: proxyRequest.headers,
+        });
         const rawText = await remoteIpcResponse.toResponse().text();
         remoteIpcResponse = IpcResponse.fromText(
           remoteIpcResponse.reqId,
@@ -89,16 +64,11 @@ export class Server_www extends HttpServer {
           remoteIpcResponse.ipc
         );
       } else {
-        remoteIpcResponse = await jsProcess.nativeRequest(
-          `file:///usr/${root}${pathname}?mode=stream`,
-          {
-            headers: proxyRequest.headers,
-          }
-        );
+        remoteIpcResponse = await jsProcess.nativeRequest(`file:///usr/${root}${pathname}?mode=stream`, {
+          headers: proxyRequest.headers,
+        });
         if (
-          remoteIpcResponse.headers
-            .get("Content-Type")
-            ?.includes("text/html") &&
+          remoteIpcResponse.headers.get("Content-Type")?.includes("text/html") &&
           !plaocShims.has("raw") &&
           isMobile()
         ) {
@@ -117,9 +87,7 @@ export class Server_www extends HttpServer {
         }
       }
     } else {
-      remoteIpcResponse = await jsProcess.nativeRequest(
-        `file:///usr/${root}${pathname}?mode=stream`
-      );
+      remoteIpcResponse = await jsProcess.nativeRequest(`file:///usr/${root}${pathname}?mode=stream`);
     }
     /**
      * 流转发，是一种高性能的转发方式，等于没有真正意义上去读取response.body，
@@ -137,7 +105,7 @@ export class Server_www extends HttpServer {
     return ipcResponse;
   }
 
-  async _config(event: IpcFetchEvent) {
+  _config(event: IpcFetchEvent) {
     const pathname = event.pathname.slice(CONFIG_PREFIX.length);
     if (pathname.startsWith("/setLang")) {
       const lang = event.searchParams.get("lang");
@@ -151,7 +119,7 @@ export class Server_www extends HttpServer {
    * @param request
    * @param config
    */
-  private async _plaocForwarder(request: IpcFetchEvent, config: $PlaocConfig) {
+  private _plaocForwarder(request: IpcFetchEvent, config: $PlaocConfig) {
     const redirects = config.redirect;
     for (const redirect of redirects) {
       if (!this._matchMethod(request.method, redirect.matchMethod)) {
@@ -166,12 +134,7 @@ export class Server_www extends HttpServer {
 
       const url = redirect.to.url
         .replace(/\{\{\s*(.*?)\s*\}\}/g, (_exp, match) => {
-          const func = new Function(
-            "pattern",
-            "lang",
-            "config",
-            `return ${match}`
-          );
+          const func = new Function("pattern", "lang", "config", `return ${match}`);
           return func(pattern, this.lang, config);
         })
         .replace(/\\/g, "/")

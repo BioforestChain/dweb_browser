@@ -1,7 +1,7 @@
+import mime from "mime";
 import fs from "node:fs";
 import http from "node:http";
 import path from "node:path";
-import mime from "npm:mime";
 export const getMimeType = (name: string) => {
   return mime.getType(name) || "application/octet-stream";
 };

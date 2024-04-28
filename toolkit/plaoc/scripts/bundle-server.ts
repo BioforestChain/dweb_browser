@@ -3,34 +3,45 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { Chalk } from "npm:chalk";
 // import { InlineConfig, PluginOption } from "npm:vite";
-import { ESBuild } from "../../scripts/helper/ESBuild.ts";
+import { ESBuild } from "../../../scripts/helper/ESBuild.ts";
 // const minifyHTML = _minifyHTML.default();
 const chalk = new Chalk({ level: 3 });
 
 const resolveTo = (to: string) => fileURLToPath(import.meta.resolve(to));
-const absWorkingDir = resolveTo("../src/server");
+const absWorkingDir = resolveTo("../server");
+export const polyfill = new ESBuild({
+  absWorkingDir,
+  splitting: false,
+  entryPoints: {
+    "urlpattern.polyfill": "./helper/urlpattern.polyfill.ts",
+  },
+  outdir: "./dist",
+  chunkNames: "[name]",
+  bundle: true,
+  platform: "browser",
+  format: "esm",
+});
 export const prod = new ESBuild({
   absWorkingDir,
   splitting: true,
   entryPoints: {
     "plaoc.server": "./index.ts",
-    "urlpattern.polyfill": "./helper/urlpattern.polyfill.ts",
-  }, //[, "src/server/helper/urlpattern.polyfill.ts"],
-  // outfile: "../../dist/server/plaoc.server.js",
-  outdir: "../../dist/server",
+  },
+  importMapURL: import.meta.resolve("../../../deno.jsonc"),
+  outdir: "./dist",
   chunkNames: "[name]",
   bundle: true,
   platform: "browser",
   format: "esm",
-  denoLoader:true,
+  denoLoader: true,
 });
 export const dev = new ESBuild({
   absWorkingDir,
   entryPoints: {
     "plaoc.server.dev": "./index.ts",
-    "urlpattern.polyfill": "./helper/urlpattern.polyfill.ts",
   },
-  outdir: "../../dist/server",
+  importMapURL: import.meta.resolve("../../../deno.jsonc"),
+  outdir: "./dist",
   plugins: [
     {
       name: "use-(dev)-ext",
@@ -59,10 +70,12 @@ export const dev = new ESBuild({
   bundle: true,
   platform: "browser",
   format: "esm",
-  denoLoader:true,
+  denoLoader: true,
 });
 
 if (import.meta.main) {
+  Deno.removeSync(resolveTo("../server/dist"), { recursive: true });
+  void polyfill.auto();
   void prod.auto();
   void dev.auto();
 }

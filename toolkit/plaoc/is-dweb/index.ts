@@ -5,7 +5,6 @@ import "@dweb-browser/polyfill";
  */
 export const isDweb = () => {
   const isDweb = self.navigator.userAgent.includes("Dweb");
-  // @ts-ignore
   const isPlaoc = self.__native_close_watcher_kit__ !== void 0;
 
   if (isDweb || isPlaoc) {
@@ -59,3 +58,13 @@ export const isMobile = () => {
   }
   return !!navigator.userAgentData.mobile;
 };
+
+// declare global {
+//   namespace Navigator {
+//     interface userAgentData {
+//       mobile: boolean;
+//       brands: { brand: string; version: string }[];
+//       platform: string;
+//     }
+//   }
+// }

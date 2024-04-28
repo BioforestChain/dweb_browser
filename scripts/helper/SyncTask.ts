@@ -6,8 +6,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { isDeepStrictEqual } from "node:util";
 
-const tryFileURLToPath = (somepath: string) =>
-  somepath.startsWith("file://") ? fileURLToPath(somepath) : somepath;
+const tryFileURLToPath = (somepath: string) => (somepath.startsWith("file://") ? fileURLToPath(somepath) : somepath);
 
 const relativeCwd = (to: string) => path.relative(process.cwd(), to);
 
@@ -20,6 +19,12 @@ export class SyncTask {
   isVerbose = Deno.args.includes("--verbose");
   constructor(readonly tasks: $SyncTaskConfigs) {}
 
+  /**
+   *  同步代码
+   * @param root 同步的根目录
+   * @param input_tasks 同步根目录之后的相对路径
+   * @returns
+   */
   static from(root: $SyncTaskConfig, input_tasks: $SyncTaskConfigs) {
     const to_dir_root = tryFileURLToPath(root.to);
     const from_dir_root = tryFileURLToPath(root.from);

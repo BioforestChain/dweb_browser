@@ -2,7 +2,4 @@ packages:
   - "npm/*"
   - "toolkit/offscreen-web-canvas"
   - "toolkit/plaoc/examples/*"
-  - "toolkit/dweb-polyfill"
-  - "toolkit/plaoc/cli"
   - "toolkit/dweb-desk-assets"
-  - "toolkit/dweb-js-process-assets"

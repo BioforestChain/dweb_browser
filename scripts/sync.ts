@@ -1,9 +1,9 @@
 import { SyncTask } from "./helper/SyncTask.ts";
-import { kmpSyncTask } from "./sync-kmp.ts";
+import { SyncJsProcessTask } from "./sync-kmp.ts";
 
 export const syncTask = SyncTask.concat(
   // syncServerTask,
-  kmpSyncTask,
+  SyncJsProcessTask
   // androidSyncTask,
 );
 if (import.meta.main) {

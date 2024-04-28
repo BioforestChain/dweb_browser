@@ -5,12 +5,24 @@
     "dev": "deno run -A ./scripts/dev.ts",
     "build": "deno run -A ./scripts/build.ts",
     "pub": "deno run -A ./scripts/pub.ts",
-    "sync:android": "deno run -A ./scripts/sync-android.ts",
-    "sync:next": "deno run -A ./scripts/sync-next.ts",
+    "sync:next": "deno run -A ./scripts/sync-kmp.ts",
     "sync": "deno run -A ./scripts/sync.ts",
     "plaoc": "deno run -A ./plaoc/cli/plaoc.ts",
     "plaoc:net": "deno cache --reload https://deno.land/x/plaoc/cli/plaoc.ts && deno install -A -f https://deno.land/x/plaoc/cli/plaoc.ts",
-    "std": "deno run -A ./std/cli/std.ts"
+    "std": "deno run -A ./std/cli/std.ts",
+    "bundle:server": "deno run -A ./toolkit/plaoc/scripts/bundle-server.ts",
+    "bundle:watch:server": "deno task bundle:server --watch",
+    "build:client": "deno run -A ./toolkit/plaoc/scripts/npm-build.ts client",
+    "build:client:watch": "deno run --watch -A ./scripts/npm-build.ts client --watch",
+    "build:cli": "deno run -A ./toolkit/plaoc/scripts/npm-bin.ts cli",
+    "build:is-dweb": "deno run -A ./toolkit/plaoc/scripts/npm-build.ts is-dweb",
+    "build:server": "deno run -A ./toolkit/plaoc/scripts/npm-build.server.ts && deno task bundle:server",
+    "build:watch:s": "deno run -A ./toolkit/plaoc/scripts/npm-build.server.ts --watch",
+    // "dev": "deno task dev:demo & deno task build:watch:demo",
+    "dev:demo": "cd ./toolkit/plaoc/examples/plugin-demo && pnpm dev",
+    "build:demo": "cd /toolkit/plaoc/examples/plugin-demo && pnpm build",
+    "build:watch:demo": "cd /toolkit/plaoc/examples/plugin-demo && pnpm build:watch"
+    // "pub": "deno run -A ./scripts/npm-pub.ts",
   },
   "imports": {
     "@deno/dnt": "jsr:@deno/dnt@^0.41.1",
@@ -22,20 +34,27 @@
     "@dweb-browser/js-process/": "./toolkit/dweb-js-process-assets/worker/",
     "@dweb-browser/polyfill": "./toolkit/dweb-polyfill/index.ts",
     "@dweb-browser/polyfill/": "./toolkit/dweb-polyfill/src/",
+    "@plaoc/cli": "./toolkit/plaoc/cli/plaoc.ts",
+    "@plaoc/is-dweb": "./toolkit/plaoc/is-dweb/index.ts",
+    "@plaoc/plugins": "./toolkit/plaoc/plugins/index.ts",
+    "@plaoc/server": "./toolkit/plaoc/server/index.ts",
+    "@std/fs": "jsr:@std/fs@^0.224.0",
     "@std/path": "jsr:@std/path@^0.224.0",
+    "@types/web": "npm:@types/web@^0.0.143",
     "cbor-x": "npm:cbor-x@^1.5.9",
+    "deep-object-diff": "npm:deep-object-diff@^1.1.9",
     "is-mobile": "npm:is-mobile@^4.0.0",
+    "jszip": "npm:jszip@^3.10.1",
+    "mime": "npm:mime@^4.0.3",
     "urlpattern-polyfill": "npm:urlpattern-polyfill@^10.0.0",
-    "vitest": "npm:vitest@^1.5.2"
+    "vitest": "npm:vitest@^1.5.2",
+    "webdav-server": "npm:webdav-server@^2.6.2"
   },
   "compilerOptions": {
     // "useDefineForClassFields": false,
-    "experimentalDecorators": true, /* Enable experimental support for legacy experimental decorators. */
-    "emitDecoratorMetadata": true, /* Emit design-type metadata for decorated declarations in source files. */
+    "experimentalDecorators": true /* Enable experimental support for legacy experimental decorators. */,
+    "emitDecoratorMetadata": true /* Emit design-type metadata for decorated declarations in source files. */,
     "importsNotUsedAsValues": "error"
   },
-  "exclude": [
-    "npm",
-    "toolkit/dweb-desk-assets"
-  ]
+  "exclude": ["npm", "toolkit/dweb-desk-assets"]
 }

@@ -21,16 +21,12 @@
     "build": "tsc"
   },
   "exports": {
-    ".": {
-      "types": "./src/index.d.ts",
-      "default": "./src/index.js"
-    },
-    "./middleware": {
-      "import": "./middlewares/index.js",
-      "types": "./middlewares/index.d.ts"
-    }
+    "./plaoc.server.dev.js": "./dist/plaoc.server.dev.js",
+    "./plaoc.server.js": "./dist/plaoc.server.js",
+    "./urlpattern.polyfill.js": "./dist/urlpattern.polyfill.js"
   },
   "dependencies": {
+    "@types/web": "^0.0.143",
     "@dweb-browser/core": "workspace:~",
     "@dweb-browser/helper": "workspace:~",
     "@dweb-browser/js-process": "workspace:~",

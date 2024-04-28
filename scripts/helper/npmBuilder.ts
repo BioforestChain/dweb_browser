@@ -9,16 +9,34 @@ const rootDir = import.meta.resolve("../../");
 export const rootResolve = (path: string) => fileURLToPath(new URL(path, rootDir));
 export const npmNameToFolderName = (name: string) => name.replace("/", "__");
 export const npmNameToFolder = (name: string) => rootResolve(`./npm/${npmNameToFolderName(name)}`);
+export type NpmBuilderContext = { packageResolve: (path: string) => string; npmResolve: (path: string) => string };
+export type NpmBuilderDntBuildOptions = Omit<BuildOptions, "package"> & { package: Omit<PackageJson, "name"> };
 export const npmBuilder = async (config: {
   packageDir: string;
   version?: string;
   importMap?: string;
-  options?: Partial<BuildOptions>;
+  options?: Partial<NpmBuilderDntBuildOptions> | ((ctx: NpmBuilderContext) => Partial<NpmBuilderDntBuildOptions>);
   entryPointsDirName?: string | boolean;
   force?: boolean;
 }) => {
-  const { packageDir, version, importMap, options, entryPointsDirName = "./src", force = false } = config;
+  const {
+    packageDir,
+    version,
+    importMap,
+    options: optionsBuilder,
+    entryPointsDirName = "./src",
+    force = false,
+  } = config;
   const packageResolve = (path: string) => fileURLToPath(new URL(path, packageDir));
+  const options =
+    typeof optionsBuilder === "function"
+      ? optionsBuilder({
+          packageResolve,
+          get npmResolve() {
+            return npmResolve;
+          },
+        })
+      : optionsBuilder;
 
   const packageJson = options?.package ?? JSON.parse(fs.readFileSync(packageResolve("./package.json"), "utf-8"));
   Object.assign(packageJson, {
@@ -26,7 +44,6 @@ export const npmBuilder = async (config: {
     // delete fields
     main: undefined,
     module: undefined,
-    exports: undefined,
   });
 
   const customPostBuild = options?.postBuild;
@@ -69,6 +86,10 @@ export const npmBuilder = async (config: {
 
   console.log(`\n🐢 DNT START: ${packageJson.name}`);
 
+  const dntPackageJson = {
+    ...options?.package,
+    ...packageJson,
+  };
   await build({
     entryPoints: [
       { name: ".", path: packageResolve("./index.ts") },
@@ -82,13 +103,11 @@ export const npmBuilder = async (config: {
     },
     test: false,
     importMap: importMap,
-    package: packageJson,
     compilerOptions: {
       lib: ["DOM", "ES2020"],
       target: "ES2020",
       emitDecoratorMetadata: true,
-      useDefineForClassFields: false,
-    } as any,
+    },
     postBuild() {
       Deno.copyFileSync(rootResolve("./LICENSE"), npmResolve("./LICENSE"));
       // 拷贝必要的文件
@@ -100,6 +119,7 @@ export const npmBuilder = async (config: {
       customPostBuild?.();
     },
     ...options,
+    package: dntPackageJson,
   });
   dirHasher.writeHash(npmDir, "dnt");
 };
@@ -111,14 +131,9 @@ const once = <R>(fun: () => Promise<R>) => {
 
 const regMap = new Map<string, () => Promise<void>>();
 export const registryNpmBuilder = (config: Parameters<typeof npmBuilder>[0]) => {
-  const { packageDir, options } = config;
+  const { packageDir } = config;
   const packageResolve = (path: string) => fileURLToPath(new URL(path, packageDir));
-  const packageJson: PackageJson =
-    options?.package ?? JSON.parse(fs.readFileSync(packageResolve("./package.json"), "utf-8"));
-  config.options = {
-    ...config.options,
-    package: packageJson,
-  };
+  const packageJson: PackageJson = JSON.parse(fs.readFileSync(packageResolve("./package.json"), "utf-8"));
   regMap.set(
     packageJson.name,
     once(async () => {
@@ -137,8 +152,13 @@ export const registryNpmBuilder = (config: Parameters<typeof npmBuilder>[0]) => 
       }
       // 编译自身
       console.log(`⏳ BUILDING ${packageJson.name}`);
-      await npmBuilder(config);
-      console.log(`✅ END ${packageJson.name}`);
+      try {
+        await npmBuilder(config);
+        console.log(`✅ END ${packageJson.name}`);
+      } catch (e) {
+        console.error(`❌ ERROR ${packageJson.name}`);
+        console.error(e);
+      }
     })
   );
 

@@ -1,14 +1,15 @@
+import JSZip from "jszip";
 import fs from "node:fs";
+import { createRequire } from "node:module";
 import path from "node:path";
 import process from "node:process";
-import { fileURLToPath } from "node:url";
-import JSZip from "npm:jszip";
 import type { $JmmAppInstallManifest, $MMID } from "../deps.ts";
 import { colors } from "../deps.ts";
 import { $MetadataJsonGeneratorOptions, SERVE_MODE, defaultMetadata } from "./const.ts";
 import { GenerateTryFilepaths } from "./util.ts";
 import { WalkFiles } from "./walk-dir.ts";
 import { $ZipEntry, walkDirToZipEntries, zipEntriesToZip } from "./zip.ts";
+const internalRequest = createRequire(import.meta.url);
 
 export class MetadataJsonGenerator {
   readonly metadataFilepaths: string[];
@@ -229,7 +230,7 @@ export class BundleZipGenerator {
       }
       /// 本地文件
       else {
-        const addpath_full = fileURLToPath(import.meta.resolve(`../../dist/${addpath}`));
+        const addpath_full = internalRequest.resolve(addpath);
         if (fs.statSync(addpath_full).isFile()) {
           data = fs.readFileSync(addpath_full);
         } else {
@@ -247,12 +248,12 @@ export class BundleZipGenerator {
       });
     };
     if (dev) {
-      await addFiles_DistToUsr("server/plaoc.server.dev.js", "server/plaoc.server.js");
+      await addFiles_DistToUsr("@plaoc/server/plaoc.server.dev.js", "server/plaoc.server.js");
     } else {
-      await addFiles_DistToUsr("server/plaoc.server.js");
+      await addFiles_DistToUsr("@plaoc/server/plaoc.server.js", "server/plaoc.server.js");
     }
     // await addFiles_DistToUsr("server/chunk.js");
-    await addFiles_DistToUsr("server/urlpattern.polyfill.js");
+    await addFiles_DistToUsr("@plaoc/server/urlpattern.polyfill.js", "server/urlpattern.polyfill.js");
     return entries;
   }
   /**

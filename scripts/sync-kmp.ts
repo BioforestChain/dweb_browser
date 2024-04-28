@@ -1,14 +1,12 @@
 import { SyncTask } from "./helper/SyncTask.ts";
-// import { syncServerTask } from "./sync-desktop.ts";
 
-export const kmpSyncTask = SyncTask.from(
+export const SyncJsProcessTask = SyncTask.from(
   {
-    from: import.meta.resolve("../toolkit/electron"),
+    from: import.meta.resolve("../npm/@dweb-browser__js-process"),
     to: import.meta.resolve("../next/kmp/shared/src/commonMain/resources"),
   },
-  [{ from: "assets/browser", to: "browser" }]
+  [{ from: "esm", to: "js-process" }]
 );
 if (import.meta.main) {
-  // syncServerTask.auto();
-  kmpSyncTask.auto();
+  SyncJsProcessTask.auto();
 }

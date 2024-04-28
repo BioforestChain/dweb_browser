@@ -38,9 +38,7 @@ export const mwebview_activate = (wid: string) => {
 /**关闭app */
 export const mwebview_close = (webview_id: string) => {
   return jsProcess
-    .nativeFetch(
-      `file://mwebview.browser.dweb/close?webview_id=${encodeURIComponent(webview_id)}`
-    )
+    .nativeFetch(`file://mwebview.browser.dweb/close?webview_id=${encodeURIComponent(webview_id)}`)
     .text();
 };
 
@@ -49,9 +47,7 @@ export const mwebview_close = (webview_id: string) => {
  *
  */
 export const mwebview_destroy = () => {
-  return jsProcess
-    .nativeFetch(`file://mwebview.browser.dweb/close/app`)
-    .boolean();
+  return jsProcess.nativeFetch(`file://mwebview.browser.dweb/close/app`).boolean();
 };
 
 import { detailedDiff, type DetailedDiff } from "deep-object-diff";
