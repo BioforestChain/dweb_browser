@@ -30,27 +30,37 @@ export const toolkitTasks = new ConTasks(
       args: [
         "vite",
         "build",
+        "--emptyOutDir",
         "--outDir",
-        "../../next/kmp/browser/src/commonMain/composeResources/files/browser/desk"
+        "../../next/kmp/browser/src/commonMain/composeResources/files/browser/desk",
       ],
       devAppendArgs: ["--watch"],
-      cwd: "../dweb-desk-assets"
+      cwd: "../dweb-desk-assets",
     },
     "js-process.worker.js": esbuildTaskFactory({
-      input: "../dweb-js-process-assets/",
+      input: "../dweb-js-process-assets/index.ts",
       outfile: "../../next/kmp/browser/src/commonMain/composeResources/files/browser/js-process.worker/index.js",
       baseDir: import.meta.resolve("./"),
+      importMap: import.meta.resolve("../../deno.jsonc"),
+      tsconfig: {
+        compilerOptions: {
+          experimentalDecorators: true,
+        },
+      },
     }),
     "js-process.main.html": {
-      cmd: "npx",
+      cmd: "deno",
       args: [
-        "vite",
+        "run",
+        "-A",
+        "npm:vite",
         "build",
+        "--emptyOutDir",
         "--outDir",
-        "../../../next/kmp/browser/src/commonMain/composeResources/files/browser/js-process.main"
+        "../../../next/kmp/browser/src/commonMain/composeResources/files/browser/js-process.main",
       ],
       devAppendArgs: ["--watch"],
-      cwd: "../dweb-js-process-assets/main"
+      cwd: "../dweb-js-process-assets/main",
     },
   },
   import.meta.resolve("./")

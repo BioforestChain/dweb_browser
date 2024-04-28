@@ -1,6 +1,6 @@
 // import vue from "@vitejs/plugin-vue";
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
-
 // https://vitejs.dev/config/
 export default defineConfig({
   base: "./",
@@ -19,11 +19,12 @@ export default defineConfig({
     port: 5174,
   },
   // plugins: [vue()],
-  // resolve: {
-  //   alias: {
-  //     "@": fileURLToPath(new URL("./src", import.meta.url)),
-  //     "&": fileURLToPath(new URL("../", import.meta.url)),
-  //     "helper/": fileURLToPath(new URL("../../helper", import.meta.url)) + "/",
-  //   },
-  // },
+  resolve: {
+    alias: {
+      "@": fileURLToPath(new URL("./src", import.meta.url)),
+      "@dweb-browser/core": fileURLToPath(new URL("../../dweb-core/src", import.meta.url)),
+      "@dweb-browser/helper": fileURLToPath(new URL("../../dweb-helper/src", import.meta.url)),
+    },
+    extensions: [".js", ".json", ".jsx", ".mjs", ".ts", ".tsx", ".vue"],
+  },
 });

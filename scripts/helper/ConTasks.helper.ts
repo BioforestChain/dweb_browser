@@ -37,24 +37,42 @@ export const viteTaskFactory = (config: { inDir: string; outDir: string; viteCon
 };
 
 const __esbuild = fileURLToPath(import.meta.resolve("./ESBuild.ts"));
-export const esbuildTaskFactory = (config: {
+type ESbuildTaskOptionsBase = {
   input: string | string[];
-  outfile: string;
   importMap?: string;
   baseDir?: string;
-}) => {
+  tsconfig?: any;
+};
+export const esbuildTaskFactory = (
+  config:
+    | ({ outfile: string } & ESbuildTaskOptionsBase)
+    //
+    | ({ outdir: string } & ESbuildTaskOptionsBase)
+) => {
   const baseResolveTo = createBaseResolveTo(config.baseDir);
+  const args = ["run", "-A", __esbuild];
   const input =
     typeof config.input === "string"
       ? [baseResolveTo(config.input)]
       : config.input.map((input) => baseResolveTo(input));
-  const output = baseResolveTo(config.outfile);
-  const args = ["run", "-A", __esbuild, `--outfile`, output];
+
   input.forEach((input) => {
     args.push("--input", input);
   });
+
+  if ("outfile" in config) {
+    const output = baseResolveTo(config.outfile);
+    args.push(`--outfile`, output);
+  } else {
+    const output = baseResolveTo(config.outdir);
+    args.push(`--outdir`, output);
+  }
+
   if (config.importMap) {
     args.push(`--importMap`, baseResolveTo(config.importMap));
+  }
+  if (config.tsconfig) {
+    args.push(`--tsconfig-raw`, JSON.stringify(config.tsconfig));
   }
   return {
     cmd: "deno",

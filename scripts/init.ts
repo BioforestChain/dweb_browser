@@ -1,7 +1,7 @@
-import { toolkitInit } from "../toolkit/scripts/toolkit-init.ts";
+import { $ } from "./helper/exec.ts";
 
 export const doInit = async () => {
-  await toolkitInit();
+  await $(`git submodule update --init`);
 };
 if (import.meta.main) {
   doInit();

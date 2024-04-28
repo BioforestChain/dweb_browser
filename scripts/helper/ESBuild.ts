@@ -1,14 +1,11 @@
 import { PromiseOut } from "@dweb-browser/helper/PromiseOut.ts";
 import { ReadableStreamOut, streamRead } from "@dweb-browser/helper/stream/readableStreamHelper.ts";
-import crypto from "node:crypto";
-import fs from "node:fs";
-import os from "node:os";
-import path from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
 import picocolors from "npm:picocolors";
-import { esbuild, esbuild_deno_loader } from "../deps.ts";
+import { esbuild } from "../deps.ts";
+import { importMapResolver } from "./importMapResolver.ts";
 export type $BuildOptions = esbuild.BuildOptions & {
   denoLoader?: boolean;
+  denoHtml?: boolean;
   importMapURL?: string;
   signal?: AbortSignal;
 };
@@ -33,33 +30,28 @@ export class ESBuild {
   }
 
   constructor(readonly options: $BuildOptions) {}
-  mergeOptions(...optionsList: Partial<$BuildOptions>[]) {
+  async mergeOptions(...optionsList: Partial<$BuildOptions>[]) {
     const esbuildOptions = { ...this.options };
     for (const options of optionsList) {
       Object.assign(esbuildOptions, options);
     }
     const plugins = (esbuildOptions.plugins ??= []);
+
+    /// 她的
+    if (esbuildOptions.denoHtml) {
+      const esbuild_plugin_html = await import("npm:@chialab/esbuild-plugin-html");
+      plugins.push(esbuild_plugin_html.default());
+    }
+
     if (esbuildOptions.denoLoader) {
       let importMapURL = this.options.importMapURL;
       // importMapURL = `data:application/json,${JSON.stringify(importMapURL)}`;
       if (importMapURL !== undefined && !importMapURL.startsWith("file:///")) {
         importMapURL = "file:///" + importMapURL;
       }
-      if (importMapURL?.endsWith(".jsonc")) {
-        const importMapJsonStr = fs.readFileSync(fileURLToPath(importMapURL), "utf-8");
-        const hash = crypto.createHash("sha256").update(importMapURL).digest("hex");
-        const tmpJsonFile = path.join(os.tmpdir(), `import_map.tmp-${hash.slice(0, 6)}.json`);
-        const importMapJson = Function(`return (${importMapJsonStr})`)();
-        for (const [key, value] of Object.entries(importMapJson.imports as Record<string, string>)) {
-          if (value.startsWith("./")) {
-            importMapJson.imports[key] =
-              path.resolve(fileURLToPath(importMapURL), "../", value) + (key.endsWith("/") ? "/" : "");
-          }
-        }
-        fs.writeFileSync(tmpJsonFile, JSON.stringify({ imports: importMapJson.imports }, null, 2));
-        importMapURL = pathToFileURL(tmpJsonFile).href;
-        console.log("importMapURL", importMapURL);
-      }
+      importMapURL = importMapURL ? await importMapResolver(importMapURL) : importMapURL;
+
+      const esbuild_deno_loader = await import("https://deno.land/x/esbuild_deno_loader@0.9.0/mod.ts");
       plugins.push(
         {
           name: "the-npm-plugin",
@@ -86,7 +78,9 @@ export class ESBuild {
       );
     }
 
-    for (const key of ["importMapURL", "signal", "denoLoader"] as const) {
+    console.log("esbuildOptions.plugins", plugins);
+
+    for (const key of ["importMapURL", "signal", "denoLoader", "denoHtml"] as const) {
       delete esbuildOptions[key];
     }
     return esbuildOptions as esbuild.BuildOptions & Required<Pick<esbuild.BuildOptions, "plugins">>;
@@ -94,7 +88,7 @@ export class ESBuild {
 
   async build(options: Partial<$BuildOptions> = {}) {
     ESBuild.start(this);
-    const result = await esbuild.build(this.mergeOptions(options));
+    const result = await esbuild.build(await this.mergeOptions(options));
     options.signal?.addEventListener("abort", () => {
       ESBuild.dispose(this);
     });
@@ -120,7 +114,7 @@ export class ESBuild {
   Watch(options: Partial<$BuildOptions> = {}) {
     const results = new ReadableStreamOut<$ESBuildWatchYield>();
     void (async () => {
-      const esbuildOptions = this.mergeOptions({ minify: false }, options);
+      const esbuildOptions = await this.mergeOptions({ minify: false }, options);
       esbuildOptions.plugins.push({
         name: "esbuild-watch-hook",
         setup: (build) => {
@@ -191,7 +185,7 @@ if (import.meta.main) {
   const { Flags } = await import("../deps.ts");
   const args = Flags.parse(Deno.args, {
     collect: ["input"],
-    string: ["outfile", "importMap"],
+    string: ["outfile", "importMap", "tsconfig-raw"],
     default: { outfile: "index.js" },
   });
   if (args.input.length === 0) {
@@ -200,15 +194,18 @@ if (import.meta.main) {
 
   const cwd = Deno.cwd();
 
+  const entryPoints = args.input.map((input) => path.resolve(cwd, input as string));
   const esbuilder = new ESBuild({
-    entryPoints: args.input.map((input) => path.resolve(cwd, input as string)),
+    entryPoints: entryPoints,
     outfile: path.resolve(cwd, args.outfile!),
     bundle: true,
     format: "esm",
     target: "es2020",
     platform: "browser",
     denoLoader: args.importMap !== undefined,
+    denoHtml: entryPoints[0].endsWith(".html"),
     importMapURL: args.importMap ? path.resolve(cwd, args.importMap) : undefined,
+    tsconfigRaw: args["tsconfig-raw"],
   });
   await esbuilder.auto();
 }
