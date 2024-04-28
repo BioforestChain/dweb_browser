@@ -1,13 +1,13 @@
 import { readAcceptSvg } from "@/provider/api.ts";
 import { buildApiRequestArgs } from "@/provider/fetch.ts";
-import { $WidgetAppData } from "@/types/app.type.ts";
-import { strictImageResource } from "helper/imageResourcesHelper.ts";
-import { RandomNumberOptions, randomStringToNumber } from "helper/randomHelper.ts";
-import { Compareable as ComparableWrapper, enumToCompareable as enumToComparable } from "helper/sortHelper.ts";
+import type { $WidgetAppData } from "@/types/app.type.ts";
+import { strictImageResource } from "@dweb-browser/core/ipc/helper/imageResourcesHelper.ts";
+import { RandomNumberOptions, randomStringToNumber } from "@dweb-browser/helper/fun/randomHelper.ts";
+import { Compareable as ComparableWrapper, enumToCompareable as enumToComparable } from "@dweb-browser/helper/fun/sortHelper.ts";
 import { ShallowRef, watchEffect } from "vue";
 import "../../shims.ts";
 import blankApp_svg from "./blankApp.svg";
-import { $AppIconInfo } from "./types.ts";
+import type { $AppIconInfo } from "./types.ts";
 
 /**
  * 挑选合适的图标作为桌面上的图标

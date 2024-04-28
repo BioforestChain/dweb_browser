@@ -9,6 +9,7 @@
         "esbuild": "^0.17.19",
         "esbuild-plugin-html-modules": "^0.6.0",
         "prettier": "^2.8.8",
-        "prettier-plugin-organize-imports": "^3.2.4"
+        "prettier-plugin-organize-imports": "^3.2.4",
+        "vite": "^5.0.10"
     }
 }

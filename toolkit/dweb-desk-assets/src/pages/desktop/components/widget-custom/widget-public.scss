@@ -25,14 +25,14 @@
     // {bg-color}
     @apply bg-primary;
   }
-  ::part(text-primary-focus) {
-    // {text-color}
-    @apply text-primary-focus;
-  }
-  ::part(bg-primary-focus) {
-    // {bg-color}
-    @apply bg-primary-focus;
-  }
+  // ::part(text-primary-focus) {
+  //   // {text-color}
+  //   @apply text-primary-focus;
+  // }
+  // ::part(bg-primary-focus) {
+  //   // {bg-color}
+  //   @apply bg-primary-focus;
+  // }
   ::part(text-primary-content) {
     // {text-color}
     @apply text-primary-content;
@@ -49,14 +49,14 @@
     // {bg-color}
     @apply bg-secondary;
   }
-  ::part(text-secondary-focus) {
-    // {text-color}
-    @apply text-secondary-focus;
-  }
-  ::part(bg-secondary-focus) {
-    // {bg-color}
-    @apply bg-secondary-focus;
-  }
+  // ::part(text-secondary-focus) {
+  //   // {text-color}
+  //   @apply text-secondary-focus;
+  // }
+  // ::part(bg-secondary-focus) {
+  //   // {bg-color}
+  //   @apply bg-secondary-focus;
+  // }
   ::part(text-secondary-content) {
     // {text-color}
     @apply text-secondary-content;
@@ -73,14 +73,14 @@
     // {bg-color}
     @apply bg-accent;
   }
-  ::part(text-accent-focus) {
-    // {text-color}
-    @apply text-accent-focus;
-  }
-  ::part(bg-accent-focus) {
-    // {bg-color}
-    @apply bg-accent-focus;
-  }
+  // ::part(text-accent-focus) {
+  //   // {text-color}
+  //   @apply text-accent-focus;
+  // }
+  // ::part(bg-accent-focus) {
+  //   // {bg-color}
+  //   @apply bg-accent-focus;
+  // }
   ::part(text-accent-content) {
     // {text-color}
     @apply text-accent-content;
@@ -97,14 +97,14 @@
     // {bg-color}
     @apply bg-neutral;
   }
-  ::part(text-neutral-focus) {
-    // {text-color}
-    @apply text-neutral-focus;
-  }
-  ::part(bg-neutral-focus) {
-    // {bg-color}
-    @apply bg-neutral-focus;
-  }
+  // ::part(text-neutral-focus) {
+  //   // {text-color}
+  //   @apply text-neutral-focus;
+  // }
+  // ::part(bg-neutral-focus) {
+  //   // {bg-color}
+  //   @apply bg-neutral-focus;
+  // }
   ::part(text-neutral-content) {
     // {text-color}
     @apply text-neutral-content;
@@ -840,14 +840,14 @@
     // {modifier} For a visually disabled tab
     @apply tab-disabled;
   }
-  ::part(tab-bordered) {
-    // {modifier} Adds bottom border to tab item
-    @apply tab-bordered;
-  }
-  ::part(tab-lifted) {
-    // {modifier} Adds lifted style to tab item
-    @apply tab-lifted;
-  }
+  // ::part(tab-bordered) {
+  //   // {modifier} Adds bottom border to tab item
+  //   @apply tab-bordered;
+  // }
+  // ::part(tab-lifted) {
+  //   // {modifier} Adds lifted style to tab item
+  //   @apply tab-lifted;
+  // }
 
   //#endregion
 
@@ -1006,30 +1006,30 @@
   //#endregion
 
   //#region input-group
-  ::part(input-group) {
-    // {component} Container for grouping elements
-    @apply input-group;
-  }
-  ::part(input-group-lg) {
-    // {modifier} Large size for input-group wrapper
-    @apply input-group-lg;
-  }
-  ::part(input-group-md) {
-    // {modifier} Medium (default) size for input-group wrapper
-    @apply input-group-md;
-  }
-  ::part(input-group-sm) {
-    // {modifier} Small size for input-group wrapper
-    @apply input-group-sm;
-  }
-  ::part(input-group-xs) {
-    // {modifier} Extra small size for input-group wrapper
-    @apply input-group-xs;
-  }
-  ::part(input-group-vertical) {
-    // {modifier} Vertical direction for input-group items
-    @apply input-group-vertical;
-  }
+  // ::part(input-group) {
+  //   // {component} Container for grouping elements
+  //   @apply input-group;
+  // }
+  // ::part(input-group-lg) {
+  //   // {modifier} Large size for input-group wrapper
+  //   @apply input-group-lg;
+  // }
+  // ::part(input-group-md) {
+  //   // {modifier} Medium (default) size for input-group wrapper
+  //   @apply input-group-md;
+  // }
+  // ::part(input-group-sm) {
+  //   // {modifier} Small size for input-group wrapper
+  //   @apply input-group-sm;
+  // }
+  // ::part(input-group-xs) {
+  //   // {modifier} Extra small size for input-group wrapper
+  //   @apply input-group-xs;
+  // }
+  // ::part(input-group-vertical) {
+  //   // {modifier} Vertical direction for input-group items
+  //   @apply input-group-vertical;
+  // }
 
   //#endregion
 
@@ -1585,10 +1585,10 @@
   //#endregion
 
   //#region button-group
-  ::part(btn-group) {
-    // {component} Container for grouping multiple buttons
-    @apply btn-group;
-  }
+  // ::part(btn-group) {
+  //   // {component} Container for grouping multiple buttons
+  //   @apply btn-group;
+  // }
 
   //#endregion
 

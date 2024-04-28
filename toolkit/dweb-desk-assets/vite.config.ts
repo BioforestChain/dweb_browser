@@ -42,7 +42,8 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
-      "helper/": fileURLToPath(new URL("../../helper", import.meta.url)) + "/",
+      "@dweb-browser/core": fileURLToPath(new URL("../dweb-core/src", import.meta.url)),
+      "@dweb-browser/helper": fileURLToPath(new URL("../dweb-helper/src", import.meta.url))
     },
     extensions: [".js", ".json", ".jsx", ".mjs", ".ts", ".tsx", ".vue"],
   },

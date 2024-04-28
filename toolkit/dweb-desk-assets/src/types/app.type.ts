@@ -1,4 +1,4 @@
-import { $MMID, $MicroModuleManifest } from "../../../../js-core/src/core";
+import type { $MMID, $MicroModuleManifest } from "@dweb-browser/core/types.ts";
 
 export interface $WidgetAppData extends $MicroModuleManifest {
   running: boolean;

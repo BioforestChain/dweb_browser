@@ -35,6 +35,7 @@
     "importsNotUsedAsValues": "error"
   },
   "exclude": [
-    "npm"
+    "npm",
+    "toolkit/dweb-desk-assets"
   ]
 }
