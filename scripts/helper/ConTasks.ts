@@ -5,8 +5,8 @@ import { format } from "node:util";
 import picocolors from "npm:picocolors";
 import { PromiseOut } from "../../toolkit/dweb-helper/src/PromiseOut.ts";
 import { mapHelper } from "../../toolkit/dweb-helper/src/fun/mapHelper.ts";
-import { whichSync } from "./WhichCommand.ts";
 import { DenoOS } from "../deps.ts";
+import { whichSync } from "./WhichCommand.ts";
 
 export const ExitAbortController = new AbortController();
 export type $Tasks = Record<string, $Task>;
@@ -98,6 +98,7 @@ export class ConTasks {
       task.signal = ExitAbortController.signal;
     }
   }
+  #task_args_map = new WeakMap<$Task, string[]>();
   spawn(args = Deno.args) {
     const filters = (args.filter((arg) => !arg.startsWith("-"))[0] || "*")
       .trim()
@@ -123,45 +124,39 @@ export class ConTasks {
     > = {};
     /// 先便利构建出所有任务
     for (const name in this.tasks) {
-      if (filters.some((f) => f(name))) {
-        const task = this.tasks[name];
-        const args = useDev
-          ? task.devArgs
-            ? getArgs(task.devArgs)
-            : [...getArgs(task.args), ...getArgs(task.devAppendArgs)]
-          : getArgs(task.args);
-
-        if (task.cmd === "npx") {
-          args.unshift("--yes"); /// 避免需要确认安装的交互
-        }
-
-        // 修复windows无法找到命令执行环境问题
-        const cmd = whichSync(task.cmd);
-        const command = new Deno.Command(cmd!, {
-          args: args,
-          cwd: task.cwd,
-          stderr: "piped",
-          stdout: "piped",
-          stdin: "piped",
-          env: task.env,
-        });
-        children[name] = {
-          command,
-          task,
-          stdoutLogger: new TaskLogger(
-            picocolors.blue(name + " "),
-            Deno.stdout,
-            task.logTransformer,
-            task.logLineFilter
-          ),
-          stderrLogger: new TaskLogger(
-            picocolors.red(name + " "),
-            Deno.stderr,
-            task.logTransformer,
-            task.logLineFilter
-          ),
-        };
+      if (filters.some((f) => f(name)) === false) {
+        continue;
       }
+      const task = this.tasks[name];
+      const args = useDev
+        ? task.devArgs
+          ? getArgs(task.devArgs)
+          : [...getArgs(task.args), ...getArgs(task.devAppendArgs)]
+        : getArgs(task.args);
+
+      if (task.cmd === "npx") {
+        args.unshift("--yes"); /// 避免需要确认安装的交互
+      }
+
+      // 修复windows无法找到命令执行环境问题
+      const cmd = whichSync(task.cmd);
+      this.#task_args_map.set(task, args);
+
+      const command = new Deno.Command(cmd!, {
+        args: args,
+        cwd: task.cwd,
+        stderr: "piped",
+        stdout: "piped",
+        stdin: "piped",
+        env: task.env,
+      });
+      this;
+      children[name] = {
+        command,
+        task,
+        stdoutLogger: new TaskLogger(picocolors.blue(name + " "), Deno.stdout, task.logTransformer, task.logLineFilter),
+        stderrLogger: new TaskLogger(picocolors.red(name + " "), Deno.stderr, task.logTransformer, task.logLineFilter),
+      };
     }
     /// 根据依赖顺序，启动任务
     const processTasks: Promise<void>[] = [];
@@ -214,7 +209,7 @@ export class ConTasks {
         console.log(
           picocolors.green(">"),
           picocolors.magenta(picocolors.bold(task.cmd)),
-          picocolors.magenta(Array.isArray(task.args) ? task.args.join(" ") : task.args)
+          picocolors.magenta(this.#task_args_map.get(task)?.join(" ") ?? "")
         );
 
         const child = command.spawn();
@@ -267,7 +262,7 @@ export class ConTasks {
         throw new Error(`Duplicate task name: ${newTaskName}`);
       }
 
-      if(task.os && task.os !== Deno.build.os) {
+      if (task.os && task.os !== Deno.build.os) {
         continue;
       }
 

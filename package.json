@@ -2,6 +2,8 @@
     "name": "dweb-browser",
     "productName": "Dweb Browser",
     "description": "该配置只包含基本的一些全局工具链",
+    "private": "true",
+    "version": "0.0.0",
     "devDependencies": {
         "@types/node": "^20.12.7",
         "esbuild": "^0.17.19",

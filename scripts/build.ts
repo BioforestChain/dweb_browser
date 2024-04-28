@@ -1,8 +1,8 @@
 import { ConTasks } from "./helper/ConTasks.ts";
 
-export const pubTasks = new ConTasks(
+export const buildTasks = new ConTasks(
   {
-    pub: {
+    build: {
       cmd: "deno",
       args: "run -A ./toolkit/scripts/build_npm.ts",
     },
@@ -10,5 +10,5 @@ export const pubTasks = new ConTasks(
   import.meta.resolve("../")
 );
 if (import.meta.main) {
-  pubTasks.spawn();
+  buildTasks.spawn();
 }

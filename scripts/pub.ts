@@ -4,7 +4,7 @@ export const pubTasks = new ConTasks(
   {
     pub: {
       cmd: "pnpm",
-      args: "publish --access public",
+      args: "publish --access public --no-git-checks -r",
       devAppendArgs: "--dry-run",
     },
   },
