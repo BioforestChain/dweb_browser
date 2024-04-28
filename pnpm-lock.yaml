@@ -32,8 +32,9 @@ importers:
       cbor-x:
         specifier: ^1.5.3
         version: 1.5.9
+    devDependencies:
       vitest:
-        specifier: ^1.5.2
+        specifier: ^1.5.0
         version: 1.5.2(@types/node@20.12.7)(sass@1.75.0)
 
   npm/@dweb-browser__helper:
@@ -41,9 +42,6 @@ importers:
       typescript:
         specifier: ^5.0.0
         version: 5.4.5
-      vitest:
-        specifier: ^1.5.2
-        version: 1.5.2(@types/node@20.12.7)(sass@1.75.0)
 
   npm/@dweb-browser__js-process:
     dependencies:

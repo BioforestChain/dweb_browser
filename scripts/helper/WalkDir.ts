@@ -1,6 +1,15 @@
+import { globToRegExp } from "@std/path/glob-to-regexp";
 import fs from "node:fs";
 import path from "node:path";
-export function* WalkAny(rootpath: string) {
+
+export type WalkOptions = { ignore?: string };
+export function* WalkAny(rootpath: string, options?: WalkOptions) {
+  const ignore = options?.ignore
+    ? (() => {
+        const reg = globToRegExp(options.ignore);
+        return (entrypath: string) => reg.test(entrypath);
+      })()
+    : () => true;
   const dirs = [rootpath];
   for (const dirpath of dirs) {
     for (const entryname of fs.readdirSync(dirpath)) {
@@ -8,11 +17,22 @@ export function* WalkAny(rootpath: string) {
         continue;
       }
       const entrypath = path.join(dirpath, entryname);
-      const stats = fs.statSync(entrypath);
+
+      let stats: fs.Stats;
+      try {
+        stats = fs.statSync(entrypath);
+      } catch {
+        /// 有可能是空的symbol-link
+        continue;
+      }
       const isDirectory = stats.isDirectory();
       const isFile = stats.isFile();
       const relativepath = path.relative(rootpath, entrypath);
       const relativedirpath = path.relative(rootpath, dirpath);
+      if (ignore(relativepath)) {
+        console.log("ignored", relativepath);
+        continue;
+      }
       const entryBase = {
         entryname,
         entrypath,
@@ -63,16 +83,16 @@ export function* WalkAny(rootpath: string) {
     }
   }
 }
-export function* WalkFiles(rootpath: string) {
-  for (const entry of WalkAny(rootpath)) {
+export function* WalkFiles(rootpath: string, options?: WalkOptions) {
+  for (const entry of WalkAny(rootpath, options)) {
     if (entry.isFile) {
       yield entry;
     }
   }
 }
 
-export function* WalkDirs(rootpath: string) {
-  for (const entry of WalkAny(rootpath)) {
+export function* WalkDirs(rootpath: string, options?: WalkOptions) {
+  for (const entry of WalkAny(rootpath, options)) {
     if (entry.isDirectory) {
       yield entry;
     }

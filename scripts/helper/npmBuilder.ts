@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { WalkFiles } from "./WalkDir.ts";
+import { calcDirHash } from "./dirHash.ts";
 
 const rootDir = import.meta.resolve("../../");
 export const rootResolve = (path: string) => fileURLToPath(new URL(path, rootDir));
@@ -14,9 +15,11 @@ export const npmBuilder = async (config: {
   importMap?: string;
   options?: Partial<BuildOptions>;
   entryPointsDirName?: string | boolean;
+  force?: boolean;
 }) => {
-  const { packageDir, version, importMap, options, entryPointsDirName = "./src" } = config;
+  const { packageDir, version, importMap, options, entryPointsDirName = "./src", force = false } = config;
   const packageResolve = (path: string) => fileURLToPath(new URL(path, packageDir));
+
   const packageJson = options?.package ?? JSON.parse(fs.readFileSync(packageResolve("./package.json"), "utf-8"));
   Object.assign(packageJson, {
     version: version ?? packageJson.version,
@@ -29,10 +32,16 @@ export const npmBuilder = async (config: {
   const customPostBuild = options?.postBuild;
   delete options?.postBuild;
 
-  console.log(`\nstart dnt: ${packageJson.name}`);
-
   const npmDir = npmNameToFolder(packageJson.name);
   const npmResolve = (p: string) => path.resolve(npmDir, p);
+
+  //#region 缓存检查
+  const dirHasher = calcDirHash(packageResolve("./"), { ignore: "node_modules" });
+  if (force === false && dirHasher.isChange(npmDir, "dnt") === false) {
+    console.log(`\n🚀 DNT MATCH CACHE: ${packageJson.name}`);
+    return;
+  }
+  //#endregion
 
   //#region emptyDir(npmDir)
   // 这里要保留 package.json，因为在并发编译的时候，需要读取 package.json 以确保 workspace 能找到对应的项目所在的路径从而创造 symbol-link
@@ -53,10 +62,12 @@ export const npmBuilder = async (config: {
 
   const srcEntryPoints =
     typeof entryPointsDirName === "string"
-      ? [...WalkFiles(packageResolve(entryPointsDirName))]
-          .filter((it) => it.entryname.endsWith(".ts"))
+      ? [...WalkFiles(packageResolve(entryPointsDirName), { ignore: "node_modules" })]
+          .filter((it) => it.entryname.endsWith(".ts") && false === it.entryname.endsWith(".test.ts"))
           .map((it) => it.relativepath)
       : [];
+
+  console.log(`\n🐢 DNT START: ${packageJson.name}`);
 
   await build({
     entryPoints: [
@@ -90,6 +101,7 @@ export const npmBuilder = async (config: {
     },
     ...options,
   });
+  dirHasher.writeHash(npmDir, "dnt");
 };
 
 const once = <R>(fun: () => Promise<R>) => {
