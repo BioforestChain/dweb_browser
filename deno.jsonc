@@ -3,6 +3,8 @@
   "tasks": {
     "init": "deno run -A ./scripts/init.ts",
     "dev": "deno run -A ./scripts/dev.ts",
+    "build": "deno run -A ./scripts/build.ts",
+    "pub": "deno run -A ./scripts/pub.ts",
     "sync:android": "deno run -A ./scripts/sync-android.ts",
     "sync:next": "deno run -A ./scripts/sync-next.ts",
     "sync": "deno run -A ./scripts/sync.ts",

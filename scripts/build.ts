@@ -3,13 +3,12 @@ import { ConTasks } from "./helper/ConTasks.ts";
 export const pubTasks = new ConTasks(
   {
     pub: {
-      cmd: "pnpm",
-      args: "publish --access public",
-      devAppendArgs: "--dry-run",
+      cmd: "deno",
+      args: "run -A ./toolkit/scripts/build_npm.ts",
     },
   },
   import.meta.resolve("../")
 );
 if (import.meta.main) {
-  pubTasks.spawn(Deno.args);
+  pubTasks.spawn();
 }

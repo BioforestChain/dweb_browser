@@ -11,7 +11,7 @@ export const toolkitInit = async () => {
   await npmInit();
   await $(`pnpm install`);
 };
-const npmInit = async () => {
+export const npmInit = async () => {
   const { default: importMap } = await import("./import_map.npm.json", { with: { type: "json" } });
   for (const npmName in importMap.imports) {
     const npmDir = npmNameToFolder(npmName);
