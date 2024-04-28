@@ -1,3 +1,4 @@
+import { esbuildTaskFactory } from "../../scripts/helper/ConTasks.helper.ts";
 import { ConTasks } from "../../scripts/helper/ConTasks.ts";
 
 export const toolkitTasks = new ConTasks(
@@ -23,6 +24,33 @@ export const toolkitTasks = new ConTasks(
       args: [`vite`, `build`],
       devAppendArgs: ["--watch"],
       cwd: "../dweb-polyfill",
+    },
+    "dweb-desk-assets": {
+      cmd: "npx",
+      args: [
+        "vite",
+        "build",
+        "--outDir",
+        "../../next/kmp/browser/src/commonMain/composeResources/files/browser/desk"
+      ],
+      devAppendArgs: ["--watch"],
+      cwd: "../dweb-desk-assets"
+    },
+    "js-process.worker.js": esbuildTaskFactory({
+      input: "../dweb-js-process-assets/",
+      outfile: "../../next/kmp/browser/src/commonMain/composeResources/files/browser/js-process.worker/index.js",
+      baseDir: import.meta.resolve("./"),
+    }),
+    "js-process.main.html": {
+      cmd: "npx",
+      args: [
+        "vite",
+        "build",
+        "--outDir",
+        "../../../next/kmp/browser/src/commonMain/composeResources/files/browser/js-process.main"
+      ],
+      devAppendArgs: ["--watch"],
+      cwd: "../dweb-js-process-assets/main"
     },
   },
   import.meta.resolve("./")

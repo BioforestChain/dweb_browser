@@ -1,5 +1,4 @@
 console.log("loading tasks...");
-import { assetsTasks } from "../toolkit/dweb-core/scripts/assets-tasks.ts";
 import { toolkitTasks } from "../toolkit/scripts/toolkit-dev.ts";
 
 import { ConTasks, ExitAbortController } from "./helper/ConTasks.ts";
@@ -35,7 +34,6 @@ export const devTasks = new ConTasks(
   },
   import.meta.resolve("../")
 )
-  .merge(assetsTasks, "assets:")
   .merge(toolkitTasks, "toolkit:");
 
 if (import.meta.main) {
