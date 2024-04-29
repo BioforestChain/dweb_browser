@@ -12,7 +12,7 @@
   "dependencies": {
     "@dweb-browser/core": "workspace:~",
     "@dweb-browser/helper": "workspace:~",
-    "@plaoc/plugins": "workspace:~",
+    "@dweb-browser/polyfill": "workspace:~",
     "@mdi/font": "7.0.96",
     "@vueuse/components": "^10.6.1",
     "@vueuse/core": "^10.9.0",

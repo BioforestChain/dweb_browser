@@ -63,7 +63,8 @@ const bg_image = computed(() => {
 .app-icon {
   width: v-bind(size);
   height: v-bind(size);
-
+  border-radius: 16%;
+  overflow: hidden;
   .bg {
     z-index: 0;
     .squircle {

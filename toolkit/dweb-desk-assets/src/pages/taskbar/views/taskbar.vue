@@ -21,7 +21,7 @@ import {
 import { $TaskBarState, $WidgetAppData } from "@/types/app.type.ts";
 import { computed, onMounted, onUnmounted, ref, ShallowRef, shallowRef, triggerRef } from "vue";
 import { icons } from "./icons/index.ts";
-import x_circle_svg from "./icons/x-circle.svg";
+import x_circle_svg from "/taskbar/x-circle.svg";
 
 /** 打开桌面面板 */
 const toggleDesktopButton = async () => {

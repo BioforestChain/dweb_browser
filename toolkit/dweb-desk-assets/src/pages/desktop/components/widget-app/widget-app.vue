@@ -8,7 +8,6 @@ import SvgIcon from "@/components/svg-icon/svg-icon.vue";
 import { closeBrowser, detailApp, openApp, quitApp, vibrateHeavyClick } from "@/provider/api.ts";
 import "@/provider/shim.ts";
 import type { $WidgetAppData } from "@/types/app.type.ts";
-import "@plaoc/plugins";
 import { vOnClickOutside } from "@vueuse/components";
 import { useThrottleFn } from "@vueuse/core";
 import { computed, reactive, ref, shallowRef, watch } from "vue";
@@ -92,7 +91,8 @@ const $menu = {
 const doOpen = () =>
   useThrottleFn(async () => {
     opening.value = true;
-    if ((await openApp(appid.value).catch(() => (opening.value = false))) === false) {
+    const res = await openApp(appid.value);
+    if (!res.ok) {
       snackbar.text = `${appname.value} 启动失败`;
       snackbar.timeOut = 1500;
       snackbar.type = "error";

@@ -3,7 +3,7 @@
 // @ts-ignore
 // @ts-ignore
 // @ts-ignore
-import layout_panel_top_svg from "./layout-panel-top.svg";
+import layout_panel_top_svg from "/taskbar/layout-panel-top.svg";
 
 import { $AppIconInfo } from "src/components/app-icon/types.ts";
 

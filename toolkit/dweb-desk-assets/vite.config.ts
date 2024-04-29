@@ -44,9 +44,8 @@ export default defineConfig({
       "@": fileURLToPath(new URL("./src", import.meta.url)),
       "@dweb-browser/core": fileURLToPath(new URL("../dweb-core/src", import.meta.url)),
       "@dweb-browser/helper": fileURLToPath(new URL("../dweb-helper/src", import.meta.url)),
-      "@plaoc/plugins": fileURLToPath(new URL("../plaoc/build/client", import.meta.url)),
+      "@dweb-browser/polyfill": fileURLToPath(new URL("../dweb-polyfill/src", import.meta.url)),
     },
-    extensions: [".js", ".json", ".jsx", ".mjs", ".tsx"],
   },
   server: {
     port: 3600,

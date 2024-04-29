@@ -49,11 +49,13 @@ export function getWidgetInfo() {
 
 /**点击打开JMM */
 export function openApp(id: string) {
-  return nativeFetch<boolean>("/openAppOrActivate", {
-    search: {
-      app_id: id,
-    },
-  });
+  return fetch(
+    buildApiRequestArgs("/openAppOrActivate", {
+      search: {
+        app_id: id,
+      },
+    })[0].href,
+  );
 }
 
 export function doToggleTaskbar(toggle?: boolean) {

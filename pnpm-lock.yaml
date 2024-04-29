@@ -151,6 +151,9 @@ importers:
       '@dweb-browser/helper':
         specifier: workspace:~
         version: link:../../npm/@dweb-browser__helper
+      '@dweb-browser/polyfill':
+        specifier: workspace:~
+        version: link:../../npm/@dweb-browser__polyfill
       '@mdi/font':
         specifier: 7.0.96
         version: 7.0.96

@@ -4,8 +4,8 @@
     "target": "ESNext",
     "useDefineForClassFields": true,
     "moduleResolution": "NodeNext",
+    "module": "NodeNext",
     "strict": true,
-    "jsx": "preserve",
     "resolveJsonModule": true,
     "isolatedModules": false,
     "esModuleInterop": true,
@@ -17,7 +17,7 @@
       "@*": ["src/*"]
     }
   },
-  "include": ["scripts/**/*.ts", "src/**/*.ts", "src/**/*.d.ts", "src/**/*.vue"],
+  "include": ["**/*.ts", "**/*.d.ts", "**/*.vue"],
   "references": [
     {
       "path": "./tsconfig.node.json"

@@ -55,7 +55,7 @@ import type {} from "./favicon.type.ts";
     }
   }
   function watchCommonIcon(preference_size = 64) {
-    console.log("start watchCommonIcon");
+    // console.log("start watchCommonIcon");
     let preIcon = "";
     const getAndPost = () => {
       const curIcon = getCommonIcon(preference_size);

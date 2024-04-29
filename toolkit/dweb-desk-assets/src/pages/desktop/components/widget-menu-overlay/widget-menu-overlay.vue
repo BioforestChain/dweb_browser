@@ -37,11 +37,11 @@ const overlayReasons = shallowRef(new Set<{}>());
 /// 保留最后一个改变overlayReasons 的 reason，这样动画可以保持与最后一个元素进行交互
 const lastEffectedReason = shallowRef(defaultReason);
 export const ownReason = (reason: {}) => {
-  console.log("ownReason", overlayReasons.value.has(reason), lastEffectedReason.value === reason);
+  // console.log("ownReason", overlayReasons.value.has(reason), lastEffectedReason.value === reason);
   return overlayReasons.value.has(reason) || lastEffectedReason.value === reason;
 };
 export const showOverlay = (reason: {}, toggle = true) => {
-  console.log("showOverlay", toggle);
+  // console.log("showOverlay", toggle);
   if (toggle) {
     if (overlayReasons.value.has(reason) === false) {
       overlayReasons.value.add(reason);
