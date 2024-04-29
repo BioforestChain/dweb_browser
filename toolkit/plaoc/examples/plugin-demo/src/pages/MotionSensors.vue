@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import LogPanel, { defineLogAction, toConsole } from "../components/LogPanel.vue";
-import type { $Axis, $MotionSensorsController, HTMLDwebMotionSensorsElement } from "../plugin";
+import type { $Axis, $MotionSensorsController, HTMLDwebMotionSensorsElement } from "@plaoc/plugins";
 const title = "MotionSensors";
 
 const $logPanel = ref<typeof LogPanel>();

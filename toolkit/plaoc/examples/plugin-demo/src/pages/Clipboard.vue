@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import LogPanel, { toConsole } from "../components/LogPanel.vue";
-import { clipboardPlugin } from "../plugin";
+import { clipboardPlugin } from "@plaoc/plugins";
 
 const title = "剪切板测试(Clipboard)";
 const $logPanel = ref<typeof LogPanel>();

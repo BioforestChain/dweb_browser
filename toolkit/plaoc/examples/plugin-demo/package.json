@@ -12,6 +12,7 @@
   "dependencies": {
     "@plaoc/server": "workspace:^",
     "@plaoc/plugins": "workspace:^",
+    "@plaoc/is-dweb": "workspace:^",
     "@types/web-bluetooth": "^0.0.17",
     "vite-plugin-vuetify": "^2.0.3",
     "vue": "^3.4.25",

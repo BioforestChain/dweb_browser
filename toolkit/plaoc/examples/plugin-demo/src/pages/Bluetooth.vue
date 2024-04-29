@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, reactive } from "vue";
-import { HTMLBluetoothElement } from "../plugin";
+import { HTMLBluetoothElement } from "@plaoc/plugins";
 import LogPanel, { toConsole } from "../components/LogPanel.vue";
 import type {
   BluetoothRemoteGATTServer,

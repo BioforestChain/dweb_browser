@@ -2,7 +2,7 @@
 import { onMounted, ref } from "vue";
 import FieldLabel from "../components/FieldLabel.vue";
 import LogPanel, { defineLogAction, toConsole } from "../components/LogPanel.vue";
-import type { HTMLDwebToastElement, ToastDuration } from "../plugin";
+import type { HTMLDwebToastElement, ToastDuration } from "@plaoc/plugins";
 const title = "Toast";
 
 const $logPanel = ref<typeof LogPanel>();

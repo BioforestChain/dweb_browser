@@ -2,7 +2,7 @@
 import { onMounted, ref } from "vue";
 import FieldLabel from "../components/FieldLabel.vue";
 import LogPanel, { toConsole, defineLogAction } from "../components/LogPanel.vue";
-import { HTMLDwebSplashScreenElement } from "../plugin";
+import { HTMLDwebSplashScreenElement } from "@plaoc/plugins";
 const $logPanel = ref<typeof LogPanel>();
 
 const $splashScreen = ref<HTMLDwebSplashScreenElement>();

@@ -2,7 +2,7 @@
 import { onMounted, reactive, ref } from "vue";
 import FieldLabel from "../components/FieldLabel.vue";
 import LogPanel, { defineLogAction, toConsole } from "../components/LogPanel.vue";
-import { ShareOptions, type HTMLDwebShareElement } from "../plugin";
+import { ShareOptions, type HTMLDwebShareElement } from "@plaoc/plugins";
 
 const title = "Share";
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import LogPanel, { defineLogAction, toConsole } from "../components/LogPanel.vue";
-import { $SafeAreaState, HTMLDwebSafeAreaElement } from "../plugin";
+import { $SafeAreaState, HTMLDwebSafeAreaElement } from "@plaoc/plugins";
 const title = "Safe Area";
 
 const $logPanel = ref<typeof LogPanel>();

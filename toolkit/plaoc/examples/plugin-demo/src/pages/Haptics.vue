@@ -2,7 +2,7 @@
 import { onMounted, ref } from "vue";
 import FieldLabel from "../components/FieldLabel.vue";
 import LogPanel, { defineLogAction, toConsole } from "../components/LogPanel.vue";
-import type { HTMLDwebHapticsElement, ImpactStyle, NotificationType } from "../plugin";
+import type { HTMLDwebHapticsElement, ImpactStyle, NotificationType } from "@plaoc/plugins";
 import { isTouchDevice } from "../helpers/device.ts";
 const title = "Haptics";
 

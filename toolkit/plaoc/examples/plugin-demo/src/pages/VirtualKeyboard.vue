@@ -2,7 +2,7 @@
 import { onMounted, ref } from "vue";
 import FieldLabel from "../components/FieldLabel.vue";
 import LogPanel, { defineLogAction, toConsole } from "../components/LogPanel.vue";
-import { $VirtualKeyboardState, HTMLDwebVirtualKeyboardElement } from "../plugin";
+import { $VirtualKeyboardState, HTMLDwebVirtualKeyboardElement } from "@plaoc/plugins";
 const title = "Virtual Keyboard";
 
 const $logPanel = ref<typeof LogPanel>();

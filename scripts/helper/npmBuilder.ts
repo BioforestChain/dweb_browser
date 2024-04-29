@@ -2,6 +2,8 @@ import { BuildOptions, PackageJson, build } from "@deno/dnt";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { viteTaskFactory } from "./ConTasks.helper.ts";
+import { ConTasks } from "./ConTasks.ts";
 import { WalkFiles } from "./WalkDir.ts";
 import { calcDirHash } from "./dirHash.ts";
 
@@ -126,41 +128,92 @@ export const npmBuilder = async (config: {
 
 const once = <R>(fun: () => Promise<R>) => {
   let res: Promise<R> | undefined;
-  return () => (res ??= fun());
+  return Object.assign(() => (res ??= fun()), {
+    reset() {
+      res = undefined;
+    },
+  });
 };
 
-const regMap = new Map<string, () => Promise<void>>();
+const regMap = new Map<string, ReturnType<typeof once>>();
 export const registryNpmBuilder = (config: Parameters<typeof npmBuilder>[0]) => {
   const { packageDir } = config;
   const packageResolve = (path: string) => fileURLToPath(new URL(path, packageDir));
   const packageJson: PackageJson = JSON.parse(fs.readFileSync(packageResolve("./package.json"), "utf-8"));
-  regMap.set(
-    packageJson.name,
-    once(async () => {
-      console.log(`🛫 START ${packageJson.name}`);
-      /// 编译依赖，等待依赖编译完成
-      for (const [key, version] of Object.entries(packageJson.dependencies || {})) {
-        if (version.startsWith("workspace:")) {
-          const depBuilder = regMap.get(key);
-          if (!depBuilder) {
-            console.warn(`❌ NO-FOUND DEPENDENCY ${key}\t---\t${packageJson.name}`);
-            continue;
-          }
-          console.log(`⏳ WAITING DEPENDENCY ${key}\t---\t${packageJson.name}`);
-          await depBuilder();
+  const build_npm = once(async () => {
+    console.log(`🛫 START ${packageJson.name}`);
+    /// 编译依赖，等待依赖编译完成
+    for (const [key, version] of Object.entries(packageJson.dependencies || {})) {
+      if (version.startsWith("workspace:")) {
+        const depBuilder = regMap.get(key);
+        if (!depBuilder) {
+          console.warn(`❌ NO-FOUND DEPENDENCY ${key}\t---\t${packageJson.name}`);
+          continue;
         }
+        console.log(`⏳ WAITING DEPENDENCY ${key}\t---\t${packageJson.name}`);
+        await depBuilder();
       }
-      // 编译自身
-      console.log(`⏳ BUILDING ${packageJson.name}`);
-      try {
-        await npmBuilder(config);
-        console.log(`✅ END ${packageJson.name}`);
-      } catch (e) {
-        console.error(`❌ ERROR ${packageJson.name}`);
-        console.error(e);
-      }
-    })
-  );
+    }
+    // 编译自身
+    console.log(`⏳ BUILDING ${packageJson.name}`);
+    try {
+      await npmBuilder(config);
+      console.log(`✅ END ${packageJson.name}`);
+    } catch (e) {
+      console.error(`❌ ERROR ${packageJson.name}`);
+      console.error(e);
+    }
+  });
+  regMap.set(packageJson.name, build_npm);
 
-  return () => regMap.get(packageJson.name)!();
+  return build_npm;
+};
+
+// 编译examples
+export const examplesViteBuilder = (config: {
+  inDir: string;
+  outDir: string;
+  viteConfig?: string;
+  baseDir?: string;
+}) => {
+  const { inDir, baseDir } = config;
+  const packageDir = path.resolve(baseDir ?? ".", inDir, "./package.json");
+  const packageJson: PackageJson = JSON.parse(fs.readFileSync(packageDir, "utf-8"));
+  const build_examples = async () => {
+    console.log("XXXXXXXXXXXXXX");
+    try {
+      const viteTasks = new ConTasks(
+        {
+          "plaoc:examples:plugin-demo": viteTaskFactory(config),
+        },
+        import.meta.resolve("./")
+      );
+      viteTasks.spawn([...Deno.args, "--dev"]);
+      console.log(`✅ END ${packageJson.name}`);
+    } catch (e) {
+      console.error(`❌ ERROR ${packageJson.name}`);
+      console.error(e);
+    }
+  };
+  const build_npm = once(async () => {
+    console.log(`🛫 START ${packageJson.name}`);
+    /// 编译依赖，等待依赖编译完成
+    for (const [key, version] of Object.entries(packageJson.dependencies || {})) {
+      if (version.startsWith("workspace:")) {
+        const depBuilder = regMap.get(key);
+        if (!depBuilder) {
+          console.warn(`❌ NO-FOUND DEPENDENCY ${key}\t---\t${packageJson.name}`);
+          continue;
+        }
+        console.log(`⏳ WAITING DEPENDENCY ${key}\t---\t${packageJson.name}`);
+        await depBuilder();
+      }
+    }
+    // 编译自身
+    console.log(`⏳ BUILDING ${packageJson.name}`);
+    await build_examples();
+  });
+  regMap.set(packageJson.name, build_npm);
+
+  return build_npm;
 };

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import LogPanel, { toConsole, defineLogAction } from "../components/LogPanel.vue";
-import { HTMLDwebStatusBarElement, STATUS_BAR_STYLE, $StatusBarState } from "../plugin";
+import { HTMLDwebStatusBarElement, STATUS_BAR_STYLE, $StatusBarState } from "@plaoc/plugins";
 
 const title = "StatusBar";
 

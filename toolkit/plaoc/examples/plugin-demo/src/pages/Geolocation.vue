@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import LogPanel, { toConsole } from "../components/LogPanel.vue";
-import type { $GeolocationController, HTMLGeolocationElement } from "../plugin";
-import { geolocationPlugin } from "../plugin";
+import type { $GeolocationController, HTMLGeolocationElement } from "@plaoc/plugins";
+import { geolocationPlugin } from "@plaoc/plugins";
 
 const $geolocationElement = ref<HTMLGeolocationElement>();
 const $logPanel = ref<typeof LogPanel>();

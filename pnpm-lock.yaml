@@ -227,6 +227,12 @@ importers:
 
   toolkit/plaoc/examples/plugin-demo:
     dependencies:
+      '@plaoc/is-dweb':
+        specifier: workspace:^
+        version: link:../../../../npm/@plaoc__is-dweb
+      '@plaoc/plugins':
+        specifier: workspace:^
+        version: link:../../../../npm/@plaoc__plugins
       '@plaoc/server':
         specifier: workspace:^
         version: link:../../../../npm/@plaoc__server

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { UnwrapRef, onMounted, reactive, ref } from "vue";
 import LogPanel, { defineLogAction, toConsole } from "../components/LogPanel.vue";
-import { $WindowState, $WindowStyleColor, HTMLDwebWindowElement } from "../plugin";
+import { $WindowState, $WindowStyleColor, HTMLDwebWindowElement } from "@plaoc/plugins";
 
 const title = "window";
 

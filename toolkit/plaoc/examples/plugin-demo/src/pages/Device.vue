@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import LogPanel, { toConsole, } from "../components/LogPanel.vue";
-import type { HTMLDeviceElement } from "../plugin";
-import { isDweb } from "../plugin";
+import type { HTMLDeviceElement } from "@plaoc/plugins";
+import { isDweb } from "@plaoc/is-dweb";
 
 
 const title = "device";

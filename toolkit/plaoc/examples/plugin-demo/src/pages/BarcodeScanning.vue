@@ -2,7 +2,7 @@
 import { Ref, onMounted, ref } from "vue";
 import FieldLabel from "../components/FieldLabel.vue";
 import LogPanel, { toConsole } from "../components/LogPanel.vue";
-import { HTMLDwebBarcodeScanningElement, barcodeScannerPlugin } from "../plugin";
+import { HTMLDwebBarcodeScanningElement, barcodeScannerPlugin } from "@plaoc/plugins";
 
 const title = "Scanner";
 

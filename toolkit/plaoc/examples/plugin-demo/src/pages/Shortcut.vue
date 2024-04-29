@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from "vue";
 import LogPanel, { toConsole } from "../components/LogPanel.vue";
-import { ShortcutOption, shortcutPlugin } from "../plugin";
+import { ShortcutOption, shortcutPlugin } from "@plaoc/plugins";
 
 const $logPanel = ref<typeof LogPanel>();
 let console: Console;

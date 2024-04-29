@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import LogPanel from "../components/LogPanel.vue";
-import { mediaPlugin } from "../plugin";
+import { mediaPlugin } from "@plaoc/plugins";
 
 const title = "mediaPlugin";
 const $logPanel = ref<typeof LogPanel>();

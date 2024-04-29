@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import LogPanel, { defineLogAction, toConsole } from "../components/LogPanel.vue";
-import * as plaoc from "../plugin";
-import { dwebServiceWorker, updateControllerPlugin } from "../plugin";
+import * as plaoc from "@plaoc/plugins";
+import { dwebServiceWorker, updateControllerPlugin } from "@plaoc/plugins";
 
 const $logPanel = ref<typeof LogPanel>();
 let console: Console;

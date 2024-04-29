@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import LogPanel, { toConsole, defineLogAction } from "../components/LogPanel.vue";
-import type { HTMLDwebTorchElement } from "../plugin";
+import type { HTMLDwebTorchElement } from "@plaoc/plugins";
 const title = "Toast";
 
 const $logPanel = ref<typeof LogPanel>();

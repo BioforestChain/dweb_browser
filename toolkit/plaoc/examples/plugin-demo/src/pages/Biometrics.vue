@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import LogPanel, { defineLogAction, toConsole } from "../components/LogPanel.vue";
-import { BioetricsCheckResult, HTMLDwebBiometricsElement, biometricsPlugin } from "../plugin";
+import { BioetricsCheckResult, HTMLDwebBiometricsElement, biometricsPlugin } from "@plaoc/plugins";
 const $logPanel = ref<typeof LogPanel>();
 let console: Console;
 
