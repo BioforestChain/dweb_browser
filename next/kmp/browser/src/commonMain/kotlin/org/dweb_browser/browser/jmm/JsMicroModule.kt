@@ -113,10 +113,10 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
     open val esmLoader: HttpHandlerToolkit.() -> Unit = {
       val serverRoot = metadata.server.root.trimEnd('/')
       "/" bindPrefix PureMethod.GET by definePureResponse {
-        nativeFetch(
-          // 将多个 '/' 转为单个
-          "file://" + (serverRoot + request.url).replace(Regex("/{2,}"), "/")
-        )
+        // 将多个 '/' 转为单个
+        val url = "file://" + (serverRoot + request.url.encodedPath).replace(Regex("/{2,}"), "/")
+        debugMM("esmLoader", url)
+        nativeFetch(url)
       }
     }
 
