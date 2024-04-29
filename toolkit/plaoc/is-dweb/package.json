@@ -2,7 +2,7 @@
   "name": "@plaoc/is-dweb",
   "version": "0.1.0",
   "description": "dweb 环境 辅助工具函数",
-  "main": "main.js",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

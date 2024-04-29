@@ -78,8 +78,6 @@ export class ESBuild {
       );
     }
 
-    console.log("esbuildOptions.plugins", plugins);
-
     for (const key of ["importMapURL", "signal", "denoLoader", "denoHtml"] as const) {
       delete esbuildOptions[key];
     }

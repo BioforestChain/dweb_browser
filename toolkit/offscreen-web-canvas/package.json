@@ -1,0 +1,21 @@
+{
+  "name": "offscreen-web-canvas",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite build --watch",
+    "start": "vite dev --host 0.0.0.0 --open",
+    "build": "vite build"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/xmldom": "^0.1.32"
+  },
+  "dependencies": {
+    "canvg": "^4.0.1",
+    "xmldom": "^0.6.0"
+  }
+}
