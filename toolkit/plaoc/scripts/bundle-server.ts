@@ -74,7 +74,12 @@ export const dev = new ESBuild({
 });
 
 if (import.meta.main) {
-  Deno.removeSync(resolveTo("../server/dist"), { recursive: true });
+  try {
+    Deno.removeSync(resolveTo("../server/dist"), { recursive: true });  
+  } catch (_: Deno.errors.NotFound) {
+    // 第一次运行不存在dist目录
+  }
+  
   void polyfill.auto();
   void prod.auto();
   void dev.auto();

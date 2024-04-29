@@ -7,30 +7,20 @@ export const devTasks = new ConTasks(
   {
     "plaoc:server": {
       cmd: "deno",
-      args: "task bundle:watch:server",
-      cwd: "./toolkit/plaoc",
-    },
-    "plaoc:demo": {
-      cmd: "deno",
-      args: "task build:watch:demo",
-      cwd: "./toolkit/plaoc",
-      startDeps: [{ name: "plaoc:demo", whenLog: "Complete!", logType: "stdout" }],
-    },
-    "plaoc:client": {
-      cmd: "deno",
-      args: "task build:client",
-      devArgs: "task build:client:watch",
-      cwd: "./toolkit/plaoc",
+      args: "task bundle:watch:server"
     },
     "plaoc:is-dweb": {
       cmd: "deno",
       args: "task build:is-dweb",
-      cwd: "./toolkit/plaoc",
     },
-    sync: {
+    "plaoc:client": {
       cmd: "deno",
-      args: "task sync --watch",
+      args: "task build:client:watch"
     },
+    "plaoc:cli": {
+      cmd: "deno",
+      args: "task build:cli"
+    }
   },
   import.meta.resolve("../")
 )

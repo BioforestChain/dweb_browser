@@ -1,9 +1,9 @@
 [
   {
-    "buildFromRootDir": "./src/is-dweb/main.ts",
+    "buildFromRootDir": "./toolkit/plaoc/is-dweb/index.ts",
     "mainExports": ".",
-    "buildToRootDir": "./build/is-dweb",
-    "watchDir": "./src/is-dweb",
+    "buildToRootDir": "./toolkit/plaoc/build/is-dweb",
+    "watchDir": "./toolkit/plaoc/is-dweb",
     "denoShim": false,
     "name": "@plaoc/is-dweb",
     "version": "0.1.0",

@@ -1,13 +1,13 @@
 [
   {
-    "buildFromRootDir": "./src/client/index.ts",
+    "buildFromRootDir": "./toolkit/plaoc/plugins/index.ts",
     "mainExports": ".",
-    "buildToRootDir": "./build/client",
-    "watchDir": "./src/client",
+    "buildToRootDir": "./toolkit/plaoc/build/client",
+    "watchDir": "./toolkit/plaoc/plugins",
     "denoShim": false,
     "name": "@plaoc/plugins",
     "version": "0.7.0",
-    "importMap": "./import_map.json",
+    "importMap": "./deno.jsonc",
     "lib": [
       "ES2022",
       "DOM"

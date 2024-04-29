@@ -34,7 +34,7 @@ importers:
         version: link:../@dweb-browser__helper
       cbor-x:
         specifier: ^1.5.3
-        version: 1.5.3
+        version: 1.5.9
     devDependencies:
       vitest:
         specifier: ^1.5.0
@@ -65,7 +65,7 @@ importers:
     dependencies:
       '@deno/shim-deno':
         specifier: ~0.18.0
-        version: 0.18.0
+        version: 0.18.2
       '@dweb-browser/core':
         specifier: workspace:~
         version: link:../@dweb-browser__core
@@ -138,7 +138,7 @@ importers:
         version: 4.0.0
       tslib:
         specifier: '*'
-        version: 2.6.2
+        version: 1.14.1
       urlpattern-polyfill:
         specifier: '*'
         version: 10.0.0
@@ -352,8 +352,8 @@ packages:
   '@deno/shim-deno-test@0.5.0':
     resolution: {integrity: sha512-4nMhecpGlPi0cSzT67L+Tm+GOJqvuk8gqHBziqcUQOarnuIax1z96/gJHCSIz2Z0zhxE6Rzwb3IZXPtFh51j+w==}
 
-  '@deno/shim-deno@0.18.0':
-    resolution: {integrity: sha512-YLxa7yL1akKYARvPX3oByN7075EPA0CNZFxupe1uUUwvdmHnDM4/jwhPeAFaJdjWEOtTzyRzevLt4VUBw0G+Rg==}
+  '@deno/shim-deno@0.18.2':
+    resolution: {integrity: sha512-oQ0CVmOio63wlhwQF75zA4ioolPvOwAoK0yuzcS5bDC1JUvH3y1GS8xPh8EOpcoDQRU4FTG8OQfxhpR+c6DrzA==}
 
   '@enhance/enhance-style-transform@0.0.1':
     resolution: {integrity: sha512-N2+W+FIMg1JtrbwYjahwY8YK4dXKiBdotXQvBnqZm2VhI+FfH05qgsKD1Fzo0DNHVH/tGBb6vF7a+6GLJt0fQg==}
@@ -1263,9 +1263,6 @@ packages:
   cbor-extract@2.2.0:
     resolution: {integrity: sha512-Ig1zM66BjLfTXpNgKpvBePq271BPOvu8MR0Jl080yG7Jsl+wAZunfrwiwA+9ruzm/WEdIV5QF/bjDZTqyAIVHA==}
     hasBin: true
-
-  cbor-x@1.5.3:
-    resolution: {integrity: sha512-adrN0S67C7jY2hgqeGcw+Uj6iEGLQa5D/p6/9YNl5AaVIYJaJz/bARfWsP8UikBZWbhS27LN0DJK4531vo9ODw==}
 
   cbor-x@1.5.9:
     resolution: {integrity: sha512-OEI5rEu3MeR0WWNUXuIGkxmbXVhABP+VtgAXzm48c9ulkrsvxshjjk94XSOGphyAKeNGLPfAxxzEtgQ6rEVpYQ==}
@@ -2260,9 +2257,6 @@ packages:
   tslib@1.14.1:
     resolution: {integrity: sha512-Xni35NKzjgMrwevysHTCArtLDpPvye8zV/0E4EyYn43P7/7qvQwPh9BGkHewbMulVntbigmcT7rdX3BNo9wRJg==}
 
-  tslib@2.6.2:
-    resolution: {integrity: sha512-AEYxH93jGFPn/a2iVAwW87VuUIkR1FVUKB77NwMF7nBTDkDrrT/Hpt/IrCJ0QXhW27jTBDcf5ZY7w6RiqTMw2Q==}
-
   tsutils@3.21.0:
     resolution: {integrity: sha512-mHKK3iUXL+3UF6xL5k0PEhKRUBKPBCv/+RkEOpjRWxxx27KKRBmmA60A9pgOUvMi8GKhRMPEmjBRPzs2W7O1OA==}
     engines: {node: '>= 6'}
@@ -2581,7 +2575,7 @@ snapshots:
 
   '@deno/shim-deno-test@0.5.0': {}
 
-  '@deno/shim-deno@0.18.0':
+  '@deno/shim-deno@0.18.2':
     dependencies:
       '@deno/shim-deno-test': 0.5.0
       which: 4.0.0
@@ -3351,10 +3345,6 @@ snapshots:
       '@cbor-extract/cbor-extract-linux-x64': 2.2.0
       '@cbor-extract/cbor-extract-win32-x64': 2.2.0
     optional: true
-
-  cbor-x@1.5.3:
-    optionalDependencies:
-      cbor-extract: 2.2.0
 
   cbor-x@1.5.9:
     optionalDependencies:
@@ -4416,8 +4406,6 @@ snapshots:
   ts-interface-checker@0.1.13: {}
 
   tslib@1.14.1: {}
-
-  tslib@2.6.2: {}
 
   tsutils@3.21.0(typescript@5.4.5):
     dependencies:
