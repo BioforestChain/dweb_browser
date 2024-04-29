@@ -172,42 +172,47 @@ val inResizeStore = WeakHashMap<WindowController, MutableState<Boolean>>()
 val WindowController.inResize get() = inResizeStore.getOrPut(this) { mutableStateOf(false) }
 
 /** 基于窗口左下角进行调整大小 */
-fun Modifier.windowResizeByLeftBottom(win: WindowController) = this.pointerInput(win) {
-  var inResize by win.inResize
-  detectDragGestures(
-    onDragStart = { inResize = true },
-    onDragEnd = { inResize = false },
-    onDragCancel = { inResize = false },
-  ) { change, dragAmount ->
-    change.consume()
-    win.state.updateBounds {
-      copy(
-        x = x + dragAmount.x / density,
-        width = width - dragAmount.x / density,
-        height = height + dragAmount.y / density,
-      )
+fun Modifier.windowResizeByLeftBottom(win: WindowController) = composed {
+  val limits = LocalWindowLimits.current
+  this.pointerInput(win) {
+    var inResize by win.inResize
+    detectDragGestures(
+      onDragStart = { inResize = true },
+      onDragEnd = { inResize = false },
+      onDragCancel = { inResize = false },
+    ) { change, dragAmount ->
+      change.consume()
+      win.state.updateBounds {
+        copy(
+          x = x + dragAmount.x / density,
+          width = max(width - dragAmount.x / density, limits.minWidth),
+          height = max(height + dragAmount.y / density, limits.minHeight),
+        )
+      }
     }
   }
 }
 
 /** 基于窗口右下角进行调整大小 */
-fun Modifier.windowResizeByRightBottom(win: WindowController) = this.pointerInput(win) {
-  var inResize by win.inResize
-  detectDragGestures(
-    onDragStart = { inResize = true },
-    onDragEnd = { inResize = false },
-    onDragCancel = { inResize = false },
-  ) { change, dragAmount ->
-    change.consume()
-    win.state.updateBounds {
-      copy(
-        width = width + dragAmount.x / density,
-        height = height + dragAmount.y / density,
-      )
+fun Modifier.windowResizeByRightBottom(win: WindowController) = composed {
+  val limits = LocalWindowLimits.current
+  this.pointerInput(win) {
+    var inResize by win.inResize
+    detectDragGestures(
+      onDragStart = { inResize = true },
+      onDragEnd = { inResize = false },
+      onDragCancel = { inResize = false },
+    ) { change, dragAmount ->
+      change.consume()
+      win.state.updateBounds {
+        copy(
+          width = max(width + dragAmount.x / density, limits.minWidth),
+          height = max(height + dragAmount.y / density, limits.minHeight),
+        )
+      }
     }
   }
 }
-
 
 val LocalWindowLimits = compositionChainOf<WindowLimits>("WindowLimits")
 val LocalWindowController = compositionChainOf<WindowController>("WindowController")
@@ -266,6 +271,7 @@ fun WindowController.calcWindowByLimits(
    * 窗口大小
    */
   val winBounds = calcWindowBoundsByLimits(limits)
+  println("lin.huang ===> $winBounds")
 
   /**
    * 窗口边距
@@ -316,6 +322,8 @@ private fun WindowController.calcWindowBoundsByLimits(
     val minTop = safeTopPadding
     val maxTop =
       limits.maxHeight - safeBottomPadding - limits.topBarBaseHeight // 确保 topBar 在可触摸的空间内
+
+    println("lin.huang ==> $winWidth ==> $winHeight, limits=$limits")
     state.updateBounds {
       copy(
         x = min(max(minLeft, bounds.x), maxLeft),
