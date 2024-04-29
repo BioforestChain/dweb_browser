@@ -28,7 +28,7 @@ class BrowserNMM : NativeMicroModule("web.browser.dweb", "Web Browser") {
     short_name = BrowserI18nResource.browser_short_name.text;
     dweb_deeplinks = listOf("dweb://search", "dweb://openinbrowser")
     categories = listOf(MICRO_MODULE_CATEGORY.Application, MICRO_MODULE_CATEGORY.Web_Browser)
-    icons = listOf(ImageResource(src = "file:///sys/icons/$mmid.svg", type = "image/svg+xml"))
+    icons = listOf(ImageResource(src = "file:///sys/browser-icons/$mmid.svg", type = "image/svg+xml"))
     display = DisplayMode.Fullscreen
 
     /// 提供图标文件的适配器。注意，这里不需要随着 BrowserNMM bootstrap 来安装，而是始终有效。

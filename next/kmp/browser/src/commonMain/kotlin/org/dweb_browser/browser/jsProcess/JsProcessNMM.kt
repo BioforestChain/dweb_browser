@@ -39,7 +39,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
 
     private val JS_PROCESS_WORKER_CODE by lazy {
       mmScope.async {
-        nativeFetch("file:///sys/browser/js-process.worker/index.js").binary()
+        nativeFetch("file:///sys/browser-js-process-worker/index.js").binary()
       }
     }
 
@@ -86,7 +86,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
               )
             }
           } else {
-            val response = nativeFetch("file:///sys/browser/js-process.main${request.uri.fullPath}")
+            val response = nativeFetch("file:///sys/browser-js-process-main${request.uri.fullPath}")
             serverIpc.postResponse(request.reqId, response)
           }
         }

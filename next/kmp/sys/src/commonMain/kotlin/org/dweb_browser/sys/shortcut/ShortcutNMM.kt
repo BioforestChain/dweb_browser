@@ -37,7 +37,7 @@ class ShortcutNMM : NativeMicroModule("shortcut.sys.dweb", "Shortcut") {
       MICRO_MODULE_CATEGORY.Hub_Service
     )
     icons = listOf(
-      ImageResource(src = "file:///sys/icons/$mmid.svg", type = "image/svg+xml")
+      ImageResource(src = "file:///sys/browser-icons/$mmid.svg", type = "image/svg+xml")
     )
   }
 

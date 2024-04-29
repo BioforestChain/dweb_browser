@@ -34,10 +34,19 @@ export const $once = <T extends (...args: any) => unknown>(fn: T) => {
           }
         },
       },
+      reset: {
+        value: () => {
+          first = true;
+          resolved = undefined;
+          rejected = undefined;
+          success = false;
+        },
+      },
     }
   ) as T & {
-    hasRun: boolean;
-    result: ReturnType<T>;
+    readonly hasRun: boolean;
+    readonly result: ReturnType<T>;
+    reset(): void;
   };
 };
 

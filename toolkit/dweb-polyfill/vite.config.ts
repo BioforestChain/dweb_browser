@@ -13,11 +13,10 @@ export default defineConfig(() => {
           "user-agent-data.common": "./src/user-agent-data.common.ts",
         },
         // 多入口不支持 iife
-        formats: ["cjs"],
+        formats: ["cjs" as const],
       },
       minify: false,
       emptyOutDir: true,
-      outDir: "../../next/kmp/dwebview/src/commonMain/composeResources/files/dwebview-polyfill",
     },
   };
 });

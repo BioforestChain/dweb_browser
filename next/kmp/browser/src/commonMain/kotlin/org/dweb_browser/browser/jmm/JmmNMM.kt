@@ -45,7 +45,7 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Service") {
     )
     icons = listOf(
       ImageResource(
-        src = "file:///sys/icons/jmm.browser.dweb.svg",
+        src = "file:///sys/browser-icons/jmm.browser.dweb.svg",
         type = "image/svg+xml",
         // purpose = "monochrome"
       )

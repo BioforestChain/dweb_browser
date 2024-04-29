@@ -1,6 +1,10 @@
+import { AssetsConfig, UseAssets } from "../../scripts/helper/AssetsConfig.ts";
 import { esbuildTaskFactory } from "../../scripts/helper/ConTasks.helper.ts";
 import { ConTasks } from "../../scripts/helper/ConTasks.ts";
 
+const defineAssets = (assetsName: string, ...useAssets: UseAssets[]) => {
+  return AssetsConfig.createAndSave(assetsName, useAssets).assetsDirname;
+};
 export const toolkitTasks = new ConTasks(
   {
     "fort-test-image:serve": {
@@ -14,14 +18,21 @@ export const toolkitTasks = new ConTasks(
         `vite`,
         `build`,
         `--outDir`,
-        `../../../next/kmp/pureImage/src/commonMain/composeResources/files/offscreen-web-canvas`,
+        defineAssets(`offscreen-web-canvas`, { type: "linkKmpResFiles", moduleName: "pureImage" }),
+        // `../../../next/kmp/pureImage/src/commonMain/composeResources/files/offscreen-web-canvas`,
       ],
       devAppendArgs: ["--watch"],
       cwd: "../dweb-offscreen-web-canvas-assets",
     },
     "dweb-polyfill": {
       cmd: "npx",
-      args: [`vite`, `build`],
+      args: [
+        `vite`,
+        `build`,
+        `--outDir`,
+        defineAssets(`dwebview-polyfill`, { type: "linkKmpResFiles", moduleName: "dwebview" }),
+        // `../../next/kmp/dwebview/src/commonMain/composeResources/files/dwebview-polyfill`,
+      ],
       devAppendArgs: ["--watch"],
       cwd: "../dweb-polyfill",
     },
@@ -32,14 +43,17 @@ export const toolkitTasks = new ConTasks(
         "build",
         "--emptyOutDir",
         "--outDir",
-        "../../next/kmp/browser/src/commonMain/composeResources/files/browser/desk",
+        defineAssets(`browser-desk`, { type: "linkKmpResFiles", moduleName: "browser" }),
+        // "../../next/kmp/browser/src/commonMain/composeResources/files/browser/desk",
       ],
       devAppendArgs: ["--watch"],
       cwd: "../dweb-desk-assets",
     },
     "js-process.worker.js": esbuildTaskFactory({
       input: "../dweb-js-process-assets/index.ts",
-      outfile: "../../next/kmp/browser/src/commonMain/composeResources/files/browser/js-process.worker/index.js",
+      outfile:
+        defineAssets("browser-js-process-worker", { type: "linkKmpResFiles", moduleName: "browser" }) + "/index.js",
+      // "../../next/kmp/browser/src/commonMain/composeResources/files/browser/js-process.worker/index.js",
       baseDir: import.meta.resolve("./"),
       importMap: import.meta.resolve("../../deno.jsonc"),
       tsconfig: {
@@ -57,7 +71,8 @@ export const toolkitTasks = new ConTasks(
         "build",
         "--emptyOutDir",
         "--outDir",
-        "../../../next/kmp/browser/src/commonMain/composeResources/files/browser/js-process.main",
+        defineAssets("browser-js-process-main", { type: "linkKmpResFiles", moduleName: "browser" }),
+        // "../../../next/kmp/browser/src/commonMain/composeResources/files/browser/js-process.main",
       ],
       devAppendArgs: ["--watch"],
       cwd: "../dweb-js-process-assets/main",

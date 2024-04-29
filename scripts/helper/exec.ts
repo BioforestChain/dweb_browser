@@ -1,5 +1,5 @@
-import { WalkAny } from "./WalkDir.ts";
 import { createBaseResolveTo } from "./ConTasks.helper.ts";
+import { WalkAny } from "./WalkDir.ts";
 import { whichSync } from "./WhichCommand.ts";
 
 let defaultResolveTo = createBaseResolveTo(Deno.cwd());
@@ -9,7 +9,7 @@ export const $ = Object.assign(
       cmd = cmd.split(/\s+/);
     }
     const [exec, ...args] = cmd;
-    const cmdWhich = whichSync(exec);
+    const cmdWhich = exec.startsWith("./") ? exec : whichSync(exec);
     const command = new Deno.Command(cmdWhich!, { args, cwd: defaultResolveTo(cwd ?? "./"), stdout: "inherit" });
     await command.output();
   },

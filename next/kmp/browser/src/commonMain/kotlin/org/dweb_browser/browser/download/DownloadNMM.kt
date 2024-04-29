@@ -31,7 +31,7 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
       MICRO_MODULE_CATEGORY.Network_Service,
     )
     display = DisplayMode.Fullscreen
-    icons = listOf(ImageResource(src = "file:///sys/icons/$mmid.svg", type = "image/svg+xml"))
+    icons = listOf(ImageResource(src = "file:///sys/browser-icons/$mmid.svg", type = "image/svg+xml"))
   }
 
   @Serializable

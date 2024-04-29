@@ -339,7 +339,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
           val internalUri = pathName.substring(API_PREFIX.length)
           "file://$internalUri"
         } else {
-          "file:///sys/browser/desk${pathName}?mode=stream"
+          "file:///sys/browser-desk${pathName}?mode=stream"
         }
         val response = nativeFetch(ipcServerRequest.toPure().toClient().copy(href = url))
         serverIpc.postResponse(ipcServerRequest.reqId, response)
@@ -357,7 +357,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
           val internalUri = pathName.substring(API_PREFIX.length)
           "file://$internalUri"
         } else {
-          "file:///sys/browser/desk${ipcServerRequest.uri.encodedPath}?mode=stream"
+          "file:///sys/browser-desk${ipcServerRequest.uri.encodedPath}?mode=stream"
         }
         val response = nativeFetch(ipcServerRequest.toPure().toClient().copy(href = url))
         serverIpc.postResponse(

@@ -1,5 +1,5 @@
 packages:
   - "npm/*"
-  - "toolkit/offscreen-web-canvas"
-  - "toolkit/plaoc/examples/*"
+  - "toolkit/dweb-offscreen-web-canvas-assets"
   - "toolkit/dweb-desk-assets"
+  - "toolkit/plaoc/examples/*"

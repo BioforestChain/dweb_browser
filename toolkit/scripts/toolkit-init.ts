@@ -4,10 +4,6 @@ import { $ } from "../../scripts/helper/exec.ts";
 import { npmNameToFolder } from "../../scripts/helper/npmBuilder.ts";
 
 export const toolkitInit = async () => {
-  $.cd(import.meta.resolve("../../"));
-
-  await $(`git submodule update --init`);
-
   await npmInit();
   await $(`pnpm install`);
 };

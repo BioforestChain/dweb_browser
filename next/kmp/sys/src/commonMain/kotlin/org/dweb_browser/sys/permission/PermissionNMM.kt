@@ -73,7 +73,7 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Manag
       MICRO_MODULE_CATEGORY.Hub_Service
     )
     icons = listOf(
-      ImageResource(src = "file:///sys/icons/$mmid.svg", type = "image/svg+xml")
+      ImageResource(src = "file:///sys/browser-icons/$mmid.svg", type = "image/svg+xml")
     )
   }
 
@@ -121,7 +121,7 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Manag
 
         val modal = createBottomSheets(
           title = "${applicant.name} ${PermissionI18nResource.request_title.text}",
-          iconUrl = "file:///sys/icons/$mmid.svg"
+          iconUrl = "file:///sys/browser-icons/$mmid.svg"
         ) {
           Card(elevation = CardDefaults.cardElevation(0.dp, 0.dp, 0.dp, 0.dp, 0.dp, 0.dp)) {
             Column(Modifier.padding(vertical = 12.dp), verticalArrangement = Arrangement.Center) {

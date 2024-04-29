@@ -32,7 +32,6 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 .pnpm-debug.log*
-npm
 
 #old
 /desktop-dev
@@ -50,3 +49,15 @@ plaoc/cli/bin
 # rust
 next/kmp/ziplib/uniffi/target
 next/kmp/app/androidApp/key.properties
+
+# deno task build 的编译输出 (dnt)
+/npm
+# deno task dev 的编译输出 (vite/esbuild)
+/assets/*
+!/assets/browser-icons/
+!/assets/browser-drawable/
+!/assets/desktop-drawable/
+
+# 所有的资源目录全部由外部脚本进行管理
+/next/kmp/*/src/*/resources/
+/next/kmp/*/src/*/composeResources/
