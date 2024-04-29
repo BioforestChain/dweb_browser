@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import "@plaoc/plugins";
 import dialogPolyfill from "dialog-polyfill";
 import { onMounted, ref } from "vue";
 import LogPanel, { toConsole } from "../components/LogPanel.vue";

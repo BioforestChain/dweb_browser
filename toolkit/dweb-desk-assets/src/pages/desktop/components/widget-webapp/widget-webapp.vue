@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import AppIcon from "@/components/app-icon/app-icon.vue";
-import { watchEffectAppMetadataToAppIcon } from "@/components/app-icon/appMetaDataHelper";
+import { watchEffectAppMetadataToAppIcon } from "@/components/app-icon/appMetaDataHelper.ts";
 import { $AppIconInfo } from "@/components/app-icon/types";
 import AppName from "@/components/app-name/app-name.vue";
 import MenuBox from "@/components/menu-box/menu-box.vue";
@@ -11,10 +11,10 @@ import { $WidgetAppData } from "@/types/app.type";
 import { vOnClickOutside } from "@vueuse/components";
 import { computed, onMounted, reactive, ref, shallowRef, watch, watchEffect } from "vue";
 import WebAppUnInstallDialog from "../webapp-uninstall-dialog/webapp-uninstall-dialog.vue";
-import delete_svg from "../widget-app/delete.svg";
-import share_svg from "../widget-app/share.svg";
 import { widgetInputBlur } from "../widget-custom/widget-custom.vue";
 import { ownReason, showOverlay } from "../widget-menu-overlay/widget-menu-overlay.vue";
+import delete_svg from "/delete.svg";
+import share_svg from "/share.svg";
 
 const $appHtmlRefHook = ref<HTMLDivElement | null>(null);
 

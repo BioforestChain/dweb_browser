@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import AppIcon from "@/components/app-icon/app-icon.vue";
-import { watchEffectAppMetadataToAppIcon } from "@/components/app-icon/appMetaDataHelper";
+import { watchEffectAppMetadataToAppIcon } from "@/components/app-icon/appMetaDataHelper.ts";
 import { $AppIconInfo } from "@/components/app-icon/types";
 import AppName from "@/components/app-name/app-name.vue";
 import MenuBox from "@/components/menu-box/menu-box.vue";
@@ -8,16 +8,17 @@ import SvgIcon from "@/components/svg-icon/svg-icon.vue";
 import { closeBrowser, detailApp, openApp, quitApp, vibrateHeavyClick } from "@/provider/api.ts";
 import "@/provider/shim.ts";
 import type { $WidgetAppData } from "@/types/app.type.ts";
+import "@plaoc/plugins";
 import { vOnClickOutside } from "@vueuse/components";
 import { useThrottleFn } from "@vueuse/core";
 import { computed, reactive, ref, shallowRef, watch } from "vue";
 import AppUnInstallDialog from "../app-uninstall-dialog/app-uninstall-dialog.vue";
 import { widgetInputBlur } from "../widget-custom/widget-custom.vue";
 import { ownReason, showOverlay } from "../widget-menu-overlay/widget-menu-overlay.vue";
-import delete_svg from "./delete.svg";
-import details_svg from "./details.svg";
-import quit_svg from "./quit.svg";
-import share_svg from "./share.svg";
+import delete_svg from "/delete.svg";
+import details_svg from "/details.svg";
+import quit_svg from "/quit.svg";
+import share_svg from "/share.svg";
 
 const $appHtmlRefHook = ref<HTMLDivElement | null>(null);
 

@@ -49,7 +49,7 @@ export function getWidgetInfo() {
 
 /**点击打开JMM */
 export function openApp(id: string) {
-  nativeFetch<boolean>("/openAppOrActivate", {
+  return nativeFetch<boolean>("/openAppOrActivate", {
     search: {
       app_id: id,
     },

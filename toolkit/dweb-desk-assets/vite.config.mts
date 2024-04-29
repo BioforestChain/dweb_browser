@@ -43,9 +43,10 @@ export default defineConfig({
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
       "@dweb-browser/core": fileURLToPath(new URL("../dweb-core/src", import.meta.url)),
-      "@dweb-browser/helper": fileURLToPath(new URL("../dweb-helper/src", import.meta.url))
+      "@dweb-browser/helper": fileURLToPath(new URL("../dweb-helper/src", import.meta.url)),
+      "@plaoc/plugins": fileURLToPath(new URL("../plaoc/build/client", import.meta.url)),
     },
-    extensions: [".js", ".json", ".jsx", ".mjs", ".ts", ".tsx", ".vue"],
+    extensions: [".js", ".json", ".jsx", ".mjs", ".tsx"],
   },
   server: {
     port: 3600,

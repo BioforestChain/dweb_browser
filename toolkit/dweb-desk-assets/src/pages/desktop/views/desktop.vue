@@ -195,4 +195,3 @@ const rowTemplateSize = (height: number) => {
   -webkit-touch-callout: none;
 }
 </style>
-../../../../../../js-core/src/core

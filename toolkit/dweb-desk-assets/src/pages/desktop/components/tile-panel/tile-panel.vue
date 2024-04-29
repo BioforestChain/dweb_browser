@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { onMounted, onUnmounted, provide, ref } from "vue";
-import { gridMeshKey } from "./inject";
+import { gridMeshKey } from "./inject.ts";
 
 const props = defineProps({
   columnTemplateSize: {
