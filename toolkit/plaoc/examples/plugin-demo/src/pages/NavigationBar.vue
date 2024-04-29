@@ -91,9 +91,7 @@ const getVisible = defineLogAction(
     @statechange="onNavigationBarChange($event.detail, 'change')"
   ></dweb-navigation-bar>
   <div class="card glass">
-    <figure class="icon">
-      <img src="../../assets/navigationbar.svg" :alt="title" />
-    </figure>
+    <h2>{{ title }}</h2>
     <article class="card-body">
       <h2 class="card-title">Navigation Bar Background Color</h2>
       <v-color-picker v-model="color" :modes="['rgba']"></v-color-picker>

@@ -24,7 +24,7 @@ const write = () => {
 <template>
   <div class="card glass">
     <figure class="icon">
-      <img src="../../assets/toast.svg" :alt="title" />
+      <h2>{{ title }}</h2>
     </figure>
 
     <article class="card-body">

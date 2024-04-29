@@ -6,8 +6,6 @@
     "build": "deno run -A ./scripts/build.ts",
     "pub": "deno run -A ./scripts/pub.ts",
     "plaoc": "deno run -A ./toolkit/scripts/toolkit-plaoc.ts",
-    "plaoc:net": "deno cache --reload https://deno.land/x/plaoc/cli/plaoc.ts && deno install -A -f https://deno.land/x/plaoc/cli/plaoc.ts",
-    "std": "deno run -A ./std/cli/std.ts",
     "bundle:server": "deno run -A ./toolkit/plaoc/scripts/bundle-server.ts",
     "bundle:watch:server": "deno task bundle:server --watch",
     "build:client": "deno run -A ./toolkit/plaoc/scripts/npm-build.ts client",
@@ -16,9 +14,9 @@
     "build:is-dweb": "deno run -A ./toolkit/plaoc/scripts/npm-build.ts is-dweb",
     "build:server": "deno run -A ./toolkit/plaoc/scripts/npm-build.server.ts && deno task bundle:server",
     "build:watch:s": "deno run -A ./toolkit/plaoc/scripts/npm-build.server.ts --watch",
-    "dev:demo": "cd ./toolkit/plaoc/examples/plugin-demo && pnpm dev",
-    "build:demo": "cd /toolkit/plaoc/examples/plugin-demo && pnpm build",
-    "build:watch:demo": "cd /toolkit/plaoc/examples/plugin-demo && pnpm build:watch"
+    "dev:plugin-demo": "cd ./toolkit/plaoc/examples/plugin-demo && pnpm dev",
+    "build:plugin-demo": "cd ./toolkit/plaoc/examples/plugin-demo && pnpm build",
+    "build:watch:plugin-demo": "cd ./toolkit/plaoc/examples/plugin-demo && pnpm build:watch"
   },
   "imports": {
     "@deno/dnt": "jsr:@deno/dnt@^0.41.1",

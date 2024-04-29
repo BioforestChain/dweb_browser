@@ -16,9 +16,7 @@ const fileChange = ($event: Event) => {
 </script>
 <template>
   <div class="card glass">
-    <figure class="icon">
-      <img src="../../assets/toast.svg" :alt="title" />
-    </figure>
+    <h2>{{ title }}</h2>
 
     <article class="card-body">
       <div>

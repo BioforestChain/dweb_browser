@@ -60,9 +60,7 @@ const stopGyroscope = defineLogAction(
 <template>
   <dweb-motion-sensors ref="$motionSensorsPlugin"></dweb-motion-sensors>
   <div class="card glass">
-    <figure class="icon">
-      <img src="../../assets/toast.svg" :alt="title" />
-    </figure>
+    <h2>{{ title }}</h2>
 
     <article class="card-body">
       <h2 class="card-title">MotionSensors</h2>

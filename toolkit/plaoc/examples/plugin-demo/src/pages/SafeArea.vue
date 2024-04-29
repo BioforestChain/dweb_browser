@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { HTMLDwebSafeAreaElement, $SafeAreaState } from "../plugin";
 import LogPanel, { defineLogAction, toConsole } from "../components/LogPanel.vue";
+import { $SafeAreaState, HTMLDwebSafeAreaElement } from "../plugin";
 const title = "Safe Area";
 
 const $logPanel = ref<typeof LogPanel>();
@@ -38,9 +38,7 @@ const getOverlay = defineLogAction(
 <template>
   <dweb-safe-area ref="$safeArea" @statechange="onSafeAreaChange($event.detail, 'change')"></dweb-safe-area>
   <div class="card glass">
-    <figure class="icon">
-      <img src="../../assets/safearea.svg" :alt="title" />
-    </figure>
+    <h2>{{ title }}</h2>
     <article class="card-body">
       <h2 class="card-title">Safe Area Overlay</h2>
       <input class="toggle" type="checkbox" v-model="overlay" />

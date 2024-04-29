@@ -113,9 +113,7 @@ const setBounds = () => {
 <template>
   <dweb-window ref="$window" @statechange="onStatusBarChange($event.detail, 'change')"></dweb-window>
   <div class="card glass">
-    <figure class="icon">
-      <img src="../../assets/statusbar.svg" :alt="title" />
-    </figure>
+    <h2>{{ title }}</h2>
     <article class="card-body">
       <h2 class="card-title">open</h2>
       <v-text-field label="属性描述符" v-model="state.openUrl"></v-text-field>

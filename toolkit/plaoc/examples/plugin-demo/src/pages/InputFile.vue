@@ -31,9 +31,7 @@ const resetInput = defineLogAction(
 </script>
 <template>
   <div class="card glass">
-    <figure class="icon">
-      <img src="../../assets/share.svg" :alt="title" />
-    </figure>
+    <h2>{{ title }}</h2>
 
     <article class="card-body">
       <h2 class="card-title">InputFile</h2>

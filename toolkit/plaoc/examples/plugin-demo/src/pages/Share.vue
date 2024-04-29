@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onMounted, reactive, ref } from "vue";
 import FieldLabel from "../components/FieldLabel.vue";
-import LogPanel, { toConsole, defineLogAction } from "../components/LogPanel.vue";
-import { sharePlugin, type HTMLDwebShareElement, ShareOptions } from "../plugin";
-import { reactive } from "vue";
+import LogPanel, { defineLogAction, toConsole } from "../components/LogPanel.vue";
+import { ShareOptions, type HTMLDwebShareElement } from "../plugin";
 
 const title = "Share";
 
@@ -45,10 +44,7 @@ const fileChange = ($event: Event) => {
 <template>
   <dweb-share ref="$sharePlugin"></dweb-share>
   <div class="card glass">
-    <figure class="icon">
-      <img src="../../assets/share.svg" :alt="title" />
-    </figure>
-
+    <h2>{{ title }}</h2>
     <article class="card-body">
       <h2 class="card-title">Share</h2>
       <FieldLabel label="title:">

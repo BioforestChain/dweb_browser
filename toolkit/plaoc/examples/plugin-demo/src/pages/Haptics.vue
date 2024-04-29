@@ -121,9 +121,7 @@ const vibrateTickClick = () => {
 <template>
   <dweb-haptics ref="$hapticsPlugin"></dweb-haptics>
   <div class="card glass">
-    <figure class="icon">
-      <img src="../../assets/vibrate.svg" :alt="title" />
-    </figure>
+    <h2>{{ title }}</h2>
     <article class="card-body">
       <h2 class="card-title">触碰轻质量物体</h2>
       <FieldLabel label="Haptics Duration:">

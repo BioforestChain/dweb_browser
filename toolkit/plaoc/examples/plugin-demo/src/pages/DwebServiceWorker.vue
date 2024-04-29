@@ -104,9 +104,7 @@ const title = "Dweb Service Worker";
 
 <template>
   <div class="card glass">
-    <figure class="icon">
-      <img src="../../assets/splashscreen.svg" :alt="title" />
-    </figure>
+    <h2>{{ title }}</h2>
     <article class="card-body">
       <h2 class="card-title">APP之间通信</h2>
       <div class="card-actions">

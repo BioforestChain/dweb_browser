@@ -49,7 +49,7 @@ const camaraScanner = async () => {
   <dweb-barcode-scanning ref="$scannerComponent"></dweb-barcode-scanning>
   <div class="card glass">
     <figure class="icon">
-      <img src="../../assets/vibrate.svg" :alt="title" />
+      <h2>{{ title }}</h2>
     </figure>
     <article class="card-body">
       <h2 class="card-title">Scanner</h2>

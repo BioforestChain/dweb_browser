@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { networkPlugin, HTMLDwebNetworkElement } from '../plugin';
-import LogPanel, { toConsole, defineLogAction } from "../components/LogPanel.vue";
+import LogPanel, { defineLogAction, toConsole } from "../components/LogPanel.vue";
+import { HTMLDwebNetworkElement, networkPlugin } from "../plugin";
 
 const title = "Scanner";
 
@@ -15,25 +15,27 @@ onMounted(() => {
   network = $networkPlugin.value!;
 });
 
-const getStatus = defineLogAction(async () => {
-  const result = await network.getStatus()
-  console.log("getStatus=> ", result)
-}, { name: "getStatus", args: [], logPanel: $logPanel })
+const getStatus = defineLogAction(
+  async () => {
+    const result = await network.getStatus();
+    console.log("getStatus=> ", result);
+  },
+  { name: "getStatus", args: [], logPanel: $logPanel }
+);
 
-const onLine = defineLogAction(async () => {
-  const result = await networkPlugin.onLine()
-  console.log("onLine=> ", result)
-}, { name: "onLine", args: [], logPanel: $logPanel })
-
-
+const onLine = defineLogAction(
+  async () => {
+    const result = await networkPlugin.onLine();
+    console.log("onLine=> ", result);
+  },
+  { name: "onLine", args: [], logPanel: $logPanel }
+);
 </script>
 
 <template>
   <dweb-network ref="$networkPlugin"></dweb-network>
   <div class="card glass">
-    <figure class="icon">
-      <img src="../../assets/vibrate.svg" :alt="title" />
-    </figure>
+    <h2>{{ title }}</h2>
     <article class="card-body">
       <h2 class="card-title">查看网络是否在线</h2>
       <button class="inline-block rounded-full btn btn-accent" @click="onLine">onLine</button>

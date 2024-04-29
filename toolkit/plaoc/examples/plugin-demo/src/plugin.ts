@@ -1,2 +1,2 @@
-export * from "../../build/client";
-export * from "../../build/is-dweb";
+export * from "@plaoc/is-dweb";
+export * from "@plaoc/plugins";

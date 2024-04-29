@@ -27,9 +27,7 @@ const title = "Splash Screen";
 <template>
   <dweb-splash-screen ref="$splashScreen"></dweb-splash-screen>
   <div class="card glass">
-    <figure class="icon">
-      <img src="../../assets/splashscreen.svg" :alt="title" />
-    </figure>
+    <h2>{{ title }}</h2>
     <article class="card-body">
       <h2 class="card-title">Splash Screen Show/Hide</h2>
       <FieldLabel label="Auto Hidden After:">

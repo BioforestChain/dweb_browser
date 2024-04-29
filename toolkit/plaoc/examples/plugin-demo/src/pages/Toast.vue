@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import FieldLabel from "../components/FieldLabel.vue";
-import LogPanel, { toConsole, defineLogAction } from "../components/LogPanel.vue";
+import LogPanel, { defineLogAction, toConsole } from "../components/LogPanel.vue";
 import type { HTMLDwebToastElement, ToastDuration } from "../plugin";
 const title = "Toast";
 
@@ -18,7 +18,7 @@ onMounted(() => {
 // export default {};
 const toast_message = ref("我是toast🍓");
 const toast_duration = ref<ToastDuration>("short");
-const toast_position = ref<"top" | "center" | "bottom">("top")
+const toast_position = ref<"top" | "center" | "bottom">("top");
 const showToast = defineLogAction(
   async () => {
     return toast.show({ text: toast_message.value, duration: toast_duration.value, position: toast_position.value });
@@ -29,9 +29,7 @@ const showToast = defineLogAction(
 <template>
   <dweb-toast ref="$toastPlugin"></dweb-toast>
   <div class="card glass">
-    <figure class="icon">
-      <img src="../../assets/toast.svg" :alt="title" />
-    </figure>
+    <h2>{{ title }}</h2>
     <article class="card-body">
       <h2 class="card-title">Show Toast</h2>
       <FieldLabel label="Toast Message:">

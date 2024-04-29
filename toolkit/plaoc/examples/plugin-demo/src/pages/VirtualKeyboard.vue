@@ -42,9 +42,7 @@ const getOverlay = defineLogAction(
     @statechange="onVirtualKeyboardChange($event.detail, 'change')"
   ></dweb-virtual-keyboard>
   <div class="card glass">
-    <figure class="icon">
-      <img src="../../assets/safearea.svg" :alt="title" />
-    </figure>
+    <h2>{{ title }}</h2>
     <article class="card-body">
       <h2 class="card-title">Virtual Keyboard Overlay</h2>
       <input class="toggle" type="checkbox" v-model="overlay" />
