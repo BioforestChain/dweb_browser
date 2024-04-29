@@ -22,7 +22,7 @@ class CompositionChain(val providerMap: Map<CompositionChainKey<out Any?>, Provi
   @Composable
   fun Provider(
     vararg values: ProvidedChainValue<*>
-  ): CompositionChain = remember(keys = values) {
+  ): CompositionChain = remember(this, values) {
     merge(values = values)
   }
 

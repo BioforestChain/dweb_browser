@@ -9,7 +9,6 @@ import org.dweb_browser.test.runCommonTest
 import kotlin.reflect.KClass
 import kotlin.test.Test
 
-
 @OptIn(InternalSerializationApi::class)
 class TestStateContext : StateContext {
   override fun <I : Any> emitChange(iKClass: KClass<I>, input: I) {

@@ -323,7 +323,6 @@ open class KmpBaseTargetDsl(private val kmpe: KotlinMultiplatformExtension) {
   ) {
     provides(sourceSetProvider.get(), testSourceSetProvider?.get())
   }
-
 }
 
 fun KotlinDependencyHandler.implementationPlatform(platformName: String) {
@@ -450,6 +449,8 @@ fun KotlinMultiplatformExtension.kmpComposeTarget(
     implementation(compose.components.uiToolingPreview)
   }
   sourceSets.commonTest.dependencies {
+    @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
+    implementation(compose.uiTest)
 //    implementation(compose.desktop.uiTestJUnit4)
 //    implementation(libs.test.junit.jupiter)
 //    implementation(libs.test.junit.jupiter.engine)
@@ -474,6 +475,7 @@ fun KotlinMultiplatformExtension.kmpComposeTarget(
 
       "androidInstrumentedTest" -> sourceSet.dependencies {
         implementation(compose.desktop.uiTestJUnit4)
+        implementation(libs.compose.ui.test.manifest)
       }
 
       "desktopMain" -> sourceSet.dependencies {
@@ -481,6 +483,8 @@ fun KotlinMultiplatformExtension.kmpComposeTarget(
       }
 
       "desktopTest" -> sourceSet.dependencies {
+        // Adds the desktop test dependency
+        implementation(compose.desktop.currentOs)
         implementation(compose.desktop.uiTestJUnit4)
       }
     }
