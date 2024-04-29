@@ -204,14 +204,12 @@ suspend fun tunnelHttps(
   clientWriter.writeAvailable(ByteBuffer.wrap(successConnectionString.toByteArray()))
   clientWriter.flush()
 
-  coroutineScope {
-    launch {
-      serverReader.copyTo(clientWriter)
+  runCatching {
+    coroutineScope {
+      launch { serverReader.copyTo(clientWriter) }
+      launch { clientReader.copyTo(serverWriter) }
     }
-    launch {
-      clientReader.copyTo(serverWriter)
-    }
-  }
+  }.getOrNull()
 }
 
 class ConnectRequest(buffer: ByteArray) {

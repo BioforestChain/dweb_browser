@@ -17,6 +17,7 @@ import { MiddlewareImporter } from "./middleware-importer.ts";
 import { PlaocConfig } from "./plaoc-config.ts";
 
 const main = async () => {
+  console.log("start main");
   /**
    * 启动主页面的地址
    */
@@ -59,16 +60,21 @@ const main = async () => {
     setWinId(win_id);
   });
   /// 如果主窗口已经激活，那么我就开始渲染
-  jsProcess.onRenderer(async (ipcEvent) => {
+  jsProcess.onRenderer((ipcEvent) => {
     const text = IpcEvent.text(ipcEvent);
     console.log(`${jsProcess.mmid} onRenderer`, text);
     setWinId(text);
     tryOpenView();
   });
-  jsProcess?.onRendererDestroy?.(async (ipcEvent) => {
+  jsProcess.onRendererDestroy?.((ipcEvent) => {
     const text = IpcEvent.text(ipcEvent);
     console.log(`${jsProcess.mmid} onRendererDestroy`, text);
     delWinId(text);
+  });
+  jsProcess.onShortcut?.(async (ipcEvent) => {
+    console.log(`${jsProcess.mmid} onShortcut`, ipcEvent.data);
+    const ipc = await externalServer.ipcPo.waitOpen();
+    ipc.postMessage(ipcEvent);
   });
 
   //#region 启动http服务
@@ -79,11 +85,6 @@ const main = async () => {
   const apiServer = new Server_api(getWinId, await MiddlewareImporter.init(plaocConfig.config.middlewares?.api));
 
   // quick action event
-  jsProcess?.onShortcut?.(async (ipcEvent) => {
-    console.log(`${jsProcess.mmid} onShortcut`, ipcEvent.data);
-    const ipc = await externalServer.ipcPo.waitOpen();
-    ipc.postMessage(ipcEvent);
-  });
   const wwwListenerTask = wwwServer.start().finally(() => console.log("wwwServer started"));
   const externalListenerTask = externalServer.start().finally(() => console.log("externalServer started"));
   const apiListenerTask = apiServer.start().finally(() => console.log("apiServer started"));

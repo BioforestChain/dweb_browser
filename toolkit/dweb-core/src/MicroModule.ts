@@ -88,6 +88,9 @@ export abstract class MicroModuleRuntime implements $MicroModuleRuntime {
   private state = MMState.SHUTDOWN;
 
   protected connectionLinks = new Set<Ipc>();
+  get connectedIpcs() {
+    return this.connectionLinks as ReadonlySet<Ipc>;
+  }
   protected connectionMap = new Map<$MMID, PromiseOut<Ipc>>();
 
   @once()

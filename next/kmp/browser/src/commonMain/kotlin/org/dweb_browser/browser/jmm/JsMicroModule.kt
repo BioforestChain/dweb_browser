@@ -183,10 +183,8 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
       val fileIpc = connect("file.std.dweb")
       fileIpc.start(await = false)
       jsProcess.fetchIpc.onRequest("file").collectIn(mmScope) { event ->
-        val ipcRequest =
-          event.consumeFilter { it.uri.host == fileIpc.remote.mmid } ?: return@collectIn
-
-        val response = fileIpc.request(ipcRequest.toPure().toClient())
+        val ipcRequest = event.consume()
+        val response = nativeFetch(ipcRequest.toPure().toClient())
         jsProcess.fetchIpc.postResponse(ipcRequest.reqId, response)
       }
 

@@ -265,6 +265,7 @@ export class JsProcessMicroModuleRuntime extends MicroModuleRuntime {
 
     this.ipcPool = this.microModule.ipcPool;
     this.fetchIpc = this.microModule.fetchIpc;
+    this.connectionLinks.add(this.fetchIpc);
     this.meta = this.microModule.meta;
 
     this.mmid = this.meta.data.mmid;

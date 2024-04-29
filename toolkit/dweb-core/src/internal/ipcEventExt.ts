@@ -1,4 +1,5 @@
 import type { MicroModuleRuntime } from "../MicroModule.ts";
+import type { Ipc } from "../ipc/index.ts";
 import type { $IpcEvent } from "../ipc/ipc-message/IpcEvent.ts";
 
 export const onSomeEvent = <T extends $IpcEvent>(
@@ -6,12 +7,18 @@ export const onSomeEvent = <T extends $IpcEvent>(
   eventName: string,
   cb: (event: T) => unknown
 ) => {
-  runtime.onConnect.collect((onConnectEvent) => {
-    onConnectEvent.data.onEvent(`on-${eventName}`).collect((onIpcEventEvent) => {
+  const ipcOnEvent = (ipc: Ipc) => {
+    ipc.onEvent(`on-${eventName}`).collect((onIpcEventEvent) => {
       const ipcSomeEvent = onIpcEventEvent.consumeFilter<T>((event) => event.name === eventName);
       if (ipcSomeEvent !== undefined) {
         cb(ipcSomeEvent);
       }
     });
+  };
+  for (const ipc of runtime.connectedIpcs) {
+    ipcOnEvent(ipc);
+  }
+  runtime.onConnect.collect((onConnectEvent) => {
+    ipcOnEvent(onConnectEvent.consume());
   });
 };
