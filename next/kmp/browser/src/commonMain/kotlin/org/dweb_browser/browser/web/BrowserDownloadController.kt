@@ -17,7 +17,7 @@ import org.dweb_browser.browser.web.data.BrowserDownloadItem
 import org.dweb_browser.browser.web.data.BrowserDownloadStore
 import org.dweb_browser.browser.web.data.BrowserDownloadType
 import org.dweb_browser.core.ipc.helper.IpcEvent
-import org.dweb_browser.core.std.file.ext.realFile
+import org.dweb_browser.core.std.file.ext.realPath
 import org.dweb_browser.dwebview.WebDownloadArgs
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.collectIn
@@ -108,7 +108,7 @@ class BrowserDownloadController(
           if (downloadTask.status.state == DownloadState.Completed) {
             saveDownloadList.remove(browserDownloadItem)
             saveCompleteList.add(0, browserDownloadItem)
-            browserDownloadItem.filePath = browserNMM.realFile(downloadTask.filepath) // 保存下载路径
+            browserDownloadItem.filePath = browserNMM.realPath(downloadTask.filepath) // 保存下载路径
             saveDownloadList(complete = true)
           } else {
             saveDownloadList()

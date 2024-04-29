@@ -1,4 +1,5 @@
 import { BuildOptions, PackageJson, build } from "@deno/dnt";
+import { $once } from "@dweb-browser/helper/decorator/$once.ts";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -126,21 +127,12 @@ export const npmBuilder = async (config: {
   dirHasher.writeHash(npmDir, "dnt");
 };
 
-const once = <R>(fun: () => Promise<R>) => {
-  let res: Promise<R> | undefined;
-  return Object.assign(() => (res ??= fun()), {
-    reset() {
-      res = undefined;
-    },
-  });
-};
-
-const regMap = new Map<string, ReturnType<typeof once>>();
+const regMap = new Map<string, ReturnType<typeof $once>>();
 export const registryNpmBuilder = (config: Parameters<typeof npmBuilder>[0]) => {
   const { packageDir } = config;
   const packageResolve = (path: string) => fileURLToPath(new URL(path, packageDir));
   const packageJson: PackageJson = JSON.parse(fs.readFileSync(packageResolve("./package.json"), "utf-8"));
-  const build_npm = once(async () => {
+  const build_npm = $once(async () => {
     console.log(`🛫 START ${packageJson.name}`);
     /// 编译依赖，等待依赖编译完成
     for (const [key, version] of Object.entries(packageJson.dependencies || {})) {
@@ -195,7 +187,7 @@ export const examplesViteBuilder = (config: {
       console.error(e);
     }
   };
-  const build_npm = once(async () => {
+  const build_npm = $once(async () => {
     console.log(`🛫 START ${packageJson.name}`);
     /// 编译依赖，等待依赖编译完成
     for (const [key, version] of Object.entries(packageJson.dependencies || {})) {

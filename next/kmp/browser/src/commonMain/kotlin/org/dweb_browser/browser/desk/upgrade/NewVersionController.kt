@@ -13,7 +13,7 @@ import org.dweb_browser.browser.download.ext.pauseDownload
 import org.dweb_browser.browser.download.ext.removeDownload
 import org.dweb_browser.browser.download.ext.startDownload
 import org.dweb_browser.browser.web.openFileByPath
-import org.dweb_browser.core.std.file.ext.realFile
+import org.dweb_browser.core.std.file.ext.realPath
 import org.dweb_browser.helper.compose.Language
 import org.dweb_browser.helper.compose.SimpleI18nResource
 import org.dweb_browser.helper.debounce
@@ -131,7 +131,7 @@ class NewVersionController(private val deskNMM: DeskNMM.DeskRuntime, val desktop
               channel.close()
               newVersionItem.alreadyWatch = false
               // 跳转到安装界面
-              val realPath = deskNMM.realFile(downloadTask.filepath)
+              val realPath = deskNMM.realPath(downloadTask.filepath)
               if (openFileByPath(realPath = realPath, justInstall = true)) { // 安装文件 TODO
                 newVersionType.value = NewVersionType.Hide
                 openFileByPath(realPath = realPath, justInstall = true)

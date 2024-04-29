@@ -5,7 +5,7 @@ import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.file.ext.moveFile
-import org.dweb_browser.core.std.file.ext.realFile
+import org.dweb_browser.core.std.file.ext.realPath
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.pure.http.PureMethod
@@ -25,12 +25,12 @@ class ZipNMM : NativeMicroModule("zip.browser.dweb", "Zip") {
     override suspend fun _bootstrap() {
       routes(
         "/decompress" bind PureMethod.GET by defineBooleanResponse {
-          val sourcePath = realFile(request.query("sourcePath"))
+          val sourcePath = realPath(request.query("sourcePath"))
           val targetPath = request.query("targetPath")
           // 先解压到一个临时目录
           val tmpVfsPath = "/data/tmp/${targetPath.substring(targetPath.lastIndexOf("/") + 1)}"
           // 获取真实目录
-          val tmpPath = realFile(tmpVfsPath)
+          val tmpPath = realPath(tmpVfsPath)
           // 开始解压
           val ok = decompress(sourcePath, tmpPath)
           if (!ok) {

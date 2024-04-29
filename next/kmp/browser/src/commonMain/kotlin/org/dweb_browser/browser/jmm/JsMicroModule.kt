@@ -56,7 +56,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
     const val PATCH = 0
 
     init {
-      val nativeToWhiteList = listOf<MMID>("js.browser.dweb")
+      val nativeToWhiteList = listOf<MMID>("js.browser.dweb", "file.std.dweb")
 
       data class MmDirection(
         val endJmm: JsMicroModule.JmmRuntime, val startMm: MicroModule,
@@ -136,7 +136,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
         )
       })
 
-      val jsProcess = createJsProcess("$mmid-$short_name")
+      val jsProcess = createJsProcess(metadata.server.entry, "$mmid-$short_name")
       jsProcessDeferred.complete(jsProcess)
       jsProcess.defineEsm(esmLoader)
 
@@ -179,6 +179,16 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
 //          }
 //        }
 //      }
+
+      val fileIpc = connect("file.std.dweb")
+      fileIpc.start(await = false)
+      jsProcess.fetchIpc.onRequest("file").collectIn(mmScope) { event ->
+        val ipcRequest =
+          event.consumeFilter { it.uri.host == fileIpc.remote.mmid } ?: return@collectIn
+
+        val response = fileIpc.request(ipcRequest.toPure().toClient())
+        jsProcess.fetchIpc.postResponse(ipcRequest.reqId, response)
+      }
 
       /**
        * 收到 Worker 的事件，如果是指令，执行一些特定的操作

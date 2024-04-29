@@ -3,7 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { Chalk } from "npm:chalk";
 // import { InlineConfig, PluginOption } from "npm:vite";
-import { ESBuild } from "../../../scripts/helper/ESBuild.ts";
+import { $BuildOptions, ESBuild } from "../../../scripts/helper/ESBuild.ts";
 // const minifyHTML = _minifyHTML.default();
 const chalk = new Chalk({ level: 3 });
 
@@ -18,30 +18,35 @@ export const polyfill = new ESBuild({
   outdir: "./dist",
   chunkNames: "[name]",
   bundle: true,
+  target: "es2020",
   platform: "browser",
   format: "esm",
 });
-export const prod = new ESBuild({
+const prodEsbuildOptions = {
   absWorkingDir,
-  splitting: true,
   entryPoints: {
     "plaoc.server": "./index.ts",
   },
   importMapURL: import.meta.resolve("../../../deno.jsonc"),
-  outdir: "./dist",
-  chunkNames: "[name]",
+  outfile: "./dist/plaoc.server.js",
   bundle: true,
   platform: "browser",
+  target: "es2020",
   format: "esm",
+  tsconfigRaw: {
+    compilerOptions: {
+      experimentalDecorators: true,
+    },
+  },
   denoLoader: true,
-});
+} satisfies $BuildOptions;
+export const prod = new ESBuild(prodEsbuildOptions);
 export const dev = new ESBuild({
-  absWorkingDir,
+  ...prodEsbuildOptions,
   entryPoints: {
     "plaoc.server.dev": "./index.ts",
   },
-  importMapURL: import.meta.resolve("../../../deno.jsonc"),
-  outdir: "./dist",
+  outfile: "./dist/plaoc.server.dev.js",
   plugins: [
     {
       name: "use-(dev)-ext",
@@ -67,20 +72,20 @@ export const dev = new ESBuild({
       },
     },
   ],
-  bundle: true,
-  platform: "browser",
-  format: "esm",
-  denoLoader: true,
 });
 
-if (import.meta.main) {
+export const doBundleServer = (args = Deno.args) => {
   try {
-    Deno.removeSync(resolveTo("../server/dist"), { recursive: true });  
-  } catch (_: Deno.errors.NotFound) {
+    Deno.removeSync(resolveTo("../server/dist"), { recursive: true });
+  } catch (e) {
     // 第一次运行不存在dist目录
+    if (!(e instanceof Deno.errors.NotFound)) {
+      throw e;
+    }
   }
-  
-  void polyfill.auto();
-  void prod.auto();
-  void dev.auto();
+  return Promise.all([polyfill.auto(args), prod.auto(args), dev.auto(args)]);
+};
+
+if (import.meta.main) {
+  doBundleServer();
 }

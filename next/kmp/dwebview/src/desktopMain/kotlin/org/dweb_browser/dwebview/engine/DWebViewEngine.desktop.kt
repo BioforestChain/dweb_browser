@@ -46,7 +46,7 @@ import okio.Path.Companion.toPath
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.file.ext.createDir
-import org.dweb_browser.core.std.file.ext.realFile
+import org.dweb_browser.core.std.file.ext.realPath
 import org.dweb_browser.dwebview.CloseWatcher
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.IDWebView
@@ -104,7 +104,7 @@ class DWebViewEngine internal constructor(
           if (!userDataDirectoryInUseMicroModuleSet.contains(remoteMM.mmid)) {
             runBlocking(ioAsyncExceptionHandler) {
               if (remoteMM.createDir("/data/chromium")) {
-                userDataDir(remoteMM.realFile("/data/chromium").toPath().toNioPath())
+                userDataDir(remoteMM.realPath("/data/chromium").toPath().toNioPath())
                 userDataDirectoryInUseMicroModuleSet.add(remoteMM.mmid)
               }
             }

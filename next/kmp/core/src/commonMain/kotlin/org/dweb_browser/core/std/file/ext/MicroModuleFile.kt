@@ -36,7 +36,7 @@ suspend fun MicroModule.Runtime.pickFile(path: String) = nativeFetch(
   "file://file.std.dweb/picker?path=$path"
 ).text()
 
-suspend fun MicroModule.Runtime.realFile(path: String) = nativeFetch(
+suspend fun MicroModule.Runtime.realPath(path: String) = nativeFetch(
   "file://file.std.dweb/realPath?path=$path"
 ).text()
 

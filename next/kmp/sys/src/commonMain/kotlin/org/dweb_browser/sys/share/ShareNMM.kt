@@ -15,7 +15,7 @@ import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.file.ext.appendFile
-import org.dweb_browser.core.std.file.ext.realFile
+import org.dweb_browser.core.std.file.ext.realPath
 import org.dweb_browser.core.std.file.ext.writeFile
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.collectIn
@@ -112,7 +112,7 @@ class ShareNMM : NativeMicroModule("share.sys.dweb", "share") {
                       val packet =
                         Cbor.decodeFromByteArray<MultipartFieldEnd>(multipartFilePackage.chunk)
                       fieldWritePathMap[packet.fieldIndex]?.also { writePath ->
-                        val realPath = realFile(writePath)
+                        val realPath = realPath(writePath)
                         fileList.add("file://$realPath")
                         channel.close()
                       }
@@ -193,7 +193,7 @@ class ShareNMM : NativeMicroModule("share.sys.dweb", "share") {
         )
       )
 
-      val realPath = realFile(writePath)
+      val realPath = realPath(writePath)
       return "file://$realPath"
     }
 

@@ -1,6 +1,7 @@
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
+import type { esbuild } from "../deps.ts";
 import type { $Task } from "./ConTasks.ts";
 export const createBaseResolveTo = (baseDir: string = process.cwd()) => {
   if (baseDir.startsWith("file://")) {
@@ -41,7 +42,7 @@ type ESbuildTaskOptionsBase = {
   input: string | string[];
   importMap?: string;
   baseDir?: string;
-  tsconfig?: any;
+  tsconfig?: esbuild.TsconfigRaw;
 };
 export const esbuildTaskFactory = (
   config:

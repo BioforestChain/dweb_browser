@@ -11,10 +11,10 @@ export type { fetchExtends } from "@dweb-browser/helper/fetchExtends/index.ts";
 import * as core from "./worker/std-dweb-core.ts";
 import * as http from "./worker/std-dweb-http.ts";
 
+import type { $PromiseMaybe } from "@dweb-browser/helper/$PromiseMaybe.ts";
 import { once } from "@dweb-browser/helper/decorator/$once.ts";
 import { mapHelper } from "@dweb-browser/helper/fun/mapHelper.ts";
 import { normalizeFetchArgs } from "@dweb-browser/helper/normalizeFetchArgs.ts";
-import type { $PromiseMaybe } from "@dweb-browser/helper/$PromiseMaybe.ts";
 // import { type $BootstrapContext } from "../../src/bootstrapContext.ts";
 // import type { MICRO_MODULE_CATEGORY } from "../../src/index.ts";
 // import { onActivity } from "../../src/ipcEventOnActivity.ts";
@@ -94,16 +94,19 @@ export class Metadata {
 export class JsProcessMicroModule extends MicroModule {
   constructor(readonly meta: Metadata, private nativeFetchPort: MessagePort) {
     super();
+    this.manifest = this.meta.data;
+    this.ipcPool = new core.IpcPool(this.meta.data.mmid);
+    this.fetchIpc = this.ipcPool.createIpc(
+      new WebMessageEndpoint(this.nativeFetchPort, "fetch"),
+      0,
+      this.manifest,
+      this.manifest,
+      true
+    );
   }
-  override manifest = this.meta.data;
-  readonly ipcPool = new core.IpcPool(this.meta.data.mmid);
-  readonly fetchIpc = this.ipcPool.createIpc(
-    new WebMessageEndpoint(this.nativeFetchPort, "fetch"),
-    0,
-    this.manifest,
-    this.manifest,
-    true
-  );
+  override manifest;
+  readonly ipcPool;
+  readonly fetchIpc;
   protected createRuntime(context: $BootstrapContext) {
     return new JsProcessMicroModuleRuntime(this, context);
   }
@@ -172,6 +175,12 @@ export class JsProcessMicroModule extends MicroModule {
   }
 }
 export class JsProcessMicroModuleRuntime extends MicroModuleRuntime {
+  override async connect(mmid: $MMID, auto_start?: boolean) {
+    if (mmid === "file.std.dweb") {
+      return this.fetchIpc;
+    }
+    return await super.connect(mmid, auto_start);
+  }
   protected override _bootstrap() {
     const _beConnect = async (event: MessageEvent) => {
       const data = event.data;
@@ -244,15 +253,19 @@ export class JsProcessMicroModuleRuntime extends MicroModuleRuntime {
       protobuf: false,
     } satisfies $IpcSupportProtocols;
   }
-  readonly ipcPool = this.microModule.ipcPool;
-  readonly fetchIpc = this.microModule.fetchIpc;
-  readonly meta = this.microModule.meta;
+  readonly ipcPool;
+  readonly fetchIpc;
+  readonly meta;
 
   constructor(
     override readonly microModule: JsProcessMicroModule,
     override readonly bootstrapContext: $BootstrapContext
   ) {
     super();
+
+    this.ipcPool = this.microModule.ipcPool;
+    this.fetchIpc = this.microModule.fetchIpc;
+    this.meta = this.microModule.meta;
 
     this.mmid = this.meta.data.mmid;
     this.name = `js process of ${this.mmid}`;

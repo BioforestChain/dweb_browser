@@ -16,12 +16,16 @@ import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.buildUnsafeString
 import org.dweb_browser.helper.collectIn
 
-suspend fun MicroModule.Runtime.createJsProcess(processName: String?): JsProcess {
+suspend fun MicroModule.Runtime.createJsProcess(
+  entryPath: String,
+  processName: String?,
+): JsProcess {
   val mainIpc = this.connect("js.browser.dweb")
   mainIpc.start()
   val codeIpc = mainIpc.fork(autoStart = true)
   val result = codeIpc.request(URLBuilder("file://js.browser.dweb/create-process").run {
     processName?.also { parameters["name"] = processName }
+    parameters["entry"] = entryPath
     buildUnsafeString()
   }).json<CreateProcessReturn>()
   val fetchIpc = kotlinIpcPool.createIpc(

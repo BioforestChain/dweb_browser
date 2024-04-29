@@ -12,10 +12,11 @@ import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.dns.nativeFetchAdaptersManager
 import org.dweb_browser.core.std.file.ext.RespondLocalFileContext.Companion.respondLocalFile
-import org.dweb_browser.core.std.file.ext.realFile
+import org.dweb_browser.core.std.file.ext.realPath
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.ImageResource
+import org.dweb_browser.helper.removeWhen
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.sys.toast.ext.showToast
 import org.dweb_browser.sys.window.core.helper.setStateFromManifest
@@ -51,27 +52,29 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Service") {
       )
     )
     dweb_deeplinks = listOf("dweb://install")
-    /// 提供JsMicroModule的文件适配器
-    /// 这个适配器不需要跟着bootstrap声明周期，只要存在JmmNMM模块，就能生效
-    nativeFetchAdaptersManager.append(order = 3) { fromMM, request ->
-      val usrRootMap = mutableMapOf<String, Deferred<String>>()
-      return@append request.respondLocalFile {
-        if (filePath.startsWith("/usr/")) {
-          val rootKey = "${fromMM.mmid}-${fromMM.version}"
-          debugJMM("UsrFile", "$fromMM => ${request.href} in $rootKey")
-          val root = usrRootMap.getOrPut(fromMM.mmid) {
-            fromMM.scopeAsync(cancelable = true) {
-              fromMM.realFile("/data/apps/${fromMM.mmid}-${fromMM.version}")
-            }
-          }.await()
-          debugJMM("respondLocalFile", root)
-          returnFile(root, filePath)
-        } else returnNext()
-      }
-    }
   }
 
   inner class JmmRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
+    init {
+      /// 提供JsMicroModule的文件适配器
+      /// 这个适配器不需要跟着bootstrap声明周期，只要存在JmmNMM模块，就能生效
+      nativeFetchAdaptersManager.append(order = 3) { fromMM, request ->
+        val usrRootMap = mutableMapOf<String, Deferred<String>>()
+        return@append request.respondLocalFile {
+          if (filePath.startsWith("/usr/")) {
+            val rootKey = "${fromMM.mmid}-${fromMM.version}"
+            debugJMM("UsrFile", "$fromMM => ${request.href} in $rootKey")
+            val root = usrRootMap.getOrPut(fromMM.mmid) {
+              scopeAsync(cancelable = true) {
+                realPath("/data/apps/${fromMM.mmid}-${fromMM.version}")
+              }
+            }.await()
+            debugJMM("respondLocalFile", root)
+            returnFile(root, filePath)
+          } else returnNext()
+        }
+      }.removeWhen(mmScope)
+    }
 
     override suspend fun _bootstrap() {
       val store = JmmStore(this)

@@ -76,17 +76,9 @@ const main = async () => {
   //#region 启动http服务
   const plaocConfig = await PlaocConfig.init();
 
-  const wwwServer = new Server_www(
-    plaocConfig,
-    await MiddlewareImporter.init(plaocConfig.config.middlewares?.www)
-  );
-  const externalServer = new Server_external(
-    await MiddlewareImporter.init(plaocConfig.config.middlewares?.external)
-  );
-  const apiServer = new Server_api(
-    getWinId,
-    await MiddlewareImporter.init(plaocConfig.config.middlewares?.api)
-  );
+  const wwwServer = new Server_www(plaocConfig, await MiddlewareImporter.init(plaocConfig.config.middlewares?.www));
+  const externalServer = new Server_external(await MiddlewareImporter.init(plaocConfig.config.middlewares?.external));
+  const apiServer = new Server_api(getWinId, await MiddlewareImporter.init(plaocConfig.config.middlewares?.api));
 
   // quick action event
   jsProcess?.onShortcut?.(async (ipcEvent) => {
@@ -94,15 +86,9 @@ const main = async () => {
     const ipc = await externalServer.ipcPo.waitOpen();
     ipc.postMessage(ipcEvent);
   });
-  const wwwListenerTask = wwwServer
-    .start()
-    .finally(() => console.log("wwwServer started"));
-  const externalListenerTask = externalServer
-    .start()
-    .finally(() => console.log("externalServer started"));
-  const apiListenerTask = apiServer
-    .start()
-    .finally(() => console.log("apiServer started"));
+  const wwwListenerTask = wwwServer.start().finally(() => console.log("wwwServer started"));
+  const externalListenerTask = externalServer.start().finally(() => console.log("externalServer started"));
+  const apiListenerTask = apiServer.start().finally(() => console.log("apiServer started"));
   all_webview_status.signal.listen((size) => {
     if (size === 0) {
       externalServer.closeRegisterIpc();
@@ -125,7 +111,7 @@ const main = async () => {
 };
 
 try {
-  await main();
+  void main();
 } catch (e) {
   jsProcess.close(`后端错误：${e}`);
 }

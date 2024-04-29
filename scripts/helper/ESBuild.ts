@@ -37,12 +37,6 @@ export class ESBuild {
     }
     const plugins = (esbuildOptions.plugins ??= []);
 
-    /// 她的
-    if (esbuildOptions.denoHtml) {
-      const esbuild_plugin_html = await import("npm:@chialab/esbuild-plugin-html");
-      plugins.push(esbuild_plugin_html.default());
-    }
-
     if (esbuildOptions.denoLoader) {
       let importMapURL = this.options.importMapURL;
       // importMapURL = `data:application/json,${JSON.stringify(importMapURL)}`;
@@ -78,7 +72,7 @@ export class ESBuild {
       );
     }
 
-    for (const key of ["importMapURL", "signal", "denoLoader", "denoHtml"] as const) {
+    for (const key of ["importMapURL", "signal", "denoLoader"] as const) {
       delete esbuildOptions[key];
     }
     return esbuildOptions as esbuild.BuildOptions & Required<Pick<esbuild.BuildOptions, "plugins">>;
@@ -156,7 +150,9 @@ export class ESBuild {
     }
   }
 
-  async *Auto() {
+  #args: string[] = [];
+  async *Auto(args = Deno.args) {
+    this.#args = args;
     if (this.isDev) {
       yield* this.Watch();
     } else {
@@ -164,13 +160,13 @@ export class ESBuild {
     }
   }
 
-  async auto() {
-    for await (const _ of this.Auto()) {
+  async auto(args = Deno.args) {
+    for await (const _ of this.Auto(args)) {
       //
     }
   }
   get isDev() {
-    return Deno.args.includes("--watch");
+    return this.#args.includes("--watch");
   }
 }
 export type $ESBuildWatchYield = {
