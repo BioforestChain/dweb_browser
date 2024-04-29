@@ -5,7 +5,7 @@
     "dev": "deno run -A ./scripts/dev.ts",
     "build": "deno run -A ./scripts/build.ts",
     "pub": "deno run -A ./scripts/pub.ts",
-    "plaoc": "deno run -A ./toolkit/plaoc/cli/plaoc.ts",
+    "plaoc": "deno run -A ./toolkit/scripts/toolkit-plaoc.ts",
     "plaoc:net": "deno cache --reload https://deno.land/x/plaoc/cli/plaoc.ts && deno install -A -f https://deno.land/x/plaoc/cli/plaoc.ts",
     "std": "deno run -A ./std/cli/std.ts",
     "bundle:server": "deno run -A ./toolkit/plaoc/scripts/bundle-server.ts",

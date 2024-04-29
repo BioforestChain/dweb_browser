@@ -1,30 +1,9 @@
 console.log("loading tasks...");
 import { toolkitTasks } from "../toolkit/scripts/toolkit-dev.ts";
 
-import { ConTasks, ExitAbortController } from "./helper/ConTasks.ts";
+import { ExitAbortController } from "./helper/ConTasks.ts";
 import { doInit } from "./init.ts";
-export const devTasks = new ConTasks(
-  {
-    "plaoc:server": {
-      cmd: "deno",
-      args: "task bundle:watch:server"
-    },
-    "plaoc:is-dweb": {
-      cmd: "deno",
-      args: "task build:is-dweb",
-    },
-    "plaoc:client": {
-      cmd: "deno",
-      args: "task build:client:watch"
-    },
-    "plaoc:cli": {
-      cmd: "deno",
-      args: "task build:cli"
-    }
-  },
-  import.meta.resolve("../")
-)
-  .merge(toolkitTasks, "toolkit:");
+export const devTasks = toolkitTasks;
 
 if (import.meta.main) {
   Deno.addSignalListener("SIGINT", () => {
