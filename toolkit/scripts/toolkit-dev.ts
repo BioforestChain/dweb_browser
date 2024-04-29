@@ -8,7 +8,7 @@ export const toolkitTasks = new ConTasks(
       args: "vite --host 0.0.0.0",
       cwd: "../for-test-images",
     },
-    "offscreen-web-canvas:build": {
+    "dweb-offscreen-web-canvas-assets": {
       cmd: "npx",
       args: [
         `vite`,
@@ -17,7 +17,7 @@ export const toolkitTasks = new ConTasks(
         `../../../next/kmp/pureImage/src/commonMain/composeResources/files/offscreen-web-canvas`,
       ],
       devAppendArgs: ["--watch"],
-      cwd: "../offscreen-web-canvas",
+      cwd: "../dweb-offscreen-web-canvas-assets",
     },
     "dweb-polyfill": {
       cmd: "npx",
