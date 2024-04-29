@@ -3,7 +3,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-import { WalkFiles } from "../../../../../../plaoc/cli/helper/walk-dir.ts";
+import { WalkFiles } from "../../../../../../toolkit/plaoc/cli/helper/walk-dir.ts";
 import { which } from "../../../../../../scripts/helper/WhichCommand.ts";
 import { doArchiveItemTask } from "./archive.ts";
 import { doCreateXcItemTask } from "./create-xc.ts";
