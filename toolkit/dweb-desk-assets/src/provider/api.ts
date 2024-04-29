@@ -120,15 +120,6 @@ export async function deleteApp(id: string) {
   });
 }
 
-export function closeBrowser(mmid?: string) {
-  return nativeFetch<Response>("/close", {
-    search: {
-      mmid: mmid,
-    },
-    mmid: "web.browser.dweb",
-  });
-}
-
 export function deleteWebLink(mmid: string) {
   return nativeFetch<Response>("/uninstall", {
     search: {

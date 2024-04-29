@@ -5,7 +5,7 @@ import { $AppIconInfo } from "@/components/app-icon/types";
 import AppName from "@/components/app-name/app-name.vue";
 import MenuBox from "@/components/menu-box/menu-box.vue";
 import SvgIcon from "@/components/svg-icon/svg-icon.vue";
-import { closeBrowser, detailApp, openApp, quitApp, vibrateHeavyClick } from "@/provider/api.ts";
+import { detailApp, openApp, quitApp, vibrateHeavyClick } from "@/provider/api.ts";
 import "@/provider/shim.ts";
 import type { $WidgetAppData } from "@/types/app.type.ts";
 import { vOnClickOutside } from "@vueuse/components";
@@ -102,10 +102,6 @@ const doOpen = () =>
   }, 500)();
 
 async function doQuit() {
-  // 如果是移除 browserApp需要顺便把窗口移除
-  if (appid.value === "web.browser.dweb") {
-    closeBrowser();
-  }
   if (await quitApp(appid.value)) {
     snackbar.text = `${appname.value} 已退出后台。`;
     snackbar.timeOut = 1500;

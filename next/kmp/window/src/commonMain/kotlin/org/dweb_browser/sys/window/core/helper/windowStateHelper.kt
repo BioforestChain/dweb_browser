@@ -11,9 +11,6 @@ import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.WindowState
 import kotlin.math.sqrt
 
-// 平台窗口差异性设置
-expect suspend fun setDisplayMode(mode: DisplayMode?, win: WindowController)
-
 // 设置manifest状态
 suspend fun WindowController.setStateFromManifest(manifest: ICommonAppManifest) {
   val win = this
@@ -22,8 +19,7 @@ suspend fun WindowController.setStateFromManifest(manifest: ICommonAppManifest) 
   manifest.theme_color?.let {
     windowState.themeColor = it
   }
-  // 设置窗口状态
-  setDisplayMode(manifest.display, win)
+
   /**
    * 挑选合适的图标作为应用的图标
    */
