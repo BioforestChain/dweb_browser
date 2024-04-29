@@ -1,10 +1,8 @@
 import { X_PLAOC_QUERY } from "./const.ts";
 import { IpcEvent, jsProcess, PromiseOut } from "./deps.ts";
-import "./helper/polyfill.ts";
 import { Server_api } from "./http-api-server.ts";
 import { Server_external } from "./http-external-server.ts";
 import { Server_www } from "./http-www-server.ts";
-import "./shim/crypto.shims.ts";
 
 import {
   all_webview_status,

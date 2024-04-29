@@ -35,6 +35,8 @@ export const $once = <T extends (...args: any) => unknown>(fn: T) => {
         },
       },
       reset: {
+        configurable: true,
+        writable: true,
         value: () => {
           first = true;
           resolved = undefined;

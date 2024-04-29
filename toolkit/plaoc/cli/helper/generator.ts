@@ -222,21 +222,21 @@ export class BundleZipGenerator {
   async getBaseZipEntries(dev = false) {
     const entries: $ZipEntry[] = [];
 
-    const addFiles_DistToUsr = async (addpath: string, pathalias: string = addpath, pathbase = "usr/") => {
+    const addFiles_DistToUsr = async (addpath_full: string, pathalias: string, pathbase = "usr/") => {
       let data = null;
       // 远程的文件
-      if (addpath.startsWith("http://") || addpath.startsWith("https://")) {
-        data = await (await fetch(addpath)).text();
+      if (addpath_full.startsWith("http://") || addpath_full.startsWith("https://")) {
+        data = await (await fetch(addpath_full)).text();
       }
       /// 本地文件
       else {
-        const addpath_full = internalRequest.resolve(addpath);
+        console.log('addpath_full',addpath_full)
         if (fs.statSync(addpath_full).isFile()) {
           data = fs.readFileSync(addpath_full);
         } else {
           for (const entry of WalkFiles(addpath_full)) {
-            const child_addpath = path.join(addpath, entry.relativepath);
-            await addFiles_DistToUsr(child_addpath, child_addpath.replace(addpath, pathalias), pathbase);
+            const child_addpath = path.join(addpath_full, entry.relativepath);
+            await addFiles_DistToUsr(child_addpath, child_addpath.replace(addpath_full, pathalias), pathbase);
           }
           return;
         }
@@ -247,13 +247,12 @@ export class BundleZipGenerator {
         data: data,
       });
     };
-    if (dev) {
-      await addFiles_DistToUsr("@plaoc/server/plaoc.server.dev.js", "server/plaoc.server.js");
-    } else {
-      await addFiles_DistToUsr("@plaoc/server/plaoc.server.js", "server/plaoc.server.js");
+    const distDir = path.dirname(
+      internalRequest.resolve(dev ? "@plaoc/server/plaoc.server.dev.js" : "@plaoc/server/plaoc.server.js")
+    );
+    for (const entry of WalkFiles(distDir)) {
+      await addFiles_DistToUsr(entry.entrypath, `server/${entry.relativepath}`);
     }
-    // await addFiles_DistToUsr("server/chunk.js");
-    await addFiles_DistToUsr("@plaoc/server/urlpattern.polyfill.js", "server/urlpattern.polyfill.js");
     return entries;
   }
   /**

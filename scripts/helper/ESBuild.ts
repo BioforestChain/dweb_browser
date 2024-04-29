@@ -5,7 +5,6 @@ import { esbuild } from "../deps.ts";
 import { importMapResolver } from "./importMapResolver.ts";
 export type $BuildOptions = esbuild.BuildOptions & {
   denoLoader?: boolean;
-  denoHtml?: boolean;
   importMapURL?: string;
   signal?: AbortSignal;
 };
@@ -197,7 +196,6 @@ if (import.meta.main) {
     target: "es2020",
     platform: "browser",
     denoLoader: args.importMap !== undefined,
-    denoHtml: entryPoints[0].endsWith(".html"),
     importMapURL: args.importMap ? path.resolve(cwd, args.importMap) : undefined,
     tsconfigRaw: args["tsconfig-raw"],
   });

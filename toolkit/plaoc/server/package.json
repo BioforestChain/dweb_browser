@@ -21,9 +21,8 @@
     "build": "tsc"
   },
   "exports": {
-    "./plaoc.server.dev.js": "./dist/plaoc.server.dev.js",
-    "./plaoc.server.js": "./dist/plaoc.server.js",
-    "./urlpattern.polyfill.js": "./dist/urlpattern.polyfill.js"
+    "./plaoc.server.dev.js": "./dist/dev/plaoc.server.js",
+    "./plaoc.server.js": "./dist/prod/plaoc.server.js"
   },
   "dependencies": {
     "@types/web": "^0.0.143",

@@ -9,44 +9,34 @@ const chalk = new Chalk({ level: 3 });
 
 const resolveTo = (to: string) => fileURLToPath(import.meta.resolve(to));
 const absWorkingDir = resolveTo("../server");
-export const polyfill = new ESBuild({
-  absWorkingDir,
-  splitting: false,
-  entryPoints: {
-    "urlpattern.polyfill": "./helper/urlpattern.polyfill.ts",
-  },
-  outdir: "./dist",
-  chunkNames: "[name]",
-  bundle: true,
-  target: "es2020",
-  platform: "browser",
-  format: "esm",
-});
+
 const prodEsbuildOptions = {
   absWorkingDir,
+  splitting: true,
   entryPoints: {
     "plaoc.server": "./index.ts",
   },
+  outdir: "./dist/prod",
   importMapURL: import.meta.resolve("../../../deno.jsonc"),
-  outfile: "./dist/plaoc.server.js",
+  denoLoader: true,
+  chunkNames: "[name]-[hash]",
   bundle: true,
   platform: "browser",
-  target: "es2020",
+  target: "es2022",
   format: "esm",
   tsconfigRaw: {
     compilerOptions: {
       experimentalDecorators: true,
     },
   },
-  denoLoader: true,
 } satisfies $BuildOptions;
 export const prod = new ESBuild(prodEsbuildOptions);
 export const dev = new ESBuild({
   ...prodEsbuildOptions,
   entryPoints: {
-    "plaoc.server.dev": "./index.ts",
+    "plaoc.server": "./index.ts",
   },
-  outfile: "./dist/plaoc.server.dev.js",
+  outdir: "./dist/dev",
   plugins: [
     {
       name: "use-(dev)-ext",
@@ -83,7 +73,11 @@ export const doBundleServer = (args = Deno.args) => {
       throw e;
     }
   }
-  return Promise.all([polyfill.auto(args), prod.auto(args), dev.auto(args)]);
+  return Promise.all([
+    //
+    prod.auto(args),
+    dev.auto(args),
+  ]);
 };
 
 if (import.meta.main) {
