@@ -1,7 +1,7 @@
 package org.dweb_browser.core.module
 
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
-import org.dweb_browser.core.help.types.MMID
+import org.dweb_browser.core.help.types.MMPT
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.pure.http.PureRequest
 
@@ -19,12 +19,12 @@ interface DnsApi {
   /**
    * 动态卸载应用
    */
-  suspend fun uninstall(mmid: MMID): Boolean
+  suspend fun uninstall(mmpt: MMPT): Boolean
 
   /**
    * 动态js应用查询
    */
-  fun query(mmid: MMID): MicroModule?
+  fun query(mmpt: MMPT): MicroModule?
 
   /**
    * 根据类目搜索模块
@@ -36,20 +36,20 @@ interface DnsApi {
   /**
    * 重启应用
    */
-  suspend fun restart(mmid: MMID)
+  suspend fun restart(mmpt: MMPT)
 
   /**
    * 与其它应用建立连接
    */
-  suspend fun connect(mmid: MMID, reason: PureRequest? = null): Ipc// ConnectResult
+  suspend fun connect(mmpt: MMPT, reason: PureRequest? = null): Ipc// ConnectResult
 
   /**
    * 启动其它应用
    */
-  suspend fun open(mmid: MMID): Boolean
+  suspend fun open(mmpt: MMPT): Boolean
 
   /**
    * 关闭其他应用
    */
-  suspend fun close(mmid: MMID): Boolean
+  suspend fun close(mmpt: MMPT): Boolean
 }

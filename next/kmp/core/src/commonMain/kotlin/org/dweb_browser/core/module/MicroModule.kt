@@ -204,7 +204,7 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
       /// 上锁，进行连接
       return connectWithLock(mmid, remoteMM.mmid) {
         connectionMap.getOrPut(remoteMM.mmid) {
-          debugMM("doConnect", remoteMM.mmid)
+          debugMM("doConnect-start", remoteMM.mmid)
           CompletableDeferred<Ipc>().also { ipcDeferred ->
             scopeLaunch(cancelable = false) {
               val ipc = bootstrapContext.dns.connect(remoteMM.mmid, reason)
@@ -213,6 +213,7 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
               ipc.onClosed {
                 connectionMap.remove(remoteMM.mmid, ipcDeferred)
               }
+              debugMM("doConnect-end", remoteMM.mmid)
             }
           }
         }.await()
@@ -224,7 +225,7 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
      */
     fun beConnect(ipc: Ipc, reason: PureRequest?): Job = scopeLaunch(cancelable = false) {
       if (connectionLinks.add(ipc)) {
-        debugMM("beConnect", ipc)
+        debugMM("beConnect-start", ipc)
         // 这个ipc分叉出来的ipc也会一并归入管理
         ipc.onFork("beConnect").listen {
           ipc.debugIpc("onFork", it.data)
@@ -247,7 +248,9 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
           }
         }
 
+        @Suppress("DeferredResultUnused")
         ipcConnectedProducer.send(IpcConnectArgs(ipc, reason))
+        debugMM("beConnect-end", ipc)
       }
     }
   }

@@ -61,13 +61,13 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
       dnsMM.install(mm)
     }
 
-    override suspend fun uninstall(mmid: MMID): Boolean {
+    override suspend fun uninstall(mmpt: MMPT): Boolean {
       // TODO 作用域保护
-      return dnsMM.uninstall(mmid)
+      return dnsMM.uninstall(mmpt)
     }
 
-    override fun query(mmid: MMID): MicroModule? {
-      return dnsMM.query(mmid, fromMM)
+    override fun query(mmpt: MMPT): MicroModule? {
+      return dnsMM.query(mmpt, fromMM)
     }
 
     override suspend fun search(category: MICRO_MODULE_CATEGORY): MutableList<MicroModule> {
@@ -75,29 +75,42 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
     }
 
     // 调用重启
-    override suspend fun restart(mmid: MMID) {
+    override suspend fun restart(mmpt: MMPT) {
       // 关闭后端连接
-      val num = dnsMM.runtime.close(mmid)
-      println("xxxx=> restart $num $mmid")
-      dnsMM.runtime.open(mmid, fromMM)
+      val num = dnsMM.runtime.close(mmpt)
+      println("xxxx=> restart $num $mmpt")
+      dnsMM.runtime.open(mmpt, fromMM)
     }
 
     // TODO 权限保护
-    override suspend fun connect(
-      mmid: MMID, reason: PureRequest?,
-    ) = dnsMM.connectTo(fromMM, mmid, reason ?: PureClientRequest("file://$mmid", PureMethod.GET))
+    override suspend fun connect(mmpt: MMPT, reason: PureRequest?): Ipc {
+      // 找到要连接的模块
+      val toMicroModule = dnsMM.query(mmpt, fromMM) ?: throw Throwable("not found app->$mmpt")
 
-    override suspend fun open(mmid: MMID): Boolean {
-      if (this.dnsMM.getRunningApps(mmid).isEmpty()) {
-        dnsMM.runtime.open(mmid, fromMM)
+      val toMMID = toMicroModule.mmid
+      val fromMMID = fromMM.mmid
+      debugDNS("connectTo") { "$fromMMID <=> $toMMID" }
+
+      val toAppRuntime = dnsMM.dnsRuntime.open(toMicroModule.mmid, fromMM)
+      debugDNS("connectTo/opened", toAppRuntime)
+      return connectMicroModules(
+        fromMM,
+        toAppRuntime,
+        reason ?: PureClientRequest("file://$mmpt", PureMethod.GET)
+      )
+    }
+
+    override suspend fun open(mmpt: MMPT): Boolean {
+      if (this.dnsMM.getRunningApps(mmpt).isEmpty()) {
+        dnsMM.runtime.open(mmpt, fromMM)
         return true
       }
       return false
     }
 
-    override suspend fun close(mmid: MMID): Boolean {
-      if (this.dnsMM.getRunningApps(mmid).isNotEmpty()) {
-        dnsMM.runtime.close(mmid);
+    override suspend fun close(mmpt: MMPT): Boolean {
+      if (this.dnsMM.getRunningApps(mmpt).isNotEmpty()) {
+        dnsMM.runtime.close(mmpt);
         return true;
       }
       return false;
@@ -171,19 +184,6 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
     }
   }
 
-  /** 为两个mm建立 ipc 通讯 */
-  internal suspend fun connectTo(fromMM: MicroModule, toMMPT: MMPT, reason: PureRequest): Ipc {
-    // 找到要连接的模块
-    val toMicroModule = query(toMMPT, fromMM) ?: throw Throwable("not found app->$toMMPT")
-
-    val toMMID = toMicroModule.mmid
-    val fromMMID = fromMM.mmid
-    debugDNS("connectTo") { "$fromMMID <=> $toMMID" }
-
-    val toAppRuntime = dnsRuntime.open(toMicroModule.mmid, fromMM)
-    debugDNS("connectTo/opened", toAppRuntime)
-    return connectMicroModules(fromMM, toAppRuntime, reason)
-  }
 
   private val installLock = Mutex()
 
@@ -249,7 +249,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
           for (microModule in allApps.values) {
             for (deeplink in microModule.dweb_deeplinks) {
               if (request.href.startsWith(deeplink)) {
-                val fromIpc = connectTo(fromMM.microModule, microModule.mmid, request)
+                val fromIpc = open(fromMM.mmid).connect(microModule.mmid, request)
                 return@append fromIpc.request(request)
               }
             }

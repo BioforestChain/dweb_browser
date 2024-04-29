@@ -103,7 +103,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
   }
 
 
-  abstract inner class NativeRuntime : Runtime() , HttpHandlerToolkit {
+  abstract inner class NativeRuntime : Runtime(), HttpHandlerToolkit {
     private val protocolRouters = mutableMapOf<DWEB_PROTOCOL, MutableList<HttpRouter>>()
     private fun getProtocolRouters(protocol: DWEB_PROTOCOL) =
       protocolRouters.getOrPut(protocol) { mutableListOf() }
@@ -142,7 +142,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
       debugMM("onConnect", "start")
       onConnect.listen { connectEvent ->
         val (clientIpc) = connectEvent.consume()
-        debugMM("onConnect", clientIpc)
+        debugMM("onConnect-start", clientIpc)
         clientIpc.onRequest("file-dweb-router").collectIn(mmScope) { event ->
           val ipcRequest = event.consumeFilter {
             when (it.uri.protocol.name) {
@@ -171,6 +171,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
 
         /// 在 NMM 这里，只要绑定好了，就可以开始握手通讯
         clientIpc.start(await = false, reason = "on-connect")
+        debugMM("onConnect-end", clientIpc)
       }
     }
 

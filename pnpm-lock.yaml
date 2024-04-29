@@ -69,17 +69,20 @@ importers:
       '@dweb-browser/core':
         specifier: workspace:~
         version: link:../@dweb-browser__core
+      '@plaoc/server':
+        specifier: workspace:~
+        version: link:../@plaoc__server
       ajv:
         specifier: 8.12.0
         version: 8.12.0
       jszip:
-        specifier: '*'
+        specifier: ^3.10.1
         version: 3.10.1
       mime:
-        specifier: '*'
+        specifier: ^4.0.3
         version: 4.0.3
       webdav-server:
-        specifier: '*'
+        specifier: ^2.6.2
         version: 2.6.2
     devDependencies:
       '@types/node':
@@ -124,6 +127,9 @@ importers:
       '@types/node':
         specifier: '*'
         version: 20.12.7
+      '@types/web':
+        specifier: ^0.0.143
+        version: 0.0.143
       deep-object-diff:
         specifier: ^1.1.9
         version: 1.1.9
@@ -811,6 +817,9 @@ packages:
 
   '@types/web-bluetooth@0.0.20':
     resolution: {integrity: sha512-g9gZnnXVq7gM7v3tJCWV/qw7w+KeOlSHAhgF9RytFyifW6AF61hdT2ucrYhPq9hLs5JIryeupHV3qGk95dH9ow==}
+
+  '@types/web@0.0.143':
+    resolution: {integrity: sha512-TazK16/OqeeqfQRB/Tv/NwzJagHbLi/w5g26FLbiFte/8LpPq6BuTyXHO/cpgwJpE6KGgFSNYb6Ap05Tz9XvCA==}
 
   '@types/webfontloader@1.6.38':
     resolution: {integrity: sha512-kUaF72Fv202suFx6yBrwXqeVRMx7hGtJTesyESZgn9sEPCUeDXm2p0SiyS1MTqW74nQP4p7JyrOCwZ7pNFns4w==}
@@ -2698,6 +2707,8 @@ snapshots:
   '@types/web-bluetooth@0.0.17': {}
 
   '@types/web-bluetooth@0.0.20': {}
+
+  '@types/web@0.0.143': {}
 
   '@types/webfontloader@1.6.38': {}
 
