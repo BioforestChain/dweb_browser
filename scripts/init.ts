@@ -13,7 +13,7 @@ export const doInit = async (args: string[]) => {
   void doInitAssets(args.includes("--watch") || args.includes("--dev"));
 };
 
-AssetsConfig.createAndSave("desktop-drawable", [
+AssetsConfig.createAndSave("helper-platform-drawable", [
   {
     type: "copyKmpResDrawable",
     moduleName: "helperPlatform",
@@ -27,13 +27,6 @@ AssetsConfig.createAndSave("sys-icons", [
     moduleName: "sys",
     ignoreSharedFix: true,
     moduleTarget: "desktopMain",
-  },
-]);
-AssetsConfig.createAndSave("desktop-drawable", [
-  {
-    type: "copyKmpResDrawable",
-    moduleName: "helperPlatform",
-    ignoreSharedFix: true,
   },
 ]);
 AssetsConfig.createAndSave("browser-drawable", [
