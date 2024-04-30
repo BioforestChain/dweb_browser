@@ -12,8 +12,10 @@ export const importMapResolver = async (importMapURL: string) => {
     const importMapJson = Function(`return (${importMapJsonStr})`)();
     for (const [key, value] of Object.entries(importMapJson.imports as Record<string, string>)) {
       if (value.startsWith("./")) {
-        importMapJson.imports[key] =
-          path.resolve(fileURLToPath(importMapURL), "../", value) + (key.endsWith("/") ? "/" : "");
+        // 添加pathToFileURL将路径转为file协议开头，为了修复windows系统路径 specifierKey prefix 异常
+        importMapJson.imports[key] = pathToFileURL(
+          path.resolve(fileURLToPath(importMapURL), "../", value) + (key.endsWith("/") ? "/" : "")
+        );
       }
     }
     fs.writeFileSync(tmpJsonFile, JSON.stringify({ imports: importMapJson.imports }, null, 2));
