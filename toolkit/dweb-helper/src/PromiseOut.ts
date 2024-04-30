@@ -1,3 +1,5 @@
+import type { $PromiseMaybe } from "./$PromiseMaybe.ts";
+
 /**
  * @param value
  * @returns
@@ -28,13 +30,13 @@ type $InnerFinally<T> = (arg: $InnerFinallyArg<T>) => unknown;
 type $InnerThen<T> = (result: T) => unknown;
 type $InnerCatch = (reason?: unknown) => unknown;
 export class PromiseOut<T = unknown> {
-  static resolve<T>(v: T) {
-    const po = new PromiseOut<T>();
+  static resolve<T>(v: $PromiseMaybe<T>) {
+    const po = new PromiseOut<Awaited<T>>();
     po.resolve(v);
     return po;
   }
   static reject<T>(reason?: unknown) {
-    const po = new PromiseOut<T>();
+    const po = new PromiseOut<Awaited<T>>();
     po.reject(reason);
     return po;
   }

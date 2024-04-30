@@ -34,9 +34,9 @@ export class Server_www extends HttpServer {
     } else if (this.jsonPlaoc) {
       this.lang = this.jsonPlaoc.defaultConfig.lang;
     }
-    const serverIpc = await this._listener;
-    const res = serverIpc.onFetch(...this.handlers, this._provider.bind(this)).noFound();
-    return res;
+
+    const serverIpc = await this.listen(...this.handlers, this._provider.bind(this));
+    return serverIpc.noFound();
   }
   protected async _provider(request: IpcFetchEvent, root = "www"): Promise<$OnFetchReturn> {
     let { pathname } = request;

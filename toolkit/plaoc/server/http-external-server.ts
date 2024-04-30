@@ -40,12 +40,10 @@ export class Server_external extends HttpServer {
     } satisfies $DwebHttpServerOptions;
   }
   readonly token = crypto.randomUUID();
+
   async start() {
-    const serverIpc = await this._listener;
-    return serverIpc
-      .onFetch(...this.handlers, this._provider.bind(this))
-      .internalServerError()
-      .cors();
+    const serverIpc = await this.listen(...this.handlers, this._provider.bind(this));
+    return serverIpc.internalServerError().cors();
   }
 
   ipcPo: PromiseToggle<$Ipc, void> = new PromiseToggle<$Ipc, void>({
@@ -105,21 +103,15 @@ export class Server_external extends HttpServer {
             throw err;
           }
           // 激活对面窗口
-          ipc.postMessage(
-            IpcEvent.fromText(ExternalState.ACTIVITY, ExternalState.RENDERER)
-          );
+          ipc.postMessage(IpcEvent.fromText(ExternalState.ACTIVITY, ExternalState.RENDERER));
           this.needActivity = false;
-          await ipc.request(
-            `file://${mmid}${ExternalState.WAIT_EXTERNAL_READY}`
-          );
+          await ipc.request(`file://${mmid}${ExternalState.WAIT_EXTERNAL_READY}`);
           return ipc;
         });
         const ipc = await this.externalWaitters.get(mmid);
         if (ipc && this.needActivity) {
           // 激活对面窗口
-          ipc.postMessage(
-            IpcEvent.fromText(ExternalState.ACTIVITY, ExternalState.RENDERER)
-          );
+          ipc.postMessage(IpcEvent.fromText(ExternalState.ACTIVITY, ExternalState.RENDERER));
         }
         const ext_options = this._getOptions();
         // 请求跟外部app通信，并拿到返回值
@@ -140,16 +132,10 @@ export class Server_external extends HttpServer {
       // 接收别人传递过来的消息
       const ipc = await this.ipcPo.waitOpen();
       // 发送到前端监听，并去（respondWith）拿返回值
-      const response = (
-        await ipc.request(event.request.url, event.request)
-      ).toResponse();
+      const response = (await ipc.request(event.request.url, event.request)).toResponse();
       // ipc.postMessage(response)
       // 构造返回值给对方
-      return IpcResponse.fromResponse(
-        event.ipcRequest.reqId,
-        response,
-        event.ipc
-      );
+      return IpcResponse.fromResponse(event.ipcRequest.reqId, response, event.ipc);
     }
   }
 }

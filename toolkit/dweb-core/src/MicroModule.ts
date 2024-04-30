@@ -269,9 +269,9 @@ export abstract class MicroModuleRuntime implements $MicroModuleRuntime {
    * nativeFetch 返回 Response
    * nativeRequest 返回 IpcResponse
    */
-  nativeRequest(url: RequestInfo | URL, init?: RequestInit) {
+  async nativeRequest(url: RequestInfo | URL, init?: RequestInit) {
     const args = normalizeFetchArgs(url, init);
-    const response = this._nativeRequest(args.parsed_url, args.request_init);
+    const response = await this._nativeRequest(args.parsed_url, args.request_init);
     if (!response) {
       throw new Error("fail to ipc-request");
     }

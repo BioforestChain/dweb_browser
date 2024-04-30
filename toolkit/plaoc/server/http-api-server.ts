@@ -1,10 +1,4 @@
-import type {
-  $DwebHttpServerOptions,
-  $Ipc,
-  $MMID,
-  $OnFetch,
-  $OnFetchReturn,
-} from "./deps.ts";
+import type { $DwebHttpServerOptions, $Ipc, $MMID, $OnFetch, $OnFetchReturn } from "./deps.ts";
 import {
   IpcClientRequest,
   IpcFetchEvent,
@@ -24,10 +18,7 @@ const INTERNAL_PREFIX = "/internal/";
 /**给前端的api服务 */
 export class Server_api extends HttpServer {
   jsRuntime = jsProcess.bootstrapContext;
-  constructor(
-    public getWid: () => Promise<string>,
-    private handlers: $OnFetch[] = []
-  ) {
+  constructor(public getWid: () => Promise<string>, private handlers: $OnFetch[] = []) {
     super("api");
   }
   protected _getOptions(): $DwebHttpServerOptions {
@@ -37,11 +28,8 @@ export class Server_api extends HttpServer {
   }
 
   async start() {
-    const serverIpc = await this._listener;
-    return serverIpc
-      .onFetch(...this.handlers, this._provider.bind(this))
-      .internalServerError()
-      .cors();
+    const serverIpc = await this.listen(...this.handlers, this._provider.bind(this));
+    return serverIpc.internalServerError().cors();
   }
 
   protected async _provider(event: IpcFetchEvent) {
@@ -77,9 +65,7 @@ export class Server_api extends HttpServer {
       }
       if (pathname === "/query") {
         const mmid = event.searchParams.get("mmid");
-        const res = await jsProcess.nativeFetch(
-          `file://dns.std.dweb/query?app_id=${mmid}`
-        );
+        const res = await jsProcess.nativeFetch(`file://dns.std.dweb/query?app_id=${mmid}`);
         return res;
       }
       return Response.json({
@@ -108,68 +94,28 @@ export class Server_api extends HttpServer {
     if (pathname === "callback") {
       const id = event.searchParams.get("id");
       if (!id) {
-        return IpcResponse.fromText(
-          event.reqId,
-          500,
-          new IpcHeaders(),
-          "invalid search params, miss 'id'",
-          event.ipc
-        );
+        return IpcResponse.fromText(event.reqId, 500, new IpcHeaders(), "invalid search params, miss 'id'", event.ipc);
       }
-      const ipc = await mapHelper.getOrPut(
-        this.callbacks,
-        id,
-        () => new PromiseOut<$Ipc>()
-      ).promise;
-      const response = await ipc.request(
-        event.url.href,
-        event.ipcRequest.toRequest()
-      );
+      const ipc = await mapHelper.getOrPut(this.callbacks, id, () => new PromiseOut<$Ipc>()).promise;
+      const response = await ipc.request(event.url.href, event.ipcRequest.toRequest());
       return response.toResponse();
     }
     /// websocket
     if (pathname === "registry-callback") {
       const id = event.searchParams.get("id");
       if (!id) {
-        return IpcResponse.fromText(
-          event.reqId,
-          500,
-          new IpcHeaders(),
-          "invalid search params, miss 'id'",
-          event.ipc
-        );
+        return IpcResponse.fromText(event.reqId, 500, new IpcHeaders(), "invalid search params, miss 'id'", event.ipc);
       }
-      const endpoint = new ReadableStreamEndpoint(
-        `${jsProcess.mmid}-api-server`
-      );
-      const readableStreamIpc = jsProcess.ipcPool.createIpc(
-        endpoint,
-        0,
-        this.#remote,
-        this.#remote
-      );
+      const endpoint = new ReadableStreamEndpoint(`${jsProcess.mmid}-api-server`);
+      const readableStreamIpc = jsProcess.ipcPool.createIpc(endpoint, 0, this.#remote, this.#remote);
 
       endpoint.bindIncomeStream(event.request.body!);
-      mapHelper
-        .getOrPut(this.callbacks, id, () => new PromiseOut())
-        .resolve(readableStreamIpc);
-      return IpcResponse.fromStream(
-        event.reqId,
-        200,
-        undefined,
-        endpoint.stream,
-        event.ipc
-      );
+      mapHelper.getOrPut(this.callbacks, id, () => new PromiseOut()).resolve(readableStreamIpc);
+      return IpcResponse.fromStream(event.reqId, 200, undefined, endpoint.stream, event.ipc);
     }
     if (pathname.startsWith("/usr")) {
       const response = await jsProcess.nativeRequest(`file://${pathname}`);
-      return new IpcResponse(
-        event.reqId,
-        response.statusCode,
-        response.headers,
-        response.body,
-        event.ipc
-      );
+      return new IpcResponse(event.reqId, response.statusCode, response.headers, response.body, event.ipc);
     }
   }
 
@@ -183,33 +129,15 @@ export class Server_api extends HttpServer {
     const mmid = new URL(path).host;
     const targetIpc = await jsProcess.connect(mmid as $MMID);
     const { ipcRequest } = event;
-    let ipcProxyRequest = new IpcClientRequest(
-      0,
-      path,
-      event.method,
-      event.headers,
-      ipcRequest.body,
-      targetIpc
-    );
+    let ipcProxyRequest = new IpcClientRequest(0, path, event.method, event.headers, ipcRequest.body, targetIpc);
     targetIpc.postMessage(ipcProxyRequest);
     let ipcProxyResponse = await targetIpc.request(ipcProxyRequest);
 
     /// 尝试申请授权
     if (ipcProxyResponse.statusCode === 401) {
       /// 如果授权成功，那么就重新发起请求
-      if (
-        await jsProcess.requestDwebPermissions(
-          await ipcProxyResponse.body.text()
-        )
-      ) {
-        ipcProxyRequest = new IpcClientRequest(
-          0,
-          path,
-          event.method,
-          event.headers,
-          ipcRequest.body,
-          targetIpc
-        );
+      if (await jsProcess.requestDwebPermissions(await ipcProxyResponse.body.text())) {
+        ipcProxyRequest = new IpcClientRequest(0, path, event.method, event.headers, ipcRequest.body, targetIpc);
         ipcProxyResponse = await targetIpc.request(ipcProxyRequest);
       }
     }

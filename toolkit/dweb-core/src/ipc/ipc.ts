@@ -12,9 +12,9 @@ import { $once, once } from "@dweb-browser/helper/decorator/$once.ts";
 import { mapHelper } from "@dweb-browser/helper/fun/mapHelper.ts";
 import { CUSTOM_INSPECT, logger } from "@dweb-browser/helper/logger.ts";
 import { promiseAsSignalListener } from "@dweb-browser/helper/promiseSignal.ts";
-import { IpcPool } from "./IpcPool.ts";
+import type { IpcPool } from "./IpcPool.ts";
 import { endpointIpcMessage } from "./endpoint/EndpointIpcMessage.ts";
-import { IpcEndpoint } from "./endpoint/IpcEndpoint.ts";
+import type { IpcEndpoint } from "./endpoint/IpcEndpoint.ts";
 import { $OnFetch, createFetchHandler } from "./helper/ipcFetchHelper.ts";
 import { ipcFork } from "./ipc-message/IpcFork.ts";
 import {
@@ -38,7 +38,22 @@ export class Ipc {
     readonly remote: $MicroModuleManifest,
     readonly pool: IpcPool,
     readonly debugId = `${endpoint.debugId}/${pid}`
-  ) {}
+  ) {
+    this.#messageProducer = this.endpoint.getIpcMessageProducerByIpc(this);
+    this.#lifecycleLocaleFlow = new StateSignal<$IpcLifecycle>(
+      ipcLifecycle(ipcLifecycleInit(this.pid, this.locale, this.remote)),
+      ipcLifecycle.equals
+    );
+    this.lifecycleLocaleFlow = this.#lifecycleLocaleFlow.asReadyonly();
+    this.onLifecycle = this.lifecycleLocaleFlow.listen;
+    this.#lifecycleRemoteFlow = this.onMessage(`ipc-lifecycle-remote#${this.pid}`).mapNotNull((message) => {
+      if (message.type === IPC_MESSAGE_TYPE.LIFECYCLE) {
+        return message;
+      }
+    });
+    this.lifecycleRemoteFlow = this.#lifecycleRemoteFlow;
+    this.#forkProducer = new Producer<Ipc>(`fork#${this.debugId}`);
+  }
   toString() {
     return `Ipc#${this.debugId}`;
   }
@@ -50,29 +65,22 @@ export class Ipc {
   // reqId计数
   #reqIdAcc = 0;
   // 消息生产者，所有的消息在这里分发出去
-  #messageProducer = this.endpoint.getIpcMessageProducerByIpc(this);
+  #messageProducer;
 
   onMessage(name: string) {
     return this.#messageProducer.producer.consumer(name);
   }
 
   //#region 生命周期相关
-  #lifecycleLocaleFlow = new StateSignal<$IpcLifecycle>(
-    ipcLifecycle(ipcLifecycleInit(this.pid, this.locale, this.remote)),
-    ipcLifecycle.equals
-  );
-  readonly lifecycleLocaleFlow = this.#lifecycleLocaleFlow.asReadyonly();
+  #lifecycleLocaleFlow;
+  readonly lifecycleLocaleFlow;
   get lifecycle() {
     return this.lifecycleLocaleFlow.state;
   }
-  onLifecycle = this.lifecycleLocaleFlow.listen;
+  onLifecycle;
 
-  #lifecycleRemoteFlow = this.onMessage(`ipc-lifecycle-remote#${this.pid}`).mapNotNull((message) => {
-    if (message.type === IPC_MESSAGE_TYPE.LIFECYCLE) {
-      return message;
-    }
-  });
-  readonly lifecycleRemoteFlow = this.#lifecycleRemoteFlow;
+  #lifecycleRemoteFlow;
+  readonly lifecycleRemoteFlow;
   /**
    * 向远端发送 生命周期 信号
    */
@@ -229,7 +237,7 @@ export class Ipc {
     return forkedIpc;
   }
 
-  #forkProducer = new Producer<Ipc>(`fork#${this.debugId}`);
+  #forkProducer;
   onFork(name: string) {
     return this.#forkProducer.consumer(name);
   }
