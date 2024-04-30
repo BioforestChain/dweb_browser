@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
@@ -25,7 +26,17 @@ export const viteTaskFactory = (config: { inDir: string; outDir: string; viteCon
   const inDir = baseResolveTo(config.inDir);
   const viteConfig = path.relative(
     inDir,
-    config.viteConfig ? baseResolveTo(config.viteConfig) : baseResolveTo(config.inDir, "vite.config.ts")
+    config.viteConfig
+      ? baseResolveTo(config.viteConfig)
+      : (() => {
+          for (const filename of ["vite.config.mts", "vite.config.ts", "vite.config.mjs", "vite.config.js"]) {
+            const viteConfig = baseResolveTo(config.inDir, filename);
+            if (fs.existsSync(viteConfig)) {
+              return viteConfig;
+            }
+          }
+          throw new Error("no found vite.config file in dir:" + config.inDir);
+        })()
   );
   return {
     cmd: "npx",
