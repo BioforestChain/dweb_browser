@@ -36,7 +36,10 @@ actual class NotificationManager actual constructor() {
 //  private val tray = SystemTray.getSystemTray();
 
   @OptIn(ExperimentalResourceApi::class)
-  actual suspend fun createNotification(microModule: MicroModule.Runtime, message: NotificationWebItem) {
+  actual suspend fun createNotification(
+    microModule: MicroModule.Runtime,
+    message: NotificationWebItem,
+  ) {
     if (!isSupport) {
       return
     }
@@ -51,7 +54,7 @@ actual class NotificationManager actual constructor() {
     } ?:
     // TODO 使用 withContext(ioAsyncExceptionHandler) {
     withContext(ioAsyncExceptionHandler) {
-      ImageIO.read(Res.readBytes("drawable/notification_default_icon.png").inputStream())
+      ImageIO.read(Res.readBytes("files/sys-icons/notification_default_icon.png").inputStream())
     }
 
     val trayIcon = TrayIcon(image, microModule.name)

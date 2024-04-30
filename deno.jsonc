@@ -3,6 +3,7 @@
   "tasks": {
     "init": "deno run -A ./scripts/init.ts",
     "dev": "deno run -A ./scripts/dev.ts",
+    "clean": "deno run -A ./scripts/clean.ts",
     "build": "deno run -A ./scripts/build.ts",
     "pub": "deno run -A ./scripts/pub.ts",
     "plaoc": "deno run -A ./toolkit/scripts/toolkit-plaoc.ts"
@@ -39,5 +40,8 @@
     "emitDecoratorMetadata": true /* Emit design-type metadata for decorated declarations in source files. */,
     "importsNotUsedAsValues": "error"
   },
-  "exclude": ["npm", "toolkit/dweb-desk-assets"]
+  "exclude": [
+    "npm",
+    "toolkit/dweb-desk-assets"
+  ]
 }

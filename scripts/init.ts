@@ -18,6 +18,22 @@ AssetsConfig.createAndSave("desktop-drawable", [
     type: "copyKmpResDrawable",
     moduleName: "helperPlatform",
     ignoreSharedFix: true,
+    moduleTarget: "desktopMain",
+  },
+]);
+AssetsConfig.createAndSave("sys-icons", [
+  {
+    type: "linkKmpResFiles",
+    moduleName: "sys",
+    ignoreSharedFix: true,
+    moduleTarget: "desktopMain",
+  },
+]);
+AssetsConfig.createAndSave("desktop-drawable", [
+  {
+    type: "copyKmpResDrawable",
+    moduleName: "helperPlatform",
+    ignoreSharedFix: true,
   },
 ]);
 AssetsConfig.createAndSave("browser-drawable", [

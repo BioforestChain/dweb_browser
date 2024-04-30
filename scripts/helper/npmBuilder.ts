@@ -3,14 +3,13 @@ import { $once } from "@dweb-browser/helper/decorator/$once.ts";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { viteTaskFactory } from "./ConTasks.helper.ts";
-import { $Task, ConTasks } from "./ConTasks.ts";
+import { createBaseResolveTo, viteTaskFactory } from "./ConTasks.helper.ts";
+import { ConTasks } from "./ConTasks.ts";
 import { WalkFiles } from "./WalkDir.ts";
 import { calcDirHash } from "./dirHash.ts";
-import { PromiseOut } from "@dweb-browser/helper/PromiseOut.ts";
 
 const rootDir = import.meta.resolve("../../");
-export const rootResolve = (path: string) => fileURLToPath(new URL(path, rootDir));
+export const rootResolve = createBaseResolveTo(rootDir);
 export const npmNameToFolderName = (name: string) => name.replace("/", "__");
 export const npmNameToFolder = (name: string) => rootResolve(`./npm/${npmNameToFolderName(name)}`);
 export type NpmBuilderContext = { packageResolve: (path: string) => string; npmResolve: (path: string) => string };
@@ -196,14 +195,14 @@ export const registryViteBuilder = (config: {
     try {
       const viteTasks = new ConTasks(
         {
-          [name]: viteTaskFactory(config)
+          [name]: viteTaskFactory(config),
         },
         import.meta.resolve("./")
       );
 
       const children = viteTasks.spawn([...Deno.args, "--dev"]).children;
       // 判断是否编译完成，编译完成后将 manifest.json 文件移动到编译目录中
-      await children[name].stdoutLogger.waitContent("built")
+      await children[name].stdoutLogger.waitContent("built");
       await Deno.copyFile(
         path.resolve(baseDir ?? ".", inDir, "./manifest.json"),
         path.resolve(baseDir ?? ".", outDir, "./manifest.json")
