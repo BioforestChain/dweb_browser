@@ -4,9 +4,10 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { viteTaskFactory } from "./ConTasks.helper.ts";
-import { ConTasks } from "./ConTasks.ts";
+import { $Task, ConTasks } from "./ConTasks.ts";
 import { WalkFiles } from "./WalkDir.ts";
 import { calcDirHash } from "./dirHash.ts";
+import { PromiseOut } from "@dweb-browser/helper/PromiseOut.ts";
 
 const rootDir = import.meta.resolve("../../");
 export const rootResolve = (path: string) => fileURLToPath(new URL(path, rootDir));
@@ -178,12 +179,13 @@ export const registryNpmBuilder = (config: Parameters<typeof npmBuilder>[0]) => 
  * 会自动等待依赖项目完成编译后，再开始自身的编译
  */
 export const registryViteBuilder = (config: {
+  name: string;
   inDir: string;
   outDir: string;
   viteConfig?: string;
   baseDir?: string;
 }) => {
-  const { inDir, baseDir } = config;
+  const { name, inDir, outDir, baseDir } = config;
   const packageDir = path.resolve(baseDir ?? ".", inDir, "./package.json");
   const packageJson: PackageJson = JSON.parse(fs.readFileSync(packageDir, "utf-8"));
   const build_vite = $once(async () => {
@@ -194,11 +196,19 @@ export const registryViteBuilder = (config: {
     try {
       const viteTasks = new ConTasks(
         {
-          "plaoc:examples:plugin-demo": viteTaskFactory(config),
+          [name]: viteTaskFactory(config)
         },
         import.meta.resolve("./")
       );
-      viteTasks.spawn([...Deno.args, "--dev"]);
+
+      const children = viteTasks.spawn([...Deno.args, "--dev"]).children;
+      // 判断是否编译完成，编译完成后将 manifest.json 文件移动到编译目录中
+      await children[name].stdoutLogger.waitContent("built")
+      await Deno.copyFile(
+        path.resolve(baseDir ?? ".", inDir, "./manifest.json"),
+        path.resolve(baseDir ?? ".", outDir, "./manifest.json")
+      );
+
       console.log(`✅ END ${packageJson.name}`);
     } catch (e) {
       console.error(`❌ ERROR ${packageJson.name}`);

@@ -6,6 +6,7 @@ import { doBundleServer } from "../plaoc/scripts/bundle-server.ts";
 import { plaocCli, plaocIsDweb, plaocPlugins, plaocServer } from "./build_npm.ts";
 
 const plaocExamples = registryViteBuilder({
+  name: "plaoc:examples:plugin-demo",
   inDir: "toolkit/plaoc/examples/plugin-demo",
   outDir: "npm/@plaoc__examples/plugin-demo",
   baseDir: "./",
