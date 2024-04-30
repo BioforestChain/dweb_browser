@@ -54,7 +54,13 @@ const symlink = (target: string, path: string) => {
     }
     fs.unlinkSync(path);
   }
-  fs.symlinkSync(target, path);
+
+  // windows系统需要使用junction模式，否则会有权限问题
+  if(os.platform() === "win32") {
+    fs.symlinkSync(target, path, "junction");
+  } else {
+    fs.symlinkSync(target, path)
+  }
 };
 const drawableEmptyer = new Map<string, ReturnType<typeof $once>>();
 const emptyOnce = (dirname: string) =>
