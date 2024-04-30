@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import { IgnoreGlob } from "./helper/IgnoreGlob.ts";
 import { WalkAny, WalkDirs, WalkOptions } from "./helper/WalkDir.ts";
-import { rootResolve } from "./helper/npmBuilder.ts";
+import { rootResolve } from "./helper/resolver.ts";
 
 const gitignore = IgnoreGlob.fromIgnoreFile(rootResolve("./.gitignore"));
 const cleanFiles = (dirname: string, options?: WalkOptions) => {

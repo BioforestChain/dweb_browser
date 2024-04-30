@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { rootResolve } from "../../scripts/helper/npmBuilder.ts";
+import { rootResolve } from "../../scripts/helper/resolver.ts";
 
 const jmmAppDirname = path.resolve(
   os.userInfo().homedir,

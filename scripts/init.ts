@@ -2,10 +2,16 @@ import { $once } from "@dweb-browser/helper/decorator/$once.ts";
 import { toolkitInit } from "../toolkit/scripts/toolkit-init.ts";
 import { AssetsConfig } from "./helper/AssetsConfig.ts";
 import { $ } from "./helper/exec.ts";
+import { resolveDenoJson } from "./helper/resolver.ts";
 
 export const doInit = async (args: string[]) => {
   // 初始化 git 项目
   await $(`git submodule update --init`);
+  for (const depValue of Object.values(resolveDenoJson().imports)) {
+    if (depValue.startsWith("npm:")) {
+      await $(`deno cache ${depValue}`);
+    }
+  }
 
   await toolkitInit();
 

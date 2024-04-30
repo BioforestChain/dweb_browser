@@ -2,16 +2,14 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { registryNpmBuilder } from "../../scripts/helper/npmBuilder.ts";
+import { resolveDenoJson } from "../../scripts/helper/resolver.ts";
 import { npmInit } from "./toolkit-init.ts";
 /// 将 import_map.npm.json 和 deno.jsonc 两个文件进行合并
 const importMap = await (async () => {
   const { default: importMapNode } = await import("./import_map.npm.json", { with: { type: "json" } });
 
-  const importMapDeno = Function(
-    `return(${fs.readFileSync(fileURLToPath(import.meta.resolve("../../deno.jsonc")))})`
-  )();
+  const importMapDeno = resolveDenoJson();
   const importMapMerged = { imports: { ...importMapDeno.imports, ...importMapNode.imports } };
   const importMapJson = JSON.stringify(importMapMerged, null, 2);
   const hash = crypto.createHash("sha256").update(importMapJson).digest("hex").slice(0, 8);

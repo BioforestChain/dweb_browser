@@ -47,19 +47,20 @@ export class AssetsConfig {
 }
 
 const symlink = (target: string, path: string) => {
-  fs.mkdirSync(node_path.dirname(path), { recursive: true });
   if (fs.existsSync(path)) {
     if (!fs.statSync(path).isSymbolicLink) {
       throw new Error(`symbol link fail, ${path} exists.`);
     }
-    fs.unlinkSync(path);
+    fs.rmSync(path, { recursive: true }); // 删除文件夹以及其内容
+  } else {
+    fs.mkdirSync(node_path.dirname(path), { recursive: true });
   }
 
   // windows系统需要使用junction模式，否则会有权限问题
-  if(os.platform() === "win32") {
+  if (os.platform() === "win32") {
     fs.symlinkSync(target, path, "junction");
   } else {
-    fs.symlinkSync(target, path)
+    fs.symlinkSync(target, path);
   }
 };
 const drawableEmptyer = new Map<string, ReturnType<typeof $once>>();
