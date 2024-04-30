@@ -130,7 +130,11 @@ export function* WalkAny(rootpath: string, options: WalkOptions = {}) {
         continue;
       }
     }
-    // console.log("walk", dirpath);
+    
+    if(!fs.existsSync(dirpath)) {
+      continue;
+    }
+
     for (const entryname of fs.readdirSync(dirpath)) {
       const entry = genEntry(path.join(dirpath, entryname), dirpath, entryname);
       if (!entry) {

@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import { IgnoreGlob } from "./helper/IgnoreGlob.ts";
 import { WalkAny, WalkDirs, WalkOptions } from "./helper/WalkDir.ts";
 import { rootResolve } from "./helper/npmBuilder.ts";
@@ -8,7 +9,9 @@ const cleanFiles = (dirname: string, options?: WalkOptions) => {
   for (const entry of WalkAny(dirname, { workspace: rootResolve(), ...options })) {
     if (gitignore.isIgnore(entry.workspacepath)) {
       console.log("rm", entry.workspacepath);
-      // fs.rmSync(entry.entrypath, { recursive: true });
+      if(fs.existsSync(entry.workspacepath)) {
+        fs.rmSync(entry.entrypath, { recursive: true });
+      }
     }
   }
 };
