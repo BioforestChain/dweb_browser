@@ -1,3 +1,4 @@
+import { IpcFetchEvent } from "@dweb-browser/core/ipc/helper/ipcFetchHelper.ts";
 import { cacheGetter } from "../../helper/cacheGetter.ts";
 import type { ListenerCallback } from "../base/base-event.ts";
 import { ServiceWorkerFetchEvent } from "./FetchEvent.ts";
@@ -18,9 +19,10 @@ class DwebServiceWorker extends EventTarget {
     super();
     // 事件分发中心
     this.plugin.ipcPromise.then((ipc) => {
-      ipc.onFetch("get-message", (fetchEvent) => {
-        console.log("收到fetch消息", fetchEvent.pathname, this.isRegister);
-        const serviceEvent = new ServiceWorkerFetchEvent(fetchEvent, this.plugin);
+      ipc.onRequest("get-message").collect((event) => {
+        const fetchEvent = event.data;
+        console.log("收到fetch消息", fetchEvent.parsed_url.href, this.isRegister);
+        const serviceEvent = new ServiceWorkerFetchEvent(new IpcFetchEvent(fetchEvent, ipc), this.plugin);
         if (!this.isRegister) {
           this.messageQueue.push(serviceEvent);
         }

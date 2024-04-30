@@ -12,13 +12,13 @@ export class Signal<CB extends $Callback<any[]> = $Callback> {
   }
   private _cbs = new Set<CB>();
 
-  private _started = false;
+  #started = false;
   private _cachedActions: Array<() => void> = [];
   private _start() {
-    if (this._started) {
+    if (this.#started) {
       return;
     }
-    this._started = true;
+    this.#started = true;
     if (this._cachedActions.length) {
       for (const action of this._cachedActions) {
         action();
@@ -27,7 +27,7 @@ export class Signal<CB extends $Callback<any[]> = $Callback> {
     }
   }
   private _startAction(action: () => void) {
-    if (this._started) {
+    if (this.#started) {
       action();
     } else {
       this._cachedActions.push(action);

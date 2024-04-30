@@ -122,8 +122,8 @@ export class JsProcessMicroModule extends MicroModule {
           const po = new PromiseOut<Ipc>();
           this.fetchIpc.postMessage(core.IpcEvent.fromText("dns/connect", mmid));
 
-          this.fetchIpc.onEvent("wait-dns-connect").collect(async (event) => {
-            await event.consumeAwaitMapNotNull(async (ipcEvent) => {
+          this.fetchIpc.onEvent("wait-dns-connect").collect((event) => {
+            event.consumeMapNotNull(async (ipcEvent) => {
               if (ipcEvent.name === "dns/connect/done") {
                 this.console.debug("connect-done", ipcEvent.data);
                 const done = JSON.parse(core.IpcEvent.text(ipcEvent)) as {

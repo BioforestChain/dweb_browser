@@ -78,7 +78,7 @@ export const pureChannelToIpcEvent = async (channelIpc: Ipc, pureChannel: PureCh
   const orderBy = -1;
 
   const ipcListenToChannelPo = new PromiseOut<ReadableStreamDefaultController<$PureFrame>>();
-  const off = channelIpc.onEvent("pureChannelToIpcEvent").collect(async (event) => {
+  channelIpc.onEvent("pureChannelToIpcEvent").collect(async (event) => {
     const ipcEvent = event.consumeMapNotNull((ipcEvent) => {
       if (ipcEvent.name === eventData) {
         return ipcEvent;
@@ -99,5 +99,4 @@ export const pureChannelToIpcEvent = async (channelIpc: Ipc, pureChannel: PureCh
   for await (const pureFrame of streamRead(channelReadOut)) {
     channelIpc.postMessage(pureFrameToIpcEvent(eventData, pureFrame, orderBy));
   }
-  off(); // 移除事件监听
 };

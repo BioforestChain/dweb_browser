@@ -1,12 +1,6 @@
-import {
-  Ipc,
-  IpcBody,
-  IpcHeaders,
-  IpcResponse,
-  IpcServerRequest,
-} from "../index.ts";
 import type { $PromiseMaybe } from "@dweb-browser/helper/$PromiseMaybe.ts";
 import { isBinary } from "@dweb-browser/helper/fun/binaryHelper.ts";
+import { Ipc, IpcBody, IpcHeaders, IpcResponse, IpcServerRequest } from "../index.ts";
 import { $bodyInitToIpcBodyArgs, isWebSocket } from "./ipcRequestHelper.ts";
 
 export type $OnFetchReturn = Response | IpcResponse | $FetchResponse | void;
@@ -17,28 +11,20 @@ export type $OnFetchReturn = Response | IpcResponse | $FetchResponse | void;
  */
 export type $OnFetch = (event: IpcFetchEvent) => $PromiseMaybe<$OnFetchReturn>;
 
-export type $OnFetchMid = (
-  respose: IpcResponse,
-  event: IpcFetchEvent
-) => $PromiseMaybe<$OnFetchReturn>;
+export type $OnFetchMid = (respose: IpcResponse, event: IpcFetchEvent) => $PromiseMaybe<$OnFetchReturn>;
 /**
  * 对即将要进行的响应内容，作出额外的处理
  */
-export const fetchMid = (handler: $OnFetchMid) =>
-  Object.assign(handler, { [FETCH_MID_SYMBOL]: true } as const);
+export const fetchMid = (handler: $OnFetchMid) => Object.assign(handler, { [FETCH_MID_SYMBOL]: true } as const);
 export const FETCH_MID_SYMBOL = Symbol("fetch.middleware");
 
-export type $OnFetchEnd = (
-  event: IpcFetchEvent,
-  respose: IpcResponse | undefined
-) => $PromiseMaybe<$OnFetchReturn>;
+export type $OnFetchEnd = (event: IpcFetchEvent, respose: IpcResponse | undefined) => $PromiseMaybe<$OnFetchReturn>;
 /**
  * 对即将要进行的响应内容，做出最后的处理
  *
  * 如果没有返回值，那么就不会执行 ipc.postMessage
  */
-export const fetchEnd = (handler: $OnFetchEnd) =>
-  Object.assign(handler, { [FETCH_END_SYMBOL]: true } as const);
+export const fetchEnd = (handler: $OnFetchEnd) => Object.assign(handler, { [FETCH_END_SYMBOL]: true } as const);
 export const FETCH_END_SYMBOL = Symbol("fetch.end");
 
 export type $OnWebSocket = $OnFetch;
@@ -76,25 +62,11 @@ const $throw = (err: Error) => {
 };
 
 export const fetchHanlderFactory = {
-  NoFound: () =>
-    fetchEnd(
-      (_event, res) =>
-        res ?? $throw(new FetchError("No Found", { status: 404 }))
-    ),
-  Forbidden: () =>
-    fetchEnd(
-      (_event, res) =>
-        res ?? $throw(new FetchError("Forbidden", { status: 403 }))
-    ),
-  BadRequest: () =>
-    fetchEnd(
-      (_event, res) =>
-        res ?? $throw(new FetchError("Bad Request", { status: 400 }))
-    ),
+  NoFound: () => fetchEnd((_event, res) => res ?? $throw(new FetchError("No Found", { status: 404 }))),
+  Forbidden: () => fetchEnd((_event, res) => res ?? $throw(new FetchError("Forbidden", { status: 403 }))),
+  BadRequest: () => fetchEnd((_event, res) => res ?? $throw(new FetchError("Bad Request", { status: 400 }))),
   InternalServerError: (message = "Internal Server Error") =>
-    fetchEnd(
-      (_event, res) => res ?? $throw(new FetchError(message, { status: 500 }))
-    ),
+    fetchEnd((_event, res) => res ?? $throw(new FetchError(message, { status: 500 }))),
   // deno-lint-ignore no-explicit-any
 } satisfies Record<string, (...args: any[]) => $AnyFetchHanlder>;
 /**
@@ -107,9 +79,7 @@ export const createFetchHandler = (onFetchs: Iterable<$OnFetch> = []) => {
   // deno-lint-ignore ban-types
   const extendsTo = <T extends {}>(_to: T) => {
     // deno-lint-ignore no-explicit-any
-    const wrapFactory = <T extends (...args: any[]) => $AnyFetchHanlder>(
-      factory: T
-    ) => {
+    const wrapFactory = <T extends (...args: any[]) => $AnyFetchHanlder>(factory: T) => {
       return (...args: Parameters<T>) => {
         onFetchHanlders.push(factory(...args));
         return to;
@@ -137,9 +107,7 @@ export const createFetchHandler = (onFetchs: Iterable<$OnFetch> = []) => {
        * 配置跨域，一般是最后调用
        * @param config
        */
-      cors: (
-        config: { origin?: string; headers?: string; methods?: string } = {}
-      ) => {
+      cors: (config: { origin?: string; headers?: string; methods?: string } = {}) => {
         /// options 请求一般是跨域时，询问能否post，这里统一返回空就行，后面再加上 Access-Control-Allow-Methods
         onFetchHanlders.unshift(((event) => {
           if (event.method === "OPTIONS") {
@@ -202,26 +170,18 @@ export const createFetchHandler = (onFetchs: Iterable<$OnFetch> = []) => {
           if (result.body instanceof IpcBody) {
             res = new IpcResponse(reqId, status, headers, result.body, ipc);
           } else {
-            const body = await $bodyInitToIpcBodyArgs(
-              result.body,
-              (bodyInit) => {
-                /// 尝试使用 JSON 解码
-                if (
-                  headers.has("Content-Type") === false ||
-                  headers
-                    .get("Content-Type")!
-                    .startsWith("application/javascript")
-                ) {
-                  headers.init(
-                    "Content-Type",
-                    "application/javascript;charset=utf8"
-                  );
-                  return JSON.stringify(bodyInit);
-                }
-                // 否则直接处理成字符串
-                return String(bodyInit);
+            const body = await $bodyInitToIpcBodyArgs(result.body, (bodyInit) => {
+              /// 尝试使用 JSON 解码
+              if (
+                headers.has("Content-Type") === false ||
+                headers.get("Content-Type")!.startsWith("application/javascript")
+              ) {
+                headers.init("Content-Type", "application/javascript;charset=utf8");
+                return JSON.stringify(bodyInit);
               }
-            );
+              // 否则直接处理成字符串
+              return String(bodyInit);
+            });
             if (typeof body === "string") {
               res = IpcResponse.fromText(reqId, status, headers, body, ipc);
             } else if (isBinary(body)) {
@@ -235,6 +195,7 @@ export const createFetchHandler = (onFetchs: Iterable<$OnFetch> = []) => {
         if (err instanceof Response) {
           res = await IpcResponse.fromResponse(request.reqId, err, ipc);
         } else {
+          console.log("ipcFetchHelperError=>", err);
           /// 处理异常，尝试返回
           let err_code = 500;
           let err_message = "";
@@ -262,9 +223,7 @@ export const createFetchHandler = (onFetchs: Iterable<$OnFetch> = []) => {
               request.reqId,
               err_code,
               new IpcHeaders().init("Content-Type", "text/html;charset=utf8"),
-              err instanceof Error
-                ? `<h1>${err.message}</h1><hr/><pre>${err.stack}</pre>`
-                : String(err),
+              err instanceof Error ? `<h1>${err.message}</h1><hr/><pre>${err.stack}</pre>` : String(err),
               ipc
             );
           }

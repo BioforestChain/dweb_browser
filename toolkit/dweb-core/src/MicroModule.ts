@@ -10,7 +10,7 @@ import { normalizeFetchArgs } from "@dweb-browser/helper/normalizeFetchArgs.ts";
 import { promiseAsSignalListener } from "@dweb-browser/helper/promiseSignal.ts";
 import type { $BootstrapContext } from "./bootstrapContext.ts";
 import { $normalizeRequestInitAsIpcRequestArgs } from "./ipc/helper/ipcRequestHelper.ts";
-import { type $IpcEvent, type Ipc } from "./ipc/index.ts";
+import type { $IpcEvent, Ipc } from "./ipc/index.ts";
 import type { MICRO_MODULE_CATEGORY } from "./type/category.const.ts";
 import type {
   $DWEB_DEEPLINK,
@@ -273,7 +273,7 @@ export abstract class MicroModuleRuntime implements $MicroModuleRuntime {
     const args = normalizeFetchArgs(url, init);
     const response = await this._nativeRequest(args.parsed_url, args.request_init);
     if (!response) {
-      throw new Error("fail to ipc-request");
+      throw new Error(`fail to ipc-request of ${args.parsed_url}`);
     }
     return response;
   }

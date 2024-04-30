@@ -1,7 +1,7 @@
 import { createSignal } from "@dweb-browser/helper/createSignal.ts";
 import { CUSTOM_INSPECT, logger } from "@dweb-browser/helper/logger.ts";
 import type { $MicroModuleManifest } from "../types.ts";
-import { IpcEndpoint } from "./endpoint/IpcEndpoint.ts";
+import type { IpcEndpoint } from "./endpoint/IpcEndpoint.ts";
 import { Ipc } from "./ipc.ts";
 
 /**每一个worker 都会创建单独的IpcPool */
@@ -32,7 +32,7 @@ export class IpcPool {
     autoStart = false,
     startReason?: string
   ) {
-    const ipc = new Ipc(pid, endpoint, locale, remote, this);
+    const ipc = new Ipc(pid, endpoint, locale, remote, this, startReason);
     this.safeCreatedIpc(ipc, autoStart, startReason);
     return ipc;
   }

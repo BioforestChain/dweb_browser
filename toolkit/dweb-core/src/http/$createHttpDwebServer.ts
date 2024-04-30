@@ -9,7 +9,11 @@ import { ServerStartResult, ServerUrlInfo } from "./const.ts";
 import type { $DwebHttpServerOptions } from "./types.ts";
 
 /** 创建一个网络服务 */
-export const createHttpDwebServer = async (microModule: MicroModuleRuntime, options: $DwebHttpServerOptions) => {
+export const createHttpDwebServer = async (
+  microModule: MicroModuleRuntime,
+  options: $DwebHttpServerOptions,
+  target: string
+) => {
   /// 申请端口监听，不同的端口会给出不同的域名和控制句柄，控制句柄不要泄露给任何人
   const startResult = await startHttpDwebServer(microModule, options);
   console.log(
@@ -18,21 +22,22 @@ export const createHttpDwebServer = async (microModule: MicroModuleRuntime, opti
     startResult.urlInfo.internal_origin,
     startResult.urlInfo.public_origin
   );
-  return new HttpDwebServer(microModule, options, startResult);
+  return new HttpDwebServer(microModule, options, startResult, target);
 };
 
 export class HttpDwebServer {
   constructor(
     private readonly nmm: MicroModuleRuntime,
     private readonly options: $DwebHttpServerOptions,
-    readonly startResult: ServerStartResult
+    readonly startResult: ServerStartResult,
+    readonly target: string
   ) {}
   /** 开始处理请求 */
   listen = $once(async (...onFetchs: $OnFetch[]) => {
-    const serverIpc = await listenHttpDwebServer(this.nmm, this.startResult);
+    const serverIpc = await listenHttpDwebServer(this.nmm, this.startResult, this.target);
 
     const fetchHandler = createFetchHandler(onFetchs);
-    serverIpc.onRequest("http-listen").collect(async (event) => {
+    serverIpc.onRequest(this.target).collect(async (event) => {
       const request = event.consume();
       console.log("QAQ", "http-in", request);
       const response =
@@ -73,6 +78,7 @@ const startHttpDwebServer = async (microModule: MicroModuleRuntime, options: $Dw
 const listenHttpDwebServer = async (
   microModule: MicroModuleRuntime,
   startResult: ServerStartResult,
+  target: string,
   routes: $ReqMatcher[] = [
     /** 定义了路由的方法 */
     { pathname: "/", matchMode: "prefix", method: "GET" },
@@ -91,7 +97,7 @@ const listenHttpDwebServer = async (
     customServerIpc ??
     (await (async () => {
       const httpIpc = await microModule.connect("http.std.dweb");
-      return await httpIpc.fork(undefined, undefined, true, "listenHttpDwebServer");
+      return await httpIpc.fork(undefined, undefined, true, `listenHttpDwebServer-${target}`);
     })());
   microModule.console.debug("listenHttpDwebServer", serverIpc);
   await serverIpc.request(

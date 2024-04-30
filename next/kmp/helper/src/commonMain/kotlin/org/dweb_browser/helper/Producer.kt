@@ -126,7 +126,7 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
       return null
     }
 
-    inline fun <R : Any?> consumeMapNotNull(mapNotNull: (T) -> R?): R? {
+    inline fun <R> consumeMapNotNull(mapNotNull: (T) -> R?): R? {
       val result = mapNotNull(data)
       if (result != null) {
         consume()

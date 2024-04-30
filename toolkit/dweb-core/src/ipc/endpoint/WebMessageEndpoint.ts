@@ -21,14 +21,13 @@ export class WebMessageEndpoint extends CommonEndpoint {
       } else {
         message = $jsonToEndpointMessage(rawData);
       }
-
       this.endpointMsgChannel.send(message);
     });
     this.port.start();
     return super.doStart();
   }
 
-  protected postTextMessage(data: String) {
+  protected postTextMessage(data: string) {
     this.console.debug("QAQ", "out", data);
     this.port.postMessage(data);
   }

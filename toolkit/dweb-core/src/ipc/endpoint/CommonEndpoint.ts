@@ -57,14 +57,17 @@ export abstract class CommonEndpoint extends IpcEndpoint {
   /**
    * 使用协商的结果来进行接下来的通讯
    */
+  // deno-lint-ignore require-await
   override async doStart(): Promise<void> {
     this.lifecycleLocaleFlow.listen((lifecycle) => {
+      // 如果连接成功，就开始对接协议
       if (lifecycle.state.name === ENDPOINT_LIFECYCLE_STATE.OPENED) {
         if (lifecycle.state.subProtocols.includes(ENDPOINT_PROTOCOL.CBOR)) {
           this.#protocol = ENDPOINT_PROTOCOL.CBOR;
         }
       }
     });
+    // 分发消息或者声明周期
     (async () => {
       for await (const endpointMessage of this.endpointMsgChannel) {
         switch (endpointMessage.type) {
@@ -101,7 +104,7 @@ export abstract class CommonEndpoint extends IpcEndpoint {
   /**
    * 发送文本类型的消息
    */
-  protected abstract postTextMessage(data: String): void;
+  protected abstract postTextMessage(data: string): void;
 
   /**
    * 发送二进制类型的消息

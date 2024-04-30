@@ -26,7 +26,8 @@ export class Channel<T = Uint8Array> {
     this._isClosedForSend = true;
   }
 
-  close() {
+  close(cause?: string) {
+    console.debug("channel_close", cause);
     this.closeWrite();
     this.controller.close();
   }

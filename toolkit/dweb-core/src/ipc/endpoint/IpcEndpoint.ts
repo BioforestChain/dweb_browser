@@ -4,17 +4,14 @@
 
 import { Producer } from "@dweb-browser/helper/Producer.ts";
 import { PromiseOut } from "@dweb-browser/helper/PromiseOut.ts";
-import {
-  StateSignal,
-  type $ReadyonlyStateSignal,
-} from "@dweb-browser/helper/StateSignal.ts";
+import { StateSignal, type $ReadyonlyStateSignal } from "@dweb-browser/helper/StateSignal.ts";
 import { $once } from "@dweb-browser/helper/decorator/$once.ts";
 import { mapHelper } from "@dweb-browser/helper/fun/mapHelper.ts";
 import { setHelper } from "@dweb-browser/helper/fun/setHelper.ts";
 import { CUSTOM_INSPECT, logger } from "@dweb-browser/helper/logger.ts";
 import type { $IpcMessage } from "../ipc-message/IpcMessage.ts";
 import { IPC_MESSAGE_TYPE } from "../ipc-message/internal/IpcMessage.ts";
-import { Ipc } from "../ipc.ts";
+import type { Ipc } from "../ipc.ts";
 import type { $EndpointIpcMessage } from "./EndpointIpcMessage.ts";
 import {
   ENDPOINT_LIFECYCLE_STATE,
@@ -55,15 +52,10 @@ export abstract class IpcEndpoint {
    * @internal
    * 获取消息管道
    */
-  private ipcMessageProducers = new Map<
-    number,
-    ReturnType<IpcEndpoint["ipcMessageProducer"]>
-  >();
+  private ipcMessageProducers = new Map<number, ReturnType<IpcEndpoint["ipcMessageProducer"]>>();
   private ipcMessageProducer(pid: number) {
     const ipcPo = new PromiseOut<Ipc>();
-    const producer = new Producer<$IpcMessage>(
-      `ipc-msg/${this.debugId}/${pid}`
-    );
+    const producer = new Producer<$IpcMessage>(`ipc-msg/${this.debugId}/${pid}`);
     const consumer = producer.consumer("watch-fork");
     consumer.collect((event) => {
       if (event.data.type === IPC_MESSAGE_TYPE.FORK) {
@@ -77,9 +69,7 @@ export abstract class IpcEndpoint {
   }
 
   getIpcMessageProducer(pid: number) {
-    return mapHelper.getOrPut(this.ipcMessageProducers, pid, () =>
-      this.ipcMessageProducer(pid)
-    );
+    return mapHelper.getOrPut(this.ipcMessageProducers, pid, () => this.ipcMessageProducer(pid));
   }
 
   getIpcMessageProducerByIpc(ipc: Ipc) {
@@ -156,9 +146,7 @@ export abstract class IpcEndpoint {
     let localeSubProtocols = this.getLocaleSubProtocols();
     // 当前状态必须是从init开始
     if (this.lifecycle.state.name === ENDPOINT_LIFECYCLE_STATE.INIT) {
-      const opening = endpointLifecycle(
-        endpointLifecycleOpening(localeSubProtocols)
-      );
+      const opening = endpointLifecycle(endpointLifecycleOpening(localeSubProtocols));
       this.sendLifecycleToRemote(opening);
       this.console.debug("emit-locale-lifecycle", opening);
       this.lifecycleLocaleFlow.emit(opening);
@@ -177,14 +165,9 @@ export abstract class IpcEndpoint {
         // 收到 opened 了，自己也设置成 opened，代表正式握手成功
         case ENDPOINT_LIFECYCLE_STATE.OPENED: {
           const lifecycleLocale = this.lifecycle;
-          this.console.debug(
-            "remote-opend-&-locale-lifecycle",
-            lifecycleLocale
-          );
+          this.console.debug("remote-opend-&-locale-lifecycle", lifecycleLocale);
           if (lifecycleLocale.state.name === ENDPOINT_LIFECYCLE_STATE.OPENING) {
-            const opend = endpointLifecycle(
-              endpointLifecycleOpend(lifecycleLocale.state.subProtocols)
-            );
+            const opend = endpointLifecycle(endpointLifecycleOpend(lifecycleLocale.state.subProtocols));
             this.sendLifecycleToRemote(opend);
             this.console.debug("emit-locale-lifecycle", opend);
             this.lifecycleLocaleFlow.emit(opend);
@@ -206,25 +189,13 @@ export abstract class IpcEndpoint {
             [...localeSubProtocols].sort().join(),
             lifecycle.state.subProtocols.slice().sort().join()
           );
-          if (
-            setHelper.equals(
-              localeSubProtocols,
-              lifecycle.state.subProtocols
-            ) === false
-          ) {
-            localeSubProtocols = setHelper.intersect(
-              localeSubProtocols,
-              lifecycle.state.subProtocols
-            );
-            const opening = endpointLifecycle(
-              endpointLifecycleOpening(localeSubProtocols)
-            );
+          if (setHelper.equals(localeSubProtocols, lifecycle.state.subProtocols) === false) {
+            localeSubProtocols = setHelper.intersect(localeSubProtocols, lifecycle.state.subProtocols);
+            const opening = endpointLifecycle(endpointLifecycleOpening(localeSubProtocols));
             this.lifecycleLocaleFlow.emit(opening);
             nextState = opening;
           } else {
-            nextState = endpointLifecycle(
-              endpointLifecycleOpend(localeSubProtocols)
-            );
+            nextState = endpointLifecycle(endpointLifecycleOpend(localeSubProtocols));
           }
           this.sendLifecycleToRemote(nextState);
           break;
@@ -245,8 +216,7 @@ export abstract class IpcEndpoint {
           op.resolve(lifecycle);
           break;
         }
-        case (ENDPOINT_LIFECYCLE_STATE.CLOSED,
-        ENDPOINT_LIFECYCLE_STATE.CLOSING): {
+        case (ENDPOINT_LIFECYCLE_STATE.CLOSED, ENDPOINT_LIFECYCLE_STATE.CLOSING): {
           op.reject("endpoint already closed");
           break;
         }
@@ -274,9 +244,7 @@ export abstract class IpcEndpoint {
     switch (this.lifecycle.state.name) {
       case ENDPOINT_LIFECYCLE_STATE.OPENED:
       case ENDPOINT_LIFECYCLE_STATE.OPENING: {
-        this.sendLifecycleToRemote(
-          endpointLifecycle(endpointLifecycleClosing())
-        );
+        this.sendLifecycleToRemote(endpointLifecycle(endpointLifecycleClosing()));
         break;
       }
       case ENDPOINT_LIFECYCLE_STATE.CLOSED: {

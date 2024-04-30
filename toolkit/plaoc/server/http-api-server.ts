@@ -32,6 +32,7 @@ export class Server_api extends HttpServer {
     return serverIpc.internalServerError().cors();
   }
 
+  // deno-lint-ignore require-await
   protected async _provider(event: IpcFetchEvent) {
     // /dns.std.dweb/
     if (event.pathname.startsWith(DNS_PREFIX)) {

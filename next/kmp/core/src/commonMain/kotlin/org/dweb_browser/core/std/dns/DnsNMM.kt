@@ -78,7 +78,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
     override suspend fun restart(mmpt: MMPT) {
       // 关闭后端连接
       val num = dnsMM.runtime.close(mmpt)
-      println("xxxx=> restart $num $mmpt")
+      debugDNS("dns_restart","restart $num $mmpt")
       dnsMM.runtime.open(mmpt, fromMM)
     }
 

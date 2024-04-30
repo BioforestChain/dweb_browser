@@ -1,4 +1,4 @@
-import { $JmmAppInstallManifest } from "../deps.ts";
+import type { $JmmAppInstallManifest } from "../deps.ts";
 
 export type $BundleOptions = $MetadataJsonGeneratorOptions & {
   clear?: boolean;

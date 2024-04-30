@@ -1,10 +1,7 @@
 import { PromiseOut } from "@dweb-browser/helper/PromiseOut.ts";
-import {
-  createSignal,
-  type $Callback,
-} from "@dweb-browser/helper/createSignal.ts";
-import { binaryStreamRead } from "@dweb-browser/helper/stream/readableStreamHelper.ts";
+import { createSignal, type $Callback } from "@dweb-browser/helper/createSignal.ts";
 import "@dweb-browser/helper/crypto.shims.ts";
+import { binaryStreamRead } from "@dweb-browser/helper/stream/readableStreamHelper.ts";
 import type { Ipc } from "../../ipc.ts";
 import { IPC_MESSAGE_TYPE } from "../internal/IpcMessage.ts";
 import { BodyHub, IpcBody, type $BodyData } from "./IpcBody.ts";
@@ -60,8 +57,7 @@ export class IpcBodySender extends IpcBody {
 
   readonly isStream: boolean;
 
-  private streamCtorSignal =
-    createSignal<(signal: STREAM_CTOR_SIGNAL) => unknown>();
+  private streamCtorSignal = createSignal<(signal: STREAM_CTOR_SIGNAL) => unknown>();
 
   /**
    * 被哪些 ipc 所真正使用，使用的进度分别是多少
@@ -70,12 +66,7 @@ export class IpcBodySender extends IpcBody {
    */
   private readonly usedIpcMap = new Map<Ipc, $UsedIpcInfo>();
   private UsedIpcInfo = class UsedIpcInfo {
-    constructor(
-      readonly ipcBody: IpcBodySender,
-      readonly ipc: Ipc,
-      public bandwidth = 0,
-      public fuse = 0
-    ) {}
+    constructor(readonly ipcBody: IpcBodySender, readonly ipc: Ipc, public bandwidth = 0, public fuse = 0) {}
     emitStreamPull(message: $IpcStreamPulling) {
       return this.ipcBody.emitStreamPull(this, message);
     }
@@ -210,10 +201,7 @@ export class IpcBodySender extends IpcBody {
    * @param stream
    * @param ipc
    */
-  private $streamAsMeta(
-    stream: ReadableStream<Uint8Array>,
-    ipc: Ipc
-  ): MetaBody {
+  private $streamAsMeta(stream: ReadableStream<Uint8Array>, ipc: Ipc): MetaBody {
     const stream_id = getStreamId(stream);
     // console.log("sender/init", stream_id, ipc.uid);
 
@@ -261,10 +249,7 @@ export class IpcBodySender extends IpcBody {
           this.isStreamOpened = true;
           // console.log("sender/read", stream_id, ipc.uid);
 
-          const message = ipcStreamData.fromBinary(
-            stream_id,
-            await reader.readBinary(availableLen)
-          );
+          const message = ipcStreamData.fromBinary(stream_id, await reader.readBinary(availableLen));
           for (const ipc of this.usedIpcMap.keys()) {
             ipc.postMessage(message);
           }
@@ -285,27 +270,16 @@ export class IpcBodySender extends IpcBody {
 
     const streamType = IPC_META_BODY_TYPE.STREAM_ID;
     const streamFirstData: string | Uint8Array = "";
-    if (
-      "preReadableSize" in stream &&
-      typeof stream.preReadableSize === "number" &&
-      stream.preReadableSize > 0
-    ) {
+    if ("preReadableSize" in stream && typeof stream.preReadableSize === "number" && stream.preReadableSize > 0) {
       // js的不支持输出预读取帧
     }
 
-    const metaBody = new MetaBody(
-      streamType,
-      ipc.pool.poolId,
-      streamFirstData,
-      stream_id
-    );
+    const metaBody = new MetaBody(streamType, ipc.pool.poolId, streamFirstData, stream_id);
     // 流对象，写入缓存
     IpcBodySender.CACHE.streamId_ipcBodySender_Map.set(metaBody.streamId, this);
     this.streamCtorSignal.listen((signal) => {
       if (signal == STREAM_CTOR_SIGNAL.ABORTED) {
-        IpcBodySender.CACHE.streamId_ipcBodySender_Map.delete(
-          metaBody.streamId
-        );
+        IpcBodySender.CACHE.streamId_ipcBodySender_Map.delete(metaBody.streamId);
       }
     });
     return metaBody;
@@ -322,34 +296,23 @@ export class IpcBodySender extends IpcBody {
       if (usableIpcBodyMapper === undefined) {
         const mapper = new UsableIpcBodyMapper();
         IpcUsableIpcBodyMap.set(ipc, mapper);
-        mapper.onDestroy(
-          ipc.onStream("usableByIpc").collect((event) => {
-            const message = event.data;
-            switch (message.type) {
-              case IPC_MESSAGE_TYPE.STREAM_PULLING:
-                mapper
-                  .get(message.stream_id)
-                  ?.useByIpc(ipc)
-                  ?.emitStreamPull(message);
-                break;
-              case IPC_MESSAGE_TYPE.STREAM_PAUSED:
-                mapper
-                  .get(message.stream_id)
-                  ?.useByIpc(ipc)
-                  ?.emitStreamPaused(message);
-                break;
-              case IPC_MESSAGE_TYPE.STREAM_ABORT:
-                mapper
-                  .get(message.stream_id)
-                  ?.useByIpc(ipc)
-                  ?.emitStreamAborted();
-                break;
-              default:
-                return;
-            }
-            event.consume();
-          })
-        );
+        ipc.onStream("usableByIpc").collect((event) => {
+          const message = event.data;
+          switch (message.type) {
+            case IPC_MESSAGE_TYPE.STREAM_PULLING:
+              mapper.get(message.stream_id)?.useByIpc(ipc)?.emitStreamPull(message);
+              break;
+            case IPC_MESSAGE_TYPE.STREAM_PAUSED:
+              mapper.get(message.stream_id)?.useByIpc(ipc)?.emitStreamPaused(message);
+              break;
+            case IPC_MESSAGE_TYPE.STREAM_ABORT:
+              mapper.get(message.stream_id)?.useByIpc(ipc)?.emitStreamAborted();
+              break;
+            default:
+              return;
+          }
+          event.consume();
+        });
         mapper.onDestroy(() => IpcUsableIpcBodyMap.delete(ipc));
         usableIpcBodyMapper = mapper;
       }
@@ -371,16 +334,10 @@ const getStreamId = (stream: ReadableStream<Uint8Array>) => {
   }
   return id;
 };
-export const setStreamId = (
-  stream: ReadableStream<Uint8Array>,
-  cid: string
-) => {
+export const setStreamId = (stream: ReadableStream<Uint8Array>, cid: string) => {
   let id = streamIdWM.get(stream);
   if (id === undefined) {
-    streamIdWM.set(
-      stream,
-      (id = `${streamRealmId}-${stream_id_acc++}[${cid}]`)
-    );
+    streamIdWM.set(stream, (id = `${streamRealmId}-${stream_id_acc++}[${cid}]`));
   }
   return id;
 };

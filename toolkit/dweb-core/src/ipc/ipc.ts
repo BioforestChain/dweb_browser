@@ -15,7 +15,6 @@ import { promiseAsSignalListener } from "@dweb-browser/helper/promiseSignal.ts";
 import type { IpcPool } from "./IpcPool.ts";
 import { endpointIpcMessage } from "./endpoint/EndpointIpcMessage.ts";
 import type { IpcEndpoint } from "./endpoint/IpcEndpoint.ts";
-import { $OnFetch, createFetchHandler } from "./helper/ipcFetchHelper.ts";
 import { ipcFork } from "./ipc-message/IpcFork.ts";
 import {
   ipcLifecycle,
@@ -245,12 +244,13 @@ export class Ipc {
 
   //#region 消息相关的
   #messagePipeMap<R>(name: string, mapNotNull: (value: $IpcMessage) => R | undefined) {
-    const producer = new Producer<R>(this.#messageProducer.producer.name + "/" + name);
+    const producer = new Producer<R>(this.debugId + this.#messageProducer.producer.name + "/" + name);
     this.onClosed((reason) => {
       return producer.close(reason);
     });
     const consumer = this.onMessage(name);
     consumer.collect((event) => {
+      console.log("1111messagePipeMap=>", this.debugId, this.pid, JSON.stringify(event.data));
       const result = event.consumeMapNotNull<R>(mapNotNull);
       if (result === undefined) {
         return;
@@ -258,7 +258,7 @@ export class Ipc {
       producer.send(result);
     });
     producer.onClosed(() => {
-      consumer.cancel();
+      consumer.close();
     });
     return producer;
   }
@@ -275,14 +275,14 @@ export class Ipc {
     return this.#requestProducer.value.consumer(name);
   }
 
-  onFetch(name: string, ...handlers: $OnFetch[]) {
-    const onRequest = createFetchHandler(handlers);
-    return onRequest.extendsTo(
-      this.onRequest(name).collect((requestEvent) => {
-        return onRequest(requestEvent.data);
-      })
-    );
-  }
+  // onFetch(name: string, ...handlers: $OnFetch[]) {
+  //   const onRequest = createFetchHandler(handlers);
+  //   return onRequest.extendsTo(
+  //     this.onRequest(name).collect((requestEvent) => {
+  //       return onRequest(requestEvent.data);
+  //     })
+  //   );
+  // }
 
   #responseProducer = new CacheGetter(() =>
     this.#messagePipeMap("response", (ipcMessage) => {
@@ -327,7 +327,7 @@ export class Ipc {
 
   #reqResMap = new CacheGetter(() => {
     const reqResMap = new Map<number, PromiseOut<IpcResponse>>();
-    this.onResponse("req-res").collect((event) => {
+    this.onResponse(`${this.debugId}-reqResMap-onResponse`).collect((event) => {
       const response = event.consume();
       const result = mapHelper.getAndRemove(reqResMap, response.reqId);
       if (result === undefined) {
@@ -369,6 +369,7 @@ export class Ipc {
       this.console.debug(`ipc(${this}) fail to poseMessage: ${e}`);
       return;
     }
+    console.log("xxxxjson=>", this.debugId, this.pid, JSON.stringify(message));
     this.endpoint.postIpcMessage(endpointIpcMessage(this.pid, message));
   }
 
@@ -408,13 +409,8 @@ export class Ipc {
   });
 
   async close(cause?: string) {
-    this.#closeOnce(cause);
-    this.#destroy();
+    await this.#closeOnce(cause);
   }
-
-  /**销毁ipc */
-  private _isDestroy = false;
-  async #destroy() {}
 
   /**----- close end*/
 }

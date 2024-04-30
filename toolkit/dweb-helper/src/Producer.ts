@@ -18,10 +18,7 @@ export class Producer<T> {
   console = logger(this);
   //#region Event
   static #Event = class Event<T> {
-    constructor(
-      readonly data: T,
-      readonly producer: Producer<T>
-    ) {}
+    constructor(readonly data: T, readonly producer: Producer<T>) {}
     toString() {
       return `Event<${this.data}>`;
     }
@@ -31,9 +28,9 @@ export class Producer<T> {
     }
 
     /**标记事件是否被消耗 */
-    #consumed = false;
+    #consumeTimes = 0;
     get consumed() {
-      return this.#consumed;
+      return this.#consumeTimes > 0;
     }
 
     /**
@@ -42,7 +39,7 @@ export class Producer<T> {
      * 2. 其它后来的消费者不会再看到它
      */
     consume(): T {
-      this.#consumed = true;
+      this.#consumeTimes++;
       return this.data;
     }
 
@@ -53,6 +50,11 @@ export class Producer<T> {
     get stoped() {
       return this.#stoped;
     }
+    /**
+     * 停止传播
+     *
+     * 事件消费，并停止向其它消费器继续传播
+     */
     stopImmediatePropagation() {
       this.consume();
       this.#stoped = true;
@@ -66,20 +68,11 @@ export class Producer<T> {
       this.producer.buffers.delete(this);
     }
     /**过滤触发 */
-    consumeMapNotNull<R>(
-      mapNotNull: (data: T) => R | undefined
-    ): R | undefined {
+    consumeMapNotNull<R>(mapNotNull: (data: T) => R | undefined): R | undefined {
       const result = mapNotNull(this.data);
       if (result !== null) {
         this.consume();
         return result as R;
-      }
-    }
-    async consumeAwaitMapNotNull<R>(mapNotNull: (data: T) => R | undefined) {
-      const result = await mapNotNull(this.data);
-      if (result !== null) {
-        this.consume();
-        return result as Awaited<R>;
       }
     }
     consumeFilter<R extends T = T>(filter: (data: T) => boolean) {
@@ -93,22 +86,22 @@ export class Producer<T> {
       if (this.#stoped) {
         return;
       }
+
+      const beforeConsumeTimes = this.#consumeTimes;
+
       return this.#emitLock.withLock(() => {
         // 事件超时告警
         const timeoutId = setTimeout(() => {
-          console.warn(
-            `emitBy TIMEOUT!! step=$i consumer=${consumer} data=${this.data}`
-          );
+          console.warn(`emitBy TIMEOUT!! step=$i consumer=${consumer} data=${this.data}`);
         }, 1000);
         consumer.input.send(this);
         clearTimeout(timeoutId);
 
-        if (this.#consumed) {
+        if (this.consumed) {
           this.complete();
-          this.producer.console.debug(
-            "emitBy",
-            `event=${this} consumed by consumer=${consumer}`
-          );
+          if (this.#consumeTimes != beforeConsumeTimes) {
+            this.producer.console.debug("emitBy", `event=${this} consumed by consumer=${consumer}`);
+          }
         }
       });
     }
@@ -132,9 +125,7 @@ export class Producer<T> {
     const event = this.event(value);
     this.buffers.add(event);
     if (this.buffers.size > 10) {
-      this.console.warn(
-        `${this} buffers overflow maybe leak: ${this.buffers.size}`
-      );
+      this.console.warn(`${this} buffers overflow maybe leak: ${this.buffers.size}`);
     }
     return this.doEmit(event);
   }
@@ -142,7 +133,7 @@ export class Producer<T> {
   /**无保证发送 */
   sendBeacon(value: T) {
     const event = this.event(value);
-    return this.doEmit(event);
+    this.doEmit(event);
   }
 
   trySend(value: T) {
@@ -155,15 +146,10 @@ export class Producer<T> {
 
   /**触发该消息 */
   protected async doEmit(event: Event<T>) {
-    this.#ensureOpen();
     const consumers = this.consumers;
     for (const consumer of consumers) {
       // 如果消费者没启动，或者没有开始读，或者是写通道还是关闭的
-      if (
-        !consumer.started ||
-        consumer.startingBuffers?.has(event) == true ||
-        consumer.input.isClosedForSend
-      ) {
+      if (!consumer.started || consumer.startingBuffers?.has(event) == true) {
         continue;
       }
       await event.emitBy(consumer);
@@ -172,29 +158,50 @@ export class Producer<T> {
       }
     }
   }
+
+  // 创建一个消费者
+  consumer(name: string) {
+    this.#ensureOpen();
+    return new Producer.#Consumer(name, this);
+  }
   //#region Consumer
   /**消费者 */
   static #Consumer = class Consumer<T> {
-    constructor(
-      readonly name: string,
-      readonly input: Channel<Event<T>> = new Channel(),
-      readonly producer: Producer<T>
-    ) {
-      producer.consumers.add(this);
-    }
+    constructor(readonly name: string, readonly producer: Producer<T>) {}
     toString() {
       return `Consumer<[${this.producer.name}]${this.name}>`;
     }
 
-    // 消费过的事件
-    startingBuffers: Set<Event<T>> | null = null;
+    /**输入 */
+    readonly input = new Channel<Event<T>>();
+
     /**标记是否开始消费 */
     #started = false;
     get started() {
       return this.#started;
     }
+
+    // 消费过的事件
+    startingBuffers: Set<Event<T>> | null = null;
+    #errorCatcher = new PromiseOut<string | undefined>();
+
+    #collectOnce = $once((collector: (event: Event<T>) => void) => {
+      // 同一个事件的处理，不做任何阻塞，直接发出
+      (async () => {
+        for await (const event of this.input) {
+          try {
+            collector(event);
+          } catch (e) {
+            this.#errorCatcher.resolve(e);
+          }
+        }
+      })();
+      this.#start();
+    });
+
     /**开始触发之前的 */
     #start() {
+      this.producer.consumers.add(this);
       this.#started = true;
       const starting = this.producer.buffers;
       this.startingBuffers = starting;
@@ -202,26 +209,23 @@ export class Producer<T> {
         event.emitBy(this);
       }
       this.startingBuffers = null;
+      this.producer.buffers.clear();
     }
-    #collectors = new Set<$FlowCollector<T>>();
+    // #collectors = new Set<$FlowCollector<T>>();
     // 收集并触发所有的事件
-    #startCollect = $once(() => {
-      const job = (async () => {
-        for await (const event of this.input) {
-          for (const collector of this.#collectors) {
-            await collector(event);
-          }
-        }
-      })();
-      this.#start();
-      return job;
-    });
+    // #startCollect = $once(() => {
+    //   (async () => {
+    //     for await (const event of this) {
+    //       for (const collector of this.#collectors) {
+    //         await collector(event);
+    //       }
+    //     }
+    //   })();
+    //   this.#start();
+    // });
     /**收集事件 */
     collect(collector: (event: Event<T>) => void) {
-      this.#collectors.add(collector);
-      // 事件在收集了再调用开始
-      this.#startCollect();
-      return () => this.#collectors.delete(collector);
+      this.#collectOnce(collector);
     }
 
     mapNotNull<R>(transform: (value: T) => R | undefined) {
@@ -238,17 +242,11 @@ export class Producer<T> {
 
     #destroySignal = createSignal();
     onDestroy = this.#destroySignal.listen;
-    cancel = $once(() => {
-      this.producer.consumers.delete(this);
-      this.#destroySignal.emitAndClear();
-    });
+    close(cause?: string) {
+      this.#errorCatcher.resolve(cause);
+    }
   };
-  // 创建一个消费者
-  consumer(name: string) {
-    this.#ensureOpen();
-    const consumer = new Producer.#Consumer(name, undefined, this);
-    return consumer;
-  }
+
   //#endregion
 
   /**确保打开 */
@@ -263,8 +261,10 @@ export class Producer<T> {
   get isClosedForSend() {
     return this.#isClosedForSend;
   }
-  /**关闭写 */
-  private closeWrite() {
+
+  /**全部关闭 */
+  // deno-lint-ignore require-await
+  async close(cause?: string) {
     if (this.#isClosedForSend) {
       return;
     }
@@ -273,14 +273,14 @@ export class Producer<T> {
     for (const event of bufferEvents) {
       if (!event.consumed) {
         event.consume();
+        event.complete();
+        console.debug("closeWrite", `event=${event} consumed by close`);
       }
     }
-  }
-  /**全部关闭 */
-  async close(cause?: string) {
-    this.closeWrite();
+
+    // 关闭消费者channel，表示彻底无法再发数据
     for (const consumer of this.consumers) {
-      consumer.input.close();
+      consumer.close(cause);
     }
     this.consumers.clear();
     this.buffers.clear();

@@ -153,6 +153,7 @@ class DWebViewEngine internal constructor(
           })
 
         val browser = engine.newBrowser()
+        browser.devTools().show()
         // 同步销毁
         browser.on(BrowserClosed::class.java) {
           userDataDirectoryInUseMicroModuleSet.remove(remoteMM.mmid)

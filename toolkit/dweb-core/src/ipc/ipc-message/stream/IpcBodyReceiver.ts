@@ -95,7 +95,7 @@ const $metaToStream = (metaBody: MetaBody, ipc: Ipc) => {
         }
 
         /// 监听事件
-        const off = ipc.onStream("metaToStream").collect((event) => {
+        ipc.onStream("metaToStream").collect((event) => {
           const message = event.consumeMapNotNull((message) => {
             if (message.stream_id === stream_id) {
               return message;
@@ -114,7 +114,6 @@ const $metaToStream = (metaBody: MetaBody, ipc: Ipc) => {
             case IPC_MESSAGE_TYPE.STREAM_END:
               // console.log("receiver/end", stream_id, ipc.uid);
               controller.close();
-              off();
               break;
           }
         });
