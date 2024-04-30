@@ -14,7 +14,6 @@ import * as http from "./worker/std-dweb-http.ts";
 import type { $PromiseMaybe } from "@dweb-browser/helper/$PromiseMaybe.ts";
 import { once } from "@dweb-browser/helper/decorator/$once.ts";
 import { mapHelper } from "@dweb-browser/helper/fun/mapHelper.ts";
-import { normalizeFetchArgs } from "@dweb-browser/helper/normalizeFetchArgs.ts";
 // import { type $BootstrapContext } from "../../src/bootstrapContext.ts";
 // import type { MICRO_MODULE_CATEGORY } from "../../src/index.ts";
 // import { onActivity } from "../../src/ipcEventOnActivity.ts";
@@ -22,7 +21,6 @@ import { normalizeFetchArgs } from "@dweb-browser/helper/normalizeFetchArgs.ts";
 // import { onShortcut } from "../../src/ipcEventOnShortcut.ts";
 // import { MicroModule, MicroModuleRuntime } from "../../src/MicroModule.ts";
 import type { $BootstrapContext } from "@dweb-browser/core/bootstrapContext.ts";
-import { $normalizeRequestInitAsIpcRequestArgs } from "@dweb-browser/core/ipc/helper/ipcRequestHelper.ts";
 import { onActivity } from "@dweb-browser/core/ipcEventOnActivity.ts";
 import { onRenderer, onRendererDestroy } from "@dweb-browser/core/ipcEventOnRender.ts";
 import { onShortcut } from "@dweb-browser/core/ipcEventOnShortcut.ts";
@@ -176,8 +174,10 @@ export class JsProcessMicroModule extends MicroModule {
 }
 export class JsProcessMicroModuleRuntime extends MicroModuleRuntime {
   override async connect(mmid: $MMID, auto_start?: boolean) {
-    if (mmid === "file.std.dweb") {
-      return this.fetchIpc;
+    switch (mmid) {
+      case "js.browser.dweb":
+      case "file.std.dweb":
+        return this.fetchIpc;
     }
     return await super.connect(mmid, auto_start);
   }
@@ -337,15 +337,11 @@ export class JsProcessMicroModuleRuntime extends MicroModuleRuntime {
     return onShortcut.bind(null, this);
   }
 
-  private async _nativeRequest(parsed_url: URL, request_init: RequestInit) {
-    const ipc_req_init = await $normalizeRequestInitAsIpcRequestArgs(request_init);
-    return await this.fetchIpc.request(parsed_url.href, ipc_req_init);
-  }
-
-  /** 同 ipc.request，只不过使用 fetch 接口的输入参数 */
-  nativeRequest(url: RequestInfo | URL, init?: RequestInit) {
-    const args = normalizeFetchArgs(url, init);
-    return this._nativeRequest(args.parsed_url, args.request_init);
+  protected override async _getIpcForFetch(url: URL) {
+    if (url.hostname === "") {
+      return this.fetchIpc;
+    }
+    return await super._getIpcForFetch(url);
   }
 
   @once()
@@ -370,7 +366,7 @@ export class JsProcessMicroModuleRuntime extends MicroModuleRuntime {
 /// 消息通道构造器
 const waitFetchPort = () => {
   return new Promise<MessagePort>((resolve) => {
-    workerGlobal.addEventListener("message", function onFetchIpcChannel(event) {
+    workerGlobal.addEventListener("message", function onFetchIpcChannel(event): void {
       const data = event.data;
       if (Array.isArray(event.data) === false) {
         return;
