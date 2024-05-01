@@ -9,28 +9,38 @@ export const debounce = <F extends (...args: any[]) => Promise<any> | void>(fun:
         po: PromiseOut<any>;
         args: any[];
       };
-  return ((...args: any[]) => {
-    if (lock) {
-      clearTimeout(lock.ti);
-    } else {
-      lock = {
-        ti: undefined,
-        po: new PromiseOut(),
-        args: [],
-      };
-    }
-    const l = lock;
-    l.args = args;
-    l.ti = setTimeout(() => {
-      try {
-        lock = undefined;
-        l.po.resolve(fun(...l.args));
-      } catch (err) {
-        l.po.reject(err);
+  return Object.assign(
+    (...args: any[]) => {
+      if (lock) {
+        clearTimeout(lock.ti);
+      } else {
+        lock = {
+          ti: undefined,
+          po: new PromiseOut(),
+          args: [],
+        };
       }
-    }, ms);
-    return l.po.promise;
-  }) as unknown as F;
+      const l = lock;
+      l.args = args;
+      l.ti = setTimeout(() => {
+        try {
+          lock = undefined;
+          l.po.resolve(fun(...l.args));
+        } catch (err) {
+          l.po.reject(err);
+        }
+      }, ms);
+      return l.po.promise;
+    },
+    {
+      reset() {
+        if (lock) {
+          clearTimeout(lock.ti);
+          lock = undefined;
+        }
+      },
+    }
+  ) as unknown as F & { reset: () => void };
 };
 
 const debounceNames = new Map<PropertyKey, () => any>();

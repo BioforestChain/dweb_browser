@@ -37,6 +37,9 @@ abstract class Entry {
     this.workspacepath = normalizeFilePath(node_path.relative(workspace, entrypath));
     this.workspacedirpath = normalizeFilePath(node_path.relative(workspace, dirpath));
   }
+  get stats() {
+    return node_fs.statSync(this.entrypath);
+  }
   readonly relativepath;
   readonly relativedirpath;
   readonly workspacepath;

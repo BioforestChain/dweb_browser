@@ -1,7 +1,8 @@
 import { debounce } from "@dweb-browser/helper/decorator/$debounce.ts";
 import { $once } from "@dweb-browser/helper/decorator/$once.ts";
-import { fileURLToPath } from "node:url";
 import { registryViteBuilder } from "../../scripts/helper/npmBuilder.ts";
+import { rootResolve } from "../../scripts/helper/resolver.ts";
+import { watchFs } from "../../scripts/helper/watchFs.ts";
 import { doBundleServer } from "../plaoc/scripts/bundle-server.ts";
 import { plaocCli, plaocIsDweb, plaocPlugins, plaocServer } from "./build_npm.ts";
 import { toolkitInit } from "./toolkit-init.ts";
@@ -36,23 +37,19 @@ if (import.meta.main) {
     const watchPlaocTasks = debounce(() => {
       plaocTasks.forEach((task) => task.reset());
       doPlaocTasks();
-    }, 200);
+    }, 300);
     watchPlaocTasks();
-    for await (const event of Deno.watchFs(fileURLToPath(import.meta.resolve("../")), { recursive: true })) {
-      if (
-        false ===
-        event.paths.every(
-          (path) =>
-            path.includes("/node_modules") ||
-            //
-            path.includes("/scripts") ||
-            //
-            path.includes("/dist")
-        )
-      ) {
-        console.log("file", event.kind, ...event.paths);
-        watchPlaocTasks();
-      }
+    for await (const _event of watchFs(rootResolve("./toolkit"), {
+      recursive: true,
+      ignore: (path) =>
+        path.includes("/node_modules") ||
+        //
+        path.includes("/scripts") ||
+        //
+        path.includes("/dist"),
+    })) {
+      // console.log(_event);
+      watchPlaocTasks();
     }
   } else {
     doPlaocTasks();
