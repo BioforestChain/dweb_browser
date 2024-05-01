@@ -1,10 +1,10 @@
 import JSZip from "jszip";
 import fs from "node:fs";
 import { createRequire } from "node:module";
-import path from "node:path";
+import node_path from "node:path";
 import process from "node:process";
-import type { $JmmAppInstallManifest, $MMID } from "../deps.ts";
-import { colors } from "../deps.ts";
+import type { $JmmAppInstallManifest, $MMID } from "../deps/dweb-browser/core.ts";
+import { colors } from "../deps/cliffy.ts";
 import { $MetadataJsonGeneratorOptions, SERVE_MODE, defaultMetadata } from "./const.ts";
 import { GenerateTryFilepaths } from "./util.ts";
 import { WalkFiles } from "./walk-dir.ts";
@@ -18,7 +18,7 @@ export class MetadataJsonGenerator {
     this.metadataFilepaths = (() => {
       const tryFilenames = ["metadata.json", "manifest.json", "package.json"];
       // 如果指定了项目目录，到项目目录里面搜索配置文件
-      let dirs = [path.resolve(process.cwd(), flags.configDir ?? flags.webPublic ?? "")];
+      let dirs = [node_path.resolve(process.cwd(), flags.configDir ?? flags.webPublic ?? "")];
       if (flags.mode === SERVE_MODE.USR_WWW) {
         const www_dir = flags.configDir;
         if (www_dir) {
@@ -77,7 +77,7 @@ export class PlaocJsonGenerator {
     this.plaocFilepaths = (() => {
       const tryFilenames = "plaoc.json";
       // 如果指定了项目目录，到项目目录里面搜索配置文件
-      const file = path.resolve(process.cwd(), flags.configDir ?? "", tryFilenames);
+      const file = node_path.resolve(process.cwd(), flags.configDir ?? "", tryFilenames);
       return file;
     })();
   }
@@ -110,7 +110,7 @@ export class BackendServerGenerator {
     this.serverFilepaths = (() => {
       if (flags.webServer == undefined) return null;
       // 如果指定了项目目录，到项目目录里面搜索配置文件
-      return path.resolve(process.cwd(), flags.webServer);
+      return node_path.resolve(process.cwd(), flags.webServer);
     })();
   }
 
@@ -235,7 +235,7 @@ export class BundleZipGenerator {
           data = fs.readFileSync(addpath_full);
         } else {
           for (const entry of WalkFiles(addpath_full)) {
-            const child_addpath = path.join(addpath_full, entry.relativepath);
+            const child_addpath = node_path.join(addpath_full, entry.relativepath);
             await addFiles_DistToUsr(child_addpath, child_addpath.replace(addpath_full, pathalias), pathbase);
           }
           return;
@@ -247,7 +247,7 @@ export class BundleZipGenerator {
         data: data,
       });
     };
-    const distDir = path.dirname(
+    const distDir = node_path.dirname(
       internalRequest.resolve(dev ? "@plaoc/server/plaoc.server.dev.js" : "@plaoc/server/plaoc.server.js")
     );
     for (const entry of WalkFiles(distDir)) {
@@ -264,7 +264,7 @@ export class BundleZipGenerator {
     const entryMap = new Map<string, $ZipEntry>();
     function* ReadParentPaths(entrypath: string) {
       while (true) {
-        const dirname = path.dirname(entrypath);
+        const dirname = node_path.dirname(entrypath);
         if (dirname === ".") {
           break;
         }

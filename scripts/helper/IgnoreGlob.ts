@@ -1,5 +1,5 @@
 import fs from "node:fs";
-import path from "node:path";
+import node_path from "node:path";
 import ignore from "npm:ignore";
 import { normalizeFilePath } from "./WalkDir.ts";
 
@@ -21,13 +21,13 @@ export class IgnoreGlob {
       .split("\n")
       .map((it) => it.trim())
       .filter((it) => !it.startsWith("#") && it.length > 0);
-    const cwd = path.dirname(filepath);
+    const cwd = node_path.dirname(filepath);
     return new IgnoreGlob(rules, cwd);
   }
   isIgnore(filepath: string): boolean {
     filepath = normalizeFilePath(filepath);
 
-    const relativepath = path.isAbsolute(filepath) ? path.relative(this.cwd, filepath) : filepath;
+    const relativepath = node_path.isAbsolute(filepath) ? node_path.relative(this.cwd, filepath) : filepath;
     return this.#ignore.ignores(relativepath);
   }
 }

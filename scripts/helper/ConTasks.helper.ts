@@ -1,5 +1,5 @@
 import fs from "node:fs";
-import path from "node:path";
+import node_path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import type { esbuild } from "../deps.ts";
@@ -13,9 +13,9 @@ export const createBaseResolveTo = (baseDir: string = process.cwd()) => {
     const filePathIndex = purePaths.findLastIndex((it) => it.startsWith("file:"));
     if (filePathIndex !== -1) {
       purePaths = purePaths.slice(filePathIndex);
-      return path.resolve(fileURLToPath(purePaths[0]), ...purePaths.slice(1));
+      return node_path.resolve(fileURLToPath(purePaths[0]), ...purePaths.slice(1));
     }
-    return path.resolve(baseDir, ...purePaths);
+    return node_path.resolve(baseDir, ...purePaths);
   };
   return baseResolveTo;
 };
@@ -24,7 +24,7 @@ export const viteTaskFactory = (config: { inDir: string; outDir: string; viteCon
   const baseResolveTo = createBaseResolveTo(config.baseDir);
   const outDir = baseResolveTo(config.outDir);
   const inDir = baseResolveTo(config.inDir);
-  const viteConfig = path.relative(
+  const viteConfig = node_path.relative(
     inDir,
     config.viteConfig
       ? baseResolveTo(config.viteConfig)

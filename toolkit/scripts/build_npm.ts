@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
-import path from "node:path";
+import node_path from "node:path";
 import { registryNpmBuilder } from "../../scripts/helper/npmBuilder.ts";
 import { resolveDenoJson } from "../../scripts/helper/resolver.ts";
 import { npmInit } from "./toolkit-init.ts";
@@ -13,7 +13,7 @@ const importMap = await (async () => {
   const importMapMerged = { imports: { ...importMapDeno.imports, ...importMapNode.imports } };
   const importMapJson = JSON.stringify(importMapMerged, null, 2);
   const hash = crypto.createHash("sha256").update(importMapJson).digest("hex").slice(0, 8);
-  const filename = path.resolve(os.tmpdir(), `import_map.${hash}.json`);
+  const filename = node_path.resolve(os.tmpdir(), `import_map.${hash}.json`);
   fs.writeFileSync(filename, importMapJson);
   console.log("import_map:", filename);
   return filename;
@@ -56,7 +56,7 @@ export const plaocServer = registryNpmBuilder({
       { name: "./middlewares", path: ctx.packageResolve("./middlewares/index.ts") },
     ],
     postBuild: () => {
-      Deno.symlinkSync(ctx.packageResolve("./dist"), ctx.npmResolve("./dist"));
+      fs.symlinkSync(ctx.packageResolve("./dist"), ctx.npmResolve("./dist"), "junction");
     },
   }),
 });

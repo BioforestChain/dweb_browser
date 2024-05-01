@@ -1,12 +1,12 @@
 //@ts-check
 import fs from "node:fs";
-import path from "node:path";
+import node_path from "node:path";
 import { fileURLToPath } from "node:url";
 import { WalkFiles } from "../../../scripts/helper/WalkDir.ts";
 
 const resolveTo = (to: string) => fileURLToPath(import.meta.resolve(to));
 const easyWriteFile = (filepath: string, content: string | Uint8Array) => {
-  fs.mkdirSync(path.dirname(filepath), { recursive: true });
+  fs.mkdirSync(node_path.dirname(filepath), { recursive: true });
   fs.writeFileSync(filepath, content);
 };
 const easyReadFile = (filepath: string) => fs.readFileSync(filepath, "utf-8");
@@ -20,7 +20,7 @@ for (const entry of WalkFiles(resolveTo("../../desktop/src"))) {
   // deno-lint-ignore no-constant-condition
   if (entry.relativepath.includes("/assets/") && false) {
     const [dir, ...rels] = entry.relativepath.split("/assets/");
-    const projectName = path.basename(dir);
+    const projectName = node_path.basename(dir);
     console.log("assets projectName:", projectName);
     const toFile = fileURLToPath(import.meta.resolve("./assets-projects/" + projectName + "/" + rels.join("/assets/")));
     easyWriteFile(toFile, entry.readText());

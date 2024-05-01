@@ -2,7 +2,7 @@ import fs from "node:fs";
 import url from "node:url";
 import { doBundleCommand } from "./bundle.ts";
 import { doConfigCommand } from "./config.ts";
-import { Command } from "./deps.ts";
+import { Command } from "./deps/cliffy.ts";
 import { doInitCommand } from "./init.ts";
 import { doServeCommand } from "./serve.ts";
 import { doWebAdvCommand } from "./web-dav.ts";

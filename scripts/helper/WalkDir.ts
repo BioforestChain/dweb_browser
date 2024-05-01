@@ -1,12 +1,18 @@
-import fs from "node:fs";
-import path from "node:path";
+import node_fs from "node:fs";
+import node_os from "node:os";
+import node_path from "node:path";
 import { fileURLToPath } from "node:url";
 import { IgnoreGlob } from "./IgnoreGlob.ts";
+const isWindow = node_os.platform() === "win32";
 export const normalizeFilePath = (filepath: string) => {
   if (filepath.startsWith("file:")) {
     filepath = fileURLToPath(filepath);
   }
-  return path.normalize(filepath);
+  filepath = node_path.normalize(filepath);
+  if (isWindow) {
+    filepath = filepath.replaceAll("\\", "/");
+  }
+  return filepath;
 };
 export type WalkOptions = {
   ignore?: string | string[] | ((entry: $WalkEntry) => boolean);
@@ -23,13 +29,13 @@ abstract class Entry {
     readonly rootpath: string,
     readonly workspace: string,
     readonly entrypath: string,
-    readonly dirpath = path.dirname(entrypath),
-    readonly entryname = path.basename(entrypath)
+    readonly dirpath = normalizeFilePath(node_path.dirname(entrypath)),
+    readonly entryname = normalizeFilePath(node_path.basename(entrypath))
   ) {
-    this.relativepath = path.relative(rootpath, entrypath);
-    this.relativedirpath = path.relative(rootpath, dirpath);
-    this.workspacepath = path.relative(workspace, entrypath);
-    this.workspacedirpath = path.relative(workspace, dirpath);
+    this.relativepath = normalizeFilePath(node_path.relative(rootpath, entrypath));
+    this.relativedirpath = normalizeFilePath(node_path.relative(rootpath, dirpath));
+    this.workspacepath = normalizeFilePath(node_path.relative(workspace, entrypath));
+    this.workspacedirpath = normalizeFilePath(node_path.relative(workspace, dirpath));
   }
   readonly relativepath;
   readonly relativedirpath;
@@ -40,16 +46,16 @@ export class FileEntry extends Entry {
   readonly isFile = true as const;
   readonly isDirectory = false as const;
   readText() {
-    return fs.readFileSync(this.entrypath, "utf-8");
+    return node_fs.readFileSync(this.entrypath, "utf-8");
   }
   readJson<T>() {
     return JSON.parse(this.readText()) as T;
   }
   read() {
-    return fs.readFileSync(this.entrypath);
+    return node_fs.readFileSync(this.entrypath);
   }
   write(content: string | Uint8Array) {
-    return fs.writeFileSync(this.entrypath, content);
+    return node_fs.writeFileSync(this.entrypath, content);
   }
   writeJson(json: unknown, space?: number) {
     return this.write(JSON.stringify(json, null, space));
@@ -71,15 +77,15 @@ const genEntry = (
   workspace: string,
   ignore: (entry: $WalkEntry) => boolean,
   entrypath: string,
-  dirpath = path.dirname(entrypath),
-  entryname = path.basename(entrypath)
+  dirpath = node_path.dirname(entrypath),
+  entryname = node_path.basename(entrypath)
 ) => {
   if (entryname === ".DS_Store") {
     return;
   }
-  let stats: fs.Stats;
+  let stats: node_fs.Stats;
   try {
-    stats = fs.statSync(entrypath);
+    stats = node_fs.statSync(entrypath);
   } catch {
     /// 有可能是空的symbol-link
     return;
@@ -129,14 +135,14 @@ export function* WalkAny(rootpath: string, options: WalkOptions = {}) {
   for (const dirpath of dirs) {
     /// 在被yiled后，可能会被删除
     try {
-      if (fs.statSync(rootpath).isDirectory() !== true) {
+      if (node_fs.statSync(rootpath).isDirectory() !== true) {
         return;
       }
     } catch {
       return;
     }
     if (deepth !== Infinity) {
-      const relativedirpath = path.relative(dirpath, rootpath);
+      const relativedirpath = node_path.relative(dirpath, rootpath);
       const dirDeepth = relativedirpath === "" ? 0 : relativedirpath.split("/").length;
       // console.log(dirpath, dirDeepth);
       if (dirDeepth >= deepth) {
@@ -144,12 +150,12 @@ export function* WalkAny(rootpath: string, options: WalkOptions = {}) {
       }
     }
 
-    if (!fs.existsSync(dirpath)) {
+    if (!node_fs.existsSync(dirpath)) {
       continue;
     }
 
-    for (const entryname of fs.readdirSync(dirpath)) {
-      const entry = genEntry(rootpath, workspace, ignore, path.join(dirpath, entryname), dirpath, entryname);
+    for (const entryname of node_fs.readdirSync(dirpath)) {
+      const entry = genEntry(rootpath, workspace, ignore, node_path.join(dirpath, entryname), dirpath, entryname);
       if (!entry) {
         continue;
       }

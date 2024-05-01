@@ -1,7 +1,7 @@
 import { BuildOptions, PackageJson, build } from "@deno/dnt";
 import { $once } from "@dweb-browser/helper/decorator/$once.ts";
 import fs from "node:fs";
-import path from "node:path";
+import node_path from "node:path";
 import { fileURLToPath } from "node:url";
 import { viteTaskFactory } from "./ConTasks.helper.ts";
 import { ConTasks } from "./ConTasks.ts";
@@ -20,6 +20,7 @@ export const npmBuilder = async (config: {
   options?: Partial<NpmBuilderDntBuildOptions> | ((ctx: NpmBuilderContext) => Partial<NpmBuilderDntBuildOptions>);
   entryPointsDirName?: string | boolean;
   force?: boolean;
+  skipNpmInstall?: boolean;
 }) => {
   const {
     packageDir,
@@ -28,6 +29,8 @@ export const npmBuilder = async (config: {
     options: optionsBuilder,
     entryPointsDirName = "./src",
     force = false,
+    // TODO 这里要默认跳过安装，我们在外面只做一次就够了。但目前的问题是，package.json 中的依赖是dnt自己分析出来后添加到文件中的，所以如果要做到这点，还需要一些自动化的工作
+    skipNpmInstall = false,
   } = config;
   const packageResolve = (path: string) => fileURLToPath(new URL(path, packageDir));
   const options =
@@ -52,7 +55,7 @@ export const npmBuilder = async (config: {
   delete options?.postBuild;
 
   const npmDir = npmNameToFolder(packageJson.name);
-  const npmResolve = (p: string) => path.resolve(npmDir, p);
+  const npmResolve = (p: string) => node_path.resolve(npmDir, p);
 
   //#region 缓存检查
   const dirHasher = calcDirHash(packageResolve("./"), { ignore: "node_modules" });
@@ -63,12 +66,17 @@ export const npmBuilder = async (config: {
   //#endregion
 
   //#region emptyDir(npmDir)
-  // 这里要保留 package.json，因为在并发编译的时候，需要读取 package.json 以确保 workspace 能找到对应的项目所在的路径从而创造 symbol-link
   try {
     for (const item of Deno.readDirSync(npmDir)) {
-      if (item.name && item.name !== "package.json") {
-        Deno.removeSync(npmResolve(item.name), { recursive: true });
+      // 这里要保留 package.json，因为在并发编译的时候，需要读取 package.json 以确保 workspace 能找到对应的项目所在的路径从而创造 symbol-link
+      if (item.name === "package.json") {
+        continue;
       }
+      // 如果跳过了依赖安装，说明外面已经自己处理好安装了，所以这里不能删除
+      if (skipNpmInstall && item.name === "node_modules") {
+        continue;
+      }
+      Deno.removeSync(npmResolve(item.name), { recursive: true });
     }
   } catch (err) {
     if (!(err instanceof Deno.errors.NotFound)) {
@@ -99,6 +107,7 @@ export const npmBuilder = async (config: {
     ],
     outDir: npmDir,
     packageManager: "pnpm",
+    skipNpmInstall,
     shims: {
       // see JS docs for overview and more options
       deno: false,
@@ -184,7 +193,7 @@ export const registryViteBuilder = (config: {
   baseDir?: string;
 }) => {
   const { name, inDir, outDir, baseDir } = config;
-  const packageDir = path.resolve(baseDir ?? ".", inDir, "./package.json");
+  const packageDir = node_path.resolve(baseDir ?? ".", inDir, "./package.json");
   const packageJson: PackageJson = JSON.parse(fs.readFileSync(packageDir, "utf-8"));
   const build_vite = $once(async () => {
     console.log(`🛫 START ${packageJson.name}`);
@@ -203,8 +212,8 @@ export const registryViteBuilder = (config: {
       // 判断是否编译完成，编译完成后将 manifest.json 文件移动到编译目录中
       await children[name].stdoutLogger.waitContent("built");
       await Deno.copyFile(
-        path.resolve(baseDir ?? ".", inDir, "./manifest.json"),
-        path.resolve(baseDir ?? ".", outDir, "./manifest.json")
+        node_path.resolve(baseDir ?? ".", inDir, "./manifest.json"),
+        node_path.resolve(baseDir ?? ".", outDir, "./manifest.json")
       );
 
       console.log(`✅ END ${packageJson.name}`);

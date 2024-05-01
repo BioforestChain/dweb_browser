@@ -3,7 +3,7 @@
  *  plaoc config set bundle-web-hook-headers {JSON-KEY-VALUE}
  */
 
-import { Command, EnumType } from "./deps.ts";
+import { Command, EnumType } from "./deps/cliffy.ts";
 
 export enum EHook {
   webadvServerUrl = "webadv-server-url",

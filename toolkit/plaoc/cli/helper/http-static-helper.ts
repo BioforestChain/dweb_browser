@@ -1,7 +1,7 @@
 import mime from "mime";
 import fs from "node:fs";
 import http from "node:http";
-import path from "node:path";
+import node_path from "node:path";
 export const getMimeType = (name: string) => {
   return mime.getType(name) || "application/octet-stream";
 };
@@ -14,7 +14,7 @@ export const getMimeType = (name: string) => {
  */
 export const staticServe = async (dir: string, req: http.IncomingMessage, res: http.ServerResponse) => {
   try {
-    const filepath = path.join(dir, req.url || "/");
+    const filepath = node_path.join(dir, req.url || "/");
     if (fs.existsSync(filepath)) {
       if (fs.statSync(filepath).isFile()) {
         console.log("file:", filepath);

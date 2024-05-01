@@ -1,7 +1,5 @@
-import crypto from "node:crypto";
-import * as fs from "node:fs";
-import * as path from "node:path";
-import { Command } from "./deps.ts";
+import { Command } from "./deps/cliffy.ts";
+import { node_crypto, node_fs, node_path } from "./deps/node.ts";
 import type { $BundleOptions } from "./helper/const.ts";
 import {
   BackendServerGenerator,
@@ -46,22 +44,22 @@ export const doBundle = async (flags: $BundleOptions) => {
   const bundleFlagHelper = new BundleZipGenerator(flags, plaocHelper, injectServer, data.id);
   const nameFlagHelper = new NameFlagHelper(flags, metadataFlagHelper);
 
-  const outDir = path.resolve(Deno.cwd(), flags.out);
+  const outDir = node_path.resolve(Deno.cwd(), flags.out);
 
-  if (flags.clear && fs.existsSync(outDir)) {
-    fs.rmSync(outDir, { recursive: true });
+  if (flags.clear && node_fs.existsSync(outDir)) {
+    node_fs.rmSync(outDir, { recursive: true });
   }
 
-  if (fs.existsSync(outDir)) {
-    if (fs.statSync(outDir).isDirectory() === false) {
+  if (node_fs.existsSync(outDir)) {
+    if (node_fs.statSync(outDir).isDirectory() === false) {
       throw new Error(`output should be an directory`);
     }
   } else {
-    fs.mkdirSync(outDir, { recursive: true });
+    node_fs.mkdirSync(outDir, { recursive: true });
   }
   /// 先写入bundle.zip
-  fs.writeFileSync(
-    path.resolve(outDir, nameFlagHelper.bundleName),
+  node_fs.writeFileSync(
+    node_path.resolve(outDir, nameFlagHelper.bundleName),
     await (
       await bundleFlagHelper.bundleZip()
     ).generateAsync({ type: "nodebuffer", compression: "DEFLATE", compressionOptions: { level: 9 } })
@@ -73,13 +71,13 @@ export const doBundle = async (flags: $BundleOptions) => {
     compression: "DEFLATE",
     compressionOptions: { level: 9 },
   });
-  const hasher = crypto.createHash("sha256").update(zipData);
+  const hasher = node_crypto.createHash("sha256").update(zipData);
   const metadata = metadataFlagHelper.readMetadata(true);
   metadata.bundle_size = zipData.byteLength;
   metadata.bundle_hash = "sha256:" + hasher.digest("hex");
   metadata.bundle_url = `./${nameFlagHelper.bundleName}`;
   /// 写入metadata.json
-  fs.writeFileSync(path.resolve(outDir, nameFlagHelper.metadataName), JSON.stringify(metadata, null, 2));
+  node_fs.writeFileSync(node_path.resolve(outDir, nameFlagHelper.metadataName), JSON.stringify(metadata, null, 2));
   /// jszip 会导致程序一直开着，需要手动关闭
   Deno.exit();
 };

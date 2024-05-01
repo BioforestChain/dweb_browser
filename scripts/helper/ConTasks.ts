@@ -1,4 +1,4 @@
-import path from "node:path";
+import node_path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { format } from "node:util";
@@ -94,7 +94,7 @@ export class ConTasks {
       base = fileURLToPath(base);
     }
     for (const task of Object.values(tasks)) {
-      task.cwd = path.resolve(base, task.cwd ?? "./");
+      task.cwd = node_path.resolve(base, task.cwd ?? "./");
       task.signal = ExitAbortController.signal;
     }
   }

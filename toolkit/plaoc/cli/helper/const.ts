@@ -1,4 +1,4 @@
-import type { $JmmAppInstallManifest } from "../deps.ts";
+import type { $JmmAppInstallManifest } from "../deps/dweb-browser/core.ts";
 
 export type $BundleOptions = $MetadataJsonGeneratorOptions & {
   clear?: boolean;

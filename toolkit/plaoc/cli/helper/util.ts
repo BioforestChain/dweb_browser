@@ -1,4 +1,4 @@
-import path from "node:path";
+import node_path from "node:path";
 import process from "node:process";
 /**
  * 基于指定的roots和filenames，合并生成路径，并且目录会不断向上走。
@@ -40,14 +40,14 @@ export function* GenerateTryFilepaths(filenames: string[], dirs: string[]) {
     for (const dir of dirs) {
       /// 将可能的文件路径添加到 tryFilepaths 中
       for (const name of filenames) {
-        const filepath = path.resolve(dir, name);
+        const filepath = node_path.resolve(dir, name);
         if (tryFilepaths.has(filepath) === false) {
           tryFilepaths.add(filepath);
           yield filepath;
         }
       }
       /// 目录向上走
-      const superDir = path.dirname(dir);
+      const superDir = node_path.dirname(dir);
       if (superDir !== dir) {
         superDirs.push(superDir);
       }
@@ -64,8 +64,8 @@ export function* GenerateTryFilepaths(filenames: string[], dirs: string[]) {
  */
 export function getManifestFilePath(cwd?: string) {
   if (cwd) {
-    return path.join(process.cwd(), cwd, "manifest.json");
+    return node_path.join(process.cwd(), cwd, "manifest.json");
   }
 
-  return path.join(process.cwd(), "manifest.json");
+  return node_path.join(process.cwd(), "manifest.json");
 }

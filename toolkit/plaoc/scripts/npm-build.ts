@@ -1,7 +1,7 @@
 // ex. scripts/build_npm.ts
 import * as semver from "https://deno.land/std@0.220.1/semver/mod.ts";
 import { copyFileSync, watch } from "node:fs";
-import path from "node:path";
+import node_path from "node:path";
 import * as dnt from "@deno/dnt";
 
 export const doBuidCore = async (config: {
@@ -29,7 +29,7 @@ export const doBuidCore = async (config: {
   const entryPoints: dnt.EntryPoint[] = [];
   // console.group("entry-point:", dirEntry.name, config);
   // 适配入口不是index的情况
-  let entry = path.resolve(buildFromRootDir, entryFile);
+  let entry = node_path.resolve(buildFromRootDir, entryFile);
   if (buildFromRootDir.includes(".ts")) {
     entry = buildFromRootDir;
   }
@@ -102,7 +102,7 @@ export const doBuidCore = async (config: {
   }
 
   if (config.watch && config.watchDir) {
-    const watcher = watch(path.resolve(Deno.cwd(), config.watchDir), { recursive: true });
+    const watcher = watch(node_path.resolve(Deno.cwd(), config.watchDir), { recursive: true });
     watcher.addListener("change", () => {
       watcher.close();
       doBuidCore(config);

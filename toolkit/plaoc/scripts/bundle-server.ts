@@ -1,5 +1,5 @@
 import fs from "node:fs";
-import path from "node:path";
+import node_path from "node:path";
 import { fileURLToPath } from "node:url";
 import { Chalk } from "npm:chalk";
 // import { InlineConfig, PluginOption } from "npm:vite";
@@ -50,7 +50,7 @@ export const dev = new ESBuild({
           ) {
             return;
           }
-          const newpath = path.resolve(args.resolveDir, args.path.replace(/\.ts$/, ".(dev).ts"));
+          const newpath = node_path.resolve(args.resolveDir, args.path.replace(/\.ts$/, ".(dev).ts"));
           if (fs.existsSync(newpath)) {
             console.log(chalk.gray("replace"), newpath);
             return {

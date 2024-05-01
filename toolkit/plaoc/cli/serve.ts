@@ -1,7 +1,8 @@
 import fs from "node:fs";
 import http from "node:http";
 import os from "node:os";
-import { Command, EnumType, colors, createHash } from "./deps.ts";
+import crypto from 'node:crypto'
+import { Command, EnumType, colors,  } from "./deps/cliffy.ts";
 import { $ServeOptions, SERVE_MODE } from "./helper/const.ts";
 import {
   BackendServerGenerator,
@@ -11,6 +12,7 @@ import {
   PlaocJsonGenerator,
 } from "./helper/generator.ts";
 import { staticServe } from "./helper/http-static-helper.ts";
+
 
 const serveMode = new EnumType(SERVE_MODE);
 
@@ -80,7 +82,7 @@ export const doServe = async (flags: $ServeOptions) => {
           const zip = await bundleFlagHelper.bundleZip(true);
 
           const zipData = await zip.generateAsync({ type: "uint8array" });
-          const hasher = createHash("sha256").update(zipData);
+          const hasher = crypto.createHash("sha256").update(zipData);
           metadata.bundle_size = zipData.byteLength;
           metadata.bundle_hash = "sha256:" + hasher.digest("hex");
           metadata.bundle_url = `./${nameFlagHelper.bundleName}`;

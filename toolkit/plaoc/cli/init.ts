@@ -1,4 +1,5 @@
-import { Checkbox, Command, Input, prompt, Ajv } from "./deps.ts";
+import { Checkbox, Command, Input, prompt,  } from "./deps/cliffy.ts";
+import { Ajv } from "./deps/ajv.ts";
 import { getManifestFilePath } from "./helper/util.ts";
 import manifest_schema from "./manifest/manifest-schema.json" assert { type: "json" };
 import manifest_json from "./manifest/manifest-template.json" assert { type: "json" };

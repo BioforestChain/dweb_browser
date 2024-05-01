@@ -1,5 +1,5 @@
 import fs from "node:fs";
-import path from "node:path";
+import node_path from "node:path";
 export function* WalkAny(rootpath: string) {
   const dirs = [rootpath];
   for (const dirpath of dirs) {
@@ -7,12 +7,12 @@ export function* WalkAny(rootpath: string) {
       if (entryname === ".DS_Store") {
         continue;
       }
-      const entrypath = path.join(dirpath, entryname);
+      const entrypath = node_path.join(dirpath, entryname);
       const stats = fs.statSync(entrypath);
       const isDirectory = stats.isDirectory();
       const isFile = stats.isFile();
-      const relativepath = path.relative(rootpath, entrypath);
-      const relativedirpath = path.relative(rootpath, dirpath);
+      const relativepath = node_path.relative(rootpath, entrypath);
+      const relativedirpath = node_path.relative(rootpath, dirpath);
       const entryBase = {
         entryname,
         entrypath,

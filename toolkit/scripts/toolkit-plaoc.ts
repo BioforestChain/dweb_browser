@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import { registryViteBuilder } from "../../scripts/helper/npmBuilder.ts";
 import { doBundleServer } from "../plaoc/scripts/bundle-server.ts";
 import { plaocCli, plaocIsDweb, plaocPlugins, plaocServer } from "./build_npm.ts";
+import { toolkitInit } from "./toolkit-init.ts";
 
 const plaocExamples = registryViteBuilder({
   name: "plaoc:examples:plugin-demo",
@@ -26,6 +27,7 @@ const plaocTasks = [
   }),
 ];
 export const doPlaocTasks = async () => {
+  await toolkitInit();
   await Promise.all(plaocTasks.map((task) => task()));
 };
 

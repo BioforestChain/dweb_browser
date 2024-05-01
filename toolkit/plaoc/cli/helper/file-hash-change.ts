@@ -1,4 +1,4 @@
-import { Buffer } from "node:buffer";
+import type { Buffer } from "node:buffer";
 import fs from "node:fs";
 const statCache = new Map<string, Buffer | false>();
 export const fileHasChange = (filepath: string, curr = fs.existsSync(filepath) && fs.readFileSync(filepath)) => {
