@@ -15,23 +15,23 @@ const plaocExamples = registryViteBuilder({
 
 const plaocTasks = [
   //
-  // plaocServer,
-  // plaocCli,
-  // plaocPlugins,
-  // plaocIsDweb,
+  plaocServer,
+  plaocCli,
+  plaocPlugins,
+  plaocIsDweb,
   plaocExamples,
-  // Object.assign($once(doBundleServer), {
-  //   reset() {
-  //     // doBundleServer 自带 watch
-  //   },
-  // }),
+  Object.assign($once(doBundleServer), {
+    reset() {
+      // doBundleServer 自带 watch
+    },
+  }),
 ];
 export const doPlaocTasks = async () => {
-  await toolkitInit();
   await Promise.all(plaocTasks.map((task) => task()));
 };
 
 if (import.meta.main) {
+  await toolkitInit();
   if (Deno.args.includes("--watch")) {
     const watchPlaocTasks = debounce(() => {
       plaocTasks.forEach((task) => task.reset());
@@ -40,7 +40,7 @@ if (import.meta.main) {
     watchPlaocTasks();
     for await (const _event of watchFs(rootResolve("./toolkit"), {
       recursive: true,
-      ignore: (path) =>
+      exclude: (path) =>
         path.includes("/node_modules") ||
         //
         path.includes("/scripts") ||

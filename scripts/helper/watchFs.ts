@@ -5,12 +5,20 @@ import { normalizeFilePath } from "./WalkDir.ts";
 export async function* watchFs(
   paths: string | string[],
   options: {
-    ignore?: (path: string) => boolean;
+    include?: (path: string) => boolean;
+    exclude?: (path: string) => boolean;
     recursive?: boolean;
     debounceMs?: number;
   } = {}
 ) {
-  const { recursive = true, debounceMs = 100, ignore = () => false } = options;
+  const {
+    recursive = true,
+    debounceMs = 100,
+    // 默认，只针对 .ts 后缀
+    include = (path) =>
+      path.endsWith(".ts") || path.endsWith(".mts") || path.endsWith(".cts") || path.endsWith(".json"),
+    exclude = () => false,
+  } = options;
   console.log("watch", paths);
   const watcher = Deno.watchFs(paths, { recursive });
   let _controller!: ReadableStreamDefaultController;
@@ -24,8 +32,15 @@ export async function* watchFs(
             paths: new Set(event.paths),
             consume: debounce(() => {
               const pathList = Array.from(change.paths, (path) => normalizeFilePath(path));
-              if (false === pathList.every(ignore)) {
-                console.log("file", event.kind, ...pathList);
+              const latestChangedPath = pathList.findLast(
+                (path) =>
+                  include(path) &&
+                  // !/vite\.config\.m?ts?\.timestamp-\d+-[\w\d]+\.m?js$/.test(path) &&
+                  // 自定义配置
+                  !exclude(path)
+              );
+              if (latestChangedPath !== undefined) {
+                console.log("file", event.kind, latestChangedPath);
                 changes.delete(event.kind);
                 controller.enqueue({ kind: event.kind, paths: pathList });
               }

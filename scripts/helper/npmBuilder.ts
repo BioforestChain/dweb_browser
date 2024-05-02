@@ -3,7 +3,7 @@ import { $once } from "@dweb-browser/helper/decorator/$once.ts";
 import node_fs from "node:fs";
 import node_path from "node:path";
 import { fileURLToPath } from "node:url";
-import { viteTaskFactory } from "./ConTasks.helper.ts";
+import { createBaseResolveTo, viteTaskFactory } from "./ConTasks.helper.ts";
 import { ConTasks } from "./ConTasks.ts";
 import { WalkFiles } from "./WalkDir.ts";
 import { calcDirHash } from "./dirHash.ts";
@@ -185,13 +185,28 @@ export const registryNpmBuilder = (config: Parameters<typeof npmBuilder>[0]) => 
  *
  * 会自动等待依赖项目完成编译后，再开始自身的编译
  */
-export const registryViteBuilder = (config: { name: string; inDir: string; outDir: string; viteConfig?: string }) => {
-  const { name, inDir, outDir } = config;
+export const registryViteBuilder = (config: {
+  name: string;
+  inDir: string;
+  outDir: string;
+  viteConfig?: string;
+  force?: boolean;
+}) => {
+  const { name, inDir, outDir, force = false } = config;
   const packageDir = node_path.resolve(inDir, "./package.json");
   const packageJson: PackageJson = JSON.parse(node_fs.readFileSync(packageDir, "utf-8"));
-  const build_vite = $once(async () => {
+  const build_vite = $once(async (args: string[] = Deno.args) => {
     console.log(`🛫 START ${packageJson.name}`);
     await waitDependencies(packageJson);
+
+    const packageResolve = createBaseResolveTo(inDir);
+    //#region 缓存检查
+    const dirHasher = calcDirHash(packageResolve("./"), { ignore: "node_modules" });
+    if (force === false && dirHasher.isChange(outDir, "vite") === false) {
+      console.log(`\n🚀 VITE MATCH CACHE: ${packageJson.name}`);
+      return;
+    }
+    //#endregion
     // 编译自身
     console.log(`⏳ BUILDING ${packageJson.name}`);
     try {
@@ -202,9 +217,9 @@ export const registryViteBuilder = (config: { name: string; inDir: string; outDi
         import.meta.resolve("./")
       );
 
-      const children = viteTasks.spawn([...Deno.args, "--dev"]).children;
+      const children = viteTasks.spawn(args).children;
       // 判断是否编译完成，编译完成后将 manifest.json 文件移动到编译目录中
-      await children[name].stdoutLogger.waitContent("built");
+      await children[name].stdoutLogger.waitContent("built in");
       for (const filename of ["manifest.json", "LICENSE"]) {
         const fromPath = node_path.resolve(inDir, filename);
         if (node_fs.existsSync(fromPath)) {
@@ -214,6 +229,7 @@ export const registryViteBuilder = (config: { name: string; inDir: string; outDi
         }
       }
 
+      dirHasher.writeHash(outDir, "vite")
       console.log(`✅ END ${packageJson.name}`);
     } catch (e) {
       console.error(`❌ ERROR ${packageJson.name}`);

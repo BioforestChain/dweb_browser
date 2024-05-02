@@ -24,10 +24,9 @@ export const npmInit = async () => {
       fs.mkdirSync(npmDir, { recursive: true });
       // TODO 这里应该从项目中寻找同名的 package.json 源文件来进行拷贝
       fs.writeFileSync(packageJsonFile, JSON.stringify(toolkitPackageJsons.get(npmName) ?? { name: npmName }, null, 2));
+      console.log(`npm package ${picocolors.green(npmName)} inited.`);
     }
   }
-
-  console.log(picocolors.green("npm packages inited."));
 };
 if (import.meta.main) {
   toolkitInit();
