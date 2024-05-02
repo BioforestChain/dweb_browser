@@ -1,6 +1,6 @@
 import { BuildOptions, PackageJson, build } from "@deno/dnt";
 import { $once } from "@dweb-browser/helper/decorator/$once.ts";
-import fs from "node:fs";
+import node_fs from "node:fs";
 import node_path from "node:path";
 import { fileURLToPath } from "node:url";
 import { viteTaskFactory } from "./ConTasks.helper.ts";
@@ -43,7 +43,7 @@ export const npmBuilder = async (config: {
         })
       : optionsBuilder;
 
-  const packageJson = options?.package ?? JSON.parse(fs.readFileSync(packageResolve("./package.json"), "utf-8"));
+  const packageJson = options?.package ?? JSON.parse(node_fs.readFileSync(packageResolve("./package.json"), "utf-8"));
   Object.assign(packageJson, {
     version: version ?? packageJson.version,
     // delete fields
@@ -123,7 +123,7 @@ export const npmBuilder = async (config: {
       Deno.copyFileSync(rootResolve("./LICENSE"), npmResolve("./LICENSE"));
       // 拷贝必要的文件
       for (const filename of ["README.md", ".npmrc"]) {
-        if (fs.existsSync(packageResolve(filename))) {
+        if (node_fs.existsSync(packageResolve(filename))) {
           Deno.copyFileSync(packageResolve(filename), npmResolve(filename));
         }
       }
@@ -161,7 +161,7 @@ const waitDependencies = async (packageJson: PackageJson) => {
 export const registryNpmBuilder = (config: Parameters<typeof npmBuilder>[0]) => {
   const { packageDir } = config;
   const packageResolve = (path: string) => fileURLToPath(new URL(path, packageDir));
-  const packageJson: PackageJson = JSON.parse(fs.readFileSync(packageResolve("./package.json"), "utf-8"));
+  const packageJson: PackageJson = JSON.parse(node_fs.readFileSync(packageResolve("./package.json"), "utf-8"));
   const build_npm = $once(async () => {
     console.log(`🛫 START ${packageJson.name}`);
     await waitDependencies(packageJson);
@@ -185,16 +185,10 @@ export const registryNpmBuilder = (config: Parameters<typeof npmBuilder>[0]) => 
  *
  * 会自动等待依赖项目完成编译后，再开始自身的编译
  */
-export const registryViteBuilder = (config: {
-  name: string;
-  inDir: string;
-  outDir: string;
-  viteConfig?: string;
-  baseDir?: string;
-}) => {
-  const { name, inDir, outDir, baseDir } = config;
-  const packageDir = node_path.resolve(baseDir ?? ".", inDir, "./package.json");
-  const packageJson: PackageJson = JSON.parse(fs.readFileSync(packageDir, "utf-8"));
+export const registryViteBuilder = (config: { name: string; inDir: string; outDir: string; viteConfig?: string }) => {
+  const { name, inDir, outDir } = config;
+  const packageDir = node_path.resolve(inDir, "./package.json");
+  const packageJson: PackageJson = JSON.parse(node_fs.readFileSync(packageDir, "utf-8"));
   const build_vite = $once(async () => {
     console.log(`🛫 START ${packageJson.name}`);
     await waitDependencies(packageJson);
@@ -211,10 +205,14 @@ export const registryViteBuilder = (config: {
       const children = viteTasks.spawn([...Deno.args, "--dev"]).children;
       // 判断是否编译完成，编译完成后将 manifest.json 文件移动到编译目录中
       await children[name].stdoutLogger.waitContent("built");
-      await Deno.copyFile(
-        node_path.resolve(baseDir ?? ".", inDir, "./manifest.json"),
-        node_path.resolve(baseDir ?? ".", outDir, "./manifest.json")
-      );
+      for (const filename of ["manifest.json", "LICENSE"]) {
+        const fromPath = node_path.resolve(inDir, filename);
+        if (node_fs.existsSync(fromPath)) {
+          const toPath = node_path.resolve(outDir, filename);
+          node_fs.mkdirSync(node_path.dirname(toPath), { recursive: true });
+          node_fs.copyFileSync(fromPath, toPath);
+        }
+      }
 
       console.log(`✅ END ${packageJson.name}`);
     } catch (e) {

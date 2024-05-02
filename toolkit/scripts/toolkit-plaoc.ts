@@ -9,23 +9,22 @@ import { toolkitInit } from "./toolkit-init.ts";
 
 const plaocExamples = registryViteBuilder({
   name: "plaoc:examples:plugin-demo",
-  inDir: "toolkit/plaoc/examples/plugin-demo",
+  inDir: "./toolkit/plaoc/examples/plugin-demo",
   outDir: "npm/@plaoc__examples/plugin-demo",
-  baseDir: "./",
 });
 
 const plaocTasks = [
   //
-  plaocServer,
-  plaocCli,
-  plaocPlugins,
-  plaocIsDweb,
+  // plaocServer,
+  // plaocCli,
+  // plaocPlugins,
+  // plaocIsDweb,
   plaocExamples,
-  Object.assign($once(doBundleServer), {
-    reset() {
-      // doBundleServer 自带 watch
-    },
-  }),
+  // Object.assign($once(doBundleServer), {
+  //   reset() {
+  //     // doBundleServer 自带 watch
+  //   },
+  // }),
 ];
 export const doPlaocTasks = async () => {
   await toolkitInit();

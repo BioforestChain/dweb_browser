@@ -6,7 +6,10 @@
     "clean": "deno run -A ./scripts/clean.ts",
     "build": "deno run -A ./scripts/build.ts",
     "pub": "deno run -A ./scripts/pub.ts",
-    "plaoc": "deno run -A ./toolkit/scripts/toolkit-plaoc.ts"
+    "plaoc": "deno run -A ./toolkit/scripts/toolkit-plaoc.ts",
+    "plaoc:watch": "deno task plaoc --watch",
+    "plaoc:hack": "deno run -A ./toolkit/scripts/hack-plaoc-server.ts",
+    "plaoc:demo": "node ./npm/@plaoc__cli/esm/plaoc.js serve ./npm/@plaoc__examples/plugin-demo"
   },
   "imports": {
     "@deno/dnt": "jsr:@deno/dnt@^0.41.1",
