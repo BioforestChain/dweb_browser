@@ -20,7 +20,7 @@ export const $ = Object.assign(
     }
     console.log(picocolors.green(">"), picocolors.magenta(picocolors.bold(exec)), picocolors.magenta(args.join(" ")));
     const command = new Deno.Command(cmdWhich!, { args, cwd, stdout: "inherit", env: Deno.env.toObject() });
-    await command.output();
+    return await command.output();
   },
   {
     cd: (dir: string | URL) => {

@@ -31,6 +31,7 @@ export const doPlaocTasks = async () => {
 };
 
 if (import.meta.main) {
+  // console.log("PATH:", Deno.env.get("PATH"));
   await toolkitInit();
   if (Deno.args.includes("--watch")) {
     const watchPlaocTasks = debounce(() => {
