@@ -10,7 +10,7 @@ export async function* watchFs(
     debounceMs?: number;
   } = {}
 ) {
-  const { recursive = true, debounceMs = 200, ignore = () => false } = options;
+  const { recursive = true, debounceMs = 100, ignore = () => false } = options;
   console.log("watch", paths);
   const watcher = Deno.watchFs(paths, { recursive });
   let _controller!: ReadableStreamDefaultController;

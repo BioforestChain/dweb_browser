@@ -45,6 +45,9 @@ export const toolkitTasks = new ConTasks(
         "--outDir",
         defineAssets(`browser-desk`, { type: "linkKmpResFiles", moduleName: "browser" }),
         // "../../next/kmp/browser/src/commonMain/composeResources/files/browser/desk",
+        // TODO
+        // "--log-cwd",
+        // "../",
       ],
       devAppendArgs: ["--watch"],
       cwd: "../dweb-desk-assets",
