@@ -1,8 +1,6 @@
-import { Channel } from "./Channel.ts";
 import { Mutex } from "./Mutex.ts";
 import { PromiseOut } from "./PromiseOut.ts";
 import { Signal, createSignal, type $Callback } from "./createSignal.ts";
-import { $once } from "./decorator/$once.ts";
 import { logger } from "./logger.ts";
 
 type Event<T> = ReturnType<Producer<T>["event"]>;
@@ -11,7 +9,15 @@ type $FlowCollector<T> = (event: Event<T>) => void;
 //#region Producer
 /**生产者 */
 export class Producer<T> {
-  constructor(readonly name: string) {}
+  constructor(
+    readonly name: string,
+    options: { bufferLimit?: number; bufferOverflowBehavior?: "warn" | "throw" | "slient" } = {}
+  ) {
+    this.bufferLimit = options.bufferLimit ?? 10;
+    this.bufferOverflowBehavior = options.bufferOverflowBehavior || "warn";
+  }
+  readonly bufferLimit;
+  readonly bufferOverflowBehavior;
   toString() {
     return `Producer<${this.name}>`;
   }
@@ -89,12 +95,12 @@ export class Producer<T> {
 
       const beforeConsumeTimes = this.#consumeTimes;
 
-      return this.#emitLock.withLock(() => {
+      return this.#emitLock.withLock(async () => {
         // 事件超时告警
         const timeoutId = setTimeout(() => {
           console.warn(`emitBy TIMEOUT!! step=$i consumer=${consumer} data=${this.data}`);
         }, 1000);
-        consumer.input.send(this);
+        await consumer.input.emit(this);
         clearTimeout(timeoutId);
 
         if (this.consumed) {
@@ -124,8 +130,12 @@ export class Producer<T> {
   #doSend(value: T) {
     const event = this.event(value);
     this.buffers.add(event);
-    if (this.buffers.size > 10) {
-      this.console.warn(`${this} buffers overflow maybe leak: ${this.buffers.size}`);
+    if (this.buffers.size > this.bufferLimit) {
+      if (this.bufferOverflowBehavior === "warn") {
+        this.console.warn(`${this} buffers overflow maybe leak: ${this.buffers.size}`);
+      } else if (this.bufferOverflowBehavior === "throw") {
+        throw new Error(`${this} buffers overflow: ${this.buffers.size}/${this.bufferLimit}`);
+      }
     }
     return this.doEmit(event);
   }
@@ -159,21 +169,39 @@ export class Producer<T> {
     }
   }
 
-  // 创建一个消费者
+  /**
+   * 创建一个消费者
+   */
   consumer(name: string) {
     this.#ensureOpen();
-    return new Producer.#Consumer(name, this);
+    const consumer = new Producer.#Consumer(name, this);
+    return consumer;
   }
+  static EasyFlow = class EasyFlow<T> {
+    #cb?: (event: Event<T>) => unknown;
+    close() {
+      this.#cb = undefined;
+    }
+    collect(cb: (event: Event<T>) => unknown) {
+      this.#cb = cb;
+    }
+    async emit(event: Event<T>) {
+      await this.#cb?.(event);
+    }
+  };
   //#region Consumer
   /**消费者 */
   static #Consumer = class Consumer<T> {
-    constructor(readonly name: string, readonly producer: Producer<T>) {}
+    constructor(readonly name: string, readonly producer: Producer<T>) {
+      producer.consumers.add(this);
+    }
+
     toString() {
       return `Consumer<[${this.producer.name}]${this.name}>`;
     }
 
     /**输入 */
-    readonly input = new Channel<Event<T>>();
+    readonly input = new Producer.EasyFlow<T>();
 
     /**标记是否开始消费 */
     #started = false;
@@ -185,28 +213,28 @@ export class Producer<T> {
     startingBuffers: Set<Event<T>> | null = null;
     #errorCatcher = new PromiseOut<string | undefined>();
 
-    #collectOnce = $once((collector: (event: Event<T>) => void) => {
-      // 同一个事件的处理，不做任何阻塞，直接发出
-      (async () => {
-        for await (const event of this.input) {
-          try {
-            collector(event);
-          } catch (e) {
-            this.#errorCatcher.resolve(e);
-          }
-        }
-      })();
-      this.#start();
-    });
+    // #collectOnce = $once((collector: (event: Event<T>) => void) => {
+    //   // 同一个事件的处理，不做任何阻塞，直接发出
+    //   (async () => {
+    //     for await (const event of this.input) {
+    //       try {
+    //         collector(event);
+    //       } catch (e) {
+    //         this.#errorCatcher.resolve(e);
+    //       }
+    //     }
+    //   })();
+    //   this.#start();
+    // });
 
     /**开始触发之前的 */
-    #start() {
+    async #start() {
       this.producer.consumers.add(this);
       this.#started = true;
       const starting = this.producer.buffers;
       this.startingBuffers = starting;
       for (const event of starting) {
-        event.emitBy(this);
+        await event.emitBy(this);
       }
       this.startingBuffers = null;
       this.producer.buffers.clear();
@@ -225,7 +253,10 @@ export class Producer<T> {
     // });
     /**收集事件 */
     collect(collector: (event: Event<T>) => void) {
-      this.#collectOnce(collector);
+      this.input.collect(collector);
+      // 事件在收集了再调用开始
+      return this.#start();
+      // this.#collectOnce(collector);
     }
 
     mapNotNull<R>(transform: (value: T) => R | undefined) {
@@ -246,7 +277,6 @@ export class Producer<T> {
       this.#errorCatcher.resolve(cause);
     }
   };
-
   //#endregion
 
   /**确保打开 */

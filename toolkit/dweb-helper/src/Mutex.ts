@@ -1,4 +1,4 @@
-import { PromiseOut } from "./PromiseOut.ts";
+import { PromiseOut, isPromiseLike } from "./PromiseOut.ts";
 
 class Locker {
   readonly po = new PromiseOut<void>();
@@ -8,6 +8,9 @@ class Locker {
   }
   readonly prev: Promise<void> | undefined;
   readonly curr: Promise<void>;
+  get isUnLocked() {
+    return this.po.is_finished;
+  }
 }
 export class Mutex {
   constructor(lock?: boolean) {
@@ -32,9 +35,17 @@ export class Mutex {
     locker?.po.resolve();
   }
   async withLock<R>(cb: () => R): Promise<Awaited<R>> {
-    await this.lock();
+    const pre = this.lock();
+    if (pre) {
+      await pre;
+    }
     try {
-      return await cb();
+      const res = cb();
+      if (isPromiseLike(res)) {
+        return await res;
+      } else {
+        return res as Awaited<R>;
+      }
     } finally {
       this.unlock();
     }
