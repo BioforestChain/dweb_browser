@@ -1,10 +1,5 @@
 import { X_PLAOC_QUERY } from "./const.ts";
-import {
-  IpcFetchEvent,
-  IpcHeaders,
-  jsProcess,
-  type $OnFetchReturn,
-} from "./deps.ts";
+import { IpcHeaders, jsProcess, type $Core } from "./deps.ts";
 import { Server_www as _Server_www } from "./http-www-server.ts";
 
 /**
@@ -14,7 +9,7 @@ import { Server_www as _Server_www } from "./http-www-server.ts";
  */
 export class Server_www extends _Server_www {
   private xPlaocProxy: string | null = null;
-  override async _provider(request: IpcFetchEvent): Promise<$OnFetchReturn> {
+  override async _provider(request: $Core.IpcFetchEvent): Promise<$Core.$OnFetchReturn> {
     // 请求申请
     if (
       request.pathname.startsWith(`/${X_PLAOC_QUERY.GET_CONFIG_URL}`) ||
@@ -23,8 +18,7 @@ export class Server_www extends _Server_www {
       return super._provider(request);
     }
 
-    let xPlaocProxy =
-      request.searchParams.get(X_PLAOC_QUERY.PROXY) ?? this.xPlaocProxy;
+    let xPlaocProxy = request.searchParams.get(X_PLAOC_QUERY.PROXY) ?? this.xPlaocProxy;
     if (xPlaocProxy === null) {
       const xReferer = request.headers.get("Referer");
       if (xReferer !== null) {
@@ -44,11 +38,7 @@ export class Server_www extends _Server_www {
     /// 对 html 做强制代理，似的能加入一些特殊的头部信息，确保能正确访问内部的资源
     const contentType = remoteIpcResponse.headers.get("Content-Type");
     const headers = new IpcHeaders(remoteIpcResponse.headers);
-    if (
-      contentType &&
-      (contentType.startsWith("text/html") ||
-        !contentType.includes("javascript"))
-    ) {
+    if (contentType && (contentType.startsWith("text/html") || !contentType.includes("javascript"))) {
       // 强制声明解除安全性限制
       headers.init("Access-Control-Allow-Private-Network", "true");
       // 移除在iframe中渲染的限制

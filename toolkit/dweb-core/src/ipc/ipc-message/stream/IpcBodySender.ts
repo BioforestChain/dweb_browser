@@ -5,8 +5,8 @@ import { binaryStreamRead } from "@dweb-browser/helper/stream/readableStreamHelp
 import type { Ipc } from "../../ipc.ts";
 import { IPC_MESSAGE_TYPE } from "../internal/IpcMessage.ts";
 import { BodyHub, IpcBody, type $BodyData } from "./IpcBody.ts";
-import { ipcStreamData } from "./IpcStreamData.ts";
-import { ipcStreamEnd } from "./IpcStreamEnd.ts";
+import { IpcStreamData } from "./IpcStreamData.ts";
+import { IpcStreamEnd } from "./IpcStreamEnd.ts";
 import type { $IpcStreamPaused } from "./IpcStreamPaused.ts";
 import type { $IpcStreamPulling } from "./IpcStreamPulling.ts";
 import { IPC_META_BODY_TYPE, MetaBody } from "./MetaBody.ts";
@@ -249,14 +249,14 @@ export class IpcBodySender extends IpcBody {
           this.isStreamOpened = true;
           // console.log("sender/read", stream_id, ipc.uid);
 
-          const message = ipcStreamData.fromBinary(stream_id, await reader.readBinary(availableLen));
+          const message = IpcStreamData.fromBinary(stream_id, await reader.readBinary(availableLen));
           for (const ipc of this.usedIpcMap.keys()) {
             ipc.postMessage(message);
           }
         } else if (availableLen === -1) {
           // console.log("sender/end", stream_id, ipc.uid);
           /// 不论是不是被 aborted，都发送结束信号
-          const message = ipcStreamEnd(stream_id);
+          const message = IpcStreamEnd(stream_id);
           for (const ipc of this.usedIpcMap.keys()) {
             ipc.postMessage(message);
           }

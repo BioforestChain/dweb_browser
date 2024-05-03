@@ -62,11 +62,11 @@ const $throw = (err: Error) => {
 };
 
 export const fetchHanlderFactory = {
-  NoFound: () => fetchEnd((_event, res) => res ?? $throw(new FetchError("No Found", { status: 404 }))),
-  Forbidden: () => fetchEnd((_event, res) => res ?? $throw(new FetchError("Forbidden", { status: 403 }))),
-  BadRequest: () => fetchEnd((_event, res) => res ?? $throw(new FetchError("Bad Request", { status: 400 }))),
+  NoFound: () => fetchEnd((_event, res) => res ?? $throw(new IpcFetchError("No Found", { status: 404 }))),
+  Forbidden: () => fetchEnd((_event, res) => res ?? $throw(new IpcFetchError("Forbidden", { status: 403 }))),
+  BadRequest: () => fetchEnd((_event, res) => res ?? $throw(new IpcFetchError("Bad Request", { status: 400 }))),
   InternalServerError: (message = "Internal Server Error") =>
-    fetchEnd((_event, res) => res ?? $throw(new FetchError(message, { status: 500 }))),
+    fetchEnd((_event, res) => res ?? $throw(new IpcFetchError(message, { status: 500 }))),
   // deno-lint-ignore no-explicit-any
 } satisfies Record<string, (...args: any[]) => $AnyFetchHanlder>;
 /**
@@ -203,7 +203,7 @@ export const createFetchHandler = (onFetchs: Iterable<$OnFetch> = []) => {
           if (err instanceof Error) {
             err_message = err.message;
             err_detail = err.stack ?? err.name;
-            if (err instanceof FetchError) {
+            if (err instanceof IpcFetchError) {
               err_code = err.code;
             }
           } else {
@@ -329,7 +329,7 @@ export class IpcFetchEvent {
   }
 }
 
-export class FetchError extends Error {
+export class IpcFetchError extends Error {
   constructor(message: string, options?: $FetchErrorOptions) {
     super(message);
     this.code = options?.status ?? 500;

@@ -1,8 +1,8 @@
 import { IPC_MESSAGE_TYPE, ipcMessageBase } from "./internal/IpcMessage.ts";
 
-export type $IpcError = ReturnType<typeof ipcError>;
+export type $IpcError = ReturnType<typeof IpcError>;
 
-export const ipcError = Object.assign(
+export const IpcError = Object.assign(
   (errorCode: number, message?: string) =>
     ({
       ...ipcMessageBase(IPC_MESSAGE_TYPE.ERROR),
@@ -10,6 +10,6 @@ export const ipcError = Object.assign(
       message,
     } as const),
   {
-    internalServer: (message: string) => ipcError(500, message),
+    internalServer: (message: string) => IpcError(500, message),
   }
 );

@@ -1,7 +1,7 @@
 import { isMobile } from "is-mobile";
 import type { $PlaocConfig } from "./const.ts";
-import type { $DwebHttpServerOptions, $OnFetch, $OnFetchReturn } from "./deps.ts";
-import { IpcFetchEvent, IpcResponse, jsProcess } from "./deps.ts";
+import type { $Core, $Http } from "./deps.ts";
+import { IpcResponse, jsProcess } from "./deps.ts";
 import { HttpServer } from "./helper/http-helper.ts";
 import type { PlaocConfig } from "./plaoc-config.ts";
 import { setupDB } from "./shim/db.shim.ts";
@@ -10,7 +10,7 @@ import { setupFetch } from "./shim/fetch.shim.ts";
 const CONFIG_PREFIX = "/config.sys.dweb/";
 /**给前端的文件服务 */
 export class Server_www extends HttpServer {
-  constructor(readonly plaocConfig: PlaocConfig, private handlers: $OnFetch[] = []) {
+  constructor(readonly plaocConfig: PlaocConfig, private handlers: $Core.$OnFetch[] = []) {
     super("wwww");
   }
   get jsonPlaoc() {
@@ -20,7 +20,7 @@ export class Server_www extends HttpServer {
   private sessionInfo = jsProcess
     .nativeFetch("file:///usr/sys/session.json")
     .then((res) => res.json() as Promise<{ installTime: number; installUrl: string }>);
-  protected _getOptions(): $DwebHttpServerOptions {
+  protected _getOptions(): $Http.$DwebHttpServerOptions {
     return {
       subdomain: "www",
     };
@@ -38,7 +38,7 @@ export class Server_www extends HttpServer {
     const serverIpc = await this.listen(...this.handlers, this._provider.bind(this));
     return serverIpc.noFound();
   }
-  protected async _provider(request: IpcFetchEvent, root = "www"): Promise<$OnFetchReturn> {
+  protected async _provider(request: $Core.IpcFetchEvent, root = "www"): Promise<$Core.$OnFetchReturn> {
     let { pathname } = request;
     // 配置config
     if (pathname.startsWith(CONFIG_PREFIX)) {
@@ -105,7 +105,7 @@ export class Server_www extends HttpServer {
     return ipcResponse;
   }
 
-  _config(event: IpcFetchEvent) {
+  _config(event: $Core.IpcFetchEvent) {
     const pathname = event.pathname.slice(CONFIG_PREFIX.length);
     if (pathname.startsWith("/setLang")) {
       const lang = event.searchParams.get("lang");
@@ -119,7 +119,7 @@ export class Server_www extends HttpServer {
    * @param request
    * @param config
    */
-  private _plaocForwarder(request: IpcFetchEvent, config: $PlaocConfig) {
+  private _plaocForwarder(request: $Core.IpcFetchEvent, config: $PlaocConfig) {
     const redirects = config.redirect;
     for (const redirect of redirects) {
       if (!this._matchMethod(request.method, redirect.matchMethod)) {

@@ -15,14 +15,14 @@ import { promiseAsSignalListener } from "@dweb-browser/helper/promiseSignal.ts";
 import type { IpcPool } from "./IpcPool.ts";
 import { endpointIpcMessage } from "./endpoint/EndpointIpcMessage.ts";
 import type { IpcEndpoint } from "./endpoint/IpcEndpoint.ts";
-import { ipcFork } from "./ipc-message/IpcFork.ts";
+import { IpcFork } from "./ipc-message/IpcFork.ts";
 import {
-  ipcLifecycle,
-  ipcLifecycleClosed,
-  ipcLifecycleClosing,
-  ipcLifecycleInit,
-  ipcLifecycleOpened,
-  ipcLifecycleOpening,
+  IpcLifecycle,
+  IpcLifecycleClosed,
+  IpcLifecycleClosing,
+  IpcLifecycleInit,
+  IpcLifecycleOpened,
+  IpcLifecycleOpening,
   type $IpcLifecycle,
 } from "./ipc-message/IpcLifecycle.ts";
 import type { $IpcMessage } from "./ipc-message/IpcMessage.ts";
@@ -40,8 +40,8 @@ export class Ipc {
   ) {
     this.#messageProducer = this.endpoint.getIpcMessageProducerByIpc(this);
     this.#lifecycleLocaleFlow = new StateSignal<$IpcLifecycle>(
-      ipcLifecycle(ipcLifecycleInit(this.pid, this.locale, this.remote)),
-      ipcLifecycle.equals
+      IpcLifecycle(IpcLifecycleInit(this.pid, this.locale, this.remote)),
+      IpcLifecycle.equals
     );
     this.lifecycleLocaleFlow = this.#lifecycleLocaleFlow.asReadyonly();
     this.onLifecycle = this.lifecycleLocaleFlow.listen;
@@ -137,7 +137,7 @@ export class Ipc {
     // 当前状态必须是从init开始
     if (this.lifecycle.state.name === IPC_LIFECYCLE_STATE.INIT) {
       // 告知对方我启动了
-      const opening = ipcLifecycle(ipcLifecycleOpening());
+      const opening = IpcLifecycle(IpcLifecycleOpening());
       this.#sendLifecycleToRemote(opening);
       this.#lifecycleLocaleFlow.emit(opening);
     } else {
@@ -148,7 +148,7 @@ export class Ipc {
       this.console.debug("lifecycle-in", `remote=${lifecycleRemote},local=${this.lifecycle}`);
       // 告知启动完成
       const doIpcOpened = () => {
-        const opend = ipcLifecycle(ipcLifecycleOpened());
+        const opend = IpcLifecycle(IpcLifecycleOpened());
         this.#sendLifecycleToRemote(opend);
         this.#lifecycleLocaleFlow.emit(opend);
       };
@@ -224,7 +224,7 @@ export class Ipc {
     this.#forkProducer.send(forkedIpc);
     // 通知对方
     this.postMessage(
-      ipcFork(
+      IpcFork(
         forkedIpc.pid,
         autoStart,
         /// 对调locale/remote
@@ -395,14 +395,14 @@ export class Ipc {
   #closeOnce = $once(async (cause?: string) => {
     this.console.debug("closing", cause);
     {
-      const closing = ipcLifecycle(ipcLifecycleClosing(cause));
+      const closing = IpcLifecycle(IpcLifecycleClosing(cause));
       this.#lifecycleLocaleFlow.emit(closing);
       this.#sendLifecycleToRemote(closing);
     }
     await this.#messageProducer.producer.close(cause);
     this._closePo.resolve(cause);
     {
-      const closed = ipcLifecycle(ipcLifecycleClosed(cause));
+      const closed = IpcLifecycle(IpcLifecycleClosed(cause));
       this.#lifecycleLocaleFlow.emitAndClear(closed);
       this.#sendLifecycleToRemote(closed);
     }

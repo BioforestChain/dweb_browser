@@ -1,6 +1,6 @@
 import { IPC_MESSAGE_TYPE, ipcMessageBase } from "../internal/IpcMessage.ts";
 
-export type $IpcStreamPaused = ReturnType<typeof ipcStreamPaused>;
+export type $IpcStreamPaused = ReturnType<typeof IpcStreamPaused>;
 /**
  *
  * @param stream_id
@@ -12,5 +12,5 @@ export type $IpcStreamPaused = ReturnType<typeof ipcStreamPaused>;
  * > 一旦该数值为0，对方再发送数据过来的时候，底层会直接断开连接。
  * @returns
  */
-export const ipcStreamPaused = (stream_id: string, fuse?: number | null) =>
+export const IpcStreamPaused = (stream_id: string, fuse?: number | null) =>
   ({ ...ipcMessageBase(IPC_MESSAGE_TYPE.STREAM_PAUSED), stream_id, fuse: fuse ?? 1 } as const);

@@ -1,7 +1,6 @@
-import type { $DwebHttpServerOptions, $Ipc, $MMID, $OnFetch, $OnFetchReturn } from "./deps.ts";
+import type { $Core, $Http, $Ipc, $MMID } from "./deps.ts";
 import {
   IpcClientRequest,
-  IpcFetchEvent,
   IpcHeaders,
   IpcResponse,
   PromiseOut,
@@ -18,10 +17,10 @@ const INTERNAL_PREFIX = "/internal/";
 /**给前端的api服务 */
 export class Server_api extends HttpServer {
   jsRuntime = jsProcess.bootstrapContext;
-  constructor(public getWid: () => Promise<string>, private handlers: $OnFetch[] = []) {
+  constructor(public getWid: () => Promise<string>, private handlers: $Core.$OnFetch[] = []) {
     super("api");
   }
-  protected _getOptions(): $DwebHttpServerOptions {
+  protected _getOptions(): $Http.$DwebHttpServerOptions {
     return {
       subdomain: "api",
     };
@@ -33,7 +32,7 @@ export class Server_api extends HttpServer {
   }
 
   // deno-lint-ignore require-await
-  protected async _provider(event: IpcFetchEvent) {
+  protected async _provider(event: $Core.IpcFetchEvent) {
     // /dns.std.dweb/
     if (event.pathname.startsWith(DNS_PREFIX)) {
       return this._onDns(event);
@@ -44,7 +43,7 @@ export class Server_api extends HttpServer {
     return this._onApi(event);
   }
 
-  protected async _onDns(event: IpcFetchEvent): Promise<$OnFetchReturn> {
+  protected async _onDns(event: $Core.IpcFetchEvent): Promise<$Core.$OnFetchReturn> {
     const url = new URL("file:/" + event.pathname + event.search);
     const pathname = url.pathname;
     const result = async () => {
@@ -86,7 +85,7 @@ export class Server_api extends HttpServer {
     categories: [],
     name: "",
   };
-  protected async _onInternal(event: IpcFetchEvent): Promise<$OnFetchReturn> {
+  protected async _onInternal(event: $Core.IpcFetchEvent): Promise<$Core.$OnFetchReturn> {
     const pathname = event.pathname.slice(INTERNAL_PREFIX.length);
     // 返回窗口的操作id给前端
     if (pathname === "window-info") {
@@ -123,7 +122,7 @@ export class Server_api extends HttpServer {
   /**
    * request 事件处理器
    */
-  protected async _onApi(event: IpcFetchEvent): Promise<$OnFetchReturn> {
+  protected async _onApi(event: $Core.IpcFetchEvent): Promise<$Core.$OnFetchReturn> {
     const { pathname, search } = event;
     // 转发file请求到目标NMM
     const path = `file:/${pathname}${search}`;

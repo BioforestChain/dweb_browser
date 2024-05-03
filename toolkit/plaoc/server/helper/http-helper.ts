@@ -1,4 +1,4 @@
-import type { $DwebHttpServerOptions, $OnFetch, HttpDwebServer } from "../deps.ts";
+import type { $Core, $Http } from "../deps.ts";
 import { $once, IpcHeaders, PromiseOut, http, jsProcess } from "../deps.ts";
 
 export type $IpcHeaders = InstanceType<typeof IpcHeaders>;
@@ -19,7 +19,7 @@ export abstract class HttpServer {
   constructor(readonly channelId: string) {
     this.init(channelId);
   }
-  private _serverP = new PromiseOut<HttpDwebServer>();
+  private _serverP = new PromiseOut<$Http.HttpDwebServer>();
 
   // deno-lint-ignore require-await
   async init(channelId: string) {
@@ -27,7 +27,7 @@ export abstract class HttpServer {
     this._serverP.resolve(http.createHttpDwebServer(jsProcess, this._getOptions(), target));
   }
 
-  protected abstract _getOptions(): $DwebHttpServerOptions;
+  protected abstract _getOptions(): $Http.$DwebHttpServerOptions;
 
   getServer() {
     return this._serverP.promise;
@@ -41,7 +41,7 @@ export abstract class HttpServer {
     return await server.close();
   }
 
-  listen = $once(async (...onFetchs: $OnFetch[]) => {
+  listen = $once(async (...onFetchs: $Core.$OnFetch[]) => {
     const server = await this.getServer();
     return server.listen(...onFetchs);
   });

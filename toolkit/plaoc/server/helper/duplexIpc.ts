@@ -1,14 +1,9 @@
-import type {
-  $Ipc,
-  $IpcRequest,
-  $MMID,
-  IpcPool,
-} from "../deps.ts";
+import type { $Core, $Ipc, $IpcRequest, $MMID } from "../deps.ts";
 import { PureBinaryFrame, ReadableStreamEndpoint, ReadableStreamOut, streamRead } from "../deps.ts";
 import { merge } from "./merge.ts";
 
 type CreateDuplexIpcType = (
-  ipcPool: IpcPool,
+  ipcPool: $Core.IpcPool,
   subdomain: string,
   mmid: $MMID,
   ipcRequest: $IpcRequest,
@@ -16,7 +11,7 @@ type CreateDuplexIpcType = (
 ) => $Ipc;
 
 export const createDuplexIpc: CreateDuplexIpcType = (
-  ipcPool: IpcPool,
+  ipcPool: $Core.IpcPool,
   subdomain: string,
   mmid: $MMID,
   ipcRequest: $IpcRequest,
@@ -45,9 +40,7 @@ export const createDuplexIpc: CreateDuplexIpcType = (
   void (async () => {
     // 拿到网络层来的外部消息，发到前端处理
     for await (const chunk of streamRead(endpoint.stream)) {
-      pureServerChannel.outgoing.controller.enqueue(
-        new PureBinaryFrame(merge(chunk))
-      );
+      pureServerChannel.outgoing.controller.enqueue(new PureBinaryFrame(merge(chunk)));
     }
   })();
   // ws.send => income.pureFrame =>

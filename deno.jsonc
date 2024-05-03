@@ -5,6 +5,7 @@
     "dev": "deno run -A ./scripts/dev.ts",
     "clean": "deno run -A ./scripts/clean.ts",
     "build": "deno run -A ./scripts/build.ts",
+    "test": "vitest",
     "pub": "deno run -A ./scripts/pub.ts",
     "plaoc": "deno run -A ./toolkit/scripts/toolkit-plaoc.ts",
     "plaoc:watch": "deno task plaoc --watch",
@@ -28,24 +29,26 @@
     "@std/fs": "jsr:@std/fs@^0.224.0",
     "@std/path": "jsr:@std/path@^0.224.0",
     "@types/web": "npm:@types/web@^0.0.143",
+    "canvg": "npm:canvg@^4.0.1",
     "cbor-x": "npm:cbor-x@^1.5.9",
     "deep-object-diff": "npm:deep-object-diff@^1.1.9",
     "is-mobile": "npm:is-mobile@^4.0.0",
     "jszip": "npm:jszip@^3.10.1",
     "mime": "npm:mime@^4.0.3",
     "urlpattern-polyfill": "npm:urlpattern-polyfill@^10.0.0",
+    "vitest": "npm:vitest@^1.5.3",
     "webdav-server": "npm:webdav-server@^2.6.2",
-    "canvg": "npm:canvg@^4.0.1",
     "xmldom": "npm:xmldom@^0.6.0"
   },
   "compilerOptions": {
     "noImplicitOverride": true,
-    "experimentalDecorators": true /* Enable experimental support for legacy experimental decorators. */,
-    "emitDecoratorMetadata": true /* Emit design-type metadata for decorated declarations in source files. */,
+    "experimentalDecorators": true, /* Enable experimental support for legacy experimental decorators. */
+    "emitDecoratorMetadata": true, /* Emit design-type metadata for decorated declarations in source files. */
     "importsNotUsedAsValues": "error"
   },
   "exclude": [
     "npm",
-    "toolkit/dweb-desk-assets"
+    "toolkit/dweb-desk-assets",
+    "toolkit/plaoc/examples/plugin-demo"
   ]
 }

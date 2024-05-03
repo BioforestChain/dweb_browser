@@ -1,12 +1,4 @@
-import type {
-  $DwebHttpServerOptions,
-  $Ipc,
-  $IpcRequest,
-  $MMID,
-  $OnFetch,
-  $OnFetchReturn,
-  IpcFetchEvent,
-} from "./deps.ts";
+import type { $Core, $Http, $Ipc, $IpcRequest, $MMID } from "./deps.ts";
 import { IpcEvent, IpcResponse, jsProcess, mapHelper } from "./deps.ts";
 import { createDuplexIpc } from "./helper/duplexIpc.ts";
 import { HttpServer } from "./helper/http-helper.ts";
@@ -22,7 +14,7 @@ declare global {
  * 一种类似开关的 Promise，它有两种状态，我们可以得到当前处于拿个状态，或者等待另外一个状态的切换
  */
 export class Server_external extends HttpServer {
-  constructor(private handlers: $OnFetch[] = []) {
+  constructor(private handlers: $Core.$OnFetch[] = []) {
     super("external");
     jsProcess.fetchIpc.onRequest("external").collect(async (event) => {
       if (event.data.parsed_url.pathname == ExternalState.WAIT_EXTERNAL_READY) {
@@ -37,7 +29,7 @@ export class Server_external extends HttpServer {
   protected _getOptions() {
     return {
       subdomain: "external",
-    } satisfies $DwebHttpServerOptions;
+    } satisfies $Http.$DwebHttpServerOptions;
   }
   readonly token = crypto.randomUUID();
 
@@ -59,7 +51,7 @@ export class Server_external extends HttpServer {
   private externalWaitters = new Map<$MMID, Promise<$Ipc>>();
   // 是否需要激活
   private needActivity = true;
-  protected async _provider(event: IpcFetchEvent): Promise<$OnFetchReturn> {
+  protected async _provider(event: $Core.IpcFetchEvent): Promise<$Core.$OnFetchReturn> {
     const { pathname } = event;
     // 建立跟自己前端的双工连接
     if (pathname.startsWith(`/${this.token}`)) {

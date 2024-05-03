@@ -5,9 +5,9 @@ import type { MetaBody } from "./MetaBody.ts";
 import { simpleEncoder } from "@dweb-browser/helper/encoding.ts";
 import { IPC_DATA_ENCODING } from "../internal/IpcData.ts";
 import { IPC_MESSAGE_TYPE } from "../internal/IpcMessage.ts";
-import { ipcStreamAbort } from "./IpcStreamAbort.ts";
-import { ipcStreamData } from "./IpcStreamData.ts";
-import { ipcStreamPulling } from "./IpcStreamPulling.ts";
+import { IpcStreamAbort } from "./IpcStreamAbort.ts";
+import { IpcStreamData } from "./IpcStreamData.ts";
+import { IpcStreamPulling } from "./IpcStreamPulling.ts";
 
 export class IpcBodyReceiver extends IpcBody {
   /**
@@ -109,7 +109,7 @@ const $metaToStream = (metaBody: MetaBody, ipc: Ipc) => {
           switch (message.type) {
             case IPC_MESSAGE_TYPE.STREAM_DATA:
               // console.log("receiver/data", stream_id, ipc.uid);
-              controller.enqueue(ipcStreamData.binary(message));
+              controller.enqueue(IpcStreamData.binary(message));
               break;
             case IPC_MESSAGE_TYPE.STREAM_END:
               // console.log("receiver/end", stream_id, ipc.uid);
@@ -122,11 +122,11 @@ const $metaToStream = (metaBody: MetaBody, ipc: Ipc) => {
         if (paused) {
           paused = false;
           // console.log("receiver/pull", stream_id, ipc.uid);
-          stream_ipc.postMessage(ipcStreamPulling(stream_id));
+          stream_ipc.postMessage(IpcStreamPulling(stream_id));
         }
       },
       cancel() {
-        stream_ipc.postMessage(ipcStreamAbort(stream_id));
+        stream_ipc.postMessage(IpcStreamAbort(stream_id));
       },
     },
     {

@@ -4,6 +4,8 @@
         "moduleResolution": "Bundler",
         "target": "ESNext",
         "jsx": "react",
+        "noEmit": true,
+        "emitDeclarationOnly": true,
         "allowImportingTsExtensions": true,
         "useDefineForClassFields": false,
         "verbatimModuleSyntax": true,

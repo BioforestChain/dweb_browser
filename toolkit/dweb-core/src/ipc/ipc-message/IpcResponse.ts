@@ -6,8 +6,8 @@ import type { IpcBody } from "./stream/IpcBody.ts";
 import { IpcBodySender, setStreamId } from "./stream/IpcBodySender.ts";
 import type { MetaBody } from "./stream/MetaBody.ts";
 
-export type $IpcResponse = ReturnType<typeof ipcResponse>;
-export const ipcResponse = (reqId: number, statusCode: number, headers: Record<string, string>, metaBody: MetaBody) =>
+export type $IpcRawResponse = ReturnType<typeof IpcRawResponse>;
+export const IpcRawResponse = (reqId: number, statusCode: number, headers: Record<string, string>, metaBody: MetaBody) =>
   ({
     ...ipcMessageBase(IPC_MESSAGE_TYPE.RESPONSE),
     reqId,
@@ -123,7 +123,7 @@ export class IpcResponse {
   }
 
   toSerializable() {
-    return ipcResponse(this.reqId, this.statusCode, this.headers.toJSON(), this.body.metaBody);
+    return IpcRawResponse(this.reqId, this.statusCode, this.headers.toJSON(), this.body.metaBody);
   }
   toJSON() {
     return this.toSerializable();

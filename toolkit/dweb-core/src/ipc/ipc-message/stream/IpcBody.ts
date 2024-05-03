@@ -2,7 +2,7 @@ import { simpleDecoder, simpleEncoder } from "@dweb-browser/helper/encoding.ts";
 import { streamReadAllBuffer } from "@dweb-browser/helper/stream/readableStreamHelper.ts";
 import type { IpcBodySender } from "./IpcBodySender.ts";
 import type { MetaBody } from "./MetaBody.ts";
-import { Ipc } from "../../ipc.ts";
+import type { Ipc } from "../../ipc.ts";
 
 export abstract class IpcBody {
   static CACHE = new (class {

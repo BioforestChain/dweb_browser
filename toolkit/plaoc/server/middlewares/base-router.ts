@@ -1,5 +1,5 @@
-import type { $OnFetch } from "../deps.ts";
+import type { $Core } from "../deps.ts";
 
 export abstract class BaseRouter {
-  abstract use(...onFetch: $OnFetch[]): void;
+  abstract use(...onFetch: $Core.$OnFetch[]): void;
 }

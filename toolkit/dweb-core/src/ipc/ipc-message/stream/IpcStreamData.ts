@@ -2,10 +2,10 @@ import { simpleDecoder } from "@dweb-browser/helper/encoding.ts";
 import { $dataToBinary, $dataToText, IPC_DATA_ENCODING } from "../internal/IpcData.ts";
 import { IPC_MESSAGE_TYPE, ipcMessageBase } from "../internal/IpcMessage.ts";
 
-export type $IpcStreamData = ReturnType<typeof _ipcStreamData>;
-const _ipcStreamData = (stream_id: string, data: string | Uint8Array, encoding: IPC_DATA_ENCODING) =>
+export type $IpcStreamData = ReturnType<typeof ipcStreamData>;
+const ipcStreamData = (stream_id: string, data: string | Uint8Array, encoding: IPC_DATA_ENCODING) =>
   ({ ...ipcMessageBase(IPC_MESSAGE_TYPE.STREAM_DATA), stream_id, data, encoding } as const);
-export const ipcStreamData = Object.assign(_ipcStreamData, {
+export const IpcStreamData = Object.assign(ipcStreamData, {
   fromBase64(stream_id: string, data: Uint8Array) {
     return ipcStreamData(stream_id, simpleDecoder(data, "base64"), IPC_DATA_ENCODING.BASE64);
   },

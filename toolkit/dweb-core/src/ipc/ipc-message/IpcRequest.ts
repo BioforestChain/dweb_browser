@@ -18,8 +18,8 @@ import type { MetaBody } from "./stream/MetaBody.ts";
 export const PURE_CHANNEL_EVENT_PREFIX = "§-";
 export const X_IPC_UPGRADE_KEY = "X-Dweb-Ipc-Upgrade-Key";
 
-export type $IpcRequest = ReturnType<typeof ipcRequest>;
-export const ipcRequest = (
+export type $IpcRawRequest = ReturnType<typeof IpcRawRequest>;
+export const IpcRawRequest = (
   reqId: number,
   method: PURE_METHOD,
   url: string,
@@ -90,7 +90,7 @@ export abstract class IpcRequest {
   }
 
   toSerializable() {
-    return ipcRequest(
+    return IpcRawRequest(
       this.reqId,
       this.method,
       this.url,

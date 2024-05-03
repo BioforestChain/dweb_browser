@@ -1,6 +1,6 @@
 import { IPC_MESSAGE_TYPE, ipcMessageBase } from "../internal/IpcMessage.ts";
 
-export type $IpcStreamPulling = ReturnType<typeof ipcStreamPulling>;
+export type $IpcStreamPulling = ReturnType<typeof IpcStreamPulling>;
 /**
  *
  * @param stream_id
@@ -10,7 +10,7 @@ export type $IpcStreamPulling = ReturnType<typeof ipcStreamPulling>;
  * > 而负数的带宽代表物理意义上的阻塞，此时更不该再发送更多的数据过去
  * @returns
  */
-export const ipcStreamPulling = (stream_id: string, bandwidth?: number | null) =>
+export const IpcStreamPulling = (stream_id: string, bandwidth?: number | null) =>
   ({
     ...ipcMessageBase(IPC_MESSAGE_TYPE.STREAM_PULLING),
     stream_id,
