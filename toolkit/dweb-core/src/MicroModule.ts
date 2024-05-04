@@ -108,7 +108,9 @@ export abstract class MicroModuleRuntime implements $MicroModuleRuntime {
    * 因为 NativeMicroModule 的内部程序在这里编写代码，所以这里会提供 onConnect 方法
    * 如果时 JsMicroModule 这个 onConnect 就是写在 WebWorker 那边了
    */
-  readonly onConnect = this.#ipcConnectedProducer.consumer("for-internal");
+  onConnect(name: string) {
+    return this.#ipcConnectedProducer.consumer(name);
+  }
 
   get isRunning() {
     return this.state === MMState.BOOTSTRAP;
@@ -117,11 +119,11 @@ export abstract class MicroModuleRuntime implements $MicroModuleRuntime {
   bootstrap() {
     return this.stateLock.withLock(async () => {
       if (this.state != MMState.BOOTSTRAP) {
-        this.console.debug("bootstrap-start");
+        this.console.log("bootstrap-start");
         await this._bootstrap();
-        this.console.debug("bootstrap-end");
+        this.console.log("bootstrap-end");
       } else {
-        this.console.debug("bootstrap", `${this.mmid} already running`);
+        this.console.log("bootstrap", `${this.mmid} already running`);
       }
       this.state = MMState.BOOTSTRAP;
     });
@@ -180,9 +182,9 @@ export abstract class MicroModuleRuntime implements $MicroModuleRuntime {
   // deno-lint-ignore require-await
   async beConnect(ipc: Ipc, _reason?: Request) {
     if (setHelper.add(this.connectionLinks, ipc)) {
-      this.console.debug("beConnect", ipc);
+      this.console.log("beConnect", ipc);
       ipc.onFork("beConnect").collect(async (forkEvent) => {
-        ipc.console.debug("onFork", forkEvent.data);
+        ipc.console.log("onFork", forkEvent.data);
         await this.beConnect(forkEvent.consume());
       });
       this.onBeforeShutdown(() => {

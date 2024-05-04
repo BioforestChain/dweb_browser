@@ -56,10 +56,13 @@ type ESbuildTaskOptionsBase = {
   tsconfig?: esbuild.TsconfigRaw;
 };
 export const esbuildTaskFactory = (
-  config:
-    | ({ outfile: string } & ESbuildTaskOptionsBase)
-    //
-    | ({ outdir: string } & ESbuildTaskOptionsBase)
+  config: ESbuildTaskOptionsBase &
+    (
+      | // 单个文件输出
+      { outfile: string }
+      // 多文件输出
+      | { outdir: string }
+    )
 ) => {
   const baseResolveTo = createBaseResolveTo(config.baseDir);
   const args = ["run", "-A", __esbuild];

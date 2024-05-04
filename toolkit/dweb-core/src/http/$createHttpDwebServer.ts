@@ -1,5 +1,6 @@
 import { $once } from "@dweb-browser/helper/decorator/$once.ts";
 import { buildUrl } from "@dweb-browser/helper/fun/urlHelper.ts";
+import { logger } from "@dweb-browser/helper/logger.ts";
 import type { MicroModuleRuntime } from "../MicroModule.ts";
 import { createFetchHandler, type $OnFetch } from "../ipc/helper/ipcFetchHelper.ts";
 import { IpcResponse } from "../ipc/index.ts";
@@ -26,12 +27,15 @@ export const createHttpDwebServer = async (
 };
 
 export class HttpDwebServer {
+  readonly console;
   constructor(
     private readonly nmm: MicroModuleRuntime,
     private readonly options: $DwebHttpServerOptions,
     readonly startResult: ServerStartResult,
     readonly target: string
-  ) {}
+  ) {
+    this.console = logger(`http<${options.subdomain ? `${options.subdomain}.` : ""}${nmm.mmid}>`);
+  }
   /** 开始处理请求 */
   listen = $once(async (...onFetchs: $OnFetch[]) => {
     const serverIpc = await listenHttpDwebServer(this.nmm, this.startResult, this.target);
@@ -39,7 +43,7 @@ export class HttpDwebServer {
     const fetchHandler = createFetchHandler(onFetchs);
     serverIpc.onRequest(this.target).collect(async (event) => {
       const request = event.consume();
-      console.log("QAQ", "http-in", request);
+      this.console.verbose("http-in", request);
       const response =
         (await fetchHandler(request)) || IpcResponse.fromText(request.reqId, 404, undefined, "", serverIpc);
       serverIpc.postMessage(response);
@@ -99,7 +103,7 @@ const listenHttpDwebServer = async (
       const httpIpc = await microModule.connect("http.std.dweb");
       return await httpIpc.fork(undefined, undefined, true, `listenHttpDwebServer-${target}`);
     })());
-  microModule.console.debug("listenHttpDwebServer", serverIpc);
+  microModule.console.log("listenHttpDwebServer", serverIpc);
   await serverIpc.request(
     buildUrl(`file://http.std.dweb/listen`, {
       search: {

@@ -7,8 +7,9 @@ export const onSomeEvent = <T extends $IpcEvent>(
   eventName: string,
   cb: (event: T) => unknown
 ) => {
+  console.log("start onSomeEvent", eventName);
   const ipcOnEvent = (ipc: Ipc) => {
-    ipc.onEvent(`on-${eventName}`).collect((onIpcEventEvent) => {
+    void ipc.onEvent(`on-${eventName}`).collect((onIpcEventEvent) => {
       const ipcSomeEvent = onIpcEventEvent.consumeFilter<T>((event) => event.name === eventName);
       if (ipcSomeEvent !== undefined) {
         cb(ipcSomeEvent);
@@ -18,7 +19,7 @@ export const onSomeEvent = <T extends $IpcEvent>(
   for (const ipc of runtime.connectedIpcs) {
     ipcOnEvent(ipc);
   }
-  runtime.onConnect.collect((onConnectEvent) => {
+  runtime.onConnect(`for-${eventName}`).collect((onConnectEvent) => {
     ipcOnEvent(onConnectEvent.consume());
   });
 };

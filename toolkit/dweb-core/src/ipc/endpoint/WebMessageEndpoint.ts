@@ -14,7 +14,7 @@ export class WebMessageEndpoint extends CommonEndpoint {
   override doStart() {
     this.port.addEventListener("message", (event) => {
       const rawData = event.data;
-      this.console.debug("QAQ", "in", rawData);
+      this.console.verbose("in", rawData);
       let message: $EndpointRawMessage;
       if (this.protocol === ENDPOINT_PROTOCOL.CBOR && typeof rawData !== "string") {
         message = $cborToEndpointMessage(rawData);
@@ -28,7 +28,7 @@ export class WebMessageEndpoint extends CommonEndpoint {
   }
 
   protected postTextMessage(data: string) {
-    this.console.debug("QAQ", "out", data);
+    this.console.verbose("out", data);
     this.port.postMessage(data);
   }
   protected postBinaryMessage(data: Uint8Array) {

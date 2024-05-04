@@ -21,7 +21,7 @@ const main = async () => {
   /**
    * 启动主页面的地址
    */
-  const indexUrlPo = new PromiseOut<string>();
+  const indexHrefPo = new PromiseOut<string>();
   let wid_po = new PromiseOut<string>();
   const getWinId = () => wid_po.promise;
   const setWinId = (win_id: string) => {
@@ -41,7 +41,7 @@ const main = async () => {
    */
   const tryOpenView = queue(async () => {
     /// 等待http服务启动完毕，获得入口url
-    const url = await indexUrlPo.promise;
+    const url = await indexHrefPo.promise;
     const wid = await getWinId();
     if (all_webview_status.size === 0) {
       await sync_mwebview_status();
@@ -96,15 +96,15 @@ const main = async () => {
   /// 生成 index-url
   const wwwStartResult = await wwwServer.getStartResult();
   await apiServer.getStartResult();
-  const indexUrl = wwwStartResult.urlInfo.buildHtmlUrl(false, (url) => {
+  const indexHref = wwwStartResult.urlInfo.buildHtmlUrl(false, (url) => {
     url.pathname = "/index.html";
     url.searchParams.set(X_PLAOC_QUERY.EXTERNAL_URL, externalServer.token);
-  });
-  console.log("open in browser:", indexUrl.href);
+  }).href;
+  console.log("open in browser:", indexHref);
   await Promise.all([wwwListenerTask, externalListenerTask, apiListenerTask]);
-  indexUrlPo.resolve(indexUrl.href);
-  console.log("indexUrl.href", indexUrl.href);
-  open_main_window();
+  indexHrefPo.resolve(indexHref);
+  console.log("indexUrl.href", indexHref);
+  setWinId(await open_main_window());
 
   //#endregion
 };

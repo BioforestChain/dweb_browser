@@ -118,7 +118,7 @@ class DWebViewEngine internal constructor(
         WebviewEngine.hardwareAccelerated(optionsBuilder)
       }.let { engine ->
         // 设置https代理
-        val proxyRules = "https=${DwebViewProxy.ProxyUrl},http://127.0.0.1:17890"
+        val proxyRules = "https=${DwebViewProxy.ProxyUrl}"
         engine.proxy().config(CustomProxyConfig.newInstance(proxyRules))
         engine.network()
           .set(VerifyCertificateCallback::class.java, VerifyCertificateCallback { params ->

@@ -30,6 +30,7 @@ import { IPC_LIFECYCLE_STATE } from "./ipc-message/internal/IpcLifecycle.ts";
 import { IPC_MESSAGE_TYPE } from "./ipc-message/internal/IpcMessage.ts";
 
 export class Ipc {
+  readonly console = logger(this);
   constructor(
     readonly pid: number,
     readonly endpoint: IpcEndpoint,
@@ -59,7 +60,6 @@ export class Ipc {
   [CUSTOM_INSPECT]() {
     return this.toString();
   }
-  readonly console = logger(this);
 
   // reqId计数
   #reqIdAcc = 0;
@@ -84,7 +84,7 @@ export class Ipc {
    * 向远端发送 生命周期 信号
    */
   #sendLifecycleToRemote(state: $IpcLifecycle) {
-    this.console.debug("lifecycle-out", state);
+    this.console.log("lifecycle-out", state);
     this.endpoint.postIpcMessage(endpointIpcMessage(this.pid, state));
   }
 
@@ -112,7 +112,7 @@ export class Ipc {
       }
     });
     const lifecycle = await op.promise;
-    this.console.debug("awaitOpen", lifecycle, reason);
+    this.console.log("awaitOpen", lifecycle, reason);
     off();
     return lifecycle;
   }
@@ -121,7 +121,7 @@ export class Ipc {
    * 启动，会至少等到endpoint握手完成
    */
   async start(isAwait = true, reason?: string) {
-    this.console.debug("start", reason);
+    this.console.log("start", reason);
     if (isAwait) {
       this.endpoint.start(true);
       this.startOnce();
@@ -133,7 +133,7 @@ export class Ipc {
   }
 
   startOnce = $once(() => {
-    this.console.debug("startOnce", this.lifecycle);
+    this.console.log("startOnce", this.lifecycle);
     // 当前状态必须是从init开始
     if (this.lifecycle.state.name === IPC_LIFECYCLE_STATE.INIT) {
       // 告知对方我启动了
@@ -145,7 +145,7 @@ export class Ipc {
     }
     // 监听远端生命周期指令，进行协议协商
     this.#lifecycleRemoteFlow((lifecycleRemote) => {
-      this.console.debug("lifecycle-in", `remote=${lifecycleRemote},local=${this.lifecycle}`);
+      this.console.log("lifecycle-in", `remote=${lifecycleRemote},local=${this.lifecycle}`);
       // 告知启动完成
       const doIpcOpened = () => {
         const opend = IpcLifecycle(IpcLifecycleOpened());
@@ -250,7 +250,6 @@ export class Ipc {
     });
     const consumer = this.onMessage(name);
     consumer.collect((event) => {
-      console.log("1111messagePipeMap=>", this.debugId, this.pid, JSON.stringify(event.data));
       const result = event.consumeMapNotNull<R>(mapNotNull);
       if (result === undefined) {
         return;
@@ -366,7 +365,7 @@ export class Ipc {
     try {
       await this.awaitOpen("then-postMessage");
     } catch (e) {
-      this.console.debug(`ipc(${this}) fail to poseMessage: ${e}`);
+      this.console.log(`ipc(${this}) fail to poseMessage: ${e}`);
       return;
     }
     console.log("xxxxjson=>", this.debugId, this.pid, JSON.stringify(message));
@@ -393,7 +392,7 @@ export class Ipc {
   }
 
   #closeOnce = $once(async (cause?: string) => {
-    this.console.debug("closing", cause);
+    this.console.log("closing", cause);
     {
       const closing = IpcLifecycle(IpcLifecycleClosing(cause));
       this.#lifecycleLocaleFlow.emit(closing);

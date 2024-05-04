@@ -193,7 +193,7 @@ if (import.meta.main) {
     outfile: path.resolve(cwd, args.outfile!),
     bundle: true,
     format: "esm",
-    target: "es2020",
+    target: "es2022",
     platform: "browser",
     denoLoader: args.importMap !== undefined,
     importMapURL: args.importMap ? path.resolve(cwd, args.importMap) : undefined,

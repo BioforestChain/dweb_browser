@@ -6,6 +6,7 @@ import { Ipc } from "./ipc.ts";
 
 /**每一个worker 都会创建单独的IpcPool */
 export class IpcPool {
+  readonly console = logger(this);
   constructor(readonly poolId = `js-${crypto.randomUUID()}`) {}
   toString() {
     return `IpcPool#${this.poolId}`;
@@ -13,7 +14,6 @@ export class IpcPool {
   [CUSTOM_INSPECT]() {
     return this.toString();
   }
-  readonly console = logger(this);
   /**
    * 所有的ipc对象实例集合
    */
@@ -46,7 +46,7 @@ export class IpcPool {
     }
     ipc.onClosed(() => {
       this.#ipcSet.delete(ipc);
-      this.console.debug("ipcpool-remote-ipc", ipc);
+      this.console.log("ipcpool-remote-ipc", ipc);
     });
   }
 

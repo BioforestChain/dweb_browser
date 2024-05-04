@@ -118,14 +118,14 @@ export class JsProcessMicroModule extends MicroModule {
           throw new Error("jmm dns.uninstall not implemented.");
         },
         connect: (mmid: `${string}.dweb`, reason?: Request | undefined): $PromiseMaybe<core.Ipc> => {
-          this.console.debug("connect", mmid);
+          this.console.log("connect", mmid);
           const po = new PromiseOut<Ipc>();
           this.fetchIpc.postMessage(core.IpcEvent.fromText("dns/connect", mmid));
 
           this.fetchIpc.onEvent("wait-dns-connect").collect((event) => {
             event.consumeMapNotNull(async (ipcEvent) => {
               if (ipcEvent.name === "dns/connect/done") {
-                this.console.debug("connect-done", ipcEvent.data);
+                this.console.log("connect-done", ipcEvent.data);
                 const done = JSON.parse(core.IpcEvent.text(ipcEvent)) as {
                   connect: $MMID;
                   result: $MMID;
@@ -189,7 +189,7 @@ export class JsProcessMicroModuleRuntime extends MicroModuleRuntime {
       }
       const IPC_CONNECT_PREFIX = "ipc-connect/";
       if (typeof data[0] === "string" && data[0].startsWith(IPC_CONNECT_PREFIX)) {
-        this.console.debug("ipc-connect", data);
+        this.console.log("ipc-connect", data);
         const mmid = data[0].slice(IPC_CONNECT_PREFIX.length);
         const port = event.ports[0];
         const endpoint = new WebMessageEndpoint(port, mmid);
@@ -347,7 +347,7 @@ export class JsProcessMicroModuleRuntime extends MicroModuleRuntime {
   @once()
   get routes() {
     const routes = createFetchHandler([]);
-    this.onConnect.collect((ipcConnectEvent) => {
+    this.onConnect(`for-routes`).collect((ipcConnectEvent) => {
       ipcConnectEvent.data.onRequest("onFetch").collect((ipcRequestEvent) => {
         const ipcRequest = ipcRequestEvent.consume();
         routes(ipcRequest);

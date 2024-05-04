@@ -26,6 +26,7 @@ import {
 } from "./EndpointLifecycle.ts";
 
 export abstract class IpcEndpoint {
+  readonly console = logger(this);
   constructor(readonly debugId: string) {}
   abstract toString(): string;
   [CUSTOM_INSPECT]() {
@@ -40,8 +41,6 @@ export abstract class IpcEndpoint {
    * endpoint-1 的 ipc-fork 出来的 pid 是奇数
    */
   generatePid = () => (this.accPid += 2);
-
-  readonly console = logger(this);
 
   /**
    * 发送消息
@@ -141,21 +140,21 @@ export abstract class IpcEndpoint {
 
   /**启动 */
   startOnce = $once(async () => {
-    this.console.debug("startOnce", this.lifecycle);
+    this.console.log("startOnce", this.lifecycle);
     await this.doStart();
     let localeSubProtocols = this.getLocaleSubProtocols();
     // 当前状态必须是从init开始
     if (this.lifecycle.state.name === ENDPOINT_LIFECYCLE_STATE.INIT) {
       const opening = endpointLifecycle(endpointLifecycleOpening(localeSubProtocols));
       this.sendLifecycleToRemote(opening);
-      this.console.debug("emit-locale-lifecycle", opening);
+      this.console.log("emit-locale-lifecycle", opening);
       this.lifecycleLocaleFlow.emit(opening);
     } else {
       throw new Error(`endpoint state=${this.lifecycle}`);
     }
     // 监听远端生命周期指令，进行协议协商
     this.lifecycleRemoteFlow.listen((lifecycle) => {
-      this.console.debug("remote-lifecycle-in", lifecycle);
+      this.console.log("remote-lifecycle-in", lifecycle);
       switch (lifecycle.state.name) {
         case ENDPOINT_LIFECYCLE_STATE.CLOSING:
         case ENDPOINT_LIFECYCLE_STATE.CLOSED: {
@@ -165,11 +164,11 @@ export abstract class IpcEndpoint {
         // 收到 opened 了，自己也设置成 opened，代表正式握手成功
         case ENDPOINT_LIFECYCLE_STATE.OPENED: {
           const lifecycleLocale = this.lifecycle;
-          this.console.debug("remote-opend-&-locale-lifecycle", lifecycleLocale);
+          this.console.log("remote-opend-&-locale-lifecycle", lifecycleLocale);
           if (lifecycleLocale.state.name === ENDPOINT_LIFECYCLE_STATE.OPENING) {
             const opend = endpointLifecycle(endpointLifecycleOpend(lifecycleLocale.state.subProtocols));
             this.sendLifecycleToRemote(opend);
-            this.console.debug("emit-locale-lifecycle", opend);
+            this.console.log("emit-locale-lifecycle", opend);
             this.lifecycleLocaleFlow.emit(opend);
             /// 后面被链接的ipc，pid从奇数开始
             this.accPid++;
@@ -184,7 +183,7 @@ export abstract class IpcEndpoint {
         // 等收到对方 Opening ，说明对方也开启了，那么开始协商协议，直到一致后才进入 Opened
         case ENDPOINT_LIFECYCLE_STATE.OPENING: {
           let nextState: $EndpointLifecycle;
-          this.console.debug(
+          this.console.log(
             "ENDPOINT_LIFECYCLE_STATE.OPENING",
             [...localeSubProtocols].sort().join(),
             lifecycle.state.subProtocols.slice().sort().join()
@@ -223,7 +222,7 @@ export abstract class IpcEndpoint {
       }
     });
     const lifecycle = await op.promise;
-    this.console.debug("awaitOpen", lifecycle, reason);
+    this.console.log("awaitOpen", lifecycle, reason);
     off();
     return lifecycle;
   }

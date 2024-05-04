@@ -9,6 +9,7 @@ type $FlowCollector<T> = (event: Event<T>) => void;
 //#region Producer
 /**生产者 */
 export class Producer<T> {
+  readonly console = logger(this);
   constructor(
     readonly name: string,
     options: { bufferLimit?: number; bufferOverflowBehavior?: "warn" | "throw" | "slient" } = {}
@@ -21,12 +22,15 @@ export class Producer<T> {
   toString() {
     return `Producer<${this.name}>`;
   }
-  console = logger(this);
   //#region Event
   static #Event = class Event<T> {
     constructor(readonly data: T, readonly producer: Producer<T>) {}
     toString() {
-      return `Event<${this.data}>`;
+      try {
+        return `Event<${JSON.stringify(this.data)}>`;
+      } catch {
+        return `Event(${this.data})`;
+      }
     }
     #job = new PromiseOut<void>();
     get job() {
@@ -106,7 +110,10 @@ export class Producer<T> {
         if (this.consumed) {
           this.complete();
           if (this.#consumeTimes != beforeConsumeTimes) {
-            this.producer.console.debug("emitBy", `event=${this} consumed by consumer=${consumer}`);
+            this.producer.console.verbose(
+              "emitBy",
+              `event=${this} consumed[${beforeConsumeTimes}>>${this.#consumeTimes}] by consumer=${consumer}`
+            );
           }
         }
       });
@@ -314,7 +321,7 @@ export class Producer<T> {
     }
     this.consumers.clear();
     this.buffers.clear();
-    cause && this.console.debug("producer-close", cause);
+    cause && this.console.log("producer-close", cause);
   }
 
   #closeSignal = createSignal<() => unknown>(false);
