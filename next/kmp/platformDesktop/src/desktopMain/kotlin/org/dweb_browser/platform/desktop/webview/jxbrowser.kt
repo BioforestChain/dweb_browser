@@ -57,6 +57,8 @@ object WebviewEngine {
   ): Engine = getOrCreateByDir(dataDir) {
     Engine.newInstance(EngineOptions.newBuilder(OFF_SCREEN).run {
       optionsBuilder?.invoke(this)
+      // 设置用户数据目录，这样WebApp退出再重新打开时能够读取之前的数据
+      userDataDir(dataDir)
       this.licenseKey(licenseKey)
       build()
     })

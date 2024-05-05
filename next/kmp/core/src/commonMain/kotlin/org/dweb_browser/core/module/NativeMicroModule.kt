@@ -18,6 +18,7 @@ import org.dweb_browser.core.http.router.HttpRouter
 import org.dweb_browser.core.http.router.IHandlerContext
 import org.dweb_browser.core.http.router.RouteHandler
 import org.dweb_browser.core.ipc.NativeMessageChannel
+import org.dweb_browser.core.ipc.helper.IpcServerRequest
 import org.dweb_browser.core.ipc.helper.ReadableStreamOut
 import org.dweb_browser.core.ipc.kotlinIpcPool
 import org.dweb_browser.core.std.dns.nativeFetch
@@ -135,6 +136,8 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
       getProtocolRouters(protocol) += context.router
     }
 
+    protected var routesCheckAllowHttp = { _: IpcServerRequest -> false }
+
     /**
      * 实现一整套简易的路由响应规则
      */
@@ -147,6 +150,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
           val ipcRequest = event.consumeFilter {
             when (it.uri.protocol.name) {
               "file", "dweb" -> true
+              "http", "https" -> routesCheckAllowHttp(it)
               else -> false
             }
           } ?: return@collectIn

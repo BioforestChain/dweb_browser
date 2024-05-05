@@ -7,41 +7,41 @@ const go = (path: string) => {
 };
 
 const items = ref([
-  { text: "window", icon: "mdi-clock", router: "./window" },
-  { text: "inputfile", icon: "mdi-account", router: "/inputfile" },
-  // { text: "camera", icon: "mdi-flag", router: "/camera" },
+  { text: "window", icon: "mdi-window-restore", router: "./window" },
+  { text: "inputfile", icon: "mdi-file-upload-outline", router: "/inputfile" },
+  // { text: "camera", icon: "mdi-camera-outline", router: "/camera" },
 
-  { text: "statusbar", icon: "mdi-flag", router: "/statusbar" },
-  { text: "navigationbar", icon: "mdi-clock", router: "./navigationbar" },
-  { text: "safearea", icon: "mdi-account", router: "/safearea" },
-  { text: "virtualkeyboard", icon: "mdi-flag", router: "/virtualkeyboard" },
-  { text: "toast", icon: "mdi-flag", router: "/toast" },
+  { text: "statusbar", icon: "mdi-signal-cellular-outline", router: "/statusbar" },
+  { text: "navigationbar", icon: "mdi-menu", router: "./navigationbar" },
+  { text: "safearea", icon: "mdi-security", router: "/safearea" },
+  { text: "virtualkeyboard", icon: "mdi-keyboard", router: "/virtualkeyboard" },
+  { text: "toast", icon: "mdi-message-alert-outline", router: "/toast" },
 
-  { text: "share", icon: "mdi-clock", router: "./share" },
+  { text: "share", icon: "mdi-share", router: "./share" },
   // { text: "splashscreen", icon: "mdi-account", router: "/splashscreen" },
-  { text: "barcodescanning", icon: "mdi-flag", router: "/barcodescanning" },
-  { text: "torch", icon: "mdi-flag", router: "/torch" },
+  { text: "barcodescanning", icon: "mdi-qrcode-scan", router: "/barcodescanning" },
+  { text: "torch", icon: "mdi-flashlight", router: "/torch" },
 
-  { text: "geolocation", icon: "mdi-clock", router: "./geolocation" },
-  { text: "haptics", icon: "mdi-account", router: "/haptics" },
-  { text: "closewatcher", icon: "mdi-flag", router: "/closewatcher" },
-  { text: "serviceworker", icon: "mdi-flag", router: "/serviceworker" },
+  { text: "geolocation", icon: "mdi-map-marker-outline", router: "./geolocation" },
+  { text: "haptics", icon: "mdi-vibrate", router: "/haptics" },
+  { text: "closewatcher", icon: "mdi-eye-off", router: "/closewatcher" },
+  { text: "serviceworker", icon: "mdi-server-network", router: "/serviceworker" },
 
-  { text: "media", icon: "mdi-clock", router: "./media" },
-  { text: "biometrics", icon: "mdi-account", router: "/biometrics" },
-  { text: "network", icon: "mdi-flag", router: "/network" },
+  { text: "media", icon: "mdi-multimedia", router: "./media" },
+  { text: "biometrics", icon: "mdi-fingerprint", router: "/biometrics" },
+  { text: "network", icon: "mdi-wan", router: "/network" },
   // { text: "bluetooth", icon: "mdi-flag", router: "/bluetooth" },
 
-  { text: "device", icon: "mdi-clock", router: "./device" },
-  { text: "shortcut", icon: "mdi-account", router: "/shortcut" },
-  { text: "motionSensors", icon: "mdi-account", router: "/motionSensors" },
-  { text: "clipboard", icon: "mdi-account", router: "/clipboard" },
+  { text: "device", icon: "mdi-devices", router: "./device" },
+  { text: "shortcut", icon: "mdi-link-box-variant-outline", router: "/shortcut" },
+  { text: "motionSensors", icon: "mdi-motion-sensor", router: "/motionSensors" },
+  { text: "clipboard", icon: "mdi-clipboard-multiple-outline", router: "/clipboard" },
 ]);
 </script>
 <template>
   <v-card class="mx-auto pa-2" max-width="300">
     <v-list>
-      <v-list-subheader>导航🧭</v-list-subheader>
+      <v-list-subheader>导航 🧭</v-list-subheader>
 
       <v-list-item
         v-for="(item, i) in items"
@@ -49,12 +49,12 @@ const items = ref([
         :value="item"
         color="primary"
         rounded="shaped"
+        class="bg-[#03A9F4]"
         @click="go(item.router)"
       >
         <template v-slot:prepend>
           <v-icon :icon="item.icon"></v-icon>
         </template>
-
         <v-list-item-title v-text="item.text"></v-list-item-title>
       </v-list-item>
     </v-list>

@@ -10,9 +10,9 @@
     "serve:watch": "vite build  --config ./vite.config.server.ts  --watch --minify=false"
   },
   "dependencies": {
-    "@plaoc/server": "workspace:^",
-    "@plaoc/plugins": "workspace:^",
     "@plaoc/is-dweb": "workspace:^",
+    "@plaoc/plugins": "workspace:^",
+    "@plaoc/server": "workspace:^",
     "@types/web-bluetooth": "^0.0.17",
     "vite-plugin-vuetify": "^2.0.3",
     "vue": "^3.4.25",
@@ -20,6 +20,7 @@
     "vuetify": "^3.5.17"
   },
   "devDependencies": {
+    "@mdi/font": "7.0.96",
     "@types/glob": "^8.1.0",
     "@vitejs/plugin-vue": "^4.6.2",
     "@vue/compiler-sfc": "^3.4.25",

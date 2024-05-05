@@ -19,12 +19,22 @@ const plaocTasks = [
   plaocCli,
   plaocPlugins,
   plaocIsDweb,
-  plaocExamples,
-  Object.assign($once(doBundleServer), {
-    reset() {
-      // doBundleServer 自带 watch
-    },
-  }),
+  Object.assign(
+    $once(() => plaocExamples(Deno.args.includes("--watch") ? ["--dev"] : [])),
+    {
+      reset() {
+        // vite 自带 watch
+      },
+    }
+  ),
+  Object.assign(
+    $once(() => doBundleServer()),
+    {
+      reset() {
+        // doBundleServer 自带 watch
+      },
+    }
+  ),
 ];
 export const doPlaocTasks = async () => {
   await Promise.all(plaocTasks.map((task) => task()));

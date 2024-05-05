@@ -30,7 +30,7 @@ import org.dweb_browser.pure.http.tryDoHttpPureServerResponse
 val debugHttpPureClient = Debugger("httpPureClient")
 
 open class KtorPureClient<out T : HttpClientEngineConfig>(
-  engine: HttpClientEngineFactory<T>, config: HttpClientConfig<T>.() -> Unit = {}
+  engine: HttpClientEngineFactory<T>, config: HttpClientConfig<T>.() -> Unit = {},
 ) {
   val ktorClient = HttpClient(engine) {
     install(HttpTimeout) {
@@ -49,7 +49,9 @@ open class KtorPureClient<out T : HttpClientEngineConfig>(
       }
 
       /// 尝试从内部 HttpPureServer 上消化掉请求
-      tryDoHttpPureServerResponse(request.toServer())
+      tryDoHttpPureServerResponse(request.toServer())?.also {
+        return it
+      }
 
       /// 请求标准网络
       val responsePo = CompletableDeferred<PureResponse>()

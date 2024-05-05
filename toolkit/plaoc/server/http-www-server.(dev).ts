@@ -33,7 +33,7 @@ export class Server_www extends _Server_www {
     /// 启用跳转模式
     const proxyUrl = new URL(request.pathname + request.search, xPlaocProxy);
     // console.log("native fetch start:", proxyUrl.href);
-    const remoteIpcResponse = await jsProcess.nativeRequest(proxyUrl);
+    const remoteIpcResponse = await jsProcess.nativeFetch(proxyUrl);
     // console.log("native fetch end:", proxyUrl.href,remoteIpcResponse.headers.get("Content-Type"));
     /// 对 html 做强制代理，似的能加入一些特殊的头部信息，确保能正确访问内部的资源
     const contentType = remoteIpcResponse.headers.get("Content-Type");
@@ -47,7 +47,7 @@ export class Server_www extends _Server_www {
 
     /// 内容代理转发，这里一般来说不再允许301，允许301的条件太过苛刻，需要远端服务器支持
     return {
-      status: remoteIpcResponse.statusCode,
+      status: remoteIpcResponse.status,
       headers,
       body: remoteIpcResponse.body,
     };

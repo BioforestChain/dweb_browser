@@ -1,10 +1,11 @@
 import mime from "mime";
 import fs from "node:fs";
-import http from "node:http";
+import type http from "node:http";
 import node_path from "node:path";
 export const getMimeType = (name: string) => {
   return mime.getType(name) || "application/octet-stream";
 };
+const html = String.raw;
 /**
  * 提供静态文件服务
  * @param dir
@@ -22,16 +23,18 @@ export const staticServe = async (dir: string, req: http.IncomingMessage, res: h
       } else {
         res.setHeader("Content-Type", "text/html");
         res.end(
-          `<ol>${fs
-            .readdirSync(filepath)
-            .map((name) => {
-              const is_dir = fs.statSync(filepath + "/" + name).isDirectory();
-              return `<li>
-                ${is_dir ? `<span> > </span>` : ""}
-                <a href="./${name}${is_dir ? "/" : ""}">${name}</a>
-              </li>`;
-            })
-            .join("")}</ol>`
+          html`<ol>
+            ${fs
+              .readdirSync(filepath)
+              .map((name) => {
+                const is_dir = fs.statSync(filepath + "/" + name).isDirectory();
+                return html`<li>
+                  ${is_dir ? html`<code> > </code>` : ""}
+                  <a href="./${name}${is_dir ? "/" : ""}">${name}</a>
+                </li>`;
+              })
+              .join("")}
+          </ol>`
         );
       }
       res.setHeader("Content-Type", getMimeType(filepath));

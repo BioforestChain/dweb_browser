@@ -158,7 +158,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
     /**
      * 允许通过 https 协议访问 httpsNmm 的协议
      */
-    private suspend fun initHttpListener() {
+    private fun initHttpListener() = scopeLaunch(cancelable = false) {
       val options = DwebHttpServerOptions("")
       val selfIpc = connect(mmid)
       val serverUrlInfo = getServerUrlInfo(selfIpc, options)
@@ -168,6 +168,10 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
       val gateway = Gateway(listener, serverUrlInfo, token)
       gatewayMap[serverUrlInfo.host] = gateway
       tokenMap[token] = gateway
+      // 路由允许来自http协议
+      routesCheckAllowHttp = { request ->
+        request.uri.host == mmid
+      }
 
       val routes = arrayOf(
         CommonRoute(pathname = "", method = PureMethod.GET),
@@ -192,9 +196,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
 
     public override suspend fun _bootstrap() {
       // 初始化http监听
-      scopeLaunch(cancelable = true) {
-        initHttpListener()
-      }
+      initHttpListener()
       /// 启动http后端服务
       scopeLaunch(cancelable = true) {
         dwebServer.createServer(gatewayHandler = { request ->
@@ -307,6 +309,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
             body = request.body,
             from = request.from
           )
+          pureRequest.headers.set("X-Forwarded-Host", mmid)
           /// 如果是options类型的请求，直接放行，不做任何同域验证
           if (pureRequest.method == PureMethod.OPTIONS) {
             return@definePureResponse httpFetch(pureRequest)
@@ -562,6 +565,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
     }
   }
 
+  val reg_x_forwarded_host = Regex("X-Forwarded-Host", RegexOption.IGNORE_CASE)
   val reg_host = Regex("Host", RegexOption.IGNORE_CASE)
   val reg_referer = Regex("Referer", RegexOption.IGNORE_CASE)
   val reg_x_dweb_host = Regex("X-Dweb-Host", RegexOption.IGNORE_CASE)
@@ -579,7 +583,11 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
     val query_x_dweb_host: String? = request.queryOrNull("X-Dweb-Host")?.decodeURIComponent()
     var is_https = false
     for ((key, value) in request.headers) {
-      if (reg_host.matches(key)) {
+      if (reg_x_forwarded_host.matches(key)) {
+        if (value == mmid) {
+          return null
+        }
+      } else if (reg_host.matches(key)) {
         // 解析subDomain
         header_host = if (value.endsWith(".dweb")) {
           value
