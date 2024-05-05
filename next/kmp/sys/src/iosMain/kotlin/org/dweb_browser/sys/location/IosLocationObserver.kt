@@ -3,6 +3,7 @@ package org.dweb_browser.sys.location
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.useContents
 import kotlinx.coroutines.flow.MutableSharedFlow
+import org.dweb_browser.core.module.MicroModule
 import platform.CoreLocation.CLAuthorizationStatus
 import platform.CoreLocation.CLLocation
 import platform.CoreLocation.CLLocationAccuracy
@@ -72,7 +73,7 @@ private fun toGeolocationPosition(
   return GeolocationPosition(GeolocationPositionState.Success, cords, time)
 }
 
-class IosLocationObserver : LocationObserver() {
+class IosLocationObserver(override val mm: MicroModule.Runtime) : LocationObserver() {
   private val sharedFlow = MutableSharedFlow<GeolocationPosition>(replay = 1)
   override val flow get() = sharedFlow
 

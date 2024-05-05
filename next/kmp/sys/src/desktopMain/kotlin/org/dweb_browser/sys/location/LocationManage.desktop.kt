@@ -3,12 +3,13 @@ package org.dweb_browser.sys.location
 import com.teamdev.jxbrowser.js.JsFunctionCallback
 import com.teamdev.jxbrowser.js.JsObject
 import kotlinx.coroutines.CompletableDeferred
+import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.permission.AuthorizationStatus
 import org.dweb_browser.helper.runIf
 import org.dweb_browser.sys.permission.SystemPermissionAdapterManager
 import org.dweb_browser.sys.permission.SystemPermissionName
 
-actual class LocationManage {
+actual class LocationManage actual constructor(actual val mm: MicroModule.Runtime) {
   init {
     SystemPermissionAdapterManager.append {
       if (task.name == SystemPermissionName.LOCATION) {
@@ -23,7 +24,7 @@ actual class LocationManage {
   actual suspend fun getCurrentLocation(precise: Boolean): GeolocationPosition {
     val result = CompletableDeferred<GeolocationPosition>()
     runCatching {
-      DesktopLocationObserver.getWebGeolocation()
+      DesktopLocationObserver.getWebGeolocation(mm)
         .call<Unit>("getCurrentPosition", JsFunctionCallback {
           result.complete(jsGeolocationPositionToNative(it[0] as JsObject))
         }, JsFunctionCallback { arguments ->
@@ -45,7 +46,7 @@ actual class LocationManage {
               errorState ?: GeolocationPositionState.POSITION_UNAVAILABLE
             )
           )
-        }, DesktopLocationObserver.getWebGeolocationOptions(precise))
+        }, DesktopLocationObserver.getWebGeolocationOptions(mm, precise))
     }.getOrElse {
       result.complete(
         GeolocationPosition.createErrorObj(
@@ -62,7 +63,7 @@ actual class LocationManage {
    * 返回的Boolean表示是否正常发送，如果发送遗产，关闭监听。
    */
   actual suspend fun createLocationObserver(autoStart: Boolean): LocationObserver {
-    val observer = DesktopLocationObserver()
+    val observer = DesktopLocationObserver(mm)
     if (autoStart) {
       observer.start()
     }

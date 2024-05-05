@@ -41,7 +41,7 @@ class LocationNMM : NativeMicroModule("geolocation.sys.dweb", "geolocation") {
     override suspend fun _bootstrap() {
       routes(
         "/location" byChannel { ctx ->
-          val locationManage = withMainContext { LocationManage() }
+          val locationManage = withMainContext { LocationManage(this@LocationRuntime) }
           val remoteMmid = ipc.remote.mmid
           val minDistance = request.queryOrNull("minDistance")?.toDouble() ?: 1.0
           val precise = request.queryBoolean("precise")
@@ -71,7 +71,7 @@ class LocationNMM : NativeMicroModule("geolocation.sys.dweb", "geolocation") {
           }
         },
         "/location" bind PureMethod.GET by defineJsonResponse {
-          val locationManage = withMainContext { LocationManage() }
+          val locationManage = withMainContext { LocationManage(this@LocationRuntime) }
           val precise = request.queryBoolean("precise")
           val isPermission = requestSystemPermission()
           debugLocation("location/get", "isPermission=>$isPermission")

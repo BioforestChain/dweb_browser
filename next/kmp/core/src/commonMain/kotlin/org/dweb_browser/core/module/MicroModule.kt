@@ -8,9 +8,9 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -91,8 +91,9 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
     fun scopeLaunch(
       context: CoroutineContext = EmptyCoroutineContext,
       cancelable: Boolean,
+      start: CoroutineStart = CoroutineStart.UNDISPATCHED,
       action: suspend CoroutineScope.() -> Unit,
-    ) = mmScope.launch(context = context, block = action, start = CoroutineStart.UNDISPATCHED)
+    ) = mmScope.launch(context = context, block = action, start = start)
       .also { job ->
         ScopeJob(job, cancelable)
       }
@@ -100,8 +101,9 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
     fun <R> scopeAsync(
       context: CoroutineContext = EmptyCoroutineContext,
       cancelable: Boolean,
+      start: CoroutineStart = CoroutineStart.UNDISPATCHED,
       action: suspend CoroutineScope.() -> R,
-    ) = mmScope.async(context = context, block = action, start = CoroutineStart.UNDISPATCHED)
+    ) = mmScope.async(context = context, block = action, start = start)
       .also { job ->
         ScopeJob(job, cancelable)
       }
@@ -126,8 +128,9 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
 
     val microModule get() = this@MicroModule
 
-    private val beforeShutdownFlow = MutableSharedFlow<Unit>()
-    val onBeforeShutdown = beforeShutdownFlow.shareIn(mmScope, SharingStarted.Eagerly)
+    private val beforeShutdownFlow = MutableSharedFlow<Unit?>()
+    fun onBeforeShutdown(collector: FlowCollector<Unit>) =
+      beforeShutdownFlow.filterNotNull().listen(mmScope, collector)
 
     private val shutdownDeferred = CompletableDeferred<Unit>()
     val awaitShutdown = shutdownDeferred::await
@@ -148,6 +151,7 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
         debugMM("shutdown-start")
         debugMM("shutdown-before-start")
         beforeShutdownFlow.emit(Unit)
+        beforeShutdownFlow.emit(null)
         debugMM("shutdown-before-end")
         _shutdown()
         debugMM("shutdown-wait-jobs")
@@ -189,6 +193,8 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
 
     private val connectionMap = SafeHashMap<MMID, CompletableDeferred<Ipc>>()
 
+    suspend fun getConnected(remoteMmid: MMID) = connectionMap[remoteMmid]?.await()
+
     /**
      * 尝试连接到指定对象
      */
@@ -206,11 +212,14 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
         connectionMap.getOrPut(remoteMM.mmid) {
           debugMM("doConnect-start", remoteMM.mmid)
           CompletableDeferred<Ipc>().also { ipcDeferred ->
-            scopeLaunch(cancelable = false) {
+            scopeLaunch(cancelable = false, start = CoroutineStart.DEFAULT) {
               val ipc = bootstrapContext.dns.connect(remoteMM.mmid, reason)
               ipcDeferred.complete(ipc)
               beConnect(ipc, reason)
               ipc.onClosed {
+                debugMM.verbose("doConnect-remove") {
+                  "ipc=$ipc ${connectionMap[remoteMM.mmid]} == $ipcDeferred"
+                }
                 connectionMap.remove(remoteMM.mmid, ipcDeferred)
               }
               debugMM("doConnect-end", remoteMM.mmid)
@@ -223,15 +232,15 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
     /**
      * 收到一个连接，触发相关事件
      */
-    fun beConnect(ipc: Ipc, reason: PureRequest?): Job = scopeLaunch(cancelable = false) {
+    suspend fun beConnect(ipc: Ipc, reason: PureRequest?) {
       if (connectionLinks.add(ipc)) {
         debugMM("beConnect-start", ipc)
         // 这个ipc分叉出来的ipc也会一并归入管理
         ipc.onFork("beConnect").listen {
           ipc.debugIpc("onFork", it.data)
-          beConnect(it.consume(), null).join()
+          beConnect(it.consume(), null)
         }
-        onBeforeShutdown.listen {
+        onBeforeShutdown {
           ipc.close()
         }
         ipc.onClosed {
@@ -240,9 +249,12 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
         /// 尝试保存到双向连接索引中
         val remoteMmid = ipc.remote.mmid
         connectionMap.getOrPut(remoteMmid) {
+          debugMM("beConnect-save", ipc)
           CompletableDeferred(ipc).also { ipcDeferred ->
-            connectionMap[remoteMmid] = ipcDeferred
             ipc.onClosed {
+              debugMM.verbose("beConnect-remove") {
+                "ipc=$ipc ${connectionMap[remoteMmid]} == $ipcDeferred"
+              }
               connectionMap.remove(remoteMmid, ipcDeferred)
             }
           }

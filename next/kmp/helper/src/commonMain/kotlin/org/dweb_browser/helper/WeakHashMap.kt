@@ -8,6 +8,8 @@ expect class WeakHashMap<K : Any, V>() {
   fun remove(key: K): V?
 }
 
+operator fun <K : Any, V> WeakHashMap<K, V>.get(key: K) = get(key)
+
 inline fun <K : Any, V> WeakHashMap<K, V>.getOrPut(key: K, defaultValue: () -> V): V {
   val value = get(key)
   return if (value == null) {

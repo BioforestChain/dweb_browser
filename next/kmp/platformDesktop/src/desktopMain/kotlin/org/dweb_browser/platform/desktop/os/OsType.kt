@@ -2,7 +2,6 @@ package org.dweb_browser.platform.desktop.os
 
 enum class OsType(val type: String) {
   MacOS("Mac OS"),
-  M2("MacOS"),
   Windows("Windows"),
   Linux("Linux"),
   Unknown("unknown"),
@@ -12,7 +11,7 @@ enum class OsType(val type: String) {
     //    val ALL_VALUES = OsType.entries.associateBy { it.type }
     val current by lazy {
       val osName = System.getProperty("os.name")
-      if (osName.contains("Mac OS"))
+      if (osName.contains("Mac OS") || osName.contains("MacOS"))
         MacOS
       else if (osName.contains("Windows"))
         Windows

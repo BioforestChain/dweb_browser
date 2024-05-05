@@ -197,10 +197,11 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
         "/createDir" bind PureMethod.POST by defineBooleanResponse {
           val path = getPath()
           if (SystemFileSystem.exists(path)) {
-            return@defineBooleanResponse true
+            SystemFileSystem.metadata(path).isDirectory
+          } else {
+            SystemFileSystem.createDirectories(path, true)
+            true
           }
-          SystemFileSystem.createDirectories(path, true)
-          true
         },
         // 列出列表
         "/listDir" bind PureMethod.GET by defineJsonResponse {
@@ -329,7 +330,7 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
           pickerPathString
         },
         "/realPath" bind PureMethod.GET by defineStringResponse {
-          return@defineStringResponse getPath().toString()
+          getPath().toString()
         },
       )
     }

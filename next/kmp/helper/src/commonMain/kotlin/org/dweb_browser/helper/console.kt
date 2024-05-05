@@ -1,17 +1,10 @@
 package org.dweb_browser.helper
 
-import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers.Default
-import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlinx.datetime.LocalDateTime
-import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.EmptyCoroutineContext
 
 fun now() = datetimeNow().formatTimestampByMilliseconds()
   .padEndAndSub(23) // kmp中LocalDateTime跟android不一样 // LocalDateTime.toString().padEndAndSub(23)
@@ -95,6 +88,8 @@ fun addDebugTags(tags: Iterable<String>) {
 fun isScopeEnableDebug(scope: String) =
   debugTags.contains(scope) || debugTagsRegex.firstOrNull { regex -> regex.matches(scope) } != null
 
+fun isScopeEnableVerbose(scope: String) = isScopeEnableDebug(scope)//debugTags.contains(scope)
+
 fun printDebug(scope: String, tag: String, message: Any?, error: Any? = null) {
   if (error == null && !isScopeEnableDebug(scope)) {
     return
@@ -164,12 +159,22 @@ class Debugger(val scope: String) {
     }
   }
 
-  val isEnable
-    get() = debugTags.contains(scope) || debugTagsRegex.firstOrNull { regex ->
-      regex.matches(
-        scope
-      )
-    } != null
+
+  fun verbose(tag: String, msgGetter: () -> Any?) {
+    if (isEnableVerbose) {
+      invoke("QAQ $tag", msgGetter)
+    }
+  }
+
+  fun verbose(tag: String, msg: Any? = "") {
+    if (isEnableVerbose) {
+      printDebug(scope, tag, msg)
+    }
+  }
+
+  val isEnableVerbose get() = isScopeEnableVerbose(scope)
+
+  val isEnable get() = isScopeEnableDebug(scope)
 }
 
 val debugTest = Debugger("test")

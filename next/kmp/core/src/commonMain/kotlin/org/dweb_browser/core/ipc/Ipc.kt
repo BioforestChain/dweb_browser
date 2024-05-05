@@ -113,7 +113,7 @@ class Ipc internal constructor(
       lifecycleLocaleFlow.emit(closing)
       sendLifecycleToRemote(closing)
     }
-    messageProducer.producer.close(cause)
+    messageProducer.producer.closeAndJoin(cause)
     closeDeferred.complete(cause)
     IpcLifecycle(IpcLifecycleClosed(reason)).also { closed ->
       lifecycleLocaleFlow.emit(closed)

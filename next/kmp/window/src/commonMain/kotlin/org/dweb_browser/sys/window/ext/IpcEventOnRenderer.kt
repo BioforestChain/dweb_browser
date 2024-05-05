@@ -42,7 +42,6 @@ fun NativeMicroModule.NativeRuntime.onRenderer(cb: suspend RendererContext.() ->
   scopeLaunch(cancelable = true) {
     // 这里需要放到 launch 中，因为 与 window 的连接可能会死锁
     val winIpc = connect("window.std.dweb")
-    println("QAQ $mmid onRenderer~")
     winIpc.onEvent("onRenderer").collectIn(getRuntimeScope()) { event ->
       event.consumeFilter { ipcEvent ->
         if (ipcEvent.isRenderer()) {

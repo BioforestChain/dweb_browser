@@ -3,6 +3,7 @@ package org.dweb_browser.pure.image
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.mainAsyncExceptionHandler
+import org.dweb_browser.platform.desktop.os.dataDir
 import org.dweb_browser.platform.desktop.webview.WebviewEngine
 import org.dweb_browser.pure.image.offscreenwebcanvas.OffscreenWebCanvasCore
 
@@ -12,7 +13,8 @@ actual class OffscreenWebCanvas private actual constructor(width: Int, height: I
   }
 
   internal actual val core = OffscreenWebCanvasCore()
-  private val webview = WebviewEngine.offScreen.newBrowser()
+  private val webview =
+    WebviewEngine.offScreen(dataDir = dataDir.resolve(("offscreen-web-canvas"))).newBrowser()
 
   constructor() : this(128, 128)
 

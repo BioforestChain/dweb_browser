@@ -22,17 +22,18 @@ import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.platform.IPureViewBox
 
 actual suspend fun IDWebView.Companion.create(
-  mm: MicroModule.Runtime, options: DWebViewOptions, viewBox: IPureViewBox?
+  mm: MicroModule.Runtime, options: DWebViewOptions, viewBox: IPureViewBox?,
 ): IDWebView {
   DWebView.prepare()
-  return DWebView(DWebViewEngine(mm, options))
+  val dataDir = DWebViewEngine.prepareDataDir(mm)
+  return DWebView(DWebViewEngine(mm, dataDir, options))
 }
 
 internal fun IDWebView.Companion.create(engine: DWebViewEngine, initUrl: String?) =
   DWebView(engine, initUrl)
 
 class DWebView(
-  val viewEngine: DWebViewEngine, initUrl: String? = null
+  val viewEngine: DWebViewEngine, initUrl: String? = null,
 ) : IDWebView(initUrl ?: viewEngine.options.url) {
   companion object {
     val prepare = SuspendOnce {
@@ -120,7 +121,7 @@ class DWebView(
   }
 
   override suspend fun evaluateAsyncJavascriptCode(
-    script: String, afterEval: suspend () -> Unit
+    script: String, afterEval: suspend () -> Unit,
   ): String {
     return viewEngine.evaluateAsyncJavascriptCode(script, afterEval)
   }

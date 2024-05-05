@@ -1,6 +1,7 @@
 package org.dweb_browser.helper
 
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlin.reflect.KProperty
@@ -64,7 +65,7 @@ class Observable<K : Any> {
       if (inputValue != value) {
         val oldValue = value
         value = newValue
-        ob.coroutineScope.launch {
+        ob.coroutineScope.launch(start = CoroutineStart.UNDISPATCHED) {
           ob.changeSignal.emit(Change(key, newValue, oldValue))
         }
       }
@@ -76,14 +77,14 @@ class Observable<K : Any> {
   fun <T : Any> observe(
     key: K,
     initValue: T,
-    transform: (TransformContext<K, T>.() -> Unit)? = null
+    transform: (TransformContext<K, T>.() -> Unit)? = null,
   ) = Observer(this, key, initValue, transform)
 
 
   fun <T : Any?> observeNullable(
     key: K,
     initValue: T,
-    transform: (TransformContext<K, T>.() -> Unit)? = null
+    transform: (TransformContext<K, T>.() -> Unit)? = null,
   ) = Observer(this, key, initValue, transform)
 }
 

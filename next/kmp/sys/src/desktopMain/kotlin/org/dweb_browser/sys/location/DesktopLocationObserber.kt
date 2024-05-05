@@ -5,24 +5,33 @@ import com.teamdev.jxbrowser.js.JsObject
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
-import org.dweb_browser.helper.SuspendOnce
+import okio.Path.Companion.toPath
+import org.dweb_browser.core.module.MicroModule
+import org.dweb_browser.core.std.file.ext.createDir
+import org.dweb_browser.core.std.file.ext.realPath
 import org.dweb_browser.helper.SuspendOnce1
 import org.dweb_browser.platform.desktop.webview.WebviewEngine
 
-class DesktopLocationObserver() : LocationObserver() {
+class DesktopLocationObserver(override val mm: MicroModule.Runtime) : LocationObserver() {
   companion object {
-    val getWebGeolocation = SuspendOnce {
-      WebviewEngine.offScreen.newBrowser().run {
-        println("mainFrame()=${mainFrame()}")
+    val browser = SuspendOnce1 { mm: MicroModule.Runtime ->
+      WebviewEngine.offScreen(mm.realPath("/data/sys-location").toPath().toNioPath()).newBrowser()
+    }
+    val getWebGeolocation = SuspendOnce1 { mm: MicroModule.Runtime ->
+      mm.createDir("/data/sys-location")
+      browser(mm)
+        .run {
+          println("mainFrame()=${mainFrame()}")
 //        navigation().loadUrl("data:text/html;charset=utf-8;base64,")
-        mainFrame().get().executeJavaScript<JsObject>("navigator.geolocation")
-          ?: throw Exception("No Support navigator.geolocation")
-      }
+          mainFrame().get().executeJavaScript<JsObject>("navigator.geolocation")
+            ?: throw Exception("No Support navigator.geolocation")
+        }
     }
 
-    fun getWebGeolocationOptions(enableHighAccuracy: Boolean) =
-      WebviewEngine.offScreen.newBrowser().run {
-        mainFrame().get().executeJavaScript<JsObject>("{'enableHighAccuracy': ${enableHighAccuracy}}")
+    suspend fun getWebGeolocationOptions(mm: MicroModule.Runtime, enableHighAccuracy: Boolean) =
+      browser(mm).run {
+        mainFrame().get()
+          .executeJavaScript<JsObject>("{'enableHighAccuracy': ${enableHighAccuracy}}")
       }
   }
 
@@ -31,13 +40,13 @@ class DesktopLocationObserver() : LocationObserver() {
 
   private val _watch = SuspendOnce1 { precise: Boolean ->
     coroutineScope {
-      getWebGeolocation().call<Double>("watchPosition", JsFunctionCallback { arguments ->
+      getWebGeolocation(mm).call<Double>("watchPosition", JsFunctionCallback { arguments ->
         sharedFlow.tryEmit(jsGeolocationPositionToNative(arguments[0] as JsObject))
       }, JsFunctionCallback {
         launch {
           stop()
         }
-      }, getWebGeolocationOptions(precise))!!
+      }, getWebGeolocationOptions(mm, precise))!!
     }
   }
 
@@ -47,7 +56,7 @@ class DesktopLocationObserver() : LocationObserver() {
 
   override suspend fun stop() {
     if (_watch.haveRun) {
-      getWebGeolocation().call<Unit>("clearWatch", _watch.getResult().also {
+      getWebGeolocation(mm).call<Unit>("clearWatch", _watch.getResult().also {
         _watch.reset()
       })
     }

@@ -23,9 +23,8 @@ import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.ioAsyncExceptionHandler
-import org.dweb_browser.helper.listen
-import org.dweb_browser.helper.platform.setScale
 import org.dweb_browser.helper.platform.IPureViewBox
+import org.dweb_browser.helper.platform.setScale
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.helper.withMainContext
@@ -97,7 +96,7 @@ class DWebView private constructor(
       viewEngine: DWebViewEngine,
       initUrl: String? = null
     ) = DWebView(viewEngine, initUrl).also { dwebView ->
-      viewEngine.remoteMM.onBeforeShutdown.listen {
+      viewEngine.remoteMM.onBeforeShutdown {
         dwebView.destroy()
       }
     }

@@ -6,16 +6,41 @@ import com.teamdev.jxbrowser.engine.EngineOptions
 import com.teamdev.jxbrowser.engine.ProprietaryFeature
 import com.teamdev.jxbrowser.engine.RenderingMode.HARDWARE_ACCELERATED
 import com.teamdev.jxbrowser.engine.RenderingMode.OFF_SCREEN
+import com.teamdev.jxbrowser.engine.event.EngineClosed
+import kotlinx.atomicfu.locks.SynchronizedObject
+
+import java.nio.file.Path as NioPath
 
 private const val KEY = "jxbrowser.license.key"
 private const val LICENSE = ""
 
 object WebviewEngine {
   val licenseKey = (System.getenv(KEY) ?: System.getProperty(KEY) ?: LICENSE)
+  private val engineLock = SynchronizedObject()
+  private val engineMaps = mutableMapOf<String, Engine>()
+  private fun getOrCreateByDir(dir: NioPath, createEngine: () -> Engine) =
+    synchronized(engineLock) {
+      val key = dir.toAbsolutePath().toString()
+      engineMaps.getOrPut(key) {
+        createEngine().also {
+          it.on(EngineClosed::class.java) {
+            synchronized(engineLock) {
+              engineMaps.remove(key)
+            }
+          }
+        }
+      }
+    }
 
-  fun hardwareAccelerated(optionsBuilder: (EngineOptions.Builder.() -> Unit)? = null): Engine =
+  fun hardwareAccelerated(
+    dataDir: NioPath,
+    optionsBuilder: (EngineOptions.Builder.() -> Unit)? = null,
+  ): Engine = getOrCreateByDir(dataDir) {
     Engine.newInstance(EngineOptions.newBuilder(HARDWARE_ACCELERATED).run {
       optionsBuilder?.invoke(this)
+      // 设置用户数据目录，这样WebApp退出再重新打开时能够读取之前的数据
+      userDataDir(dataDir)
+      // 加入音视频解码器的支持
       enableProprietaryFeature(ProprietaryFeature.HEVC)
       enableProprietaryFeature(ProprietaryFeature.WIDEVINE)
       enableProprietaryFeature(ProprietaryFeature.AAC)
@@ -23,15 +48,19 @@ object WebviewEngine {
       this.licenseKey(licenseKey)
       build()
     })
+  }
 
-  fun offScreen(optionsBuilder: (EngineOptions.Builder.() -> Unit)? = null): Engine =
+
+  fun offScreen(
+    dataDir: NioPath,
+    optionsBuilder: (EngineOptions.Builder.() -> Unit)? = null,
+  ): Engine = getOrCreateByDir(dataDir) {
     Engine.newInstance(EngineOptions.newBuilder(OFF_SCREEN).run {
       optionsBuilder?.invoke(this)
       this.licenseKey(licenseKey)
       build()
     })
-
-  val offScreen by lazy { offScreen() }
+  }
 
   val chromiumVersion by lazy { VersionInfo.chromiumVersion() }
 

@@ -14,13 +14,11 @@ import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.http.DwebHttpServerOptions
-import org.dweb_browser.core.std.http.closeHttpDwebServer
 import org.dweb_browser.core.std.http.createHttpDwebServer
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.SafeHashMap
 import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.encodeURI
-import org.dweb_browser.helper.listen
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.resolvePath
 import org.dweb_browser.helper.toJsonElement
@@ -97,7 +95,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
         apis.dWebView.resolveUrl(mainServer.startResult.urlInfo.buildInternalUrl { resolvePath("$INTERNAL_PATH/bootstrap.js") }
           .toString())
 
-      onBeforeShutdown.listen {
+      onBeforeShutdown {
         apis.destroy()
       }
       apis.onDestroy {
@@ -127,8 +125,6 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
             scopeLaunch(cancelable = false) {
               debugJsProcess("close-all-process", mmid)
               val processMap = tokenPidMap.remove(processToken)
-              // 关闭代码通道
-              closeHttpDwebServer(DwebHttpServerOptions())
               // 关闭程序
               apis.destroyProcess(processInfo.processId)
             }

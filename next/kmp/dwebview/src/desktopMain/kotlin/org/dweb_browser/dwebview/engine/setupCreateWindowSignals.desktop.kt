@@ -27,7 +27,7 @@ fun setupCreateWindowSignals(engine: DWebViewEngine) =
     engine.browser.set(OpenPopupCallback::class.java, OpenPopupCallback { event ->
       val browser = event.popupBrowser()
       engine.ioScope.launch {
-        val newEngine = DWebViewEngine(engine.remoteMM, DWebViewOptions(), browser)
+        val newEngine = DWebViewEngine(engine.remoteMM, engine.dataDir, DWebViewOptions(), browser)
         while (newEngine.getOriginalUrl().isEmpty()) {
           delay(5)
         }

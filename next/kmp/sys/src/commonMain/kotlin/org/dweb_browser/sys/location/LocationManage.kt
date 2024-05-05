@@ -3,6 +3,7 @@ package org.dweb_browser.sys.location
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.datetimeNow
 
@@ -49,7 +50,8 @@ data class GeolocationPosition(
   }
 }
 
-abstract class LocationObserver {
+abstract class LocationObserver() {
+  abstract val mm: MicroModule.Runtime
   abstract val flow: Flow<GeolocationPosition>
 
   /**
@@ -60,7 +62,7 @@ abstract class LocationObserver {
   abstract suspend fun start(
     precise: Boolean = true,
     minTimeMs: Long = 0,
-    minDistance: Double = 0.0
+    minDistance: Double = 0.0,
   )
 
   abstract suspend fun stop()
@@ -73,7 +75,9 @@ abstract class LocationObserver {
   }
 }
 
-expect class LocationManage() {
+expect class LocationManage(mm: MicroModule.Runtime) {
+  val mm: MicroModule.Runtime
+
   /**
    * 获取当前的位置信息
    */

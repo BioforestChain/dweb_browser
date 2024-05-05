@@ -161,7 +161,7 @@ private fun WindowController.VisibleEffect(
 @Composable
 private fun WindowController.ModeEffect(
   composeWindow: ComposeWindow,
-  composeWindowParams: ComposeWindowParams
+  composeWindowParams: ComposeWindowParams,
 ) {
   RememberEffect(composeWindowParams) {
     state.observable.onChange {
@@ -201,8 +201,10 @@ private fun WindowController.ModeEffect(
 
   /// 反向绑定原生的窗口的 close 到 state中
   LaunchedEffect(composeWindowParams) {
-    composeWindowParams.windowEvents.windowClosed.collect {
-      closeRoot(true)
+    lifecycleScope.launch {
+      composeWindowParams.windowEvents.windowClosed.collect {
+        closeRoot(true)
+      }
     }
   }
 }
@@ -213,7 +215,7 @@ private fun WindowController.ModeEffect(
 @Composable
 private fun WindowController.FocusEffect(
   composeWindow: ComposeWindow,
-  composeWindowParams: ComposeWindowParams
+  composeWindowParams: ComposeWindowParams,
 ) {
   LaunchedEffect(composeWindow) {
     state.observable.onChange {

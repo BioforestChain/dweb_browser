@@ -1,11 +1,14 @@
 package info.bagen.dwebbrowser
 
 import io.ktor.utils.io.close
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.selects.onTimeout
+import kotlinx.coroutines.selects.select
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.ipc.NativeMessageChannel
 import org.dweb_browser.core.ipc.helper.IpcEvent
@@ -19,6 +22,7 @@ import org.dweb_browser.core.std.dns.DnsNMM
 import org.dweb_browser.helper.addDebugTags
 import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.createByteChannel
+import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.pure.http.IPureBody
 import org.dweb_browser.pure.http.PureClientRequest
 import org.dweb_browser.pure.http.PureHeaders
@@ -28,6 +32,9 @@ import org.dweb_browser.test.runCommonTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 
 class TestMicroModule(mmid: String = "test.ipcPool.dweb") :
@@ -87,6 +94,42 @@ class IpcPoolTest {
     assertIs<IpcLifecycleOpened>(toNativeIpc.awaitOpen().state)
     println("okk")
     toNativeIpc.close()
+  }
+
+  @OptIn(ExperimentalCoroutinesApi::class)
+  @Test  // 测试基础通信生命周期的建立
+  fun testCreateNativeIpc2() = runCommonTest {
+    val fromMM = TestMicroModule("from.mm.dweb")
+    val toMM = TestMicroModule("to.mm.dweb")
+    val dnsMM = DnsNMM().apply {
+      install(fromMM)
+      install(toMM)
+    }
+
+    val dnsRuntime = dnsMM.bootstrap()
+    val fromRuntime = dnsRuntime.open(fromMM.mmid) as NativeMicroModule.NativeRuntime
+    for (i in 1..10) {
+      println("test-$i")
+      val toRuntime = dnsRuntime.open(toMM.mmid)
+
+      val ipcInTo = toRuntime.connect(fromMM.mmid)
+      val test = randomUUID()
+      ipcInTo.postMessage(IpcEvent.fromUtf8("test", test))
+
+      val ipcInFrom = assertNotNull(fromRuntime.getConnected(toMM.mmid))
+      assertEquals(ipcInFrom.onEvent("test").map { it.consume() }
+        .first().text, test)
+
+      toRuntime.shutdown()
+      assertTrue(ipcInTo.isClosed)
+      select {
+        async {
+          ipcInFrom.awaitClosed()
+        }.onJoin { }
+        onTimeout(100L) {}
+      }
+      assertNull(fromRuntime.getConnected(toMM.mmid))
+    }
   }
 
   @Test

@@ -32,8 +32,6 @@ import com.teamdev.jxbrowser.ui.Bitmap
 import com.teamdev.jxbrowser.ui.Point
 import com.teamdev.jxbrowser.view.swing.BrowserView
 import com.teamdev.jxbrowser.zoom.ZoomLevel
-import kotlinx.atomicfu.locks.SynchronizedObject
-import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
@@ -42,6 +40,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
+import okio.Path
 import okio.Path.Companion.toPath
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
@@ -56,6 +55,7 @@ import org.dweb_browser.dwebview.polyfill.FaviconPolyfill
 import org.dweb_browser.dwebview.proxy.DwebViewProxy
 import org.dweb_browser.dwebview.toReadyListener
 import org.dweb_browser.helper.JsonLoose
+import org.dweb_browser.helper.ReasonLock
 import org.dweb_browser.helper.getOrNull
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.mainAsyncExceptionHandler
@@ -71,25 +71,43 @@ import javax.swing.SwingUtilities
 
 class DWebViewEngine internal constructor(
   internal val remoteMM: MicroModule.Runtime,
+  val dataDir: Path,
   val options: DWebViewOptions,
-  internal val browser: Browser = createMainBrowser(remoteMM, options.enabledOffScreenRender)
+  internal val browser: Browser = createMainBrowser(
+    remoteMM,
+    dataDir,
+    options.enabledOffScreenRender
+  ),
 ) {
   companion object {
     // userDataDir同一个engine不能多次调用，jxbrowser会弹出异常无法捕获
-    private val userDataDirectoryInUseMicroModuleSet = mutableSetOf<String>()
-    private val userDataDirectoryLock = SynchronizedObject()
+    private val userDataDirectoryInUseMicroModuleSet = mutableMapOf<String, okio.Path>()
+    private val userDataDirectoryLocks = ReasonLock()
+
+    internal suspend fun prepareDataDir(remoteMM: MicroModule.Runtime) =
+      userDataDirectoryLocks.withLock(remoteMM.mmid) {
+        userDataDirectoryInUseMicroModuleSet.getOrPut(remoteMM.mmid) {
+          remoteMM.createDir("/data/dwebview")
+          remoteMM.realPath("/data/dwebview").toPath()
+        }
+      }
 
     /**
      * 构建一个 main-browser，当 main-browser 销毁， 对应的 WebviewEngine 也会被销毁
      */
-    internal fun createMainBrowser(remoteMM: MicroModule.Runtime, enabledOffScreenRender: Boolean): Browser {
+    internal fun createMainBrowser(
+      remoteMM: MicroModule.Runtime,
+      dataDir: okio.Path,
+      enabledOffScreenRender: Boolean,
+    ): Browser {
       val optionsBuilder: EngineOptions.Builder.() -> Unit = {
         addScheme(Scheme.of("dweb")) { params ->
           val pureResponse = runBlocking(ioAsyncExceptionHandler) {
             remoteMM.nativeFetch(params.urlRequest().url())
           }
 
-          val jobBuilder = UrlRequestJob.Options.newBuilder(HttpStatus.of(pureResponse.status.value))
+          val jobBuilder =
+            UrlRequestJob.Options.newBuilder(HttpStatus.of(pureResponse.status.value))
           pureResponse.headers.forEach { (key, value) ->
             jobBuilder.addHttpHeader(HttpHeader.of(key, value))
           }
@@ -98,24 +116,14 @@ class DWebViewEngine internal constructor(
         }
 
         addSwitch("--enable-experimental-web-platform-features")
-
-        // 设置用户数据目录，这样WebApp退出再重新打开时能够读取之前的数据
-        synchronized(userDataDirectoryLock) {
-          if (!userDataDirectoryInUseMicroModuleSet.contains(remoteMM.mmid)) {
-            runBlocking(ioAsyncExceptionHandler) {
-              if (remoteMM.createDir("/data/chromium")) {
-                userDataDir(remoteMM.realPath("/data/chromium").toPath().toNioPath())
-                userDataDirectoryInUseMicroModuleSet.add(remoteMM.mmid)
-              }
-            }
-          }
-        }
       }
 
-      return if(enabledOffScreenRender) {
-        WebviewEngine.offScreen(optionsBuilder)
+      val dataNioDir = dataDir.toNioPath()
+
+      return if (enabledOffScreenRender) {
+        WebviewEngine.offScreen(dataNioDir, optionsBuilder)
       } else {
-        WebviewEngine.hardwareAccelerated(optionsBuilder)
+        WebviewEngine.hardwareAccelerated(dataNioDir, optionsBuilder)
       }.let { engine ->
         // 设置https代理
         val proxyRules = "https=${DwebViewProxy.ProxyUrl}"

@@ -3,6 +3,7 @@ package org.dweb_browser.sys.location
 import android.Manifest
 import android.annotation.SuppressLint
 import kotlinx.coroutines.flow.first
+import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.sys.permission.AndroidPermissionTask
 import org.dweb_browser.sys.permission.PermissionActivity
 import org.dweb_browser.sys.permission.SystemPermissionAdapterManager
@@ -13,7 +14,7 @@ import org.dweb_browser.sys.permission.SystemPermissionName
  * minDistanceM 位置更新之间的最小距离（以米为单位）
  */
 @SuppressLint("MissingPermission")
-actual class LocationManage {
+actual class LocationManage actual constructor(actual val mm: MicroModule.Runtime) {
 
   init {
     SystemPermissionAdapterManager.append {
@@ -47,7 +48,7 @@ actual class LocationManage {
    */
   actual suspend fun createLocationObserver(autoStart: Boolean): LocationObserver {
     debugLocation("LocationManage", "createLocationObserver => autoStart=$autoStart")
-    val observer = AndroidLocationObserver()
+    val observer = AndroidLocationObserver(mm)
     if (autoStart) {
       observer.start()
     }

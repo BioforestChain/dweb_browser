@@ -12,7 +12,6 @@ import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.DisplayMode
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.fromBase64
-import org.dweb_browser.helper.listen
 import org.dweb_browser.helper.valueNotIn
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.queryAs
@@ -56,7 +55,7 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
     override suspend fun _bootstrap() {
       val controller = DownloadController(this)
       controller.loadDownloadList()
-      onBeforeShutdown.listen {
+      onBeforeShutdown {
         controller.downloadTaskMaps.suspendForEach { _, downloadTask ->
           controller.pauseDownload(downloadTask)
         }

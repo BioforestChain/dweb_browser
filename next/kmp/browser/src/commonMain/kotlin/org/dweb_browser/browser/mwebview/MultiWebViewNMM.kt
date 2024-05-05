@@ -3,20 +3,19 @@ package org.dweb_browser.browser.mwebview
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
-import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.module.NativeMicroModule
-import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.DisplayMode
 import org.dweb_browser.helper.UUID
+import org.dweb_browser.helper.WeakHashMap
+import org.dweb_browser.helper.get
+import org.dweb_browser.helper.getOrPut
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.sys.window.core.helper.setStateFromManifest
 import org.dweb_browser.sys.window.ext.getWindow
-
-val debugMultiWebView = Debugger("mwebview")
 
 class MultiWebViewNMM : NativeMicroModule("mwebview.browser.dweb", "Multi Webview Renderer") {
   init {
@@ -25,8 +24,7 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.browser.dweb", "Multi Webvie
   }
 
   companion object {
-    private val controllerMap = mutableMapOf<MMID, MultiWebViewController>()
-    fun getCurrentWebViewController(mmid: MMID) = controllerMap[mmid]
+    private val controllerMap = WeakHashMap<MicroModule.Runtime, MultiWebViewController>()
   }
 
   inner class MultiWebViewRuntime(override val bootstrapContext: BootstrapContext) :
@@ -41,34 +39,36 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.browser.dweb", "Multi Webvie
           val wid = request.query("wid")
 
           val remoteMm = getRemoteRuntime()
-          debugMultiWebView("/open", "MultiWebViewNMM open!!! ${remoteMm.mmid}")
+          debugMM("/open", "MultiWebViewNMM open!!! ${remoteMm.mmid}")
           ipc.onClosed {
             scopeLaunch(cancelable = false) {
-              debugMultiWebView("/open", "listen ipc close destroy window")
-              val controller = controllerMap[ipc.remote.mmid]
+              debugMM("/open", "listen ipc close destroy window")
+              val controller = controllerMap[remoteMm]
               controller?.destroyWebView()
             }
           }
-          val (viewItem, controller) = openDwebView(remoteMm, wid, url, ipc)
-          debugMultiWebView("create/open end", "${viewItem.webviewId}, ${controller.win.id}")
-          controller.getState()
+          val viewLayer = openDwebView(remoteMm, wid, url, ipc)
+          debugMM(
+            "create/open end",
+            "${viewLayer.webviewId}, ${viewLayer.windowController.id}"
+          )
+          viewLayer.layerController.getState()
         },
         // 关闭指定 webview 窗口
         "/close" bind PureMethod.GET by defineBooleanResponse {
           val webviewId = request.query("webview_id")
           val remoteMmid = ipc.remote.mmid
-          debugMultiWebView("/close", "webviewId:$webviewId,mmid:$remoteMmid")
-          closeDwebView(remoteMmid, webviewId)
+          debugMM("/close", "webviewId:$webviewId,mmid:$remoteMmid")
+          closeDwebView(getRemoteRuntime(), webviewId)
         },
         "/close/app" bind PureMethod.GET by defineBooleanResponse {
-          val controller = controllerMap[ipc.remote.mmid] ?: return@defineBooleanResponse false;
+          val controller = controllerMap[getRemoteRuntime()] ?: return@defineBooleanResponse false;
           controller.destroyWebView()
         },
         // 界面没有关闭，用于重新唤醒
         "/activate" bind PureMethod.GET by defineBooleanResponse {
-          val remoteMmid = ipc.remote.mmid
-          val controller = controllerMap[remoteMmid] ?: return@defineBooleanResponse false
-          debugMultiWebView("/activate", "激活 ${controller.ipc.remote.mmid}")
+          val controller = controllerMap[getRemoteRuntime()] ?: return@defineBooleanResponse false
+          debugMM("/activate", "激活 ${controller.ipc.remote.mmid}")
           controller.win.focus()
 
           return@defineBooleanResponse true
@@ -87,9 +87,9 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.browser.dweb", "Multi Webvie
       ipc: Ipc,
     ) = openLock.withLock(remoteMm.mmid) {
       val remoteMmid = remoteMm.mmid
-      debugMultiWebView("/open", "remote-mmid: $remoteMmid / url:$url")
+      debugMM("openDwebView-start") { "remote-mmid: $remoteMmid / url:$url" }
 
-      val controller = controllerMap.getOrPut(remoteMmid) {
+      val controller = controllerMap.getOrPut(remoteMm) {
         val win = remoteMm.getWindow(wid)
         remoteMm.display?.let { mode ->
           if (mode == DisplayMode.Fullscreen) {
@@ -97,18 +97,21 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.browser.dweb", "Multi Webvie
           }
         }
         /// 窗口销毁的时候，释放这个Controller
+        /// 通常这里无法正确执行，好像是因为 onClose 是在生命周期之前就已经被释放了？所以目前使用 WeakHashMap
         win.onClose {
-          controllerMap.remove(remoteMmid)
+          controllerMap.remove(remoteMm)
         }
         win.setStateFromManifest(remoteMm)
         MultiWebViewController(win, ipc, this, remoteMm)
       }
 
-      Pair(controller.openWebView(url), controller)
+      controller.openWebView(url).also {
+        debugMM("openDwebView-end", it)
+      }
     }
 
-    private suspend fun closeDwebView(remoteMmid: String, webviewId: String): Boolean {
-      return controllerMap[remoteMmid]?.closeWebView(webviewId) ?: false
+    private suspend fun closeDwebView(remoteMm: MicroModule.Runtime, webviewId: String): Boolean {
+      return controllerMap[remoteMm]?.closeWebView(webviewId) ?: false
     }
   }
 

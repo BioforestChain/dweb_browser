@@ -404,8 +404,7 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
   }
 
   suspend fun closeAndJoin(cause: Throwable? = null) {
-    close(cause)
-    join()
+    close(cause).await()
   }
 
   /**调用监听关闭*/

@@ -32,7 +32,6 @@ import org.dweb_browser.helper.RememberLazy
 import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.getAppContextUnsafe
 import org.dweb_browser.helper.ioAsyncExceptionHandler
-import org.dweb_browser.helper.listen
 import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.helper.platform.asAndroid
 import org.dweb_browser.helper.randomUUID
@@ -88,7 +87,7 @@ class DWebView private constructor(internal val engine: DWebViewEngine, initUrl:
 
     suspend fun create(engine: DWebViewEngine, initUrl: String? = null) =
       DWebView(engine, initUrl).also { dwebView ->
-        engine.remoteMM.onBeforeShutdown.listen {
+        engine.remoteMM.onBeforeShutdown {
           dwebView.destroy()
         }
       }

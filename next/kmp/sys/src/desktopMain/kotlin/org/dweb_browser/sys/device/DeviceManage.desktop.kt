@@ -10,7 +10,7 @@ actual object DeviceManage {
   private val deviceUUID by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
     runCatching {
       when (OsType.current) {
-        OsType.MacOS, OsType.M2 -> {
+        OsType.MacOS-> {
           val cmd = arrayOf(
             "/bin/sh",
             "-c",

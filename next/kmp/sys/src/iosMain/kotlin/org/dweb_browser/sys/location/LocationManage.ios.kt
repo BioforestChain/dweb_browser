@@ -2,6 +2,7 @@ package org.dweb_browser.sys.location
 
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.first
+import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.permission.AuthorizationStatus
 import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.sys.permission.SystemPermissionAdapterManager
@@ -13,7 +14,7 @@ import platform.CoreLocation.kCLAuthorizationStatusAuthorizedWhenInUse
 import platform.CoreLocation.kCLAuthorizationStatusDenied
 import platform.CoreLocation.kCLAuthorizationStatusRestricted
 
-actual class LocationManage {
+actual class LocationManage actual constructor(actual val mm: MicroModule.Runtime) {
 
   companion object {
     // 每个模块对应申请的控制器
@@ -77,7 +78,7 @@ actual class LocationManage {
    * 监听地址
    */
   actual suspend fun createLocationObserver(autoStart: Boolean): LocationObserver {
-    val observer = withMainContext { IosLocationObserver() }
+    val observer = withMainContext { IosLocationObserver(mm) }
     if (autoStart) {
       observer.start()
     }

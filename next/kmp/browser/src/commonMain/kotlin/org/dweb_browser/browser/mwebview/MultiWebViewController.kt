@@ -39,7 +39,7 @@ class MultiWebViewController(
   val ipc: Ipc,
   /// 以下这两参数是用来构建DWebView的时候使用的
   private val localeMM: MicroModule.Runtime,
-  private val remoteMM: MicroModule.Runtime,
+  val remoteMM: MicroModule.Runtime,
 ) {
   companion object {
     private var webviewId_acc by SafeInt(1)
@@ -50,7 +50,7 @@ class MultiWebViewController(
   init {
     webViewList.onChange {
       updateStateHook()
-    }
+    }.removeWhen(ipc.onClosed)
     val rid = win.id
     /// 提供渲染适配
     windowAdapterManager.provideRender(rid) { modifier ->
@@ -75,23 +75,30 @@ class MultiWebViewController(
     override val webView: IDWebView,
     override val coroutineScope: CoroutineScope,
     override var hidden: Boolean = false,
-    val win: WindowController,
+    val windowController: WindowController,
+    val layerController: MultiWebViewController,
   ) : ViewItem
 
   /**
    * 打开WebView
    */
-  suspend fun openWebView(url: String) = appendWebViewAsItem(createDwebView(url))
-  private suspend fun createDwebView(url: String) = win.createDwebView(remoteMM, url)
+  suspend fun openWebView(url: String): MultiViewItem {
+    localeMM.debugMM("openWebView", url)
+    val webView = win.createDwebView(remoteMM, url)
+    return appendWebViewAsItem(webView)
+  }
 
   private suspend fun appendWebViewAsItem(dWebView: IDWebView): MultiViewItem {
+    localeMM.debugMM("appendWebViewAsItem", dWebView)
     val webviewId = "#w${webviewId_acc++}"
-    val coroutineScope = CoroutineScope(CoroutineName(webviewId))
+    val coroutineScope =
+      CoroutineScope(CoroutineName(webviewId) + localeMM.getRuntimeScope().coroutineContext)
     return MultiViewItem(
       webviewId = webviewId,
       webView = dWebView,
       coroutineScope = coroutineScope,
-      win = win,
+      windowController = win,
+      layerController = this,
     ).also { viewItem ->
       webViewList.add(viewItem)
       dWebView.onCreateWindow {
@@ -121,10 +128,8 @@ class MultiWebViewController(
    * 移除所有列表
    */
   suspend fun destroyWebView(): Boolean {
-    withMainContext {
-      webViewList.forEach { viewItem ->
-        viewItem.webView.destroy()
-      }
+    webViewList.toList().forEach { viewItem ->
+      viewItem.webView.destroy()
     }
     webViewList.clear()
     return true
@@ -142,7 +147,7 @@ class MultiWebViewController(
 
   fun getState(): JsonObject {
     val views = mutableMapOf<String, JsonElement>()
-    debugMultiWebView("updateStateHook =>", webViewList.size)
+    localeMM.debugMM("updateStateHook =>", webViewList.size)
     webViewList.forEachIndexed { index, it ->
       val viewItem = mutableMapOf<String, JsonElement>()
       viewItem["index"] = JsonPrimitive(index)

@@ -10,6 +10,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Looper
 import kotlinx.coroutines.flow.MutableSharedFlow
+import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.helper.getAppContextUnsafe
 
 // 转换为web标准需要的结构
@@ -47,7 +48,7 @@ private fun selectPrecise(precise: Boolean): String {
   }
 }
 
-class AndroidLocationObserver : LocationObserver() {
+class AndroidLocationObserver(override val mm: MicroModule.Runtime) : LocationObserver() {
   private val sharedFlow = MutableSharedFlow<GeolocationPosition>(replay = 1) // 通道中只会保留最后一条记录
   override val flow get() = sharedFlow
 

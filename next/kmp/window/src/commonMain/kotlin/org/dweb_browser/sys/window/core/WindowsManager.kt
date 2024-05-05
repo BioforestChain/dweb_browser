@@ -4,6 +4,7 @@ import androidx.compose.runtime.mutableStateListOf
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.async
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.helper.ChangeableMap
@@ -150,7 +151,7 @@ open class WindowsManager<T : WindowController>(internal val viewBox: IPureViewB
    * 将窗口迁移到另一个管理器中，并且维护这些窗口的状态
    */
   suspend fun moveWindows(
-    other: WindowsManager<T>, windows: Iterable<T>? = null
+    other: WindowsManager<T>, windows: Iterable<T>? = null,
   ) {
     val wins = when (windows) {
       null -> {/*拷贝一份避免并发修改导致的问题，这里默认使用 zIndex 的顺序来迁移，可以避免问题*/
@@ -191,7 +192,7 @@ open class WindowsManager<T : WindowController>(internal val viewBox: IPureViewB
 
     /// 对窗口的 zIndex 进行重新赋值
     fun setByZIndex(
-      oldList: List<T>, newList: List<T>, setList: (newList: List<T>) -> Unit
+      oldList: List<T>, newList: List<T>, setList: (newList: List<T>) -> Unit,
     ): Int {
       var changes = abs(newList.size - oldList.size) // 首先，只要有长度变动，就已经意味着改变了
       val sortedList = newList.sortedBy { it.state.zIndex }
@@ -258,8 +259,8 @@ open class WindowsManager<T : WindowController>(internal val viewBox: IPureViewB
   }
 
   protected fun <T : WindowController, R> winLifecycleScopeAsync(
-    @Suppress("UNUSED_PARAMETER") win: T, block: suspend CoroutineScope.() -> R
-  ) = viewBox.lifecycleScope.async {
+    @Suppress("UNUSED_PARAMETER") win: T, block: suspend CoroutineScope.() -> R,
+  ) = viewBox.lifecycleScope.async(start = CoroutineStart.UNDISPATCHED) {
     // TODO 检测 win 的所属权
     block()
   }
