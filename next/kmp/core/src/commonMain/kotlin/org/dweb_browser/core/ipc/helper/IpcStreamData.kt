@@ -52,7 +52,7 @@ data class IpcStreamData(
   override val stringAble by lazy {
     when (encoding) {
       IPC_DATA_ENCODING.BINARY -> IpcStreamDataRawString(
-        stream_id, encoding, (data as ByteArray).toBase64()
+        stream_id, IPC_DATA_ENCODING.BASE64, (data as ByteArray).toBase64()
       )
 
       IPC_DATA_ENCODING.BASE64, IPC_DATA_ENCODING.UTF8 -> IpcStreamDataRawString(

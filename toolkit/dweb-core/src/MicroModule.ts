@@ -205,31 +205,6 @@ export abstract class MicroModuleRuntime implements $MicroModuleRuntime {
     return this.connectionMap.get(mmid)?.promise;
   }
 
-  // private async _nativeFetch(url: RequestInfo | URL, init?: RequestInit) {
-  //   const { parsed_url, request_init } = normalizeFetchArgs(url, init);
-  //   if (parsed_url.protocol === "file:") {
-  //     const ipc = this.connect(parsed_url.hostname as $MMID);
-  //     const reasonRequest = buildRequestX(parsed_url, request_init);
-  //     return (await (await ipc).request(parsed_url.href, reasonRequest)).toResponse();
-  //   }
-  //   return fetch(parsed_url, request_init);
-  // }
-
-  // nativeFetch(url: RequestInfo | URL, init?: RequestInit) {
-  //   if (init?.body instanceof ReadableStream) {
-  //     Reflect.set(init, "duplex", "half");
-  //   }
-  //   return Object.assign(this._nativeFetch(url, init), fetchExtends);
-  // }
-
-  // protected abstract _nativeRequest(parsed_url: URL, request_init: RequestInit): Promise<IpcResponse>;
-
-  // /** 同 ipc.request，只不过使用 fetch 接口的输入参数 */
-  // nativeRequest(url: RequestInfo | URL, init?: RequestInit) {
-  //   const args = normalizeFetchArgs(url, init);
-  //   return this._nativeRequest(args.parsed_url, args.request_init);
-  // }
-
   protected async _getIpcForFetch(url: URL): Promise<Ipc | undefined> {
     return await this.connect(url.hostname as $MMID);
   }

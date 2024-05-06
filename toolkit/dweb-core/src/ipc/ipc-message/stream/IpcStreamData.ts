@@ -1,3 +1,4 @@
+import { $once } from "@dweb-browser/helper/decorator/$once.ts";
 import { simpleDecoder } from "@dweb-browser/helper/encoding.ts";
 import { $dataToBinary, $dataToText, IPC_DATA_ENCODING } from "../internal/IpcData.ts";
 import { IPC_MESSAGE_TYPE, ipcMessageBase } from "../internal/IpcMessage.ts";
@@ -10,7 +11,9 @@ export const IpcStreamData = Object.assign(ipcStreamData, {
     return ipcStreamData(stream_id, simpleDecoder(data, "base64"), IPC_DATA_ENCODING.BASE64);
   },
   fromBinary(stream_id: string, data: Uint8Array) {
-    return ipcStreamData(stream_id, data, IPC_DATA_ENCODING.BINARY);
+    return Object.assign(ipcStreamData(stream_id, data, IPC_DATA_ENCODING.BINARY), {
+      toJSON: $once(() => IpcStreamData.fromBase64(stream_id, data)),
+    });
   },
   fromUtf8(stream_id: string, data: Uint8Array) {
     return ipcStreamData(stream_id, simpleDecoder(data, "utf8"), IPC_DATA_ENCODING.UTF8);

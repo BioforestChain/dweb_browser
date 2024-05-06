@@ -7,7 +7,7 @@ import org.dweb_browser.pure.http.ktor.KtorPureClient
 actual class HttpPureClient : KtorPureClient<OkHttpConfig>(OkHttp, {
   engine {
     config {
-      sslSocketFactory(SslSettings.getSslContext()!!.socketFactory, SslSettings.trustManager)
+      sslSocketFactory(SslSettings.getSslContext().socketFactory, SslSettings.trustManager)
     }
   }
 }) {

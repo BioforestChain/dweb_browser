@@ -38,7 +38,7 @@ const drawer_controller = ref(false);
 <template>
   <v-app>
     <v-main>
-      <div class="h-full drawer app-bg pt-10">
+      <div class="h-full drawer app-bg">
         <input id="my-drawer-controller" type="checkbox" class="drawer-toggle" v-model="drawer_controller" />
         <div class="flex flex-col drawer-content">
           <!-- Navbar -->
@@ -86,7 +86,7 @@ const drawer_controller = ref(false);
         </div>
         <div class="drawer-side">
           <label for="my-drawer-controller" class="drawer-overlay" />
-          <ul class="p-4 bg-opacity-50 menu w-80 glass bg-base-100 rounded-lg">
+          <ul class="p-4 bg-opacity-50 menu w-80 glass bg-base-100 rounded-r-xl">
             <!-- Sidebar content here -->
             <li v-for="route in routes" :key="route.path">
               <router-link
@@ -117,6 +117,7 @@ html::-webkit-scrollbar {
 /* 隐藏滚动条结束 */
 .app-bg {
   /* background: url("../assets/bg.png"); */
+  background: linear-gradient(45deg, #03a9f4, transparent);
   background-size: cover;
   background-position: center;
   /* animation-name: ani-bg; */

@@ -79,7 +79,7 @@ class IpcEvent(
       IPC_DATA_ENCODING.BINARY -> IpcEventRawString(
         name,
         (data as ByteArray).toBase64(),
-        encoding,
+        IPC_DATA_ENCODING.BASE64,
         order,
       )
 

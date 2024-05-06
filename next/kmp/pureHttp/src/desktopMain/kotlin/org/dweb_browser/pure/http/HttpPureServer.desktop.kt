@@ -1,5 +1,6 @@
 package org.dweb_browser.pure.http
 
+import io.ktor.server.engine.ConnectorType
 import io.ktor.server.engine.connector
 import io.ktor.server.engine.sslConnector
 import io.ktor.server.jetty.Jetty
@@ -8,7 +9,10 @@ import io.ktor.server.jetty.JettyApplicationEngineBase
 import org.dweb_browser.pure.http.ktor.KtorPureServer
 
 actual class HttpPureServer actual constructor(onRequest: HttpPureServerOnRequest) :
-  KtorPureServer<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty, onRequest) {
+  KtorPureServer<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(
+    Jetty,
+    onRequest
+  ) {
   init {
     allHttpPureServerInstances.add(this)
   }
