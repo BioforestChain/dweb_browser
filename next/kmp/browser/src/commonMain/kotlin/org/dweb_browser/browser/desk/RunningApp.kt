@@ -72,8 +72,8 @@ class RunningApp(
       // 从引用中移除
       windows.remove(newWin)
     }
-    ipc.postMessage(IpcEvent.createRenderer(newWin.id))
-    println("QAQ rendererEvent=$rendererEvent")
+    val rendererEvent = IpcEvent.createRenderer(newWin.id)
+    ipc.postMessage(rendererEvent)
     return newWin
   }
 
