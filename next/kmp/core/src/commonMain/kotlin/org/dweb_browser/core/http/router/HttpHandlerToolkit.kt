@@ -3,6 +3,7 @@ package org.dweb_browser.core.http.router
 import io.ktor.http.HttpStatusCode
 import io.ktor.utils.io.core.toByteArray
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.cbor.Cbor
@@ -86,7 +87,7 @@ interface HttpHandlerToolkit {
           end(reason = e)
         }
       }
-      val doClose = {
+      val doClose = suspend {
         if (job.isActive) {
           job.cancel(CancellationException("ipc closed"))
           end()
@@ -99,7 +100,9 @@ interface HttpHandlerToolkit {
       }
       // 监听 ipc 关闭，这可能由程序自己控制
       ipc.onClosed {
-        doClose()
+        ipc.launchJobs += ipc.scope.launch(start = CoroutineStart.UNDISPATCHED) {
+          doClose()
+        }
       }
       // 返回响应流
       PureResponse.build { body(responseReadableStream.stream.stream) }
@@ -122,7 +125,7 @@ interface HttpHandlerToolkit {
         }
       }
 
-      val doClose = {
+      val doClose = suspend {
         if (job.isActive) {
           job.cancel(CancellationException("ipc closed"))
           end()
@@ -135,7 +138,9 @@ interface HttpHandlerToolkit {
       }
       // 监听 ipc 关闭，这可能由程序自己控制
       ipc.onClosed {
-        doClose()
+        ipc.launchJobs += ipc.scope.launch(start = CoroutineStart.UNDISPATCHED) {
+          doClose()
+        }
       }
       // 返回响应流
       PureResponse.build { body(responseReadableStream.stream.stream) }
@@ -194,7 +199,7 @@ interface HttpHandlerToolkit {
 
     suspend inline fun <reified T> emit(lineData: T) = emit(lineData.toJsonElement())
 
-    fun end(reason: Throwable? = null) {
+    suspend fun end(reason: Throwable? = null) {
       if (reason != null) {
         responseReadableStream.controller.closeWrite(reason)
       } else {
@@ -216,7 +221,7 @@ interface HttpHandlerToolkit {
     @OptIn(ExperimentalSerializationApi::class)
     suspend inline fun <reified T> emit(lineData: T) = emit(Cbor.encodeToByteArray(lineData))
 
-    fun end(reason: Throwable? = null) {
+    suspend fun end(reason: Throwable? = null) {
       if (reason != null) {
         responseReadableStream.controller.closeWrite(reason)
       } else {

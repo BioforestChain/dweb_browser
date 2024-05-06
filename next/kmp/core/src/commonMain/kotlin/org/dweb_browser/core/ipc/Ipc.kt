@@ -307,7 +307,7 @@ class Ipc internal constructor(
   }.asProducerWithOrder(messageProducer.producer.name + "/" + name, scope).also { producer ->
     onClosed { cause ->
       launchJobs += scope.launch {
-        producer.close(cause.exceptionOrNull())
+        producer.closeAndJoin(cause.exceptionOrNull())
       }
     }
   }

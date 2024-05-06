@@ -96,14 +96,12 @@ export class Producer<T> {
       if (this.#stoped) {
         return;
       }
-
-      const beforeConsumeTimes = this.#consumeTimes;
-
       return this.#emitLock.withLock(async () => {
         // 事件超时告警
         const timeoutId = setTimeout(() => {
           console.warn(`emitBy TIMEOUT!! step=$i consumer=${consumer} data=${this.data}`);
         }, 1000);
+        const beforeConsumeTimes = this.#consumeTimes;
         await consumer.input.emit(this);
         clearTimeout(timeoutId);
 

@@ -1,0 +1,41 @@
+package info.bagen.dwebbrowser
+
+import io.ktor.utils.io.close
+import io.ktor.utils.io.copyTo
+import io.ktor.utils.io.core.ByteReadPacket
+import kotlinx.coroutines.launch
+import org.dweb_browser.helper.commonConsumeEachArrayRange
+import org.dweb_browser.helper.createByteChannel
+import org.dweb_browser.helper.toBase64
+import org.dweb_browser.test.runCommonTest
+import kotlin.test.Test
+import kotlin.test.assertContentEquals
+
+class ByteChannelTest {
+  @Test
+  fun writeBigByteArray() = runCommonTest {
+    val source = createByteChannel()
+    launch {
+      source.writePacket(ByteReadPacket(byteArray))
+      source.close()
+    }
+
+    val sink = createByteChannel()
+    launch {
+      source.copyTo(sink)
+      sink.close()
+    }
+
+    var res = byteArrayOf()
+    sink.commonConsumeEachArrayRange { byteArray, last ->
+      println("res=${res.size} byteArray=${byteArray.size}")
+      res += byteArray
+    }
+
+    assertContentEquals(res, byteArray)
+  }
+
+  companion object {
+    val byteArray = byteArrayOf(1,2,3,4,5,6,7,8,9,10).toBase64().repeat(20000).encodeToByteArray()
+  }
+}

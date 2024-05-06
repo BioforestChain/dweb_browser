@@ -214,7 +214,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
     @OptIn(ExperimentalSerializationApi::class)
     suspend inline fun <reified T> emit(lineData: T) = emit(Cbor.encodeToByteArray(lineData))
 
-    fun end(reason: Throwable? = null) {
+    suspend fun end(reason: Throwable? = null) {
       if (reason != null) {
         responseReadableStream.controller.closeWrite(reason)
       } else {

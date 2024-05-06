@@ -2,23 +2,30 @@ package org.dweb_browser.core.ipc.helper
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import org.dweb_browser.helper.OrderBy
 import org.dweb_browser.helper.toBase64
 
 @Serializable()
 @SerialName(IPC_MESSAGE_TYPE_STREAM_DATA)
 class IpcStreamDataRawString(
-  val stream_id: String, val encoding: IPC_DATA_ENCODING, val data: String,
-) : IpcRawMessage {
-  fun toIpcStreamData() = IpcStreamData(stream_id, encoding, data)
+  val stream_id: String,
+  val encoding: IPC_DATA_ENCODING,
+  val data: String,
+  override val order: Int,
+) : IpcRawMessage, OrderBy {
+  fun toIpcStreamData() = IpcStreamData(stream_id, encoding, data, order)
 }
 
 
 @Serializable()
 @SerialName(IPC_MESSAGE_TYPE_STREAM_DATA)
 class IpcStreamDataRawBinary(
-  val stream_id: String, val encoding: IPC_DATA_ENCODING, val data: ByteArray,
-) : IpcRawMessage {
-  fun toIpcStreamData() = IpcStreamData(stream_id, encoding, data)
+  val stream_id: String,
+  val encoding: IPC_DATA_ENCODING,
+  val data: ByteArray,
+  override val order: Int,
+) : IpcRawMessage, OrderBy {
+  fun toIpcStreamData() = IpcStreamData(stream_id, encoding, data, order)
 }
 
 
@@ -26,19 +33,21 @@ data class IpcStreamData(
   override val stream_id: String,
   val encoding: IPC_DATA_ENCODING,
   val data: Any, /*String or ByteArray*/
-) : IpcMessage, IpcStream, RawAble<IpcRawMessage> {
+  override val order: Int,
+) : IpcMessage, IpcStream, RawAble<IpcRawMessage>, OrderBy {
 
   companion object {
-    fun fromBinary(streamId: String, data: ByteArray) =
-      IpcStreamData(streamId, IPC_DATA_ENCODING.BINARY, data)
+    fun fromBinary(streamId: String, data: ByteArray, order: Int = streamId.hashCode()) =
+      IpcStreamData(streamId, IPC_DATA_ENCODING.BINARY, data, order)
 
-    fun fromBase64(streamId: String, data: ByteArray) =
-      IpcStreamData(streamId, IPC_DATA_ENCODING.BASE64, data.toBase64())
+    fun fromBase64(streamId: String, data: ByteArray, order: Int = streamId.hashCode()) =
+      IpcStreamData(streamId, IPC_DATA_ENCODING.BASE64, data.toBase64(), order)
 
-    fun fromUtf8(streamId: String, data: ByteArray) = fromUtf8(streamId, data.decodeToString())
+    fun fromUtf8(streamId: String, data: ByteArray, order: Int = streamId.hashCode()) =
+      fromUtf8(streamId, data.decodeToString(), order)
 
-    fun fromUtf8(streamId: String, data: String) =
-      IpcStreamData(streamId, IPC_DATA_ENCODING.UTF8, data)
+    fun fromUtf8(streamId: String, data: String, order: Int = streamId.hashCode()) =
+      IpcStreamData(streamId, IPC_DATA_ENCODING.UTF8, data, order)
   }
 
   val binary by lazy {
@@ -52,21 +61,22 @@ data class IpcStreamData(
   override val stringAble by lazy {
     when (encoding) {
       IPC_DATA_ENCODING.BINARY -> IpcStreamDataRawString(
-        stream_id, IPC_DATA_ENCODING.BASE64, (data as ByteArray).toBase64()
+        stream_id, IPC_DATA_ENCODING.BASE64, (data as ByteArray).toBase64(), order
       )
 
       IPC_DATA_ENCODING.BASE64, IPC_DATA_ENCODING.UTF8 -> IpcStreamDataRawString(
-        stream_id,
-        encoding,
-        data as String
+        stream_id, encoding, data as String, order
       )
     }
   }
   override val binaryAble by lazy {
     when (encoding) {
-      IPC_DATA_ENCODING.BINARY -> IpcStreamDataRawBinary(stream_id, encoding, data as ByteArray)
+      IPC_DATA_ENCODING.BINARY -> IpcStreamDataRawBinary(
+        stream_id, encoding, data as ByteArray, order
+      )
+
       IPC_DATA_ENCODING.BASE64, IPC_DATA_ENCODING.UTF8 -> IpcStreamDataRawBinary(
-        stream_id, IPC_DATA_ENCODING.BINARY, binary
+        stream_id, IPC_DATA_ENCODING.BINARY, binary, order
       )
     }
   }

@@ -4,10 +4,9 @@ import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.core.ByteReadPacket
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.helper.ByteReadChannelDelegate
 import org.dweb_browser.helper.Debugger
+import org.dweb_browser.helper.OrderInvoker
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.SafeInt
 import org.dweb_browser.helper.createByteChannel
@@ -32,7 +31,7 @@ class ReadableStream(
 
   class ReadableStreamChannel(
     val stream: ReadableStream,
-    override val sourceByteReadChannel: ByteReadChannel
+    override val sourceByteReadChannel: ByteReadChannel,
   ) :
     ByteReadChannel by sourceByteReadChannel, ByteReadChannelDelegate {
     override fun cancel(cause: Throwable?): Boolean {
@@ -48,8 +47,8 @@ class ReadableStream(
   class ReadableStreamController(
     val stream: ReadableStream,
   ) {
-    private val lock = Mutex()
-    suspend fun enqueue(vararg byteArrays: ByteArray) = lock.withLock {
+    private val orderInvoker = OrderInvoker()
+    suspend fun enqueue(vararg byteArrays: ByteArray) = orderInvoker.tryInvoke(1) {
       try {
         for (byteArray in byteArrays) {
           stream._stream.writePacket(ByteReadPacket(byteArray))
@@ -60,7 +59,7 @@ class ReadableStream(
       }
     }
 
-    suspend fun enqueue(byteArray: ByteArray) = lock.withLock {
+    suspend fun enqueue(byteArray: ByteArray) = orderInvoker.tryInvoke(1) {
       try {
         stream._stream.writePacket(ByteReadPacket(byteArray))
         true
@@ -75,9 +74,19 @@ class ReadableStream(
       enqueue(byteArray)
     }
 
+    suspend fun closeWrite(cause: Throwable? = null, interrupt: Boolean = false) {
+      // 是否强制打断，如果是，那么进入到队列中
+      if (interrupt) {
+        stream.closeWrite(cause)
+      } else {
+        orderInvoker.tryInvoke(1) {
+          stream.closeWrite(cause)
+        }
+      }
+    }
+
     fun enqueueBackground(data: String) = enqueueBackground(data.encodeToByteArray())
 
-    fun closeWrite(cause: Throwable? = null) = stream.closeWrite(cause)
     fun awaitClose(onClosed: suspend () -> Unit) {
       stream.scope.launch {
         stream.waitClosed()

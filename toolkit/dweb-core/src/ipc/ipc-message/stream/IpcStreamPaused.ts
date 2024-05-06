@@ -1,3 +1,4 @@
+import { stringHashCode } from "@dweb-browser/helper/hashCode.ts";
 import { IPC_MESSAGE_TYPE, ipcMessageBase } from "../internal/IpcMessage.ts";
 
 export type $IpcStreamPaused = ReturnType<typeof IpcStreamPaused>;
@@ -12,5 +13,5 @@ export type $IpcStreamPaused = ReturnType<typeof IpcStreamPaused>;
  * > 一旦该数值为0，对方再发送数据过来的时候，底层会直接断开连接。
  * @returns
  */
-export const IpcStreamPaused = (stream_id: string, fuse?: number | null) =>
-  ({ ...ipcMessageBase(IPC_MESSAGE_TYPE.STREAM_PAUSED), stream_id, fuse: fuse ?? 1 } as const);
+export const IpcStreamPaused = (stream_id: string, fuse?: number | null, order: number = stringHashCode(stream_id)) =>
+  ({ ...ipcMessageBase(IPC_MESSAGE_TYPE.STREAM_PAUSED), stream_id, fuse: fuse ?? 1, order } as const);

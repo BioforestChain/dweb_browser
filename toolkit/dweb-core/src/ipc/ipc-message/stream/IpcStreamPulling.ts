@@ -1,3 +1,4 @@
+import { stringHashCode } from "@dweb-browser/helper/hashCode.ts";
 import { IPC_MESSAGE_TYPE, ipcMessageBase } from "../internal/IpcMessage.ts";
 
 export type $IpcStreamPulling = ReturnType<typeof IpcStreamPulling>;
@@ -10,9 +11,14 @@ export type $IpcStreamPulling = ReturnType<typeof IpcStreamPulling>;
  * > 而负数的带宽代表物理意义上的阻塞，此时更不该再发送更多的数据过去
  * @returns
  */
-export const IpcStreamPulling = (stream_id: string, bandwidth?: number | null) =>
+export const IpcStreamPulling = (
+  stream_id: string,
+  bandwidth?: number | null,
+  order: number = stringHashCode(stream_id)
+) =>
   ({
     ...ipcMessageBase(IPC_MESSAGE_TYPE.STREAM_PULLING),
     stream_id,
     bandwidth: bandwidth ?? 0,
+    order,
   } as const);
