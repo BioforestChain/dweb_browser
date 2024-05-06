@@ -23,6 +23,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.helper.withScope
+import java.awt.Dimension
 import java.awt.event.ComponentEvent
 import java.awt.event.ComponentListener
 import java.awt.event.MouseEvent
@@ -36,6 +37,7 @@ class ComposeWindowParams(
   private val innerContent: @Composable FrameWindowScope.() -> Unit
 ) {
   val content: @Composable FrameWindowScope.() -> Unit = {
+    window.minimumSize = Dimension(200, 200) // 设置窗口最小值，避免过小引起的渲染异常
     frameWindowScope = this
     innerContent()
   }
