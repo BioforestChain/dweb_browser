@@ -1,6 +1,6 @@
 {
   "name": "@dweb-browser/core",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "dweb core",
   "scripts": {
     "build": "esbuild --bundle src/index.ts  --format=esm --outdir=dist"
