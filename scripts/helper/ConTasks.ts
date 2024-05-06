@@ -211,7 +211,7 @@ export class ConTasks {
           picocolors.magenta(picocolors.bold(task.cmd)),
           picocolors.magenta(this.#task_args_map.get(task)?.join(" ") ?? "")
         );
-
+        // 生成子进程
         const child = command.spawn();
         const listener = () => {
           try {
