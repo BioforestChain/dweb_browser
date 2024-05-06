@@ -296,7 +296,8 @@ export class IpcBodySender extends IpcBody {
       if (usableIpcBodyMapper === undefined) {
         const mapper = new UsableIpcBodyMapper();
         IpcUsableIpcBodyMap.set(ipc, mapper);
-        ipc.onStream("usableByIpc").collect((event) => {
+        const usableByIpcConsumer = ipc.onStream("usableByIpc");
+        usableByIpcConsumer.collect((event) => {
           const message = event.data;
           switch (message.type) {
             case IPC_MESSAGE_TYPE.STREAM_PULLING:
@@ -313,7 +314,10 @@ export class IpcBodySender extends IpcBody {
           }
           event.consume();
         });
-        mapper.onDestroy(() => IpcUsableIpcBodyMap.delete(ipc));
+        mapper.onDestroy(() => {
+          usableByIpcConsumer.close();
+          IpcUsableIpcBodyMap.delete(ipc);
+        });
         usableIpcBodyMapper = mapper;
       }
       if (usableIpcBodyMapper.add(streamId, ipcBody)) {

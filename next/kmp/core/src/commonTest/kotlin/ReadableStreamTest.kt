@@ -1,17 +1,23 @@
 package info.bagen.dwebbrowser
 
 import io.ktor.utils.io.cancel
+import io.ktor.utils.io.copyAndClose
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.ipc.helper.ReadableStream
+import org.dweb_browser.helper.ByteReadChannelDelegate
 import org.dweb_browser.helper.SafeInt
 import org.dweb_browser.helper.canReadContent
+import org.dweb_browser.helper.commonConsumeEachArrayRange
 import org.dweb_browser.helper.consumeEachArrayRange
+import org.dweb_browser.helper.createByteChannel
 import org.dweb_browser.helper.readAvailableByteArray
 import org.dweb_browser.test.runCommonTest
 import kotlin.test.Test
+import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
@@ -20,7 +26,7 @@ class ReadableStreamTestTest {
   @Test
   fun readableStreamAvailableTest() = runCommonTest {
     println("start")
-    val stream = ReadableStream(this,onStart = { controller ->
+    val stream = ReadableStream(this, onStart = { controller ->
       GlobalScope.launch {
         var i = 5
         while (i-- > 0) {
@@ -55,10 +61,10 @@ class ReadableStreamTestTest {
 
   @Test
   fun testCancel() = runCommonTest {
-    val readableStream = ReadableStream(this,onStart = { controller ->
+    val readableStream = ReadableStream(this, onStart = { controller ->
       GlobalScope.launch {
         var i = 0
-        while (true)          {
+        while (true) {
           controller.enqueue(byteArrayOf(i++.toByte()))
           delay(400)
         }
@@ -81,5 +87,37 @@ class ReadableStreamTestTest {
     readableStream.waitClosed()
     println("readableStream closed")
     assertTrue { true }
+  }
+
+  val byteArray = byteArrayOf(elements = (1..640000).distinct().map { it.toByte() }.toByteArray())
+
+  @Test
+  fun testClose() = runCommonTest(1000) { time ->
+    println("test-$time")
+
+    val stream = ReadableStream(this, onStart = { controller ->
+      launch(start = CoroutineStart.UNDISPATCHED) {
+        controller.enqueue(byteArray)
+      }
+      launch {
+        controller.closeWrite()
+      }
+    })
+    val sink = createByteChannel()
+    launch {
+      when (val source = stream.stream.getReader("xix")) {
+        is ByteReadChannelDelegate -> {
+          source.sourceByteReadChannel
+        }
+        else -> source
+      }.copyAndClose(sink)
+    }
+
+    var res = byteArrayOf()
+    sink.commonConsumeEachArrayRange { byteArray, last ->
+      res += byteArray
+    }
+
+    assertContentEquals(res, byteArray)
   }
 }

@@ -80,9 +80,9 @@ export class Producer<T> {
     /**过滤触发 */
     consumeMapNotNull<R>(mapNotNull: (data: T) => R | undefined): R | undefined {
       const result = mapNotNull(this.data);
-      if (result !== null) {
+      if (result !== null && result !== undefined) {
         this.consume();
-        return result as R;
+        return result;
       }
     }
     consumeFilter<R extends T = T>(filter: (data: T) => boolean) {
@@ -148,14 +148,14 @@ export class Producer<T> {
   /**无保证发送 */
   sendBeacon(value: T) {
     const event = this.event(value);
-    this.doEmit(event);
+    return this.doEmit(event);
   }
 
   trySend(value: T) {
     if (this.isClosedForSend) {
-      this.sendBeacon(value);
+      return this.sendBeacon(value);
     } else {
-      this.#doSend(value);
+      return this.#doSend(value);
     }
   }
 
@@ -197,9 +197,7 @@ export class Producer<T> {
   //#region Consumer
   /**消费者 */
   static #Consumer = class Consumer<T> {
-    constructor(readonly name: string, readonly producer: Producer<T>) {
-      producer.consumers.add(this);
-    }
+    constructor(readonly name: string, readonly producer: Producer<T>) {}
 
     toString() {
       return `Consumer<[${this.producer.name}]${this.name}>`;
@@ -279,6 +277,8 @@ export class Producer<T> {
     #destroySignal = createSignal();
     onDestroy = this.#destroySignal.listen;
     close(cause?: string) {
+      this.input.close();
+      this.producer.consumers.delete(this);
       this.#errorCatcher.resolve(cause);
     }
   };

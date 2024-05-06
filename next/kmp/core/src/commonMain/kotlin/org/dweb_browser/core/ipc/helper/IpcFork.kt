@@ -13,7 +13,7 @@ import org.dweb_browser.core.help.types.CommonAppManifest
 class IpcFork(
   val pid: Int,
   val autoStart: Boolean,
-  val startReason: String?,
+  val startReason: String? = null,
   val locale: CommonAppManifest,
   val remote: CommonAppManifest,
 ) : IpcRawMessage, IpcMessage {
