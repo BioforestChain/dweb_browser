@@ -119,7 +119,7 @@ class Ipc internal constructor(
       lifecycleLocaleFlow.emit(closed)
       runCatching { sendLifecycleToRemote(closed) }.getOrNull()
     }
-    traceTimeout(1000, { this@Ipc }) {
+    traceTimeout(1000, "close", { "ipc=${this@Ipc}" }) {
       launchJobs.joinAll()
     }
     scope.cancel(cause)
@@ -319,6 +319,7 @@ class Ipc internal constructor(
           is IpcClientRequest -> {
             ipcMessage.toServer(this)
           }
+
           is IpcServerRequest -> ipcMessage
         }
 

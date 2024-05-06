@@ -75,7 +75,12 @@ suspend fun ApplicationResponse.fromPureResponse(response: PureResponse) {
         is ByteReadChannelDelegate -> stream.sourceByteReadChannel
         else -> stream
       }
-      nativeStream.copyAndClose(this)
+      runCatching {
+        nativeStream.copyAndClose(this)
+      }.getOrElse {
+        // 接收端关闭了写，所以我这边也要关闭自己这个流
+        nativeStream.cancel(it)
+      }
     }
   }
 }

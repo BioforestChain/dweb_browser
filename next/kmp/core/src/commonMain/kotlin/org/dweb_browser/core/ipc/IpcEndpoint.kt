@@ -58,7 +58,7 @@ abstract class IpcEndpoint {
   internal val forkedIpcMap = SafeHashMap<Int, CompletableDeferred<Ipc>>()
 
   suspend fun waitForkedIpc(pid: Int): Ipc {
-    val ipc = traceTimeout(1000, { "$pid" }) {
+    val ipc = traceTimeout(1000, "waitForkedIpc", { "ipcEndpoint=$this pid=$pid" }) {
       forkedIpcMap.getOrPut(pid) { CompletableDeferred() }.await()
     }
     return ipc
@@ -284,7 +284,7 @@ abstract class IpcEndpoint {
       else -> {}
     }
     beforeClose?.invoke(cause)
-    traceTimeout(1000, { this@IpcEndpoint }) {
+    traceTimeout(1000, "doClose",{ "ipcEndpoint=${this@IpcEndpoint}" }) {
       // 等待所有长任务完成
       launchJobs.joinAll()
     }

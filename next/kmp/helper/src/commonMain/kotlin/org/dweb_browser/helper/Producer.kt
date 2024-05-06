@@ -160,7 +160,7 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
         }
         val beforeConsumeTimes = consumeTimes.value
 
-        traceTimeout(1000, { "consumer=$consumer data=$data" }) {
+        traceTimeout(1000, "emitBy", { "consumer=$consumer data=$data" }) {
 
           /// 这里使用channel将event和lock发送过去，但是 emit 返回只代表了对面接收到，不代表对面处理完
           /// 所以这里我们还需要等待对面处理完成，这里 emit(null) 就是这样一个等待作用，它可以确保上一个event被接受处理
@@ -385,7 +385,7 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
         }
       }
 
-      traceTimeout(1000, { "${this@Producer} closing and joinAll events " }) {
+      traceTimeout(1000, "close", { "producer=${this@Producer} closing and joinAll events" }) {
         // 等待消费者全部完成
         buffers.toList().joinAll()
       }

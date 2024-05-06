@@ -1,6 +1,7 @@
 package info.bagen.dwebbrowser
 
 import io.ktor.utils.io.cancel
+import io.ktor.utils.io.close
 import io.ktor.utils.io.copyAndClose
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -92,7 +93,7 @@ class ReadableStreamTestTest {
   val byteArray = byteArrayOf(elements = (1..640000).distinct().map { it.toByte() }.toByteArray())
 
   @Test
-  fun testClose() = runCommonTest(1000) { time ->
+  fun testSourceClose() = runCommonTest(1000) { time ->
     println("test-$time")
 
     val stream = ReadableStream(this, onStart = { controller ->
@@ -109,6 +110,7 @@ class ReadableStreamTestTest {
         is ByteReadChannelDelegate -> {
           source.sourceByteReadChannel
         }
+
         else -> source
       }.copyAndClose(sink)
     }
@@ -119,5 +121,54 @@ class ReadableStreamTestTest {
     }
 
     assertContentEquals(res, byteArray)
+  }
+
+  @Test
+  fun testSinkClose() = runCommonTest {
+
+    val stream = ReadableStream(this, onStart = { controller ->
+      launch(start = CoroutineStart.UNDISPATCHED) {
+        println("enqueue start")
+        controller.enqueue(byteArray)
+        println("enqueue done")
+      }
+      launch {
+        println("closeWrite start")
+        controller.closeWrite()
+        println("closeWrite done")
+      }
+    }, onClose = {
+      println("onClose")
+    })
+    val sink = createByteChannel()
+    launch {
+      val source = stream.stream.getReader("xix")
+      when (source) {
+        is ByteReadChannelDelegate -> {
+          source.sourceByteReadChannel
+        }
+
+        else -> source
+      }.runCatching {
+        copyAndClose(sink)
+        println("copyAndClose done1")
+      }.getOrElse {
+        source.cancel(it)
+      }
+
+      println("copyAndClose done2")
+    }
+
+    var res = byteArrayOf()
+    sink.commonConsumeEachArrayRange { byteArray, last ->
+      res += byteArray
+      if (res.size > byteArray.size / 2) {
+        sink.close()
+        breakLoop()
+      }
+    }
+
+    delay(100)
+    println("okk")
   }
 }

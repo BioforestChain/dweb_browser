@@ -181,11 +181,12 @@ val debugTest = Debugger("test")
 val debugTimeout = Debugger("timeout")
 suspend inline fun <R> traceTimeout(
   ms: Long,
+  tag: String = "traceTimeout",
   crossinline log: () -> Any?,
   crossinline block: suspend () -> R,
 ) = if (debugTimeout.isEnable) {
   val timeoutJob = CoroutineScope(currentCoroutineContext()).launch {
-    delay(ms);debugTimeout("traceTimeout", msgGetter = log)
+    delay(ms);debugTimeout(tag, msgGetter = log)
   }
   try {
     block()

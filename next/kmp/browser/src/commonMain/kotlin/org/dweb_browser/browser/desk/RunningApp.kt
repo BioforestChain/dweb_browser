@@ -73,6 +73,7 @@ class RunningApp(
       windows.remove(newWin)
     }
     val rendererEvent = IpcEvent.createRenderer(newWin.id)
+    debugDesk("createWindow") { "rendererEvent=$rendererEvent" }
     ipc.postMessage(rendererEvent)
     return newWin
   }

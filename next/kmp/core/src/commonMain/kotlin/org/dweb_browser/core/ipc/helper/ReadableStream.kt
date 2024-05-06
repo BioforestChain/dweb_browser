@@ -3,6 +3,7 @@ package org.dweb_browser.core.ipc.helper
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.core.ByteReadPacket
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.ByteReadChannelDelegate
 import org.dweb_browser.helper.Debugger
@@ -70,9 +71,10 @@ class ReadableStream(
 
     suspend fun enqueue(data: String) = enqueue(data.encodeToByteArray())
 
-    fun enqueueBackground(byteArray: ByteArray) = stream.scope.launch {
-      enqueue(byteArray)
-    }
+    fun enqueueBackground(byteArray: ByteArray) =
+      stream.scope.launch(start = CoroutineStart.UNDISPATCHED) {
+        enqueue(byteArray)
+      }
 
     suspend fun closeWrite(cause: Throwable? = null, interrupt: Boolean = false) {
       // 是否强制打断，如果是，那么进入到队列中
