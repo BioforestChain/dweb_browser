@@ -73,8 +73,9 @@ export abstract class CommonEndpoint extends IpcEndpoint {
         switch (endpointMessage.type) {
           case ENDPOINT_MESSAGE_TYPE.IPC: {
             const producer = this.getIpcMessageProducer(endpointMessage.pid);
-            const ipc = await producer.ipcPo.promise;
-            void producer.producer.trySend($normalizeIpcMessage(endpointMessage.ipcMessage, ipc));
+            void producer.ipcPo.promise.then((ipc) =>
+              producer.producer.trySend($normalizeIpcMessage(endpointMessage.ipcMessage, ipc))
+            );
             break;
           }
           case ENDPOINT_MESSAGE_TYPE.LIFECYCLE: {

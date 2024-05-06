@@ -36,6 +36,20 @@ data class IpcStreamData(
   override val order: Int,
 ) : IpcMessage, IpcStream, RawAble<IpcRawMessage>, OrderBy {
 
+  override fun toString(): String {
+    return "IpcStreamData(stream_id=$stream_id, encoding=$encoding, order=$order, data=${
+      when (data) {
+        is ByteArray -> "ByteArray[size=${data.size}]"
+        is String -> when (val len = data.length) {
+          in 0..100 -> data
+          else -> data.slice(0..20) + "..." + data.slice(len - 20..<len)
+        }
+
+        else -> data.toString()
+      }
+    })"
+  }
+
   companion object {
     fun fromBinary(streamId: String, data: ByteArray, order: Int = streamId.hashCode()) =
       IpcStreamData(streamId, IPC_DATA_ENCODING.BINARY, data, order)

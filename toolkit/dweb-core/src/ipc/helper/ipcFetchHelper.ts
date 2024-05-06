@@ -230,9 +230,9 @@ export const createFetchHandler = (onFetchs: Iterable<$OnFetch> = []) => {
         }
       }
     }
-    /// 发送
+    /// 因为这里不做接收，所以这里不发送
+    /// 只做返回，需要外部自己发送
     if (res) {
-      ipc.postMessage(res);
       return res;
     }
   };

@@ -73,6 +73,7 @@ class RunningApp(
       windows.remove(newWin)
     }
     ipc.postMessage(IpcEvent.createRenderer(newWin.id))
+    println("QAQ rendererEvent=$rendererEvent")
     return newWin
   }
 

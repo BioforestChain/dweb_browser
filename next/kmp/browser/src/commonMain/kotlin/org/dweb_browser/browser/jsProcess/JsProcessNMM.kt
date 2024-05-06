@@ -143,7 +143,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
           val manifestJson = request.query("manifest")
           // 返回 endpoint 的 globalId
           apis.createIpcEndpoint(processId, manifestJson, ipc.remote.mmid).globalId.also {
-            debugMM("create-ipc-endpoint-success", it)
+            debugMM("create-ipc-endpoint-success", "globalId=$it manifest=$manifestJson")
           }
         },
         "/create-ipc" bind PureMethod.GET by defineEmptyResponse {

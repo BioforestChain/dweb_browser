@@ -215,6 +215,10 @@ export class JsProcessMicroModuleRuntime extends MicroModuleRuntime {
     this.onBeforeShutdown(() => {
       workerGlobal.removeEventListener("message", _beConnect);
     });
+
+    this.onConnect("for-auto-start").collect((event) => {
+      return event.consume().start(false, "do-auto-start");
+    });
   }
   protected override async _shutdown() {
     await this.fetchIpc.close();
