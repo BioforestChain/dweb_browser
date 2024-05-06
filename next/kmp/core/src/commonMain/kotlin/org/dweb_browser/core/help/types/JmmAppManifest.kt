@@ -15,7 +15,7 @@ class JmmAppManifest private constructor(
 
   companion object {
     internal val P =
-      PropMetas("JmmAppManifest", { JmmAppManifest(it) }).extends(CommonAppManifest.P)
+      PropMetas("JmmAppManifest") { JmmAppManifest(it) }.extends(CommonAppManifest.P)
     private val P_baseURI = P.optional<String>("baseURI")
     private val P_server = P.required("server", MainServer("/sys", "/server/plaoc.server.js"))
 
@@ -36,16 +36,16 @@ class JmmAppManifest private constructor(
 
   override fun canSupportTarget(
     version: Int,
-    disMatchMinTarget: (minTarget: Int) -> Boolean,
-    disMatchMaxTarget: (maxTarget: Int) -> Boolean,
-  ): Boolean {
+    disMatchMinTarget: (minTarget: Int) -> String?,
+    disMatchMaxTarget: (maxTarget: Int) -> String?,
+  ): String? {
     if (minTarget > version) {
       return disMatchMinTarget(minTarget)
     }
     if (maxTarget != null && maxTarget!! < version) {
       return disMatchMaxTarget(maxTarget!!)
     }
-    return true
+    return null
   }
 }
 
@@ -59,7 +59,9 @@ internal interface IJmmAppManifest : ICommonAppManifest {
   fun toCommonAppManifest(): CommonAppManifest
   fun canSupportTarget(
     version: Int,
-    disMatchMinTarget: (minTarget: Int) -> Boolean = { false },
-    disMatchMaxTarget: (maxTarget: Int) -> Boolean = { false }
-  ): Boolean
+    disMatchMinTarget: (minTarget: Int) -> String?,
+    disMatchMaxTarget: (maxTarget: Int) -> String?
+  ): String?
+
+  fun canSupportTarget(version: Int) = canSupportTarget(version, { null }, { null }) == null
 }

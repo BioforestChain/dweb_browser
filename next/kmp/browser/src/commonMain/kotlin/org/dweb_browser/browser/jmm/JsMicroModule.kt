@@ -124,17 +124,16 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
       debugJsMM(
         "bootstrap...", "$mmid/ minTarget:${metadata.minTarget} maxTarget:${metadata.maxTarget}"
       )
-      metadata.canSupportTarget(VERSION, disMatchMinTarget = {
-        throw RuntimeException(
-          "应用($mmid)与容器版本不匹配，当前版本:${VERSION}，应用最低要求:${metadata.minTarget}",
-          Exception("$short_name 无法启动"),
-        )
+      val errorMessage = metadata.canSupportTarget(VERSION, disMatchMinTarget = {
+        return@canSupportTarget "应用($mmid)与容器版本不匹配，当前版本:${VERSION}，应用最低要求:${metadata.minTarget}"
       }, disMatchMaxTarget = {
-        throw RuntimeException(
-          "应用($mmid)与容器版本不匹配，当前版本:${VERSION}，应用最高兼容到:${metadata.maxTarget}",
-          Exception("$short_name 无法启动"),
-        )
+        return@canSupportTarget "应用($mmid)与容器版本不匹配，当前版本:${VERSION}，应用最高兼容到:${metadata.maxTarget}"
       })
+
+      if (errorMessage !== null) {
+        this.showMessage(errorMessage)
+        throw RuntimeException(errorMessage, Exception("$short_name 无法启动"))
+      }
 
       val jsProcess = createJsProcess(metadata.server.entry, "$mmid-$short_name")
       jsProcessDeferred.complete(jsProcess)
@@ -146,39 +145,6 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
           shutdown()
         }
       }
-
-//      /**
-//       * 这里 jmm 的对于 request 的默认处理方式是将这些请求直接代理转发出去
-//       * TODO 跟 dns 要 jmmMetadata 信息然后进行路由限制 eg: jmmMetadata.permissions.contains(ipcRequest.uri.host) // ["media-capture.sys.dweb"]
-//       */
-//      jsIpc.onRequest("fetch-ipc-proxy-request").collectIn(mmScope) { event ->
-//        val ipcRequest = event.consume()
-//        /// WARN 这里不再受理 file://<domain>/ 的请求，只处理 http[s]:// | file:/// 这些原生的请求
-//        val scheme = ipcRequest.uri.protocol.name
-//        val host = ipcRequest.uri.host
-//        debugJsMM("onProxyRequest", "start ${ipcRequest.uri}")
-//        if (scheme == "file" && host.endsWith(".dweb")) {
-//          val jsWebIpc = connect(host)
-//          jsWebIpc.postMessage(ipcRequest)
-//        } else {
-//          runCatching {
-//            withContext(ioAsyncExceptionHandler) {
-//              /// 在js-worker一侧：与其它模块的通讯，统一使用 connect 之后再发送 request 来实现。
-//              // 转发请求
-//              val request = ipcRequest.toPure().toClient()
-//              val response = nativeFetch(request)
-//              jsIpc.postResponse(ipcRequest.reqId, response)
-//            }
-//          }.onFailure {
-//            debugJsMM("onProxyRequest", "fail ${ipcRequest.uri} ${it}")
-//            jsIpc.postMessage(
-//              IpcResponse.fromText(
-//                ipcRequest.reqId, 500, text = it.message ?: "", ipc = jsIpc
-//              )
-//            )
-//          }
-//        }
-//      }
 
       val fileIpc = connect("file.std.dweb")
       fileIpc.start(await = false)
@@ -288,6 +254,10 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
       val jsProcess = getJsProcess()
       jsProcess.codeIpc.close()
       fromMMIDOriginIpcWM.clear()
+    }
+
+    private suspend fun showMessage(message: String) {
+      this.nativeFetch("file://toast.sys.dweb/show?message=$message")
     }
   }
 

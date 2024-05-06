@@ -62,6 +62,12 @@ deno task pub server
 
 安装 plaoc-html-demo
 
+### 劫持应用文件避免测试的时候需要重复安装
+
+```bash
+deno run -A ./toolkit/scripts/hack-mac-plaoc-server.ts
+```
+
 ## MutilWebview 概念
 
 1. 在 Dweb Browser 中，MutilWebview 作为前端载具，没有对全局变量的污染，所有的扩展都是通过网络通讯来实现功能（fetch/websocket）。
