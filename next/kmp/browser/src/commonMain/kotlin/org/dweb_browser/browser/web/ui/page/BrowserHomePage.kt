@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -15,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import org.dweb_browser.browser.BrowserDrawResource
 
 @Composable
@@ -25,13 +27,13 @@ fun BrowserHomePageRender(modifier: Modifier = Modifier) {
       horizontalAlignment = Alignment.CenterHorizontally
     ) {
       Image(
-        BrowserDrawResource.Logo.painter(),
+        painter = BrowserDrawResource.Logo.painter(),
         contentDescription = null,
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 32.dp),
+        modifier = Modifier.size(320.dp),
         contentScale = ContentScale.FillWidth
       )
       Spacer(modifier = Modifier.fillMaxWidth().height(8.dp))
-      Text(text = "Dweb Browser", fontWeight = FontWeight.Black)
+      Text(text = "Dweb Browser", fontWeight = FontWeight.Black, fontSize = 22.sp)
     }
   }
 }

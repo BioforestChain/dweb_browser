@@ -66,6 +66,7 @@ import org.dweb_browser.sys.window.core.constant.WindowColorScheme
 import org.dweb_browser.sys.window.core.constant.WindowPropertyField
 import org.dweb_browser.sys.window.core.constant.WindowPropertyKeys
 import org.dweb_browser.sys.window.core.helper.asWindowStateColorOr
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
@@ -271,7 +272,6 @@ fun WindowController.calcWindowByLimits(
    * 窗口大小
    */
   val winBounds = calcWindowBoundsByLimits(limits)
-  println("lin.huang ===> $winBounds")
 
   /**
    * 窗口边距
@@ -323,7 +323,6 @@ private fun WindowController.calcWindowBoundsByLimits(
     val maxTop =
       limits.maxHeight - safeBottomPadding - limits.topBarBaseHeight // 确保 topBar 在可触摸的空间内
 
-    println("lin.huang ==> $winWidth ==> $winHeight, limits=$limits")
     state.updateBounds {
       copy(
         x = min(max(minLeft, bounds.x), maxLeft),
@@ -522,7 +521,7 @@ fun WindowController.calcContentScale(
   /**
    * 计算进度
    */
-  fun calcProgress(from: Float, now: Float, to: Float) = ((now - from) / (to - from)).toDouble()
+  fun calcProgress(from: Float, now: Float, to: Float) = (abs(now - from) / (to - from)).toDouble()
 
   /**
    * 将动画进度还原成所需的缩放值
@@ -530,10 +529,11 @@ fun WindowController.calcContentScale(
   fun Double.toScale(minScale: Double, maxScale: Double = 1.0) =
     ((maxScale - minScale) * this) + minScale
 
-  val scaleProgress = max(
+  val scaleProgress = min(
     calcProgress(limits.minWidth, contentWidth, limits.maxWidth),
     calcProgress(limits.minHeight, contentHeight, limits.maxHeight),
   )
+
   return scaleProgress.toScale(limits.minScale).let { if (it.isNaN()) 1f else it.toFloat() }
 }
 
