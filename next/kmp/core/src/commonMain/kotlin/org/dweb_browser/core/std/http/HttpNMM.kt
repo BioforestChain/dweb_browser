@@ -5,7 +5,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.URLBuilder
 import io.ktor.http.URLProtocol
 import io.ktor.http.Url
-import io.ktor.http.fullPath
+import io.ktor.http.hostWithPort
 import io.ktor.http.protocolWithAuthority
 import io.ktor.util.decodeBase64String
 import kotlinx.serialization.Serializable
@@ -38,7 +38,6 @@ import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureResponse
 import org.dweb_browser.pure.http.PureServerRequest
 import org.dweb_browser.pure.http.PureStreamBody
-import org.dweb_browser.pure.http.PureStringBody
 import org.dweb_browser.pure.http.PureTextFrame
 import org.dweb_browser.pure.http.queryAs
 import org.dweb_browser.pure.http.websocket
@@ -199,22 +198,19 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
       initHttpListener()
       /// 启动http后端服务
       scopeLaunch(cancelable = true) {
-        dwebServer.createServer(gatewayHandler = { request ->
-          findDwebGateway(request)?.let { info ->
+        dwebServer.createServer { request ->
+          /// 寻找 dweb 网关
+          findDwebGateway(request)?.let { dwebGatewayInfo ->
             debugHttp("gateway") {
-              "host=${info.host} gateway=${gatewayMap.contains(info.host)}"
+              "host=${dwebGatewayInfo.host} gateway=${gatewayMap.contains(dwebGatewayInfo.host)}"
             }
-            gatewayMap[info.host]
+            gatewayMap[dwebGatewayInfo.host]
+              ?: throw Exception("No Found Gateway For '${dwebGatewayInfo.host}'")
+          }?.let { gateway ->
+            /// 尝试响应请求
+            gateway.listener.hookHttpRequest(request) ?: PureResponse(HttpStatusCode.NotFound)
           }
-        }, httpHandler = { gateway, request ->
-          gateway.listener.hookHttpRequest(request)
-        }, errorHandler = { request, gateway ->
-          if (gateway == null) {
-            if (request.url.fullPath == "/debug") {
-              PureResponse(HttpStatusCode.OK, body = PureStringBody(request.headers.toString()))
-            } else noGatewayResponse
-          } else PureResponse(HttpStatusCode.NotFound)
-        })
+        }
       }
 
       /// 为 nativeFetch 函数提供支持
@@ -281,8 +277,51 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
           }
           ctx.close()
         },
-        // 提供 httpclient-fetch 的请求功能
+        // 提供 httpclient-fetch 的请求功能，默认允许强制跨域
         "/fetch" by definePureResponse {
+          val url = Url(request.query("url"))
+          /// 如果是options类型的请求，直接放行，不做任何同域验证
+          if (request.method == PureMethod.OPTIONS) {
+            val requestOrigin = request.headers.get(HttpHeaders.Origin)
+            val requestMethod = request.headers.get(HttpHeaders.AccessControlRequestMethod)
+            val requestHeaders = request.headers.get(HttpHeaders.AccessControlRequestHeaders)
+
+            val optionsHeaders = PureHeaders();
+            optionsHeaders.set(HttpHeaders.AccessControlAllowCredentials, "true")
+            optionsHeaders.set(HttpHeaders.AccessControlAllowOrigin, requestOrigin!!)
+            optionsHeaders.set(HttpHeaders.AccessControlAllowMethods, requestMethod!!)
+            optionsHeaders.set(HttpHeaders.AccessControlAllowHeaders, requestHeaders!!)
+            PureResponse(HttpStatusCode.OK, optionsHeaders)
+          } else {
+            if (url.protocol != URLProtocol.HTTP && url.protocol != URLProtocol.HTTPS) {
+              throwException(
+                HttpStatusCode.BadRequest, "invalid request protocol: ${url.protocol.name}"
+              )
+            }
+
+            val pureRequest = PureClientRequest(
+              href = url.toString(),
+              method = request.method,
+              headers = request.headers.apply {
+                set("Host", url.hostWithPort)
+              },
+              body = request.body,
+              from = request.from
+            )
+            httpFetch(pureRequest).also {
+              it.headers.apply {
+                init(HttpHeaders.AccessControlAllowCredentials, "true")
+                init(HttpHeaders.AccessControlAllowOrigin) {
+                  request.headers.get(HttpHeaders.Origin) ?: "*"
+                }
+                init(HttpHeaders.AccessControlAllowMethods, request.method.method)
+                init(HttpHeaders.AccessControlAllowHeaders, "*")
+              }
+            }
+          }
+        },
+        // 提供一种更加严格的 httpclient-fetch 的请求功能，会进行跨域的判定
+        "/strict-fetch" by definePureResponse {
           val url = Url(request.query("url"))
           if (request.method == PureMethod.OPTIONS) {
             val requestOrigin = request.headers.get(HttpHeaders.Origin)
@@ -305,15 +344,13 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
           val pureRequest = PureClientRequest(
             href = url.toString(),
             method = request.method,
-            headers = request.headers,
+            headers = request.headers.apply {
+              set("Host", url.hostWithPort)
+            },
             body = request.body,
             from = request.from
           )
-          pureRequest.headers.set("X-Forwarded-Host", mmid)
-          /// 如果是options类型的请求，直接放行，不做任何同域验证
-          if (pureRequest.method == PureMethod.OPTIONS) {
-            return@definePureResponse httpFetch(pureRequest)
-          }
+
           val isSameOrigin =
             url.host.let { host -> host == ipc.remote.mmid || host.endsWith(".${ipc.remote.mmid}") }
           /// 否则如果域名，那么才能直接放行
@@ -327,10 +364,6 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
             PureMethod.GET, PureMethod.POST, PureMethod.HEAD -> {
               var isSimple = true
               for ((key, value) in pureRequest.headers) {
-//              if (key in preflightRequestHeaderKeys) {
-//                isSimple = false
-//                break
-//              }
                 if (!isSimpleHeader(key, value)) {
                   isSimple = false
                   break
@@ -338,7 +371,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
               }
 
               // No ReadableStream object is used in the request.
-              if (pureRequest.body is PureStreamBody) {
+              if (isSimple && pureRequest.body is PureStreamBody) {
                 isSimple = false
               }
 
@@ -389,6 +422,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
             // TODO 缓存
             // val maxAge = get(HttpHeaders.AccessControlMaxAge)
 
+            // 默认不对其进行跨域校验
             when (allowOrigin) {
               null -> false
               "*" -> true
@@ -565,7 +599,6 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
     }
   }
 
-  val reg_x_forwarded_host = Regex("X-Forwarded-Host", RegexOption.IGNORE_CASE)
   val reg_host = Regex("Host", RegexOption.IGNORE_CASE)
   val reg_referer = Regex("Referer", RegexOption.IGNORE_CASE)
   val reg_x_dweb_host = Regex("X-Dweb-Host", RegexOption.IGNORE_CASE)
@@ -583,11 +616,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
     val query_x_dweb_host: String? = request.queryOrNull("X-Dweb-Host")?.decodeURIComponent()
     var is_https = false
     for ((key, value) in request.headers) {
-      if (reg_x_forwarded_host.matches(key)) {
-        if (value == mmid) {
-          return null
-        }
-      } else if (reg_host.matches(key)) {
+      if (reg_host.matches(key)) {
         // 解析subDomain
         header_host = if (value.endsWith(".dweb")) {
           value

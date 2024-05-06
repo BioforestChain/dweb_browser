@@ -4,6 +4,7 @@ import dweb_browser_kmp.pureimage.generated.resources.Res
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.fromFilePath
+import io.ktor.http.hostWithPort
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -31,6 +32,9 @@ internal class OffscreenWebCanvasMessageChannel {
 
   @OptIn(InternalResourceApi::class, ExperimentalResourceApi::class)
   private val server = HttpPureServer {
+    if (it.url.hostWithPort != hostWithPort) {
+      return@HttpPureServer null
+    }
     val pathname = it.url.encodedPath
     if (pathname == "/channel" && it.hasChannel) {
       it.byChannel {
@@ -80,11 +84,13 @@ internal class OffscreenWebCanvasMessageChannel {
     }
   }
 
+  private var hostWithPort = ""
+
   suspend fun getEntryUrl(width: Int, height: Int): String {
     val port = startPureServer(server)
-    val host = "localhost"
-    val entry = "http://$host:$port/index.html"
-    return "$entry?width=$width&height=$height&channel=${"ws://$host:$port/channel".encodeURIComponent()}&proxy=${"http://$host:$port/proxy".encodeURIComponent()}"
+    hostWithPort = "localhost:$port"
+    val entry = "http://$hostWithPort/index.html"
+    return "$entry?width=$width&height=$height&channel=${"ws://$hostWithPort/channel".encodeURIComponent()}&proxy=${"http://$hostWithPort/proxy".encodeURIComponent()}"
   }
 
   //  suspend fun postMessage(message: ByteArray) {

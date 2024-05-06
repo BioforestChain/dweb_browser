@@ -1,15 +1,8 @@
 package org.dweb_browser.core.std.http.net
 
 import org.dweb_browser.core.http.DwebHttpGatewayServer
+import org.dweb_browser.core.http.HttpGateway
 import org.dweb_browser.core.http.dwebHttpGatewayServer
-import org.dweb_browser.core.std.http.Gateway
-import org.dweb_browser.pure.http.PureResponse
-import org.dweb_browser.pure.http.PureServerRequest
-
-typealias GatewayHandler = suspend (request: PureServerRequest) -> Gateway?
-typealias GatewayHttpHandler = suspend (gateway: Gateway, request: PureServerRequest) -> PureResponse?
-typealias GatewayErrorHandler = suspend (request: PureServerRequest, gateway: Gateway?) -> PureResponse
-
 
 class Http1Server {
   companion object {
@@ -20,17 +13,8 @@ class Http1Server {
 
   private var bindingPort = -1
 
-  suspend fun createServer(
-    gatewayHandler: GatewayHandler,
-    httpHandler: GatewayHttpHandler,
-    errorHandler: GatewayErrorHandler,
-  ) {
-    DwebHttpGatewayServer.gatewayAdapterManager.append { request ->
-      when (val gateway = gatewayHandler(request)) {
-        null -> errorHandler(request, null)
-        else -> httpHandler(gateway, request) ?: errorHandler(request, gateway)
-      }
-    }
+  suspend fun createServer(httpHandler: HttpGateway) {
+    DwebHttpGatewayServer.gatewayAdapterManager.append(adapter = httpHandler)
 
     bindingPort = dwebHttpGatewayServer.startServer()
   }

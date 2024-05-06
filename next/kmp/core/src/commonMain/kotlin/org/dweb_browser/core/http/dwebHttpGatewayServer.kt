@@ -3,6 +3,7 @@ package org.dweb_browser.core.http
 
 import io.ktor.http.HttpStatusCode
 import org.dweb_browser.core.help.AdapterManager
+import org.dweb_browser.core.http.router.ResponseException
 import org.dweb_browser.core.std.http.debugHttp
 import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.pure.http.HttpPureServer
@@ -15,13 +16,25 @@ typealias HttpGateway = suspend (request: PureServerRequest) -> PureResponse?
 
 class DwebGatewayHandlerAdapterManager : AdapterManager<HttpGateway>() {
   suspend fun doGateway(request: PureServerRequest): PureResponse? {
-    for (adapter in adapters) {
-      val response = adapter(request)
-      if (response != null) {
-        return response
+    try {
+      for (adapter in adapters) {
+        val response = adapter(request)
+        if (response != null) {
+          return response
+        }
       }
+      return null
+    } catch (e: ResponseException) {
+      return PureResponse(
+        HttpStatusCode(e.code.value, e.message),
+        body = IPureBody.from(e.cause?.message ?: "")
+      )
+    } catch (e: Throwable) {
+      return PureResponse(
+        HttpStatusCode.InternalServerError,
+        body = IPureBody.from(e.message ?: "")
+      )
     }
-    return null
   }
 }
 
@@ -37,11 +50,7 @@ class DwebHttpGatewayServer private constructor() {
       else -> rawRequest.copy(href = url)
     };
     debugHttp("doGateway", pureRequest.href)
-    try {
-      gatewayAdapterManager.doGateway(pureRequest)
-    } catch (e: Throwable) {
-      PureResponse(HttpStatusCode.BadGateway, body = IPureBody.from(e.message ?: ""))
-    }
+    gatewayAdapterManager.doGateway(pureRequest)
   }
 
   val startServer = SuspendOnce {

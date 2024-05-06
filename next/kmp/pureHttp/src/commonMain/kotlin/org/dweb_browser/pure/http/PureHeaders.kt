@@ -55,6 +55,15 @@ class PureHeaders() {
     return false
   }
 
+  fun init(key: String, valueGetter: () -> String): Boolean {
+    val headerKey = key.asKey()
+    if (!headersMap.contains(headerKey)) {
+      headersMap[headerKey] = valueGetter()
+      return true
+    }
+    return false
+  }
+
   fun get(key: String): String? {
     return headersMap[key.asKey()]
   }

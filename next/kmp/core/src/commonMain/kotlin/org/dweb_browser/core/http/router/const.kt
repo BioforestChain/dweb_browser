@@ -7,6 +7,6 @@ val debugRoute = Debugger("route")
 
 class ResponseException(
   val code: HttpStatusCode = HttpStatusCode.InternalServerError,
-  message: String = code.description,
-  cause: Throwable? = null
+  override val message: String = code.description,
+  cause: Throwable? = null,
 ) : Exception(message, cause)

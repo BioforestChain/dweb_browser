@@ -368,7 +368,6 @@ export class Ipc {
       this.console.log(`ipc(${this}) fail to poseMessage: ${e}`);
       return;
     }
-    console.log("xxxxjson=>", this.debugId, this.pid, JSON.stringify(message));
     this.endpoint.postIpcMessage(endpointIpcMessage(this.pid, message));
   }
 
