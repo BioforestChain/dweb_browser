@@ -168,6 +168,9 @@ export abstract class MicroModuleRuntime implements $MicroModuleRuntime {
           if (auto_start) {
             void ipc.start();
           }
+          ipc.onClosed(() => {
+            this.connectionMap.delete(mmid);
+          });
           return ipc;
         })()
       );
@@ -178,7 +181,6 @@ export abstract class MicroModuleRuntime implements $MicroModuleRuntime {
   /**
    * 收到一个连接，触发相关事件
    */
-
   // deno-lint-ignore require-await
   async beConnect(ipc: Ipc, _reason?: Request) {
     if (setHelper.add(this.connectionLinks, ipc)) {
@@ -187,6 +189,17 @@ export abstract class MicroModuleRuntime implements $MicroModuleRuntime {
         ipc.console.log("onFork", forkEvent.data);
         await this.beConnect(forkEvent.consume());
       });
+      ipc.onRequest(`${this.mmid}-deepLink`).mapNotNull((request) => {
+        if (request.url.startsWith("dweb:")) {
+          return request.url;
+        }
+      })(async (url) => {
+        const mmid = await this.bootstrapContext.dns.queryDeeplink(url);
+        if (mmid) {
+          (await this.connect(mmid)).request(url);
+        }
+      });
+
       this.onBeforeShutdown(() => {
         return ipc.close();
       });

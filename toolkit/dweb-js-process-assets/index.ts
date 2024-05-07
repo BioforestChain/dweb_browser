@@ -11,21 +11,15 @@ export type { fetchExtends } from "@dweb-browser/helper/fetchExtends/index.ts";
 import * as core from "./worker/std-dweb-core.ts";
 import * as http from "./worker/std-dweb-http.ts";
 
-import type { $PromiseMaybe } from "@dweb-browser/helper/$PromiseMaybe.ts";
-import { once } from "@dweb-browser/helper/decorator/$once.ts";
-import { mapHelper } from "@dweb-browser/helper/fun/mapHelper.ts";
-// import { type $BootstrapContext } from "../../src/bootstrapContext.ts";
-// import type { MICRO_MODULE_CATEGORY } from "../../src/index.ts";
-// import { onActivity } from "../../src/ipcEventOnActivity.ts";
-// import { onRenderer, onRendererDestroy } from "../../src/ipcEventOnRender.ts";
-// import { onShortcut } from "../../src/ipcEventOnShortcut.ts";
-// import { MicroModule, MicroModuleRuntime } from "../../src/MicroModule.ts";
 import type { $BootstrapContext } from "@dweb-browser/core/bootstrapContext.ts";
 import { onActivity } from "@dweb-browser/core/ipcEventOnActivity.ts";
 import { onRenderer, onRendererDestroy } from "@dweb-browser/core/ipcEventOnRender.ts";
 import { onShortcut } from "@dweb-browser/core/ipcEventOnShortcut.ts";
 import { MicroModule, MicroModuleRuntime } from "@dweb-browser/core/MicroModule.ts";
 import type { MICRO_MODULE_CATEGORY } from "@dweb-browser/core/type/category.const.ts";
+import type { $PromiseMaybe } from "@dweb-browser/helper/$PromiseMaybe.ts";
+import { once } from "@dweb-browser/helper/decorator/$once.ts";
+import { mapHelper } from "@dweb-browser/helper/fun/mapHelper.ts";
 import type { $RunMainConfig } from "./main/index.ts";
 import { createFetchHandler, Ipc, WebMessageEndpoint } from "./worker/std-dweb-core.ts";
 
@@ -133,39 +127,63 @@ export class JsProcessMicroModule extends MicroModule {
         }
       });
     });
-
     const ctx: $BootstrapContext = {
       dns: {
-        install: function (_mm: MicroModule): void {
-          throw new Error("jmm dns.install not implemented.");
-        },
-        uninstall: function (_mm: `${string}.dweb`): Promise<boolean> {
-          throw new Error("jmm dns.uninstall not implemented.");
-        },
         connect: (mmid: `${string}.dweb`, reason?: Request | undefined): $PromiseMaybe<core.Ipc> => {
           this.console.log("connect", mmid);
+          const ipc = waitMap.get(mmid);
+          if (ipc) {
+            return ipc.promise;
+          }
           const po = new PromiseOut<Ipc>();
           waitMap.set(mmid, po);
-
           // 发送指令
           this.fetchIpc.postMessage(core.IpcEvent.fromText("dns/connect", mmid));
 
           return po.promise;
         },
-        query: (mmid: `${string}.dweb`): Promise<core.$MicroModuleManifest | undefined> => {
-          throw new Error("dns.query not implemented.");
+        async request(url: string): Promise<core.IpcResponse> {
+          const dnsIpc = await this.connect("dns.std.dweb");
+          return await dnsIpc.request(`file://dns.std.dweb${url}`);
         },
-        search: (category: MICRO_MODULE_CATEGORY): Promise<core.$MicroModuleManifest[]> => {
-          throw new Error("dns.search not implemented.");
+        async install(mmid: `${string}.dweb`): Promise<void> {
+          await this.request(`/install?app_id=${mmid}`);
         },
-        open: (mmid: `${string}.dweb`): Promise<boolean> => {
-          throw new Error("dns.open not implemented.");
+        uninstall: async function (mmid: `${string}.dweb`): Promise<boolean> {
+          const response = await this.request(`/install?app_id=${mmid}`);
+          return (await response.body.text()) === "true";
         },
-        close: (mmid: `${string}.dweb`): Promise<boolean> => {
-          throw new Error("dns.close not implemented.");
+        async query(mmid: `${string}.dweb`): Promise<core.$MicroModuleManifest | undefined> {
+          const response = await this.request(`/query?app_id=${mmid}`);
+          const manifest = await response.body.text();
+          if (manifest === "") {
+            return undefined;
+          }
+          return JSON.parse(manifest);
         },
-        restart: (mmid: `${string}.dweb`): void => {
-          throw new Error("dns.restart not implemented.");
+        async queryDeeplink(url: string): Promise<$MMID | undefined> {
+          const response = await this.request(`/queryDeeplink?deeplink=${url}`);
+          const mmid = await response.body.text();
+          if (mmid === "") {
+            return undefined;
+          }
+          return mmid as $MMID;
+        },
+        async search(category: MICRO_MODULE_CATEGORY): Promise<core.$MicroModuleManifest[]> {
+          const response = await this.request(`/search?category=${category}`);
+          const manifest = await response.body.text();
+          return JSON.parse(manifest);
+        },
+        async open(mmid: `${string}.dweb`): Promise<boolean> {
+          const response = await this.request(`/open?app_id=${mmid}`);
+          return (await response.body.text()) === "true";
+        },
+        async close(mmid: `${string}.dweb`): Promise<boolean> {
+          const response = await this.request(`/mmid?app_id=${mmid}`);
+          return (await response.body.text()) === "true";
+        },
+        async restart(mmid: `${string}.dweb`): Promise<void> {
+          await this.request(`/restart?app_id=${mmid}`);
         },
       },
     };
@@ -283,20 +301,6 @@ export class JsProcessMicroModuleRuntime extends MicroModuleRuntime {
     this.name = `js process of ${this.mmid}`;
     this.host = this.meta.envString("host");
 
-    // // 整个worker关闭
-    // this.fetchIpc.onClosed(async () => {
-    //   console.log("worker-close=>", this.fetchIpc.channelId, this.mmid);
-    //   // 当worker关闭的时候，触发关闭，让用户可以基于这个事件释放资源
-    //   this._onCloseSignal.emit(IpcEvent.fromText("close", this.mmid), this.fetchIpc);
-    //   // 销毁所有ipc
-    //   await Promise.all(
-    //     Array.from(this._ipcConnectsMap.values(), async (ipcPo) => {
-    //       const ipc = await ipcPo.promise;
-    //       ipc.close();
-    //     })
-    //   );
-    //   workerGlobal.close();
-    // });
     // this.fetchIpc.onEvent(async (ipcEvent) => {
     //   if (ipcEvent.name === "dns/connect/done" && typeof ipcEvent.data === "string") {
     //     const { connect, result } = JSON.parse(ipcEvent.data);

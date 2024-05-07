@@ -166,7 +166,7 @@ export class Producer<T> {
     // 触发所有消费者的消息
     for (const consumer of this.consumers) {
       // 如果消费者没启动，或者没有开始读
-      if (!consumer.started) {
+      if (!consumer.started || consumer.startingBuffers?.has(event) == true) {
         continue;
       }
       await event.emitBy(consumer);

@@ -78,7 +78,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
     override suspend fun restart(mmpt: MMPT) {
       // 关闭后端连接
       val num = dnsMM.runtime.close(mmpt)
-      debugDNS("dns_restart","restart $num $mmpt")
+      debugDNS("dns_restart", "restart $num $mmpt")
       dnsMM.runtime.open(mmpt, fromMM)
     }
 
@@ -265,6 +265,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
 
       val queryAppId = PureUrl.query("app_id")
       val queryCategory = PureUrl.query("category")
+      val queryDeepLink = PureUrl.query("deeplink")
       val openApp = defineBooleanResponse {
         val mmid = request.queryAppId()
         debugDNS("open/$mmid", request.url.fullPath)
@@ -272,9 +273,20 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
         true
       }
       /// 定义路由功能
-      routes("open" bindDwebDeeplink openApp,
+      routes(
+        "open" bindDwebDeeplink openApp,
         // 打开应用
         "/open" bind PureMethod.GET by openApp,
+        "/install" bind PureMethod.GET by defineEmptyResponse {
+          val mmid = request.queryAppId()
+          query(mmid, ipc.remote)?.let {
+            install(it)
+          }
+        },
+        "/uninstall" bind PureMethod.GET by defineBooleanResponse {
+          val mmid = request.queryAppId()
+          uninstall(mmid)
+        },
         // 关闭应用
         // TODO 能否关闭一个应该应该由应用自己决定
         "/close" bind PureMethod.GET by defineBooleanResponse {
@@ -283,11 +295,32 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
           close(mmid)
           true
         },
+        "/restart" bind PureMethod.GET by defineEmptyResponse {
+          val mmid = request.queryAppId()
+          debugDNS("get_restart/$mmid", request.url.fullPath)
+          val num = close(mmid)
+          debugDNS("dns_restart", "restart $num $mmid")
+          open(mmid)
+        },
         //
         "/query" bind PureMethod.GET by defineJsonResponse {
           val mmid = request.queryAppId()
           query(mmid, ipc.remote)?.toManifest()?.toJsonElement() ?: JsonNull
-        }, "/search" bind PureMethod.GET by defineJsonResponse {
+        },
+        "/queryDeeplink" bind PureMethod.GET by defineStringResponse {
+          val href = request.queryDeepLink()
+          for (microModule in allApps.values) {
+            for (deeplink in microModule.dweb_deeplinks) {
+              if (href.startsWith(deeplink)) {
+                return@defineStringResponse microModule.mmid
+              }
+            }
+          }
+          // 没找到给个空
+          ""
+        },
+        "/search" bind PureMethod.GET by defineJsonResponse
+        {
           val category = request.queryCategory()
           val manifests = mutableListOf<CommonAppManifest>()
           search(category as MICRO_MODULE_CATEGORY).map { app ->
@@ -312,15 +345,16 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
           ctx.sendJsonLine(ChangeState(setOf<String>(), setOf(), setOf()))
         },
         //
-        "/observe/running-apps" byChannel { ctx ->
-          runningApps.onChange { changes ->
-            ctx.sendJsonLine(
-              ChangeState(
-                changes.adds, changes.updates, changes.removes
-              )
-            )
-          }.removeWhen(onClose)
-        })
+        "/observe/running-apps" byChannel
+            { ctx ->
+              runningApps.onChange { changes ->
+                ctx.sendJsonLine(
+                  ChangeState(
+                    changes.adds, changes.updates, changes.removes
+                  )
+                )
+              }.removeWhen(onClose)
+            })
     }
 
     suspend fun boot(bootNMM: BootNMM) {

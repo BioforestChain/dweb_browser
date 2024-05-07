@@ -1,5 +1,5 @@
 import type { $PromiseMaybe } from "@dweb-browser/helper/$PromiseMaybe.ts";
-import type { MicroModule } from "./MicroModule.ts";
+import type { $IpcResponse } from "../../plaoc/server/deps.ts";
 import type { Ipc } from "./ipc/ipc.ts";
 import type { MICRO_MODULE_CATEGORY } from "./type/category.const.ts";
 import type { $MMID, $MicroModuleManifest } from "./types.ts";
@@ -8,7 +8,7 @@ export interface $BootstrapContext {
   dns: $DnsMicroModule;
 }
 export interface $DnsMicroModule {
-  install(mm: MicroModule): void;
+  install(mm: `${string}.dweb`): Promise<void>;
   /** 卸载由自己发起 install 的 MicroModule */
   uninstall(mm: $MMID): Promise<boolean>;
   /**
@@ -17,7 +17,9 @@ export interface $DnsMicroModule {
    * @param reason
    */
   connect(mmid: $MMID, reason?: Request): $PromiseMaybe<Ipc>;
+  request(url: string): Promise<$IpcResponse>;
   query(mmid: $MMID): Promise<$MicroModuleManifest | undefined>;
+  queryDeeplink(request: string): Promise<$MMID | undefined>;
   /**
    * 根据类目搜索模块
    * > 这里暂时不需要支持复合搜索，未来如果有需要另外开接口
