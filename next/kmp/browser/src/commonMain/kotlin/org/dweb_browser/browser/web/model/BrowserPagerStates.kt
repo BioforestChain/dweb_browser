@@ -4,7 +4,6 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import org.dweb_browser.browser.web.ui.enterAnimationSpec
 
 @OptIn(ExperimentalFoundationApi::class)
 class BrowserPagerStates(
@@ -78,16 +77,18 @@ class BrowserPagerStates(
     }
 
     /// contentPagePager => focusedPage
-    LaunchedEffect(searchBarPager.currentPage, searchBarPager.isScrollInProgress) {
-      if (!searchBarPager.isScrollInProgress) {
-        viewModel.focusPageUI(searchBarPager.currentPage)
-      }
-    }
+//    LaunchedEffect(searchBarPager.targetPage, searchBarPager.isScrollInProgress) {
+//      println("lin.huang ==> ${searchBarPager.currentPage}, ${searchBarPager.targetPage}, ${searchBarPager.isScrollInProgress}")
+//      if (!searchBarPager.isScrollInProgress) {
+//        viewModel.focusPageUI(searchBarPager.targetPage)
+//      }
+//    }
 
     LaunchedEffect(viewModel.focusedPageIndex) {
       val pageIndex = viewModel.focusedPageIndex
-      if (!searchBar.isScrollInProgress) {
-        searchBarPager.animateScrollToPage(pageIndex, animationSpec = enterAnimationSpec())
+      if (!searchBarPager.isScrollInProgress) {
+        // searchBarPager.animateScrollToPage(pageIndex, animationSpec = enterAnimationSpec())
+        searchBarPager.scrollToPage(pageIndex)
       }
     }
   }

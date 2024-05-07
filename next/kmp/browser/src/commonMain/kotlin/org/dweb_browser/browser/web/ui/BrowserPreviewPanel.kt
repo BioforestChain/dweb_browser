@@ -52,6 +52,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
@@ -112,8 +113,9 @@ internal fun BrowserPreviewPanel(modifier: Modifier = Modifier): Boolean {
           else -> maxWidth * 0.8f / 2
         }
       }
-      val cellHeight = remember(cellWidth) {
-        cellWidth * 1.618f
+      val cellHeight = remember(cellWidth, maxWidth, maxHeight) {
+        // cellWidth * 1.618f
+        cellWidth * (maxHeight * 1.0f / maxWidth)
       }
       LazyVerticalGrid(
         columns = GridCells.Fixed(if (onlyOne) 1 else 2),

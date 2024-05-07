@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -22,8 +23,10 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import kotlinx.coroutines.delay
 import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.browser.web.model.LocalBrowserViewModel
+import org.dweb_browser.browser.web.model.page.BrowserWebPage
 import org.dweb_browser.helper.capturable.capturable
 import org.dweb_browser.helper.compose.IosFastOutSlowInEasing
 import org.dweb_browser.helper.compose.LocalCompositionChain
@@ -111,6 +114,12 @@ fun BrowserPageBox(windowRenderScope: WindowContentRenderScope) {
       beyondBoundsPageCount = 1,
       pageContent = { currentPage ->
         val browserPage = viewModel.getPage(currentPage)
+        LaunchedEffect(browserPage) {
+          if (browserPage !is BrowserWebPage) { // 为了解决第一次截图失败问题：error=The Modifier.Node was detached
+            delay(500)
+            browserPage.captureViewInBackground()
+          }
+        }
         browserPage.Render(
           Modifier.fillMaxSize().capturable(browserPage.captureController), windowRenderScope.scale
         )
