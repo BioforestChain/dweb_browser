@@ -1,6 +1,6 @@
+import type { $MicroModuleManifest } from "@dweb-browser/core/types.ts";
 import { ChangeableMap } from "@dweb-browser/helper/ChangeableMap.ts";
 import { PromiseOut } from "@dweb-browser/helper/PromiseOut.ts";
-import type { $MicroModuleManifest } from "@dweb-browser/core/types.ts";
 
 /// 这个文件是用在 js-process.html 的主线程中直接运行的，用来协调 js-worker 与 native 之间的通讯
 // 也可以用在其他的 .html 文件中 但是内容需要部分的修改
@@ -105,19 +105,11 @@ const createProcess = async (
  * @param env_json
  * @returns
  */
-const createIpc = async (
-  process_id: number,
-  mainfest_json: string,
-  ipc_port: MessagePort,
-  auto_start = false
-) => {
+const createIpc = async (process_id: number, mainfest_json: string, ipc_port: MessagePort, auto_start = false) => {
   const process = _forceGetProcess(process_id);
   const manifest = JSON.parse(mainfest_json) as $MicroModuleManifest;
 
-  process.worker.postMessage(
-    [`ipc-connect/${manifest.mmid}`, manifest, auto_start],
-    [ipc_port]
-  );
+  process.worker.postMessage([`ipc-connect/${manifest.mmid}`, manifest, auto_start], [ipc_port]);
   /// 等待连接任务完成
   const connect_ready_po = new PromiseOut<void>();
   const onBeConnceted = (event: MessageEvent) => {
@@ -180,10 +172,7 @@ const destroyProcess = (process_id: number) => {
   return true;
 };
 
-type $OnCreateProcessMessage = (msg: {
-  process_id: number;
-  env_script_url: string;
-}) => unknown;
+type $OnCreateProcessMessage = (msg: { process_id: number; env_script_url: string }) => unknown;
 
 // 这里到处的 APIS 会通过 expose() 导入到给主进程调用
 export const APIS = {

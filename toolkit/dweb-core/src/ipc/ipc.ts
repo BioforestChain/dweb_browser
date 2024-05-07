@@ -39,6 +39,7 @@ export class Ipc {
     readonly pool: IpcPool,
     readonly debugId = `${endpoint.debugId}/${pid}`
   ) {
+    // 构造ipc消息生产者，其所有的消息都是由endpoint分发而来
     this.#messageProducer = this.endpoint.getIpcMessageProducerByIpc(this);
     this.#lifecycleLocaleFlow = new StateSignal<$IpcLifecycle>(
       IpcLifecycle(IpcLifecycleInit(this.pid, this.locale, this.remote)),
@@ -244,6 +245,7 @@ export class Ipc {
 
   //#region 消息相关的
   #messagePipeMap<R>(name: string, mapNotNull: (value: $IpcMessage) => R | undefined) {
+    // 构造一个生产者分发消息
     const producer = new Producer<R>(this.debugId + this.#messageProducer.producer.name + "/" + name);
     this.onClosed((reason) => {
       return producer.close(reason);
@@ -251,10 +253,9 @@ export class Ipc {
     const consumer = this.onMessage(name);
     consumer.collect((event) => {
       const result = event.consumeMapNotNull<R>(mapNotNull);
-      if (result === undefined) {
-        return;
+      if (result !== undefined) {
+        producer.send(result);
       }
-      producer.send(result);
     });
     producer.onClosed(() => {
       consumer.close();

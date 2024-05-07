@@ -21,6 +21,7 @@ export class WebMessageEndpoint extends CommonEndpoint {
       } else {
         message = $jsonToEndpointMessage(rawData);
       }
+      // 发送消息到对方的endpoint
       this.endpointMsgChannel.send(message);
     });
     this.port.start();

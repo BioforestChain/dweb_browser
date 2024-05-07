@@ -1,14 +1,10 @@
 import { CacheGetter } from "@dweb-browser/helper/cacheGetter.ts";
-import {
-  binaryToU8a,
-  isBinary,
-  type $Binary,
-} from "@dweb-browser/helper/fun/binaryHelper.ts";
-import { buildRequestX } from "../helper/ipcRequestHelper.ts";
+import { binaryToU8a, isBinary, type $Binary } from "@dweb-browser/helper/fun/binaryHelper.ts";
 import { parseUrl } from "@dweb-browser/helper/fun/urlHelper.ts";
 import { IpcHeaders } from "../helper/IpcHeaders.ts";
 import { PureChannel, pureChannelToIpcEvent } from "../helper/PureChannel.ts";
 import { PURE_METHOD, toPureMethod } from "../helper/PureMethod.ts";
+import { buildRequestX } from "../helper/ipcRequestHelper.ts";
 import type { $IpcRequestInit, Ipc } from "../ipc.ts";
 import { IPC_MESSAGE_TYPE, ipcMessageBase } from "./internal/IpcMessage.ts";
 import type { IpcBody } from "./stream/IpcBody.ts";
@@ -90,13 +86,7 @@ export abstract class IpcRequest {
   }
 
   toSerializable() {
-    return IpcRawRequest(
-      this.reqId,
-      this.method,
-      this.url,
-      this.headers.toJSON(),
-      this.body.metaBody
-    );
+    return IpcRawRequest(this.reqId, this.method, this.url, this.headers.toJSON(), this.body.metaBody);
   }
 
   toJSON() {
@@ -119,14 +109,7 @@ export class IpcClientRequest extends IpcRequest {
     ipc: Ipc
   ) {
     // 这里 content-length 默认不写，因为这是要算二进制的长度，我们这里只有在字符串的长度，不是一个东西
-    return new IpcClientRequest(
-      reqId,
-      url,
-      method,
-      headers,
-      IpcBodySender.fromText(text, ipc),
-      ipc
-    );
+    return new IpcClientRequest(reqId, url, method, headers, IpcBodySender.fromText(text, ipc), ipc);
   }
   static fromBinary(
     reqId: number,
@@ -139,14 +122,7 @@ export class IpcClientRequest extends IpcRequest {
     headers.init("Content-Type", "application/octet-stream");
     headers.init("Content-Length", binary.byteLength + "");
 
-    return new IpcClientRequest(
-      reqId,
-      url,
-      method,
-      headers,
-      IpcBodySender.fromBinary(binaryToU8a(binary), ipc),
-      ipc
-    );
+    return new IpcClientRequest(reqId, url, method, headers, IpcBodySender.fromBinary(binaryToU8a(binary), ipc), ipc);
   }
   // 如果需要发送stream数据 一定要使用这个方法才可以传递数据否则数据无法传递
   static fromStream(
@@ -159,27 +135,12 @@ export class IpcClientRequest extends IpcRequest {
   ) {
     headers.init("Content-Type", "application/octet-stream");
 
-    return new IpcClientRequest(
-      reqId,
-      url,
-      method,
-      headers,
-      IpcBodySender.fromStream(stream, ipc),
-      ipc
-    );
+    return new IpcClientRequest(reqId, url, method, headers, IpcBodySender.fromStream(stream, ipc), ipc);
   }
 
-  static fromRequest(
-    reqId: number,
-    ipc: Ipc,
-    url: string,
-    init: $IpcRequestInit = {}
-  ) {
+  static fromRequest(reqId: number, ipc: Ipc, url: string, init: $IpcRequestInit = {}) {
     const method = toPureMethod(init.method);
-    const headers =
-      init.headers instanceof IpcHeaders
-        ? init.headers
-        : new IpcHeaders(init.headers);
+    const headers = init.headers instanceof IpcHeaders ? init.headers : new IpcHeaders(init.headers);
 
     let ipcBody: IpcBody;
     if (isBinary(init.body)) {
@@ -189,11 +150,7 @@ export class IpcClientRequest extends IpcRequest {
       } else if (init.body instanceof ArrayBuffer) {
         u8aBody = new Uint8Array(init.body);
       } else {
-        u8aBody = new Uint8Array(
-          init.body.buffer,
-          init.body.byteOffset,
-          init.body.byteLength
-        );
+        u8aBody = new Uint8Array(init.body.buffer, init.body.byteOffset, init.body.byteLength);
       }
       ipcBody = IpcBodySender.fromBinary(u8aBody, ipc);
     } else if (init.body instanceof ReadableStream) {
@@ -223,12 +180,10 @@ export class IpcClientRequest extends IpcRequest {
 
   private _channelIpc?: Promise<Ipc>;
 
+  // deno-lint-ignore require-await
   async enableChannel() {
     this._channelIpc ??= this._channelIpc = this.ipc.fork().then((ipc) => {
-      this.headers.set(
-        X_IPC_UPGRADE_KEY,
-        `${PURE_CHANNEL_EVENT_PREFIX}${ipc.pid}`
-      );
+      this.headers.set(X_IPC_UPGRADE_KEY, `${PURE_CHANNEL_EVENT_PREFIX}${ipc.pid}`);
       return ipc;
     });
   }
@@ -236,14 +191,7 @@ export class IpcClientRequest extends IpcRequest {
 
 export class IpcServerRequest extends IpcRequest {
   constructor(readonly client: IpcClientRequest, ipc: Ipc) {
-    super(
-      client.reqId,
-      client.url,
-      client.method,
-      client.headers,
-      client.body,
-      ipc
-    );
+    super(client.reqId, client.url, client.method, client.headers, client.body, ipc);
   }
 
   protected channel = new CacheGetter(() => {

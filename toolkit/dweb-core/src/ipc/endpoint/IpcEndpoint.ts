@@ -67,10 +67,11 @@ export abstract class IpcEndpoint {
     return { pid, ipcPo, producer };
   }
 
+  /**获取ipc消息的生产者 */
   getIpcMessageProducer(pid: number) {
     return mapHelper.getOrPut(this.ipcMessageProducers, pid, () => this.ipcMessageProducer(pid));
   }
-
+  /**通过ipc拿到ipc消息生产者对象 */
   getIpcMessageProducerByIpc(ipc: Ipc) {
     const result = this.getIpcMessageProducer(ipc.pid);
     ipc.onClosed(() => {
@@ -154,7 +155,7 @@ export abstract class IpcEndpoint {
     }
     // 监听远端生命周期指令，进行协议协商
     this.lifecycleRemoteFlow.listen((lifecycle) => {
-      this.console.log("remote-lifecycle-in", lifecycle);
+      this.console.log("remote-lifecycle-in", lifecycle.type, lifecycle.state);
       switch (lifecycle.state.name) {
         case ENDPOINT_LIFECYCLE_STATE.CLOSING:
         case ENDPOINT_LIFECYCLE_STATE.CLOSED: {

@@ -20,7 +20,7 @@ class UpdateControllerPlugin extends BasePlugin {
    * @returns
    */
   @bindThis
-  async download(metadataUrl: string): Promise<boolean> {
+  download(metadataUrl: string): Promise<boolean> {
     return this.fetchApi(`/install`, {
       search: {
         url: metadataUrl,

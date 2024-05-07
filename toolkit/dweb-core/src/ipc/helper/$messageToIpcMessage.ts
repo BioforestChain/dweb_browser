@@ -10,6 +10,7 @@ import type { Ipc } from "../ipc.ts";
 import { IpcHeaders } from "./IpcHeaders.ts";
 
 export type $JSON<T> = {
+  // deno-lint-ignore ban-types
   [key in keyof T]: T[key] extends Function ? never : T[key];
 };
 

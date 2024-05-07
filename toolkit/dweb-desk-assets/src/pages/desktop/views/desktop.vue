@@ -45,13 +45,13 @@ interface $XYWH {
 const layoutInfoListRef: Ref<$LayoutInfo[]> = ref([]);
 // 监听app消息的更新
 const updateApps = async () => {
-  const widgetList = await getWidgetInfo();
+  const widgetList = getWidgetInfo();
 
   let appList: $WidgetAppData[] = [];
 
   updateLayoutInfoList(widgetList, appList);
 
-  const appInfoWatcher = await watchDesktopAppInfo();
+  const appInfoWatcher = watchDesktopAppInfo();
   void (async () => {
     onUnmounted(() => {
       appInfoWatcher.return();

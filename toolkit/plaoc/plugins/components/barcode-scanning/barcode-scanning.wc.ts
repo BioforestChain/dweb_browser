@@ -89,6 +89,7 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
   }
   static readonly _support_native_request_full_screen = false; // typeof document.body.requestFullscreen === "function";
 
+  // deno-lint-ignore require-await
   override async requestFullscreen(options?: FullscreenOptions) {
     const dialog = this._dialog;
     if (dialog === null) {

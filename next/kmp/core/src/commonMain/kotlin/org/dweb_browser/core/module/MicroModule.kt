@@ -149,8 +149,8 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
     suspend fun shutdown() = stateLock.withLock {
       if (state != MMState.SHUTDOWN) {
         debugMM("shutdown-start")
-        debugMM("shutdown-before-start")
         beforeShutdownFlow.emit(Unit)
+        debugMM("shutdown-before-start")
         beforeShutdownFlow.emit(null)
         debugMM("shutdown-before-end")
         _shutdown()

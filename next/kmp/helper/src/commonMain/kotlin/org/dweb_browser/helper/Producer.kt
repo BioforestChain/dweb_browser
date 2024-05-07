@@ -299,22 +299,6 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
 
         job.cancel()
 
-//        while (true) {
-//          val (event, emitLock) = select {
-//            input.onReceive { Result.success(it) }
-//            errorCatcher.onAwait { Result.failure<Nothing>(it) }
-//          }.getOrThrow()
-//          // 同一个事件的处理，不做任何阻塞，直接发出
-//          // 这里包一层launch，目的是确保不阻塞input的循环，从而确保上游event能快速涌入
-//          event.emitJobs += launch(start = CoroutineStart.UNDISPATCHED) {
-//            try {
-//              collector.emit(event)
-//            } catch (e: Throwable) {
-//              errorCatcher.complete(e)
-//            }
-//          }
-//          emitLock.unlock()
-//        }
       }
       actionQueue.queue("add-consumer") {
         consumers.add(this@Consumer)

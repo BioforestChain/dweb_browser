@@ -14,13 +14,12 @@ export const fetchStreamExtends = $makeFetchExtends({
     );
   },
   /** 获取 Response 的 body 为 ReadableStream */
-  stream() {
-    return this.then((res) => {
-      const stream = res.body;
-      if (stream == null) {
-        throw new Error(`request ${res.url} could not by stream.`);
-      }
-      return stream;
-    });
+  async stream() {
+    const res = await this;
+    const stream = res.body;
+    if (stream == null) {
+      throw new Error(`request ${res.url} could not by stream.`);
+    }
+    return stream;
   },
 });

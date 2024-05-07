@@ -102,6 +102,7 @@ export class Producer<T> {
           console.warn(`emitBy TIMEOUT!! step=$i consumer=${consumer} data=${this.data}`);
         }, 1000);
         const beforeConsumeTimes = this.#consumeTimes;
+        // 触发单个消费者中的单个消息
         await consumer.input.emit(this);
         clearTimeout(timeoutId);
 
@@ -123,8 +124,9 @@ export class Producer<T> {
     return new Producer.#Event<T>(data, this);
   }
   //#endregion
-
+  // 生产者中全部的消费者
   protected consumers = new Set<Consumer<T>>();
+  // 事件缓存
   protected buffers = new Set<Event<T>>();
   /** 保证发送 */
   send(value: T) {
@@ -161,10 +163,10 @@ export class Producer<T> {
 
   /**触发该消息 */
   protected async doEmit(event: Event<T>) {
-    const consumers = this.consumers;
-    for (const consumer of consumers) {
-      // 如果消费者没启动，或者没有开始读，或者是写通道还是关闭的
-      if (!consumer.started || consumer.startingBuffers?.has(event) == true) {
+    // 触发所有消费者的消息
+    for (const consumer of this.consumers) {
+      // 如果消费者没启动，或者没有开始读
+      if (!consumer.started) {
         continue;
       }
       await event.emitBy(consumer);
@@ -187,6 +189,7 @@ export class Producer<T> {
     close() {
       this.#cb = undefined;
     }
+    /**收集消息 */
     collect(cb: (event: Event<T>) => unknown) {
       this.#cb = cb;
     }
@@ -216,50 +219,22 @@ export class Producer<T> {
     startingBuffers: Set<Event<T>> | null = null;
     #errorCatcher = new PromiseOut<string | undefined>();
 
-    // #collectOnce = $once((collector: (event: Event<T>) => void) => {
-    //   // 同一个事件的处理，不做任何阻塞，直接发出
-    //   (async () => {
-    //     for await (const event of this.input) {
-    //       try {
-    //         collector(event);
-    //       } catch (e) {
-    //         this.#errorCatcher.resolve(e);
-    //       }
-    //     }
-    //   })();
-    //   this.#start();
-    // });
-
     /**开始触发之前的 */
     async #start() {
+      // 把自己添加进入消费者队列
       this.producer.consumers.add(this);
       this.#started = true;
-      const starting = this.producer.buffers;
-      this.startingBuffers = starting;
-      for (const event of starting) {
+      const startingBuffers = this.producer.buffers;
+      for (const event of startingBuffers) {
         await event.emitBy(this);
       }
-      this.startingBuffers = null;
-      this.producer.buffers.clear();
     }
-    // #collectors = new Set<$FlowCollector<T>>();
-    // 收集并触发所有的事件
-    // #startCollect = $once(() => {
-    //   (async () => {
-    //     for await (const event of this) {
-    //       for (const collector of this.#collectors) {
-    //         await collector(event);
-    //       }
-    //     }
-    //   })();
-    //   this.#start();
-    // });
+
     /**收集事件 */
     collect(collector: (event: Event<T>) => void) {
       this.input.collect(collector);
       // 事件在收集了再调用开始
       return this.#start();
-      // this.#collectOnce(collector);
     }
 
     mapNotNull<R>(transform: (value: T) => R | undefined) {
