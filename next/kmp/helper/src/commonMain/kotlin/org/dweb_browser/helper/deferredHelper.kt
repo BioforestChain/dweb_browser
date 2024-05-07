@@ -22,7 +22,7 @@ suspend fun <T> Deferred<T>.awaitResult() = runCatching { await() }
  */
 class DeferredSignal<T>(val deferred: Deferred<T>) : Deferred<T> by deferred {
   @OptIn(InternalCoroutinesApi::class, ExperimentalCoroutinesApi::class)
-  operator fun invoke(handler: (result: Result<T>) -> Unit) {
+  operator fun invoke(handler: (result: Result<T>) -> Unit) =
     invokeOnCompletion(onCancelling = true, invokeImmediately = true) {
       if (deferred.isCompleted) {
         handler(Result.success(deferred.getCompleted()))
@@ -30,7 +30,6 @@ class DeferredSignal<T>(val deferred: Deferred<T>) : Deferred<T> by deferred {
         handler(Result.failure(deferred.getCancellationException()))
       }
     }
-  }
 
 }
 

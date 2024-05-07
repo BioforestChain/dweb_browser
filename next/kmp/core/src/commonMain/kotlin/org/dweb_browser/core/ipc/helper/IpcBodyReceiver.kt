@@ -1,6 +1,7 @@
 package org.dweb_browser.core.ipc.helper
 
 import kotlinx.atomicfu.atomic
+import kotlinx.coroutines.DisposableHandle
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.helper.Debugger
@@ -68,12 +69,18 @@ class IpcBodyReceiver(
        * 默认是暂停状态
        */
       val paused = atomic(true)
+
+      lateinit var ipcCloseDisposable: DisposableHandle;
+      val metaToStreamConsumer = ipc.onStream("metaToStream")
+      var isStreamEnd = false
+
       val readableStream =
         ReadableStream(ipc.scope, cid = "receiver=${streamId}", onStart = { controller ->
           // 注册关闭事件
-          this.launch {
-            ipc.awaitClosed()
-            controller.closeWrite()
+          ipcCloseDisposable = ipc.onClosed {
+            ipc.launchJobs += launch {
+              controller.closeWrite()
+            }
           }
           /// 如果有初始帧，直接存起来
           when (metaBody.type.encoding) {
@@ -82,7 +89,7 @@ class IpcBodyReceiver(
             IPC_DATA_ENCODING.BASE64 -> (metaBody.data as String).toBase64ByteArray()
             else -> null
           }?.let { firstData -> controller.enqueueBackground(firstData) }
-          ipc.onStream("metaToStream").collectIn(ipc.scope) { event ->
+          metaToStreamConsumer.collectIn(ipc.scope) { event ->
             val ipcStream = event.data
             if (streamId == ipcStream.stream_id) {
               when (ipcStream) {
@@ -97,6 +104,7 @@ class IpcBodyReceiver(
                   debugIpcBodyReceiver(
                     "receiver/StreamEnd/$ipc/${controller.stream}", ipcStream
                   )
+                  isStreamEnd = true
                   controller.closeWrite()
                 }
 
@@ -114,8 +122,12 @@ class IpcBodyReceiver(
             ipc.postMessage(IpcStreamPulling(streamId))
           }
         }, onClose = {
-          // 跟对面讲，我关闭了,不再接受消息了，可以丢弃这个ByteChannel的内容了
-          ipc.postMessage(IpcStreamAbort(streamId))
+          ipcCloseDisposable.dispose()
+          metaToStreamConsumer.close()
+          if (!isStreamEnd) {
+            // 跟对面讲，我关闭了,不再接受消息了，可以丢弃这个ByteChannel的内容了
+            ipc.postMessage(IpcStreamAbort(streamId))
+          }
         });
 
       debugIpcBodyReceiver("$ipc/$readableStream", "start by stream-id:${streamId}")

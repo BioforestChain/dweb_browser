@@ -242,7 +242,10 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
       install(this@DnsNMM)
       addRunningApp(RunningApp(this@DnsNMM, CompletableDeferred(this)))
 
-      /** dwebDeepLink 适配器*/
+      /**
+       * dwebDeepLink 适配器
+       * TODO fire
+       */
       nativeFetchAdaptersManager.append(order = 0) { fromMM, request ->
         if (request.href.startsWith("dweb:")) {
           debugDNS("fetch deeplink", "$fromMM => ${request.href}")

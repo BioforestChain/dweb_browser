@@ -11,17 +11,23 @@ import kotlinx.coroutines.coroutineScope
 
 class OrderDeferred(var current: Job? = null) {
   val lock = SynchronizedObject()
+  val keys = SafeLinkList<Any?>()
   fun <T> queue(key: Any?, scope: CoroutineScope, handler: suspend () -> T) = synchronized(lock) {
     val preJob = current;
+    keys.add(key)
+    val timeout = traceTimeout(scope, 1000, "queue@${hashCode()}") { "key=$key keys=$keys" }
     scope.async(start = CoroutineStart.UNDISPATCHED) {
       preJob?.join();
+      timeout()
       handler()
     }.also { job ->
       if (job.isCompleted) {
         current = null
+        keys.remove(key)
       } else {
         current = job
         job.invokeOnCompletion {
+          keys.remove(key)
 //          done = true
 //          synchronized(lock) {
 //            if (current === job) {
@@ -54,12 +60,12 @@ class OrderDeferred(var current: Job? = null) {
 
 class OrderInvoker {
   private val queues = SafeHashMap<Int, OrderDeferred>()
-  suspend fun <T> tryInvoke(param: Any?, invoker: suspend () -> T) = tryInvoke(
+  suspend fun <T> tryInvoke(param: Any?, key: Any? = param, invoker: suspend () -> T) = tryInvoke(
     order = when (param) {
       is OrderBy -> param.order
       else -> null
     },
-    key = param,
+    key = key,
     invoker,
   )
 

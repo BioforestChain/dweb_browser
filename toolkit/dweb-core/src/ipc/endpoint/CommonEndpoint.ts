@@ -89,7 +89,6 @@ export abstract class CommonEndpoint extends IpcEndpoint {
       }
     })();
   }
-
   /**
    * 发送 EndpointIpcMessage
    */

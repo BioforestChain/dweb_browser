@@ -95,8 +95,12 @@ abstract class CommonEndpoint(
           ) {
             when (endpointMessage) {
               is EndpointLifecycle -> lifecycleRemoteMutableFlow.emit(endpointMessage)
-              is EndpointIpcRawMessage -> getIpcMessageProducer(endpointMessage.pid).also {
-                it.producer.trySend(endpointMessage.ipcMessage.toIpcMessage(it.ipcDeferred.await()))
+              is EndpointIpcRawMessage -> {
+                val (pid, ipcMessage) = endpointMessage
+                debugEndpoint("message-in", "pid=$pid ipcMessage=$ipcMessage")
+                getIpcMessageProducer(pid).also {
+                  it.producer.trySend(ipcMessage.toIpcMessage(it.ipcDeferred.await()))
+                }
               }
             }
           }

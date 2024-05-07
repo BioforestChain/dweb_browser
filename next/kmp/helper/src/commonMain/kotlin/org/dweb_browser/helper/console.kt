@@ -1,6 +1,8 @@
 package org.dweb_browser.helper
 
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -195,4 +197,21 @@ suspend inline fun <R> traceTimeout(
   }
 } else {
   block()
+}
+
+inline fun traceTimeout(
+  scope: CoroutineScope,
+  ms: Long,
+  tag: String = "traceTimeout",
+  crossinline log: () -> Any?,
+) = CompletableDeferred<Unit>().let { deferred ->
+  scope.launch(start = CoroutineStart.UNDISPATCHED) {
+    traceTimeout(ms, tag, log) {
+      deferred.await()
+    }
+  }
+
+  return@let {
+    deferred.complete(Unit)
+  }
 }

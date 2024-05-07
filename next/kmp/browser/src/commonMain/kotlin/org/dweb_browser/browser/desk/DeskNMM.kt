@@ -74,10 +74,8 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
           if (ipc.remote.categories.contains(MICRO_MODULE_CATEGORY.Application)) {
             RunningApp(ipc, bootstrapContext).also { app ->
               runningApps[mmid] = app
-              // TODO 待测试这里冗余
-              ipc.scope.launch {
-                /// 如果应用关闭，将它从列表中移除
-                app.onClosed.invoke().await()
+              /// 如果应用关闭，将它从列表中移除
+              app.ipc.onClosed {
                 runningApps.remove(mmid)
               }
             }

@@ -160,7 +160,7 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
         }
         val beforeConsumeTimes = consumeTimes.value
 
-        traceTimeout(1000, "emitBy", { "consumer=$consumer data=$data" }) {
+        traceTimeout(2000, "emitBy", { "consumer=$consumer data=$data" }) {
 
           /// 这里使用channel将event和lock发送过去，但是 emit 返回只代表了对面接收到，不代表对面处理完
           /// 所以这里我们还需要等待对面处理完成，这里 emit(null) 就是这样一个等待作用，它可以确保上一个event被接受处理
@@ -192,7 +192,7 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
   suspend fun send(value: T, order: Int? = null) = actionQueue.queue("send=$value") {
     ensureOpen()
     doSend(value, order)
-  }
+  }.await()
 
   private val warn = Once { WARNING("$this buffers overflow maybe leak: $buffers") }
   private fun doSend(value: T, order: Int?) {
@@ -208,7 +208,7 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
 
   suspend fun sendBeacon(value: T, order: Int? = null) = actionQueue.queue("sendBeacon") {
     doSendBeacon(value, order)
-  }
+  }.await()
 
   private suspend fun doSendBeacon(value: T, order: Int?) {
     val event = Event(value, order)
@@ -302,21 +302,19 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
       }
       actionQueue.queue("add-consumer") {
         consumers.add(this@Consumer)
-        withScope(scope) {
-          started = true
-          val starting = buffers.toList()
-          startingBuffers = starting
-          /// 将之前没有被消费的逐个触发，这里不用担心 buffers 被中途追加，emit会同步触发
-          for (event in starting) {
-            launch(start = CoroutineStart.UNDISPATCHED) {
-              event.orderInvoke {
-                event.emitBy(this@Consumer)
-              }
+        started = true
+        val starting = buffers.toList()
+        startingBuffers = starting
+        /// 将之前没有被消费的逐个触发，这里不用担心 buffers 被中途追加，emit会同步触发
+        for (event in starting) {
+          launch(start = CoroutineStart.UNDISPATCHED) {
+            event.orderInvoke {
+              event.emitBy(this@Consumer)
             }
           }
-          startingBuffers = null
         }
-      }
+        startingBuffers = null
+      }.await()
       val x = invokeOnClose {
         deferred.cancel(CancellationException("${this@Producer} closed", it))
         consumers.remove(this@Consumer)
@@ -333,7 +331,7 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
       collectOnce(collector)
     }
 
-    suspend fun close(cause: Throwable?) {
+    suspend fun close(cause: Throwable? = null) {
       errorCatcher.complete(cause)
     }
   }

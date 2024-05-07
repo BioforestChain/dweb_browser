@@ -7,7 +7,7 @@ import org.dweb_browser.helper.toBase64
 
 @Serializable()
 @SerialName(IPC_MESSAGE_TYPE_STREAM_DATA)
-class IpcStreamDataRawString(
+data class IpcStreamDataRawString(
   val stream_id: String,
   val encoding: IPC_DATA_ENCODING,
   val data: String,
@@ -19,7 +19,7 @@ class IpcStreamDataRawString(
 
 @Serializable()
 @SerialName(IPC_MESSAGE_TYPE_STREAM_DATA)
-class IpcStreamDataRawBinary(
+data class IpcStreamDataRawBinary(
   val stream_id: String,
   val encoding: IPC_DATA_ENCODING,
   val data: ByteArray,
