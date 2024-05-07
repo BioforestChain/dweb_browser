@@ -1,3 +1,4 @@
+import type { OrderBy } from "@dweb-browser/helper/OrderBy.ts";
 import type { $MicroModuleManifest } from "../../types.ts";
 import { IPC_LIFECYCLE_STATE, ipcLifecycleStateBase } from "./internal/IpcLifecycle.ts";
 import { IPC_MESSAGE_TYPE, ipcMessageBase } from "./internal/IpcMessage.ts";
@@ -38,9 +39,10 @@ export const IpcLifecycleClosed = (reason?: string) => ({
 });
 
 export type $IpcLifecycle<S extends $IpcLifecycleState = $IpcLifecycleState> = ReturnType<typeof ipcLifecycle<S>>;
-const ipcLifecycle = <S extends $IpcLifecycleState>(state: S) =>
-  ({ ...ipcMessageBase(IPC_MESSAGE_TYPE.LIFECYCLE), state } as const);
+const ipcLifecycle = <S extends $IpcLifecycleState>(state: S, order = IPC_LIFECYCLE_DEFAULT_ORDER) =>
+  ({ ...ipcMessageBase(IPC_MESSAGE_TYPE.LIFECYCLE), state, order } as const satisfies OrderBy);
 
+const IPC_LIFECYCLE_DEFAULT_ORDER = -1;
 export const IpcLifecycle = Object.assign(ipcLifecycle, {
   equals: (a: $IpcLifecycle, b: $IpcLifecycle) => {
     if (a.state.name !== b.state.name) {

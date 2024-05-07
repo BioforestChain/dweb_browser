@@ -1,33 +1,7 @@
+import type { OrderBy } from "@dweb-browser/helper/OrderBy.ts";
 import { ENDPOINT_LIFECYCLE_STATE, ENDPOINT_PROTOCOL } from "./internal/EndpointLifecycle.ts";
 import { ENDPOINT_MESSAGE_TYPE, endpointMessageBase } from "./internal/EndpointMessage.ts";
 export { ENDPOINT_LIFECYCLE_STATE, ENDPOINT_PROTOCOL } from "./internal/EndpointLifecycle.ts";
-
-export type $EndpointLifecycle<T extends $EndpointLifecycleState = $EndpointLifecycleState> = ReturnType<
-  typeof _endpointLifecycle<T>
->;
-const _endpointLifecycle = <T extends $EndpointLifecycleState>(state: T) =>
-  ({
-    ...endpointMessageBase(ENDPOINT_MESSAGE_TYPE.LIFECYCLE),
-    state,
-  } as const);
-
-export const endpointLifecycle = Object.assign(_endpointLifecycle, {
-  equals: (a: $EndpointLifecycle, b: $EndpointLifecycle) => {
-    if (a.state.name !== b.state.name) {
-      return false;
-    }
-    if (a.state.name === ENDPOINT_LIFECYCLE_STATE.CLOSING) {
-      return a.state.reason === (b.state as $EndpointLifecycleClosing).reason;
-    }
-    if (a.state.name === ENDPOINT_LIFECYCLE_STATE.CLOSED) {
-      return a.state.reason === (b.state as $EndpointLifecycleClosed).reason;
-    }
-    if (a.state.name === ENDPOINT_LIFECYCLE_STATE.OPENING || a.state.name === ENDPOINT_LIFECYCLE_STATE.OPENED) {
-      return JSON.stringify(a.state) === JSON.stringify(b.state);
-    }
-    return true;
-  },
-});
 
 export type $EndpointLifecycleState =
   | $EndpointLifecycleInit
@@ -66,3 +40,42 @@ export const endpointLifecycleClosed = (reason?: string) =>
     ...endpointLifecycleStateBase(ENDPOINT_LIFECYCLE_STATE.CLOSED),
     reason,
   } as const);
+
+export type $EndpointLifecycle<T extends $EndpointLifecycleState = $EndpointLifecycleState> = ReturnType<
+  typeof endpointLifecycle<T>
+>;
+
+const endpointLifecycle = <T extends $EndpointLifecycleState>(
+  state: T,
+  order: number = ENDPOINT_LIFECYCLE_DEFAULT_ORDER
+) =>
+  ({
+    ...endpointMessageBase(ENDPOINT_MESSAGE_TYPE.LIFECYCLE),
+    state,
+    order,
+  } as const satisfies OrderBy);
+
+const ENDPOINT_LIFECYCLE_DEFAULT_ORDER = -1;
+export const EndpointLifecycle = Object.assign(endpointLifecycle, {
+  equals: (a: $EndpointLifecycle, b: $EndpointLifecycle) => {
+    if (a.state.name !== b.state.name) {
+      return false;
+    }
+    if (a.state.name === ENDPOINT_LIFECYCLE_STATE.CLOSING) {
+      return a.state.reason === (b.state as $EndpointLifecycleClosing).reason;
+    }
+    if (a.state.name === ENDPOINT_LIFECYCLE_STATE.CLOSED) {
+      return a.state.reason === (b.state as $EndpointLifecycleClosed).reason;
+    }
+    if (a.state.name === ENDPOINT_LIFECYCLE_STATE.OPENING || a.state.name === ENDPOINT_LIFECYCLE_STATE.OPENED) {
+      return JSON.stringify(a.state) === JSON.stringify(b.state);
+    }
+    return true;
+  },
+  DEFAULT_ORDER: ENDPOINT_LIFECYCLE_DEFAULT_ORDER,
+  init: endpointLifecycleInit,
+  opening: endpointLifecycleOpening,
+  opend: endpointLifecycleOpend,
+  closing: endpointLifecycleClosing,
+  closed: endpointLifecycleClosed,
+});

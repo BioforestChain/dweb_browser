@@ -1,5 +1,6 @@
 import { stringHashCode } from "@dweb-browser/helper/hashCode.ts";
 import { IPC_MESSAGE_TYPE, ipcMessageBase } from "../internal/IpcMessage.ts";
+import type { OrderBy } from "@dweb-browser/helper/OrderBy.ts";
 
 export type $IpcStreamPaused = ReturnType<typeof IpcStreamPaused>;
 /**
@@ -14,4 +15,4 @@ export type $IpcStreamPaused = ReturnType<typeof IpcStreamPaused>;
  * @returns
  */
 export const IpcStreamPaused = (stream_id: string, fuse?: number | null, order: number = stringHashCode(stream_id)) =>
-  ({ ...ipcMessageBase(IPC_MESSAGE_TYPE.STREAM_PAUSED), stream_id, fuse: fuse ?? 1, order } as const);
+  ({ ...ipcMessageBase(IPC_MESSAGE_TYPE.STREAM_PAUSED), stream_id, fuse: fuse ?? 1, order } as const satisfies OrderBy);

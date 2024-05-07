@@ -225,7 +225,7 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
     } else {
       doSend(value, order)
     }
-  }
+  }.await()
 
 
   private suspend fun doEmit(event: Event) {

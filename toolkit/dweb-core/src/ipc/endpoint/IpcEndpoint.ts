@@ -16,7 +16,7 @@ import type { $EndpointIpcMessage } from "./EndpointIpcMessage.ts";
 import {
   ENDPOINT_LIFECYCLE_STATE,
   ENDPOINT_PROTOCOL,
-  endpointLifecycle,
+  EndpointLifecycle,
   endpointLifecycleClosed,
   endpointLifecycleClosing,
   endpointLifecycleInit,
@@ -90,8 +90,8 @@ export abstract class IpcEndpoint {
    * 本地的生命周期状态流
    */
   protected lifecycleLocaleFlow = new StateSignal<$EndpointLifecycle>(
-    endpointLifecycle(endpointLifecycleInit()),
-    endpointLifecycle.equals
+    EndpointLifecycle(endpointLifecycleInit()),
+    EndpointLifecycle.equals
   );
   /**
    * 生命周期 监听器
@@ -145,7 +145,7 @@ export abstract class IpcEndpoint {
     let localeSubProtocols = this.getLocaleSubProtocols();
     // 当前状态必须是从init开始
     if (this.lifecycle.state.name === ENDPOINT_LIFECYCLE_STATE.INIT) {
-      const opening = endpointLifecycle(endpointLifecycleOpening(localeSubProtocols));
+      const opening = EndpointLifecycle(endpointLifecycleOpening(localeSubProtocols));
       this.sendLifecycleToRemote(opening);
       this.console.log("emit-locale-lifecycle", opening);
       this.lifecycleLocaleFlow.emit(opening);
@@ -166,7 +166,7 @@ export abstract class IpcEndpoint {
           const lifecycleLocale = this.lifecycle;
           this.console.log("remote-opend-&-locale-lifecycle", lifecycleLocale);
           if (lifecycleLocale.state.name === ENDPOINT_LIFECYCLE_STATE.OPENING) {
-            const opend = endpointLifecycle(endpointLifecycleOpend(lifecycleLocale.state.subProtocols));
+            const opend = EndpointLifecycle(endpointLifecycleOpend(lifecycleLocale.state.subProtocols));
             this.sendLifecycleToRemote(opend);
             this.console.log("emit-locale-lifecycle", opend);
             this.lifecycleLocaleFlow.emit(opend);
@@ -190,11 +190,11 @@ export abstract class IpcEndpoint {
           );
           if (setHelper.equals(localeSubProtocols, lifecycle.state.subProtocols) === false) {
             localeSubProtocols = setHelper.intersect(localeSubProtocols, lifecycle.state.subProtocols);
-            const opening = endpointLifecycle(endpointLifecycleOpening(localeSubProtocols));
+            const opening = EndpointLifecycle(endpointLifecycleOpening(localeSubProtocols));
             this.lifecycleLocaleFlow.emit(opening);
             nextState = opening;
           } else {
-            nextState = endpointLifecycle(endpointLifecycleOpend(localeSubProtocols));
+            nextState = EndpointLifecycle(endpointLifecycleOpend(localeSubProtocols));
           }
           this.sendLifecycleToRemote(nextState);
           break;
@@ -243,7 +243,7 @@ export abstract class IpcEndpoint {
     switch (this.lifecycle.state.name) {
       case ENDPOINT_LIFECYCLE_STATE.OPENED:
       case ENDPOINT_LIFECYCLE_STATE.OPENING: {
-        this.sendLifecycleToRemote(endpointLifecycle(endpointLifecycleClosing()));
+        this.sendLifecycleToRemote(EndpointLifecycle(endpointLifecycleClosing()));
         break;
       }
       case ENDPOINT_LIFECYCLE_STATE.CLOSED: {
@@ -256,7 +256,7 @@ export abstract class IpcEndpoint {
       await channel.producer.close(cause);
     }
     this.ipcMessageProducers.clear();
-    this.sendLifecycleToRemote(endpointLifecycle(endpointLifecycleClosed()));
+    this.sendLifecycleToRemote(EndpointLifecycle(endpointLifecycleClosed()));
     this.afterClosed?.();
   }
 

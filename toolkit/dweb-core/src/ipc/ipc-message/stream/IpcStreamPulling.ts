@@ -1,5 +1,6 @@
 import { stringHashCode } from "@dweb-browser/helper/hashCode.ts";
 import { IPC_MESSAGE_TYPE, ipcMessageBase } from "../internal/IpcMessage.ts";
+import type { OrderBy } from "@dweb-browser/helper/OrderBy.ts";
 
 export type $IpcStreamPulling = ReturnType<typeof IpcStreamPulling>;
 /**
@@ -21,4 +22,4 @@ export const IpcStreamPulling = (
     stream_id,
     bandwidth: bandwidth ?? 0,
     order,
-  } as const);
+  } as const satisfies OrderBy);

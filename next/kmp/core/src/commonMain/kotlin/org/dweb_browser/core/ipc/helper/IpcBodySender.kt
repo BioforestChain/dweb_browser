@@ -120,9 +120,9 @@ class IpcBodySender private constructor(
     private val streamIdWM by lazy { WeakHashMap<PureStream, String>() }
 
     private var stream_id_acc by SafeInt(1)
-    private val env = randomUUID()
+    private val env = randomUUID().hashCode().toString(36)
     private fun getStreamId(stream: PureStream): String = streamIdWM.getOrPut(stream) {
-      "rs-$env-${stream_id_acc++}"
+      "$env-${stream_id_acc++}-§"
     }
 
     private val asMateLock = Mutex()

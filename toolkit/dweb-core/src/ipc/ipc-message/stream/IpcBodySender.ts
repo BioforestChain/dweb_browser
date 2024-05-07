@@ -1,6 +1,7 @@
 import { PromiseOut } from "@dweb-browser/helper/PromiseOut.ts";
 import { createSignal, type $Callback } from "@dweb-browser/helper/createSignal.ts";
 import "@dweb-browser/helper/crypto.shims.ts";
+import { stringHashCode } from "@dweb-browser/helper/hashCode.ts";
 import { binaryStreamRead } from "@dweb-browser/helper/stream/readableStreamHelper.ts";
 import type { Ipc } from "../../ipc.ts";
 import { IPC_MESSAGE_TYPE } from "../internal/IpcMessage.ts";
@@ -328,12 +329,12 @@ export class IpcBodySender extends IpcBody {
   };
 }
 const streamIdWM = new WeakMap<ReadableStream<Uint8Array>, string>();
-const streamRealmId = crypto.randomUUID();
+const streamRealmId = stringHashCode(crypto.randomUUID()).toString(36);
 let stream_id_acc = 0;
 const getStreamId = (stream: ReadableStream<Uint8Array>) => {
   let id = streamIdWM.get(stream);
   if (id === undefined) {
-    id = `${streamRealmId}-${stream_id_acc++}`;
+    id = `${streamRealmId}-${stream_id_acc++}-§`;
     streamIdWM.set(stream, id);
   }
   return id;
@@ -341,7 +342,7 @@ const getStreamId = (stream: ReadableStream<Uint8Array>) => {
 export const setStreamId = (stream: ReadableStream<Uint8Array>, cid: string) => {
   let id = streamIdWM.get(stream);
   if (id === undefined) {
-    streamIdWM.set(stream, (id = `${streamRealmId}-${stream_id_acc++}[${cid}]`));
+    streamIdWM.set(stream, (id = `${streamRealmId}-${stream_id_acc++}-§[${cid}]`));
   }
   return id;
 };

@@ -109,6 +109,31 @@ export class JsProcessMicroModule extends MicroModule {
     return new JsProcessMicroModuleRuntime(this, context);
   }
   private get bootstrapContext() {
+    const waitMap = new Map<$MMID, PromiseOut<Ipc>>();
+    this.fetchIpc.onEvent("wait-dns-connect").collect((event) => {
+      event.consumeMapNotNull(async (ipcEvent) => {
+        if (ipcEvent.name === "dns/connect/done") {
+          this.console.log("connect-done", ipcEvent.data);
+          const done = JSON.parse(core.IpcEvent.text(ipcEvent)) as {
+            connect: $MMID;
+            result: $MMID;
+          };
+          const po = waitMap.get(done.connect);
+          if (po === undefined) {
+            this.console.error(`no found connect task: ${done.connect}`);
+            return;
+          }
+          const ipc = await this.runtime.getConnected(done.result);
+          if (ipc === undefined) {
+            po.reject(new Error(`no found connect result: ${done.result}`));
+          } else {
+            po.resolve(ipc);
+          }
+          return done;
+        }
+      });
+    });
+
     const ctx: $BootstrapContext = {
       dns: {
         install: function (_mm: MicroModule): void {
@@ -120,28 +145,10 @@ export class JsProcessMicroModule extends MicroModule {
         connect: (mmid: `${string}.dweb`, reason?: Request | undefined): $PromiseMaybe<core.Ipc> => {
           this.console.log("connect", mmid);
           const po = new PromiseOut<Ipc>();
-          this.fetchIpc.postMessage(core.IpcEvent.fromText("dns/connect", mmid));
+          waitMap.set(mmid, po);
 
-          this.fetchIpc.onEvent("wait-dns-connect").collect((event) => {
-            event.consumeMapNotNull(async (ipcEvent) => {
-              if (ipcEvent.name === "dns/connect/done") {
-                this.console.log("connect-done", ipcEvent.data);
-                const done = JSON.parse(core.IpcEvent.text(ipcEvent)) as {
-                  connect: $MMID;
-                  result: $MMID;
-                };
-                if (done.connect === mmid) {
-                  const ipc = await this.runtime.getConnected(done.result);
-                  if (ipc === undefined) {
-                    po.reject(new Error(`no found connect result: ${done.result}`));
-                  } else {
-                    po.resolve(ipc);
-                  }
-                  return done;
-                }
-              }
-            });
-          });
+          // 发送指令
+          this.fetchIpc.postMessage(core.IpcEvent.fromText("dns/connect", mmid));
 
           return po.promise;
         },

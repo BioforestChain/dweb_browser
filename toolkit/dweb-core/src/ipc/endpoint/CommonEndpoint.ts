@@ -1,4 +1,5 @@
 import { Channel } from "@dweb-browser/helper/Channel.ts";
+import { OrderInvoker } from "@dweb-browser/helper/OrderBy.ts";
 import { StateSignal } from "@dweb-browser/helper/StateSignal.ts";
 import { encode } from "cbor-x";
 import {
@@ -10,7 +11,7 @@ import type { $EndpointIpcMessage } from "./EndpointIpcMessage.ts";
 import {
   ENDPOINT_LIFECYCLE_STATE,
   ENDPOINT_PROTOCOL,
-  endpointLifecycle,
+  EndpointLifecycle,
   endpointLifecycleInit,
   type $EndpointLifecycle,
 } from "./EndpointLifecycle.ts";
@@ -32,8 +33,8 @@ export abstract class CommonEndpoint extends IpcEndpoint {
   protected endpointMsgChannel = new Channel<$EndpointRawMessage>();
 
   #lifecycleRemoteMutableFlow = new StateSignal<$EndpointLifecycle>(
-    endpointLifecycle(endpointLifecycleInit()),
-    endpointLifecycle.equals
+    EndpointLifecycle(endpointLifecycleInit()),
+    EndpointLifecycle.equals
   );
 
   readonly lifecycleRemoteFlow = this.#lifecycleRemoteMutableFlow.asReadyonly();
@@ -69,19 +70,22 @@ export abstract class CommonEndpoint extends IpcEndpoint {
     });
     // 分发消息或者声明周期
     (async () => {
+      const orderInvoker = new OrderInvoker();
       for await (const endpointMessage of this.endpointMsgChannel) {
-        switch (endpointMessage.type) {
-          case ENDPOINT_MESSAGE_TYPE.IPC: {
-            const producer = this.getIpcMessageProducer(endpointMessage.pid);
-            const ipc = await producer.ipcPo.promise;
-            void producer.producer.trySend($normalizeIpcMessage(endpointMessage.ipcMessage, ipc));
-            break;
+        void orderInvoker.tryInvoke(endpointMessage, async () => {
+          switch (endpointMessage.type) {
+            case ENDPOINT_MESSAGE_TYPE.IPC: {
+              const producer = this.getIpcMessageProducer(endpointMessage.pid);
+              const ipc = await producer.ipcPo.promise;
+              void producer.producer.trySend($normalizeIpcMessage(endpointMessage.ipcMessage, ipc));
+              break;
+            }
+            case ENDPOINT_MESSAGE_TYPE.LIFECYCLE: {
+              this.#lifecycleRemoteMutableFlow.emit(endpointMessage);
+              break;
+            }
           }
-          case ENDPOINT_MESSAGE_TYPE.LIFECYCLE: {
-            this.#lifecycleRemoteMutableFlow.emit(endpointMessage);
-            break;
-          }
-        }
+        });
       }
     })();
   }
