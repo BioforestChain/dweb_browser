@@ -60,20 +60,21 @@ class ReadableStream(
       }
     }
 
-    suspend fun enqueue(byteArray: ByteArray) = orderInvoker.tryInvoke(1) {
-      try {
-        stream._stream.writePacket(ByteReadPacket(byteArray))
-        true
-      } catch (e: Throwable) {
-        false
+    suspend fun enqueue(byteArray: ByteArray) =
+      orderInvoker.tryInvoke(1, key = "enqueue(${byteArray.size}bytes)") {
+        try {
+          stream._stream.writePacket(ByteReadPacket(byteArray))
+          true
+        } catch (e: Throwable) {
+          false
+        }
       }
-    }
 
     suspend fun enqueue(data: String) = enqueue(data.encodeToByteArray())
 
-    fun enqueueBackground(byteArray: ByteArray) =
+    inline fun background(crossinline handler: suspend () -> Unit) =
       stream.scope.launch(start = CoroutineStart.UNDISPATCHED) {
-        enqueue(byteArray)
+        handler()
       }
 
     suspend fun closeWrite(cause: Throwable? = null, interrupt: Boolean = false) {
@@ -81,13 +82,11 @@ class ReadableStream(
       if (interrupt) {
         stream.closeWrite(cause)
       } else {
-        orderInvoker.tryInvoke(1) {
+        orderInvoker.tryInvoke(1,key = "closeWrite($cause)") {
           stream.closeWrite(cause)
         }
       }
     }
-
-    fun enqueueBackground(data: String) = enqueueBackground(data.encodeToByteArray())
 
     fun awaitClose(onClosed: suspend () -> Unit) {
       stream.scope.launch {

@@ -70,16 +70,17 @@ suspend fun ApplicationResponse.fromPureResponse(response: PureResponse) {
       status = response.status,
       contentLength = contentLength,
     ) {
-      val nativeStream = when (val stream =
-        pureBody.toPureStream().getReader("toApplicationResponse")) {
-        is ByteReadChannelDelegate -> stream.sourceByteReadChannel
-        else -> stream
-      }
+      val stream =
+        pureBody.toPureStream().getReader("toApplicationResponse")
+
       runCatching {
-        nativeStream.copyAndClose(this)
+        when (stream) {
+          is ByteReadChannelDelegate -> stream.sourceByteReadChannel
+          else -> stream
+        }.copyAndClose(this)
       }.getOrElse {
         // 接收端关闭了写，所以我这边也要关闭自己这个流
-        nativeStream.cancel(it)
+        stream.cancel(it)
       }
     }
   }

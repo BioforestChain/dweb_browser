@@ -147,8 +147,8 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
     }
 
     /**按顺序触发事件*/
-    internal suspend inline fun orderInvoke(crossinline invoker: suspend () -> Unit) {
-      orderInvoker.tryInvoke(order, key = this) {
+    internal suspend inline fun orderInvoke(key: String, crossinline invoker: suspend () -> Unit) {
+      orderInvoker.tryInvoke(order, key = "$this >> $key") {
         invoker()
       }
     }
@@ -229,7 +229,7 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
 
 
   private suspend fun doEmit(event: Event) {
-    event.orderInvoke {
+    event.orderInvoke("doEmit") {
       withScope(scope) {
         for (consumer in consumers.toList()) {
           if (!consumer.started || consumer.startingBuffers?.contains(event) == true) {
@@ -308,7 +308,7 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
         /// 将之前没有被消费的逐个触发，这里不用担心 buffers 被中途追加，emit会同步触发
         for (event in starting) {
           launch(start = CoroutineStart.UNDISPATCHED) {
-            event.orderInvoke {
+            event.orderInvoke("staring consumer=${this@Consumer}") {
               event.emitBy(this@Consumer)
             }
           }
@@ -357,7 +357,7 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
       debugProducer("closeEvents", bufferEvents)
       for (event in bufferEvents) {
         scope.launch(start = CoroutineStart.UNDISPATCHED) {
-          event.orderInvoke {
+          event.orderInvoke("close") {
             if (!event.consumed) {
               event.consume()
               event.complete()

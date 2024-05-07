@@ -22,11 +22,13 @@ open class StateObservable(
   suspend fun startObserve(ipc: Ipc): PureStream {
     return ReadableStream(ipc.scope) { controller ->
       val off = observe { state ->
-        try {
-          controller.enqueueBackground((Json.encodeToString(state) + "\n").toByteArray())
-        } catch (e: Exception) {
-          controller.closeWrite()
-          e.printStackTrace()
+        controller.background {
+          try {
+            controller.enqueue((Json.encodeToString(state) + "\n").toByteArray())
+          } catch (e: Exception) {
+            controller.closeWrite()
+            e.printStackTrace()
+          }
         }
       }
       this.launch {

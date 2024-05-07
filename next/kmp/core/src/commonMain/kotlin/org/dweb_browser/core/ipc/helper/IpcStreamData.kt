@@ -14,6 +14,14 @@ data class IpcStreamDataRawString(
   override val order: Int,
 ) : IpcRawMessage, OrderBy {
   fun toIpcStreamData() = IpcStreamData(stream_id, encoding, data, order)
+  override fun toString(): String {
+    return "IpcStreamDataRawString(stream_id=$stream_id, encoding=$encoding, order=$order, data=${
+      when (val len = data.length) {
+        in 0..100 -> data
+        else -> data.slice(0..20) + "..." + data.slice(len - 20..<len)
+      }
+    })"
+  }
 }
 
 

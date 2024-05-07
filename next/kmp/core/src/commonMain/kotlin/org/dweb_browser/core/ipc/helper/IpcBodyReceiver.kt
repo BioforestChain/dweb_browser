@@ -88,10 +88,12 @@ class IpcBodyReceiver(
             IPC_DATA_ENCODING.BINARY -> metaBody.data as ByteArray
             IPC_DATA_ENCODING.BASE64 -> (metaBody.data as String).toBase64ByteArray()
             else -> null
-          }?.let { firstData -> controller.enqueueBackground(firstData) }
+          }?.let { firstData -> controller.background { controller.enqueue(firstData) } }
+
           metaToStreamConsumer.collectIn(ipc.scope) { event ->
-            val ipcStream = event.data
-            if (streamId == ipcStream.stream_id) {
+            val ipcStream = event.consumeFilter { it.stream_id == streamId } ?: return@collectIn;
+            /// 这里在 background 中执行，避免阻塞，因为 metaToStreamConsumer 是互相阻塞的
+            controller.background {
               when (ipcStream) {
                 is IpcStreamData -> {
                   debugIpcBodyReceiver(
@@ -105,12 +107,12 @@ class IpcBodyReceiver(
                     "receiver/StreamEnd/$ipc/${controller.stream}", ipcStream
                   )
                   isStreamEnd = true
+                  controller.background {}
                   controller.closeWrite()
                 }
 
-                else -> return@collectIn
+                else -> {}
               }
-              event.consume()
             }
           }
         }, onOpenReader = { controller ->
