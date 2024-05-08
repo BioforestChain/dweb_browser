@@ -42,7 +42,7 @@ export class PromiseOut<T = unknown> {
   }
   static sleep(ms: number) {
     const po = new PromiseOut<void>();
-    let ti: number | undefined = setTimeout(() => {
+    let ti: any = setTimeout(() => {
       ti = undefined;
       po.resolve();
     }, ms);

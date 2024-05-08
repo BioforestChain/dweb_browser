@@ -11,7 +11,8 @@
         "verbatimModuleSyntax": true,
         "strictNullChecks": true,
         "strictFunctionTypes": true,
-        "experimentalDecorators": true
+        "experimentalDecorators": true,
+        "isolatedModules": false
     },
     "exclude": [
         "node_modules",

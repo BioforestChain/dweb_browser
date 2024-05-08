@@ -1,5 +1,5 @@
 import type { $PromiseMaybe } from "@dweb-browser/helper/$PromiseMaybe.ts";
-import type { $IpcResponse } from "../../plaoc/server/deps.ts";
+import type { IpcResponse } from "./ipc/ipc-message/IpcResponse.ts";
 import type { Ipc } from "./ipc/ipc.ts";
 import type { MICRO_MODULE_CATEGORY } from "./type/category.const.ts";
 import type { $MMID, $MicroModuleManifest } from "./types.ts";
@@ -17,7 +17,7 @@ export interface $DnsMicroModule {
    * @param reason
    */
   connect(mmid: $MMID, reason?: Request): $PromiseMaybe<Ipc>;
-  request(url: string): Promise<$IpcResponse>;
+  request(url: string): Promise<IpcResponse>;
   query(mmid: $MMID): Promise<$MicroModuleManifest | undefined>;
   queryDeeplink(request: string): Promise<$MMID | undefined>;
   /**
