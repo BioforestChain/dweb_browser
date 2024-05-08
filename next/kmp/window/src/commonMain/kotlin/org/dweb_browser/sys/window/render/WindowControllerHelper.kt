@@ -521,7 +521,7 @@ fun WindowController.calcContentScale(
   /**
    * 计算进度
    */
-  fun calcProgress(from: Float, now: Float, to: Float) = (abs(now - from) / (to - from)).toDouble()
+  fun calcProgress(from: Float, now: Float, to: Float) = ((now - from) / (to - from)).toDouble()
 
   /**
    * 将动画进度还原成所需的缩放值
@@ -529,7 +529,7 @@ fun WindowController.calcContentScale(
   fun Double.toScale(minScale: Double, maxScale: Double = 1.0) =
     ((maxScale - minScale) * this) + minScale
 
-  val scaleProgress = min(
+  val scaleProgress = max(
     calcProgress(limits.minWidth, contentWidth, limits.maxWidth),
     calcProgress(limits.minHeight, contentHeight, limits.maxHeight),
   )

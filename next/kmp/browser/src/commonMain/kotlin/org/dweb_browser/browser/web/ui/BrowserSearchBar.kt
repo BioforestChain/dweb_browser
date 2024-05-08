@@ -12,6 +12,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -71,6 +72,7 @@ import org.dweb_browser.browser.web.model.page.BrowserWebPage
 import org.dweb_browser.browser.web.model.pageUrlTransformer
 import org.dweb_browser.dwebview.rememberLoadingProgress
 import org.dweb_browser.helper.isDwebDeepLink
+import org.dweb_browser.sys.window.render.LocalWindowLimits
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -102,20 +104,22 @@ fun BrowserSearchBar(modifier: Modifier) {
       Icon(Icons.Rounded.Add, "Add")
     }
 
-    HorizontalPager(
-      modifier = Modifier.weight(1f),
-      state = viewModel.pagerStates.searchBar,
-      pageSpacing = 0.dp,
-      userScrollEnabled = true,
-      reverseLayout = false,
-      contentPadding = PaddingValues(horizontal = 10.dp),
-      beyondBoundsPageCount = 5,
-      pageContent = { currentPage ->
-        Box(Modifier.padding(horizontal = 5.dp)) {
-          SearchBox(viewModel.getPage(currentPage))
-        }
-      },
-    )
+    BoxWithConstraints(modifier = Modifier.weight(1f)) {
+      if (maxWidth > 20.dp) {
+        HorizontalPager(
+          modifier = Modifier.fillMaxWidth(),
+          state = viewModel.pagerStates.searchBar,
+          pageSpacing = 0.dp,
+          userScrollEnabled = true,
+          reverseLayout = false,
+          contentPadding = PaddingValues(horizontal = 10.dp),
+          beyondBoundsPageCount = 5,
+          pageContent = { currentPage ->
+            SearchBox(viewModel.getPage(currentPage))
+          },
+        )
+      }
+    }
 
     // 多窗口预览界面
     IconButton({
