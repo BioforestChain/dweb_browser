@@ -10,7 +10,7 @@ import Observation
 import SwiftUI
 
 struct DownloadListView: View {
-    @Bindable var viewModel = DownloadListViewModel()
+    let viewModel = DownloadListViewModel()
     var body: some View {
         Group {
             if viewModel.isEmpty {

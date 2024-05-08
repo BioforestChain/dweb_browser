@@ -73,9 +73,27 @@ public struct DownloadVideoPreviewView: DownloadPreview {
     init(url: URL) {
         self.url = url
         player = AVPlayer(url: url)
+        super.init()
+        addPlayFininshObserver()
+    }
+    
+    private func addPlayFininshObserver() {
+        NotificationCenter.default.addObserver(self, selector: #selector(playerDidFinishPlaying), name: .AVPlayerItemDidPlayToEndTime, object: player?.currentItem)
+    }
+    
+    @objc func playerDidFinishPlaying() {
+        Log("视频播放结束")
+        isPlaying = false
+        hideControlBar = false
+        stopAutoHideTimer()
     }
 
     func play() {
+        if abs(progress-1.0)<0.01 {
+            player?.seek(to: CMTime(value: 0, timescale: 1),
+                        toleranceBefore: CMTime(value: 1, timescale: 10),
+                        toleranceAfter: CMTime(value: 1, timescale: 10))
+        }
         player?.play()
         isPlaying = true
         resetAutoHideTimer()
@@ -184,6 +202,7 @@ public struct DownloadVideoPreviewView: DownloadPreview {
             player?.removeTimeObserver(token)
         }
         player = nil
+        NotificationCenter.default.removeObserver(self)
         Log("deinit")
     }
 }
@@ -195,29 +214,18 @@ struct DownloadVideoPreviewImpView: View {
     var body: some View {
         GeometryReader(content: { geometry in
             let _ = Log("\(geometry.size) \(geometry.safeAreaInsets)")
-            ZStack(alignment: .center) {
+            VStack {
                 if viewModel.isReady {
-                    ZStack {
-                        Rectangle()
-                            .onTapGesture {
-                                viewModel.touchScreenToggle()
-                            }
-                        VideoPlayer(player: viewModel.player)
-                            .disabled(true)
-                    }
-                    
-                    VStack {
-                        Spacer()
-                        controllBar
-                            .background {
-                                Color
-                                    .white
-                                    .ignoresSafeArea()
-                            }
-                            .animation(.easeInOut, value: viewModel.hideControlBar)
-                            .offset(y: viewModel.hideControlBar ? 100 : 0)
-                            .disabled(!viewModel.isReady)
-                    }
+                    Spacer()
+                    controllBar
+                        .background {
+                            Color
+                                .white
+                                .ignoresSafeArea()
+                        }
+                        .animation(.easeInOut, value: viewModel.hideControlBar)
+                        .offset(y: viewModel.hideControlBar ? 100 : 0)
+                        .disabled(!viewModel.isReady)
                 } else {
                     Group {
                         Color.black
@@ -229,16 +237,26 @@ struct DownloadVideoPreviewImpView: View {
                                     .cornerRadius(10)
                             }
                     }
-                    
                 }
             }
-            .task {
-                await viewModel.prepareVideo()
-            }
+
         })
         .background {
-            Color.black
-                .ignoresSafeArea()
+            ZStack {
+                Color.black
+                    .onTapGesture {
+                        viewModel.touchScreenToggle()
+                    }
+                if viewModel.isReady {
+                    VideoPlayer(player: viewModel.player)
+                        .disabled(true)
+                }
+            }
+            .ignoresSafeArea()
+        }
+        .toolbar(viewModel.hideControlBar ? .hidden : .visible, for: .navigationBar)
+        .task {
+            await viewModel.prepareVideo()
         }
         .onDisappear {
             viewModel.pause()
