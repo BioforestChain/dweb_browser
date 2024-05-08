@@ -105,7 +105,7 @@ fun BrowserSearchBar(modifier: Modifier) {
     }
 
     BoxWithConstraints(modifier = Modifier.weight(1f)) {
-      if (maxWidth > 20.dp) {
+      if (maxWidth > 20.dp) { // 由于宽度压缩太小，导致HorizontalPager空间不足，width<0,引起的crash
         HorizontalPager(
           modifier = Modifier.fillMaxWidth(),
           state = viewModel.pagerStates.searchBar,
