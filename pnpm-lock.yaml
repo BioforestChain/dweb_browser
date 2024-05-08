@@ -67,11 +67,11 @@ importers:
         specifier: ~0.18.0
         version: 0.18.2
       '@dweb-browser/core':
-        specifier: workspace:~
-        version: link:../@dweb-browser__core
+        specifier: 0.0.3
+        version: 0.0.3
       '@plaoc/server':
-        specifier: workspace:~
-        version: link:../@plaoc__server
+        specifier: 0.1.8
+        version: 0.1.8(@types/node@20.12.8)(tslib@2.6.2)
       ajv:
         specifier: 8.13.0
         version: 8.13.0
@@ -360,6 +360,9 @@ packages:
 
   '@deno/shim-deno@0.18.2':
     resolution: {integrity: sha512-oQ0CVmOio63wlhwQF75zA4ioolPvOwAoK0yuzcS5bDC1JUvH3y1GS8xPh8EOpcoDQRU4FTG8OQfxhpR+c6DrzA==}
+
+  '@dweb-browser/core@0.0.3':
+    resolution: {integrity: sha512-u6MP1bbmJgfBw5a5IifU2koVYPX2RBBUQJvEiQFtzhE4+aQApnwLbBPiIkzKp5CQ4MBehDhtMRN7jn18zQ5ZuA==}
 
   '@enhance/enhance-style-transform@0.0.1':
     resolution: {integrity: sha512-N2+W+FIMg1JtrbwYjahwY8YK4dXKiBdotXQvBnqZm2VhI+FfH05qgsKD1Fzo0DNHVH/tGBb6vF7a+6GLJt0fQg==}
@@ -707,6 +710,12 @@ packages:
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
     engines: {node: '>=14'}
+
+  '@plaoc/server@0.1.8':
+    resolution: {integrity: sha512-Krae5EleGpiqzSDKuXdmbBXPjUSTs8zA68kLRonkX1buTx6JM9/iSrWEmLKX0r+gboNmKwHpum+0+16KH/Nc7A==}
+    peerDependencies:
+      '@types/node': '*'
+      tslib: '*'
 
   '@rollup/rollup-android-arm-eabi@4.17.2':
     resolution: {integrity: sha512-NM0jFxY8bB8QLkoKxIQeObCaDlJKewVlIEkuyYKm5An1tdVZ966w2+MPQ2l8LBZLjR+SgyV+nRkTIunzOYBMLQ==}
@@ -2420,6 +2429,11 @@ snapshots:
       '@deno/shim-deno-test': 0.5.0
       which: 4.0.0
 
+  '@dweb-browser/core@0.0.3':
+    dependencies:
+      '@dweb-browser/helper': link:npm/@dweb-browser__helper
+      cbor-x: 1.5.9
+
   '@enhance/enhance-style-transform@0.0.1':
     dependencies:
       css: 3.0.0
@@ -2640,6 +2654,18 @@ snapshots:
 
   '@pkgjs/parseargs@0.11.0':
     optional: true
+
+  '@plaoc/server@0.1.8(@types/node@20.12.8)(tslib@2.6.2)':
+    dependencies:
+      '@dweb-browser/core': link:npm/@dweb-browser__core
+      '@dweb-browser/helper': link:npm/@dweb-browser__helper
+      '@dweb-browser/js-process': link:npm/@dweb-browser__js-process
+      '@types/node': 20.12.8
+      '@types/web': 0.0.143
+      deep-object-diff: 1.1.9
+      is-mobile: 4.0.0
+      tslib: 2.6.2
+      urlpattern-polyfill: 10.0.0
 
   '@rollup/rollup-android-arm-eabi@4.17.2':
     optional: true
@@ -4334,7 +4360,7 @@ snapshots:
       vue: 3.4.26(typescript@5.4.5)
     optionalDependencies:
       typescript: 5.4.5
-      vite-plugin-vuetify: 2.0.3(vite@5.2.11(@types/node@20.12.8)(sass@1.76.0))(vue@3.4.26(typescript@5.4.5))(vuetify@3.6.3)
+      vite-plugin-vuetify: 2.0.3(vite@5.2.11(@types/node@18.19.31)(sass@1.76.0))(vue@3.4.26(typescript@5.4.5))(vuetify@3.6.3)
 
   webdav-server@2.6.2:
     dependencies:

@@ -170,7 +170,6 @@ export const registryNpmBuilder = (config: Parameters<typeof npmBuilder>[0]) => 
     try {
       await npmBuilder(config);
       console.log(`✅ END ${packageJson.name}`);
-      console.log(`🍟 准备发布版本: ${packageJson.version}`);
     } catch (e) {
       console.error(`❌ ERROR ${packageJson.name}`);
       console.error(e);
