@@ -10,7 +10,11 @@ export type $IpcStreamData = ReturnType<typeof ipcStreamData>;
 const ipcStreamData = (stream_id: string, data: string | Uint8Array, encoding: IPC_DATA_ENCODING, order: number) =>
   ({ ...ipcMessageBase(IPC_MESSAGE_TYPE.STREAM_DATA), stream_id, data, encoding, order } as const satisfies OrderBy);
 export const IpcStreamData = Object.assign(ipcStreamData, {
-  fromBase64(stream_id: string, data: Uint8Array, order: number = stringHashCode(stream_id)) {
+  fromBase64(
+    stream_id: string,
+    data: Uint8Array,
+    order: number = stringHashCode(stream_id)
+  ): { [key: string | symbol]: unknown } {
     return Object.assign(ipcStreamData(stream_id, simpleDecoder(data, "base64"), IPC_DATA_ENCODING.BASE64, order), {
       [CUSTOM_INSPECT]() {
         return JSON.stringify({
