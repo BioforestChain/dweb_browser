@@ -22,7 +22,7 @@
   "helper": {
     "buildToRootDir": "./npm/@dweb-browser__helper",
     "name": "@dweb-browser/helper",
-    "version": "0.0.3"
+    "version": "0.0.4"
   },
   "core": {
     "buildToRootDir": "./npm/@dweb-browser__core",

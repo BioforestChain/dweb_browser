@@ -10,6 +10,7 @@
     "plaoc:watch": "deno task plaoc --watch",
     "plaoc:hack": "deno run -A ./toolkit/scripts/hack-plaoc-server.ts",
     "plaoc:demo": "node ./npm/@plaoc__cli/esm/plaoc.js serve ./npm/@plaoc__examples/plugin-demo",
+    "plaoc:html": "node ./npm/@plaoc__cli/esm/plaoc.js serve ./npm/@plaoc__examples/html-demo",
     "pub": "deno run -A ./scripts/pub.ts",
     "pub:all": "deno run -A ./scripts/pub-all.ts"
   },

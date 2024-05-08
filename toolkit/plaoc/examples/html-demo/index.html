@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="data:;base64,iVBORw0KGgo=" />
+  <title>plaoc-html-demo</title>
+</head>
+
+<body>
+  <dweb-barcode-scanning></dweb-barcode-scanning>
+  <dweb-haptics></dweb-haptics>
+  <dweb-device></dweb-device>
+  <dweb-mwebview></dweb-mwebview>
+  <div>
+    <h3>app之间通信(默认发送给game)</h3>
+    <input id="input1">
+    <button onclick="sayHi()">sayHi</button>
+    <button onclick="canOpenUrl()">app是否安装</button>
+  </div>
+  <div>
+    <h3>重启应用</h3>
+    <button onclick="restart()">restart</button>
+  </div>
+  <div>
+    <h3>设置语言</h3>
+    <button onclick="setLang()">setLang</button>
+  </div>
+  <div>
+    <h3>保存图片到相册(android only/ios only)</h3>
+    <form onsubmit="savePictures(event)">
+      <input type="file" name="savePictures" id="$savePictures">
+      <input type="submit" value="保存图片到相册">
+    </form>
+  </div>
+  <div>
+    <h3>图片识别</h3>
+    <form onsubmit="handleSubmit(event)" accept="image/png, image/jpeg">
+      <input type="file" name="fileToUpload" id="fileToUpload">
+      <input type="submit" value="上传文件">
+    </form>
+  </div>
+  <div>
+    <h3>打开扫码</h3>
+    <button onclick="startScanning()">startScanning</button>
+  </div>
+  <div>
+    <h3>分享文件，不传递则分享内容(android only/ios only)</h3>
+    <form onsubmit="shareHandle(event)">
+      <input type="file" name="shareHandle" id="$shareHandle">
+      <input type="submit" value="分享">
+    </form>
+  </div>
+  <div>
+    <h3>getUUID</h3>
+    <button onclick="getUUID()">getUUID</button>
+  </div>
+  <div>
+    <h3>打开网页</h3>
+    <button onclick="open()">open</button>
+  </div>
+  <script type="module" src="./index.ts"></script>
+</body>
+
+</html>

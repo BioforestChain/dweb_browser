@@ -12,6 +12,11 @@ const plaocExamples = registryViteBuilder({
   inDir: "./toolkit/plaoc/examples/plugin-demo",
   outDir: "npm/@plaoc__examples/plugin-demo",
 });
+const htmlExamples = registryViteBuilder({
+  name: "plaoc:examples:html-demo",
+  inDir: "./toolkit/plaoc/examples/html-demo",
+  outDir: "npm/@plaoc__examples/html-demo",
+});
 
 const plaocTasks = [
   //
@@ -21,6 +26,14 @@ const plaocTasks = [
   plaocIsDweb,
   Object.assign(
     $once(() => plaocExamples(Deno.args.includes("--watch") ? ["--dev"] : [])),
+    {
+      reset() {
+        // vite 自带 watch
+      },
+    }
+  ),
+  Object.assign(
+    $once(() => htmlExamples(Deno.args.includes("--watch") ? ["--dev"] : [])),
     {
       reset() {
         // vite 自带 watch

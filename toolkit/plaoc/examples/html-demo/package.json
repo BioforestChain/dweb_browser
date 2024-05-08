@@ -1,0 +1,13 @@
+{
+  "name": "html-demo",
+  "description": "html自动化测试项目",
+  "private": true,
+  "scripts": {
+    "build": "vite build"
+  },
+  "dependencies": {
+    "@plaoc/is-dweb": "workspace:~",
+    "@plaoc/plugins": "workspace:~",
+    "vite": "^4.4.9"
+  }
+}
