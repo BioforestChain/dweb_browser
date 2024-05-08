@@ -299,7 +299,7 @@ class DWebViewTest {
     var byteLength by Delegates.notNull<Int>()
     for (i in 1..1000) {
       val contentLength = runCatching {
-        dwebview.evaluateAsyncJavascriptCode("fetch('https://http.std.dweb/fetch?url=http%3A%2F%2F172.30.94.135%3A8000%2Fassets%2FVAvatar-CWaT6iwO.css%3F_%3D17150896753270.030891526739309283').then(res=>res.arrayBuffer()).then(buf=>buf.byteLength)")
+        dwebview.evaluateAsyncJavascriptCode("fetch('https://http.std.dweb/fetch?url=http%3A%2F%2Flocalhost%3A12207%2Fm3-favicon.svg').then(res=>res.arrayBuffer()).then(buf=>buf.byteLength)")
           .toInt()
       }.getOrElse {
         println(it)

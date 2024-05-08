@@ -1,7 +1,6 @@
 plugins {
   id("kmp-compose")
 }
-
 kotlin {
   kmpCommonTarget(project) {
     @Suppress("OPT_IN_USAGE")
@@ -39,6 +38,9 @@ kotlin {
       implementation(projects.sys)
       implementation(projects.dwebview)
       implementation(projects.window)
+    }
+    testDependencies {
+      implementation(projects.dwebview)
     }
   }
   kmpAndroidTarget(project) {

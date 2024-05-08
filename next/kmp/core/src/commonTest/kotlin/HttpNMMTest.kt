@@ -2,7 +2,6 @@ package info.bagen.dwebbrowser
 
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.delay
 import org.dweb_browser.core.http.router.byChannel
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
@@ -157,15 +156,16 @@ class HttpNMMTest {
     lateinit var data: ByteArray
     for (i in 1..1000) {
       val res = httpRuntime.nativeFetch(
-        "file://http.std.dweb/fetch?url=http%3A%2F%2F172.30.94.135%3A8000%2Fassets%2FVAvatar-CWaT6iwO.css%3F_%3D17150896753270.030891526739309283"
+        "file://http.std.dweb/fetch?url=http%3A%2F%2Flocalhost%3A12207%2Fm3-favicon.svg"
       ).binary()
       if (i == 1) {
         data = res
       } else {
-        assertContentEquals(res, data,"error in $i")
+        assertContentEquals(res, data, "error in $i")
       }
     }
   }
+
   @Test
   fun testHttpFetch() = runCommonTest {
     val dns = DnsNMM()
@@ -173,16 +173,17 @@ class HttpNMMTest {
     dns.install(httpMM)
     val dnsRuntime = dns.bootstrap()
     val httpRuntime = dnsRuntime.open(httpMM.mmid)
-    delay(1000)
+    httpRuntime.nativeFetch("file://http.std.dweb/ready")
+
     lateinit var data: ByteArray
     for (i in 1..1000) {
       val res = httpRuntime.nativeFetch(
-        "https://http.std.dweb/fetch?url=http%3A%2F%2F172.30.94.135%3A8000%2Fassets%2FVAvatar-CWaT6iwO.css%3F_%3D17150896753270.030891526739309283"
+        "https://http.std.dweb/fetch?url=http%3A%2F%2Flocalhost%3A12207%2Fm3-favicon.svg"
       ).binary()
       if (i == 1) {
         data = res
       } else {
-        assertContentEquals(res, data,"error in $i")
+        assertContentEquals(res, data, "error in $i")
       }
     }
   }

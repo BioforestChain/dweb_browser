@@ -17,7 +17,7 @@ class JmmAppManifest private constructor(
     internal val P =
       PropMetas("JmmAppManifest") { JmmAppManifest(it) }.extends(CommonAppManifest.P)
     private val P_baseURI = P.optional<String>("baseURI")
-    private val P_server = P.required("server", MainServer("/sys", "/server/plaoc.server.js"))
+    private val P_server = P.required("server", MainServer("/sys", "/index.js"))
 
     /**
      * 要求的目标平台(JsMicroModule这个平台)的最小版本号

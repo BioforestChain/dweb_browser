@@ -1,3 +1,4 @@
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
@@ -12,6 +13,9 @@ import org.dweb_browser.core.std.dns.DnsNMM
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.file.FileNMM
 import org.dweb_browser.core.std.http.HttpNMM
+import org.dweb_browser.dwebview.DWebViewOptions
+import org.dweb_browser.dwebview.IDWebView
+import org.dweb_browser.dwebview.create
 import org.dweb_browser.helper.addDebugTags
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.pure.http.PureMethod
@@ -177,5 +181,46 @@ class JsProcessTest {
       println("QAQ expected=$expected")
       assertEquals(actual, expected)
     }
+  }
+
+  @Test
+  fun testHttpInJsProcessForBrowser() = runCommonTest(timeout = 600.seconds) {
+    buildJsProcessTestContext {
+      val testRuntime = dnsRunTime.open(test1NMM.mmid) as TestJmm.TestJmmRuntime
+      val jsProcess = testRuntime.getJsProcess()
+      jsProcess.defineEsm {
+        "/index.js" bind PureMethod.GET by defineStringResponse {
+          """
+            const { http, jsProcess, ipc } = navigator.dweb;
+            const httpServer = await http.createHttpDwebServer(jsProcess, { subdomain: "www" });
+            await httpServer.listen((event) => {
+//              jsProcess.nativeFetch(`http://localhost:12207`+event.ipcRequest.parsed_url.pathname)
+              console.log("got request", event.ipcRequest.url);
+              return { body: event.ipcRequest.parsed_url.pathname.slice(1) };
+            });
+            jsProcess.fetchIpc.postMessage(
+              ipc.IpcEvent.fromText("http-server", httpServer.startResult.urlInfo.buildDwebUrl().href)
+            );
+          """.trimIndent()
+        }
+      }
+
+      val jsHttpUrl = jsProcess.fetchIpc.onEvent("wait-js").mapNotNull { event ->
+        event.consumeFilter { it.name == "http-server" }?.text
+      }.first()
+      println("QAQ jsHttpUrl=$jsHttpUrl")
+
+
+      val actual = randomUUID()
+      val expected = testRuntime.nativeFetch("$jsHttpUrl$actual").text()
+      println("QAQ expected=$expected")
+      assertEquals(actual, expected)
+
+      val dwebview = IDWebView.create(testRuntime, DWebViewOptions(openDevTools = true))
+//      dwebview.loadUrl(jsHttpUrl)
+
+      delay(100000)
+    }
+
   }
 }
