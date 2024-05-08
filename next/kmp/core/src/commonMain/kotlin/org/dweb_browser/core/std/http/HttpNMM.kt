@@ -8,6 +8,7 @@ import io.ktor.http.Url
 import io.ktor.http.hostWithPort
 import io.ktor.http.protocolWithAuthority
 import io.ktor.util.decodeBase64String
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
@@ -188,14 +189,17 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
         gateway.listener.addRouter(routeConfig, selfIpc)
       }
       /// ipc 在关闭的时候，自动释放所有的绑定
-      selfIpc.awaitClosed()
-      close(selfIpc, options)
-      listener.destroy()
+      selfIpc.onClosed {
+        selfIpc.launchJobs += selfIpc.scope.launch {
+          close(selfIpc, options)
+          listener.destroy()
+        }
+      }
     }
 
     public override suspend fun _bootstrap() {
       // 初始化http监听
-      initHttpListener()
+      val initJob = initHttpListener()
       /// 启动http后端服务
       scopeLaunch(cancelable = true) {
         dwebServer.createServer { request ->
@@ -219,9 +223,9 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
             ".dweb"
           )
         ) {
-          debugFetch("HTTP/nativeFetch") { "$fromMM => ${request.href} authority-> ${dwebServer.authority}" }
-          // 头部里添加 X-Dweb-Host
-          request.headers.set("X-Dweb-Host", request.url.run { "$host:$port" })
+          debugFetch("HTTP/nativeFetch") { "${fromMM.mmid} => ${request.href} authority-> ${dwebServer.authority}" }
+//          // 头部里添加 X-Dweb-Host
+//          request.headers.set("X-Dweb-Host", request.url.hostWithPort)
           // 无需走网络层，直接内部处理掉
           httpHandler(request)
         } else null
@@ -229,6 +233,9 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
 
       /// 模块 API 接口
       routes(
+        "/ready" bind PureMethod.GET by defineEmptyResponse {
+          initJob.join()
+        },
         // 开启一个服务
         "/start" bind PureMethod.GET by defineJsonResponse {
           debugMM("start", request)
@@ -620,13 +627,17 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
         // 解析subDomain
         header_host = if (value.endsWith(".dweb")) {
           value
+        } else if (value.endsWith(".dweb:443")) {
+          value.slice(0..<value.length - 4)
         } else if (value.endsWith(".${dwebServer.authority}")) {
           value.substring(0, value.length - dwebServer.authority.length - 1)
         } else null
       } else if (reg_referer.matches(key)) {
         is_https = value.startsWith("https://")
       } else if (reg_x_dweb_host.matches(key)) {
-        header_x_dweb_host = value
+        header_x_dweb_host = if (value.endsWith(":443")) {
+          value.slice(0..<value.length - 4)
+        } else value
       } else if (reg_authorization.matches(key)) {
         Regex("""^ *(?:[Bb][Aa][Ss][Ii][Cc]) +([A-Za-z0-9._~+/-]+=*) *$""").find(value)
           ?.also { matchResult ->

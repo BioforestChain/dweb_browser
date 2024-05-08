@@ -212,18 +212,22 @@ class DWebViewEngine internal constructor(
     runCatching {
       mainFrame.executeJavaScript("((async()=>String(JSON.stringify(await ($script))))()).catch(e=>{throw String(e)})",
         Consumer<JsObject> { jsObject ->
-          if (jsObject is JsPromise) {
-            jsObject.then {
-              deferred.complete(it[0] as String)
-            }.catchError {
-              deferred.completeExceptionally(JsException(it[0] as String))
-            }.finallyExecute {
-              jsObject.close()
+          runCatching {
+            if (jsObject is JsPromise) {
+              jsObject.then {
+                deferred.complete(it[0] as String)
+              }.catchError {
+                deferred.completeExceptionally(JsException(it[0] as String))
+              }.finallyExecute {
+                jsObject.close()
+              }
+            } else {
+              /// 语法错误
+              val errorMessage = jsObject.getProp<String?>("message")
+              deferred.completeExceptionally(JsException(errorMessage ?: "unknown error"))
             }
-          } else {
-            /// 语法错误
-            val errorMessage = jsObject.getProp<String?>("message")
-            deferred.completeExceptionally(JsException(errorMessage ?: "unknown error"))
+          }.getOrElse {
+            ""
           }
         })
     }.getOrElse {

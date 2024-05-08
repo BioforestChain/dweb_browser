@@ -2,6 +2,7 @@ package info.bagen.dwebbrowser
 
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import org.dweb_browser.core.http.router.byChannel
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
@@ -18,6 +19,7 @@ import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureResponse
 import org.dweb_browser.test.runCommonTest
 import kotlin.test.Test
+import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 
 class HttpNMMTest {
@@ -83,7 +85,7 @@ class HttpNMMTest {
               val ipcServerRequest = event.consume()
               println("QAQ GG onRequest=$ipcServerRequest")
               val pureClientRequest = ipcServerRequest.toPure().toClient()
-                .run { copy(href = href.replace(Regex("https://[^/]+") , "file://$mmid")) }
+                .run { copy(href = href.replace(Regex("https://[^/]+"), "file://$mmid")) }
               println("QAQ GG pureClientRequest=$pureClientRequest")
               val response = nativeFetch(pureClientRequest)
               println("QAQ GG response=$response")
@@ -144,4 +146,44 @@ class HttpNMMTest {
 
   @Test
   fun testWebSocket() = runCommonTest(200, block = webSocketTester)
+
+  @Test
+  fun testFileFetch() = runCommonTest {
+    val dns = DnsNMM()
+    val httpMM = HttpNMM()
+    dns.install(httpMM)
+    val dnsRuntime = dns.bootstrap()
+    val httpRuntime = dnsRuntime.open(httpMM.mmid)
+    lateinit var data: ByteArray
+    for (i in 1..1000) {
+      val res = httpRuntime.nativeFetch(
+        "file://http.std.dweb/fetch?url=http%3A%2F%2F172.30.94.135%3A8000%2Fassets%2FVAvatar-CWaT6iwO.css%3F_%3D17150896753270.030891526739309283"
+      ).binary()
+      if (i == 1) {
+        data = res
+      } else {
+        assertContentEquals(res, data,"error in $i")
+      }
+    }
+  }
+  @Test
+  fun testHttpFetch() = runCommonTest {
+    val dns = DnsNMM()
+    val httpMM = HttpNMM()
+    dns.install(httpMM)
+    val dnsRuntime = dns.bootstrap()
+    val httpRuntime = dnsRuntime.open(httpMM.mmid)
+    delay(1000)
+    lateinit var data: ByteArray
+    for (i in 1..1000) {
+      val res = httpRuntime.nativeFetch(
+        "https://http.std.dweb/fetch?url=http%3A%2F%2F172.30.94.135%3A8000%2Fassets%2FVAvatar-CWaT6iwO.css%3F_%3D17150896753270.030891526739309283"
+      ).binary()
+      if (i == 1) {
+        data = res
+      } else {
+        assertContentEquals(res, data,"error in $i")
+      }
+    }
+  }
 }
