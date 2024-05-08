@@ -83,21 +83,8 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
            * 也就是说，能跟 toMM 通讯的只有 js-context，这里无法通讯。
            */
           val toJmmIpc = jsMM.endJmm.ipcBridge(jsMM.startMm) //(tip:创建到worker内部的桥接)
-//          fromMM.beConnect(toJmmIpc, reason)
           toMM.beConnect(toJmmIpc, reason)
           toJmmIpc
-//          val forwardIpc = toJmmIpc.toForwardIpc()
-//          return@append if (jsMM.startMm.mmid == fromMM.mmid) {
-//            ConnectResult(
-//              ipcForFromMM = toJmmIpc,
-//              ipcForToMM = forwardIpc,
-//            )
-//          } else {
-//            ConnectResult(
-//              ipcForFromMM = forwardIpc,
-//              ipcForToMM = toJmmIpc,
-//            )
-//          }
         }
       }
     }
@@ -215,13 +202,6 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
               }
               true
             }
-
-            "restart" -> {
-              // 调用重启
-              bootstrapContext.dns.restart(mmid)
-              true
-            }
-
             else -> false
           }
         }
@@ -238,6 +218,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
 
           val toJmmIpc = getJsProcess().createIpc(fromMM.manifest)
           toJmmIpc.onClosed {
+            debugJsMM("ipcBridge close","toJmmIpc=>${toJmmIpc.remote.mmid} fromMM:${fromMM.mmid}")
             fromMMIDOriginIpcWM.remove(fromMM.mmid)
           }
           // 如果是jsMM相互连接，直接把port丢过去

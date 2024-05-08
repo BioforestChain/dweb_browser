@@ -42,6 +42,7 @@ export class PromiseOut<T = unknown> {
   }
   static sleep(ms: number) {
     const po = new PromiseOut<void>();
+    // deno-lint-ignore no-explicit-any
     let ti: any = setTimeout(() => {
       ti = undefined;
       po.resolve();

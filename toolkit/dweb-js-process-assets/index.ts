@@ -300,43 +300,6 @@ export class JsProcessMicroModuleRuntime extends MicroModuleRuntime {
     this.mmid = this.meta.data.mmid;
     this.name = `js process of ${this.mmid}`;
     this.host = this.meta.envString("host");
-
-    // this.fetchIpc.onEvent(async (ipcEvent) => {
-    //   if (ipcEvent.name === "dns/connect/done" && typeof ipcEvent.data === "string") {
-    //     const { connect, result } = JSON.parse(ipcEvent.data);
-    //     const task = this._ipcConnectsMap.get(connect);
-    //     console.log("xxlife 收到桥接完成消息=>", task, ipcEvent.name, ipcEvent.data);
-    //     if (task) {
-    //       /// 这里之所以 connect 和 result 存在不一致的情况，是因为 subprotocol 的存在
-    //       if (task.is_resolved === false) {
-    //         const resultTask = this._ipcConnectsMap.get(result);
-    //         if (resultTask && resultTask !== task) {
-    //           task.resolve(await resultTask.promise);
-    //         }
-    //       }
-    //       const ipc = await task.promise;
-    //       // 手动启动,这里才是真正的建立完成通信
-    //       ipc.start();
-    //       await ipc.ready();
-    //       console.log("xxlife 桥接建立完成=>", ipc.channelId, ipc.isActivity);
-    //     }
-    //   } else if (ipcEvent.name.startsWith("forward/")) {
-    //     // 这里负责代理native端的请求
-    //     const [_, action, mmid] = ipcEvent.name.split("/");
-    //     const ipc = await this.connect(mmid as $MMID);
-    //     if (action === "lifeCycle") {
-    //       ipc.postMessage($normalizeIpcMessage(JSON.parse(ipcEvent.text), ipc));
-    //     } else if (action === "request") {
-    //       const response = await ipc.request($normalizeIpcMessage(JSON.parse(ipcEvent.text), ipc) as IpcClientRequest);
-    //       this.fetchIpc.postMessage(
-    //         IpcEvent.fromText(`forward/response/${mmid}`, JSON.stringify(response.ipcResMessage()))
-    //       );
-    //     } else if (action === "close") {
-    //       console.log("worker ipc close=>", ipc.channelId);
-    //       ipc.close();
-    //     }
-    //   }
-    // });
   }
 
   get onActivity() {
@@ -554,20 +517,6 @@ export const installEnv = async (metadata: Metadata, gatewayPort: number) => {
       workerGlobal.removeEventListener("message", runMain);
     }
   });
-
-  // //#region
-  // {
-  //   const { http, jsProcess } = navigator.dweb;
-  //   const httpServer = await http.createHttpDwebServer(jsProcess, { subdomain: "www" });
-  //   jsProcess.fetchIpc.postMessage(
-  //     core.IpcEvent.fromText("http-server", httpServer.startResult.urlInfo.buildDwebUrl().href)
-  //   );
-  //   await httpServer.listen((event) => {
-  //     console.log("got request", event.ipcRequest.url);
-  //     return { body: event.ipcRequest.url };
-  //   });
-  // }
-  // //#endregion
 
   return jsProcess;
 };

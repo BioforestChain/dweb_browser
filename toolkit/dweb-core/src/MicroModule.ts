@@ -204,6 +204,7 @@ export abstract class MicroModuleRuntime implements $MicroModuleRuntime {
         return ipc.close();
       });
       ipc.onClosed(() => {
+        this.connectionMap.delete(ipc.remote.mmid);
         this.connectionLinks.delete(ipc);
       });
 

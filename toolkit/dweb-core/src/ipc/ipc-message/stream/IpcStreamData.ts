@@ -16,6 +16,7 @@ export const IpcStreamData = Object.assign(ipcStreamData, {
     order: number = stringHashCode(stream_id)
   ): { [key: string | symbol]: unknown } {
     return Object.assign(ipcStreamData(stream_id, simpleDecoder(data, "base64"), IPC_DATA_ENCODING.BASE64, order), {
+      // 打印的时候只会输出前20位和后20位，中间以 "..." 省略
       [CUSTOM_INSPECT]() {
         return JSON.stringify({
           ...this,
