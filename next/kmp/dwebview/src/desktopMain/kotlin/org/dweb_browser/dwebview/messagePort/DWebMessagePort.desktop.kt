@@ -68,7 +68,7 @@ class DWebMessagePort(val port: /* MessagePort */JsObject, private val webview: 
     scope.cancel(cause)
   }
 
-  override suspend fun postMessage(event: DWebMessage) {
+  override suspend fun postMessage(event: DWebMessage): Unit = runCatching {
     when (event) {
       is DWebMessage.DWebMessageBytes -> {
         val ports = event.ports.map {
@@ -88,6 +88,9 @@ class DWebMessagePort(val port: /* MessagePort */JsObject, private val webview: 
         port.call<Unit>("postMessage", event.text, ports)
       }
     }
+  }.getOrElse {
+    /// jsObject 可能已经被释放了
+
   }
 
   override val onMessage by lazy {

@@ -94,9 +94,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
       val toAppRuntime = dnsMM.dnsRuntime.open(toMicroModule.mmid, fromMM)
       debugDNS("connectTo/opened", toAppRuntime)
       return connectMicroModules(
-        fromMM,
-        toAppRuntime,
-        reason ?: PureClientRequest("file://$mmpt", PureMethod.GET)
+        fromMM, toAppRuntime, reason ?: PureClientRequest("file://$mmpt", PureMethod.GET)
       )
     }
 
@@ -273,8 +271,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
         true
       }
       /// 定义路由功能
-      routes(
-        "open" bindDwebDeeplink openApp,
+      routes("open" bindDwebDeeplink openApp,
         // 打开应用
         "/open" bind PureMethod.GET by openApp,
         "/install" bind PureMethod.GET by defineEmptyResponse {
@@ -319,8 +316,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
           // 没找到给个空
           ""
         },
-        "/search" bind PureMethod.GET by defineJsonResponse
-        {
+        "/search" bind PureMethod.GET by defineJsonResponse {
           val category = request.queryCategory()
           val manifests = mutableListOf<CommonAppManifest>()
           search(category as MICRO_MODULE_CATEGORY).map { app ->
@@ -345,16 +341,15 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
           ctx.sendJsonLine(ChangeState(setOf<String>(), setOf(), setOf()))
         },
         //
-        "/observe/running-apps" byChannel
-            { ctx ->
-              runningApps.onChange { changes ->
-                ctx.sendJsonLine(
-                  ChangeState(
-                    changes.adds, changes.updates, changes.removes
-                  )
-                )
-              }.removeWhen(onClose)
-            })
+        "/observe/running-apps" byChannel { ctx ->
+          runningApps.onChange { changes ->
+            ctx.sendJsonLine(
+              ChangeState(
+                changes.adds, changes.updates, changes.removes
+              )
+            )
+          }.removeWhen(onClose)
+        })
     }
 
     suspend fun boot(bootNMM: BootNMM) {
@@ -384,16 +379,21 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
       } ?: run {
         debugDNS("dns_open", "$mmpt(by ${fromMM.mmid})")
         val app = query(mmpt, fromMM) ?: throw Exception("no found app: $mmpt")
-        RunningApp(app, scopeAsync(cancelable = false) { bootstrapMicroModule(app) })
-      }
-    }.let { running ->
-      addRunningApp(running)
-      running.ready().also { appRuntime ->
-        appRuntime.onShutdown {
-          removeRunningApp(running)
+        RunningApp(app, scopeAsync(cancelable = false) {
+          bootstrapMicroModule(app)
+        }).also { running ->
+          addRunningApp(running)
+          scopeLaunch(cancelable = false) {
+            running.ready().also { appRuntime ->
+              appRuntime.onShutdown {
+                removeRunningApp(running)
+              }
+            }
+          }
         }
       }
-    }
+    }.ready()
+
 
     /** 关闭应用 */
     suspend fun close(mmid: MMID): Int {

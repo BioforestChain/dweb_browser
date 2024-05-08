@@ -86,8 +86,8 @@ class HttpDwebServer(
   }
 
   val close = SuspendOnce {
-    listenPo.waitPromise().close()// 主动关闭
     nmm.closeHttpDwebServer(options) // 并且发送关闭指令（对方也会将我进行关闭，但我仍然需要执行主动关闭，确保自己的资源正确释放，对方不释放是它自己的事情）
+    listenPo.waitPromise().close()// 主动关闭
   }
 }
 
