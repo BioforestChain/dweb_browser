@@ -368,9 +368,10 @@ class BrowserViewModel(
    * 是：直接代理访问
    * 否：将 url 进行判断封装，符合条件后，判断当前界面是否是 BrowserWebPage，然后进行搜索操作
    */
-  suspend fun doSearchUI(url: String) {
+  fun doIOSearchUrl(url: String) = ioScope.launch {
     if (url.isDwebDeepLink()) {
-      return withScope(ioScope) { browserNMM.nativeFetch(url) }
+      browserNMM.nativeFetch(url)
+      return@launch
     }
     // 尝试
     val webUrl = url.toWebUrlOrWithoutProtocol()
@@ -380,7 +381,7 @@ class BrowserViewModel(
     // 当没有搜到需要的数据，给出提示
     if (webUrl == null) {
       showToastMessage(BrowserI18nResource.Home.search_error.text)
-      return
+      return@launch
     }
     webUrl.toString().let { searchUrl ->
       if (focusedPage != null && focusedPage is BrowserWebPage) {

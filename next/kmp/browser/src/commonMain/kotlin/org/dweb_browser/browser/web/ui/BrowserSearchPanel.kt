@@ -37,7 +37,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -52,7 +51,6 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.common.CommonTextField
 import org.dweb_browser.browser.search.SearchInject
@@ -90,7 +88,6 @@ fun BrowserSearchPanel(modifier: Modifier = Modifier):Boolean {
     LocalWindowController.current.GoBackHandler {
       hide()
     }
-    val uiScope = rememberCoroutineScope()
     var searchTextField by remember(searchPage.searchKeyWord, searchPage.url) {
       val text = searchPage.searchKeyWord ?: searchPage.url
       mutableStateOf(
@@ -132,10 +129,8 @@ fun BrowserSearchPanel(modifier: Modifier = Modifier):Boolean {
               },
               // 输入框输入提交
               onSubmit = { url ->
-                uiScope.launch {
-                  viewModel.doSearchUI(url)
-                  hide() // 该操作需要在上面执行完成后执行，否则会导致uiScope被销毁，而不执行doSearchUI
-                }
+                viewModel.doIOSearchUrl(url)
+                hide() // 该操作需要在上面执行完成后执行，否则会导致uiScope被销毁，而不执行doSearchUI
               })
           }
         }
@@ -176,10 +171,8 @@ fun BrowserSearchPanel(modifier: Modifier = Modifier):Boolean {
               color = MaterialTheme.colorScheme.onSecondaryContainer
             ),
             onKeyboardSearch = {
-              uiScope.launch {
-                viewModel.doSearchUI(searchTextField.text.trim().trim('\u200B').trim())
-                hide()
-              }
+              viewModel.doIOSearchUrl(searchTextField.text.trim().trim('\u200B').trim())
+              hide()
             },
           ) { innerTextField ->
             Row(

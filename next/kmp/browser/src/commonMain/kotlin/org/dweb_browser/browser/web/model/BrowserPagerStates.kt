@@ -78,7 +78,6 @@ class BrowserPagerStates(
 
     /// contentPagePager => focusedPage
 //    LaunchedEffect(searchBarPager.targetPage, searchBarPager.isScrollInProgress) {
-//      println("lin.huang ==> ${searchBarPager.currentPage}, ${searchBarPager.targetPage}, ${searchBarPager.isScrollInProgress}")
 //      if (!searchBarPager.isScrollInProgress) {
 //        viewModel.focusPageUI(searchBarPager.targetPage)
 //      }
