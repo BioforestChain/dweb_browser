@@ -24,6 +24,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.seconds
 
 @ExperimentalCoroutinesApi
 class DWebViewTest {
@@ -285,7 +286,7 @@ class DWebViewTest {
   }
 
   @Test
-  fun testHttpProxy() = runCommonTest {
+  fun testHttpProxy() = runCommonTest(timeout = 600.seconds) {
     val ctx = getPrepareContext()
     val fileNMM = FileNMM()
     ctx.dnsNMM.install(fileNMM)

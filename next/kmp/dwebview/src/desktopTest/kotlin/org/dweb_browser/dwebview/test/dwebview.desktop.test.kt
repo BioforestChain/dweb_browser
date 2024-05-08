@@ -1,26 +1,31 @@
 package org.dweb_browser.dwebview.test
 
-import org.dweb_browser.dwebview.DWebView
-import org.dweb_browser.dwebview.debugDWebView
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
+import org.dweb_browser.core.std.dns.nativeFetch
+import org.dweb_browser.core.std.file.FileNMM
+import org.dweb_browser.core.std.http.HttpNMM
+import org.dweb_browser.dwebview.DWebViewOptions
+import org.dweb_browser.dwebview.asDesktop
+import org.dweb_browser.dwebview.test.DWebViewTest.Companion.getWebview
 import org.dweb_browser.test.runCommonTest
+import kotlin.properties.Delegates
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
+import kotlin.time.Duration.Companion.seconds
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class DWebViewDesktopTest {
   companion object {
-
-    suspend fun getWebview(): DWebView {
-      debugDWebView.forceEnable()
-      val dwebview = DWebViewTest.getWebview()
-      require(dwebview is DWebView)
-      return dwebview
-    }
+    suspend fun getPrepareContext() = DWebViewTest.getPrepareContext()
+    suspend fun getWebView(options: DWebViewOptions = DWebViewOptions()) =
+      DWebViewTest.getWebview(options).asDesktop()
   }
 
   @Test
   fun testMainFrame() = runCommonTest {
-    val dwebview = getWebview()
+    val dwebview = getWebView()
 
     val mainFrame1 = dwebview.viewEngine.mainFrame
     println("mainFrame1=$mainFrame1")
