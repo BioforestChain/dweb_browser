@@ -6,7 +6,7 @@ import com.teamdev.jxbrowser.browser.CloseOptions
 import com.teamdev.jxbrowser.browser.callback.InjectJsCallback
 import com.teamdev.jxbrowser.browser.callback.ShowContextMenuCallback
 import com.teamdev.jxbrowser.browser.event.BrowserClosed
-import com.teamdev.jxbrowser.browser.internal.rpc.ConsoleMessageReceived
+import com.teamdev.jxbrowser.browser.event.ConsoleMessageReceived
 import com.teamdev.jxbrowser.dom.event.EventParams
 import com.teamdev.jxbrowser.dom.event.EventType
 import com.teamdev.jxbrowser.dom.event.MouseEvent
@@ -55,6 +55,7 @@ import org.dweb_browser.dwebview.proxy.DwebViewProxy
 import org.dweb_browser.dwebview.toReadyListener
 import org.dweb_browser.helper.JsonLoose
 import org.dweb_browser.helper.ReasonLock
+import org.dweb_browser.helper.envSwitch
 import org.dweb_browser.helper.getOrNull
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.mainAsyncExceptionHandler
@@ -457,9 +458,8 @@ class DWebViewEngine internal constructor(
       allowLoadingImagesAutomatically()
     }
 
-    if (debugDWebView.isEnable) {
+    if (debugDWebView.isEnable && envSwitch.has("dwebview-js-console")) {
       browser.on(ConsoleMessageReceived::class.java) { event ->
-        event.hasConsoleMessage()
         val consoleMessage = event.consoleMessage()
         val level = consoleMessage.level()
         val message = consoleMessage.message()
@@ -472,7 +472,7 @@ class DWebViewEngine internal constructor(
             "<$source:$lineNumber>",
           )
 
-          else -> debugDWebView("JsConsole/$level", message)
+          else -> debugDWebView.verbose("JsConsole/$level", message)
         }
       }
     }

@@ -16,6 +16,7 @@ import org.dweb_browser.dwebview.create
 import org.dweb_browser.helper.SafeInt
 import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.build
+import org.dweb_browser.helper.envSwitch
 import org.dweb_browser.helper.resolvePath
 import org.dweb_browser.helper.withMainContext
 
@@ -206,7 +207,7 @@ suspend fun createJsProcessWeb(
   val dWebView = IDWebView.create(
     mm, DWebViewOptions(
       privateNet = true,
-      // openDevTools = true,
+      openDevTools = envSwitch.has("js-process-devtools"),
       enabledOffScreenRender = true
     )
   )

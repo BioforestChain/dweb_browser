@@ -623,25 +623,41 @@ fun Project.configureJvmTests(fn: Test.() -> Unit = {}) {
 // 用于启动桌面应用时注入key
   afterEvaluate {
     tasks.withType<JavaExec>() {
-      systemProperties["jxbrowser.license.key"] = getJxBrowserLicenseKey()
+      localProperties().copyTo(systemProperties)
+      System.getProperties().copyTo(systemProperties)
 //    jvmArgs("--add-opens", "java.desktop/java.awt=ALL-UNNAMED")
     }
     tasks.withType<KotlinJvmTest>() {
-      systemProperties["jxbrowser.license.key"] = getJxBrowserLicenseKey()
+      localProperties().copyTo(systemProperties)
+      System.getProperties().copyTo(systemProperties)
     }
   }
 }
 
 infix fun String.belong(domain: String) = this == domain || this.startsWith("$domain.")
 
-fun Project.getJxBrowserLicenseKey() = System.getProperty("jxbrowser.license.key") ?: run {
-  Properties().also { properties ->
-    rootDir.resolve("local.properties").apply {
-      if (exists()) {
-        inputStream().use { properties.load(it) }
+fun Project.getJxBrowserLicenseKey() = System.getProperty("jxbrowser.license.key")
+  ?: localProperties().getProperty("jxbrowser.license.key", "")
+
+private val Project.propertiesMap by lazy { mutableMapOf<String, Properties>() }
+fun Project.localProperties(filename: String = "local.properties"): Properties {
+  return propertiesMap.getOrPut(filename) {
+    Properties().also { properties ->
+      rootDir.resolve("local.properties").apply {
+        if (exists()) {
+          inputStream().use { properties.load(it) }
+        }
       }
     }
-  }.getProperty("jxbrowser.license.key", "").also {
-    System.setProperty("jxbrowser.license.key", it)
+  }
+}
+
+fun Properties.copyTo(outProperties: MutableMap<String, Any>) {
+  for ((key, value) in this) {
+    if (key is String) {
+      if (key == "jxbrowser.license.key" || key.startsWith("dweb-")) {
+        outProperties[key] = value
+      }
+    }
   }
 }
