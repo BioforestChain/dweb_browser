@@ -59,7 +59,6 @@ export class Server_external extends HttpServer {
         return { status: 500 };
       }
       if (this.ipcPo.isOpen) {
-        this.ipcPo.openValue!.close();
         this.ipcPo.toggleClose();
       }
       // 跟自己建立双工通信
@@ -67,11 +66,11 @@ export class Server_external extends HttpServer {
         jsProcess.ipcPool,
         this._getOptions().subdomain,
         jsProcess.mmid,
-        event.ipcRequest,
-        () => {
-          this.ipcPo.toggleClose();
-        }
+        event.ipcRequest
       );
+      streamIpc.onClosed(() => {
+        this.ipcPo.toggleClose();
+      });
       this.ipcPo.toggleOpen(streamIpc);
 
       // 接收前端的externalFetch函数发送的跟外部通信的消息

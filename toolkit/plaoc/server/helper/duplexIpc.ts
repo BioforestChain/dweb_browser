@@ -2,20 +2,13 @@ import type { $Core, $Ipc, $IpcRequest, $MMID } from "../deps.ts";
 import { PureBinaryFrame, ReadableStreamEndpoint, ReadableStreamOut, streamRead } from "../deps.ts";
 import { merge } from "./merge.ts";
 
-type CreateDuplexIpcType = (
-  ipcPool: $Core.IpcPool,
-  subdomain: string,
-  mmid: $MMID,
-  ipcRequest: $IpcRequest,
-  onClose: () => unknown
-) => $Ipc;
+type CreateDuplexIpcType = (ipcPool: $Core.IpcPool, subdomain: string, mmid: $MMID, ipcRequest: $IpcRequest) => $Ipc;
 
 export const createDuplexIpc: CreateDuplexIpcType = (
   ipcPool: $Core.IpcPool,
   subdomain: string,
   mmid: $MMID,
-  ipcRequest: $IpcRequest,
-  onClose: () => unknown
+  ipcRequest: $IpcRequest
 ) => {
   const remote = {
     mmid: mmid,
@@ -53,8 +46,6 @@ export const createDuplexIpc: CreateDuplexIpcType = (
     }
   })();
 
-  void endpoint.bindIncomeStream(incomeStream.stream).finally(() => {
-    onClose();
-  });
+  void endpoint.bindIncomeStream(incomeStream.stream);
   return streamIpc;
 };

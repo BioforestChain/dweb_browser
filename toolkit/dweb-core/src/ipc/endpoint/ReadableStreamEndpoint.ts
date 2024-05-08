@@ -1,14 +1,11 @@
+import type { $PromiseMaybe } from "@dweb-browser/helper/$PromiseMaybe.ts";
 import { Channel } from "@dweb-browser/helper/Channel.ts";
 import { simpleDecoder } from "@dweb-browser/helper/encoding.ts";
 import { streamRead } from "@dweb-browser/helper/stream/readableStreamHelper.ts";
-import {
-  $cborToEndpointMessage,
-  $jsonToEndpointMessage,
-} from "../helper/$messageToIpcMessage.ts";
+import { $cborToEndpointMessage, $jsonToEndpointMessage } from "../helper/$messageToIpcMessage.ts";
 import { CommonEndpoint } from "./CommonEndpoint.ts";
 import { ENDPOINT_PROTOCOL } from "./EndpointLifecycle.ts";
 import type { $EndpointRawMessage } from "./EndpointMessage.ts";
-import type { $PromiseMaybe } from "@dweb-browser/helper/$PromiseMaybe.ts";
 
 export class ReadableStreamEndpoint extends CommonEndpoint {
   override toString() {
@@ -25,8 +22,6 @@ export class ReadableStreamEndpoint extends CommonEndpoint {
   get stream() {
     return this.#input.stream;
   }
-
-  signal = new AbortSignal();
 
   // 外部绑定流
   #incomne_stream?: ReadableStream<Uint8Array>;
@@ -55,10 +50,9 @@ export class ReadableStreamEndpoint extends CommonEndpoint {
         }
         this.endpointMsgChannel.send(message);
       }
+      /// 输入流结束，输出流也要一并关闭
+      this.close();
     })();
-
-    /// 输入流结束，输出流也要一并关闭
-    this.close();
   }
 
   //#region postMessage

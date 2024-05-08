@@ -29,14 +29,14 @@ export class StateObserver<RAW, STATE> {
     ws.binaryType = "arraybuffer";
     const streamout = new ReadableStreamOut();
 
-    ws.onmessage = async (event) => {
+    ws.onmessage = (event) => {
       const data = event.data;
       streamout.controller.enqueue(data);
     };
-    ws.onclose = async () => {
+    ws.onclose = () => {
       streamout.controller?.close();
     };
-    ws.onerror = async (event) => {
+    ws.onerror = (event) => {
       streamout.controller.error(event);
     };
 
