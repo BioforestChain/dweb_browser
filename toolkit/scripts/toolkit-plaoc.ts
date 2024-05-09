@@ -4,7 +4,16 @@ import { registryViteBuilder } from "../../scripts/helper/npmBuilder.ts";
 import { rootResolve } from "../../scripts/helper/resolver.ts";
 import { watchFs } from "../../scripts/helper/watchFs.ts";
 import { doBundleServer } from "../plaoc/scripts/bundle-server.ts";
-import { plaocCli, plaocIsDweb, plaocPlugins, plaocServer } from "./build_npm.ts";
+import {
+  dwebCore,
+  dwebHelper,
+  dwebJsProcess,
+  dwebPolyfill,
+  plaocCli,
+  plaocIsDweb,
+  plaocPlugins,
+  plaocServer,
+} from "./build_npm.ts";
 import { toolkitInit } from "./toolkit-init.ts";
 
 const plaocExamples = registryViteBuilder({
@@ -18,8 +27,13 @@ const htmlExamples = registryViteBuilder({
   outDir: "npm/@plaoc__examples/html-demo",
 });
 
+/// 这里要包含所有的任务，以确保 reset 能正确工作
 const plaocTasks = [
   //
+  dwebCore,
+  dwebHelper,
+  dwebJsProcess,
+  dwebPolyfill,
   plaocServer,
   plaocCli,
   plaocPlugins,
@@ -45,7 +59,6 @@ const plaocTasks = [
     {
       reset() {
         // doBundleServer 自带 watch
-        doBundleServer();
       },
     }
   ),

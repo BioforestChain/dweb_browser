@@ -69,4 +69,4 @@ const customInspect = (arg: any) => {
   }
 };
 const customInspects = (args: any[]) => args.filter((arg) => arg !== undefined).map(customInspect);
-export const CUSTOM_INSPECT = Symbol.for("inspect.custom");
+export const CUSTOM_INSPECT = Symbol.for("inspect.custom") as unknown as "inspect.custom";

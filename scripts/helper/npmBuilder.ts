@@ -21,6 +21,7 @@ export const npmBuilder = async (config: {
   entryPointsDirName?: string | boolean;
   force?: boolean;
   skipNpmInstall?: boolean;
+  emptyDirIgnore?: (name: string) => boolean;
 }) => {
   const {
     packageDir,
@@ -31,6 +32,7 @@ export const npmBuilder = async (config: {
     force = false,
     // TODO 这里要默认跳过安装，我们在外面只做一次就够了。但目前的问题是，package.json 中的依赖是dnt自己分析出来后添加到文件中的，所以如果要做到这点，还需要一些自动化的工作
     skipNpmInstall = false,
+    emptyDirIgnore,
   } = config;
   const packageResolve = (path: string) => fileURLToPath(new URL(path, packageDir));
   const options =
@@ -74,6 +76,9 @@ export const npmBuilder = async (config: {
       }
       // 如果跳过了依赖安装，说明外面已经自己处理好安装了，所以这里不能删除
       if (skipNpmInstall && item.name === "node_modules") {
+        continue;
+      }
+      if (emptyDirIgnore?.(item.name)) {
         continue;
       }
       Deno.removeSync(npmResolve(item.name), { recursive: true });

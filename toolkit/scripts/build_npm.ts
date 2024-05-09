@@ -49,6 +49,9 @@ export const plaocServer = registryNpmBuilder({
   version,
   importMap,
   entryPointsDirName: false,
+  emptyDirIgnore: (name) => {
+    return name === "dist";
+  },
   options: (ctx) => ({
     scriptModule: false,
     entryPoints: [
