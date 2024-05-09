@@ -2,6 +2,7 @@ package org.dweb_browser.dwebview.engine
 
 import android.content.Intent
 import android.os.Build
+import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
@@ -17,6 +18,7 @@ import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.pure.http.PureClientRequest
 import org.dweb_browser.pure.http.PureHeaders
 import org.dweb_browser.pure.http.PureMethod
+import org.dweb_browser.sys.toast.ext.showToast
 import java.io.InputStream
 
 class DWebOverwriteRequest(val engine: DWebViewEngine) : WebViewClient() {
@@ -99,5 +101,16 @@ class DWebOverwriteRequest(val engine: DWebViewEngine) : WebViewClient() {
       )
     }
     return super.shouldInterceptRequest(view, request)
+  }
+
+  override fun onReceivedHttpError(
+    view: WebView?,
+    request: WebResourceRequest?,
+    errorResponse: WebResourceResponse?
+  ) {
+    engine.ioScope.launch {
+      engine.remoteMM.showToast("request fail => ${errorResponse?.statusCode}:${errorResponse?.reasonPhrase}")
+    }
+    super.onReceivedHttpError(view, request, errorResponse)
   }
 }
