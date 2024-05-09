@@ -357,6 +357,7 @@ class DWebViewTest {
         actual += msg
         messageChannel.port2.postMessage(DWebMessage.DWebMessageString(msg))
       }
+      // 注意，这里的close是直接关闭js侧的读和写，所以可能会导致数据丢失
       messageChannel.port2.close()
       println("close")
     }

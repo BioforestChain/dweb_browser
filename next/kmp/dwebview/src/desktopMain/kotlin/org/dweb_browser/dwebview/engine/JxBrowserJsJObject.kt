@@ -1,8 +1,11 @@
 package org.dweb_browser.dwebview.engine
 
 import com.teamdev.jxbrowser.frame.Frame
+import com.teamdev.jxbrowser.js.JsException
 import com.teamdev.jxbrowser.js.JsFunctionCallback
 import com.teamdev.jxbrowser.js.JsObject
+import com.teamdev.jxbrowser.js.JsPromise
+import kotlinx.coroutines.CompletableDeferred
 import org.dweb_browser.dwebview.messagePort.DWebMessagePort
 import org.dweb_browser.helper.RememberLazy
 import org.dweb_browser.helper.WeakHashMap
@@ -118,4 +121,22 @@ class JsJProperty<T : Any?>(val propName: String) {
   operator fun setValue(target: JsJObject, property: KProperty<*>, t: T) {
     target.origin.setProp(propName, t)
   }
+}
+
+suspend fun <T> JsPromise.await(): T {
+  val deferred = CompletableDeferred<T>()
+  then {
+    runCatching {
+      @Suppress("UNCHECKED_CAST")
+      deferred.complete(it[0] as T)
+    }.getOrElse {
+      deferred.completeExceptionally(it)
+    }
+  }.catchError {
+    when (val err = it[0]) {
+      is Throwable -> deferred.completeExceptionally(err)
+      else -> deferred.completeExceptionally(JsException(err.toString()))
+    }
+  }
+  return deferred.await()
 }
