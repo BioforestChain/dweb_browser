@@ -1,7 +1,7 @@
 import { ReadableStreamOut, streamRead } from "./stream/readableStreamHelper.ts";
 
 /**模拟kotlin Channel */
-export class Channel<T = Uint8Array> {
+export class Channel<T> {
   private streamOut = new ReadableStreamOut<T>();
   private controller = this.streamOut.controller;
 
@@ -22,13 +22,9 @@ export class Channel<T = Uint8Array> {
     this.controller.enqueue(value);
   }
 
-  closeWrite() {
-    this._isClosedForSend = true;
-  }
-
   close(cause?: string) {
     console.debug("channel_close", cause);
-    this.closeWrite();
+    this._isClosedForSend = true;
     this.controller.close();
   }
 

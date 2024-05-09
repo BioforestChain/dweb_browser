@@ -1,5 +1,5 @@
 import type { $Core, $Ipc, $IpcRequest, $MMID } from "../deps.ts";
-import { PureBinaryFrame, ReadableStreamEndpoint, ReadableStreamOut, streamRead } from "../deps.ts";
+import { PureBinaryFrame, PureTextFrame, ReadableStreamEndpoint, streamRead } from "../deps.ts";
 import { merge } from "./merge.ts";
 
 type CreateDuplexIpcType = (ipcPool: $Core.IpcPool, subdomain: string, mmid: $MMID, ipcRequest: $IpcRequest) => $Ipc;
@@ -24,8 +24,6 @@ export const createDuplexIpc: CreateDuplexIpcType = (
   const endpoint = new ReadableStreamEndpoint(`${mmid}-plaoc-external-duplex`);
   const streamIpc = ipcPool.createIpc(endpoint, 0, remote, remote, true);
 
-  const incomeStream = new ReadableStreamOut<Uint8Array>();
-  void endpoint.bindIncomeStream(incomeStream.stream);
   // 拿到自己前端的channel
   const pureServerChannel = ipcRequest.getChannel();
   pureServerChannel.start();
@@ -34,16 +32,19 @@ export const createDuplexIpc: CreateDuplexIpcType = (
   void (async () => {
     // 拿到网络层来的外部消息，发到前端处理
     for await (const chunk of streamRead(endpoint.stream)) {
-      pureServerChannel.outgoing.controller.enqueue(new PureBinaryFrame(merge(chunk)));
+      if (typeof chunk === "string") {
+        pureServerChannel.outgoing.controller.enqueue(new PureTextFrame(chunk));
+      } else {
+        pureServerChannel.outgoing.controller.enqueue(new PureBinaryFrame(merge(chunk)));
+      }
     }
   })();
   // ws.send => income.pureFrame =>
   void (async () => {
     //  绑定自己前端发送的数据通道
     for await (const pureFrame of streamRead(pureServerChannel.income.stream)) {
-      if (pureFrame instanceof PureBinaryFrame) {
-        incomeStream.controller.enqueue(pureFrame.data);
-      }
+      console.log("endpoint.send=>", typeof endpoint);
+      endpoint.send(pureFrame.data);
     }
   })();
 

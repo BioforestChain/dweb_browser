@@ -106,10 +106,9 @@ export class Server_api extends HttpServer {
       if (!id) {
         return IpcResponse.fromText(event.reqId, 500, new IpcHeaders(), "invalid search params, miss 'id'", event.ipc);
       }
-      const endpoint = new ReadableStreamEndpoint(`${jsProcess.mmid}-api-server`);
+      const endpoint = new ReadableStreamEndpoint(`${jsProcess.mmid}-api-server`, event.request.body!);
       const readableStreamIpc = jsProcess.ipcPool.createIpc(endpoint, 0, this.#remote, this.#remote);
 
-      endpoint.bindIncomeStream(event.request.body!);
       mapHelper.getOrPut(this.callbacks, id, () => new PromiseOut()).resolve(readableStreamIpc);
       return IpcResponse.fromStream(event.reqId, 200, undefined, endpoint.stream, event.ipc);
     }

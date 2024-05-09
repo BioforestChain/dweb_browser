@@ -1,6 +1,5 @@
-import type { $PromiseMaybe } from "@dweb-browser/helper/$PromiseMaybe.ts";
 import { Channel } from "@dweb-browser/helper/Channel.ts";
-import { simpleDecoder } from "@dweb-browser/helper/encoding.ts";
+import { simpleDecoder, simpleEncoder } from "@dweb-browser/helper/encoding.ts";
 import { streamRead } from "@dweb-browser/helper/stream/readableStreamHelper.ts";
 import { $cborToEndpointMessage, $jsonToEndpointMessage } from "../helper/$messageToIpcMessage.ts";
 import { CommonEndpoint } from "./CommonEndpoint.ts";
@@ -12,38 +11,38 @@ export class ReadableStreamEndpoint extends CommonEndpoint {
     return `ReadableStreamEndpoint#${this.debugId}`;
   }
 
-  constructor(debugId: string) {
+  constructor(debugId: string, incomne?: ReadableStream<Uint8Array>) {
     super(debugId);
+    console.log("ReadableStreamEndpoint", incomne);
+    this.#bindIncomeStream(incomne);
   }
-
-  #input = new Channel<Uint8Array>();
-
+  /**输出流 */
+  #outgoing = new Channel<Uint8Array>();
   /** 这是输出流，给外部读取用的 */
   get stream() {
-    return this.#input.stream;
+    return this.#outgoing.stream;
   }
+  /**输入流 */
+  #incomne_stream = new Channel<Uint8Array | string>();
 
-  // 外部绑定流
-  #incomne_stream?: ReadableStream<Uint8Array>;
+  /**对接输入流 */
+  send(value: string | Uint8Array) {
+    this.#incomne_stream.send(value);
+  }
   /**
    * 输入流要额外绑定
-   * 注意，非必要不要 await 这个promise
    */
-  async bindIncomeStream(stream: $PromiseMaybe<ReadableStream<Uint8Array>>) {
-    if (this.#incomne_stream !== undefined) {
-      throw new Error(`${this.debugId} in come stream alreay binded.`);
+  #bindIncomeStream(incomne?: ReadableStream<Uint8Array | string>) {
+    if (incomne == undefined) {
+      incomne = this.#incomne_stream.stream;
     }
-    this.#incomne_stream = await stream;
-    if (this.isClose) {
-      console.error("already closed");
-    }
-    const reader = streamRead(this.#incomne_stream);
+    const reader = streamRead(incomne);
     (async () => {
-      await this.awaitOpen("then-bindIncomeStream");
       for await (const data of reader) {
         let message: $EndpointRawMessage;
-
-        if (this.protocol === ENDPOINT_PROTOCOL.CBOR) {
+        if (typeof data === "string") {
+          message = $jsonToEndpointMessage(data);
+        } else if (this.protocol === ENDPOINT_PROTOCOL.CBOR) {
           message = $cborToEndpointMessage(data);
         } else {
           message = $jsonToEndpointMessage(simpleDecoder(data, "utf8"));
@@ -58,21 +57,22 @@ export class ReadableStreamEndpoint extends CommonEndpoint {
   //#region postMessage
 
   protected postTextMessage(data: string) {
-    this.#input.send(new TextEncoder().encode(data));
+    this.#outgoing.send(simpleEncoder(data, "utf8"));
   }
   protected postBinaryMessage(data: Uint8Array) {
-    this.#input.send(data);
+    this.#outgoing.send(data);
   }
   //#endregion
 
   //#region close
 
   protected override beforeClose = () => {
-    this.#input.closeWrite();
+    // 关闭写入流
+    this.#incomne_stream.close();
   };
   // 彻底关闭
   protected override afterClosed = () => {
-    this.#input.close();
+    this.#outgoing.close();
   };
   //#endregion
 }

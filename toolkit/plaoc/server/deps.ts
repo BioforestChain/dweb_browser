@@ -17,7 +17,6 @@ export type * from "@dweb-browser/js-process";
 export type * as $Http from "@dweb-browser/js-process/std-dweb-http.ts";
 export { $Core };
 
-// import type { core as $Core } from '@dweb-browser/js-process'
 import type * as $Core from "@dweb-browser/js-process/std-dweb-core.ts";
 
 export const { jsProcess, http, ipc, core } = navigator.dweb;

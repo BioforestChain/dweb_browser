@@ -1,4 +1,3 @@
-import "@plaoc/plugins";
 import { configPlugin, dwebServiceWorker } from "@plaoc/plugins";
 import { process } from "./barcode-scannering.ts";
 import { message } from "./debug.ts";

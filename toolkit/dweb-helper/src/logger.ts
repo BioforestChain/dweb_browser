@@ -23,6 +23,7 @@ export class Logger {
   warn = (...args: unknown[]) => {
     return console.warn(this.prefix, ...customInspects(args));
   };
+  // deno-lint-ignore no-explicit-any
   debugLazy = (tag: string, lazy: () => any) => {
     if (this.isEnable) {
       const args = lazy();
@@ -33,6 +34,7 @@ export class Logger {
       }
     }
   };
+  // deno-lint-ignore no-explicit-any
   errorLazy = (tag: string, lazy: () => any) => {
     if (this.isEnable) {
       const args = lazy();
@@ -48,6 +50,7 @@ export class Logger {
 export const logger = (scope: unknown) => {
   return new Logger(scope);
 };
+// deno-lint-ignore no-explicit-any
 const customInspect = (arg: any) => {
   if (typeof arg !== "object") {
     return arg;
@@ -68,5 +71,6 @@ const customInspect = (arg: any) => {
     }
   }
 };
+// deno-lint-ignore no-explicit-any
 const customInspects = (args: any[]) => args.filter((arg) => arg !== undefined).map(customInspect);
 export const CUSTOM_INSPECT = Symbol.for("inspect.custom") as unknown as "inspect.custom";

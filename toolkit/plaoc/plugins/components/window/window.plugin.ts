@@ -3,7 +3,7 @@ import { PromiseOut } from "@dweb-browser/helper/PromiseOut.ts";
 import { bindThis } from "../../helper/bindThis.ts";
 import { cacheGetter } from "../../helper/cacheGetter.ts";
 import { Signal, type $Callback } from "../../helper/createSignal.ts";
-import { ReadableStreamOut, streamRead } from "../../helper/readableStreamHelper.ts";
+import { streamRead } from "../../helper/readableStreamHelper.ts";
 import { StateObserver, type $Coder } from "../../util/StateObserver.ts";
 import { BasePlugin } from "../base/base.plugin.ts";
 import { webIpcPool } from "../index.ts";
@@ -153,16 +153,16 @@ export class WindowPlugin extends BasePlugin {
     const ipc = webIpcPool.createIpc(endpoint, 0, this.#remote, this.#remote, true);
     const ws = new WebSocket(url);
     ws.binaryType = "arraybuffer";
-    const streamout = new ReadableStreamOut();
     ws.onmessage = (event) => {
       const data = event.data;
-      streamout.controller.enqueue(data);
+      endpoint.send(data);
     };
     ws.onclose = () => {
-      streamout.controller?.close();
+      endpoint.close();
     };
     ws.onerror = (event) => {
-      streamout.controller.error(event);
+      endpoint.close();
+      ipc.close(String(event));
     };
     ws.onopen = async () => {
       afterOpen.resolve();
@@ -170,7 +170,6 @@ export class WindowPlugin extends BasePlugin {
         ws.send(data);
       }
     };
-    endpoint.bindIncomeStream(streamout.stream);
     await afterOpen.promise;
     return ipc;
   }

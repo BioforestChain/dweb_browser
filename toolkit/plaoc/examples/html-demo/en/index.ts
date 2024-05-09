@@ -1,5 +1,4 @@
 import * as isDweb from "@plaoc/is-dweb";
-import "@plaoc/plugins";
 import { barcodeScannerPlugin, configPlugin, dwebServiceWorker } from "@plaoc/plugins";
 
 console.log("xxx=>", isDweb.dwebTarget, isDweb.isDweb);

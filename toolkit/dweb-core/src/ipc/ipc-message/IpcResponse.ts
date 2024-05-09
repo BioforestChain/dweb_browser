@@ -7,7 +7,12 @@ import { IpcBodySender, setStreamId } from "./stream/IpcBodySender.ts";
 import type { MetaBody } from "./stream/MetaBody.ts";
 
 export type $IpcRawResponse = ReturnType<typeof IpcRawResponse>;
-export const IpcRawResponse = (reqId: number, statusCode: number, headers: Record<string, string>, metaBody: MetaBody) =>
+export const IpcRawResponse = (
+  reqId: number,
+  statusCode: number,
+  headers: Record<string, string>,
+  metaBody: MetaBody
+) =>
   ({
     ...ipcMessageBase(IPC_MESSAGE_TYPE.RESPONSE),
     reqId,

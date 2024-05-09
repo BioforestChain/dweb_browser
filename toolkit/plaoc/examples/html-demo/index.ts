@@ -1,4 +1,3 @@
-import "@plaoc/plugins";
 import { ImpactStyle, NotificationType, barcodeScannerPlugin, configPlugin, dwebServiceWorker } from "@plaoc/plugins";
 const barcodeScanner = document.querySelector("dweb-barcode-scanning")!;
 const handleSubmit = async ($event: Event) => {
