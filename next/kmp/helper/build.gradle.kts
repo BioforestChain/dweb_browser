@@ -33,6 +33,9 @@ kotlin {
   kmpAndroidTarget(project) {
   }
   kmpIosTarget(project) {
+    dependencies {
+      implementation(libs.squareup.okio)
+    }
   }
   kmpDesktopTarget(project) {
   }
