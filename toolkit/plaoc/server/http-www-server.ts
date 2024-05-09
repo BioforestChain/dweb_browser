@@ -45,7 +45,7 @@ export class Server_www extends HttpServer {
       return this._config(request);
     }
 
-    let remoteIpcResponse;
+    let remoteIpcResponse: $Core.IpcResponse;
     // 进入plaoc转发器
     if (this.jsonPlaoc) {
       const proxyRequest = await this._plaocForwarder(request, this.jsonPlaoc);
@@ -64,45 +64,51 @@ export class Server_www extends HttpServer {
           remoteIpcResponse.ipc
         );
       } else {
-        remoteIpcResponse = await jsProcess.nativeRequest(`file:///usr/${root}${pathname}?mode=stream`, {
+        const sourceResponse = await jsProcess.nativeRequest(`file:///usr/${root}${pathname}?mode=stream`, {
           headers: proxyRequest.headers,
         });
-        if (
-          remoteIpcResponse.headers.get("Content-Type")?.includes("text/html") &&
-          !plaocShims.has("raw") &&
-          isMobile()
-        ) {
-          const rawText = await remoteIpcResponse.toResponse().text();
+        if (sourceResponse.headers.get("Content-Type")?.includes("text/html") && !plaocShims.has("raw") && isMobile()) {
+          const rawText = await sourceResponse.toResponse().text();
           const text = `<script>(${setupDB.toString()})("${(await this.sessionInfo).installTime}");</script>${rawText}`;
           const binary = this.encoder.encode(text);
-          remoteIpcResponse.headers.set("Content-Length", binary.length + "");
           // fromBinary 会自动添加正确的 ContentLength, 否则在Safari上会异常
           remoteIpcResponse = IpcResponse.fromBinary(
-            remoteIpcResponse.reqId,
-            remoteIpcResponse.statusCode,
-            remoteIpcResponse.headers,
+            request.reqId,
+            sourceResponse.statusCode,
+            sourceResponse.headers,
             binary,
-            remoteIpcResponse.ipc
+            sourceResponse.ipc
+          );
+        } else {
+          /**
+           * 流转发
+           */
+          remoteIpcResponse = new IpcResponse(
+            request.reqId,
+            sourceResponse.statusCode,
+            sourceResponse.headers,
+            sourceResponse.body,
+            request.ipc
           );
         }
       }
     } else {
-      remoteIpcResponse = await jsProcess.nativeRequest(`file:///usr/${root}${pathname}?mode=stream`);
+      const response = await jsProcess.nativeRequest(`file:///usr/${root}${pathname}?mode=stream`);
+      /**
+       * 流转发，是一种高性能的转发方式，等于没有真正意义上去读取response.body，
+       * 而是将response.body的句柄直接转发回去，那么根据协议，一旦流开始被读取，自己就失去了读取权。
+       *
+       * 如此数据就不会发给我，节省大量传输成本
+       */
+      remoteIpcResponse = new IpcResponse(
+        request.reqId,
+        response.statusCode,
+        response.headers,
+        response.body,
+        request.ipc
+      );
     }
-    /**
-     * 流转发，是一种高性能的转发方式，等于没有真正意义上去读取response.body，
-     * 而是将response.body的句柄直接转发回去，那么根据协议，一旦流开始被读取，自己就失去了读取权。
-     *
-     * 如此数据就不会发给我，节省大量传输成本
-     */
-    const ipcResponse = new IpcResponse(
-      request.reqId,
-      remoteIpcResponse.statusCode,
-      remoteIpcResponse.headers,
-      remoteIpcResponse.body,
-      request.ipc
-    );
-    return ipcResponse;
+    return remoteIpcResponse;
   }
 
   _config(event: $Core.IpcFetchEvent) {

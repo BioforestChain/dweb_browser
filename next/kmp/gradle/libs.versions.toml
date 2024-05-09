@@ -11,6 +11,7 @@ javaVersion = "VERSION_17" # JavaVersion.VERSION_17
 
 agp = "8.3.2"
 kotlin-version = "1.9.23"
+kotlin-serialization-gradle = "1.9.23"
 androidx-test = "1.5.2"
 coreKtx = "1.6.0-alpha06"
 androidx-test-rules = "1.5.0"

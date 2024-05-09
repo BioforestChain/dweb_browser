@@ -9,10 +9,7 @@ export class MetaBody {
     readonly type: IPC_META_BODY_TYPE,
     readonly senderUid: string,
     readonly data: string | Uint8Array,
-    readonly streamId: string = simpleDecoder(
-      crypto.getRandomValues(new Uint8Array(8)),
-      "base64"
-    ),
+    readonly streamId?: string,
     public receiverUid?: string
   ) {}
   static fromJSON(metaBody: MetaBody | $JSON<MetaBody>) {
@@ -28,48 +25,27 @@ export class MetaBody {
     return metaBody as MetaBody;
   }
 
-  static fromText(
-    senderUid: string,
-    data: string,
-    streamId?: string,
-    receiverUid?: string
-  ) {
+  static fromText(senderUid: string, data: string, streamId?: string, receiverUid?: string) {
     return new MetaBody(
-      streamId == null
-        ? IPC_META_BODY_TYPE.INLINE_TEXT
-        : IPC_META_BODY_TYPE.STREAM_WITH_TEXT,
+      streamId == null ? IPC_META_BODY_TYPE.INLINE_TEXT : IPC_META_BODY_TYPE.STREAM_WITH_TEXT,
       senderUid,
       data,
       streamId,
       receiverUid
     );
   }
-  static fromBase64(
-    senderUid: string,
-    data: string,
-    streamId?: string,
-    receiverUid?: string
-  ) {
+  static fromBase64(senderUid: string, data: string, streamId?: string, receiverUid?: string) {
     return new MetaBody(
-      streamId == null
-        ? IPC_META_BODY_TYPE.INLINE_BASE64
-        : IPC_META_BODY_TYPE.STREAM_WITH_BASE64,
+      streamId == null ? IPC_META_BODY_TYPE.INLINE_BASE64 : IPC_META_BODY_TYPE.STREAM_WITH_BASE64,
       senderUid,
       data,
       streamId,
       receiverUid
     );
   }
-  static fromBinary(
-    sender: string,
-    data: Uint8Array,
-    streamId?: string,
-    receiverUid?: string
-  ): MetaBody {
+  static fromBinary(sender: string, data: Uint8Array, streamId?: string, receiverUid?: string): MetaBody {
     return new MetaBody(
-      streamId == null
-        ? IPC_META_BODY_TYPE.INLINE_BINARY
-        : IPC_META_BODY_TYPE.STREAM_WITH_BINARY,
+      streamId == null ? IPC_META_BODY_TYPE.INLINE_BINARY : IPC_META_BODY_TYPE.STREAM_WITH_BINARY,
       sender,
       data,
       streamId,
@@ -92,15 +68,11 @@ export class MetaBody {
   get type_encoding() {
     return this.#type_encoding.value;
   }
-  #type_isInline = new CacheGetter(
-    () => (this.type & IPC_META_BODY_TYPE.INLINE) !== 0
-  );
+  #type_isInline = new CacheGetter(() => (this.type & IPC_META_BODY_TYPE.INLINE) !== 0);
   get type_isInline() {
     return this.#type_isInline.value;
   }
-  #type_isStream = new CacheGetter(
-    () => (this.type & IPC_META_BODY_TYPE.INLINE) === 0
-  );
+  #type_isStream = new CacheGetter(() => (this.type & IPC_META_BODY_TYPE.INLINE) === 0);
   get type_isStream() {
     return this.#type_isStream.value;
   }

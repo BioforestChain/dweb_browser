@@ -92,7 +92,8 @@ compose.desktop {
 // 用于启动桌面应用时注入key
 afterEvaluate {
   tasks.withType<JavaExec>() {
-    systemProperties["jxbrowser.license.key"] = getJxBrowserLicenseKey()
+    localProperties().copyTo(systemProperties)
+    System.getProperties().copyTo(systemProperties)
     // 注入应用版本
     systemProperties["dwebbrowser.version"] = appVersion
 
