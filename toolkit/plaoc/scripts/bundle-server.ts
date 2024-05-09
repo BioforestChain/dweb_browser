@@ -1,14 +1,17 @@
 import fs from "node:fs";
 import node_path from "node:path";
-import { fileURLToPath } from "node:url";
 import { Chalk } from "npm:chalk";
 // import { InlineConfig, PluginOption } from "npm:vite";
+import { createBaseResolveTo } from "../../../scripts/helper/ConTasks.helper.ts";
 import { $BuildOptions, ESBuild } from "../../../scripts/helper/ESBuild.ts";
+import { npmNameToFolder } from "../../../scripts/helper/npmBuilder.ts";
 // const minifyHTML = _minifyHTML.default();
 const chalk = new Chalk({ level: 3 });
 
-const resolveTo = (to: string) => fileURLToPath(import.meta.resolve(to));
-const absWorkingDir = resolveTo("../server");
+const resolveTo = createBaseResolveTo(import.meta.resolve("../server"));
+const absWorkingDir = resolveTo();
+const serverPackageJson = await import("../server/package.json", { with: { type: "json" } }).then((res) => res.default);
+const npmDir = npmNameToFolder(serverPackageJson.name);
 
 const prodEsbuildOptions = {
   absWorkingDir,
@@ -16,7 +19,7 @@ const prodEsbuildOptions = {
   entryPoints: {
     "plaoc.server": "./index.ts",
   },
-  outdir: "./dist/prod",
+  outdir: node_path.resolve(npmDir, "./dist/prod"),
   importMapURL: import.meta.resolve("../../../deno.jsonc"),
   denoLoader: true,
   chunkNames: "[name]-[hash]",
@@ -36,7 +39,7 @@ export const dev = new ESBuild({
   entryPoints: {
     "plaoc.server": "./index.ts",
   },
-  outdir: "./dist/dev",
+  outdir: node_path.resolve(npmDir, "./dist/dev"),
   plugins: [
     {
       name: "use-(dev)-ext",
@@ -66,7 +69,7 @@ export const dev = new ESBuild({
 
 export const doBundleServer = (args = Deno.args) => {
   try {
-    Deno.removeSync(resolveTo("../server/dist"), { recursive: true });
+    Deno.removeSync(node_path.resolve(npmDir, "./dist/"), { recursive: true });
   } catch (e) {
     // 第一次运行不存在dist目录
     if (!(e instanceof Deno.errors.NotFound)) {

@@ -56,7 +56,7 @@ export const plaocServer = registryNpmBuilder({
       { name: "./middlewares", path: ctx.packageResolve("./middlewares/index.ts") },
     ],
     postBuild: () => {
-      fs.cpSync(ctx.packageResolve("./dist"), ctx.npmResolve("./dist"));
+      // fs.symlinkSync(ctx.packageResolve("./dist"), ctx.npmResolve("./dist"), "junction");
     },
   }),
 });

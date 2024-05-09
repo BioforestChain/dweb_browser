@@ -1,8 +1,8 @@
 // ex. scripts/build_npm.ts
+import * as dnt from "@deno/dnt";
 import * as semver from "https://deno.land/std@0.220.1/semver/mod.ts";
 import { copyFileSync, watch } from "node:fs";
 import node_path from "node:path";
-import * as dnt from "@deno/dnt";
 
 export const doBuidCore = async (config: {
   name: string;
@@ -144,6 +144,7 @@ export const getVersionGenerator = (version_input?: string) => {
     } else {
       const semver_version = (() => {
         try {
+          // @ts-ignore
           return semver.minVersion(version_input);
         } catch {
           return null;

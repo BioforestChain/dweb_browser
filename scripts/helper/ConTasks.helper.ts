@@ -7,6 +7,12 @@ import type { $Task } from "./ConTasks.ts";
 export const createBaseResolveTo = (baseDir: string = process.cwd()) => {
   if (baseDir.startsWith("file://")) {
     baseDir = fileURLToPath(baseDir);
+    try {
+      if (fs.statSync(baseDir).isFile()) {
+        baseDir = node_path.dirname(baseDir);
+      }
+      // deno-lint-ignore no-empty
+    } catch {}
   }
   const baseResolveTo = (...paths: (string | URL)[]) => {
     let purePaths = paths.map((it) => it.toString());
