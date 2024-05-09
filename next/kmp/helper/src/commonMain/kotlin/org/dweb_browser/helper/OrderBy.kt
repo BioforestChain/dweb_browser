@@ -53,8 +53,8 @@ class OrderDeferred(var current: Job? = null) {
     }
   }
 
-  suspend fun <T> queue(key: Any?, handler: suspend () -> T) = coroutineScope {
-    queue(key, this, handler)
+  suspend fun <T> queueAndAwait(key: Any?, handler: suspend () -> T) = coroutineScope {
+    queue(key, this, handler).await()
   }
 }
 
@@ -72,7 +72,7 @@ class OrderInvoker {
   suspend fun <T> tryInvoke(order: Int?, key: Any? = null, invoker: suspend () -> T) =
     when (order) {
       null -> invoker()
-      else -> queues.getOrPut(order) { OrderDeferred() }.queue(key = key, handler = invoker).await()
+      else -> queues.getOrPut(order) { OrderDeferred() }.queueAndAwait(key = key, handler = invoker)
     }
 }
 

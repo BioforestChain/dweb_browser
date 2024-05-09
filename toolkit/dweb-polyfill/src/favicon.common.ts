@@ -1,6 +1,9 @@
 import type {} from "./favicon.type.ts";
 (() => {
   function getCommonIcon(preference_size = 64) {
+    if (!document.head) {
+      return "";
+    }
     const iconLinks = [...Object.values(document.head.querySelectorAll(`link[rel*="icon"]`))]
       .map((ele) => {
         return {
@@ -55,6 +58,9 @@ import type {} from "./favicon.type.ts";
     }
   }
   function watchCommonIcon(preference_size = 64) {
+    if (!document.head) {
+      return "";
+    }
     // console.log("start watchCommonIcon");
     let preIcon = "";
     const getAndPost = () => {

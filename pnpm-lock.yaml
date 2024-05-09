@@ -30,8 +30,8 @@ importers:
   npm/@dweb-browser__core:
     dependencies:
       '@dweb-browser/helper':
-        specifier: 0.0.3
-        version: 0.0.3(typescript@5.4.5)
+        specifier: workspace:~
+        version: link:../@dweb-browser__helper
       cbor-x:
         specifier: ^1.5.3
         version: 1.5.9
@@ -49,11 +49,11 @@ importers:
   npm/@dweb-browser__js-process:
     dependencies:
       '@dweb-browser/core':
-        specifier: 0.0.4
-        version: 0.0.4(typescript@5.4.5)
+        specifier: workspace:~
+        version: link:../@dweb-browser__core
       '@dweb-browser/helper':
-        specifier: 0.0.3
-        version: 0.0.3(typescript@5.4.5)
+        specifier: workspace:~
+        version: link:../@dweb-browser__helper
 
   npm/@dweb-browser__polyfill:
     dependencies:
@@ -67,11 +67,11 @@ importers:
         specifier: ~0.18.0
         version: 0.18.2
       '@dweb-browser/core':
-        specifier: 0.0.4
-        version: 0.0.4(typescript@5.4.5)
+        specifier: workspace:~
+        version: link:../@dweb-browser__core
       '@plaoc/server':
-        specifier: 0.1.9
-        version: 0.1.9(@types/node@20.12.8)(tslib@2.6.2)(typescript@5.4.5)
+        specifier: workspace:~
+        version: link:../@plaoc__server
       ajv:
         specifier: 8.13.0
         version: 8.13.0
@@ -98,17 +98,17 @@ importers:
   npm/@plaoc__plugins:
     dependencies:
       '@dweb-browser/core':
-        specifier: 0.0.4
-        version: 0.0.4(typescript@5.4.5)
+        specifier: workspace:^
+        version: link:../@dweb-browser__core
       '@dweb-browser/helper':
-        specifier: 0.0.3
-        version: 0.0.3(typescript@5.4.5)
+        specifier: workspace:^
+        version: link:../@dweb-browser__helper
       '@dweb-browser/js-process':
-        specifier: 0.3.7
-        version: 0.3.7(typescript@5.4.5)
+        specifier: workspace:^
+        version: link:../@dweb-browser__js-process
       '@dweb-browser/polyfill':
-        specifier: 0.0.4
-        version: 0.0.4(vite@5.2.11(@types/node@20.12.8)(sass@1.76.0))
+        specifier: workspace:^
+        version: link:../@dweb-browser__polyfill
       cbor-x:
         specifier: ^1.5.9
         version: 1.5.9
@@ -372,22 +372,6 @@ packages:
 
   '@deno/shim-deno@0.18.2':
     resolution: {integrity: sha512-oQ0CVmOio63wlhwQF75zA4ioolPvOwAoK0yuzcS5bDC1JUvH3y1GS8xPh8EOpcoDQRU4FTG8OQfxhpR+c6DrzA==}
-
-  '@dweb-browser/core@0.0.4':
-    resolution: {integrity: sha512-2AjcL9SjVMHQHc4J8ZEkWr8feGNw5ECHsifNrZNwWajSSy6pkFXGQYbCVO/OY1Wky+jjp7bRNL9TN+dDD5X2kQ==}
-
-  '@dweb-browser/helper@0.0.3':
-    resolution: {integrity: sha512-TDMMz8yShyNNd6KDsAsQRTwMTIQNo1yIzwLMWdyHQhByKTRacOmG33i/HHrTIhxOubT/f9z2e6l+0wi9i4P8fw==}
-    peerDependencies:
-      typescript: ^5.0.0
-
-  '@dweb-browser/js-process@0.3.7':
-    resolution: {integrity: sha512-wyoDRx8TMZSbD8JxLEr+qV1OSDLUxubv36j11mUdwIeHzCo5lxErj1S0Tr6jQATXX37OIFu/iLmKA+q2BM456w==}
-
-  '@dweb-browser/polyfill@0.0.4':
-    resolution: {integrity: sha512-MxkFqsOX3TW2fewUaQZBWjOM5UbwpvKpxlJf2PBzYCrozLWgFtfdVOD+PoeuysbF5hAzbmdM3H9+DfN2umkA8Q==}
-    peerDependencies:
-      vite: ^5.0.10
 
   '@enhance/enhance-style-transform@0.0.1':
     resolution: {integrity: sha512-N2+W+FIMg1JtrbwYjahwY8YK4dXKiBdotXQvBnqZm2VhI+FfH05qgsKD1Fzo0DNHVH/tGBb6vF7a+6GLJt0fQg==}
@@ -867,12 +851,6 @@ packages:
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
     engines: {node: '>=14'}
-
-  '@plaoc/server@0.1.9':
-    resolution: {integrity: sha512-Gws/99kzMY9wzfko3bz4gLFViz4wtbZ7UtCXuSkGLDV+32eokYgbiVWnarsAVHOvl8hQc4g0yrvgrUyJfW2Yag==}
-    peerDependencies:
-      '@types/node': '*'
-      tslib: '*'
 
   '@rollup/rollup-android-arm-eabi@4.17.2':
     resolution: {integrity: sha512-NM0jFxY8bB8QLkoKxIQeObCaDlJKewVlIEkuyYKm5An1tdVZ966w2+MPQ2l8LBZLjR+SgyV+nRkTIunzOYBMLQ==}
@@ -2624,28 +2602,6 @@ snapshots:
       '@deno/shim-deno-test': 0.5.0
       which: 4.0.0
 
-  '@dweb-browser/core@0.0.4(typescript@5.4.5)':
-    dependencies:
-      '@dweb-browser/helper': 0.0.3(typescript@5.4.5)
-      cbor-x: 1.5.9
-    transitivePeerDependencies:
-      - typescript
-
-  '@dweb-browser/helper@0.0.3(typescript@5.4.5)':
-    dependencies:
-      typescript: 5.4.5
-
-  '@dweb-browser/js-process@0.3.7(typescript@5.4.5)':
-    dependencies:
-      '@dweb-browser/core': 0.0.4(typescript@5.4.5)
-      '@dweb-browser/helper': 0.0.3(typescript@5.4.5)
-    transitivePeerDependencies:
-      - typescript
-
-  '@dweb-browser/polyfill@0.0.4(vite@5.2.11(@types/node@20.12.8)(sass@1.76.0))':
-    dependencies:
-      vite: 5.2.11(@types/node@20.12.8)(sass@1.76.0)
-
   '@enhance/enhance-style-transform@0.0.1':
     dependencies:
       css: 3.0.0
@@ -2932,20 +2888,6 @@ snapshots:
 
   '@pkgjs/parseargs@0.11.0':
     optional: true
-
-  '@plaoc/server@0.1.9(@types/node@20.12.8)(tslib@2.6.2)(typescript@5.4.5)':
-    dependencies:
-      '@dweb-browser/core': 0.0.4(typescript@5.4.5)
-      '@dweb-browser/helper': 0.0.3(typescript@5.4.5)
-      '@dweb-browser/js-process': 0.3.7(typescript@5.4.5)
-      '@types/node': 20.12.8
-      '@types/web': 0.0.143
-      deep-object-diff: 1.1.9
-      is-mobile: 4.0.0
-      tslib: 2.6.2
-      urlpattern-polyfill: 10.0.0
-    transitivePeerDependencies:
-      - typescript
 
   '@rollup/rollup-android-arm-eabi@4.17.2':
     optional: true

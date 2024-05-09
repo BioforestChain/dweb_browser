@@ -18,7 +18,7 @@ data class IpcStreamDataRawString(
     return "IpcStreamDataRawString(stream_id=$stream_id, encoding=$encoding, order=$order, data=${
       when (val len = data.length) {
         in 0..100 -> data
-        else -> data.slice(0..20) + "..." + data.slice(len - 20..<len)
+        else -> data.slice(0..19) + "..." + data.slice(len - 20..<len)
       }
     })"
   }

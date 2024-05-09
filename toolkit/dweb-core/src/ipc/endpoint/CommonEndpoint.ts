@@ -94,6 +94,7 @@ export abstract class CommonEndpoint extends IpcEndpoint {
    */
   override async postIpcMessage(msg: $EndpointIpcMessage) {
     await this.awaitOpen("then-postIpcMessage");
+    this.console.log("out", msg);
     switch (this.#protocol) {
       case ENDPOINT_PROTOCOL.JSON:
         this.postTextMessage($endpointMessageToJson(msg));

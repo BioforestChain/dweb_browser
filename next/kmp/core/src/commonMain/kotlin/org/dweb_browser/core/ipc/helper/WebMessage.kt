@@ -1,7 +1,7 @@
 package org.dweb_browser.core.ipc.helper
 
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.channels.ReceiveChannel
 
 interface IWebMessageChannel {
   val port1: IWebMessagePort
@@ -12,7 +12,7 @@ interface IWebMessagePort {
   suspend fun start()
   suspend fun close(cause: CancellationException? = null)
   suspend fun postMessage(event: DWebMessage)
-  val onMessage: SharedFlow<DWebMessage>
+  val onMessage: ReceiveChannel<DWebMessage>
 }
 
 sealed interface DWebMessage {

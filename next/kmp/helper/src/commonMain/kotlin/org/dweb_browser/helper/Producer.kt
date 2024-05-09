@@ -189,10 +189,10 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
     }
   }
 
-  suspend fun send(value: T, order: Int? = null) = actionQueue.queue("send=$value") {
+  suspend fun send(value: T, order: Int? = null) = actionQueue.queueAndAwait("send=$value") {
     ensureOpen()
     doSend(value, order)
-  }.await()
+  }
 
   private val warn = Once { WARNING("$this buffers overflow maybe leak: $buffers") }
   private fun doSend(value: T, order: Int?) {
@@ -206,9 +206,9 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
     }
   }
 
-  suspend fun sendBeacon(value: T, order: Int? = null) = actionQueue.queue("sendBeacon") {
+  suspend fun sendBeacon(value: T, order: Int? = null) = actionQueue.queueAndAwait("sendBeacon") {
     doSendBeacon(value, order)
-  }.await()
+  }
 
   private suspend fun doSendBeacon(value: T, order: Int?) {
     val event = Event(value, order)
@@ -219,13 +219,13 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
     }
   }
 
-  suspend fun trySend(value: T, order: Int? = null) = actionQueue.queue("trySend") {
+  suspend fun trySend(value: T, order: Int? = null) = actionQueue.queueAndAwait("trySend") {
     if (isClosedForSend) {
       doSendBeacon(value, order)
     } else {
       doSend(value, order)
     }
-  }.await()
+  }
 
 
   private suspend fun doEmit(event: Event) {
@@ -300,7 +300,7 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
         job.cancel()
 
       }
-      actionQueue.queue("add-consumer") {
+      actionQueue.queueAndAwait("add-consumer") {
         consumers.add(this@Consumer)
         started = true
         val starting = buffers.toList()
@@ -314,7 +314,7 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
           }
         }
         startingBuffers = null
-      }.await()
+      }
       val x = invokeOnClose {
         deferred.cancel(CancellationException("${this@Producer} closed", it))
         consumers.remove(this@Consumer)
@@ -346,8 +346,8 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
    * 注意，这个函数会自己在后台进行关闭，不会等待关闭后才返回
    * 如果有需要，请使用 closeAndAwait
    */
-  suspend fun close(cause: Throwable? = null) = actionQueue.queue("close") {
-    scope.launch {
+  suspend fun close(cause: Throwable? = null) = actionQueue.queueAndAwait("close") {
+    scope.launch(start = CoroutineStart.UNDISPATCHED) {
       if (isClosedForSend) {
         return@launch
       }
@@ -382,7 +382,6 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
       consumers.clear()
       buffers.clear()
     }
-    Unit
   }
 
   suspend fun closeAndJoin(cause: Throwable? = null) {

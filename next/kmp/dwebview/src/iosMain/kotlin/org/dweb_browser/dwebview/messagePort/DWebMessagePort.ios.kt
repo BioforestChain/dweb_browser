@@ -5,9 +5,6 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -34,11 +31,6 @@ class DWebMessagePort(val portId: Int, private val webview: DWebView, parentScop
         null,
         DWebViewWebMessage.webMessagePortContentWorld
       ).await()
-    }
-    scope.launch {
-      for (msg in channel) {
-        messageFlow.emit(msg)
-      }
     }
     channel
   }
@@ -93,8 +85,6 @@ class DWebMessagePort(val portId: Int, private val webview: DWebView, parentScop
     }
   }
 
-
-  private val messageFlow = MutableSharedFlow<DWebMessage>()
   internal fun dispatchMessage(message: DWebMessage) = _started.value.trySend(message)
-  override val onMessage = messageFlow.asSharedFlow()
+  override val onMessage get() = _started.value
 }

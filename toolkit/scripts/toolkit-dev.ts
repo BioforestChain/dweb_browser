@@ -7,10 +7,10 @@ const defineAssets = (assetsName: string, ...useAssets: UseAssets[]) => {
 };
 export const toolkitTasks = new ConTasks(
   {
-    "fort-test-image:serve": {
+    "fort-test:serve": {
       cmd: "npx",
       args: "vite --host 0.0.0.0",
-      cwd: "../for-test-images",
+      cwd: "../for-test",
     },
     "dweb-offscreen-web-canvas-assets": {
       cmd: "npx",

@@ -4,53 +4,58 @@ import com.teamdev.jxbrowser.js.JsArray
 import com.teamdev.jxbrowser.js.JsFunctionCallback
 import com.teamdev.jxbrowser.js.JsObject
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.consumeAsFlow
-import kotlinx.coroutines.flow.shareIn
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.plus
 import org.dweb_browser.core.ipc.helper.DWebMessage
 import org.dweb_browser.core.ipc.helper.IWebMessagePort
 import org.dweb_browser.dwebview.DWebView
+import org.dweb_browser.dwebview.debugDWebView
 import org.dweb_browser.helper.launchWithMain
 import org.dweb_browser.helper.runIf
 import kotlin.jvm.optionals.getOrNull
 
 class DWebMessagePort(val port: /* MessagePort */JsObject, private val webview: DWebView) :
   IWebMessagePort {
-  val scope = webview.ioScope + SupervisorJob()
-  internal val _started = lazy {
-    val messageChannel = Channel<DWebMessage>()
+  private val _started = lazy {
+    val messageChannel = Channel<DWebMessage>(capacity = Channel.UNLIMITED)
 
-    webview.ioScope.launch {
-      val cb = JsFunctionCallback {
-        (it[0] as JsObject).apply {
-          val ports = property<JsArray>("ports").runIf { jsPorts ->
-            mutableListOf<DWebMessagePort>().apply {
-              for (index in 0..<jsPorts.length()) {
-                add(DWebMessagePort(jsPorts.get<JsObject>(index)!!, webview))
-              }
+    val cb = JsFunctionCallback {
+      (it[0] as JsObject).apply {
+        val ports = property<JsArray>("ports").runIf { jsPorts ->
+          mutableListOf<DWebMessagePort>().apply {
+            for (index in 0..<jsPorts.length()) {
+              add(DWebMessagePort(jsPorts.get<JsObject>(index)!!, webview))
             }
-          } ?: emptyList()
-
-          when (val message = property<Any>("data").getOrNull()) {
-            is String -> DWebMessage.DWebMessageString(message, ports)
-            is ByteArray -> DWebMessage.DWebMessageBytes(message, ports)
-            else -> null
-          }?.also { dwebMessage ->
-            messageChannel.trySend(dwebMessage)
           }
+        } ?: emptyList()
+
+        val message = property<Any>("data").getOrNull()
+        if (message is String) {
+          debugDWebView(
+            "message-in",
+            when (val len = message.length) {
+              in 0..100 -> message
+              else -> message.slice(0..59) + "..." + message.slice(len - 50..<len)
+            }
+          )
         }
-      }
-      port.call<Unit>("addEventListener", "message", cb)
-      port.call<Unit>("start")
-      messageChannel.invokeOnClose {
-        port.call<Unit>("removeEventListener", "message", cb)
+        when (message) {
+          is String -> DWebMessage.DWebMessageString(message, ports)
+          is ByteArray -> DWebMessage.DWebMessageBytes(message, ports)
+          else -> null
+        }?.also { dwebMessage ->
+          messageChannel.trySend(dwebMessage)
+        }
+
+        // release jsObject
+        close()
       }
     }
+    port.call<Unit>("addEventListener", "message", cb)
+    port.call<Unit>("start")
+    messageChannel.invokeOnClose {
+      port.call<Unit>("removeEventListener", "message", cb)
+    }
+
     messageChannel
   }
 
@@ -65,7 +70,6 @@ class DWebMessagePort(val port: /* MessagePort */JsObject, private val webview: 
     webview.ioScope.launchWithMain {
       port.call<Unit>("close")
     }.join()
-    scope.cancel(cause)
   }
 
   override suspend fun postMessage(event: DWebMessage): Unit = runCatching {
@@ -94,6 +98,6 @@ class DWebMessagePort(val port: /* MessagePort */JsObject, private val webview: 
   }
 
   override val onMessage by lazy {
-    _started.value.consumeAsFlow().shareIn(scope, SharingStarted.Lazily)
+    _started.value
   }
 }

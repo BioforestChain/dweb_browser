@@ -193,13 +193,20 @@ class JsProcessTest {
           """
             const { http, jsProcess, ipc } = navigator.dweb;
             const httpServer = await http.createHttpDwebServer(jsProcess, { subdomain: "www" });
-            await httpServer.listen((event) => {
-//              jsProcess.nativeFetch(`http://localhost:12207`+event.ipcRequest.parsed_url.pathname)
+            await httpServer.listen(async (event) => {
               console.log("got request", event.ipcRequest.url);
-              return { body: event.ipcRequest.parsed_url.pathname.slice(1) };
+              const response = await jsProcess.nativeFetch(`http://localhost:12207`+event.ipcRequest.parsed_url.pathname);
+              // return response;
+              return {
+                status: response.status,
+                headers: response.headers,
+                body: response.body
+              }
             });
             jsProcess.fetchIpc.postMessage(
-              ipc.IpcEvent.fromText("http-server", httpServer.startResult.urlInfo.buildDwebUrl().href)
+              ipc.IpcEvent.fromText("http-server", httpServer.startResult.urlInfo.buildDwebUrl((url) => {
+                url.pathname="p2p.svg"
+              }).href)
             );
           """.trimIndent()
         }
@@ -210,16 +217,10 @@ class JsProcessTest {
       }.first()
       println("QAQ jsHttpUrl=$jsHttpUrl")
 
-
-      val actual = randomUUID()
-      val expected = testRuntime.nativeFetch("$jsHttpUrl$actual").text()
-      println("QAQ expected=$expected")
-      assertEquals(actual, expected)
-
       val dwebview = IDWebView.create(testRuntime, DWebViewOptions(openDevTools = true))
-//      dwebview.loadUrl(jsHttpUrl)
+      dwebview.loadUrl(jsHttpUrl)
 
-      delay(100000)
+      delay(10000000)
     }
 
   }

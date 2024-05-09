@@ -29,7 +29,6 @@ export class WebMessageEndpoint extends CommonEndpoint {
   }
 
   protected postTextMessage(data: string) {
-    this.console.verbose("out", data);
     this.port.postMessage(data);
   }
   protected postBinaryMessage(data: Uint8Array) {

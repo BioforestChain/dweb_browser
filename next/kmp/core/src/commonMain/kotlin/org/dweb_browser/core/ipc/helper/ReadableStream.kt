@@ -7,9 +7,10 @@ import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.ByteReadChannelDelegate
 import org.dweb_browser.helper.Debugger
-import org.dweb_browser.helper.OrderInvoker
+import org.dweb_browser.helper.OrderDeferred
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.SafeInt
+import org.dweb_browser.helper.SuspendOnce1
 import org.dweb_browser.helper.createByteChannel
 import org.dweb_browser.pure.http.PureStream
 
@@ -48,8 +49,8 @@ class ReadableStream(
   class ReadableStreamController(
     val stream: ReadableStream,
   ) {
-    private val orderInvoker = OrderInvoker()
-    suspend fun enqueue(vararg byteArrays: ByteArray) = orderInvoker.tryInvoke(1) {
+    private val order = OrderDeferred()
+    suspend fun enqueue(vararg byteArrays: ByteArray) = order.queueAndAwait("enqueue") {
       try {
         for (byteArray in byteArrays) {
           stream._stream.writePacket(ByteReadPacket(byteArray))
@@ -61,7 +62,7 @@ class ReadableStream(
     }
 
     suspend fun enqueue(byteArray: ByteArray) =
-      orderInvoker.tryInvoke(1, key = "enqueue(${byteArray.size}bytes)") {
+      order.queueAndAwait("enqueue(${byteArray.size}bytes)") {
         try {
           stream._stream.writePacket(ByteReadPacket(byteArray))
           true
@@ -82,7 +83,7 @@ class ReadableStream(
       if (interrupt) {
         stream.closeWrite(cause)
       } else {
-        orderInvoker.tryInvoke(1,key = "closeWrite($cause)") {
+        order.queueAndAwait("closeWrite($cause)") {
           stream.closeWrite(cause)
         }
       }
@@ -110,10 +111,12 @@ class ReadableStream(
       emitClose()
     }
 
-  private fun closeWrite(cause: Throwable? = null) =
+  private val closeWrite = SuspendOnce1 { cause: Throwable? ->
+    _stream.flush()
     _stream.close(cause).also {
       emitClose()
     }
+  }
 
 
   companion object {

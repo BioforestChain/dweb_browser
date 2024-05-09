@@ -49,18 +49,23 @@ export const logger = (scope: unknown) => {
   return new Logger(scope);
 };
 const customInspect = (arg: any) => {
-  if (typeof arg === "object") {
-    if (arg !== null && CUSTOM_INSPECT in arg) {
-      return arg[CUSTOM_INSPECT]();
-    } else {
-      try {
-        return JSON.stringify(arg);
-      } catch {
-        return arg;
-      }
-    }
-  } else {
+  if (typeof arg !== "object") {
     return arg;
+  }
+  if (arg !== null && CUSTOM_INSPECT in arg) {
+    arg = arg[CUSTOM_INSPECT]();
+  }
+  if (typeof arg === "object" && arg !== null) {
+    try {
+      return JSON.stringify(arg, (_key, value) => {
+        if (typeof value === "object" && value !== null && CUSTOM_INSPECT in value) {
+          return value[CUSTOM_INSPECT]();
+        }
+        return value;
+      });
+    } catch {
+      return arg;
+    }
   }
 };
 const customInspects = (args: any[]) => args.filter((arg) => arg !== undefined).map(customInspect);

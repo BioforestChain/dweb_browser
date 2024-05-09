@@ -27,7 +27,7 @@ open class WebMessageEndpoint(
   override suspend fun doStart() {
     super.doStart()
     scope.launch {
-      port.onMessage.collect { event ->
+      for (event in port.onMessage) {
         val packMessage =
           if (protocol == EndpointProtocol.CBOR && event is DWebMessage.DWebMessageBytes) {
             cborToEndpointMessage(event.binary)

@@ -6,6 +6,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.onTimeout
 import kotlinx.coroutines.selects.select
+import org.dweb_browser.core.ipc.helper.DWebMessage
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.module.NativeMicroModule
@@ -18,9 +19,11 @@ import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.create
 import org.dweb_browser.dwebview.debugDWebView
 import org.dweb_browser.helper.SuspendOnce
+import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.test.runCommonTest
 import kotlin.properties.Delegates
 import kotlin.test.Test
+import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
@@ -315,6 +318,61 @@ class DWebViewTest {
         }
         assertEquals(contentLength, byteLength, "error in $i")
       }
+    }
+  }
+
+  @Test
+  fun testMessagePort() = runCommonTest(1, timeOut = 600.seconds) { time ->
+    println("test-$time")
+    val ctx = getPrepareContext()
+    val fileNMM = FileNMM()
+    ctx.dnsNMM.install(fileNMM)
+    val dwebview = getWebview(DWebViewOptions(openDevTools = true))
+    dwebview.loadUrl("http://localhost:12207")
+    val messageChannel = dwebview.createMessageChannel()
+    /// prepare
+    dwebview.evaluateAsyncJavascriptCode(
+      """
+      window.addEventListener("message", (event) => {
+        if (event.data === "okk") {
+          const port = event.ports[0];
+          port.addEventListener("message", (event) => {
+            console.log(event.data)
+            port.postMessage(event.data);
+          });
+          port.start()
+        }
+      })
+    """.trimIndent()
+    )
+
+    dwebview.postMessage("okk", listOf(messageChannel.port1))
+
+    /// send
+    val actual = mutableListOf<String>()
+    launch {
+      messageChannel.port2.start()
+      for (i in 1..10000) {
+        val msg = "$i:${randomUUID()}"
+        actual += msg
+        messageChannel.port2.postMessage(DWebMessage.DWebMessageString(msg))
+      }
+      messageChannel.port2.close()
+      println("close")
+    }
+
+    // receive
+    val expected = mutableListOf<String>()
+    for (event in messageChannel.port2.onMessage) {
+      expected += event.text
+    }
+
+    runCatching {
+      assertContentEquals(expected, actual)
+    }.getOrElse {
+      println(it)
+      delay(10000000)
+      throw it
     }
   }
 }

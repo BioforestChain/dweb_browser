@@ -10,24 +10,24 @@ export type $IpcStreamData = ReturnType<typeof ipcStreamData>;
 const ipcStreamData = (stream_id: string, data: string | Uint8Array, encoding: IPC_DATA_ENCODING, order: number) =>
   ({ ...ipcMessageBase(IPC_MESSAGE_TYPE.STREAM_DATA), stream_id, data, encoding, order } as const satisfies OrderBy);
 export const IpcStreamData = Object.assign(ipcStreamData, {
-  fromBase64(
-    stream_id: string,
-    data: Uint8Array,
-    order: number = stringHashCode(stream_id)
-  ): { [key: string | symbol]: unknown } {
-    return Object.assign(ipcStreamData(stream_id, simpleDecoder(data, "base64"), IPC_DATA_ENCODING.BASE64, order), {
+  fromBase64(stream_id: string, data: Uint8Array, order: number = stringHashCode(stream_id)) {
+    const base64data = simpleDecoder(data, "base64");
+    return Object.assign(ipcStreamData(stream_id, base64data, IPC_DATA_ENCODING.BASE64, order), {
       // 打印的时候只会输出前20位和后20位，中间以 "..." 省略
       [CUSTOM_INSPECT]() {
-        return JSON.stringify({
+        return {
           ...this,
-          data: data.length <= 100 ? data : `${data.slice(0, 20)}...${data.slice(-20)}`,
-        });
+          data: base64data.length <= 100 ? base64data : `${base64data.slice(0, 20)}...${base64data.slice(-20)}`,
+        };
       },
     });
   },
   fromBinary(stream_id: string, data: Uint8Array, order: number = stringHashCode(stream_id)) {
     return Object.assign(ipcStreamData(stream_id, data, IPC_DATA_ENCODING.BINARY, order), {
       toJSON: $once(() => IpcStreamData.fromBase64(stream_id, data, order)),
+      [CUSTOM_INSPECT]() {
+        return this.toJSON()[CUSTOM_INSPECT]();
+      },
     });
   },
   fromUtf8(stream_id: string, data: Uint8Array, order: number = stringHashCode(stream_id)) {

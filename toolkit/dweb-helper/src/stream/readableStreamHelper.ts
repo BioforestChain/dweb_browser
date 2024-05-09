@@ -1,5 +1,5 @@
-import { u8aConcat } from "../fun/binaryHelper.ts";
 import { Signal, createSignal, type $Callback } from "../createSignal.ts";
+import { u8aConcat } from "../fun/binaryHelper.ts";
 export interface $AbortAble {
   signal?: AbortSignal;
 }
@@ -55,7 +55,12 @@ export const binaryStreamRead = (stream: ReadableStream<Uint8Array>, options?: $
     return available();
   };
   const readBinary = async (size: number): Promise<Uint8Array> => {
-    if (cache.length >= size) {
+    if (cache.length === size) {
+      const result = cache;
+      cache = new Uint8Array();
+      return result;
+    }
+    if (cache.length > size) {
       const result = cache.subarray(0, size);
       cache = cache.subarray(size);
       return result;

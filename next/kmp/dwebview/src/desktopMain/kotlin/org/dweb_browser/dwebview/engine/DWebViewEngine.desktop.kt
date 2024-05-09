@@ -220,6 +220,10 @@ class DWebViewEngine internal constructor(
         })();
       """.trimIndent(),
         Consumer<JsPromise> { jsObject ->
+          if (jsObject == null) {
+            deferred.completeExceptionally(JsException("maybe SyntaxError"))
+            return@Consumer
+          }
           jsObject.then {
             runCatching {
               val result = it[0] as String
