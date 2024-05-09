@@ -25,6 +25,7 @@ export const createDuplexIpc: CreateDuplexIpcType = (
   const streamIpc = ipcPool.createIpc(endpoint, 0, remote, remote, true);
 
   const incomeStream = new ReadableStreamOut<Uint8Array>();
+  void endpoint.bindIncomeStream(incomeStream.stream);
   // 拿到自己前端的channel
   const pureServerChannel = ipcRequest.getChannel();
   pureServerChannel.start();
@@ -46,6 +47,5 @@ export const createDuplexIpc: CreateDuplexIpcType = (
     }
   })();
 
-  void endpoint.bindIncomeStream(incomeStream.stream);
   return streamIpc;
 };

@@ -61,6 +61,7 @@ export class Server_external extends HttpServer {
       if (this.ipcPo.isOpen) {
         this.ipcPo.toggleClose();
       }
+
       // 跟自己建立双工通信
       const streamIpc = createDuplexIpc(
         jsProcess.ipcPool,

@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
-import LogPanel, { defineLogAction, toConsole } from "../components/LogPanel.vue";
 import * as plaoc from "@plaoc/plugins";
 import { dwebServiceWorker, updateControllerPlugin } from "@plaoc/plugins";
+import { onMounted, ref } from "vue";
+import LogPanel, { defineLogAction, toConsole } from "../components/LogPanel.vue";
 
 const $logPanel = ref<typeof LogPanel>();
 let console: Console;
@@ -39,27 +39,6 @@ const restart = defineLogAction(
     return await dwebServiceWorker.restart();
   },
   { name: "restart", args: [], logPanel: $logPanel }
-);
-
-const pause = defineLogAction(
-  async () => {
-    // return await updateControllerPlugin.pause();
-  },
-  { name: "pause", args: [], logPanel: $logPanel }
-);
-
-const resume = defineLogAction(
-  async () => {
-    // return await updateControllerPlugin.resume();
-  },
-  { name: "resume", args: [], logPanel: $logPanel }
-);
-
-const cancel = defineLogAction(
-  async () => {
-    // return await updateControllerPlugin.cancel();
-  },
-  { name: "cancel", args: [], logPanel: $logPanel }
 );
 
 const download = defineLogAction(

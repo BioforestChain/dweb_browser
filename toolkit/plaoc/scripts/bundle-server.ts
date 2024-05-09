@@ -1,18 +1,15 @@
 import fs from "node:fs";
 import node_path from "node:path";
 import { Chalk } from "npm:chalk";
-// import { InlineConfig, PluginOption } from "npm:vite";
 import { createBaseResolveTo } from "../../../scripts/helper/ConTasks.helper.ts";
 import { $BuildOptions, ESBuild } from "../../../scripts/helper/ESBuild.ts";
 import { npmNameToFolder } from "../../../scripts/helper/npmBuilder.ts";
-// const minifyHTML = _minifyHTML.default();
 const chalk = new Chalk({ level: 3 });
 
 const resolveTo = createBaseResolveTo(import.meta.resolve("../server"));
 const absWorkingDir = resolveTo();
 const serverPackageJson = await import("../server/package.json", { with: { type: "json" } }).then((res) => res.default);
 const npmDir = npmNameToFolder(serverPackageJson.name);
-
 const prodEsbuildOptions = {
   absWorkingDir,
   splitting: true,

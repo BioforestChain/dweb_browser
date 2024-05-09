@@ -49,11 +49,11 @@ importers:
   npm/@dweb-browser__js-process:
     dependencies:
       '@dweb-browser/core':
-        specifier: workspace:~
-        version: link:../@dweb-browser__core
+        specifier: 0.0.4
+        version: 0.0.4(typescript@5.4.5)
       '@dweb-browser/helper':
-        specifier: workspace:~
-        version: link:../@dweb-browser__helper
+        specifier: 0.0.3
+        version: 0.0.3(typescript@5.4.5)
 
   npm/@dweb-browser__polyfill:
     dependencies:
@@ -69,7 +69,11 @@ importers:
       '@dweb-browser/core':
         specifier: workspace:~
         version: link:../@dweb-browser__core
+        specifier: workspace:~
+        version: link:../@dweb-browser__core
       '@plaoc/server':
+        specifier: workspace:~
+        version: link:../@plaoc__server
         specifier: workspace:~
         version: link:../@plaoc__server
       ajv:
@@ -100,13 +104,21 @@ importers:
       '@dweb-browser/core':
         specifier: workspace:^
         version: link:../@dweb-browser__core
+        specifier: workspace:^
+        version: link:../@dweb-browser__core
       '@dweb-browser/helper':
+        specifier: workspace:^
+        version: link:../@dweb-browser__helper
         specifier: workspace:^
         version: link:../@dweb-browser__helper
       '@dweb-browser/js-process':
         specifier: workspace:^
         version: link:../@dweb-browser__js-process
+        specifier: workspace:^
+        version: link:../@dweb-browser__js-process
       '@dweb-browser/polyfill':
+        specifier: workspace:^
+        version: link:../@dweb-browser__polyfill
         specifier: workspace:^
         version: link:../@dweb-browser__polyfill
       cbor-x:
@@ -372,6 +384,14 @@ packages:
 
   '@deno/shim-deno@0.18.2':
     resolution: {integrity: sha512-oQ0CVmOio63wlhwQF75zA4ioolPvOwAoK0yuzcS5bDC1JUvH3y1GS8xPh8EOpcoDQRU4FTG8OQfxhpR+c6DrzA==}
+
+  '@dweb-browser/core@0.0.4':
+    resolution: {integrity: sha512-2AjcL9SjVMHQHc4J8ZEkWr8feGNw5ECHsifNrZNwWajSSy6pkFXGQYbCVO/OY1Wky+jjp7bRNL9TN+dDD5X2kQ==}
+
+  '@dweb-browser/helper@0.0.3':
+    resolution: {integrity: sha512-TDMMz8yShyNNd6KDsAsQRTwMTIQNo1yIzwLMWdyHQhByKTRacOmG33i/HHrTIhxOubT/f9z2e6l+0wi9i4P8fw==}
+    peerDependencies:
+      typescript: ^5.0.0
 
   '@enhance/enhance-style-transform@0.0.1':
     resolution: {integrity: sha512-N2+W+FIMg1JtrbwYjahwY8YK4dXKiBdotXQvBnqZm2VhI+FfH05qgsKD1Fzo0DNHVH/tGBb6vF7a+6GLJt0fQg==}
@@ -2601,6 +2621,17 @@ snapshots:
     dependencies:
       '@deno/shim-deno-test': 0.5.0
       which: 4.0.0
+
+  '@dweb-browser/core@0.0.4(typescript@5.4.5)':
+    dependencies:
+      '@dweb-browser/helper': 0.0.3(typescript@5.4.5)
+      cbor-x: 1.5.9
+    transitivePeerDependencies:
+      - typescript
+
+  '@dweb-browser/helper@0.0.3(typescript@5.4.5)':
+    dependencies:
+      typescript: 5.4.5
 
   '@enhance/enhance-style-transform@0.0.1':
     dependencies:

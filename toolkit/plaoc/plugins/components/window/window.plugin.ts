@@ -3,7 +3,7 @@ import { PromiseOut } from "@dweb-browser/helper/PromiseOut.ts";
 import { bindThis } from "../../helper/bindThis.ts";
 import { cacheGetter } from "../../helper/cacheGetter.ts";
 import { Signal, type $Callback } from "../../helper/createSignal.ts";
-import { ReadableStreamOut, binaryStreamRead } from "../../helper/readableStreamHelper.ts";
+import { ReadableStreamOut, streamRead } from "../../helper/readableStreamHelper.ts";
 import { StateObserver, type $Coder } from "../../util/StateObserver.ts";
 import { BasePlugin } from "../base/base.plugin.ts";
 import { webIpcPool } from "../index.ts";
@@ -166,7 +166,7 @@ export class WindowPlugin extends BasePlugin {
     };
     ws.onopen = async () => {
       afterOpen.resolve();
-      for await (const data of binaryStreamRead(endpoint.stream)) {
+      for await (const data of streamRead(endpoint.stream)) {
         ws.send(data);
       }
     };

@@ -74,10 +74,11 @@ export const pureFrameToIpcEvent = (eventName: string, pureFrame: $PureFrame, or
 };
 
 export const pureChannelToIpcEvent = async (channelIpc: Ipc, pureChannel: PureChannel, debugTag: string) => {
-  const eventData = `${PURE_CHANNEL_EVENT_PREFIX}/data`;
+  const eventData = `${PURE_CHANNEL_EVENT_PREFIX}data`;
   const orderBy = -1;
 
   const ipcListenToChannelPo = new PromiseOut<ReadableStreamDefaultController<$PureFrame>>();
+  // 接收event消息。转换成PureFrame，发送到channel的income里面去
   channelIpc.onEvent("pureChannelToIpcEvent").collect(async (event) => {
     const ipcEvent = event.consumeMapNotNull((ipcEvent) => {
       if (ipcEvent.name === eventData) {
@@ -87,10 +88,13 @@ export const pureChannelToIpcEvent = async (channelIpc: Ipc, pureChannel: PureCh
     if (ipcEvent === undefined) {
       return;
     }
+    // 等待流控制器准备好再发送
     (await ipcListenToChannelPo.promise).enqueue(ipcEventToPureFrame(ipcEvent));
   });
   const ctx = pureChannel.start();
+  // 拿到输入流控制器，开始接收ipc发送过来的ipcEvent事件，并且转换成pureFrame写入队列
   ipcListenToChannelPo.resolve(ctx.incomeController);
+  // 拿到输出流，准备进入ipc发送队列，转化成IpcEvent发送
   const channelReadOut = ctx.outgoingStream;
 
   await channelIpc.start(undefined, debugTag);

@@ -45,6 +45,7 @@ const plaocTasks = [
     {
       reset() {
         // doBundleServer 自带 watch
+        doBundleServer();
       },
     }
   ),
