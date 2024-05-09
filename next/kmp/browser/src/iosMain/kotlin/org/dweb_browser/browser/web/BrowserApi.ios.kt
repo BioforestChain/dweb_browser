@@ -9,10 +9,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.interop.UIKitView
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.web.data.AppBrowserTarget
 import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.browser.web.model.DwebLinkSearchItem
+import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.platform.ios_browser.DwebWebView
 import org.dweb_browser.platform.ios_browser.browserActiveOn
 import org.dweb_browser.platform.ios_browser.browserClear
@@ -38,13 +40,14 @@ private var iOSViewHolder: DwebWebView? = null
 private var iOSViewDelegateHolder: BrowserIosDelegate? = null
 private var iOSViewDataSourceHolder: BrowserIosDataSource? = null
 
+@OptIn(ExperimentalForeignApi::class)
+private var iOSViewHolderDeferred = CompletableDeferred<Unit>()
+
 private var browserObserver = BrowserIosWinObserver(::winVisibleChange, ::winClose)
 
 @OptIn(ExperimentalForeignApi::class)
-private fun winClose(): Unit {
-  iOSViewHolder?.let {
-    it.browserClear()
-  }
+private fun winClose() {
+  iOSViewHolder?.browserClear()
   iOSViewHolder = null
   iOSViewDelegateHolder?.destory()
   iOSViewDataSourceHolder?.destory()
@@ -53,15 +56,17 @@ private fun winClose(): Unit {
 }
 
 @OptIn(ExperimentalForeignApi::class)
-private fun winVisibleChange(isVisible: Boolean): Unit {
-  iOSViewHolder?.let {
-    it.browserActiveOn(isVisible)
+private fun winVisibleChange(isVisible: Boolean) {
+  iOSViewHolderDeferred.isCompleted.trueAlso {
+    iOSViewHolder!!.browserActiveOn(isVisible)
   }
 }
 
 @OptIn(ExperimentalForeignApi::class)
 actual suspend fun deepLinkDoSearch(dwebLinkSearchItem: DwebLinkSearchItem) {
-  iOSViewHolder?.let { iOSView ->
+  iOSViewHolderDeferred.await()
+
+  iOSViewHolder!!.let { iOSView ->
     if (dwebLinkSearchItem.link.isNotEmpty()) {
       when (dwebLinkSearchItem.target) {
         AppBrowserTarget.BLANK, AppBrowserTarget.SYSTEM -> iOSView.doNewTabUrlWithUrl(
@@ -84,7 +89,6 @@ actual fun CommonBrowserView(
   modifier: Modifier,
   windowRenderScope: WindowContentRenderScope
 ) {
-
   val iOSDelegate = remember {
     when (val delegate = iOSViewDelegateHolder) {
       null -> BrowserIosDelegate(viewModel).apply {
@@ -121,6 +125,7 @@ actual fun CommonBrowserView(
       else -> webView
     }.also {
       it.prepareToKmp()
+      iOSViewHolderDeferred.complete(Unit)
     }
   }
 
