@@ -2,7 +2,6 @@ package org.dweb_browser.dwebview.engine
 
 import android.content.Intent
 import android.os.Build
-import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
@@ -15,6 +14,7 @@ import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.dwebview.base.isWebUrlScheme
 import org.dweb_browser.dwebview.debugDWebView
 import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.readByteArray
 import org.dweb_browser.pure.http.PureClientRequest
 import org.dweb_browser.pure.http.PureHeaders
 import org.dweb_browser.pure.http.PureMethod
@@ -96,7 +96,8 @@ class DWebOverwriteRequest(val engine: DWebViewEngine) : WebViewClient() {
         contentType?.parameter("charset"),
         response.status.value,
         response.status.description,
-        response.headers.toMap().let { it - "Content-Type" }, // 修复 content-type 问题
+        response.headers.toMap()
+          .let { it - "Content-Type" - "Content-Length" }, // 修复 content-type 问题
         inputStreamProxy,
       )
     }
