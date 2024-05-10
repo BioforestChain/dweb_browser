@@ -20,15 +20,17 @@ export type $EndpointLifecycleClosing = ReturnType<typeof endpointLifecycleClosi
 export type $EndpointLifecycleClosed = ReturnType<typeof endpointLifecycleClosed>;
 
 export const endpointLifecycleInit = () => endpointLifecycleStateBase(ENDPOINT_LIFECYCLE_STATE.INIT);
-export const endpointLifecycleOpening = (subProtocols: Iterable<ENDPOINT_PROTOCOL>) =>
+export const endpointLifecycleOpening = (subProtocols: Iterable<ENDPOINT_PROTOCOL>, sessionIds: Iterable<string>) =>
   ({
     ...endpointLifecycleStateBase(ENDPOINT_LIFECYCLE_STATE.OPENING),
     subProtocols: [...subProtocols],
+    sessionIds: [...sessionIds],
   } as const);
-export const endpointLifecycleOpend = (subProtocols: Iterable<ENDPOINT_PROTOCOL>) =>
+export const endpointLifecycleOpend = (subProtocols: Iterable<ENDPOINT_PROTOCOL>, sessionId: string) =>
   ({
     ...endpointLifecycleStateBase(ENDPOINT_LIFECYCLE_STATE.OPENED),
     subProtocols: [...subProtocols],
+    sessionId,
   } as const);
 export const endpointLifecycleClosing = (reason?: string) =>
   ({
@@ -58,17 +60,20 @@ const endpointLifecycle = <T extends $EndpointLifecycleState>(
 const ENDPOINT_LIFECYCLE_DEFAULT_ORDER = -1;
 export const EndpointLifecycle = Object.assign(endpointLifecycle, {
   equals: (a: $EndpointLifecycle, b: $EndpointLifecycle) => {
-    if (a.state.name !== b.state.name) {
+    return EndpointLifecycle.stateEquals(a.state, b.state);
+  },
+  stateEquals: (a: $EndpointLifecycleState, b: $EndpointLifecycleState) => {
+    if (a.name !== b.name) {
       return false;
     }
-    if (a.state.name === ENDPOINT_LIFECYCLE_STATE.CLOSING) {
-      return a.state.reason === (b.state as $EndpointLifecycleClosing).reason;
+    if (a.name === ENDPOINT_LIFECYCLE_STATE.CLOSING) {
+      return a.reason === (b as $EndpointLifecycleClosing).reason;
     }
-    if (a.state.name === ENDPOINT_LIFECYCLE_STATE.CLOSED) {
-      return a.state.reason === (b.state as $EndpointLifecycleClosed).reason;
+    if (a.name === ENDPOINT_LIFECYCLE_STATE.CLOSED) {
+      return a.reason === (b as $EndpointLifecycleClosed).reason;
     }
-    if (a.state.name === ENDPOINT_LIFECYCLE_STATE.OPENING || a.state.name === ENDPOINT_LIFECYCLE_STATE.OPENED) {
-      return JSON.stringify(a.state) === JSON.stringify(b.state);
+    if (a.name === ENDPOINT_LIFECYCLE_STATE.OPENING || a.name === ENDPOINT_LIFECYCLE_STATE.OPENED) {
+      return JSON.stringify(a) === JSON.stringify(b);
     }
     return true;
   },

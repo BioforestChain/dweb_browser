@@ -1,4 +1,14 @@
 export const setHelper = new (class {
+  sort<T>(a: Iterable<T>, compareFn?: (a: T, b: T) => number) {
+    return [...a].sort(compareFn);
+  }
+  union<T>(a: Iterable<T>, b: Iterable<T>) {
+    const result = new Set(a);
+    for (const item of b) {
+      result.add(item);
+    }
+    return result;
+  }
   intersect<T>(a: Iterable<T>, b: Iterable<T>) {
     const result = new Set(a);
     for (const item of b) {

@@ -143,10 +143,10 @@ export abstract class IpcEndpoint {
   startOnce = $once(async () => {
     this.console.log("startOnce", this.lifecycle);
     await this.doStart();
-    let localeSubProtocols = this.getLocaleSubProtocols();
+    const localeSubProtocols = this.getLocaleSubProtocols();
     // 当前状态必须是从init开始
     if (this.lifecycle.state.name === ENDPOINT_LIFECYCLE_STATE.INIT) {
-      const opening = EndpointLifecycle(endpointLifecycleOpening(localeSubProtocols));
+      const opening = EndpointLifecycle(endpointLifecycleOpening(localeSubProtocols, [crypto.randomUUID()]));
       this.sendLifecycleToRemote(opening);
       // this.console.log("emit-locale-lifecycle", opening);
       this.lifecycleLocaleFlow.emit(opening);
@@ -154,9 +154,10 @@ export abstract class IpcEndpoint {
       throw new Error(`endpoint state=${this.lifecycle}`);
     }
     // 监听远端生命周期指令，进行协议协商
-    this.lifecycleRemoteFlow.listen((lifecycle) => {
+    this.lifecycleRemoteFlow.listen((remoteLifecycle) => {
+      const remoteState = remoteLifecycle.state;
       // this.console.log("remote-lifecycle-in", lifecycle.type, lifecycle.state);
-      switch (lifecycle.state.name) {
+      switch (remoteState.name) {
         case ENDPOINT_LIFECYCLE_STATE.CLOSING:
         case ENDPOINT_LIFECYCLE_STATE.CLOSED: {
           this.close();
@@ -164,10 +165,12 @@ export abstract class IpcEndpoint {
         }
         // 收到 opened 了，自己也设置成 opened，代表正式握手成功
         case ENDPOINT_LIFECYCLE_STATE.OPENED: {
-          const lifecycleLocale = this.lifecycle;
+          const localState = this.lifecycle.state;
           // this.console.log("remote-opend-&-locale-lifecycle", lifecycleLocale);
-          if (lifecycleLocale.state.name === ENDPOINT_LIFECYCLE_STATE.OPENING) {
-            const opend = EndpointLifecycle(endpointLifecycleOpend(lifecycleLocale.state.subProtocols));
+          if (localState.name === ENDPOINT_LIFECYCLE_STATE.OPENING) {
+            const opend = EndpointLifecycle(
+              endpointLifecycleOpend(localState.subProtocols, localState.sessionIds.join("~"))
+            );
             this.sendLifecycleToRemote(opend);
             // this.console.log("emit-locale-lifecycle", opend);
             this.lifecycleLocaleFlow.emit(opend);
@@ -183,21 +186,25 @@ export abstract class IpcEndpoint {
         }
         // 等收到对方 Opening ，说明对方也开启了，那么开始协商协议，直到一致后才进入 Opened
         case ENDPOINT_LIFECYCLE_STATE.OPENING: {
-          let nextState: $EndpointLifecycle;
-          this.console.log(
-            "ENDPOINT_LIFECYCLE_STATE.OPENING",
-            [...localeSubProtocols].sort().join(),
-            lifecycle.state.subProtocols.slice().sort().join()
-          );
-          if (setHelper.equals(localeSubProtocols, lifecycle.state.subProtocols) === false) {
-            localeSubProtocols = setHelper.intersect(localeSubProtocols, lifecycle.state.subProtocols);
-            const opening = EndpointLifecycle(endpointLifecycleOpening(localeSubProtocols));
-            this.lifecycleLocaleFlow.emit(opening);
-            nextState = opening;
-          } else {
-            nextState = EndpointLifecycle(endpointLifecycleOpend(localeSubProtocols));
+          const localState = this.lifecycle.state;
+          if (localState.name === ENDPOINT_LIFECYCLE_STATE.OPENING) {
+            let nextState: $EndpointLifecycle;
+            if (EndpointLifecycle.stateEquals(localState, remoteState) === false) {
+              const subProtocols = setHelper.intersect(localeSubProtocols, remoteState.subProtocols);
+              const sessionIds = setHelper.sort(
+                setHelper.union(localState.sessionIds, remoteState.sessionIds),
+                (a, b) => a.localeCompare(b)
+              );
+              const opening = EndpointLifecycle(endpointLifecycleOpening(subProtocols, sessionIds));
+              this.lifecycleLocaleFlow.emit(opening);
+              nextState = opening;
+            } else {
+              nextState = EndpointLifecycle(
+                endpointLifecycleOpend(localState.subProtocols, localState.sessionIds.join("~"))
+              );
+            }
+            this.sendLifecycleToRemote(nextState);
           }
-          this.sendLifecycleToRemote(nextState);
           break;
         }
       }

@@ -36,6 +36,7 @@ import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.SuspendOnce1
 import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.collectIn
+import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.traceTimeout
 import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.helper.withScope
@@ -182,12 +183,14 @@ abstract class IpcEndpoint {
   private val startOnce = SuspendOnce {
     debugEndpoint("start", lifecycle)
     doStart()
-    var localeSubProtocols = getLocaleSubProtocols()
+    val localeSubProtocols = getLocaleSubProtocols()
     // 当前状态必须是从init开始
     when (val state = lifecycle.state) {
-      is EndpointLifecycleInit -> EndpointLifecycle(EndpointLifecycleOpening(localeSubProtocols)).also {
+      is EndpointLifecycleInit -> EndpointLifecycle(
+        EndpointLifecycleOpening(localeSubProtocols, listOf(randomUUID())),
+      ).also {
         sendLifecycleToRemote(it)
-        debugEndpoint("emit-locale-lifecycle", it)
+        debugEndpoint.verbose("emit-locale-lifecycle", it)
         lifecycleLocaleFlow.emit(it)
       }
 
@@ -195,16 +198,21 @@ abstract class IpcEndpoint {
     }
     // 监听远端生命周期指令，进行协议协商
     lifecycleRemoteFlow.collectIn(scope) { lifecycleRemote ->
-      debugEndpoint("lifecycle-in", lifecycleRemote)
-      when (val lifecycleState = lifecycleRemote.state) {
+      debugEndpoint.verbose("lifecycle-in", lifecycleRemote)
+      when (val remoteState = lifecycleRemote.state) {
         is EndpointLifecycleClosing, is EndpointLifecycleClosed -> close()
         // 收到 opened 了，自己也设置成 opened，代表正式握手成功
         is EndpointLifecycleOpened -> {
           when (val localeState = lifecycleLocaleFlow.value.state) {
-            is EndpointLifecycleOpening -> EndpointLifecycle(EndpointLifecycleOpened(localeState.subProtocols))
+            is EndpointLifecycleOpening -> EndpointLifecycle(
+              EndpointLifecycleOpened(
+                localeState.subProtocols,
+                localeState.sessionIds.joinToString("~")
+              )
+            )
               .also {
                 sendLifecycleToRemote(it)
-                debugEndpoint("emit-locale-lifecycle", it)
+                debugEndpoint.verbose("emit-locale-lifecycle", it)
                 lifecycleLocaleFlow.emit(it)
                 /// 后面被链接的ipc，pid从奇数开始
                 accPid.update { 1 }
@@ -217,15 +225,29 @@ abstract class IpcEndpoint {
         is EndpointLifecycleInit -> sendLifecycleToRemote(lifecycleLocaleFlow.value)
         // 等收到对方 Opening ，说明对方也开启了，那么开始协商协议，直到一致后才进入 Opened
         is EndpointLifecycleOpening -> {
-          val nextState = if (localeSubProtocols != lifecycleState.subProtocols) {
-            localeSubProtocols = localeSubProtocols.intersect(lifecycleState.subProtocols)
-            EndpointLifecycle(EndpointLifecycleOpening(localeSubProtocols)).also {
-              lifecycleLocaleFlow.emit(it)
+          when (val localeState = lifecycleLocaleFlow.value.state) {
+            is EndpointLifecycleOpening -> {
+              val nextState = if (localeState != remoteState) {
+                val subProtocols = localeSubProtocols.intersect(remoteState.subProtocols)
+                val sessionIds = localeState.sessionIds.union(remoteState.sessionIds)
+                  .sortedWith { a, b -> a.compareTo(b) }
+                EndpointLifecycle(EndpointLifecycleOpening(subProtocols, sessionIds)).also {
+                  debugEndpoint.verbose("emit-locale-lifecycle", it)
+                  lifecycleLocaleFlow.emit(it)
+                }
+              } else {
+                EndpointLifecycle(
+                  EndpointLifecycleOpened(
+                    localeState.subProtocols,
+                    localeState.sessionIds.joinToString("~")
+                  )
+                )
+              }
+              sendLifecycleToRemote(nextState)
             }
-          } else {
-            EndpointLifecycle(EndpointLifecycleOpened(localeSubProtocols))
+
+            else -> {}
           }
-          sendLifecycleToRemote(nextState)
         }
       }
     }
@@ -284,7 +306,7 @@ abstract class IpcEndpoint {
       else -> {}
     }
     beforeClose?.invoke(cause)
-    traceTimeout(1000, "doClose",{ "ipcEndpoint=${this@IpcEndpoint}" }) {
+    traceTimeout(1000, "doClose", { "ipcEndpoint=${this@IpcEndpoint}" }) {
       // 等待所有长任务完成
       launchJobs.joinAll()
     }

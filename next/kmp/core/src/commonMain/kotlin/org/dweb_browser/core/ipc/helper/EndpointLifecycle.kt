@@ -44,12 +44,19 @@ data object EndpointLifecycleInit : EndpointLifecycleState
 
 @Serializable
 @SerialName(ENDPOINT_LIFECYCLE_STATE_OPENING)
-data class EndpointLifecycleOpening(val subProtocols: Set<EndpointProtocol> = setOf()) :
+data class EndpointLifecycleOpening(
+  val subProtocols: Set<EndpointProtocol> = setOf(),
+  // 双方各自贡献一个id，然后组合成一个大的id
+  val sessionIds: List<String>,
+) :
   EndpointLifecycleState
 
 @Serializable
 @SerialName(ENDPOINT_LIFECYCLE_STATE_OPENED)
-data class EndpointLifecycleOpened(val subProtocols: Set<EndpointProtocol> = setOf()) :
+data class EndpointLifecycleOpened(
+  val subProtocols: Set<EndpointProtocol> = setOf(),
+  val sessionId: String,
+) :
   EndpointLifecycleState
 
 @Serializable
