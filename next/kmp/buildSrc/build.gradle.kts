@@ -32,7 +32,7 @@ dependencies {
   implementation(libs.gradlePlugin.jetbrainsCompose)
   implementation(libs.gradlePlugin.android)
   implementation(libs.gradlePlugin.kotlin)
-  implementation(kotlin("serialization:${libs.versions.kotlin.serialization.gradle}"))
+  implementation(libs.gradlePlugin.serialization)
   implementation(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
 
   // jxbrowser
