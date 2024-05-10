@@ -14,9 +14,13 @@ export class IpcBodyReceiver extends IpcBody {
    * 基于 metaBody 还原 IpcBodyReceiver
    */
   static from(metaBody: MetaBody, ipc: Ipc) {
-    return (
-      IpcBodyReceiver.CACHE.streamId_ipcBodySender_Map.get(metaBody.streamId) ?? new IpcBodyReceiver(metaBody, ipc)
-    );
+    if (metaBody.streamId) {
+      const receiver = IpcBodyReceiver.CACHE.streamId_ipcBodySender_Map.get(metaBody.streamId);
+      if (receiver) {
+        return receiver;
+      }
+    }
+    return new IpcBodyReceiver(metaBody, ipc);
   }
 
   constructor(readonly metaBody: MetaBody, ipc: Ipc) {
