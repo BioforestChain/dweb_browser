@@ -47,7 +47,7 @@ actual suspend fun ITaskbarView.Companion.create(taskbarController: TaskbarContr
   TaskbarView.from(taskbarController)
 
 class TaskbarView private constructor(
-  private val taskbarController: TaskbarController, override val taskbarDWebView: IDWebView
+  private val taskbarController: TaskbarController, override val taskbarDWebView: IDWebView,
 ) : ITaskbarView(taskbarController) {
   companion object {
     @OptIn(ExperimentalForeignApi::class)
@@ -215,7 +215,7 @@ class UIDragGesture(
   fun getPoint(gesture: UIPanGestureRecognizer): Offset {
     val point = gesture.translationInView(view = view)
     val offset = point.useContents {
-      Offset(x.toFloat() , y.toFloat())
+      Offset(x.toFloat(), y.toFloat())
     }
     return offset
   }

@@ -67,7 +67,7 @@ fun DesktopController.Render(
       }
       break
     }
-    //// 新版本
+    /// 新版本
     newVersionController.NewVersionView()
   }
 }
