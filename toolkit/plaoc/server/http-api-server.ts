@@ -129,7 +129,6 @@ export class Server_api extends HttpServer {
     const targetIpc = await jsProcess.connect(mmid as $MMID);
     const { ipcRequest } = event;
     let ipcProxyRequest = new IpcClientRequest(0, path, event.method, event.headers, ipcRequest.body, targetIpc);
-    targetIpc.postMessage(ipcProxyRequest);
     let ipcProxyResponse = await targetIpc.request(ipcProxyRequest);
 
     /// 尝试申请授权

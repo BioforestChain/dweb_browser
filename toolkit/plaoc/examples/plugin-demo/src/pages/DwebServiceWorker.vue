@@ -49,14 +49,15 @@ const download = defineLogAction(
 );
 
 const message = ref("这里显示收到的消息");
+const input = ref("这里写发送的消息");
 
 // 向desktop.dweb.waterbang.top.dweb 发送消息
 const sayHi = async () => {
   const url = new URL("/say/hi", document.baseURI);
-  url.searchParams.set("message", "今晚吃螃🦀️蟹吗？");
+  url.searchParams.set("message", input.value);
   const response = await dwebServiceWorker.externalFetch(`plaoc.html.demo.dweb`, url, {
     method: "POST",
-    body: new Blob([`{"xxx":"哈哈哈"}`], { type: "application/json" }),
+    body: new Blob([`{"xxx":${input.value}}`], { type: "application/json" }),
   });
   message.value = await response.text();
   console.log("sayHi return => ", message.value);
@@ -87,8 +88,9 @@ const title = "Dweb Service Worker";
     <article class="card-body">
       <h2 class="card-title">APP之间通信</h2>
       <div class="card-actions">
-        <input type="text" v-model="message" />
+        <input type="text" v-model="input" />
       </div>
+      <div>{{ message }}</div>
       <div class="card-actions">
         <button class="inline-block rounded-full btn btn-accent" @click="sayHi">say hi</button>
       </div>
