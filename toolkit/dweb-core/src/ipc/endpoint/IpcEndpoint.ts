@@ -138,15 +138,17 @@ export abstract class IpcEndpoint {
       await this.awaitOpen("from-start");
     }
   }
+  readonly localSessionId = crypto.randomUUID();
 
   /**启动 */
   startOnce = $once(async () => {
     this.console.log("startOnce", this.lifecycle);
     await this.doStart();
     const localeSubProtocols = this.getLocaleSubProtocols();
+    const localSessionId = this.localSessionId;
     // 当前状态必须是从init开始
     if (this.lifecycle.state.name === ENDPOINT_LIFECYCLE_STATE.INIT) {
-      const opening = EndpointLifecycle(endpointLifecycleOpening(localeSubProtocols, [crypto.randomUUID()]));
+      const opening = EndpointLifecycle(endpointLifecycleOpening(localeSubProtocols, [localSessionId]));
       this.sendLifecycleToRemote(opening);
       // this.console.log("emit-locale-lifecycle", opening);
       this.lifecycleLocaleFlow.emit(opening);
@@ -237,14 +239,15 @@ export abstract class IpcEndpoint {
 
   //#region Close
 
+  protected closePo = new PromiseOut<string | undefined>();
   private _isClose = false;
   get isClose() {
     return this._isClose;
   }
 
-  async close() {
+  async close(cause?: string) {
     this._isClose = true;
-    await this.doClose();
+    await this.doClose(cause);
   }
 
   async doClose(cause?: string) {
@@ -258,6 +261,7 @@ export abstract class IpcEndpoint {
         return;
       }
     }
+    this.closePo.resolve(cause);
     this.beforeClose?.();
     /// 关闭所有的子通道
     for (const channel of this.ipcMessageProducers.values()) {

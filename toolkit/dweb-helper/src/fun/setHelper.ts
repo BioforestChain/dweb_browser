@@ -10,6 +10,17 @@ export const setHelper = new (class {
     return result;
   }
   intersect<T>(a: Iterable<T>, b: Iterable<T>) {
+    const aSet = new Set(a);
+    const bSet = new Set(b);
+    const result = new Set([...aSet, ...bSet]);
+    for (const item of result) {
+      if (false === (aSet.has(item) && bSet.has(item))) {
+        result.delete(item);
+      }
+    }
+    return result;
+  }
+  subtract<T>(a: Iterable<T>, b: Iterable<T>) {
     const result = new Set(a);
     for (const item of b) {
       result.delete(item);

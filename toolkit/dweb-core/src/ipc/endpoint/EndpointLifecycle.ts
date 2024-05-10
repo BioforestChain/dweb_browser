@@ -26,11 +26,11 @@ export const endpointLifecycleOpening = (subProtocols: Iterable<ENDPOINT_PROTOCO
     subProtocols: [...subProtocols],
     sessionIds: [...sessionIds],
   } as const);
-export const endpointLifecycleOpend = (subProtocols: Iterable<ENDPOINT_PROTOCOL>, sessionId: string) =>
+export const endpointLifecycleOpend = (subProtocols: Iterable<ENDPOINT_PROTOCOL>, sessionPair: string) =>
   ({
     ...endpointLifecycleStateBase(ENDPOINT_LIFECYCLE_STATE.OPENED),
     subProtocols: [...subProtocols],
-    sessionId,
+    sessionPair,
   } as const);
 export const endpointLifecycleClosing = (reason?: string) =>
   ({
