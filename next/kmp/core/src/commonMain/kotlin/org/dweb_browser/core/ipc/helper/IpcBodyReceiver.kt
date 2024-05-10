@@ -22,8 +22,7 @@ class IpcBodyReceiver(
     /// 将第一次得到这个metaBody的 ipc 保存起来，这个ipc将用于接收
     if (metaBody.type.isStream && metaBody.streamId != null) {
       CACHE.streamId_receiverIpc_Map.getOrPut(metaBody.streamId) {
-        ipc.scope.launch {
-          ipc.awaitClosed()
+        ipc.onClosed {
           CACHE.streamId_receiverIpc_Map.remove(metaBody.streamId)
         }
         metaBody.receiverPoolId = ipc.pool.poolId

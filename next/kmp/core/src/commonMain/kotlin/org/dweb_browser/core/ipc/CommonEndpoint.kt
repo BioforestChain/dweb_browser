@@ -115,6 +115,7 @@ abstract class CommonEndpoint(
   override suspend fun postIpcMessage(msg: EndpointIpcMessage) {
     awaitOpen("then-postIpcMessage")
     withScope(scope) {
+      debugEndpoint("message-out", msg)
       when (protocol) {
         EndpointProtocol.JSON -> {
           val data = endpointMessageToJson(msg)

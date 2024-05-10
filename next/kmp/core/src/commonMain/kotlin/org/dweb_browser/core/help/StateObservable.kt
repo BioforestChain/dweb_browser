@@ -31,9 +31,7 @@ open class StateObservable(
           }
         }
       }
-      this.launch {
-        ipc.awaitClosed()
-//        controller.closeWrite()
+      ipc.onClosed{
         off()
       }
     }.stream
