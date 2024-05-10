@@ -1,13 +1,5 @@
 import type { $Core, $Http, $Ipc, $MMID } from "./deps.ts";
-import {
-  ChannelEndpoint,
-  IpcClientRequest,
-  IpcHeaders,
-  IpcResponse,
-  PromiseOut,
-  jsProcess,
-  mapHelper,
-} from "./deps.ts";
+import { ChannelEndpoint, IpcHeaders, IpcResponse, PromiseOut, jsProcess, mapHelper } from "./deps.ts";
 
 import { HttpServer } from "./helper/http-helper.ts";
 import { close_window, mwebview_destroy } from "./helper/mwebview-helper.ts";
@@ -128,15 +120,15 @@ export class Server_api extends HttpServer {
     const mmid = new URL(path).host;
     const targetIpc = await jsProcess.connect(mmid as $MMID);
     const { ipcRequest } = event;
-    let ipcProxyRequest = new IpcClientRequest(0, path, event.method, event.headers, ipcRequest.body, targetIpc);
-    let ipcProxyResponse = await targetIpc.request(ipcProxyRequest);
+
+    const req = ipcRequest.toRequest();
+    let ipcProxyResponse = await targetIpc.request(path, req);
 
     /// 尝试申请授权
     if (ipcProxyResponse.statusCode === 401) {
       /// 如果授权成功，那么就重新发起请求
       if (await jsProcess.requestDwebPermissions(await ipcProxyResponse.body.text())) {
-        ipcProxyRequest = new IpcClientRequest(0, path, event.method, event.headers, ipcRequest.body, targetIpc);
-        ipcProxyResponse = await targetIpc.request(ipcProxyRequest);
+        ipcProxyResponse = await targetIpc.request(path, req);
       }
     }
 
