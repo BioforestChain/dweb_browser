@@ -1,4 +1,4 @@
-import { IpcResponse, ReadableStreamEndpoint } from "@dweb-browser/core/ipc/index.ts";
+import { ChannelEndpoint, IpcResponse } from "@dweb-browser/core/ipc/index.ts";
 import { PromiseOut } from "@dweb-browser/helper/PromiseOut.ts";
 import { bindThis } from "../../helper/bindThis.ts";
 import { cacheGetter } from "../../helper/cacheGetter.ts";
@@ -149,7 +149,7 @@ export class WindowPlugin extends BasePlugin {
   /** */
   private async wsToIpc(url: string) {
     const afterOpen = new PromiseOut<void>();
-    const endpoint = new ReadableStreamEndpoint("plaoc-window");
+    const endpoint = new ChannelEndpoint("plaoc-window");
     const ipc = webIpcPool.createIpc(endpoint, 0, this.#remote, this.#remote, true);
     const ws = new WebSocket(url);
     ws.binaryType = "arraybuffer";

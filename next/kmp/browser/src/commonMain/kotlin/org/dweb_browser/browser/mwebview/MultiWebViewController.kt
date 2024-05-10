@@ -3,20 +3,16 @@ package org.dweb_browser.browser.mwebview
 import androidx.compose.runtime.Stable
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import org.dweb_browser.browser.common.createDwebView
 import org.dweb_browser.core.ipc.Ipc
-import org.dweb_browser.core.ipc.helper.IpcEvent
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.base.ViewItem
 import org.dweb_browser.helper.ChangeableList
 import org.dweb_browser.helper.SafeInt
-import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.windowAdapterManager
@@ -48,9 +44,6 @@ class MultiWebViewController(
   val webViewList = ChangeableList<MultiViewItem>()
 
   init {
-    webViewList.onChange {
-      updateStateHook()
-    }.removeWhen(ipc.onClosed)
     val rid = win.id
     /// 提供渲染适配
     windowAdapterManager.provideRender(rid) { modifier ->
@@ -107,7 +100,6 @@ class MultiWebViewController(
       dWebView.onDestroy {
         closeWebView(webviewId)
       }
-      webViewOpenSignal.emit(webviewId)
     }
   }
 
@@ -120,7 +112,6 @@ class MultiWebViewController(
       withMainContext {
         viewItem.webView.destroy()
       }
-      webViewCloseSignal.emit(webViewId)
       return true
     } ?: false
 
@@ -147,7 +138,6 @@ class MultiWebViewController(
 
   fun getState(): JsonObject {
     val views = mutableMapOf<String, JsonElement>()
-    localeMM.debugMM("updateStateHook =>", webViewList.size)
     webViewList.forEachIndexed { index, it ->
       val viewItem = mutableMapOf<String, JsonElement>()
       viewItem["index"] = JsonPrimitive(index)
@@ -162,16 +152,4 @@ class MultiWebViewController(
     state["views"] = JsonObject(views)
     return JsonObject(state)
   }
-
-  // TODO
-  private suspend fun updateStateHook() {
-    ipc.postMessage(IpcEvent.fromUtf8("state", Json.encodeToString(getState())))
-  }
-
-  // TODO
-  val webViewCloseSignal = Signal<WEBVIEW_ID>()
-  val webViewOpenSignal = Signal<WEBVIEW_ID>()
-
-  val onWebViewClose = webViewCloseSignal.toListener()
-  val onWebViewOpen = webViewOpenSignal.toListener()
 }

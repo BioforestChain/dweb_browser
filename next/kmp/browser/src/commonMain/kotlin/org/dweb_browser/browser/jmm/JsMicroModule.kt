@@ -16,7 +16,6 @@ import org.dweb_browser.core.help.types.MicroModuleManifest
 import org.dweb_browser.core.http.router.HttpHandlerToolkit
 import org.dweb_browser.core.http.router.bindPrefix
 import org.dweb_browser.core.ipc.Ipc
-import org.dweb_browser.core.ipc.helper.IpcError
 import org.dweb_browser.core.ipc.helper.IpcEvent
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.MicroModule
@@ -197,11 +196,24 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
                   )
                 )
               } catch (e: Exception) {
-                jsProcess.fetchIpc.postMessage(IpcError(503, e.message))
-                printError("dns/connect", e)
+                printError("dns/connect", null, e)
+                @Serializable
+                data class DnsConnectError(val connect: MMID, val reason: String)
+
+                val error = DnsConnectError(
+                  connect = connectMmid,
+                  reason = e.message ?: "unknown error reason to connect $connectMmid"
+                )
+                jsProcess.fetchIpc.postMessage(
+                  IpcEvent.fromUtf8(
+                    "dns/connect/error",
+                    Json.encodeToString(error)
+                  )
+                )
               }
               true
             }
+
             else -> false
           }
         }
@@ -218,7 +230,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
 
           val toJmmIpc = getJsProcess().createIpc(fromMM.manifest)
           toJmmIpc.onClosed {
-            debugJsMM("ipcBridge close","toJmmIpc=>${toJmmIpc.remote.mmid} fromMM:${fromMM.mmid}")
+            debugJsMM("ipcBridge close", "toJmmIpc=>${toJmmIpc.remote.mmid} fromMM:${fromMM.mmid}")
             fromMMIDOriginIpcWM.remove(fromMM.mmid)
           }
           // 如果是jsMM相互连接，直接把port丢过去

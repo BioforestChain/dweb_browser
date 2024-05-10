@@ -4,14 +4,7 @@ import { Server_api } from "./http-api-server.ts";
 import { Server_external } from "./http-external-server.ts";
 import { Server_www } from "./http-www-server.ts";
 
-import {
-  all_webview_status,
-  apply_window,
-  mwebview_activate,
-  mwebview_open,
-  open_main_window,
-  sync_mwebview_status,
-} from "./helper/mwebview-helper.ts";
+import { apply_window, mwebview_open_activate, open_main_window } from "./helper/mwebview-helper.ts";
 import { queue } from "./helper/queue.ts";
 import { MiddlewareImporter } from "./middleware-importer.ts";
 import { PlaocConfig } from "./plaoc-config.ts";
@@ -43,14 +36,8 @@ const main = async () => {
     /// 等待http服务启动完毕，获得入口url
     const url = await indexHrefPo.promise;
     const wid = await getWinId();
-    if (all_webview_status.size === 0) {
-      await sync_mwebview_status();
-      console.log("mwebview_open=>", url, wid);
-      await mwebview_open(wid, url);
-    } else {
-      console.log("mwebview_activate=>", url, wid);
-      await mwebview_activate(wid);
-    }
+    console.log("mwebview_open=>", url, wid);
+    await mwebview_open_activate(wid, url);
   });
   // 用来接收别人发过来的激活事件
   jsProcess.onActivity(async (ipcEvent) => {
@@ -69,6 +56,7 @@ const main = async () => {
   jsProcess.onRendererDestroy?.((ipcEvent) => {
     const text = IpcEvent.text(ipcEvent);
     console.log(`${jsProcess.mmid} onRendererDestroy`, text);
+    externalServer.closeRegisterIpc();
     delWinId(text);
   });
   jsProcess.onShortcut?.(async (ipcEvent) => {
@@ -88,11 +76,7 @@ const main = async () => {
   const wwwListenerTask = wwwServer.start().finally(() => console.log("wwwServer started"));
   const externalListenerTask = externalServer.start().finally(() => console.log("externalServer started"));
   const apiListenerTask = apiServer.start().finally(() => console.log("apiServer started"));
-  all_webview_status.signal.listen((size) => {
-    if (size === 0) {
-      externalServer.closeRegisterIpc();
-    }
-  });
+
   /// 生成 index-url
   const wwwStartResult = await wwwServer.getStartResult();
   await apiServer.getStartResult();

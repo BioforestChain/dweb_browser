@@ -1,4 +1,4 @@
-import { IpcEvent, createSignal, jsProcess } from "../deps.ts";
+import { jsProcess } from "../deps.ts";
 
 //申请模块窗口
 export const apply_window = () => {
@@ -19,9 +19,15 @@ export const mwebview_open = async (wid: string, url: string) => {
   const openUrl = new URL(`file://mwebview.browser.dweb/open`);
   openUrl.searchParams.set("wid", wid);
   openUrl.searchParams.set("url", url);
-  const state = await jsProcess.nativeFetch(openUrl).object<$AllWebviewState>();
-  all_webview_status.diffState(state);
-  return state;
+  await jsProcess.nativeFetch(openUrl);
+};
+
+/**开启或者激活 */
+export const mwebview_open_activate = async (wid: string, url: string) => {
+  const openUrl = new URL(`file://mwebview.browser.dweb/openOrActivate`);
+  openUrl.searchParams.set("wid", wid);
+  openUrl.searchParams.set("url", url);
+  await jsProcess.nativeFetch(openUrl);
 };
 
 /**
@@ -50,74 +56,74 @@ export const mwebview_destroy = () => {
   return jsProcess.nativeFetch(`file://mwebview.browser.dweb/close/app`).boolean();
 };
 
-import { detailedDiff, type DetailedDiff } from "deep-object-diff";
-export type $WebViewState = {
-  isActivated: boolean;
-  webviewId: string;
-  index: number;
-  mmid: string;
-};
+// import { detailedDiff, type DetailedDiff } from "deep-object-diff";
+// export type $WebViewState = {
+//   isActivated: boolean;
+//   webviewId: string;
+//   index: number;
+//   mmid: string;
+// };
 
-export interface $AllWebviewState {
-  wid: string;
-  views: { [key: string]: $WebViewState };
-}
+// export interface $AllWebviewState {
+//   wid: string;
+//   views: { [key: string]: $WebViewState };
+// }
 
-export type DiffFn = (size: number) => unknown;
+// export type DiffFn = (size: number) => unknown;
 
 // 管理webView
-class AllWebviewStatus extends Map<string, $WebViewState> {
-  last() {
-    return [...this.entries()].at(-1)!;
-  }
+// class AllWebviewStatus extends Map<string, $WebViewState> {
+//   last() {
+//     return [...this.entries()].at(-1)!;
+//   }
 
-  signal = createSignal<DiffFn>();
-  /**
-   * 对比状态的更新
-   * @param diff
-   */
-  diffFactory(diff: DetailedDiff) {
-    //  是否有新增
-    for (const id in diff.added) {
-      this.set(id, diff.added[id as keyof typeof diff.added]);
-    }
-    // 是否有删除
-    for (const id in diff.deleted) {
-      this.delete(id);
-    }
-    // 是否有更新
-    for (const id in diff.updated) {
-      this.set(id, diff.updated[id as keyof typeof diff.updated]);
-    }
-    this.signal.emit(this.size);
-  }
+//   signal = createSignal<DiffFn>();
+//   /**
+//    * 对比状态的更新
+//    * @param diff
+//    */
+//   diffFactory(diff: DetailedDiff) {
+//     //  是否有新增
+//     for (const id in diff.added) {
+//       this.set(id, diff.added[id as keyof typeof diff.added]);
+//     }
+//     // 是否有删除
+//     for (const id in diff.deleted) {
+//       this.delete(id);
+//     }
+//     // 是否有更新
+//     for (const id in diff.updated) {
+//       this.set(id, diff.updated[id as keyof typeof diff.updated]);
+//     }
+//     this.signal.emit(this.size);
+//   }
 
-  private oldWebviewState: $AllWebviewState["views"] = {};
+//   private oldWebviewState: $AllWebviewState["views"] = {};
 
-  diffState(newState: $AllWebviewState) {
-    const diff = detailedDiff(this.oldWebviewState, newState.views);
-    this.oldWebviewState = newState.views;
-    this.diffFactory(diff);
-  }
-}
-export const all_webview_status = new AllWebviewStatus();
+//   diffState(newState: $AllWebviewState) {
+//     const diff = detailedDiff(this.oldWebviewState, newState.views);
+//     this.oldWebviewState = newState.views;
+//     this.diffFactory(diff);
+//   }
+// }
+// export const all_webview_status = new AllWebviewStatus();
 
-let _false = true;
-export const sync_mwebview_status = async () => {
-  if (_false === false) {
-    return;
-  }
-  _false = false;
+// let _false = true;
+// export const sync_mwebview_status = async () => {
+//   if (_false === false) {
+//     return;
+//   }
+//   _false = false;
 
-  const ipc = await navigator.dweb.jsProcess.connect("mwebview.browser.dweb");
+//   const ipc = await navigator.dweb.jsProcess.connect("mwebview.browser.dweb");
 
-  ipc.onEvent("ovserver-mwebiew-state").collect((ipcEvent) => {
-    const event = ipcEvent.data;
-    /// 同步 mwebview 的状态机
-    if (event.name === "state") {
-      const newState = JSON.parse(IpcEvent.text(event)) as $AllWebviewState;
-      all_webview_status.diffState(newState);
-    }
-  });
-  // TODO 这里应该进行一次主动同步全部状态
-};
+//   ipc.onEvent("ovserver-mwebiew-state").collect((ipcEvent) => {
+//     const event = ipcEvent.data;
+//     /// 同步 mwebview 的状态机
+//     if (event.name === "state") {
+//       const newState = JSON.parse(IpcEvent.text(event)) as $AllWebviewState;
+//       all_webview_status.diffState(newState);
+//     }
+//   });
+//   // TODO 这里应该进行一次主动同步全部状态
+// };

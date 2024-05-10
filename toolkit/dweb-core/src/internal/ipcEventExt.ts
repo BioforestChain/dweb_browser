@@ -16,10 +16,14 @@ export const onSomeEvent = <T extends $IpcEvent>(
       }
     });
   };
+  onAllIpc(runtime, `for-${eventName}`, ipcOnEvent);
+};
+
+export const onAllIpc = (runtime: MicroModuleRuntime, onConnectName: string, cb: (ipc: Ipc) => unknown) => {
   for (const ipc of runtime.connectedIpcs) {
-    ipcOnEvent(ipc);
+    cb(ipc);
   }
-  runtime.onConnect(`for-${eventName}`).collect((onConnectEvent) => {
-    ipcOnEvent(onConnectEvent.consume());
+  runtime.onConnect(onConnectName).collect((onConnectEvent) => {
+    cb(onConnectEvent.consume());
   });
 };

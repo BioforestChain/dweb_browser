@@ -6,7 +6,7 @@ import { CommonEndpoint } from "./CommonEndpoint.ts";
 import { ENDPOINT_PROTOCOL } from "./EndpointLifecycle.ts";
 import type { $EndpointRawMessage } from "./EndpointMessage.ts";
 
-export class ReadableStreamEndpoint extends CommonEndpoint {
+export class ChannelEndpoint extends CommonEndpoint {
   override toString() {
     return `ReadableStreamEndpoint#${this.debugId}`;
   }

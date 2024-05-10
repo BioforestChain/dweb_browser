@@ -1,4 +1,4 @@
-import { ReadableStreamEndpoint } from "@dweb-browser/core/ipc/endpoint/ReadableStreamEndpoint.ts";
+import { ChannelEndpoint } from "@dweb-browser/core/ipc/endpoint/ChannelEndpoint.ts";
 import type { Ipc } from "@dweb-browser/core/ipc/ipc.ts";
 import type { $MicroModuleManifest } from "@dweb-browser/core/types.ts";
 import { PromiseOut } from "@dweb-browser/helper/PromiseOut.ts";
@@ -20,7 +20,7 @@ export const createMockModuleServerIpc: (wsUrl: URL, remote: $MicroModuleManifes
     waitOpenPo.reject(event);
   };
   ws.onopen = () => {
-    const endpoint = new ReadableStreamEndpoint(`client-${wsUrl}`);
+    const endpoint = new ChannelEndpoint(`client-${wsUrl}`);
     const serverIpc = webIpcPool.createIpc(endpoint, 0, remote, remote, true);
     waitOpenPo.resolve(serverIpc);
 
@@ -36,7 +36,6 @@ export const createMockModuleServerIpc: (wsUrl: URL, remote: $MicroModuleManifes
     ws.onmessage = (event) => {
       try {
         const data = event.data;
-        console.log("onmessage=>", data);
         endpoint.send(data);
       } catch (err) {
         console.error("onmessage=>", err);

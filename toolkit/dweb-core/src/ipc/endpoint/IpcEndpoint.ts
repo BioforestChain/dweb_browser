@@ -148,14 +148,14 @@ export abstract class IpcEndpoint {
     if (this.lifecycle.state.name === ENDPOINT_LIFECYCLE_STATE.INIT) {
       const opening = EndpointLifecycle(endpointLifecycleOpening(localeSubProtocols));
       this.sendLifecycleToRemote(opening);
-      this.console.log("emit-locale-lifecycle", opening);
+      // this.console.log("emit-locale-lifecycle", opening);
       this.lifecycleLocaleFlow.emit(opening);
     } else {
       throw new Error(`endpoint state=${this.lifecycle}`);
     }
     // 监听远端生命周期指令，进行协议协商
     this.lifecycleRemoteFlow.listen((lifecycle) => {
-      this.console.log("remote-lifecycle-in", lifecycle.type, lifecycle.state);
+      // this.console.log("remote-lifecycle-in", lifecycle.type, lifecycle.state);
       switch (lifecycle.state.name) {
         case ENDPOINT_LIFECYCLE_STATE.CLOSING:
         case ENDPOINT_LIFECYCLE_STATE.CLOSED: {
@@ -165,11 +165,11 @@ export abstract class IpcEndpoint {
         // 收到 opened 了，自己也设置成 opened，代表正式握手成功
         case ENDPOINT_LIFECYCLE_STATE.OPENED: {
           const lifecycleLocale = this.lifecycle;
-          this.console.log("remote-opend-&-locale-lifecycle", lifecycleLocale);
+          // this.console.log("remote-opend-&-locale-lifecycle", lifecycleLocale);
           if (lifecycleLocale.state.name === ENDPOINT_LIFECYCLE_STATE.OPENING) {
             const opend = EndpointLifecycle(endpointLifecycleOpend(lifecycleLocale.state.subProtocols));
             this.sendLifecycleToRemote(opend);
-            this.console.log("emit-locale-lifecycle", opend);
+            // this.console.log("emit-locale-lifecycle", opend);
             this.lifecycleLocaleFlow.emit(opend);
             /// 后面被链接的ipc，pid从奇数开始
             this.accPid++;

@@ -1,5 +1,5 @@
 import type { $Callback, Signal } from "../../helper/createSignal.ts";
-import { BasePlugin } from "../base/base.plugin.ts";
+import type { BasePlugin } from "../base/base.plugin.ts";
 import { WindowModalController } from "./WindowModalController.ts";
 import type { $AlertModal, $ModalCallback } from "./window.type.ts";
 

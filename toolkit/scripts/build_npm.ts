@@ -100,16 +100,10 @@ export const doBuildNpm = async () => {
   // 首先要确保所有 npm/package.json 在线，否则 plaoc/examples 这类项目就会寻找异常
   await npmInit();
   // 并行编译
-  await Promise.all([
-    dwebHelper(),
-    dwebCore(),
-    dwebJsProcess(),
-    dwebPolyfill(),
-    plaocServer(),
-    plaocCli(),
-    plaocPlugins(),
-    plaocIsDweb(),
-  ]);
+  await dwebHelper();
+  await dwebCore();
+  await dwebJsProcess();
+  await Promise.all([dwebPolyfill(), plaocServer(), plaocCli(), plaocPlugins(), plaocIsDweb()]);
 };
 
 if (import.meta.main) {

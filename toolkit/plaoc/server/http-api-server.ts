@@ -1,10 +1,10 @@
 import type { $Core, $Http, $Ipc, $MMID } from "./deps.ts";
 import {
+  ChannelEndpoint,
   IpcClientRequest,
   IpcHeaders,
   IpcResponse,
   PromiseOut,
-  ReadableStreamEndpoint,
   jsProcess,
   mapHelper,
 } from "./deps.ts";
@@ -106,7 +106,7 @@ export class Server_api extends HttpServer {
       if (!id) {
         return IpcResponse.fromText(event.reqId, 500, new IpcHeaders(), "invalid search params, miss 'id'", event.ipc);
       }
-      const endpoint = new ReadableStreamEndpoint(`${jsProcess.mmid}-api-server`, event.request.body!);
+      const endpoint = new ChannelEndpoint(`${jsProcess.mmid}-api-server`, event.request.body!);
       const readableStreamIpc = jsProcess.ipcPool.createIpc(endpoint, 0, this.#remote, this.#remote);
 
       mapHelper.getOrPut(this.callbacks, id, () => new PromiseOut()).resolve(readableStreamIpc);

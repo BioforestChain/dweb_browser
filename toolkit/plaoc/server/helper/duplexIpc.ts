@@ -1,5 +1,5 @@
 import type { $Core, $Ipc, $IpcRequest, $MMID } from "../deps.ts";
-import { PureBinaryFrame, PureTextFrame, ReadableStreamEndpoint, streamRead } from "../deps.ts";
+import { ChannelEndpoint, PureBinaryFrame, PureTextFrame, streamRead } from "../deps.ts";
 import { merge } from "./merge.ts";
 
 type CreateDuplexIpcType = (ipcPool: $Core.IpcPool, subdomain: string, mmid: $MMID, ipcRequest: $IpcRequest) => $Ipc;
@@ -21,7 +21,7 @@ export const createDuplexIpc: CreateDuplexIpcType = (
     dweb_deeplinks: [],
     categories: [],
   };
-  const endpoint = new ReadableStreamEndpoint(`${mmid}-plaoc-external-duplex`);
+  const endpoint = new ChannelEndpoint(`${mmid}-plaoc-external-duplex`);
   const streamIpc = ipcPool.createIpc(endpoint, 0, remote, remote, true);
 
   // 拿到自己前端的channel
@@ -43,7 +43,6 @@ export const createDuplexIpc: CreateDuplexIpcType = (
   void (async () => {
     //  绑定自己前端发送的数据通道
     for await (const pureFrame of streamRead(pureServerChannel.income.stream)) {
-      console.log("endpoint.send=>", typeof endpoint);
       endpoint.send(pureFrame.data);
     }
   })();

@@ -48,7 +48,7 @@ export class Server_www extends HttpServer {
     let remoteIpcResponse: $Core.IpcResponse;
     // 进入plaoc转发器
     if (this.jsonPlaoc) {
-      const proxyRequest = await this._plaocForwarder(request, this.jsonPlaoc);
+      const proxyRequest = this._plaocForwarder(request, this.jsonPlaoc);
       pathname = proxyRequest.url.pathname;
       const plaocShims = new Set((proxyRequest.url.searchParams.get("plaoc-shim") ?? "").split(",").filter(Boolean));
       if (plaocShims.has("fetch")) {

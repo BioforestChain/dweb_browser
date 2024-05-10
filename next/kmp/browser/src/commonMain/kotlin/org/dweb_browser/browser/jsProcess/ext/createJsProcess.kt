@@ -97,6 +97,6 @@ class JsProcess(
         parameters["globalId"] = remoteGlobalId.toString()
         parameters["manifest"] = Json.encodeToString(remoteMM)
       }.buildUnsafeString()
-    ).int()
+    )
   }
 }

@@ -75,6 +75,7 @@ dwebServiceWorker.addEventListener("fetch", async (event) => {
   if (url.pathname.endsWith("/say/hi")) {
     const hiMessage = url.searchParams.get("message");
     console.log(`收到:${hiMessage}`);
+    alert(hiMessage);
     console.log("body=>", await event.request.text());
     // 发送消息回去
     return event.respondWith(`plaoc-html-demo/echo:${hiMessage}`);

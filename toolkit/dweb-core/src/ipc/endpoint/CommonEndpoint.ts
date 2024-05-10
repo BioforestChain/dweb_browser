@@ -46,7 +46,7 @@ export abstract class CommonEndpoint extends IpcEndpoint {
 
   /**向远端发送声明周期 */
   protected override sendLifecycleToRemote(state: $EndpointLifecycle) {
-    this.console.log(`lifecycle-out`, state);
+    // this.console.log(`lifecycle-out`, state);
     if (ENDPOINT_PROTOCOL.CBOR === this.protocol) {
       return this.postBinaryMessage(encode(state));
     }
@@ -94,7 +94,7 @@ export abstract class CommonEndpoint extends IpcEndpoint {
    */
   override async postIpcMessage(msg: $EndpointIpcMessage) {
     await this.awaitOpen("then-postIpcMessage");
-    this.console.log("out", msg);
+    this.console.verbose("out", msg);
     switch (this.#protocol) {
       case ENDPOINT_PROTOCOL.JSON:
         this.postTextMessage($endpointMessageToJson(msg));

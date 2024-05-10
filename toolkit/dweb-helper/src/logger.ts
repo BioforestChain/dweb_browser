@@ -51,7 +51,7 @@ export const logger = (scope: unknown) => {
   return new Logger(scope);
 };
 // deno-lint-ignore no-explicit-any
-const customInspect = (arg: any) => {
+export const customInspect = (arg: any) => {
   if (typeof arg !== "object") {
     return arg;
   }
@@ -70,6 +70,7 @@ const customInspect = (arg: any) => {
       return arg;
     }
   }
+  return arg;
 };
 // deno-lint-ignore no-explicit-any
 const customInspects = (args: any[]) => args.filter((arg) => arg !== undefined).map(customInspect);

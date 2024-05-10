@@ -1,7 +1,7 @@
 import { Mutex } from "./Mutex.ts";
 import { PromiseOut } from "./PromiseOut.ts";
 import { Signal, createSignal, type $Callback } from "./createSignal.ts";
-import { logger } from "./logger.ts";
+import { CUSTOM_INSPECT, customInspect, logger } from "./logger.ts";
 
 type Event<T> = ReturnType<Producer<T>["event"]>;
 type Consumer<T> = ReturnType<Producer<T>["consumer"]>;
@@ -22,15 +22,18 @@ export class Producer<T> {
   toString() {
     return `Producer<${this.name}>`;
   }
+  [CUSTOM_INSPECT]() {
+    return this.toString();
+  }
   //#region Event
   static #Event = class Event<T> {
     constructor(readonly data: T, readonly producer: Producer<T>) {}
     toString() {
-      try {
-        return `Event<${JSON.stringify(this.data)}>`;
-      } catch {
-        return `Event(${this.data})`;
-      }
+      return `Event<${customInspect(this.data)}>`;
+    }
+
+    [CUSTOM_INSPECT]() {
+      return this.toString();
     }
     #job = new PromiseOut<void>();
     get job() {
@@ -99,11 +102,15 @@ export class Producer<T> {
       return this.#emitLock.withLock(async () => {
         // 事件超时告警
         const timeoutId = setTimeout(() => {
-          console.warn(`emitBy TIMEOUT!! step=$i consumer=${consumer} data=${this.data}`);
+          console.warn(`emitBy TIMEOUT!!`, `consumer=`, consumer, `data=`, this.data);
         }, 1000);
         const beforeConsumeTimes = this.#consumeTimes;
         // 触发单个消费者中的单个消息
-        await consumer.input.emit(this);
+        try {
+          await consumer.input.emit(this);
+        } catch (e) {
+          console.error(`emitBy ERROR!!`, `consumer=`, consumer, `data=`, this.data, e);
+        }
         clearTimeout(timeoutId);
 
         if (this.consumed) {
@@ -111,7 +118,10 @@ export class Producer<T> {
           if (this.#consumeTimes != beforeConsumeTimes) {
             this.producer.console.verbose(
               "emitBy",
-              `event=${this} consumed[${beforeConsumeTimes}>>${this.#consumeTimes}] by consumer=${consumer}`
+              `event=`,
+              this,
+              `consumed[${beforeConsumeTimes}>>${this.#consumeTimes}] by consumer=`,
+              consumer
             );
           }
         }
@@ -206,6 +216,9 @@ export class Producer<T> {
       return `Consumer<[${this.producer.name}]${this.name}>`;
     }
 
+    [CUSTOM_INSPECT]() {
+      return this.toString();
+    }
     /**输入 */
     readonly input = new Producer.EasyFlow<T>();
 

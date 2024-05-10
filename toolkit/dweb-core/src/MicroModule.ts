@@ -174,6 +174,9 @@ export abstract class MicroModuleRuntime implements $MicroModuleRuntime {
           return ipc;
         })()
       );
+      po.onError(() => {
+        this.connectionMap.delete(mmid);
+      });
       return po;
     }).promise;
   }
@@ -189,14 +192,17 @@ export abstract class MicroModuleRuntime implements $MicroModuleRuntime {
         ipc.console.log("onFork", forkEvent.data);
         await this.beConnect(forkEvent.consume());
       });
-      ipc.onRequest(`${this.mmid}-deepLink`).mapNotNull((request) => {
-        if (request.url.startsWith("dweb:")) {
-          return request.url;
-        }
-      })(async (url) => {
-        const mmid = await this.bootstrapContext.dns.queryDeeplink(url);
-        if (mmid) {
-          (await this.connect(mmid)).request(url);
+      ipc.onRequest(`${this.mmid}-deepLink`).collect(async (event) => {
+        const url = event.consumeMapNotNull((request) => {
+          if (request.url.startsWith("dweb:")) {
+            return request.url;
+          }
+        });
+        if (url) {
+          const mmid = await this.bootstrapContext.dns.queryDeeplink(url);
+          if (mmid) {
+            (await this.connect(mmid)).request(url);
+          }
         }
       });
 

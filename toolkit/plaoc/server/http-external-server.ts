@@ -1,3 +1,4 @@
+import { onAllIpc } from "@dweb-browser/core/internal/ipcEventExt.ts";
 import type { $Core, $Http, $Ipc, $IpcRequest, $MMID } from "./deps.ts";
 import { IpcEvent, IpcResponse, jsProcess, mapHelper } from "./deps.ts";
 import { createDuplexIpc } from "./helper/duplexIpc.ts";
@@ -16,11 +17,16 @@ declare global {
 export class Server_external extends HttpServer {
   constructor(private handlers: $Core.$OnFetch[] = []) {
     super("external");
-    jsProcess.fetchIpc.onRequest("external").collect(async (event) => {
-      if (event.data.parsed_url.pathname == ExternalState.WAIT_EXTERNAL_READY) {
-        await this.ipcPo.waitOpen();
-      }
-      return { status: 200 };
+    onAllIpc(jsProcess, "for-external", (ipc) => {
+      ipc.onRequest("get-external").collect(async (requestEvent) => {
+        const request = requestEvent.consumeFilter(
+          (request) => request.parsed_url.pathname == ExternalState.WAIT_EXTERNAL_READY
+        );
+        if (request) {
+          await this.ipcPo.waitOpen();
+          ipc.postMessage(IpcResponse.fromJson(request.reqId, 200, undefined, {}, ipc));
+        }
+      });
     });
   }
   /**
@@ -76,10 +82,12 @@ export class Server_external extends HttpServer {
 
       // 接收前端的externalFetch函数发送的跟外部通信的消息
       streamIpc.onRequest("get-external-fetch").collect(async (event) => {
-        const IpcServerRequest = event.data;
-        const mmid = IpcServerRequest.headers.get("mmid") as $MMID;
+        const request = event.data;
+        const mmid = request.headers.get("mmid") as $MMID;
         if (!mmid) {
-          return new Response(null, { status: 502 });
+          return streamIpc.postMessage(
+            IpcResponse.fromText(request.reqId, 502, undefined, "not found mmid", streamIpc)
+          );
         }
         this.needActivity = true;
         await mapHelper.getOrPut(this.externalWaitters, mmid, async (_key) => {
@@ -95,7 +103,7 @@ export class Server_external extends HttpServer {
             throw err;
           }
           // 激活对面窗口
-          ipc.postMessage(IpcEvent.fromText(ExternalState.ACTIVITY, ExternalState.RENDERER));
+          void ipc.postMessage(IpcEvent.fromText(ExternalState.ACTIVITY, ExternalState.RENDERER));
           this.needActivity = false;
           await ipc.request(`file://${mmid}${ExternalState.WAIT_EXTERNAL_READY}`);
           return ipc;
@@ -107,15 +115,17 @@ export class Server_external extends HttpServer {
         }
         const ext_options = this._getOptions();
         // 请求跟外部app通信，并拿到返回值
-        IpcServerRequest.headers.append("X-External-Dweb-Host", jsProcess.mmid);
-        return await jsProcess.nativeFetch(
-          `https://${ext_options.subdomain}.${mmid}${IpcServerRequest.parsed_url.pathname}${IpcServerRequest.parsed_url.search}`,
+        request.headers.append("X-External-Dweb-Host", jsProcess.mmid);
+        const body = request.method === "GET" || "HEAD" ? null : await request.body.stream();
+        const res = await jsProcess.nativeFetch(
+          `https://${ext_options.subdomain}.${mmid}${request.parsed_url.pathname}${request.parsed_url.search}`,
           {
-            method: IpcServerRequest.method,
-            headers: IpcServerRequest.headers,
-            body: await IpcServerRequest.body.stream(),
+            method: request.method,
+            headers: request.headers,
+            body,
           }
         );
+        streamIpc.postMessage(await IpcResponse.fromResponse(request.reqId, res, streamIpc));
       });
 
       /// 返回读写这个stream的链接，注意，目前双工需要客户端通过 WebSocket 来达成支持

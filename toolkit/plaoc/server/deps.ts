@@ -46,7 +46,7 @@ export const {
   PureTextFrame,
   PureBinaryFrame,
 } = ipc;
-export const { IpcFetchEvent, ReadableStreamEndpoint } = core;
+export const { IpcFetchEvent, ChannelEndpoint } = core;
 
 export const { ServerUrlInfo, ServerStartResult } = http;
 export type $ServerUrlInfo = InstanceType<typeof ServerUrlInfo>;

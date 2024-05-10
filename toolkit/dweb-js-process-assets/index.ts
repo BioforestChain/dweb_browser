@@ -124,6 +124,18 @@ export class JsProcessMicroModule extends MicroModule {
             po.resolve(ipc);
           }
           return done;
+        } else if (ipcEvent.name === "dns/connect/error") {
+          this.console.log("connect-error", ipcEvent.data);
+          const error = JSON.parse(core.IpcEvent.text(ipcEvent)) as {
+            connect: $MMID;
+            reason: string;
+          };
+          const po = mapHelper.getAndRemove(waitMap, error.connect);
+          if (po === undefined) {
+            this.console.error(`no found connect task: ${error.connect}`);
+            return;
+          }
+          po.reject(error.reason);
         }
       });
     });
