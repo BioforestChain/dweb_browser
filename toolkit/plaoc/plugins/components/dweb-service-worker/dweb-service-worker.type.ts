@@ -43,9 +43,11 @@ interface MainServer {
   entry: string;
 }
 
-export interface $DwebRquestInit extends $IpcRequestInit {
+export type $DwebRquestInit = {
   search?:
     | ConstructorParameters<typeof URLSearchParams>[0]
     // deno-lint-ignore no-explicit-any
     | Record<string, any>;
-}
+  /**是否需要激活对方 */
+  activate?: boolean;
+} & $IpcRequestInit;

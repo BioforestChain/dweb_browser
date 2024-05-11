@@ -10,7 +10,10 @@ export class ServiceWorkerFetchEvent extends Event {
   get request() {
     return this.fetchEvent.request;
   }
-  /**查询连接者的信息 */
+  /**
+   * 查询连接者的信息
+   * @returns Promise<$MicroModuleManifest>
+   */
   async getRemoteManifest(): Promise<$MicroModuleManifest> {
     const { request } = this.fetchEvent;
     // 获取来建立连接的人的mmid
@@ -30,6 +33,7 @@ export class ServiceWorkerFetchEvent extends Event {
    * 回复消息
    * @param body
    * @param init
+   * @returns void
    */
   async respondWith(body?: BodyInit | null, init?: ResponseInit) {
     const response = new Response(body, init);

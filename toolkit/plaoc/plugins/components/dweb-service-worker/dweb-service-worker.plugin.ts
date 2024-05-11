@@ -3,7 +3,7 @@ import { createMockModuleServerIpc } from "../../common/websocketIpc.ts";
 import { bindThis } from "../../helper/bindThis.ts";
 import { buildSearch } from "../../helper/request.ts";
 import { BasePlugin } from "../base/base.plugin.ts";
-import type { $BuildRequestWithBaseInit, $DwebResult } from "../base/base.type.ts";
+import type { $BuildRequestWithBaseInit } from "../base/base.type.ts";
 import type { $DwebRquestInit } from "./dweb-service-worker.type.ts";
 
 /**这是app之间通信的组件 */
@@ -37,46 +37,42 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
 
   /**
    * 关闭自己的前端
-   * @returns
+   * @returns boolean
    */
   @bindThis
   close() {
     return this.fetchApi("/close").boolean();
   }
 
-  /**重启自己的后前端 */
+  /**
+   * 重启自己的后前端
+   * @returns boolean
+   */
   @bindThis
   restart() {
-    return this.fetchApi("/restart").object<$DwebResult>();
+    return this.fetchApi("/restart").boolean();
   }
 
   /**
    * 查询应用是否安装
    * @param mmid
+   * @returns boolean
    */
   @bindThis
-  async has(mmid: $MMID): Promise<$DwebResult> {
-    try {
-      const res = await this.fetchApi(`/query`, {
-        search: {
-          mmid: mmid,
-        },
-      });
-      if (res.ok && (await res.json())) {
-        return { success: true, message: "true" };
-      }
-      return { success: false, message: "false" };
-    } catch (e) {
-      return { success: false, message: String(e) };
-    }
+  has(mmid: $MMID) {
+    return this.fetchApi(`/query`, {
+      search: {
+        mmid: mmid,
+      },
+    }).boolean();
   }
 
   /**
    * 向别的app发送request消息
    * @param pathname
    * @param init
-   * @returns
-   * file://desktop.dweb.waterbang.top.dweb/say/hi?message="hi 今晚吃螃🦀️蟹吗？"
+   * @returns Promise<Response>
+   * @example file://desktop.dweb.waterbang.top.dweb/say/hi?message="hi 今晚吃螃🦀️蟹吗？"
    */
   @bindThis
   async fetch(url: string, init?: $DwebRquestInit | undefined) {
@@ -85,6 +81,7 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
     buildSearch(init?.search, (key, value) => {
       input.searchParams.append(key, value);
     });
+    input.searchParams.append("activate", String(!!init?.activate));
     const ipcResponse = await ipc.request(input.href, init);
     return ipcResponse.toResponse();
   }

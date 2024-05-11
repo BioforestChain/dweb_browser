@@ -33,7 +33,7 @@ export const doPublish = async (cwd: string) => {
   // #regionend
   const npm_cmd = new Deno.Command(cmdWhich, {
     cwd,
-    args: ["publish", "--access", "public"],
+    args: ["publish", "--access", "public", "--no-git-checks"],
     stdout: "inherit",
     stderr: "inherit",
     stdin: "inherit",

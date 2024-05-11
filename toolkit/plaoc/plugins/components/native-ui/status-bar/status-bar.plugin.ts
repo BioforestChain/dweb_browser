@@ -3,7 +3,7 @@ import { DOMInsets } from "../../../util/insets.ts";
 import { BAR_STYLE } from "../../base/bar.plugin.ts";
 import { BasePlugin } from "../../base/base.plugin.ts";
 import { windowPlugin } from "../../index.ts";
-import { $StatusBarState, $StatusBarWritableState } from "./status-bar.type.ts";
+import type { $StatusBarState, $StatusBarWritableState } from "./status-bar.type.ts";
 /**
  * 访问 status-bar 能力的插件
  */
@@ -13,7 +13,7 @@ export class StatusBarPlugin extends BasePlugin {
   }
 
   @bindThis
-  async setState(state: Partial<$StatusBarWritableState>) {
+  setState(state: Partial<$StatusBarWritableState>) {
     let topBarContentColor: string | undefined = undefined;
     switch (state.style) {
       case BAR_STYLE.Dark:
@@ -90,8 +90,8 @@ export class StatusBarPlugin extends BasePlugin {
     return (await this.getState()).visible;
   }
   @bindThis
-  async show(){}
+  async show() {}
   @bindThis
-  async hide(){}
+  async hide() {}
 }
 export const statusBarPlugin = new StatusBarPlugin();

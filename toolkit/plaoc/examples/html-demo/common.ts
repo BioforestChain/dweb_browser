@@ -57,7 +57,7 @@ const sayHi = (message = "今晚吃螃🦀️蟹吗？") => {
     message = data;
   }
   dwebServiceWorker
-    .fetch(`https://game.dweb.waterbang.top.dweb/sayhi?message=${message}`)
+    .fetch(`https://game.dweb.waterbang.top.dweb/say/hi?message=${message}`)
     .then(async (res) => {
       const message = await res.text();
       console.log("收到回应消息=> ", message);
@@ -71,7 +71,7 @@ const sayHi = (message = "今晚吃螃🦀️蟹吗？") => {
 
 const canOpenUrl = async () => {
   const res = await dwebServiceWorker.has(`game.dweb.waterbang.top.dweb`);
-  console.log("存在app吗=>", res);
+  sayHiMessage.innerText = `存在app吗=>${res}`;
 };
 
 dwebServiceWorker.addEventListener("fetch", async (event) => {
@@ -86,7 +86,7 @@ dwebServiceWorker.addEventListener("fetch", async (event) => {
     // 发送消息回去
     return event.respondWith(`plaoc-html-demo/echo:${hiMessage}`);
   }
-  return event.respondWith("Not match any routes");
+  return event.respondWith(`Not match any routes:${url.pathname}`);
 });
 
 const restart = () => {

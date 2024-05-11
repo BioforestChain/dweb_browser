@@ -47,23 +47,21 @@ export class Server_api extends HttpServer {
           close_window(winId);
           this.jsRuntime.dns.restart(jsProcess.mmid);
         }, 200);
-        return Response.json({ success: true, message: "restart ok" });
+        return Response.json(true);
       }
 
       // 只关闭 渲染一个渲染进程 不关闭 service
       if (pathname === "/close") {
         const bool = await mwebview_destroy();
-        return Response.json({ success: bool, message: "window close" });
+        return Response.json(bool);
       }
       if (pathname === "/query") {
-        const mmid = event.searchParams.get("mmid");
-        const res = await jsProcess.nativeFetch(`file://dns.std.dweb/query?app_id=${mmid}`);
-        return res;
+        const mmid = event.searchParams.get("mmid") as $MMID;
+        const data = await this.jsRuntime.dns.query(mmid);
+        const res = data ? true : null;
+        return Response.json(res);
       }
-      return Response.json({
-        success: false,
-        message: "no action for serviceWorker Factory !!!",
-      });
+      return Response.json(false);
     };
 
     return await result();

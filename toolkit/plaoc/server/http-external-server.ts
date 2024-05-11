@@ -54,9 +54,9 @@ export class Server_external extends HttpServer {
     this.ipcPo.toggleClose();
   }
 
-  private externalWaitters = new Map<$MMID, Promise<$Ipc>>();
+  #externalWaitters = new Map<$MMID, Promise<$Ipc>>();
   // 是否需要激活
-  private needActivity = true;
+  #needActivity = true;
   protected async _provider(event: $Core.IpcFetchEvent): Promise<$Core.$OnFetchReturn> {
     const { pathname } = event;
     // 建立跟自己前端的双工连接
@@ -89,24 +89,22 @@ export class Server_external extends HttpServer {
             IpcResponse.fromText(request.reqId, 502, undefined, "not found mmid", streamIpc)
           );
         }
-        this.needActivity = true;
-        await mapHelper.getOrPut(this.externalWaitters, mmid, async (_key) => {
+        // 是否需要激活应用
+        this.#needActivity = !!request.parsed_url.searchParams.get("activite");
+        await mapHelper.getOrPut(this.#externalWaitters, mmid, async () => {
           const ipc = await jsProcess.connect(mmid).catch((err) => {
-            this.externalWaitters.delete(mmid);
+            this.#externalWaitters.delete(mmid);
             streamIpc.postMessage(IpcResponse.fromText(request.reqId, 502, undefined, err, streamIpc));
             throw err;
           });
           ipc.onClosed(() => {
-            this.externalWaitters.delete(mmid);
+            this.#externalWaitters.delete(mmid);
           });
-          // 激活对面窗口
-          void ipc.postMessage(IpcEvent.fromText(ExternalState.ACTIVITY, ExternalState.RENDERER));
-          this.needActivity = false;
           await ipc.request(`file://${mmid}${ExternalState.WAIT_EXTERNAL_READY}`);
           return ipc;
         });
-        const ipc = await this.externalWaitters.get(mmid);
-        if (ipc && this.needActivity) {
+        const ipc = await this.#externalWaitters.get(mmid);
+        if (ipc && this.#needActivity) {
           // 激活对面窗口
           ipc.postMessage(IpcEvent.fromText(ExternalState.ACTIVITY, ExternalState.RENDERER));
         }
@@ -129,10 +127,10 @@ export class Server_external extends HttpServer {
       return { status: 101 };
     } else {
       // 接收别人传递过来的消息
+      // 等待自己的ipc连接成功
       const ipc = await this.ipcPo.waitOpen();
       // 发送到前端监听，并去（respondWith）拿返回值
       const response = (await ipc.request(event.request.url, event.request)).toResponse();
-      // ipc.postMessage(response)
       // 构造返回值给对方
       return IpcResponse.fromResponse(event.ipcRequest.reqId, response, event.ipc);
     }

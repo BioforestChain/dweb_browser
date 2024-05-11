@@ -3,6 +3,7 @@
   "version": "0.8.0",
   "description": "",
   "main": "index.js",
+  "types": "./esm/index.d.ts",
   "scripts": {
     "build": "npx esbuild ./index.ts --outdir=./dist"
   },
