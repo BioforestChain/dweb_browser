@@ -4,6 +4,7 @@ import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
+import org.dweb_browser.browser.web.debugBrowser
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.http.router.IHandlerContext
@@ -35,6 +36,7 @@ import org.dweb_browser.pure.http.PureStringBody
 import org.dweb_browser.pure.http.PureTextFrame
 import org.dweb_browser.pure.http.queryAs
 import org.dweb_browser.pure.http.queryAsOrNull
+import org.dweb_browser.sys.toast.ext.showToast
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.modal.ModalState
 import org.dweb_browser.sys.window.core.windowInstancesManager
@@ -308,6 +310,11 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
           taskBarController.toggleFloatWindow(
             request.queryOrNull("open")?.toBooleanStrictOrNull()
           )
+        },
+        "/showToast" bind PureMethod.GET by defineEmptyResponse {
+          debugBrowser("showToast", request.href)
+          val message = request.query("message")
+          showToast(message)
         }).cors()
 
       onActivity {

@@ -241,10 +241,8 @@ export const registryViteBuilder = (config: {
 export const vitePostBuild = (inDir: string, outDir: string) => {
   for (const filename of ["manifest.json", "LICENSE"]) {
     const fromPath = node_path.resolve(inDir, filename);
-    console.log("xxxfromPath=>", fromPath);
     if (node_fs.existsSync(fromPath)) {
       const toPath = node_path.resolve(outDir, filename);
-      console.log("xxxtoPath=>", toPath);
       node_fs.mkdirSync(node_path.dirname(toPath), { recursive: true });
       node_fs.copyFileSync(fromPath, toPath);
     }

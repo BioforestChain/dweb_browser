@@ -85,6 +85,14 @@ export function openBrowser(url: string) {
   });
 }
 
+export function showToast(message: string) {
+  nativeFetch("/showToast", {
+    search: {
+      message: message,
+    },
+  });
+}
+
 export function toggleMaximize(id: string) {
   return nativeFetch<boolean>("/toggleMaximize", {
     search: {

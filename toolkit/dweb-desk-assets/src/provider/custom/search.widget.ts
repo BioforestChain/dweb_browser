@@ -1,4 +1,5 @@
 import { $WidgetCustomData } from "src/types/app.type.ts";
+import { showToast } from "../api.ts";
 import search_svg_raw from "./search.svg?raw";
 const html = String.raw;
 const css = String.raw;
@@ -45,6 +46,10 @@ const startsWithIgnoreCase = (url: string) => {
   return /^dweb:/i.test(url);
 };
 
+function handleEvent(e) {
+  showToast(e);
+}
+
 Object.assign(globalThis, {
   dwebSearch(event: SubmitEvent) {
     const btnEle = event.submitter as HTMLButtonElement;
@@ -67,8 +72,13 @@ Object.assign(globalThis, {
       url = formEle.action + "?" + query;
     }
     const xhr = new XMLHttpRequest();
+    xhr.addEventListener("error", handleEvent);
+    xhr.addEventListener("abort", (e) => {
+      showToast("请求的地址无法访问！");
+    });
     xhr.open(method, url);
     xhr.send();
+
     return false;
   },
 });

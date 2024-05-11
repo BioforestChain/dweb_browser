@@ -1,6 +1,6 @@
 import { debounce } from "@dweb-browser/helper/decorator/$debounce.ts";
 import { $once } from "@dweb-browser/helper/decorator/$once.ts";
-import { registryViteBuilder, vitePostBuild } from "../../scripts/helper/npmBuilder.ts";
+import { registryViteBuilder } from "../../scripts/helper/npmBuilder.ts";
 import { rootResolve } from "../../scripts/helper/resolver.ts";
 import { watchFs } from "../../scripts/helper/watchFs.ts";
 import { doBundleServer } from "../plaoc/scripts/bundle-server.ts";
@@ -39,7 +39,6 @@ const plaocTasks = [
     {
       reset() {
         // 同步复制配置文件
-        vitePostBuild("./toolkit/plaoc/examples/plugin-demo", "npm/@plaoc__examples/plugin-demo");
       },
     }
   ),
@@ -48,7 +47,6 @@ const plaocTasks = [
     {
       reset() {
         // 同步复制配置文件
-        vitePostBuild("./toolkit/plaoc/examples/html-demo", "npm/@plaoc__examples/html-demo");
       },
     }
   ),
