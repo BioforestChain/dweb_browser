@@ -126,6 +126,7 @@ kotlinx-io = { group = "org.jetbrains.kotlinx", name = "kotlinx-io-core", versio
 kotlinx-html = { group = "org.jetbrains.kotlinx", name = "kotlinx-html", version.ref = "kotlinx-html-version" }
 squareup-okio = { group = "com.squareup.okio", name = "okio", version.ref = "okio-version" }
 squareup-okio-nodefilesystem = { group = "com.squareup.okio", name = "okio-nodefilesystem", version.ref = "okio-version" }
+squareup-okio-fakefilesystem = { group = "com.squareup.okio", name = "okio-fakefilesystem", version.ref = "okio-version" }
 whyoleg-cryptography-core = { group = "dev.whyoleg.cryptography", name = "cryptography-core", version.ref = "cryptography-version" }
 whyoleg-cryptography-provider-jdk = { group = "dev.whyoleg.cryptography", name = "cryptography-provider-jdk", version.ref = "cryptography-version" }
 whyoleg-cryptography-provider-webcrypto = { group = "dev.whyoleg.cryptography", name = "cryptography-provider-webcrypto", version.ref = "cryptography-version" }

@@ -1,9 +1,11 @@
 package org.dweb_browser.core.std.file
 
+import okio.FileSystem
 import okio.Path
 import okio.Path.Companion.toPath
 import org.dweb_browser.core.help.AdapterManager
 import org.dweb_browser.core.help.types.IMicroModuleManifest
+import org.dweb_browser.pure.io.SystemFileSystem
 
 /**
  * 虚拟文件目录
@@ -17,7 +19,10 @@ import org.dweb_browser.core.help.types.IMicroModuleManifest
 interface IVirtualFsDirectory {
   fun isMatch(firstSegment: String): Boolean
 
+  val fs: FileSystem
+
   /**
+   * 如果是文件系统
    * 获取真实的基本路径
    */
   fun getFsBasePath(remote: IMicroModuleManifest): Path
@@ -29,6 +34,7 @@ interface IVirtualFsDirectory {
 fun commonVirtualFsDirectoryFactory(firstSegmentFlags: String, nativeFsPath: Path) =
   object : IVirtualFsDirectory {
     override fun isMatch(firstSegment: String) = firstSegment == firstSegmentFlags
+    override val fs: FileSystem = SystemFileSystem
     override fun getFsBasePath(remote: IMicroModuleManifest) = nativeFsPath.resolve(remote.mmid)
   }
 

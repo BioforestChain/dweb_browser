@@ -53,6 +53,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
 
   companion object {
     private val reqIdAcc = atomic(0)
+
     init {
       connectAdapterManager.append { fromMM, toMM, reason ->
         if (toMM is NativeMicroModule.NativeRuntime) {
@@ -139,6 +140,21 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
     }
 
     protected var routesCheckAllowHttp = { _: IpcServerRequest -> false }
+    protected var routesCheckAllowDweb = { _: IpcServerRequest -> true }
+    protected fun HandlerContext.defaultRoutesNotFound(error: Throwable? = null) =
+      PureResponse.build {
+        if (error != null) {
+          status(HttpStatusCode.InternalServerError)
+          body(error.stackTraceToString())
+        } else {
+          status(HttpStatusCode.NotFound)
+          body(request.href)
+        }
+      }
+
+    protected var routesNotFound: suspend HandlerContext.() -> PureResponse = {
+      defaultRoutesNotFound(null)
+    }
 
     /**
      * 实现一整套简易的路由响应规则
@@ -151,7 +167,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
         clientIpc.onRequest("file-dweb-router").collectIn(mmScope) { event ->
           val ipcRequest = event.consumeFilter {
             when (it.uri.protocol.name) {
-              "file", "dweb" -> true
+              "file", "dweb" -> routesCheckAllowDweb(it)
               "http", "https" -> routesCheckAllowHttp(it)
               else -> false
             }
@@ -159,20 +175,25 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
           debugMM("NMM/Handler", ipcRequest.url)
           /// 根据host找到对应的路由模块
           val routers = protocolRouters[ipcRequest.uri.host] ?: protocolRouters["*"]
+          val request = ipcRequest.toPure()
+          val ctx = HandlerContext(request, clientIpc)
           var response: PureResponse? = null
-          if (routers != null) for (router in routers) {
-            val pureRequest = ipcRequest.toPure()
-            val res =
-              router.withFilter(pureRequest)?.invoke(HandlerContext(pureRequest, clientIpc))
-            if (res != null) {
-              response = res
-              break
+          if (!routers.isNullOrEmpty()) {
+            for (router in routers) {
+              val res = router.withFilter(request)?.invoke(ctx)
+              if (res != null) {
+                response = res
+                break
+              }
             }
           }
 
-          clientIpc.postResponse(
-            ipcRequest.reqId, response ?: PureResponse(HttpStatusCode.BadGateway)
-          )
+          clientIpc.postResponse(ipcRequest.reqId,
+            response ?: runCatching {
+              routesNotFound(ctx)
+            }.getOrElse {
+              ctx.defaultRoutesNotFound(it)
+            })
         }
 
         /// 在 NMM 这里，只要绑定好了，就可以开始握手通讯

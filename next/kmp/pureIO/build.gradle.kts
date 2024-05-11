@@ -6,6 +6,7 @@ kotlin {
   kmpCommonTarget(project) {
     dependencies {
       api(libs.squareup.okio)
+      api(libs.squareup.okio.fakefilesystem)
 
       implementation(projects.helper)
     }

@@ -14,7 +14,6 @@ import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.dwebview.base.isWebUrlScheme
 import org.dweb_browser.dwebview.debugDWebView
 import org.dweb_browser.helper.ioAsyncExceptionHandler
-import org.dweb_browser.helper.readByteArray
 import org.dweb_browser.pure.http.PureClientRequest
 import org.dweb_browser.pure.http.PureHeaders
 import org.dweb_browser.pure.http.PureMethod
@@ -50,7 +49,7 @@ class DWebOverwriteRequest(val engine: DWebViewEngine) : WebViewClient() {
   /// TODO 因为 Chrome 错误地设置了 InputStream
 
   override fun shouldInterceptRequest(
-    view: WebView, request: WebResourceRequest
+    view: WebView, request: WebResourceRequest,
   ): WebResourceResponse? {
     // 转发请求
     if (request.method == "GET" && ((request.url.host?.endsWith(".dweb") == true) || (request.url.scheme == "dweb"))) {
@@ -107,7 +106,7 @@ class DWebOverwriteRequest(val engine: DWebViewEngine) : WebViewClient() {
   override fun onReceivedHttpError(
     view: WebView?,
     request: WebResourceRequest?,
-    errorResponse: WebResourceResponse?
+    errorResponse: WebResourceResponse?,
   ) {
     engine.ioScope.launch {
       engine.remoteMM.showToast("request fail => ${errorResponse?.statusCode}:${errorResponse?.reasonPhrase}")

@@ -13,8 +13,8 @@ import org.dweb_browser.helper.decodeURIComponent
 import org.dweb_browser.pure.http.IPureBody
 import org.dweb_browser.pure.http.PureBinary
 import org.dweb_browser.pure.http.PureBinaryBody
-import org.dweb_browser.pure.http.PureClientRequest
 import org.dweb_browser.pure.http.PureHeaders
+import org.dweb_browser.pure.http.PureRequest
 import org.dweb_browser.pure.http.PureResponse
 import org.dweb_browser.pure.http.PureStream
 import org.dweb_browser.pure.http.PureStreamBody
@@ -22,7 +22,7 @@ import org.dweb_browser.pure.http.PureStringBody
 import org.dweb_browser.pure.io.SystemFileSystem
 import org.dweb_browser.pure.io.toByteReadChannel
 
-class RespondLocalFileContext(val request: PureClientRequest) {
+class RespondLocalFileContext(val request: PureRequest) {
   val filePath by lazy { request.url.encodedPath }
   private val mode = request.queryOrNull("mode") ?: "auto"
   val preferenceStream = mode == "stream"
@@ -31,19 +31,21 @@ class RespondLocalFileContext(val request: PureClientRequest) {
 
   private fun asModePureBody(binary: PureStream) = PureStreamBody(binary)
 
-  fun returnFile(body: IPureBody, size: Long): PureResponse {
+  fun returnFile(body: IPureBody, size: Long?): PureResponse {
     val headers = PureHeaders()
     val extension = ContentType.fromFilePath(filePath)
     if (extension.isNotEmpty()) {
       headers.set("Content-Type", extension.first().toString())
     }
-    headers.set("Content-Length", size.toString())
+    if (size != null) {
+      headers.set("Content-Length", size.toString())
+    }
     return PureResponse(headers = headers, body = body)
   }
 
   fun returnFile(binary: PureBinary) = returnFile(asModePureBody(binary), binary.size.toLong())
-  fun returnFile(stream: PureStream, size: Long) = returnFile(asModePureBody(stream), size)
-  fun returnFile(byteChannel: ByteReadChannel, size: Long) =
+  fun returnFile(stream: PureStream, size: Long?) = returnFile(asModePureBody(stream), size)
+  fun returnFile(byteChannel: ByteReadChannel, size: Long?) =
     returnFile(PureStream(byteChannel), size)
 
   internal fun returnFile(fileSystem: FileSystem, filePath: Path, scope: CoroutineScope? = null) =
@@ -66,7 +68,7 @@ class RespondLocalFileContext(val request: PureClientRequest) {
   fun returnNext() = null
 
   companion object {
-    suspend fun PureClientRequest.respondLocalFile(respond: suspend RespondLocalFileContext.() -> PureResponse?) =
+    suspend fun PureRequest.respondLocalFile(respond: suspend RespondLocalFileContext.() -> PureResponse?) =
       if (url.protocol.name == "file" && url.host == "") {
         RespondLocalFileContext(this).respond()
       } else null
@@ -76,5 +78,5 @@ class RespondLocalFileContext(val request: PureClientRequest) {
 expect fun loadByteChannelByPath(
   context: RespondLocalFileContext,
   root: String,
-  filePath: String
+  filePath: String,
 ): PureResponse

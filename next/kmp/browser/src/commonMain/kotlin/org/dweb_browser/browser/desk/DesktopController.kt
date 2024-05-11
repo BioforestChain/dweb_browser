@@ -32,6 +32,7 @@ import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.build
+import org.dweb_browser.helper.envSwitch
 import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.helper.platform.IPureViewController
 import org.dweb_browser.helper.platform.from
@@ -76,6 +77,7 @@ open class DesktopController private constructor(
     val options = DWebViewOptions(
       url = getDesktopUrl().toString(),
       privateNet = true,
+      openDevTools = envSwitch.has("desktop-devtools"),
       detachedStrategy = DWebViewOptions.DetachedStrategy.Ignore,
       displayCutoutStrategy = DWebViewOptions.DisplayCutoutStrategy.Default,
       tag = 1

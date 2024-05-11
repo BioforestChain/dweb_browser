@@ -1,12 +1,12 @@
 package org.dweb_browser.core.std.file
 
-import dweb_browser_kmp.core.generated.resources.Res
 import io.ktor.http.HttpStatusCode
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.add
 import kotlinx.serialization.json.buildJsonArray
+import okio.FileSystem
 import okio.Path
 import okio.Path.Companion.toPath
 import okio.buffer
@@ -26,10 +26,10 @@ import org.dweb_browser.helper.consumeEachCborPacket
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.removeWhen
 import org.dweb_browser.helper.toJsonElement
+import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureStream
 import org.dweb_browser.pure.http.queryAsOrNull
-import org.dweb_browser.pure.io.SystemFileSystem
 import org.dweb_browser.pure.io.copyTo
 import org.dweb_browser.pure.io.toByteReadChannel
 import org.jetbrains.compose.resources.ExperimentalResourceApi
@@ -57,104 +57,131 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
     /// TODO 这个函数给出来是给内部使用的
     private fun getVirtualFsPath(context: IMicroModuleManifest, virtualPathString: String) =
       VirtualFsPath(context, virtualPathString, ::findVfsDirectory)
-
-    /**
-     * 用于picker映射真实路径
-     */
-    private val pickerPathToRealPathMap = mutableMapOf<String, Path>()
   }
 
-  private fun IHandlerContext.getVfsPath(
-    pathKey: String = "path",
-  ) = getVirtualFsPath(
-    ipc.remote, request.query(pathKey)
-  )
+  private fun IHandlerContext.getVfsPath(pathKey: String = "path") =
+    getVirtualFsPath(ipc.remote, request.query(pathKey))
 
-  private fun IHandlerContext.getPath(pathKey: String = "path"): Path {
-    val virtualPath = request.query(pathKey)
-    if (virtualPath.startsWith("/picker")) {
-      return pickerPathToRealPathMap[virtualPath] ?: throwException(HttpStatusCode.NotFound)
-    }
-    return getVfsPath(pathKey).fsFullPath
-  }
+  private fun IHandlerContext.getPath(pathKey: String = "path") =
+    getVfsPath(pathKey).let { Pair(it.fsFullPath, it.fs) }
 
-  private fun IHandlerContext.getPathInfo(path: Path = getPath()): JsonElement {
-    val metadata = SystemFileSystem.metadataOrNull(path);
+  private fun IHandlerContext.getPathInfo(fsPath: VirtualFsPath = getVfsPath()): JsonElement {
+    val metadata = fsPath.fs.metadataOrNull(fsPath.fsFullPath)
     return if (metadata == null) {
       JsonNull
     } else {
       FileMetadata(
-        metadata.isRegularFile,
-        metadata.isDirectory,
-        metadata.size,
-        metadata.createdAtMillis ?: 0,
-        metadata.lastAccessedAtMillis ?: 0,
-        metadata.lastModifiedAtMillis ?: 0
+        isFile = metadata.isRegularFile,
+        isDirectory = metadata.isDirectory,
+        size = metadata.size,
+        createdTime = metadata.createdAtMillis ?: 0,
+        lastReadTime = metadata.lastAccessedAtMillis ?: 0,
+        lastWriteTime = metadata.lastModifiedAtMillis ?: 0
       ).toJsonElement()
     }
   }
 
   inner class FileRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
+    init {
+      /// 将 `file:///` 请求路由到 file.std.dweb
+      nativeFetchAdaptersManager.append(order = 3) { fromMM, request ->
+        return@append request.respondLocalFile {
+          val fileIpc = fromMM.connect("file.std.dweb")
+          fileIpc.request(request)
+        }
+      }.removeWhen(mmScope)
+      /// 提供直接的文件读取
+      routesNotFound = {
+        /// 为 file:///  请求提供服务
+        request.respondLocalFile {
+          if (request.method == PureMethod.GET) {
+            val vfsPath = getVirtualFsPath(ipc.remote, request.url.encodedPath)
+            val create = request.queryAsOrNull<Boolean>("create") ?: false
+            debugFile("easy-read", "create=$create filepath=${vfsPath.fsFullPath}")
+            if (create) {
+              touchFile(vfsPath.fsFullPath, vfsPath.fs)
+            }
+            val size = vfsPath.fs.metadata(vfsPath.fsFullPath).size
+            val fileSource = vfsPath.fs.source(vfsPath.fsFullPath).buffer()
+
+            val skip = request.queryAsOrNull<Long>("skip")
+            if (skip != null) {
+              fileSource.skip(skip)
+            }
+            returnFile(fileSource.toByteReadChannel(mmScope), size)
+          } else defaultRoutesNotFound()
+        } ?: defaultRoutesNotFound()
+      }
+    }
+
+    fun touchFile(filepath: Path, fs: FileSystem) {
+      if (!fs.exists(filepath)) {
+        filepath.parent?.let { dirpath ->
+          fs.createDirectories(dirpath, false)
+        }
+        fs.write(filepath, true) {
+          write(byteArrayOf())
+          this
+        }.close()
+      }
+    }
 
     @OptIn(InternalResourceApi::class, ExperimentalResourceApi::class)
     override suspend fun _bootstrap() {
+      /// file:///data/*
       getDataVirtualFsDirectory().also {
         debugFile("DIR/DATA", it.getFsBasePath(this))
         fileTypeAdapterManager.append(adapter = it).removeWhen(mmScope)
       }
+      /// file:///cache/*
       getCacheVirtualFsDirectory().also {
         debugFile("DIR/CACHE", it.getFsBasePath(this))
         fileTypeAdapterManager.append(adapter = it).removeWhen(mmScope)
       }
+      /// file:///download/*
       getExternalDownloadVirtualFsDirectory().also {
         debugFile("DIR/Ext Download", it.getFsBasePath(this))
         fileTypeAdapterManager.append(adapter = it).removeWhen(mmScope)
       }
+
+      /// file:///sys/*
+      fileTypeAdapterManager.append(adapter = object : IVirtualFsDirectory {
+        override fun isMatch(firstSegment: String) = firstSegment == "sys"
+        override val fs: FileSystem = ResourceFileSystem.FileSystem
+        val basePath = "/".toPath()
+        override fun getFsBasePath(remote: IMicroModuleManifest) = basePath
+      }).removeWhen(mmScope)
+
+      /// file:///picker/*
+      fileTypeAdapterManager.append(adapter = object : IVirtualFsDirectory {
+        override fun isMatch(firstSegment: String) = firstSegment == "picker"
+        override val fs: FileSystem = PickerFileSystem.FileSystem
+        val basePath = "/".toPath()
+        override fun getFsBasePath(remote: IMicroModuleManifest) = basePath
+      }).removeWhen(mmScope)
+
       /// nativeFetch 适配 file:///*/** 的请求
       nativeFetchAdaptersManager.append(order = 2) { fromMM, request ->
         return@append request.respondLocalFile {
           debugFile("read file", "$fromMM => ${request.href}")
           val (_, firstSegment, contentPath) = filePath.split("/", limit = 3)
-          // TODO 未来多平台下，sys的提供由 resource 函数统一供给
-          if (firstSegment == "sys") {
-            return@respondLocalFile try {
-              returnFile(Res.readBytes("files/$contentPath"))
-            } catch (e: Throwable) {
-              /// 终止，不继续尝试从其它地方读取文件
-              returnNoFound(e.message)
-            }
-          } else if (firstSegment == "picker") {
-            val filePath = pickerPathToRealPathMap[request.url.encodedPath]!!
 
-            return@respondLocalFile returnFile(SystemFileSystem, filePath)
-          }
           return@respondLocalFile when (val vfsDirectory = findVfsDirectory(firstSegment)) {
             null -> returnNext()
             else -> {
               val vfsPath = VirtualFsPath(fromMM, filePath) { vfsDirectory }
-              returnFile(SystemFileSystem, vfsPath.fsFullPath, fromMM.getRuntimeScope())
+              returnFile(vfsPath.fs, vfsPath.fsFullPath, fromMM.getRuntimeScope())
             }
           }
         }
       }.removeWhen(mmScope)
 
-      fun touchFile(filepath: Path) {
-        if (!SystemFileSystem.exists(filepath)) {
-          filepath.parent?.let { dirpath ->
-            SystemFileSystem.createDirectories(dirpath, false)
-          }
-          SystemFileSystem.write(filepath, true) {
-            write(byteArrayOf())
-            this
-          }.close()
-        }
-      }
       routes(
         // 使用Duplex打开文件句柄，当这个Duplex关闭的时候，自动释放文件句柄
         "/open" bind PureMethod.GET by defineCborPackageResponse {
-          val path = getPath()
-          debugFile("/open", path)
-          val handler = SystemFileSystem.openReadWrite(path)
+          val (filepath, fs) = getPath()
+          debugFile("/open", filepath)
+          val handler = fs.openReadWrite(filepath)
           // TODO 这里需要定义完整的操作指令
           request.body.toPureStream().getReader("open file")
             .consumeEachCborPacket<FileOp<*>> { op ->
@@ -195,11 +222,11 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
         },
         // 创建文件夹
         "/createDir" bind PureMethod.POST by defineBooleanResponse {
-          val path = getPath()
-          if (SystemFileSystem.exists(path)) {
-            SystemFileSystem.metadata(path).isDirectory
+          val (path, fs) = getPath()
+          if (fs.exists(path)) {
+            fs.metadata(path).isDirectory
           } else {
-            SystemFileSystem.createDirectories(path, true)
+            fs.createDirectories(path, true)
             true
           }
         },
@@ -208,9 +235,9 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
           val vfsPath = getVfsPath()
           val recursive = request.queryAsOrNull<Boolean>("recursive") ?: false
 
-          val paths = (if (recursive) SystemFileSystem.listRecursively(vfsPath.fsFullPath)
+          val paths = (if (recursive) vfsPath.fs.listRecursively(vfsPath.fsFullPath)
             /// 列出
-            .iterator() else SystemFileSystem.list(vfsPath.fsFullPath).iterator());
+            .iterator() else vfsPath.fs.list(vfsPath.fsFullPath).iterator())
 
           buildJsonArray {
             for (path in paths) {
@@ -220,13 +247,13 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
         },
         // 读取文件，一次性读取，可以指定开始位置
         "/read" bind PureMethod.GET by definePureStreamHandler {
-          val filepath = getPath()
+          val (filepath, fs) = getPath()
           val create = request.queryAsOrNull<Boolean>("create") ?: false
           debugFile("/read", "create=$create filepath=$filepath")
           if (create) {
-            touchFile(filepath)
+            touchFile(filepath, fs)
           }
-          val fileSource = SystemFileSystem.source(filepath).buffer()
+          val fileSource = fs.source(filepath).buffer()
 
           val skip = request.queryAsOrNull<Long>("skip")
           if (skip != null) {
@@ -236,75 +263,85 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
         },
         // 写入文件，一次性写入
         "/write" bind PureMethod.POST by defineEmptyResponse {
-          val filepath = getPath()
+          val (filepath, fs) = getPath()
           debugFile("/write", filepath)
           val create = request.queryAsOrNull<Boolean>("create") ?: false
           if (create) {
-            touchFile(filepath)
+            touchFile(filepath, fs)
           }
-          val fileSource = SystemFileSystem.sink(filepath, false).buffer()
+          val fileSource = fs.sink(filepath, false).buffer()
 
           request.body.toPureStream().getReader("write to file").copyTo(fileSource)
         },
         // 追加文件，一次性追加
         "/append" bind PureMethod.PUT by defineEmptyResponse {
-          val filepath = getPath()
+          val (filepath, fs) = getPath()
           debugFile("/append", filepath)
           val create = request.queryAsOrNull<Boolean>("create") ?: false
           if (create) {
-            touchFile(filepath)
+            touchFile(filepath, fs)
           }
-          val fileSource = SystemFileSystem.appendingSink(filepath, false).buffer()
+          val fileSource = fs.appendingSink(filepath, false).buffer()
 
           request.body.toPureStream().getReader("write to file").copyTo(fileSource)
         },
         // 路径是否存在
         "/exist" bind PureMethod.GET by defineBooleanResponse {
-          try {
-            SystemFileSystem.exists(getPath())
-          } catch (e: Exception) {
-            return@defineBooleanResponse false
-          }
+          val (filepath, fs) = getPath()
+          runCatching {
+            fs.exists(filepath)
+          }.getOrDefault(false)
         },
         // 获取路径的基本信息
         "/info" bind PureMethod.GET by defineJsonResponse {
           getPathInfo()
         },
         "/remove" bind PureMethod.DELETE by defineBooleanResponse {
+          val (filepath, fs) = getPath()
           val recursive = request.queryAsOrNull<Boolean>("recursive") ?: false
           if (recursive) {
-            SystemFileSystem.deleteRecursively(getPath(), false)
+            fs.deleteRecursively(filepath, false)
           } else {
-            SystemFileSystem.delete(getPath(), false)
+            fs.delete(filepath, false)
           }
           true
         },
         "/move" bind PureMethod.GET by defineBooleanResponse {
-          val sourcePath = getPath("sourcePath")
-          val targetPath = getPath("targetPath")
+          val (sourcePath, sourceFs) = getPath("sourcePath")
+          val (targetPath, targetFs) = getPath("targetPath")
           debugFile("/move", "sourcePath:$sourcePath => $targetPath")
-          // 如果不存在则需要创建空文件夹
-          if (!SystemFileSystem.exists(targetPath)) {
-            SystemFileSystem.createDirectories(targetPath, true)
+          (sourceFs == targetFs).trueAlso {
+            // 如果不存在则需要创建空文件夹
+            if (!targetFs.exists(targetPath)) {
+              targetFs.createDirectories(targetPath, true)
+            }
+            // 需要保证文件夹为空
+            targetFs.deleteRecursively(targetPath, false)
+            // atomicMove 如果是不同的文件系统时，移动会失败，如 data 目录移动到 外部download目录，所以需要使用copy后自行删除源文件
+            sourceFs.atomicMove(sourcePath, targetPath)
           }
-          // 需要保证文件夹为空
-          SystemFileSystem.deleteRecursively(targetPath, false)
-          // atomicMove 如果是不同的文件系统时，移动会失败，如 data 目录移动到 外部download目录，所以需要使用copy后自行删除源文件
-          SystemFileSystem.atomicMove(sourcePath, targetPath)
-          true
         },
         "/copy" bind PureMethod.GET by defineBooleanResponse {
           // 由于 copy 需要保证目标Path的父级节点存在，所以增加判断构建操作
-          val sourcePath = getPath("sourcePath")
-          val targetPath = getPath("targetPath")
+          val (sourcePath, sourceFs) = getPath("sourcePath")
+          val (targetPath, targetFs) = getPath("targetPath")
           debugFile("copy", "$sourcePath => $targetPath")
-          SystemFileSystem.deleteRecursively(targetPath, false) // 先删除，避免拷贝到失败
+          targetFs.deleteRecursively(targetPath, false) // 先删除，避免拷贝到失败
           targetPath.parent?.let { parentPath ->
-            if (!SystemFileSystem.exists(parentPath)) {
-              SystemFileSystem.createDirectories(parentPath, true)
+            if (!targetFs.exists(parentPath)) {
+              targetFs.createDirectories(parentPath, true)
             }
           }
-          SystemFileSystem.copy(sourcePath, targetPath)
+          if (sourceFs == targetFs) {
+            sourceFs.copy(sourcePath, targetPath)
+          } else {
+            /// TODO 要支持文件夹的拷贝
+            targetFs.write(targetPath, true) {
+              sourceFs.read(sourcePath) {
+                this@write.writeAll(this@read.buffer)
+              }
+            }
+          }
           true
         },
         "/watch" byChannel {
@@ -314,23 +351,23 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
           // TODO 开启文件监听，将这个路径添加到监听列表中
 
           if (request.queryAsOrNull<Boolean>("first") != false) {
-            sendPath(FileWatchEventName.First, vfsPath.fsFullPath, vfsPath);
+            sendPath(FileWatchEventName.First, vfsPath.fsFullPath, vfsPath)
             if (recursive) {
-              for (childPath in SystemFileSystem.listRecursively(vfsPath.fsFullPath)) {
+              for (childPath in vfsPath.fs.listRecursively(vfsPath.fsFullPath)) {
                 sendPath(FileWatchEventName.First, childPath, vfsPath)
               }
             }
           }
         },
         "/picker" bind PureMethod.GET by defineStringResponse {
-          val realPath = getPath()
+          val (realPath, fs) = getPath()
           val name = realPath.name
           val pickerPathString = "/picker/${randomUUID()}/${name}"
-          pickerPathToRealPathMap[pickerPathString] = realPath
+          PickerFileSystem.files[pickerPathString] = PickerFileSystem.PickerFile(fs, realPath)
           pickerPathString
         },
         "/realPath" bind PureMethod.GET by defineStringResponse {
-          getPath().toString()
+          getVfsPath().fsFullPath.toString()
         },
       )
     }
@@ -374,15 +411,18 @@ class VirtualFsPath(
   )
   private val fsBasePath = vfsDirectory.getFsBasePath(context)
   val fsFullPath = fsBasePath.resolve(virtualContentPath)
+  val fs = vfsDirectory.fs
 
   fun toVirtualPath(fsPath: Path) = virtualFirstPath.resolve(fsPath.relativeTo(fsBasePath))
   fun toVirtualPathString(fsPath: Path) = toVirtualPath(fsPath).toString()
 }
 
 
-object FileWatchEventNameSerializer : StringEnumSerializer<FileWatchEventName>("FileWatchEventName",
+object FileWatchEventNameSerializer : StringEnumSerializer<FileWatchEventName>(
+  "FileWatchEventName",
   FileWatchEventName.ALL_VALUES,
-  { eventName });
+  { eventName })
+
 @Serializable(with = FileWatchEventNameSerializer::class)
 enum class FileWatchEventName(val eventName: String) {
   /** 初始化监听时，执行的触发 */

@@ -311,7 +311,10 @@ export class JsProcessMicroModuleRuntime extends MicroModuleRuntime {
 
     this.ipcPool = this.microModule.ipcPool;
     this.fetchIpc = this.microModule.fetchIpc;
-    this.fileIpcPo = this.fetchIpc.waitForkedIpc(2);
+    this.fileIpcPo = this.fetchIpc.waitForkedIpc(2).then((fileIpc) => {
+      void fileIpc.start();
+      return fileIpc;
+    });
     this.connectionLinks.add(this.fetchIpc);
     this.meta = this.microModule.meta;
 
@@ -335,7 +338,7 @@ export class JsProcessMicroModuleRuntime extends MicroModuleRuntime {
 
   protected override async _getIpcForFetch(url: URL) {
     if (url.hostname === "") {
-      return this.fetchIpc;
+      return await this.fileIpcPo;
     }
     return await super._getIpcForFetch(url);
   }

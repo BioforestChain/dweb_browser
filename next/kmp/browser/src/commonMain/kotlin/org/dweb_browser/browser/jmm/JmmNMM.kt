@@ -1,8 +1,10 @@
 package org.dweb_browser.browser.jmm
 
 import io.ktor.http.HttpStatusCode
-import kotlinx.coroutines.Deferred
+import okio.FileSystem
+import okio.Path.Companion.toPath
 import org.dweb_browser.browser.BrowserI18nResource
+import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
@@ -10,14 +12,15 @@ import org.dweb_browser.core.http.router.bindDwebDeeplink
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
-import org.dweb_browser.core.std.dns.nativeFetchAdaptersManager
-import org.dweb_browser.core.std.file.ext.RespondLocalFileContext.Companion.respondLocalFile
+import org.dweb_browser.core.std.file.IVirtualFsDirectory
 import org.dweb_browser.core.std.file.ext.realPath
+import org.dweb_browser.core.std.file.fileTypeAdapterManager
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.removeWhen
 import org.dweb_browser.pure.http.PureMethod
+import org.dweb_browser.pure.io.SystemFileSystem
 import org.dweb_browser.sys.toast.ext.showToast
 import org.dweb_browser.sys.window.core.helper.setStateFromManifest
 import org.dweb_browser.sys.window.ext.getMainWindow
@@ -56,24 +59,6 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Service") {
 
   inner class JmmRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
     init {
-      /// 提供JsMicroModule的文件适配器
-      /// 这个适配器不需要跟着bootstrap声明周期，只要存在JmmNMM模块，就能生效
-      nativeFetchAdaptersManager.append(order = 3) { fromMM, request ->
-        val usrRootMap = mutableMapOf<String, Deferred<String>>()
-        return@append request.respondLocalFile {
-          if (filePath.startsWith("/usr/")) {
-            val rootKey = "${fromMM.mmid}-${fromMM.version}"
-            debugJMM("UsrFile", "$fromMM => ${request.href} in $rootKey")
-            val root = usrRootMap.getOrPut(fromMM.mmid) {
-              scopeAsync(cancelable = true) {
-                realPath("/data/apps/${fromMM.mmid}-${fromMM.version}")
-              }
-            }.await()
-            debugJMM("respondLocalFile", root)
-            returnFile(root, filePath)
-          } else returnNext()
-        }
-      }.removeWhen(mmScope)
     }
 
     override suspend fun _bootstrap() {
@@ -101,6 +86,18 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Service") {
           metadataUrl, jmmAppInstallManifest.createJmmHistoryMetadata(metadataUrl)
         )
       }
+
+      /// 提供JsMicroModule的文件适配器
+      val appsDir = realPath("/data/apps").toPath()
+      val usr = object : IVirtualFsDirectory {
+        override fun isMatch(firstSegment: String) = firstSegment == "usr"
+        override val fs: FileSystem = SystemFileSystem
+        override fun getFsBasePath(remote: IMicroModuleManifest) =
+          appsDir.resolve("${remote.mmid}-${remote.version}/usr")
+      }
+      fileTypeAdapterManager.append(adapter = usr).removeWhen(mmScope)
+
+      /// 服务
       routes(
         // 安装
         "install" bindDwebDeeplink routeInstallHandler,

@@ -131,18 +131,27 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
         tryShutdown()
       }
 
+      /// 提供file.std.dweb的绑定
       scopeLaunch(cancelable = true) {
         val fileIpc = connect("file.std.dweb")
         fileIpc.start(await = false)
         val fetchIpc2 = jsProcess.fetchIpc.fork(remote = fileIpc.remote)
         fetchIpc2.start(await = false)
-        fileIpc.onMessage("file-to-fetch").collectIn(mmScope) { msgEvent ->
-          val msg = msgEvent.consume()
-          fetchIpc2.postMessage(msg)
+        fileIpc.onEvent("file~event~>fetch").collectIn(mmScope) { msgEvent ->
+          fetchIpc2.postMessage(msgEvent.consume())
         }
-        fetchIpc2.onMessage("fetch-to-file").collectIn(mmScope) { msgEvent ->
-          val msg = msgEvent.consume()
-          fileIpc.postMessage(msg)
+        fetchIpc2.onEvent("fetch~event~file").collectIn(mmScope) { msgEvent ->
+          fileIpc.postMessage(msgEvent.consume())
+        }
+        fileIpc.onRequest("file~request~>fetch").collectIn(mmScope) { msgEvent ->
+          val request = msgEvent.consume()
+          val response = fetchIpc2.request(request.toPure().toClient())
+          fetchIpc2.postResponse(request.reqId, response)
+        }
+        fetchIpc2.onRequest("fetch~request~file").collectIn(mmScope) { msgEvent ->
+          val request = msgEvent.consume()
+          val response = fileIpc.request(request.toPure().toClient())
+          fetchIpc2.postResponse(request.reqId, response)
         }
       }
 

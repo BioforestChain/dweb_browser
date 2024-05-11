@@ -16,6 +16,7 @@ import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.build
+import org.dweb_browser.helper.envSwitch
 import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.helper.resolvePath
 
@@ -177,7 +178,7 @@ class TaskbarController private constructor(
 
   fun getTaskbarDWebViewOptions() = DWebViewOptions(
     url = getTaskbarUrl().toString(),
-//    url = "about:blank",
+    openDevTools = envSwitch.has("taskbar-devtools"),
     privateNet = true,
     detachedStrategy = DWebViewOptions.DetachedStrategy.Ignore,
     tag = 2,

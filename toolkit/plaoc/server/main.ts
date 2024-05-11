@@ -53,24 +53,25 @@ const main = async () => {
     setWinId(text);
     tryOpenView();
   });
-  jsProcess.onRendererDestroy?.((ipcEvent) => {
-    const text = IpcEvent.text(ipcEvent);
-    console.log(`${jsProcess.mmid} onRendererDestroy`, text);
-    externalServer.closeRegisterIpc();
-    delWinId(text);
-  });
-  jsProcess.onShortcut?.(async (ipcEvent) => {
-    console.log(`${jsProcess.mmid} onShortcut`, ipcEvent.data);
-    const ipc = await externalServer.ipcPo.waitOpen();
-    ipc.postMessage(ipcEvent);
-  });
-
   //#region 启动http服务
   const plaocConfig = await PlaocConfig.init();
 
   const wwwServer = new Server_www(plaocConfig, await MiddlewareImporter.init(plaocConfig.config.middlewares?.www));
   const externalServer = new Server_external(await MiddlewareImporter.init(plaocConfig.config.middlewares?.external));
   const apiServer = new Server_api(getWinId, await MiddlewareImporter.init(plaocConfig.config.middlewares?.api));
+
+  /// 其它的一些事件处理
+  jsProcess.onRendererDestroy((ipcEvent) => {
+    const text = IpcEvent.text(ipcEvent);
+    console.log(`${jsProcess.mmid} onRendererDestroy`, text);
+    externalServer.closeRegisterIpc();
+    delWinId(text);
+  });
+  jsProcess.onShortcut(async (ipcEvent) => {
+    console.log(`${jsProcess.mmid} onShortcut`, ipcEvent.data);
+    const ipc = await externalServer.ipcPo.waitOpen();
+    ipc.postMessage(ipcEvent);
+  });
 
   // quick action event
   const wwwListenerTask = wwwServer.start().finally(() => console.log("wwwServer started"));
