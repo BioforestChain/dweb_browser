@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,7 +20,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
@@ -64,6 +62,7 @@ import androidx.compose.ui.zIndex
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserDrawResource
 import org.dweb_browser.browser.BrowserI18nResource
+import org.dweb_browser.browser.common.CommonHorizontalPager
 import org.dweb_browser.browser.web.model.LocalBrowserViewModel
 import org.dweb_browser.browser.web.model.LocalShowIme
 import org.dweb_browser.browser.web.model.page.BrowserHomePage
@@ -72,7 +71,6 @@ import org.dweb_browser.browser.web.model.page.BrowserWebPage
 import org.dweb_browser.browser.web.model.pageUrlTransformer
 import org.dweb_browser.dwebview.rememberLoadingProgress
 import org.dweb_browser.helper.isDwebDeepLink
-import org.dweb_browser.sys.window.render.LocalWindowLimits
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -106,14 +104,9 @@ fun BrowserSearchBar(modifier: Modifier) {
 
     BoxWithConstraints(modifier = Modifier.weight(1f)) {
       if (maxWidth > 20.dp) { // 由于宽度压缩太小，导致HorizontalPager空间不足，width<0,引起的crash
-        HorizontalPager(
-          modifier = Modifier.fillMaxWidth(),
+        CommonHorizontalPager(
           state = viewModel.pagerStates.searchBar,
-          pageSpacing = 5.dp,
-          userScrollEnabled = true,
-          reverseLayout = false,
-          contentPadding = PaddingValues(horizontal = 10.dp),
-          beyondBoundsPageCount = 5,
+          modifier = Modifier.fillMaxWidth(),
           pageContent = { currentPage ->
             SearchBox(viewModel.getPage(currentPage))
           },
@@ -153,28 +146,30 @@ internal fun getMultiImageVector(size: Int) = when (size) {
 }
 
 enum class SearchBoxTheme {
-  Shadow, Border, ;
+  Shadow, Border, Focused, Unfocused, ;
 }
 
 /// 用于搜索框的外部风格化，提供了阴影风格和边框风格
 internal fun Modifier.searchBoxStyle(boxTheme: SearchBoxTheme) = composed {
   height(dimenSearchHeight).then(
     when (boxTheme) {
-      SearchBoxTheme.Shadow -> Modifier.shadow(
+      SearchBoxTheme.Shadow, SearchBoxTheme.Focused -> Modifier.shadow(
         elevation = dimenShadowElevation,
         shape = RoundedCornerShape(dimenSearchRoundedCornerShape),
         ambientColor = LocalContentColor.current,
         spotColor = LocalContentColor.current,
-      )
+      ).background(MaterialTheme.colorScheme.background)
 
       SearchBoxTheme.Border -> Modifier.border(
         width = 1.dp,
         color = MaterialTheme.colorScheme.outline,
         RoundedCornerShape(dimenSearchRoundedCornerShape)
-      )
+      ).background(MaterialTheme.colorScheme.background)
+
+      SearchBoxTheme.Unfocused -> Modifier.clip(RoundedCornerShape(dimenSearchRoundedCornerShape))
+        .background(MaterialTheme.colorScheme.outlineVariant)
     }
-  ).background(MaterialTheme.colorScheme.background)
-    .clip(RoundedCornerShape(dimenSearchRoundedCornerShape))
+  )
 }
 
 /// 用于搜索框内部的基础样式，提供了基本的边距控制
@@ -189,10 +184,21 @@ internal fun Modifier.searchInnerStyle(start: Boolean = true, end: Boolean = tru
 private fun SearchBox(page: BrowserPage) {
   val viewModel = LocalBrowserViewModel.current
   val scope = viewModel.ioScope
+  val isFocus = page == viewModel.focusedPage // 确认是否是聚焦的页面，如果是，需要突出显示
 
-  Box(modifier = Modifier.fillMaxWidth().searchBoxStyle(SearchBoxTheme.Shadow).clickable {
-    viewModel.showSearch = page
-  }) {
+  Box(
+    modifier = Modifier.fillMaxWidth()
+      .searchBoxStyle(if (isFocus) SearchBoxTheme.Focused else SearchBoxTheme.Unfocused)
+      .clickable {
+        // 增加判断，如果当前点击的是当前界面，那么就显示搜索框；如果不是，那么进行focus操作
+        scope.launch {
+          if (page == viewModel.focusedPage) {
+            viewModel.showSearch = page
+          } else {
+            viewModel.focusPageUI(page)
+          }
+        }
+      }) {
     if (page is BrowserWebPage) {
       ShowLinearProgressIndicator(page)
     }
