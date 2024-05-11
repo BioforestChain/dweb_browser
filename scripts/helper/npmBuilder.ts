@@ -225,23 +225,28 @@ export const registryViteBuilder = (config: {
       const children = viteTasks.spawn(args).children;
       // 判断是否编译完成，编译完成后将 manifest.json 文件移动到编译目录中
       await children[name].stdoutLogger.waitContent("built in");
-      for (const filename of ["manifest.json", "LICENSE"]) {
-        const fromPath = node_path.resolve(inDir, filename);
-        if (node_fs.existsSync(fromPath)) {
-          const toPath = node_path.resolve(outDir, filename);
-          node_fs.mkdirSync(node_path.dirname(toPath), { recursive: true });
-          node_fs.copyFileSync(fromPath, toPath);
-        }
-      }
+      vitePostBuild(inDir, outDir);
 
       dirHasher.writeHash(outDir, "vite");
       console.log(`✅ END ${packageJson.name}`);
     } catch (e) {
-      console.error(`❌ ERROR ${packageJson.name}`);
-      console.error(e);
+      console.error(`❌ ERROR ${packageJson.name}`, e);
     }
   });
   regMap.set(packageJson.name, build_vite);
-
   return build_vite;
+};
+
+/**同步一些文件 */
+export const vitePostBuild = (inDir: string, outDir: string) => {
+  for (const filename of ["manifest.json", "LICENSE"]) {
+    const fromPath = node_path.resolve(inDir, filename);
+    console.log("xxxfromPath=>", fromPath);
+    if (node_fs.existsSync(fromPath)) {
+      const toPath = node_path.resolve(outDir, filename);
+      console.log("xxxtoPath=>", toPath);
+      node_fs.mkdirSync(node_path.dirname(toPath), { recursive: true });
+      node_fs.copyFileSync(fromPath, toPath);
+    }
+  }
 };
