@@ -77,11 +77,11 @@ class BrowserPagerStates(
     }
 
     /// contentPagePager => focusedPage
-//    LaunchedEffect(searchBarPager.targetPage, searchBarPager.isScrollInProgress) {
-//      if (!searchBarPager.isScrollInProgress) {
-//        viewModel.focusPageUI(searchBarPager.targetPage)
-//      }
-//    }
+    LaunchedEffect(contentPagePager.currentPage, contentPagePager.isScrollInProgress) {
+      if (!contentPagePager.isScrollInProgress) {
+        viewModel.focusPageUI(contentPagePager.currentPage)
+      }
+    }
 
     LaunchedEffect(viewModel.focusedPageIndex) {
       val pageIndex = viewModel.focusedPageIndex

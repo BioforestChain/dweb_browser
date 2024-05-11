@@ -392,7 +392,7 @@ class BrowserViewModel(
     }
   }
 
-  class AddPageOptions(
+  data class AddPageOptions(
     var focusPage: Boolean = true,
     var addIndex: Int? = null,
     var replaceOldHomePage: Boolean = false,
