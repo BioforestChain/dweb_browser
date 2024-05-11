@@ -5,7 +5,6 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.module.MicroModule
-import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.http.CommonRoute
 import org.dweb_browser.core.std.http.DuplexRoute
 import org.dweb_browser.core.std.http.IRoute
@@ -13,7 +12,7 @@ import org.dweb_browser.core.std.http.MatchMode
 import org.dweb_browser.core.std.http.PathRoute
 import org.dweb_browser.core.std.permission.AuthorizationStatus
 import org.dweb_browser.core.std.permission.PERMISSION_ID
-import org.dweb_browser.helper.remove
+import org.dweb_browser.core.std.permission.ext.queryPermissions
 import org.dweb_browser.pure.http.IPureBody
 import org.dweb_browser.pure.http.PureChannelContext
 import org.dweb_browser.pure.http.PureHeaders
@@ -47,43 +46,39 @@ class HttpRouter(private val mm: MicroModule.Runtime, val host: String) {
   private suspend fun checkPermission(permissions: List<PERMISSION_ID>, mmid: MMID) =
     checkLock.withLock {
       // 由于 permission.std.dweb 有权限设置界面（也就是后台权限管理），所以需要每次判断都强制请求最新数据
-      mmidPermissionStatus = mm.nativeFetch(
-        "file://permission.std.dweb/query?permissions=${permissions.joinToString(",")}"
-      ).json()
+      mmidPermissionStatus = mm.queryPermissions(permissions)
       val status = getPermissionStatus(permissions, mmid)
       !(status.any { it != AuthorizationStatus.GRANTED }) // 如果有任何权限是非授权的，返回 false
     }
 
   fun addRoutes(vararg list: RouteHandler) {
     list.forEach { routeHandler ->
-      val permissionIds =
-        if (routeHandler.route.pathname == null) listOf() else mm.dweb_permissions.filter { permission ->
+      val permissionIds = if (routeHandler.route.pathname == null) {
+        listOf()
+      } else {
+        mm.dweb_permissions.filter { permission ->
           permission.routes.any { route ->
-            "file://$host${routeHandler.route.pathname}".startsWith(
-              route
-            )
+            "file://$host${routeHandler.route.pathname}".startsWith(route)
           }
         }.map { it.pid.toString() }
+      }
       routes[routeHandler.route] = if (permissionIds.isNotEmpty()) {
         HttpHandlerChain {
-          if (!checkPermission(
-              permissionIds,
-              ipc.remote.mmid
-            )
-          ) { // permissionIds 包含了 dweb_permissions 中所有的需要授权的 pid 列表
-            return@HttpHandlerChain PureResponse(
+          if (!checkPermission(permissionIds, ipc.remote.mmid)) {
+            // permissionIds 包含了 dweb_permissions 中所有的需要授权的 pid 列表
+            PureResponse(
               HttpStatusCode.Unauthorized,
               body = IPureBody.Companion.from(permissionIds.joinToString(",")) // 返回需要授权的 permissionIds
             )
+          } else {
+            /// 原始响应
+            routeHandler.handler.invoke(this)
           }
-          /// 原始响应
-          return@HttpHandlerChain routeHandler.handler.invoke(this)
         }
       } else {
         routeHandler.handler
       }
     }
-
   }
 
   fun addRoutes(rs: Map<IRoute, HttpHandlerChain>) {
@@ -104,7 +99,6 @@ class HttpRouter(private val mm: MicroModule.Runtime, val host: String) {
         return handler
       }
     }
-
     return null
   }
 
@@ -118,7 +112,6 @@ class HttpRouter(private val mm: MicroModule.Runtime, val host: String) {
     }
     return this
   }
-
 
   companion object {
     private val protected_handlers = mutableMapOf<String, MiddlewareHttpHandler>()

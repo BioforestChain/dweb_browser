@@ -97,6 +97,7 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Manag
       onRenderer {
         getMainWindow().apply {
           setStateFromManifest(manifest)
+          state.keepBackground = true/// 保持在后台运行
           windowAdapterManager.provideRender(id) { modifier ->
             PermissionManagerRender(modifier, this, permissionTable)
           }

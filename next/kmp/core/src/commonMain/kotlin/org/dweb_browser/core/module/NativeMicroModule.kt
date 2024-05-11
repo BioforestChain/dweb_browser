@@ -2,6 +2,7 @@ package org.dweb_browser.core.module
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.utils.io.core.toByteArray
+import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.cbor.Cbor
@@ -51,12 +52,13 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
   })
 
   companion object {
+    private val reqIdAcc = atomic(0)
     init {
       connectAdapterManager.append { fromMM, toMM, reason ->
         if (toMM is NativeMicroModule.NativeRuntime) {
           fromMM.debugMM("NMM/connectAdapter", "fromMM: ${fromMM.mmid} => toMM: ${toMM.mmid}")
           val channel = NativeMessageChannel(kotlinIpcPool.scope, fromMM.id, toMM.id)
-          val pid = 0
+          val pid = reqIdAcc.addAndGet(1) // 创建新连接，pid自增
           val fromNativeIpc =
             kotlinIpcPool.createIpc(channel.port1, pid, fromMM.manifest, toMM.microModule.manifest)
           val toNativeIpc =
@@ -86,9 +88,9 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
           if (response.status == HttpStatusCode.Unauthorized) {
             val permissions = response.body.toPureString()
             /// 尝试进行授权请求
-            if (fromMM is NativeMicroModule.NativeRuntime && fromMM.requestPermissions(permissions)
-                .all { it.value == AuthorizationStatus.GRANTED }
-            ) {
+            if (fromMM.requestPermissions(permissions.split(",").toList()).all {
+                it.value == AuthorizationStatus.GRANTED
+              }) {
               /// 如果授权完全成功，那么重新进行请求
               response = fromIpc.request(request)
             }
