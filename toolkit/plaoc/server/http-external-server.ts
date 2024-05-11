@@ -83,7 +83,7 @@ export class Server_external extends HttpServer {
       // 接收前端的externalFetch函数发送的跟外部通信的消息
       streamIpc.onRequest("get-external-fetch").collect(async (event) => {
         const request = event.data;
-        const mmid = request.headers.get("mmid") as $MMID;
+        const mmid = request.parsed_url.host as $MMID;
         if (!mmid) {
           return streamIpc.postMessage(
             IpcResponse.fromText(request.reqId, 502, undefined, "not found mmid", streamIpc)
@@ -91,17 +91,14 @@ export class Server_external extends HttpServer {
         }
         this.needActivity = true;
         await mapHelper.getOrPut(this.externalWaitters, mmid, async (_key) => {
-          let ipc: $Ipc;
-          try {
-            ipc = await jsProcess.connect(mmid);
-            const deleteCache = () => {
-              this.externalWaitters.delete(mmid);
-            };
-            ipc.onClosed(deleteCache);
-          } catch (err) {
+          const ipc = await jsProcess.connect(mmid).catch((err) => {
             this.externalWaitters.delete(mmid);
+            streamIpc.postMessage(IpcResponse.fromText(request.reqId, 502, undefined, err, streamIpc));
             throw err;
-          }
+          });
+          ipc.onClosed(() => {
+            this.externalWaitters.delete(mmid);
+          });
           // 激活对面窗口
           void ipc.postMessage(IpcEvent.fromText(ExternalState.ACTIVITY, ExternalState.RENDERER));
           this.needActivity = false;

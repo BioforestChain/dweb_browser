@@ -1,33 +1,23 @@
-import { IPC_METHOD, IpcRequest, type $BodyData } from "../index.ts";
 import { $makeExtends } from "./$makeExtends.ts";
 import { fetchExtends } from "./$makeFetchExtends.ts";
 
-// ipcRequest to Request
-export function toRequest(ipcRequest: IpcRequest) {
-  const method = ipcRequest.method;
-  let body: undefined | $BodyData = "";
-  if (method === IPC_METHOD.GET || method === IPC_METHOD.HEAD) {
-    return new Request(ipcRequest.url, {
-      method,
-      headers: ipcRequest.headers,
-    });
-  }
-  if (ipcRequest.body) {
-    body = ipcRequest.body;
-  }
-  /**
-   * 这里的请求是这样的，要发给用户转发需要添加http
-   * /barcode-scanning.sys.dweb/process?X-Dweb-Host=api.cotdemo.bfs.dweb%3A443&rotation=0&formats=QR_CODE
-   */
-  return new Request(`${ipcRequest.url}`, {
-    method,
-    headers: ipcRequest.headers,
-    body,
+/**构造request */
+export function buildRequest(url: URL, init?: $BuildRequestInit) {
+  buildSearch(init?.search, (key, value) => {
+    url.searchParams.append(key, value);
   });
+  return Object.assign(
+    new Request(url, init),
+    $makeExtends<Request>()({
+      fetch() {
+        return Object.assign(fetch(this), fetchExtends);
+      },
+    })
+  );
 }
 
-export function buildRequest(url: URL, init?: $BuildRequestInit) {
-  const search = init?.search;
+/**构造search对象 */
+export function buildSearch(search: $search, callback: (key: string, value: string) => void) {
   if (search) {
     let extendsSearch: URLSearchParams;
     if (search instanceof URLSearchParams) {
@@ -44,24 +34,17 @@ export function buildRequest(url: URL, init?: $BuildRequestInit) {
       );
     }
     extendsSearch.forEach((value, key) => {
-      url.searchParams.append(key, value);
+      callback(key, value);
     });
   }
-  return Object.assign(
-    new Request(url, init),
-    $makeExtends<Request>()({
-      fetch() {
-        return Object.assign(fetch(this), fetchExtends);
-      },
-    })
-  );
 }
 
 export interface $BuildRequestInit extends RequestInit {
-  search?:
-    | ConstructorParameters<typeof URLSearchParams>[0]
-    // deno-lint-ignore no-explicit-any
-    | Record<string, any>;
+  search?: $search;
   base?: string;
   pathPrefix?: string;
 }
+export type $search =
+  | ConstructorParameters<typeof URLSearchParams>[0]
+  // deno-lint-ignore no-explicit-any
+  | Record<string, any>;

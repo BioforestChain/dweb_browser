@@ -63,13 +63,13 @@ class DwebServiceWorker extends EventTarget {
   }
 
   @cacheGetter()
-  get externalFetch() {
-    return this.plugin.externalFetch;
+  get fetch() {
+    return this.plugin.fetch;
   }
 
   @cacheGetter()
-  get canOpenUrl() {
-    return this.plugin.canOpenUrl;
+  get has() {
+    return this.plugin.has;
   }
 
   @cacheGetter()

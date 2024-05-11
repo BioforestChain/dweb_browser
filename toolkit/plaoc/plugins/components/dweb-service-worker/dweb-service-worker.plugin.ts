@@ -1,8 +1,10 @@
-import { IpcHeaders, type Ipc } from "@dweb-browser/core/ipc/index.ts";
+import type { Ipc } from "@dweb-browser/core/ipc/index.ts";
 import { createMockModuleServerIpc } from "../../common/websocketIpc.ts";
 import { bindThis } from "../../helper/bindThis.ts";
+import { buildSearch } from "../../helper/request.ts";
 import { BasePlugin } from "../base/base.plugin.ts";
 import type { $BuildRequestWithBaseInit, $DwebResult } from "../base/base.type.ts";
+import type { $DwebRquestInit } from "./dweb-service-worker.type.ts";
 
 /**这是app之间通信的组件 */
 export class DwebServiceWorkerPlugin extends BasePlugin {
@@ -53,7 +55,7 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
    * @param mmid
    */
   @bindThis
-  async canOpenUrl(mmid: $MMID): Promise<$DwebResult> {
+  async has(mmid: $MMID): Promise<$DwebResult> {
     try {
       const res = await this.fetchApi(`/query`, {
         search: {
@@ -74,13 +76,16 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
    * @param pathname
    * @param init
    * @returns
-   * https://desktop.dweb.waterbang.top.dweb/say/hi?message="hi 今晚吃螃🦀️蟹吗？"
+   * file://desktop.dweb.waterbang.top.dweb/say/hi?message="hi 今晚吃螃🦀️蟹吗？"
    */
   @bindThis
-  async externalFetch(mmid: $MMID, input: RequestInfo | URL, init?: RequestInit | undefined) {
-    const request = new Request(input, { ...init, headers: new IpcHeaders(init?.headers).init("mmid", mmid) });
+  async fetch(url: string, init?: $DwebRquestInit | undefined) {
     const ipc = await this.ipcPromise;
-    const ipcResponse = await ipc.request(request.url, request);
+    const input = new URL(url);
+    buildSearch(init?.search, (key, value) => {
+      input.searchParams.append(key, value);
+    });
+    const ipcResponse = await ipc.request(input.href, init);
     return ipcResponse.toResponse();
   }
 }

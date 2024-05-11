@@ -1,17 +1,17 @@
-import { ServiceWorkerFetchEvent } from "./FetchEvent.ts";
-import { PlaocEvent } from "./IpcEvent.ts";
+import type { $IpcRequestInit } from "@dweb-browser/core/ipc/index.ts";
+import type { ServiceWorkerFetchEvent } from "./FetchEvent.ts";
+import type { PlaocEvent } from "./IpcEvent.ts";
 
 export interface DwebWorkerEventMap {
   pause: Event; // 监听应用暂停
   resume: Event; // 监听应用恢复
   fetch: ServiceWorkerFetchEvent;
-  shortcut:PlaocEvent; 
+  shortcut: PlaocEvent;
 }
 
 export enum eventHandle {
-  shortcut = "shortcut"
+  shortcut = "shortcut",
 }
-
 
 export interface BFSMetaData {
   id: string;
@@ -43,39 +43,9 @@ interface MainServer {
   entry: string;
 }
 
-export class IpcRequest {
-  constructor(
-    readonly reqId: string,
-    readonly url: string,
-    readonly method: IPC_METHOD,
-    readonly headers: Headers,
-    readonly body: $BodyData,
-    readonly metaBody: {
-      data: string;
-      metaId: string;
-      senderUid: number;
-      type: number;
-    }
-  ) {}
-}
-
-export abstract class IpcBody {
-  constructor(readonly _bodyHub: BodyHub) {}
-}
-
-export class BodyHub {
-  constructor(readonly data: $BodyData) {}
-}
-export type $BodyData = Uint8Array | ReadableStream<Uint8Array> | string;
-
-export const enum IPC_METHOD {
-  GET = "GET",
-  POST = "POST",
-  PUT = "PUT",
-  DELETE = "DELETE",
-  OPTIONS = "OPTIONS",
-  TRACE = "TRACE",
-  PATCH = "PATCH",
-  PURGE = "PURGE",
-  HEAD = "HEAD",
+export interface $DwebRquestInit extends $IpcRequestInit {
+  search?:
+    | ConstructorParameters<typeof URLSearchParams>[0]
+    // deno-lint-ignore no-explicit-any
+    | Record<string, any>;
 }

@@ -28,6 +28,7 @@ import org.dweb_browser.helper.alsoLaunchIn
 import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.printError
 import org.dweb_browser.pure.http.PureMethod
+import org.dweb_browser.sys.toast.ext.showToast
 
 val debugJsMM = Debugger("JsMM")
 
@@ -117,7 +118,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
       })
 
       if (errorMessage !== null) {
-        this.showMessage(errorMessage)
+        showToast(errorMessage)
         throw RuntimeException(errorMessage, Exception("$short_name 无法启动"))
       }
 
@@ -247,10 +248,6 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
       val jsProcess = getJsProcess()
       jsProcess.codeIpc.close()
       fromMMIDOriginIpcWM.clear()
-    }
-
-    private suspend fun showMessage(message: String) {
-      this.nativeFetch("file://toast.sys.dweb/show?message=$message")
     }
   }
 

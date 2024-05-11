@@ -1,6 +1,6 @@
 import { barcodeScannerPlugin } from "@plaoc/plugins";
-import { error, success } from "./debug";
-import { b64toBlob } from "./util/util";
+import { error, success } from "./debug.ts";
+import { b64toBlob } from "./util/util.ts";
 export const process = async () => {
   const result = await barcodeScannerPlugin.process(await b64toBlob(codeImg));
   if (result.length == 1 && result[0] === "https://dweb.waterbang.top") {

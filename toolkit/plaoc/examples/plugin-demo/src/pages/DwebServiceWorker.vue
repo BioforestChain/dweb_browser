@@ -53,9 +53,10 @@ const input = ref("这里写发送的消息");
 
 // 向desktop.dweb.waterbang.top.dweb 发送消息
 const sayHi = async () => {
-  const url = new URL("/say/hi", document.baseURI);
-  url.searchParams.set("message", input.value);
-  const response = await dwebServiceWorker.externalFetch(`plaoc.html.demo.dweb`, url, {
+  const response = await dwebServiceWorker.fetch(`file://plaoc.html.demo.dweb/say/hi?message=${input.value}`, {
+    search: {
+      哈哈哈: "xx",
+    },
     method: "POST",
     body: new Blob([`{"xxx":${input.value}}`], { type: "application/json" }),
   });

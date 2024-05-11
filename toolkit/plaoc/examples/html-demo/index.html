@@ -15,10 +15,21 @@
   <dweb-device></dweb-device>
   <dweb-mwebview></dweb-mwebview>
   <div>
+    <h2>插件集成测试</h2>
+    <button onclick="runPlugins()">测试插件</button>
+  </div>
+  <div id="output"
+    style="margin: 10px;padding:2px;background-color: rgba(144, 234, 10, 0.467); width: 90%;min-height: 20px;">
+  </div>
+  <div>
     <h3>app之间通信(默认发送给game)</h3>
-    <input id="input1">
+    <input id="input1" placeholder="请输入要发送到消息">
     <button onclick="sayHi()">sayHi</button>
     <button onclick="canOpenUrl()">app是否安装</button>
+    <div>
+      <span>收到消息：</span>
+      <span id="sayHi-message"></span>
+    </div>
   </div>
   <div>
     <h3>重启应用</h3>
