@@ -88,6 +88,7 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Service") {
       }
 
       /// 提供JsMicroModule的文件适配器
+      /// file:///usr/*
       val appsDir = realPath("/data/apps").toPath()
       val usr = object : IVirtualFsDirectory {
         override fun isMatch(firstSegment: String) = firstSegment == "usr"

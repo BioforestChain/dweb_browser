@@ -32,8 +32,6 @@ import org.dweb_browser.pure.http.PureStream
 import org.dweb_browser.pure.http.queryAsOrNull
 import org.dweb_browser.pure.io.copyTo
 import org.dweb_browser.pure.io.toByteReadChannel
-import org.jetbrains.compose.resources.ExperimentalResourceApi
-import org.jetbrains.compose.resources.InternalResourceApi
 
 val debugFile = Debugger("file")
 
@@ -126,7 +124,6 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
       }
     }
 
-    @OptIn(InternalResourceApi::class, ExperimentalResourceApi::class)
     override suspend fun _bootstrap() {
       /// file:///data/*
       getDataVirtualFsDirectory().also {
