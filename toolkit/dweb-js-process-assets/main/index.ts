@@ -31,7 +31,8 @@ const createProcess = async (
   metadata_json: string,
   env_json: string,
   fetch_port: MessagePort,
-  gatewayPort: number
+  gatewayPort: number,
+  onTerminate: () => void
 ) => {
   const process_id = allocProcessId();
   const worker_url = URL.createObjectURL(
@@ -56,7 +57,18 @@ const createProcess = async (
     type: "module",
     name: process_name,
   });
+  /// 注册worker的生命信号
+  worker.addEventListener("message", function live(event: MessageEvent<string>) {
+    if (typeof event.data === "string" && event.data.startsWith("js-process-live")) {
+      worker.removeEventListener("message", live);
+      navigator.locks.request(event.data, () => {
+        console.info("process die", event.data);
+        onTerminate();
+      });
+    }
+  });
 
+  /// 等待就绪信号
   await new Promise<void>((resolve, reject) => {
     worker.addEventListener(
       "message",
@@ -180,6 +192,7 @@ export const APIS = {
   runProcessMain,
   createIpc,
   destroyProcess,
+  PromiseOut,
 };
 export type $RunMainConfig = {
   main_url: string;

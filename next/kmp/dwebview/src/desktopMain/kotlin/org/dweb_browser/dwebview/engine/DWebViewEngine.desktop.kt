@@ -224,16 +224,18 @@ class DWebViewEngine internal constructor(
             deferred.completeExceptionally(JsException("maybe SyntaxError"))
             return@Consumer
           }
-          jsObject.then {
-            runCatching {
-              val result = it[0] as String
-              if (result.first() == '1') {
-                deferred.complete(result.substring(1))
-              } else {
-                deferred.completeExceptionally(JsException(result.substring(1)))
-              }
-            }.getOrElse { deferred.completeExceptionally(it) }
-          }
+          runCatching {
+            jsObject.then {
+              runCatching {
+                val result = it[0] as String
+                if (result.first() == '1') {
+                  deferred.complete(result.substring(1))
+                } else {
+                  deferred.completeExceptionally(JsException(result.substring(1)))
+                }
+              }.getOrElse { deferred.completeExceptionally(it) }
+            }
+          }.getOrElse { deferred.completeExceptionally(it) }
         })
     }.getOrElse {
       deferred.completeExceptionally(it)

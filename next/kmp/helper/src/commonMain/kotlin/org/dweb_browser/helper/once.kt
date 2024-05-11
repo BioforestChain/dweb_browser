@@ -12,6 +12,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.currentCoroutineContext
 
 
 sealed class SuspendOnceBase<R> {
@@ -39,11 +40,11 @@ sealed class SuspendOnceBase<R> {
   internal suspend inline fun doInvoke(crossinline doRun: CoroutineScope.() -> Deferred<R>): R {
     return coroutineScope {
       synchronized(lock) {
-        if (this@SuspendOnceBase.runned === noRun) {
-          this@SuspendOnceBase.runned = doRun()
+        if (runned === noRun) {
+          runned = doRun()
         }
+        runned
       }
-      this@SuspendOnceBase.runned
     }.await()
   }
 }

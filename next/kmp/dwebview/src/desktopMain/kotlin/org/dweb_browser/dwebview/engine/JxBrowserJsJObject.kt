@@ -6,6 +6,7 @@ import com.teamdev.jxbrowser.js.JsFunctionCallback
 import com.teamdev.jxbrowser.js.JsObject
 import com.teamdev.jxbrowser.js.JsPromise
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Deferred
 import org.dweb_browser.dwebview.messagePort.DWebMessagePort
 import org.dweb_browser.helper.RememberLazy
 import org.dweb_browser.helper.WeakHashMap
@@ -123,20 +124,25 @@ class JsJProperty<T : Any?>(val propName: String) {
   }
 }
 
+fun <T> JsPromise.asDeferred(deferred: CompletableDeferred<T> = CompletableDeferred<T>()): Deferred<T> {
+  runCatching {
+    then {
+      runCatching {
+        @Suppress("UNCHECKED_CAST")
+        deferred.complete(it[0] as T)
+      }.getOrElse {
+        deferred.completeExceptionally(it)
+      }
+    }.catchError {
+      when (val err = it[0]) {
+        is Throwable -> deferred.completeExceptionally(err)
+        else -> deferred.completeExceptionally(JsException(err.toString()))
+      }
+    }
+  }.getOrElse { deferred.completeExceptionally(it) }
+  return deferred
+}
+
 suspend fun <T> JsPromise.await(): T {
-  val deferred = CompletableDeferred<T>()
-  then {
-    runCatching {
-      @Suppress("UNCHECKED_CAST")
-      deferred.complete(it[0] as T)
-    }.getOrElse {
-      deferred.completeExceptionally(it)
-    }
-  }.catchError {
-    when (val err = it[0]) {
-      is Throwable -> deferred.completeExceptionally(err)
-      else -> deferred.completeExceptionally(JsException(err.toString()))
-    }
-  }
-  return deferred.await()
+  return this.asDeferred<T>().await()
 }

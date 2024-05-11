@@ -127,18 +127,23 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
       jsProcess.defineEsm(esmLoader)
 
       // 监听关闭事件
-      jsProcess.codeIpc.onClosed {
-        scopeLaunch(cancelable = false) {
-          shutdown()
-        }
+      jsProcess.fetchIpc.onClosed {
+        tryShutdown()
       }
 
-      val fileIpc = connect("file.std.dweb")
-      fileIpc.start(await = false)
-      jsProcess.fetchIpc.onRequest("file").collectIn(mmScope) { event ->
-        val ipcRequest = event.consume()
-        val response = nativeFetch(ipcRequest.toPure().toClient())
-        jsProcess.fetchIpc.postResponse(ipcRequest.reqId, response)
+      scopeLaunch(cancelable = true) {
+        val fileIpc = connect("file.std.dweb")
+        fileIpc.start(await = false)
+        val fetchIpc2 = jsProcess.fetchIpc.fork(remote = fileIpc.remote)
+        fetchIpc2.start(await = false)
+        fileIpc.onMessage("file-to-fetch").collectIn(mmScope) { msgEvent ->
+          val msg = msgEvent.consume()
+          fetchIpc2.postMessage(msg)
+        }
+        fetchIpc2.onMessage("fetch-to-file").collectIn(mmScope) { msgEvent ->
+          val msg = msgEvent.consume()
+          fileIpc.postMessage(msg)
+        }
       }
 
       /**

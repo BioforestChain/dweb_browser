@@ -213,8 +213,12 @@ export class JsProcessMicroModuleRuntime extends MicroModuleRuntime {
   override async connect(mmid: $MMID, auto_start?: boolean) {
     switch (mmid) {
       case "js.browser.dweb":
-      case "file.std.dweb":
         return this.fetchIpc;
+      case "file.std.dweb": {
+        const fileIpc = await this.fileIpcPo;
+        void fileIpc.start();
+        return fileIpc;
+      }
     }
     return await super.connect(mmid, auto_start);
   }
@@ -296,6 +300,7 @@ export class JsProcessMicroModuleRuntime extends MicroModuleRuntime {
   }
   readonly ipcPool;
   readonly fetchIpc;
+  readonly fileIpcPo;
   readonly meta;
 
   constructor(
@@ -306,6 +311,7 @@ export class JsProcessMicroModuleRuntime extends MicroModuleRuntime {
 
     this.ipcPool = this.microModule.ipcPool;
     this.fetchIpc = this.microModule.fetchIpc;
+    this.fileIpcPo = this.fetchIpc.waitForkedIpc(2);
     this.connectionLinks.add(this.fetchIpc);
     this.meta = this.microModule.meta;
 
@@ -369,6 +375,14 @@ const waitFetchPort = () => {
       }
     });
     postMessage("waiting-fetch-ipc");
+
+    /// worker的生命信号
+    const processLive = `js-process-live-${crypto.randomUUID()}`;
+    console.info("process live", processLive);
+    navigator.locks.request(processLive, () => {
+      postMessage(processLive);
+      return new PromiseOut().promise;
+    });
   });
 };
 

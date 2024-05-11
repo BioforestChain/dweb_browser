@@ -110,6 +110,7 @@ class ReverseProxyServer {
 
   fun close() {
     proxyServer?.close()
+    proxyServer = null
   }
 
 //    val proxyClient = HttpClient(io.ktor.client.engine.jetty.Jetty) {

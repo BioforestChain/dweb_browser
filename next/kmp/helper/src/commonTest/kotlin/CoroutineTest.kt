@@ -1,15 +1,19 @@
 package info.bagen.dwebbrowser
 
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.await
+import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.test.runCommonTest
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -145,4 +149,39 @@ class CoroutineTest {
     assertTrue(runCatching { deferred.join() }.isFailure)
     assertTrue(runCatching { deferred.await() }.isFailure)
   }
+
+  @Test
+  fun testJobSelfCancel() = runCommonTest {
+    val scope = CoroutineScope(ioAsyncExceptionHandler + SupervisorJob())
+    var res = 0
+    scope.launch {
+      res++
+      println("cancel start")
+      scope.cancel()
+      println("cancel end")
+      res++
+    }.join()
+    assertEquals(res, 2)
+  }
+
+
+  @Test
+  fun testJobSelfCancelOnce() = runCommonTest {
+    val scope = CoroutineScope(ioAsyncExceptionHandler + SupervisorJob())
+    var res = 0
+    val cancel = SuspendOnce {
+      res++
+      println("cancel start")
+      scope.cancel()
+      println("cancel end")
+      res++
+    }
+    launch {
+      cancel()
+      cancel()
+    }.join()
+    assertEquals(res, 2)
+  }
+
+
 }

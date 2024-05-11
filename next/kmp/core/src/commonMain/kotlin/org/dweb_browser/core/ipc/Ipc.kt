@@ -42,11 +42,9 @@ import org.dweb_browser.helper.SafeHashMap
 import org.dweb_browser.helper.SafeLinkList
 import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.SuspendOnce1
-import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.asProducerWithOrder
 import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.traceTimeout
-import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.helper.withScope
 import org.dweb_browser.pure.http.IPureBody
 import org.dweb_browser.pure.http.PureClientRequest
@@ -94,8 +92,18 @@ class Ipc internal constructor(
   val onClosed = DeferredSignal(closeDeferred)
 
   // 开始触发关闭事件
-  suspend fun close(cause: CancellationException? = null) = scope.isActive.trueAlso {
-    closeOnce(cause)
+  suspend fun close(cause: CancellationException? = null) {
+    if (!isClosed) {
+      closeOnce(cause)
+    }
+  }
+
+  fun tryClose(cause: CancellationException? = null) {
+    if (scope.isActive) {
+      scope.launch(start = CoroutineStart.UNDISPATCHED) {
+        close(cause)
+      }
+    }
   }
 
   /**
@@ -104,9 +112,6 @@ class Ipc internal constructor(
   val launchJobs = SafeLinkList<Job>()
 
   private val closeOnce = SuspendOnce1 { cause: CancellationException? ->
-    if (scope.coroutineContext[Job] == coroutineContext[Job]) {
-      WARNING("close ipc by self. maybe leak.")
-    }
     debugIpc("closing", cause)
     val reason = cause?.message
     IpcLifecycle(IpcLifecycleClosing(reason)).also { closing ->
@@ -262,10 +267,11 @@ class Ipc internal constructor(
     remote: MicroModuleManifest = this.remote,
     autoStart: Boolean = false,
     startReason: String? = null,
+    pid: Int = endpoint.generatePid(),
   ): Ipc {
     awaitOpen("then-fork")
     val forkedIpc = pool.createIpc(
-      pid = endpoint.generatePid(),
+      pid = pid,
       endpoint = endpoint,
       locale = locale,
       remote = remote,

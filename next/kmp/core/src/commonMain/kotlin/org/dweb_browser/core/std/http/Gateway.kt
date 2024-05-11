@@ -4,6 +4,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.util.collections.ConcurrentSet
 import kotlinx.coroutines.CompletableDeferred
 import org.dweb_browser.core.ipc.Ipc
+import org.dweb_browser.helper.DeferredSignal
 import org.dweb_browser.pure.http.PureHeaders
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureResponse
@@ -42,6 +43,7 @@ data class Gateway(
 
     /// 销毁
     val destroyDeferred = CompletableDeferred<Unit>()
+    val onDestroy = DeferredSignal(destroyDeferred)
 
     suspend fun destroy() {
       _routerSet.forEach {

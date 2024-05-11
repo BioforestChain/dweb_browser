@@ -119,7 +119,7 @@ abstract class IDWebView(initUrl: String?) {
   /**
    * 执行一段表达式，表达式中允许 await 关键字
    *
-   * 注意，它是表达式。如果需要多汗函数体，请手动包裹在一个匿名函数中
+   * 注意，它是表达式。如果需要函数体，请手动包裹在一个匿名函数中
    */
   abstract suspend fun evaluateAsyncJavascriptCode(
     script: String, afterEval: suspend () -> Unit = {}

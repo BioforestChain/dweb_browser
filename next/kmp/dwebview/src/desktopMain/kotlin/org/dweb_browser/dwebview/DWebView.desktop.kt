@@ -16,7 +16,6 @@ import org.dweb_browser.dwebview.polyfill.DwebViewDesktopPolyfill
 import org.dweb_browser.dwebview.proxy.DwebViewProxy
 import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.RememberLazy
-import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.platform.IPureViewBox
@@ -36,7 +35,7 @@ class DWebView(
   val viewEngine: DWebViewEngine, initUrl: String? = null,
 ) : IDWebView(initUrl ?: viewEngine.options.url) {
   companion object {
-    val prepare = SuspendOnce {
+    suspend fun prepare() {
       coroutineScope {
         launch(ioAsyncExceptionHandler) {
           DwebViewDesktopPolyfill.prepare();

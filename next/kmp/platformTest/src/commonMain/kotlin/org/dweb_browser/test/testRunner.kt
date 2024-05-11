@@ -40,10 +40,10 @@ internal fun defaultRunCommonTest(
 fun runCommonTest(
   times: Int,
   context: CoroutineContext? = null,
-  timeOut: Duration? = null,
+  timeout: Duration? = null,
   block: suspend CoroutineScope.(Int) -> Unit,
 ) {
   for (i in 1..times) {
-    runCommonTest(context, timeOut) { block(i) }
+    runCommonTest(context, timeout) { block(i) }
   }
 }

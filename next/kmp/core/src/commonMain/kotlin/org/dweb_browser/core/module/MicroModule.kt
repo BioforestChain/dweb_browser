@@ -173,6 +173,14 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
       state = MMState.SHUTDOWN
     }
 
+    protected fun tryShutdown() {
+      if (state != MMState.SHUTDOWN) {
+        mmScope.launch {
+          shutdown()
+        }
+      }
+    }
+
     /**
      * MicroModule 引用池
      */

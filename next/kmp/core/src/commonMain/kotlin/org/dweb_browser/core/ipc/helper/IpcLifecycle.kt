@@ -42,12 +42,10 @@ data class IpcLifecycleInit(
   val remote: CommonAppManifest,
 ) : IpcLifecycleState
 
-// TODO 测试能否 equals？
 @Serializable
 @SerialName(IPC_LIFECYCLE_STATE_OPENING)
 data object IpcLifecycleOpening : IpcLifecycleState
 
-// TODO 测试能否 equals？
 @Serializable
 @SerialName(IPC_LIFECYCLE_STATE_OPENED)
 data object IpcLifecycleOpened : IpcLifecycleState

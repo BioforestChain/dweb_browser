@@ -18,8 +18,11 @@ import io.ktor.utils.io.CancellationException
 import io.ktor.websocket.Frame
 import io.ktor.websocket.close
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.consumeEachArrayRange
 import org.dweb_browser.helper.ioAsyncExceptionHandler
@@ -36,7 +39,8 @@ open class KtorPureServer<out TEngine : ApplicationEngine, TConfiguration : Appl
   val serverEngine: ApplicationEngineFactory<TEngine, TConfiguration>,
   val onRequest: HttpPureServerOnRequest,
 ) {
-  protected val serverDeferred = CompletableDeferred<ApplicationEngine>()
+  protected var serverDeferred = CompletableDeferred<ApplicationEngine>()
+  protected val serverLock = Mutex()
   protected fun createServer(
     config: TConfiguration.() -> Unit = {},
     envBuilder: ApplicationEngineEnvironmentBuilder.() -> Unit,
@@ -124,7 +128,7 @@ open class KtorPureServer<out TEngine : ApplicationEngine, TConfiguration : Appl
     )
   }
 
-  open suspend fun start(port: UShort): UShort {
+  open suspend fun start(port: UShort) = serverLock.withLock {
     if (!serverDeferred.isCompleted) {
       createServer {
         connector {
@@ -137,13 +141,17 @@ open class KtorPureServer<out TEngine : ApplicationEngine, TConfiguration : Appl
       }
     }
 
-    return getPort()
+    getPort()
   }
 
   protected suspend fun getPort() =
     serverDeferred.await().resolvedConnectors().first().port.toUShort()
 
-  suspend fun close() {
-    serverDeferred.await().stop()
+  @OptIn(ExperimentalCoroutinesApi::class)
+  suspend fun close() = serverLock.withLock {
+    if (serverDeferred.isCompleted) {
+      serverDeferred.getCompleted().stop()
+      serverDeferred = CompletableDeferred()
+    }
   }
 }

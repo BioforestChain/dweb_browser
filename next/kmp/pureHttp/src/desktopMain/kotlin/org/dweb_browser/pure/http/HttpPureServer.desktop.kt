@@ -1,11 +1,11 @@
 package org.dweb_browser.pure.http
 
-import io.ktor.server.engine.ConnectorType
 import io.ktor.server.engine.connector
 import io.ktor.server.engine.sslConnector
 import io.ktor.server.jetty.Jetty
 import io.ktor.server.jetty.JettyApplicationEngine
 import io.ktor.server.jetty.JettyApplicationEngineBase
+import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.pure.http.ktor.KtorPureServer
 
 actual class HttpPureServer actual constructor(onRequest: HttpPureServerOnRequest) :
@@ -21,7 +21,7 @@ actual class HttpPureServer actual constructor(onRequest: HttpPureServerOnReques
     return start(port, true)
   }
 
-  suspend fun start(port: UShort, https: Boolean): UShort {
+  suspend fun start(port: UShort, https: Boolean) = serverLock.withLock {
     if (!serverDeferred.isCompleted) {
       createServer({
       }) {
@@ -46,7 +46,7 @@ actual class HttpPureServer actual constructor(onRequest: HttpPureServerOnReques
       }
     }
 
-    return getPort()
+    getPort()
   }
 }
 

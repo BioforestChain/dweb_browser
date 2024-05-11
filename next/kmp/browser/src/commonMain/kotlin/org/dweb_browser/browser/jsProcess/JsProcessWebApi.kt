@@ -1,6 +1,7 @@
 package org.dweb_browser.browser.jsProcess
 
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
@@ -17,6 +18,7 @@ import org.dweb_browser.helper.SafeInt
 import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.build
 import org.dweb_browser.helper.envSwitch
+import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.resolvePath
 import org.dweb_browser.helper.withMainContext
 
@@ -42,6 +44,7 @@ class JsProcessWebApi(internal val dWebView: IDWebView) {
     envScriptUrl: String,
     metadataJson: String,
     envJson: String,
+    onTerminate: suspend () -> Unit,
   ): ProcessInfo {
     debugJsProcess("createProcess") {
       """
@@ -59,21 +62,33 @@ class JsProcessWebApi(internal val dWebView: IDWebView) {
     val metadataJsonStr = Json.encodeToString(metadataJson)
     val envJsonStr = Json.encodeToString(envJson)
     val processNameStr = Json.encodeToString(processName)
+    val gatewayPort = dwebHttpGatewayServer.startServer()
+
+    val onTerminateCallbackId = randomUUID()
+    dWebView.ioScope.launch {
+      dWebView.evaluateAsyncJavascriptCode("(window['$onTerminateCallbackId'] = new PromiseOut()).promise")
+      onTerminate()
+    }
 
     val hid = hidAcc++
     val processInfoJson = dWebView.evaluateAsyncJavascriptCode("""
       new Promise((resolve,reject)=>{
-          addEventListener("message", async function doCreateProcess(event) {
-              if (event.data === "js-process/create-process/$hid") {
-               try{
-                  removeEventListener("message", doCreateProcess);
-                  const fetch_port = event.ports[0];
-                  resolve(await createProcess($processNameStr,`$envScriptUrl`,$metadataJsonStr,$envJsonStr,fetch_port,${dwebHttpGatewayServer.startServer()}))
-                  }catch(err){
-                      reject(err)
-                  }
-              }
-          })
+        addEventListener("message", async function doCreateProcess(event) {
+          if (event.data === "js-process/create-process/$hid") {
+            try{
+              removeEventListener("message", doCreateProcess);
+              const fetch_port = event.ports[0];
+              const on_terminate_po = window['$onTerminateCallbackId'];
+              delete window['$onTerminateCallbackId'];
+              const process = await createProcess($processNameStr,`$envScriptUrl`,$metadataJsonStr,$envJsonStr,fetch_port,$gatewayPort,()=>{
+                on_terminate_po.resolve()
+              }); 
+              resolve(process)
+            } catch (err) {
+              reject(err)
+            }
+          }
+        })
       })
       """.trimIndent(), afterEval = {
       try {
@@ -110,12 +125,11 @@ class JsProcessWebApi(internal val dWebView: IDWebView) {
     manifestJson: String,
     debugIdPrefix: String,
     autoStart: Boolean? = null,
-  ) =
-    withMainContext {
-      val channel = dWebView.createMessageChannel()
-      createJsIpc(processId, channel.port1, manifestJson, autoStart)
-      GlobalWebMessageEndpoint(channel.port2, debugIdPrefix)
-    }
+  ) = withMainContext {
+    val channel = dWebView.createMessageChannel()
+    createJsIpc(processId, channel.port1, manifestJson, autoStart)
+    GlobalWebMessageEndpoint(channel.port2, debugIdPrefix)
+  }
 
   /**
    * 提供指定的endpoint，在 js 中创建一个 ipc

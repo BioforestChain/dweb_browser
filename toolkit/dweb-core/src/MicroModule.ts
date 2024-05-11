@@ -1,3 +1,4 @@
+import type { $PromiseMaybe } from "@dweb-browser/helper/$PromiseMaybe.ts";
 import { Mutex } from "@dweb-browser/helper/Mutex.ts";
 import { Producer } from "@dweb-browser/helper/Producer.ts";
 import { PromiseOut } from "@dweb-browser/helper/PromiseOut.ts";
@@ -27,7 +28,7 @@ const enum MMState {
 export abstract class MicroModule {
   abstract manifest: $MicroModuleManifest;
 
-  protected abstract createRuntime(context: $BootstrapContext): MicroModuleRuntime;
+  protected abstract createRuntime(context: $BootstrapContext): $PromiseMaybe<MicroModuleRuntime>;
 
   @once()
   get console() {
@@ -51,7 +52,7 @@ export abstract class MicroModule {
   }
   async bootstrap(bootstrapContext: $BootstrapContext) {
     if (this.#runtime === undefined) {
-      const runtime = this.createRuntime(bootstrapContext);
+      const runtime = await this.createRuntime(bootstrapContext);
       runtime.onShutdown(() => {
         this.#runtime = undefined;
       });

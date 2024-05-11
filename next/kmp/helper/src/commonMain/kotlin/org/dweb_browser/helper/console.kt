@@ -164,7 +164,7 @@ class Debugger(val scope: String) {
 
   fun verbose(tag: String, msgGetter: () -> Any?) {
     if (isEnableVerbose) {
-      invoke("QAQ $tag", msgGetter)
+      invoke("VERBOSE $tag", msgGetter)
     }
   }
 

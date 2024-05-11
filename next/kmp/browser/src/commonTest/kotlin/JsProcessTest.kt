@@ -1,12 +1,17 @@
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.selects.onTimeout
+import kotlinx.coroutines.selects.select
 import org.dweb_browser.browser.jmm.JsMicroModule
 import org.dweb_browser.browser.jsProcess.JsProcessNMM
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.http.router.HttpHandlerToolkit
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.bindPrefix
+import org.dweb_browser.core.ipc.helper.IpcEvent
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.std.dns.DnsNMM
 import org.dweb_browser.core.std.dns.nativeFetch
@@ -144,7 +149,6 @@ class JsProcessTest {
     }
   }
 
-
   @Test
   fun testJmmConnectJmm() = runCommonTest(timeout = 600.seconds) {
     buildJsProcessTestContext {
@@ -168,7 +172,7 @@ class JsProcessTest {
             
             const ipc1 = await jsProcess.connect(`${test1NMM.mmid}`);
             const ipc3 = await jsProcess.connect(`${fileNMM.mmid}`);
-            ipc1.onEvent("js2js").collect((event) => ipc3.request("file://${fileNMM.mmid}/js2js",{body:event.consume().data}));
+            ipc1.onEvent("js2js").collect((event) => ipc3.postMessage(event.consume()));
           """.trimIndent()
         }
       }
@@ -176,9 +180,8 @@ class JsProcessTest {
 
       val test3Runtime = dnsRunTime.open(fileNMM.mmid) as FileNMM.FileRuntime
       val ipc3 = test3Runtime.connect(test2Runtime.mmid)
-      val expected = ipc3.onRequest("js2js")
-        .mapNotNull { it.consumeFilter { req -> req.uri.encodedPath == "/js2js" } }
-        .first().body.text()
+      val result = ipc3.onEvent("js2js").map { it.consume() }.first()
+      val expected = result.text
       println("QAQ expected=$expected")
       assertEquals(actual, expected)
     }
@@ -207,19 +210,57 @@ class JsProcessTest {
             
             const ipc1 = await jsProcess.connect(`${test1NMM.mmid}`);
             const ipc3 = await jsProcess.connect(`${fileNMM.mmid}`);
-            ipc1.onEvent("js2js").collect((event) => ipc3.request("file://${fileNMM.mmid}/js2js",{body:event.consume().data}));
+            ipc1.onEvent("js2js").collect((event) => ipc3.postMessage(event.consume()));
           """.trimIndent()
         }
       }
       val test2Runtime = dnsRunTime.open(test2NMM.mmid) as TestJmm.TestJmmRuntime
 
-      val test3Runtime = dnsRunTime.open(fileNMM.mmid) as FileNMM.FileRuntime
-      val ipc3 = test3Runtime.connect(test2Runtime.mmid)
-      val expected = ipc3.onRequest("js2js")
-        .mapNotNull { it.consumeFilter { req -> req.uri.encodedPath == "/js2js" } }
-        .first().body.text()
+      val fileRuntime = dnsRunTime.open(fileNMM.mmid) as FileNMM.FileRuntime
+      val ipc3 = fileRuntime.connect(test2Runtime.mmid)
+      val result = ipc3.onEvent("js2js").map { it.consume() }.first()
+      val expected = result.text
       println("QAQ expected=$expected")
       assertEquals(actual, expected)
+    }
+  }
+
+  @OptIn(ExperimentalCoroutinesApi::class)
+  @Test
+  fun testJsProcessClose() = runCommonTest(timeout = 600.seconds) {
+    buildJsProcessTestContext {
+      val actual = randomUUID()
+//      println("QAQ actual=$actual")
+      test1NMM.esmLoader = {
+        "/index.js" bind PureMethod.GET by defineStringResponse {
+          """
+            const { jsProcess } = navigator.dweb;
+            const ipc = await jsProcess.connect(`${fileNMM.mmid}`);
+            ipc.onEvent('for-close').collect(event => {
+              const ipcEvent = event.consume()
+              console.log('ipcEvent', ipcEvent)
+              if(ipcEvent.name === 'do-close' && ipcEvent.data === '$actual') {
+                globalThis.close() // close js worker
+              }
+            })
+            console.log('ipc', ipc)
+          """.trimIndent()
+        }
+      }
+      val test1Runtime = dnsRunTime.open(test1NMM.mmid) as TestJmm.TestJmmRuntime
+
+      val fileRuntime = dnsRunTime.open(fileNMM.mmid) as FileNMM.FileRuntime
+      val ipc = fileRuntime.connect(test1Runtime.mmid)
+      ipc.postMessage(IpcEvent.fromUtf8("do-close", actual))
+
+      select {
+        ipc.onClosed.onAwait {
+          println("okk")
+        }
+        onTimeout(1000) {
+          throw Exception("timeout!!")
+        }
+      }
     }
   }
 

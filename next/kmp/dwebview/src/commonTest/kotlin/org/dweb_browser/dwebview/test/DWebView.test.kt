@@ -322,7 +322,7 @@ class DWebViewTest {
   }
 
   @Test
-  fun testMessagePort() = runCommonTest(1, timeOut = 600.seconds) { time ->
+  fun testMessagePort() = runCommonTest(1, timeout = 600.seconds) { time ->
     println("test-$time")
     val ctx = getPrepareContext()
     val fileNMM = FileNMM()

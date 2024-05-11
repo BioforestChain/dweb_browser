@@ -274,9 +274,6 @@ abstract class IpcEndpoint {
   }
 
   private val closeOnce = SuspendOnce1 { cause: CancellationException? ->
-    if (scope.coroutineContext[Job] == coroutineContext[Job]) {
-      WARNING("close endpoint by self. maybe leak.")
-    }
     doClose(cause)
   }
 
