@@ -109,7 +109,7 @@ fun BrowserSearchBar(modifier: Modifier) {
         HorizontalPager(
           modifier = Modifier.fillMaxWidth(),
           state = viewModel.pagerStates.searchBar,
-          pageSpacing = 0.dp,
+          pageSpacing = 5.dp,
           userScrollEnabled = true,
           reverseLayout = false,
           contentPadding = PaddingValues(horizontal = 10.dp),
