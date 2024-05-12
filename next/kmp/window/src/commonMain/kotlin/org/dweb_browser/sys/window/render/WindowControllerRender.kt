@@ -17,6 +17,7 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -29,6 +30,8 @@ import org.dweb_browser.helper.compose.LocalFocusRequester
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.compose.iosTween
 import org.dweb_browser.helper.platform.LocalPureViewController
+import org.dweb_browser.helper.platform.bindPureViewController
+import org.dweb_browser.helper.platform.unbindPureViewController
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.windowAdapterManager
@@ -41,7 +44,7 @@ fun WindowController.Prepare(
   winMinWidth: Float = winMaxWidth * 0.2f,
   winMinHeight: Float = winMaxHeight * 0.2f,
   minScale: Double = 0.3,
-  content: @Composable () -> Unit
+  content: @Composable () -> Unit,
 ) {
   val win = this;
   win._pureViewControllerState.value = LocalPureViewController.current
@@ -124,6 +127,16 @@ fun WindowController.Prepare(
 @Composable
 fun WindowController.WindowRender(modifier: Modifier) {
   val win = this
+
+  win.state.constants.microModule.value?.also { microModule ->
+    val pureViewController = LocalPureViewController.current
+    DisposableEffect(microModule, pureViewController) {
+      microModule.bindPureViewController(pureViewController)
+      onDispose {
+        microModule.unbindPureViewController()
+      }
+    }
+  }
 
   val isVisible by win.watchedState { win.isVisible() }
   val inMove by win.inMove

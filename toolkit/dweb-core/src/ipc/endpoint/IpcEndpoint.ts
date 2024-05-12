@@ -153,12 +153,12 @@ export abstract class IpcEndpoint {
       // this.console.log("emit-locale-lifecycle", opening);
       this.lifecycleLocaleFlow.emit(opening);
     } else {
-      throw new Error(`endpoint state=${this.lifecycle}`);
+      throw new Error(`endpoint state=${this.lifecycle.state.name}`);
     }
     // 监听远端生命周期指令，进行协议协商
     this.lifecycleRemoteFlow.listen((remoteLifecycle) => {
       const remoteState = remoteLifecycle.state;
-      // this.console.log("remote-lifecycle-in", lifecycle.type, lifecycle.state);
+      this.console.verbose("remote-lifecycle-in", remoteState);
       switch (remoteState.name) {
         case ENDPOINT_LIFECYCLE_STATE.CLOSING:
         case ENDPOINT_LIFECYCLE_STATE.CLOSED: {

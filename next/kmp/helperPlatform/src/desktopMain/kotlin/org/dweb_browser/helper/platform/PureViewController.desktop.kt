@@ -25,7 +25,6 @@ import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.compose.LocalCompositionChain
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.platform.desktop.os.WindowsRegistry
-import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 import kotlin.system.exitProcess
 
@@ -58,7 +57,6 @@ class PureViewController(
     var exitDesktop: suspend () -> Unit = {}
       private set
 
-    @OptIn(ExperimentalResourceApi::class)
     suspend fun startApplication() = awaitApplication {
       // 退出应用
       suspend fun exitApp() {

@@ -16,6 +16,10 @@ import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.helper.pickLargest
 import org.dweb_browser.sys.window.core.helper.toStrict
 import org.jetbrains.compose.resources.ExperimentalResourceApi
+import java.awt.AlphaComposite
+import java.awt.Color
+import java.awt.RenderingHints
+import java.awt.geom.RoundRectangle2D
 import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
 
@@ -35,7 +39,7 @@ actual fun getWindowControllerBorderRounded(isMaximize: Boolean) =
 suspend fun MicroModule.Runtime.loadAwtIconImage(): BufferedImage =
   icons.toStrict().pickLargest()?.src?.let { url ->
     WebImageLoader.defaultInstance.load(
-      OffscreenWebCanvas.defaultInstance, url, 128, 128, imageFetchHook
+      OffscreenWebCanvas.defaultInstance, url, 256, 256, imageFetchHook
     ).firstOrNull {
       it.isSuccess
     }?.success?.toAwtImage()
@@ -48,5 +52,40 @@ val MicroModule.Runtime.awtIconImage
   get() = MMR_awtIconImage_WM.getOrPut(this) {
     getRuntimeScope().async {
       loadAwtIconImage()
+    }
+  }
+
+
+fun BufferedImage.rounded(roundX: Float, roundY: Float = roundX): BufferedImage {
+  val input = this
+  val output = BufferedImage(input.width, input.height, BufferedImage.TYPE_INT_ARGB)
+
+  val ctx = output.createGraphics()
+  ctx.composite = AlphaComposite.Src
+  ctx.setRenderingHint(
+    RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON
+  )
+
+  // Draw the rounded filled rectangle
+  ctx.color = Color.WHITE
+  ctx.fill(
+    RoundRectangle2D.Float(
+      0f, 0f, input.width.toFloat(), input.height.toFloat(), roundX, roundY
+    )
+  )
+
+  // Set the composite to only paint inside the rectangle
+  ctx.composite = AlphaComposite.SrcIn
+  ctx.drawImage(input, 0, 0, null)
+  ctx.dispose()
+  return output
+}
+
+val MMR_awtIconRoundedImage_WM = WeakHashMap<MicroModule.Runtime, Deferred<BufferedImage>>()
+
+val MicroModule.Runtime.awtIconRoundedImage: Deferred<BufferedImage>
+  get() = MMR_awtIconRoundedImage_WM.getOrPut(this) {
+    getRuntimeScope().async {
+      awtIconImage.await().let { it.rounded(it.width * 0.38f, it.height * 0.38f) }
     }
   }

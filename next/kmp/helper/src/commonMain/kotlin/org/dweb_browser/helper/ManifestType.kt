@@ -11,7 +11,7 @@ data class ImageResource(
   val sizes: String? = null,
   val type: String? = null,
   val purpose: String? = null,
-  val platform: String? = null
+  val platform: String? = null,
 )
 
 @Serializable
@@ -20,7 +20,7 @@ data class ShortcutItem(
   val short_name: String? = null,
   val description: String? = null,
   val url: String,
-  val icons: MutableList<ImageResource>? = null
+  val icons: MutableList<ImageResource>? = null,
 )
 
 
@@ -30,7 +30,8 @@ object DisplayMode_Serializer :
 
 @Serializable(with = DisplayMode_Serializer::class)
 enum class DisplayMode(val mode: String) {
-  Fullscreen("fullscreen"), Standalone("standalone"), MinimalUi("minimal_ui"), Browser("browser"), ;
+  Fullscreen("fullscreen"), Standalone("standalone"), MinimalUi("minimal_ui"), Browser("browser"),
+  ;
 
   companion object {
     val ALL_VALUES = entries.associateBy { it.mode }
@@ -39,7 +40,8 @@ enum class DisplayMode(val mode: String) {
 
 @Serializable
 enum class ImageResourcePurposes(val purpose: String) {
-  Monochrome("monochrome"), Maskable("maskable"), Any("any"), ;
+  Monochrome("monochrome"), Maskable("maskable"), Any("any"),
+  ;
 
   companion object {
     val ALL_VALUES = entries.associateBy { it }
@@ -54,24 +56,33 @@ data class StrictImageResource(
   val src: String,
   val purpose: Set<ImageResourcePurposes>,
   val type: String,
-  val sizes: List<ImageResourceSize>
+  val sizes: List<ImageResourceSize>,
 ) {
   companion object {
     fun from(img: ImageResource, baseUrl: String? = null): StrictImageResource {
-      val imgUrl =
-        if (baseUrl != null) URLBuilder(baseUrl).takeFrom(img.src).build() else Url(img.src)
       var imageType = img.type
-      if (imageType == null) {
-        // path的获取解析可能会失败
-        val imageUrlExt = imgUrl.runCatching { encodedPath.substringAfterLast(".") }.getOrNull()
-//        println("imageUrlExt:$imageUrlExt")
-        imageType = when (imageUrlExt) {
-          "jpg", "jpeg" -> "image/jpeg"
-          "webp", "png", "avif", "apng" -> "image/$imageType"
-          "svg" -> "image/svg+xml"
-          else -> "image/*"
+      val imgFullHref = if (img.src.startsWith("data:")) {
+        if (imageType == null) {
+          imageType = img.src.substring(5).split(";", limit = 2)[0].split(",", limit = 2)[0]
         }
+        img.src
+      } else {
+        val imgUrl =
+          if (baseUrl != null) URLBuilder(baseUrl).takeFrom(img.src).build() else Url(img.src)
+
+        if (imageType == null) {
+          // path的获取解析可能会失败
+          val imageUrlExt = imgUrl.runCatching { encodedPath.substringAfterLast(".") }.getOrNull()
+          imageType = when (imageUrlExt) {
+            "jpg", "jpeg" -> "image/jpeg"
+            "webp", "png", "avif", "apng" -> "image/$imageType"
+            "svg" -> "image/svg+xml"
+            else -> "image/*"
+          }
+        }
+        imgUrl.toString()
       }
+
 
       val imageSizes = mutableListOf<ImageResourceSize>()
       if (img.sizes == null) {
@@ -98,7 +109,7 @@ data class StrictImageResource(
         }
       }
 
-      return StrictImageResource(src = imgUrl.toString(), purpose = img.purpose?.let { purpose ->
+      return StrictImageResource(src = imgFullHref, purpose = img.purpose?.let { purpose ->
         purpose.split(Regex("""\s+""")).mapNotNull { keyword ->
           ImageResourcePurposes.entries.find { it.purpose == keyword }
         }.let { list ->

@@ -5,6 +5,6 @@ import org.dweb_browser.core.module.MicroModule
 expect suspend fun showToast(
   microModule: MicroModule.Runtime,
   text: String,
-  durationType: DurationType = DurationType.SHORT,
-  positionType: PositionType = PositionType.BOTTOM
+  durationType: ToastDurationType = ToastDurationType.SHORT,
+  positionType: ToastPositionType = ToastPositionType.BOTTOM
 )

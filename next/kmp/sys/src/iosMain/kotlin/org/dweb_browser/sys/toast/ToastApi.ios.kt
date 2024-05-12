@@ -19,7 +19,7 @@ import platform.UIKit.topLayoutGuide
 @OptIn(ExperimentalForeignApi::class)
 actual suspend fun showToast(
   microModule: MicroModule.Runtime,
-  text: String, durationType: DurationType, positionType: PositionType
+  text: String, durationType: ToastDurationType, positionType: ToastPositionType
 ) {
   withMainContext {
     val toastLabel = UILabel()
@@ -42,14 +42,14 @@ actual suspend fun showToast(
 
       val x = (controller.view.frame.useContents { size.width } - width) / 2
       val y = when (positionType) {
-        PositionType.TOP -> controller.topLayoutGuide.length + 20
-        PositionType.CENTER -> (controller.view.frame.useContents { size.height } - height) / 2
-        PositionType.BOTTOM -> controller.view.frame.useContents { size.height } - controller.bottomLayoutGuide.length - height - 30
+        ToastPositionType.TOP -> controller.topLayoutGuide.length + 20
+        ToastPositionType.CENTER -> (controller.view.frame.useContents { size.height } - height) / 2
+        ToastPositionType.BOTTOM -> controller.view.frame.useContents { size.height } - controller.bottomLayoutGuide.length - height - 30
       }
 
       val duration = when (durationType) {
-        DurationType.SHORT -> 1.0
-        DurationType.LONG -> 3.0
+        ToastDurationType.SHORT -> 1.0
+        ToastDurationType.LONG -> 3.0
       }
 
       toastLabel.setFrame(CGRectMake(x, y, width, height))

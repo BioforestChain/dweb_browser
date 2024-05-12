@@ -4,11 +4,7 @@ import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
-import org.dweb_browser.helper.Debugger
 import org.dweb_browser.pure.http.PureMethod
-
-
-val debugToast = Debugger("toast")
 
 
 class ToastNMM : NativeMicroModule("toast.sys.dweb", "toast") {
@@ -23,23 +19,19 @@ class ToastNMM : NativeMicroModule("toast.sys.dweb", "toast") {
       routes(
         /** 显示弹框*/
         "/show" bind PureMethod.GET by defineBooleanResponse {
-          val duration = request.queryOrNull("duration") ?: EToast.Short.type
+          val duration =
+            request.queryOrNull("duration")?.let { ToastDurationType.ALL[it] }
+              ?: ToastDurationType.Default
           val message = request.query("message")
-          val position = request.queryOrNull("position") ?: PositionType.BOTTOM.position
-          val durationType = when (duration) {
-            EToast.Long.type -> DurationType.LONG
-            else -> DurationType.SHORT
-          }
-          val positionType = when (position) {
-            PositionType.BOTTOM.position -> PositionType.BOTTOM
-            PositionType.CENTER.position -> PositionType.CENTER
-            else -> PositionType.TOP
-          }
+          val position =
+            request.queryOrNull("position")?.let { ToastPositionType.ALL[it] }
+              ?: ToastPositionType.Default
+
           val fromMM = getRemoteRuntime()
-          debugToast("/show") {
-            "message=$message,duration=${duration},position=${position} ${fromMM.mmid}"
+          debugMM("show-toast") {
+            "message=$message,duration=${duration},position=${position}"
           }
-          showToast(fromMM, message, durationType, positionType)
+          showToast(fromMM, message, duration, position)
           return@defineBooleanResponse true
         },
       ).cors()
@@ -54,14 +46,22 @@ class ToastNMM : NativeMicroModule("toast.sys.dweb", "toast") {
 
 }
 
-enum class EToast(val type: String) {
-  Long("long"), Short("short")
+enum class ToastDurationType(val type: String, val duration: Long) {
+  SHORT("short", 2000L), LONG("long", 3500L),
+  ;
+
+  companion object {
+    val ALL = entries.associateBy { it.type }
+    val Default = SHORT
+  }
 }
 
-enum class DurationType(val duration: Long) {
-  SHORT(2000L), LONG(3500L)
-}
+enum class ToastPositionType(val position: String) {
+  TOP("top"), CENTER("center"), BOTTOM("bottom"),
+  ;
 
-enum class PositionType(val position: String) {
-  TOP("top"), CENTER("center"), BOTTOM("bottom")
+  companion object {
+    val ALL = ToastPositionType.entries.associateBy { it.position }
+    val Default = BOTTOM
+  }
 }

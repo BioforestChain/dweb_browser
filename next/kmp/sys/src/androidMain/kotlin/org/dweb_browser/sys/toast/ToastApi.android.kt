@@ -9,15 +9,15 @@ import org.dweb_browser.helper.withMainContext
 
 actual suspend fun showToast(
   microModule: MicroModule.Runtime,
-  text: String, durationType: DurationType, positionType: PositionType
+  text: String, durationType: ToastDurationType, positionType: ToastPositionType
 ) =
   ToastController.showToast(text, durationType, positionType)
 
 object ToastController {
   private fun showSnackBar(
     text: String, view: View,
-    durationType: DurationType = DurationType.SHORT,
-    positionType: PositionType = PositionType.BOTTOM
+    durationType: ToastDurationType = ToastDurationType.SHORT,
+    positionType: ToastPositionType = ToastPositionType.BOTTOM
   ) {
     com.google.android.material.snackbar.Snackbar.make(
       view, text, com.google.android.material.snackbar.Snackbar.LENGTH_SHORT
@@ -27,19 +27,19 @@ object ToastController {
   /**
    * 由于 SetGravity 的功能在 Build.VERSION_CODES.R 及其以上版本已经无法使用，所以这边需要改为 SnackBar
    */
-  suspend fun showToast(text: String, durationType: DurationType, positionType: PositionType) {
+  suspend fun showToast(text: String, durationType: ToastDurationType, positionType: ToastPositionType) {
     val duration = when (durationType) {
-      DurationType.LONG -> Toast.LENGTH_LONG
+      ToastDurationType.LONG -> Toast.LENGTH_LONG
       else -> Toast.LENGTH_SHORT
     }
     withMainContext {
       Toast.makeText(getAppContextUnsafe(), text, duration).also {
         when (positionType) {
-          PositionType.TOP -> {
+          ToastPositionType.TOP -> {
             it.setGravity(Gravity.TOP or Gravity.CENTER_HORIZONTAL, 0, 40)
           }
 
-          PositionType.CENTER -> {
+          ToastPositionType.CENTER -> {
             it.setGravity(Gravity.CENTER_VERTICAL or Gravity.CENTER_HORIZONTAL, 0, 0)
           }
 

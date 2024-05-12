@@ -2,7 +2,7 @@ package org.dweb_browser.sys.filechooser
 
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.permission.AuthorizationStatus
-import org.dweb_browser.sys.ext.awaitComposeWindow
+import org.dweb_browser.helper.platform.awaitComposeWindow
 import org.dweb_browser.sys.permission.SystemPermissionAdapterManager
 import org.dweb_browser.sys.permission.SystemPermissionName
 import java.io.File

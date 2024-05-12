@@ -23,9 +23,6 @@ class WindowInstancesManager {
   fun findByOwner(mmid: MMID): WindowController? {
     return instances.firstNotNullOfOrNull { if (it.value.state.constants.owner == mmid) it.value else null }
   }
-
-  val onAdd = instances.onChange
-  val onRemove = instances.onChange
 }
 
 val windowInstancesManager by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {

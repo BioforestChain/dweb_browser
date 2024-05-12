@@ -99,7 +99,6 @@ class WindowAdapterManager : AdapterManager<CreateWindowAdapter>() {
     when (val render = windowAdapterManager.rememberRender(rid)) {
       null -> {
         val colorScheme = MaterialTheme.colorScheme
-        val typography = MaterialTheme.typography
         Box(
           modifier = Modifier
             .fillMaxSize()

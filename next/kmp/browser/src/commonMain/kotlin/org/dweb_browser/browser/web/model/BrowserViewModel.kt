@@ -51,7 +51,7 @@ import org.dweb_browser.sys.permission.SystemPermissionName
 import org.dweb_browser.sys.permission.SystemPermissionTask
 import org.dweb_browser.sys.permission.ext.requestSystemPermission
 import org.dweb_browser.sys.share.ext.postSystemShare
-import org.dweb_browser.sys.toast.PositionType
+import org.dweb_browser.sys.toast.ToastPositionType
 import org.dweb_browser.sys.toast.ext.showToast
 
 val LocalBrowserViewModel = compositionChainOf<BrowserViewModel>("BrowserModel")
@@ -585,7 +585,7 @@ class BrowserViewModel(
     browserController.loadMoreHistory(off)
   }
 
-  fun showToastMessage(message: String, position: PositionType? = null) {
+  fun showToastMessage(message: String, position: ToastPositionType? = null) {
     browserController.ioScope.launch { browserNMM.showToast(message, position = position) }
   }
 }

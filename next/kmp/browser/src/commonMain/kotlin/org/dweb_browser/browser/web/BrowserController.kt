@@ -15,7 +15,7 @@ import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.UUID
-import org.dweb_browser.sys.toast.PositionType
+import org.dweb_browser.sys.toast.ToastPositionType
 import org.dweb_browser.sys.toast.ext.showToast
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.helper.setStateFromManifest
@@ -130,7 +130,7 @@ class BrowserController(
    */
   suspend fun openDownloadDialog(args: WebDownloadArgs) = downloadController.openDownloadDialog(args)
 
-  fun showToastMessage(message: String, position: PositionType? = null) = ioScope.launch {
+  fun showToastMessage(message: String, position: ToastPositionType? = null) = ioScope.launch {
     browserNMM.showToast(message = message, position = position)
   }
 }

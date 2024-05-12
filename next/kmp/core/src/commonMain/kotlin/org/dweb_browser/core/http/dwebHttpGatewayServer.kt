@@ -56,7 +56,7 @@ class DwebHttpGatewayServer private constructor() {
   }
 
   val startServer = SuspendOnce {
-    println("QAQ DwebHttpGatewayServer start")
+    debugHttp("DwebHttpGatewayServer", "start")
     if (closedDeferred.isCompleted) {
       closedDeferred = CompletableDeferred<Unit>()
     }
@@ -64,6 +64,7 @@ class DwebHttpGatewayServer private constructor() {
   }
 
   suspend fun closeServer() {
+    debugHttp("DwebHttpGatewayServer", "close")
     server.close()
     closedDeferred.complete(Unit)
     startServer.reset()// 服务已经关闭，可以重启

@@ -1,23 +1,13 @@
 package org.dweb_browser.sys.notification
 
-import androidx.compose.ui.graphics.toAwtImage
-import dweb_browser_kmp.sys.generated.resources.Res
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.withContext
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.permission.AuthorizationStatus
-import org.dweb_browser.helper.ioAsyncExceptionHandler
-import org.dweb_browser.pure.image.OffscreenWebCanvas
-import org.dweb_browser.pure.image.compose.WebImageLoader
 import org.dweb_browser.sys.permission.SystemPermissionAdapterManager
 import org.dweb_browser.sys.permission.SystemPermissionName
-import org.dweb_browser.sys.window.core.helper.pickLargest
-import org.dweb_browser.sys.window.core.helper.toStrict
-import org.dweb_browser.sys.window.render.imageFetchHook
+import org.dweb_browser.sys.window.render.awtIconImage
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import java.awt.SystemTray
 import java.awt.TrayIcon
-import javax.imageio.ImageIO
 
 actual class NotificationManager actual constructor() {
   init {
@@ -45,17 +35,7 @@ actual class NotificationManager actual constructor() {
     }
 
     // 创建一个托盘图标
-    val image = microModule.icons.toStrict().pickLargest()?.src?.let { url ->
-      WebImageLoader.defaultInstance.load(
-        OffscreenWebCanvas.defaultInstance, url, 128, 128, microModule.imageFetchHook
-      ).firstOrNull {
-        it.isSuccess
-      }?.success?.toAwtImage()
-    } ?:
-    // TODO 使用 withContext(ioAsyncExceptionHandler) {
-    withContext(ioAsyncExceptionHandler) {
-      ImageIO.read(Res.readBytes("files/sys-icons/notification_default_icon.png").inputStream())
-    }
+    val image = microModule.awtIconImage.await()
 
     val trayIcon = TrayIcon(image, microModule.name)
 

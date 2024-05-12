@@ -30,11 +30,11 @@ data class PureRect(
 
   fun toBounds() = Bounds(top = y, left = x, bottom = y + height, right = x + width)
 
-  fun timesToInt(value: Float) = PureIntRect(
-    (x * value).toInt(),
-    (y * value).toInt(),
-    (width * value).toInt(),
-    (height * value).toInt()
+  fun timesToInt(times: Float) = PureIntRect(
+    (x * times).toInt(),
+    (y * times).toInt(),
+    (width * times).toInt(),
+    (height * times).toInt()
   )
 }
 

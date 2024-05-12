@@ -2,6 +2,7 @@ package org.dweb_browser.browser.desk
 
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshotFlow
@@ -10,8 +11,11 @@ import androidx.compose.ui.unit.dp
 import org.dweb_browser.helper.PureRect
 import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.helper.platform.IPureViewController
+import org.dweb_browser.helper.platform.LocalPureViewController
+import org.dweb_browser.helper.platform.bindPureViewController
 import org.dweb_browser.helper.platform.from
 import org.dweb_browser.helper.platform.theme.DwebBrowserAppTheme
+import org.dweb_browser.helper.platform.unbindPureViewController
 
 fun PureRect.toModifier(
   modifier: Modifier = Modifier,
@@ -36,6 +40,14 @@ class DesktopViewControllerCore(val viewController: IPureViewController) {
     viewController.onCreate { params ->
       val (desktopController, taskbarController, microModule) = bindController(params.getString("deskSessionId"))
       viewController.addContent {
+        val pureViewController = LocalPureViewController.current
+        DisposableEffect(pureViewController) {
+          microModule.bindPureViewController(pureViewController)
+          onDispose {
+            microModule.unbindPureViewController()
+          }
+        }
+
         DwebBrowserAppTheme {
           LaunchedEffect(resumeState) {
             snapshotFlow { resumeState.value }.collect {
