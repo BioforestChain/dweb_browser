@@ -66,7 +66,6 @@ import org.dweb_browser.sys.window.core.constant.WindowColorScheme
 import org.dweb_browser.sys.window.core.constant.WindowPropertyField
 import org.dweb_browser.sys.window.core.constant.WindowPropertyKeys
 import org.dweb_browser.sys.window.core.helper.asWindowStateColorOr
-import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
@@ -265,7 +264,7 @@ fun WindowController.watchedBounds() = watchedState(watchKey = WindowPropertyKey
 
 @Composable
 fun WindowController.calcWindowByLimits(
-  limits: WindowLimits
+  limits: WindowLimits,
 ): WindowPadding {
 
   /**
@@ -284,7 +283,7 @@ fun WindowController.calcWindowByLimits(
  */
 @Composable
 private fun WindowController.calcWindowBoundsByLimits(
-  limits: WindowLimits
+  limits: WindowLimits,
 ): PureRect {
   return if (watchedIsMaximized().value) {
     inMove.value = false
@@ -478,7 +477,7 @@ data class WindowPadding(
     }
 
   data class CornerRadius(
-    val topStart: Float, val topEnd: Float, val bottomStart: Float, val bottomEnd: Float
+    val topStart: Float, val topEnd: Float, val bottomStart: Float, val bottomEnd: Float,
   ) {
     operator fun div(value: Float) =
       CornerRadius(topStart / value, topEnd / value, bottomStart / value, bottomEnd / value)
@@ -513,7 +512,7 @@ data class WindowPadding(
  * 这个行为在桌面端也将会适用
  */
 fun WindowController.calcContentScale(
-  limits: WindowLimits, contentWidth: Float, contentHeight: Float
+  limits: WindowLimits, contentWidth: Float, contentHeight: Float,
 ): Float {
   if (limits.minScale == 1.0) {
     return 1f
@@ -767,7 +766,7 @@ fun WindowController.IconRender(
  */
 @Composable
 fun WindowController.IdRender(
-  modifier: Modifier = Modifier, contentColor: Color = LocalContentColor.current
+  modifier: Modifier = Modifier, contentColor: Color = LocalContentColor.current,
 ) {
   val minWidth = LocalWindowLimits.current.minWidth
   AutoResizeTextContainer(

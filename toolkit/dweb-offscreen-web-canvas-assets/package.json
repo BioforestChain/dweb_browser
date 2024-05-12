@@ -11,11 +11,12 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "devDependencies": {
-    "@types/xmldom": "^0.1.32"
-  },
   "dependencies": {
     "canvg": "^4.0.1",
     "xmldom": "^0.6.0"
+  },
+  "devDependencies": {
+    "@types/xmldom": "^0.1.32",
+    "vite": "^5.2.11"
   }
 }

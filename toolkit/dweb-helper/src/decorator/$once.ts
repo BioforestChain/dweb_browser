@@ -34,6 +34,11 @@ export const $once = <T extends (...args: any) => unknown>(fn: T) => {
           }
         },
       },
+      origin: {
+        configurable: true,
+        writable: false,
+        value: fn,
+      },
       reset: {
         configurable: true,
         writable: true,
@@ -46,6 +51,7 @@ export const $once = <T extends (...args: any) => unknown>(fn: T) => {
       },
     }
   ) as T & {
+    readonly fn:T
     readonly hasRun: boolean;
     readonly result: ReturnType<T>;
     reset(): void;
