@@ -20,8 +20,8 @@ export default defineConfig({
         error: path.join(__dirname, "/error.html"),
       },
       output: {
-        assetFileNames: `assets/[hash].[ext]`,
-        chunkFileNames: `[hash].js`,
+        assetFileNames: `assets/F[name]-[hash].[ext]`,
+        chunkFileNames: `F[name]-[hash].js`,
       },
     },
   },

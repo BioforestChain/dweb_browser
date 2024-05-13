@@ -48,10 +48,12 @@ export class AssetsConfig {
 
 const symlink = (target: string, path: string) => {
   if (fs.existsSync(path)) {
-    if (!fs.statSync(path).isSymbolicLink) {
-      throw new Error(`symbol link fail, ${path} exists.`);
+    if (!fs.statSync(path).isSymbolicLink()) {
+      // throw new Error(`symbol link fail, ${path} exists.`);
+      fs.unlinkSync(path);
+    } else {
+      fs.rmSync(path, { recursive: true }); // 删除文件夹以及其内容
     }
-    fs.rmSync(path, { recursive: true }); // 删除文件夹以及其内容
   } else {
     fs.mkdirSync(node_path.dirname(path), { recursive: true });
   }
