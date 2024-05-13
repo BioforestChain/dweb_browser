@@ -22,7 +22,6 @@ import com.teamdev.jxbrowser.net.HttpHeader
 import com.teamdev.jxbrowser.net.HttpStatus
 import com.teamdev.jxbrowser.net.Scheme
 import com.teamdev.jxbrowser.net.UrlRequestJob
-import com.teamdev.jxbrowser.net.callback.BeforeUrlRequestCallback
 import com.teamdev.jxbrowser.net.callback.InterceptUrlRequestCallback.Response
 import com.teamdev.jxbrowser.net.callback.VerifyCertificateCallback
 import com.teamdev.jxbrowser.net.proxy.CustomProxyConfig
@@ -101,18 +100,21 @@ class DWebViewEngine internal constructor(
       enabledOffScreenRender: Boolean,
     ): Browser {
       val optionsBuilder: EngineOptions.Builder.() -> Unit = {
+        // 拦截dweb deeplink
         addScheme(Scheme.of("dweb")) { params ->
           val pureResponse = runBlocking(ioAsyncExceptionHandler) {
             remoteMM.nativeFetch(params.urlRequest().url())
           }
-
           val jobBuilder =
             UrlRequestJob.Options.newBuilder(HttpStatus.of(pureResponse.status.value))
           pureResponse.headers.forEach { (key, value) ->
             jobBuilder.addHttpHeader(HttpHeader.of(key, value))
           }
-
-          Response.intercept(params.newUrlRequestJob(jobBuilder.build()))
+          jobBuilder.addHttpHeader(HttpHeader.of("Access-Control-Allow-Origin", "*"))
+          val job = params.newUrlRequestJob(jobBuilder.build())
+          job.write(pureResponse.status.description.toByteArray())
+          job.complete()
+          Response.intercept(job)
         }
 
         addSwitch("--enable-experimental-web-platform-features")
@@ -141,16 +143,16 @@ class DWebViewEngine internal constructor(
           });
 
         // 拦截内部浏览器dweb deeplink跳转
-        engine.network().set(BeforeUrlRequestCallback::class.java, BeforeUrlRequestCallback {
-          if (it.urlRequest().url().startsWith("dweb://")) {
-            remoteMM.scopeLaunch(cancelable = true) {
-              remoteMM.nativeFetch(it.urlRequest().url())
-            }
-            BeforeUrlRequestCallback.Response.cancel()
-          } else {
-            BeforeUrlRequestCallback.Response.proceed()
-          }
-        })
+//        engine.network().set(BeforeUrlRequestCallback::class.java, BeforeUrlRequestCallback {
+//          if (it.urlRequest().url().startsWith("dweb://")) {
+//            remoteMM.scopeLaunch(cancelable = true) {
+//              remoteMM.nativeFetch(it.urlRequest().url())
+//            }
+//            BeforeUrlRequestCallback.Response.cancel()
+//          } else {
+//            BeforeUrlRequestCallback.Response.proceed()
+//          }
+//        })
         //TODO 这里是还没做完的桌面端获取地址，改成ip位置？
         engine.permissions()
           .set(RequestPermissionCallback::class.java, RequestPermissionCallback { params, tell ->

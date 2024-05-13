@@ -1,6 +1,5 @@
 package org.dweb_browser.browser.jmm
 
-import io.ktor.http.HttpStatusCode
 import okio.FileSystem
 import okio.Path.Companion.toPath
 import org.dweb_browser.browser.BrowserI18nResource
@@ -21,7 +20,6 @@ import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.removeWhen
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.io.SystemFileSystem
-import org.dweb_browser.sys.toast.ext.showToast
 import org.dweb_browser.sys.window.core.helper.setStateFromManifest
 import org.dweb_browser.sys.window.ext.getMainWindow
 import org.dweb_browser.sys.window.ext.onRenderer
@@ -73,12 +71,9 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Service") {
 
         // 加载url资源，这一步可能要多一些时间
         val response = nativeFetch(metadataUrl)
-
         if (!response.isOk) {
-          val message = "invalid status code: ${response.status}"
-          throwException(HttpStatusCode.ExpectationFailed, message)
+          throwException(code = response.status)
         }
-
         val jmmAppInstallManifest = response.json<JmmAppInstallManifest>()
         debugJMM("listenDownload", "$metadataUrl ${jmmAppInstallManifest.id}")
         jmmController.openOrUpsetInstallerView(

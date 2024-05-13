@@ -46,10 +46,6 @@ const startsWithIgnoreCase = (url: string) => {
   return /^dweb:/i.test(url);
 };
 
-function handleEvent(e) {
-  showToast(e);
-}
-
 Object.assign(globalThis, {
   dwebSearch(event: SubmitEvent) {
     const btnEle = event.submitter as HTMLButtonElement;
@@ -72,10 +68,15 @@ Object.assign(globalThis, {
       url = formEle.action + "?" + query;
     }
     const xhr = new XMLHttpRequest();
-    xhr.addEventListener("error", handleEvent);
-    xhr.addEventListener("abort", (e) => {
-      showToast("请求的地址无法访问！");
-    });
+    xhr.responseType = "text";
+
+    xhr.onload = function () {
+      if (xhr.readyState === xhr.DONE) {
+        if (xhr.status !== 200) {
+          showToast(`${xhr.status}:${xhr.statusText}`);
+        }
+      }
+    };
     xhr.open(method, url);
     xhr.send();
 
