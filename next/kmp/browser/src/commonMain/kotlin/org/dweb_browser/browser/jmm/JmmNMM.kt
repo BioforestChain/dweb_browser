@@ -76,7 +76,6 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Service") {
 
         if (!response.isOk) {
           val message = "invalid status code: ${response.status}"
-          showToast(message)
           throwException(HttpStatusCode.ExpectationFailed, message)
         }
 
