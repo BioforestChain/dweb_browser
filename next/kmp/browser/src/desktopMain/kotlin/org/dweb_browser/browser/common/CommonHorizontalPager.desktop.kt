@@ -19,14 +19,25 @@ actual fun BoxWithConstraintsScope.CommonHorizontalPager(
   pageContent: @Composable() (PagerScope.(Int) -> Unit)
 ) {
   if (maxWidth > 20.dp) {
+//    HorizontalPager(
+//      state = state,
+//      modifier = modifier,
+//      pageSize = PageSize.Fixed(220.dp),
+//      contentPadding = PaddingValues(10.dp),
+//      pageSpacing = 5.dp,
+//      userScrollEnabled = true,
+//      reverseLayout = false,
+//      pageContent = pageContent
+//    )
     HorizontalPager(
       state = state,
       modifier = modifier,
-      pageSize = PageSize.Fixed(220.dp),
       contentPadding = PaddingValues(10.dp),
-      pageSpacing = 5.dp,
+      pageSize = PageSize.Fill,
+      beyondBoundsPageCount = 5,
       userScrollEnabled = true,
       reverseLayout = false,
+      pageSpacing = 5.dp,
       pageContent = pageContent
     )
   }
