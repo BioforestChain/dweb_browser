@@ -443,6 +443,7 @@ class DWebViewEngine internal constructor(
   val beforeUnloadSignal = setupBeforeUnloadSignal(this)
   val loadingProgressSharedFlow = setupLoadingProgressSharedFlow(this)
   val downloadSignal = setupDownloadSignal(this)
+  internal val createWebMessagePortPicker = setupWebMessagePicker(this)
 
   init {
 

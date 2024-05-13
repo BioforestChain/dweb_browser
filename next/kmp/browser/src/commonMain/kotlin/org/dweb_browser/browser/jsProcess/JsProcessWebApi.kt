@@ -68,6 +68,7 @@ class JsProcessWebApi(internal val dWebView: IDWebView) {
     dWebView.ioScope.launch {
       dWebView.evaluateAsyncJavascriptCode("(window['$onTerminateCallbackId'] = new PromiseOut()).promise")
       onTerminate()
+      port2.close()
     }
 
     val hid = hidAcc++
@@ -93,13 +94,14 @@ class JsProcessWebApi(internal val dWebView: IDWebView) {
       """.trimIndent(), afterEval = {
       try {
         dWebView.postMessage("js-process/create-process/$hid", listOf(port1))
+        port1.unref()
       } catch (e: Exception) {
         e.printStackTrace()
       }
     })
     debugJsProcess("processInfo", processInfoJson)
     val info = Json.decodeFromString<ProcessInfo>(processInfoJson)
-    info.portId = GlobalWebMessageEndpoint(port2, "fetch-ipc-$processName").globalId
+    info.portId = GlobalWebMessageEndpoint(port2, "fetch-ipc:$processName").globalId
     return info
   }
 
@@ -127,7 +129,9 @@ class JsProcessWebApi(internal val dWebView: IDWebView) {
     autoStart: Boolean? = null,
   ) = withMainContext {
     val channel = dWebView.createMessageChannel()
-    createJsIpc(processId, channel.port1, manifestJson, autoStart)
+    createJsIpc(processId, channel.port1, manifestJson, autoStart) {
+      channel.port2.close()
+    }
     GlobalWebMessageEndpoint(channel.port2, debugIdPrefix)
   }
 
@@ -139,7 +143,14 @@ class JsProcessWebApi(internal val dWebView: IDWebView) {
     port: IWebMessagePort,
     manifestJson: String,
     autoStart: Boolean? = null,
+    onClose: suspend () -> Unit,
   ) {
+    val onCloseCallbackId = randomUUID()
+    dWebView.ioScope.launch {
+      dWebView.evaluateAsyncJavascriptCode("(window['$onCloseCallbackId'] = new PromiseOut()).promise")
+      onClose()
+    }
+
     withMainContext {
       val hid = hidAcc++
       dWebView.evaluateAsyncJavascriptCode("""
@@ -151,7 +162,11 @@ class JsProcessWebApi(internal val dWebView: IDWebView) {
                   try{
                       removeEventListener("message", doCreateIpc);
                       const ipc_port = event.ports[0];
-                      resolve(await createIpc($processId, manifest_json, ipc_port, ${autoStart ?: "undefined"}))
+                      const on_close_po = window['$onCloseCallbackId'];
+                      delete window['$onCloseCallbackId'];
+                      resolve(await createIpc($processId, manifest_json, ipc_port, ${autoStart ?: "undefined"}, ()=>{
+                        on_close_po.resolve()
+                      }))
                   } catch (err) {
                       reject(err)
                   }
@@ -160,6 +175,7 @@ class JsProcessWebApi(internal val dWebView: IDWebView) {
         })
         """.trimIndent(), afterEval = {
         dWebView.postMessage("js-process/create-ipc/$hid:$manifestJson", listOf(port))
+        port.unref()
       })
     }
   }

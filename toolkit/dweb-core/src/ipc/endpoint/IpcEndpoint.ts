@@ -150,7 +150,7 @@ export abstract class IpcEndpoint {
     if (this.lifecycle.state.name === ENDPOINT_LIFECYCLE_STATE.INIT) {
       const opening = EndpointLifecycle(endpointLifecycleOpening(localeSubProtocols, [localSessionId]));
       this.sendLifecycleToRemote(opening);
-      // this.console.log("emit-locale-lifecycle", opening);
+      this.console.log("emit-locale-lifecycle", opening);
       this.lifecycleLocaleFlow.emit(opening);
     } else {
       throw new Error(`endpoint state=${this.lifecycle.state.name}`);
@@ -174,7 +174,7 @@ export abstract class IpcEndpoint {
               endpointLifecycleOpend(localState.subProtocols, localState.sessionIds.join("~"))
             );
             this.sendLifecycleToRemote(opend);
-            // this.console.log("emit-locale-lifecycle", opend);
+            this.console.log("emit-locale-lifecycle", opend);
             this.lifecycleLocaleFlow.emit(opend);
             /// 后面被链接的ipc，pid从奇数开始
             this.accPid++;
@@ -198,6 +198,7 @@ export abstract class IpcEndpoint {
                 (a, b) => a.localeCompare(b)
               );
               const opening = EndpointLifecycle(endpointLifecycleOpening(subProtocols, sessionIds));
+              this.console.log("emit-locale-lifecycle", opening);
               this.lifecycleLocaleFlow.emit(opening);
               nextState = opening;
             } else {

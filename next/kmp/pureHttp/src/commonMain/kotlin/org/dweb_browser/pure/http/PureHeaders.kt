@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import org.dweb_browser.helper.ProxySerializer
+import org.dweb_browser.helper.SafeHashMap
 
 object PureHeadersSerializer :
   ProxySerializer<PureHeaders, Map<String, String>>("IpcHeaders", MapSerializer(
@@ -13,7 +14,7 @@ object PureHeadersSerializer :
 
 @Serializable(PureHeadersSerializer::class)
 class PureHeaders() {
-  private val headersMap: MutableMap<String, String> = mutableMapOf()
+  private val headersMap = SafeHashMap<String, String>()
 
   constructor(headers: Map<String, String>) : this() {
     appendMap(headers.entries)

@@ -12,6 +12,7 @@ import org.dweb_browser.helper.RememberLazy
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.getOrNull
 import org.dweb_browser.helper.getOrPut
+import java.util.function.Consumer
 import kotlin.reflect.KProperty
 
 
@@ -74,13 +75,12 @@ class JsJWindow(js: JsObject) : JsJObject(js) {
   }
 
   fun postMessage(data: Any, ports: List<DWebMessagePort>) {
-    origin.call<Unit>(
-      "dispatchEvent",
-      MessageEvent.new<JsObject>("message", origin.frame().jsObject().apply {
-        putProperty("data", data)
-        putProperty("ports", ports.map { it.port })
-      })
-    )
+    val msgEvent = MessageEvent.new<JsObject>("message", origin.frame().jsObject().apply {
+      putProperty("data", data)
+      putProperty("ports", ports.map { it.port })
+    })
+    origin.call<Unit>("dispatchEvent", msgEvent)
+    msgEvent.close()
   }
 
   val scrollX by prop<Double>("scrollX")
@@ -146,3 +146,18 @@ fun <T> JsPromise.asDeferred(deferred: CompletableDeferred<T> = CompletableDefer
 suspend fun <T> JsPromise.await(): T {
   return this.asDeferred<T>().await()
 }
+
+suspend fun <T> Frame.executeJavaScriptAsync(code: String) =
+  CompletableDeferred<T>().also { deferred ->
+    runCatching {
+      executeJavaScript(code, Consumer<T> {
+        runCatching {
+          if (it is T) {
+            deferred.complete(it)
+          } else {
+            deferred.completeExceptionally(JsException("fail to executeJavaScript, got $it"))
+          }
+        }.getOrElse { deferred.completeExceptionally(it) }
+      })
+    }.getOrElse { deferred.completeExceptionally(it) }
+  }.await()

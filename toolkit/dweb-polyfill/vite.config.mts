@@ -11,6 +11,7 @@ export default defineConfig(() => {
           "favicon.common": "./src/favicon.common.ts",
           "close-watcher.common": "./src/close-watcher/index.ts",
           "user-agent-data.common": "./src/user-agent-data.common.ts",
+          "web-message-port.desktop": "./src/web-message-port.desktop.ts",
         },
         // 多入口不支持 iife
         formats: ["cjs" as const],

@@ -9,6 +9,7 @@ import org.dweb_browser.browser.kit.GlobalWebMessageEndpoint
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.ipc.Ipc
+import org.dweb_browser.core.ipc.NativeMessageChannel
 import org.dweb_browser.core.ipc.helper.IpcResponse
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
@@ -141,8 +142,12 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
             ?: throw Exception("ipc:${ipc.remote.mmid}/processId:$processToken invalid")
 
           val manifestJson = request.query("manifest")
+          val ids = NativeMessageChannel.getIds(
+            Regex(""""id"\s*:\s*"(.+?)"""").find(manifestJson)?.groups?.get(1)?.value ?: "???.dweb",
+            ipc.remote.mmid,
+          )
           // 返回 endpoint 的 globalId
-          apis.createIpcEndpoint(processId, manifestJson, ipc.remote.mmid).globalId.also {
+          apis.createIpcEndpoint(processId, manifestJson, ids.first).globalId.also {
             debugMM("create-ipc-endpoint-success", "globalId=$it manifest=$manifestJson")
           }
         },
@@ -158,7 +163,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
             processId,
             GlobalWebMessageEndpoint.get(remoteGlobalId).port,
             manifestJson
-          )
+          ) {}
         }
 //        /// 桥接两个JMM
 //        "/bridge-ipc" bind PureMethod.GET by defineEmptyResponse {

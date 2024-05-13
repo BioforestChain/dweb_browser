@@ -17,6 +17,40 @@ import kotlin.math.min
 
 
 class NativeMessageChannel(parentScope: CoroutineScope, fromId: String, toId: String) {
+  companion object {
+    fun getIds(fromId: String, toId: String): Pair<String, String> {
+      var debugId1 = ""
+      var debugId2 = ""
+
+      /// 取最短的前缀，从而做成
+      if (fromId == toId) {
+        debugId1 = "$fromId[from]↹"
+        debugId2 = "$toId[to]↹"
+      } else {
+        val from = fromId.split(".")
+        val to = toId.split(".")
+        val maxFromEndIndex = from.size - 1
+        val maxToEndIndex = to.size - 1
+        var debugFromId = ""
+        var debugToId = ""
+        for (endIndex in 1..<min(maxFromEndIndex, maxToEndIndex)) {
+          debugFromId = from.subList(0, endIndex).joinToString(".")
+          debugToId = to.subList(0, endIndex).joinToString(".")
+          if (debugFromId != debugToId) {
+            break
+          }
+        }
+        if (debugFromId == debugToId) {
+          debugFromId = fromId
+          debugToId = toId
+        }
+        debugId1 = "$debugFromId=>$debugToId"
+        debugId2 = "$debugToId=>$debugFromId"
+      }
+      return (debugId1 to debugId2)
+    }
+  }
+
   /**
    * 默认锁住，当它解锁的时候，意味着通道关闭
    */
@@ -24,35 +58,14 @@ class NativeMessageChannel(parentScope: CoroutineScope, fromId: String, toId: St
   private val messageChannel2 = Channel<EndpointIpcMessage>()
   private val lifecycleFlow1 = MutableStateFlow(EndpointLifecycle(EndpointLifecycleInit))
   private val lifecycleFlow2 = MutableStateFlow(EndpointLifecycle(EndpointLifecycleInit))
-  private var debugId1 = ""
-  private var debugId2 = ""
+  private val debugId1: String
+  private val debugId2: String
 
   /// 取最短的前缀，从而做成
   init {
-    if (fromId == toId) {
-      debugId1 = "$fromId[from]↹"
-      debugId2 = "$toId[to]↹"
-    } else {
-      val from = fromId.split(".")
-      val to = toId.split(".")
-      val maxFromEndIndex = from.size - 1
-      val maxToEndIndex = to.size - 1
-      var debugFromId = ""
-      var debugToId = ""
-      for (endIndex in 1..<min(maxFromEndIndex, maxToEndIndex)) {
-        debugFromId = from.subList(0, endIndex).joinToString(".")
-        debugToId = to.subList(0, endIndex).joinToString(".")
-        if (debugFromId != debugToId) {
-          break
-        }
-      }
-      if (debugFromId == debugToId) {
-        debugFromId = fromId
-        debugToId = toId
-      }
-      debugId1 = "$debugFromId=>$debugToId"
-      debugId2 = "$debugToId=>$debugFromId"
-    }
+    val ids = getIds(fromId, toId)
+    debugId1 = ids.first
+    debugId2 = ids.second
   }
 
   val port1 =

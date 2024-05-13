@@ -18,8 +18,8 @@ import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.time.Duration.Companion.seconds
 
-class WebViewTest {
-  suspend fun doTest(browser: Browser, useFix: Boolean) = coroutineScope {
+class WebViewEchoTest {
+  suspend fun doTestEcho(browser: Browser, useFix: Boolean) = coroutineScope {
     val engine = browser.engine()
     val mainFrame = browser.mainFrame().get()
     val jsWindow = mainFrame.executeJavaScript<JsObject>("window")!!
@@ -142,7 +142,7 @@ class WebViewTest {
   }
 
   @Test
-  fun testBug() = runTest(timeout = 600.seconds) {
+  fun testEchoBug() = runTest(timeout = 600.seconds) {
     withContext(Dispatchers.Default) {
       val engine = Engine.newInstance(EngineOptions.newBuilder(OFF_SCREEN).run {
         this.licenseKey(System.getProperty("jxbrowser.license.key"))
@@ -151,7 +151,7 @@ class WebViewTest {
       val browser = engine.newBrowser()
       browser.devTools().show()
       val useFix = true
-      doTest(browser, useFix)
+      doTestEcho(browser, useFix)
       browser.close()
     }
   }

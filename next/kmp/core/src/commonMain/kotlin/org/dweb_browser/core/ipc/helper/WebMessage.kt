@@ -10,6 +10,11 @@ interface IWebMessageChannel {
 
 interface IWebMessagePort {
   suspend fun start()
+
+  /**
+   * 释放引用
+   */
+  suspend fun unref(){}
   suspend fun close(cause: CancellationException? = null)
   suspend fun postMessage(event: DWebMessage)
   val onMessage: ReceiveChannel<DWebMessage>

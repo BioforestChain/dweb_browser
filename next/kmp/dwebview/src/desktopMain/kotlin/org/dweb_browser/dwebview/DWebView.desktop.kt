@@ -1,5 +1,6 @@
 package org.dweb_browser.dwebview
 
+import com.teamdev.jxbrowser.js.JsException
 import com.teamdev.jxbrowser.js.JsObject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.coroutineScope
@@ -84,15 +85,15 @@ class DWebView(
   override suspend fun historyGoForward(): Boolean = viewEngine.goForward()
 
   override suspend fun createMessageChannel(): IWebMessageChannel {
-    val channel = viewEngine.mainFrame.executeJavaScript<JsObject>("new MessageChannel()")
-    if (channel != null) {
-      val port1 = DWebMessagePort(channel.property<JsObject>("port1").get(), this)
-      val port2 = DWebMessagePort(channel.property<JsObject>("port2").get(), this)
+    val channel =
+      viewEngine.mainFrame.executeJavaScript<JsObject>("new MessageChannel()") ?: throw JsException(
+        "MessageChannel create failed!"
+      )
+    val port1 = DWebMessagePort(channel.property<JsObject>("port1").get(), this)
+    val port2 = DWebMessagePort(channel.property<JsObject>("port2").get(), this)
 
-      return DWebMessageChannel(port1, port2)
-    }
-
-    throw NoSuchFieldException("MessageChannel create failed!")
+    channel.close()
+    return DWebMessageChannel(port1, port2)
   }
 
   override suspend fun postMessage(data: String, ports: List<IWebMessagePort>) {

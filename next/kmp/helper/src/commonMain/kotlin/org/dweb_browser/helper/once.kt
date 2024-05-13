@@ -12,7 +12,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.currentCoroutineContext
 
 
 sealed class SuspendOnceBase<R> {
@@ -83,7 +82,7 @@ sealed class OnceBase<R> {
   internal var hasRun = false
   private var result: Result<R> = noRun
   val haveRun get() = hasRun
-  suspend fun getResult() = result as R
+  suspend fun getResult() = result.getOrThrow()
   fun reset() {
     synchronized(lock) {
       result = noRun

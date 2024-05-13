@@ -35,6 +35,9 @@ const createProcess = async (
   onTerminate: () => void
 ) => {
   const process_id = allocProcessId();
+  try {
+    Object.assign(fetch_port, { __id__: `fetch-ipc:${process_name}` });
+  } catch (_) {}
   const worker_url = URL.createObjectURL(
     new Blob(
       [
@@ -58,12 +61,13 @@ const createProcess = async (
     name: process_name,
   });
   /// 注册worker的生命信号
-  worker.addEventListener("message", function live(event: MessageEvent<string>) {
+  worker.addEventListener("message", function live(event: MessageEvent<string>): void {
     if (typeof event.data === "string" && event.data.startsWith("js-process-live")) {
       worker.removeEventListener("message", live);
       navigator.locks.request(event.data, () => {
         console.info("process die", event.data);
-        onTerminate();
+        queueMicrotask(onTerminate);
+        worker.dispatchEvent(new CloseEvent("close"));
       });
     }
   });
@@ -109,6 +113,12 @@ const createProcess = async (
   };
 };
 
+declare global {
+  interface WorkerEventMap {
+    close: CloseEvent;
+  }
+}
+
 /**
  * 创建 ipc 通信 接受从 js.browser.dweb 传递寄哪里的 port
  * @param process_id
@@ -117,11 +127,23 @@ const createProcess = async (
  * @param env_json
  * @returns
  */
-const createIpc = async (process_id: number, mainfest_json: string, ipc_port: MessagePort, auto_start = false) => {
+const createIpc = async (
+  process_id: number,
+  mainfest_json: string,
+  ipc_port: MessagePort,
+  auto_start = false,
+  onClosed: () => void
+) => {
   const process = _forceGetProcess(process_id);
   const manifest = JSON.parse(mainfest_json) as $MicroModuleManifest;
+  try {
+    Object.assign(ipc_port, { __id__: manifest.mmid });
+  } catch (_) {}
 
   process.worker.postMessage([`ipc-connect/${manifest.mmid}`, manifest, auto_start], [ipc_port]);
+  process.worker.addEventListener("close", () => {
+    onClosed();
+  });
   /// 等待连接任务完成
   const connect_ready_po = new PromiseOut<void>();
   const onBeConnceted = (event: MessageEvent) => {

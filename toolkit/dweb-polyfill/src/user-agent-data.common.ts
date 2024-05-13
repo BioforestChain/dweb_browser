@@ -14,7 +14,7 @@ if (!navigator.userAgentData) {
     let bitness = "";
     let model = "";
     let uaFullVersion = "";
-    let fullVersionList = [];
+    const fullVersionList = [];
     let platformInfo = userAgent;
     let found = false;
     const versionInfo = userAgent.replace(/\(([^)]+)\)?/g, ($0, $1) => {
@@ -163,8 +163,8 @@ if (!navigator.userAgentData) {
     }
   };
   const padVersion = (ver: string, minSegs = 3) => {
-    let parts = ver.split(".");
-    let len = parts.length;
+    const parts = ver.split(".");
+    const len = parts.length;
     if (len < minSegs) {
       for (let i = 0, lenToPad = minSegs - len; i < lenToPad; i += 1) {
         parts.push("0");
