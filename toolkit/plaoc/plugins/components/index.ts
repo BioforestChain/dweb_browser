@@ -10,7 +10,6 @@ export * from "./clipboard/index.ts";
 export * from "./config/index.ts";
 export * from "./device/index.ts";
 export * from "./dweb-service-worker/index.ts";
-export * from "./dweb-update-controller/index.ts";
 export * from "./geolocation/index.ts";
 export * from "./haptics/index.ts";
 export * from "./media/index.ts";
