@@ -51,9 +51,10 @@ class BrowserWebPage(val webView: IDWebView, browserController: BrowserControlle
     }
   }
 
-  override fun onRequestCapture() {
-    if (isDestroy) return
+  override fun onRequestCapture(): Boolean {
+    if (isDestroy) return false
     requestCaptureInCompose()
+    return true
   }
 
   internal fun superUpdateUrl(url: String) {
@@ -75,6 +76,7 @@ class BrowserWebPage(val webView: IDWebView, browserController: BrowserControlle
   }
 
   private val searchEngine: SearchEngine? = null
+
   // 根据url来搜索
   fun loadUrl(url: String) {
     // 判断 url 是否是 webUrl，如果是，直接loadUrl；如果不是，判断之前使用的搜索引擎将关键字替换了，进行搜索

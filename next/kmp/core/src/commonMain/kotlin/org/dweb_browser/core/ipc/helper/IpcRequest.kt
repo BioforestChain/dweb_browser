@@ -131,7 +131,7 @@ internal suspend fun pureChannelToIpcEvent(
       // 这里使用和生命周期一致的 order，以确保对面反能在数据消息接收完后再处理关闭信号
       orderBy = IpcLifecycle.DEFAULT_ORDER,
     )
-    channelIpc.debugIpc(debugTag) { "outChannelData=$ipcDataEvent" }
+//    channelIpc.debugIpc(debugTag) { "outChannelData=$ipcDataEvent" }
     channelIpc.postMessage(ipcDataEvent)
   }
   /// 绑定 channel => ipc 的关闭

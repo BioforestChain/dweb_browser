@@ -68,13 +68,20 @@ sealed class BrowserPage(browserController: BrowserController) {
    * 比方说，IOS与Desktop是混合视图，因此可以重写这个函数，让webview进行截图，然后在 placeholderNode 背后绘制截图内容
    * Android 这是调用 view.invalidate() 从而实现onDraw的触发，从而能够被 captureController 所捕捉到这一帧发生的变化
    */
-  open fun onRequestCapture() {}
+  open fun onRequestCapture(): Boolean {
+    return true
+  }
 
   @OptIn(ExperimentalCoroutinesApi::class)
   fun captureViewInBackground() = synchronized(captureLock) {
     captureJob ?: captureController.captureAsync().also { job ->
       captureJob = job
-      onRequestCapture()
+
+
+      // 如果调用截图失败，释放相关资源
+      if (!onRequestCapture()) {
+        captureJob = null
+      }
       job.invokeOnCompletion { error ->
         if (error == null) {
           thumbnail = job.getCompleted()
