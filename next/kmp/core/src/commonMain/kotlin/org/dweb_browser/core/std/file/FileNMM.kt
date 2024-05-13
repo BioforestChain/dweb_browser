@@ -304,12 +304,14 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
         "/remove" bind PureMethod.DELETE by defineBooleanResponse {
           val (filepath, fs) = getPath()
           val recursive = request.queryAsOrNull<Boolean>("recursive") ?: false
-          if (recursive) {
-            fs.deleteRecursively(filepath, false)
-          } else {
-            fs.delete(filepath, false)
-          }
-          true
+          runCatching {
+            if (recursive) {
+              fs.deleteRecursively(filepath, false)
+            } else {
+              fs.delete(filepath, false)
+            }
+            true
+          }.getOrElse { false }
         },
         "/move" bind PureMethod.GET by defineBooleanResponse {
           val (sourcePath, sourceFs) = getPath("sourcePath")
@@ -418,7 +420,7 @@ class VirtualFsPath(
     }
   }
   private val virtualFirstSegment = virtualFullPath.segments.first()
-  private val virtualFirstPath = "/$virtualFirstSegment".toPath()
+  private val virtualFirstPath = "${virtualFullPath.root?:"/"}$virtualFirstSegment".toPath()
   private val virtualContentPath = virtualFullPath.relativeTo(virtualFirstPath)
 
   private val vfsDirectory = findVfsDirectory(virtualFirstSegment) ?: throw ResponseException(

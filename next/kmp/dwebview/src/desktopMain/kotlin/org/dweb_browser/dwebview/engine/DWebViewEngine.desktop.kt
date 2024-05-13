@@ -87,7 +87,7 @@ class DWebViewEngine internal constructor(
       userDataDirectoryLocks.withLock(remoteMM.mmid) {
         userDataDirectoryInUseMicroModuleSet.getOrPut(remoteMM.mmid) {
           remoteMM.createDir("/data/dwebview")
-          remoteMM.realPath("/data/dwebview").toPath()
+          remoteMM.realPath("/data/dwebview")
         }
       }
 

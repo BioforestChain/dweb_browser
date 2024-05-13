@@ -84,7 +84,7 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
             controller.downloadFactory(downloadTask)
           }
           /// TODO 使用新版的 模块文件系统替代 realPath，比如 file:///$mmid/{$downloadTask.filepath}
-          downloadTask.filepath = realPath(downloadTask.filepath)
+          downloadTask.filepath = realPath(downloadTask.filepath).toString()
           downloadTask.toJsonElement()
         },
         // 开始/恢复 下载

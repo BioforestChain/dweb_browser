@@ -28,15 +28,15 @@ class ZipNMM : NativeMicroModule("zip.browser.dweb", "Zip") {
           val sourcePath = realPath(request.query("sourcePath"))
           val targetPath = realPath(request.query("targetPath"))
           // 先解压到一个临时目录
-          val tmpVfsPath = "/data/tmp/${targetPath.substring(targetPath.lastIndexOf("/") + 1)}"
+          val tmpVfsPath = "/data/tmp/${targetPath.name}"
           // 获取真实目录
           val tmpPath = realPath(tmpVfsPath)
           // 开始解压
-          val ok = decompress(sourcePath, tmpPath)
+          val ok = decompress(sourcePath.toString(), tmpPath.toString())
           if (!ok) {
             return@defineBooleanResponse false
           }
-          return@defineBooleanResponse moveFile(tmpVfsPath, targetPath)
+          return@defineBooleanResponse moveFile(tmpVfsPath, targetPath.toString())
         }
       )
     }

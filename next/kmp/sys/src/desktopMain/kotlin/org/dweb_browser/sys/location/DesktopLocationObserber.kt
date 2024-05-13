@@ -15,7 +15,7 @@ import org.dweb_browser.platform.desktop.webview.WebviewEngine
 class DesktopLocationObserver(override val mm: MicroModule.Runtime) : LocationObserver() {
   companion object {
     val browser = SuspendOnce1 { mm: MicroModule.Runtime ->
-      WebviewEngine.offScreen(mm.realPath("/data/sys-location").toPath().toNioPath()).newBrowser()
+      WebviewEngine.offScreen(mm.realPath("/data/sys-location").toNioPath()).newBrowser()
     }
     val getWebGeolocation = SuspendOnce1 { mm: MicroModule.Runtime ->
       mm.createDir("/data/sys-location")

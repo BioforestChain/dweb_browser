@@ -1,5 +1,6 @@
 package org.dweb_browser.core.std.file.ext
 
+import okio.Path.Companion.toPath
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.pure.http.IPureBody
@@ -40,7 +41,7 @@ suspend fun MicroModule.Runtime.pickFile(path: String) =
 
 suspend fun MicroModule.Runtime.realPath(path: String) = nativeFetch(
   "file://file.std.dweb/realPath?path=$path"
-).text()
+).text().toPath()
 
 suspend fun MicroModule.Runtime.appendFile(path: String, body: IPureBody) {
   nativeFetch(
