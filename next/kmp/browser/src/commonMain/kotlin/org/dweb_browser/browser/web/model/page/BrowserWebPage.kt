@@ -52,6 +52,7 @@ class BrowserWebPage(val webView: IDWebView, browserController: BrowserControlle
   }
 
   override fun onRequestCapture() {
+    if (isDestroy) return
     requestCaptureInCompose()
   }
 
@@ -66,7 +67,10 @@ class BrowserWebPage(val webView: IDWebView, browserController: BrowserControlle
     BrowserWebPageRender(modifier)
   }
 
+  private var isDestroy = false
+
   override suspend fun destroy() {
+    isDestroy = true
     webView.destroy()
   }
 

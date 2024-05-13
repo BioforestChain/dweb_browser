@@ -153,7 +153,7 @@ class MicroModuleStore(
 
   @OptIn(ExperimentalSerializationApi::class)
   suspend inline fun <reified T> set(key: String, value: T) {
-    mm.debugMM("store-set") { "key=$key value=$value" }
+//    mm.debugMM("store-set") { "key=$key value=$value" }
     val store = getStore()
     val newValue = Cbor.encodeToByteArray(value)
     if (!newValue.contentEquals(store[key])) {
