@@ -58,6 +58,9 @@ class PureChannelContext internal constructor(
 
 
   fun close(cause: Throwable? = null) = getChannel().close(cause)
+  val isClosed get() = getChannel().isClosed
+  @OptIn(InternalAPI::class)
+  val onClose = outgoingChannel::invokeOnClose
 }
 
 class PureChannel(
@@ -145,7 +148,12 @@ sealed class PureFrame {
 class PureTextFrame(override val text: String) : PureFrame() {
   override val binary get() = text.encodeToByteArray()
   override fun toString(): String {
-    return "PureTextFrame($text)"
+    return "PureTextFrame(${
+      when (val len = text.length) {
+        in 0..100 -> text
+        else -> text.slice(0..19) + "..." + text.slice(len - 20..<len)
+      }
+    })"
   }
 }
 
@@ -154,7 +162,7 @@ class PureTextFrame(override val text: String) : PureFrame() {
 class PureBinaryFrame(override val binary: ByteArray) : PureFrame() {
   override val text get() = binary.decodeToString()
   override fun toString(): String {
-    return "PureBinaryFrame($text)"
+    return "PureBinaryFrame(size=${binary.size})"
   }
 }
 

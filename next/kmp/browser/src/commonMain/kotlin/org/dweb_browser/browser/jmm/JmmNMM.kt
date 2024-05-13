@@ -1,6 +1,7 @@
 package org.dweb_browser.browser.jmm
 
 import okio.FileSystem
+import okio.Path
 import okio.Path.Companion.toPath
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.core.help.types.IMicroModuleManifest
@@ -87,8 +88,8 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Service") {
       val usr = object : IVirtualFsDirectory {
         override fun isMatch(firstSegment: String) = firstSegment == "usr"
         override val fs: FileSystem = SystemFileSystem
-        override fun getFsBasePath(remote: IMicroModuleManifest) =
-          appsDir.resolve("${remote.mmid}-${remote.version}/usr")
+        override fun getFsBasePath(remote: IMicroModuleManifest, firstPath: Path) =
+          appsDir.resolve("${remote.mmid}-${remote.version}${firstPath}")
       }
       fileTypeAdapterManager.append(adapter = usr).removeWhen(mmScope)
 

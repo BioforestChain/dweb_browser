@@ -2,6 +2,7 @@ package org.dweb_browser.browser.download.ext
 
 import io.ktor.util.encodeBase64
 import kotlinx.serialization.json.Json
+import org.dweb_browser.browser.download.DownloadStateEvent
 import org.dweb_browser.browser.download.DownloadTask
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.createChannel
@@ -13,13 +14,13 @@ import org.dweb_browser.pure.http.PureTextFrame
 
 suspend fun NativeMicroModule.NativeRuntime.createDownloadTask(
   url: String, total: Long? = null, external: Boolean? = null
-): String {
+): DownloadTask {
   // 将 url 转码，避免 url 内容被解析为 parameter，引起下载地址错误
   val encodeUrl = url.encodeToByteArray().encodeBase64()
   val response = nativeFetch(
     url = "file://download.browser.dweb/create?url=$encodeUrl&total=${total ?: 0L}&external=${external ?: false}"
   )
-  return response.text()
+  return response.json<DownloadTask>()
 }
 
 suspend fun NativeMicroModule.NativeRuntime.startDownload(taskId: String) =
@@ -43,13 +44,13 @@ suspend fun NativeMicroModule.NativeRuntime.removeDownload(taskId: String) = nat
   )
 ).boolean()
 
-suspend fun NativeMicroModule.NativeRuntime.createChannelOfDownload(
+suspend fun NativeMicroModule.NativeRuntime.watchDownloadProgress(
   taskId: String, resolve: suspend WatchDownloadContext.() -> Unit,
 ) = createChannel("file://download.browser.dweb/watch/progress?taskId=$taskId") {
   for (pureFrame in income) {
     when (pureFrame) {
       is PureTextFrame -> {
-        WatchDownloadContext(Json.decodeFromString<DownloadTask>(pureFrame.text), this).resolve()
+        WatchDownloadContext(Json.decodeFromString<DownloadStateEvent>(pureFrame.text), this).resolve()
       }
 
       else -> {}
@@ -57,4 +58,4 @@ suspend fun NativeMicroModule.NativeRuntime.createChannelOfDownload(
   }
 }
 
-class WatchDownloadContext(val downloadTask: DownloadTask, val channel: PureChannelContext)
+class WatchDownloadContext(val status: DownloadStateEvent, val channel: PureChannelContext)

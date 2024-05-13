@@ -8,9 +8,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.vector.ImageVector
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.download.DownloadState
+import org.dweb_browser.browser.download.DownloadStateEvent
 import org.dweb_browser.browser.download.DownloadTask
 import org.dweb_browser.browser.download.TaskId
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
@@ -82,20 +82,20 @@ data class JmmHistoryMetadata(
   @SerialName("state")
   private var _state: JmmStatusEvent = JmmStatusEvent(), // 用于显示下载状态
   val installTime: Long = datetimeNow(), // 表示安装应用的时间
-  var upgradeTime: Long = datetimeNow()
+  var upgradeTime: Long = datetimeNow(),
 ) {
   var state by ObservableMutableState(_state) { _state = it }
   var metadata by ObservableMutableState(_metadata) { _metadata = it }
+  suspend fun initDownloadTask(downloadTask: DownloadTask, store: JmmStore) {
+    this.taskId = downloadTask.id
+    updateDownloadStatus(downloadTask.status, store)
+  }
 
-  @Transient
-  var alreadyWatch = false // 为了保证是被用户暂停，还是应用强制退出后，导致的暂停
-
-  suspend fun updateByDownloadTask(downloadTask: DownloadTask, store: JmmStore) {
-    val lastState = state.state
-    state = state.copy(
-      current = downloadTask.status.current,
-      total = downloadTask.status.total,
-      state = when (downloadTask.status.state) {
+  suspend fun updateDownloadStatus(status: DownloadStateEvent, store: JmmStore) {
+    val newStatus = JmmStatusEvent(
+      current = status.current,
+      total = status.total,
+      state = when (status.state) {
         DownloadState.Init -> JmmStatus.Init
         DownloadState.Downloading -> JmmStatus.Downloading
         DownloadState.Paused -> JmmStatus.Paused
@@ -104,7 +104,8 @@ data class JmmHistoryMetadata(
         DownloadState.Completed -> JmmStatus.Completed
       }
     )
-    if (lastState != state.state) { // 只要前后不一样，就进行保存，否则不保存，主要为了防止downloading频繁保存
+    if (newStatus != state) { // 只要前后不一样，就进行保存，否则不保存，主要为了防止downloading频繁保存
+      state = newStatus
       store.saveHistoryMetadata(this.metadata.id, this@JmmHistoryMetadata)
     }
   }
@@ -146,7 +147,7 @@ data class JmmStatusEvent(
 }
 
 fun JmmAppInstallManifest.createJmmHistoryMetadata(
-  url: String, state: JmmStatus = JmmStatus.Init, installTime: Long = datetimeNow()
+  url: String, state: JmmStatus = JmmStatus.Init, installTime: Long = datetimeNow(),
 ) = JmmHistoryMetadata(
   originUrl = url,
   _metadata = this,

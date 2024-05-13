@@ -14,10 +14,10 @@ class BrowserViewModelDownloadImplementor(browserViewModel: BrowserViewModel) : 
     get() = downloadCompletedList + downloadingList
 
   private val downloadCompletedList: List<BrowserDownloadItem>
-    get() = browserViewModel.browserController.downloadController.saveCompleteList
+    get() = browserViewModel.browserController.downloadController.completeList
 
   private val downloadingList: List<BrowserDownloadItem>
-    get() = browserViewModel.browserController.downloadController.saveDownloadList
+    get() = browserViewModel.browserController.downloadController.downloadList
 
   suspend fun resumeDownload(id: UUID) {
     downloadingList.firstOrNull {

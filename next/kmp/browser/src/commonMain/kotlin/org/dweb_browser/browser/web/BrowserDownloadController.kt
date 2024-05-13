@@ -5,14 +5,17 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import io.ktor.http.URLBuilder
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.browser.download.DownloadState
-import org.dweb_browser.browser.download.ext.createChannelOfDownload
+import org.dweb_browser.browser.download.DownloadStateEvent
 import org.dweb_browser.browser.download.ext.createDownloadTask
 import org.dweb_browser.browser.download.ext.currentDownload
 import org.dweb_browser.browser.download.ext.existsDownload
 import org.dweb_browser.browser.download.ext.pauseDownload
 import org.dweb_browser.browser.download.ext.removeDownload
 import org.dweb_browser.browser.download.ext.startDownload
+import org.dweb_browser.browser.download.ext.watchDownloadProgress
 import org.dweb_browser.browser.web.data.BrowserDownloadItem
 import org.dweb_browser.browser.web.data.BrowserDownloadStore
 import org.dweb_browser.browser.web.data.BrowserDownloadType
@@ -29,8 +32,8 @@ class BrowserDownloadController(
 ) {
   private val downloadStore = BrowserDownloadStore(browserNMM)
 
-  val saveDownloadList: MutableList<BrowserDownloadItem> = mutableStateListOf()
-  val saveCompleteList: MutableList<BrowserDownloadItem> = mutableStateListOf()
+  val downloadList: MutableList<BrowserDownloadItem> = mutableStateListOf()
+  val completeList: MutableList<BrowserDownloadItem> = mutableStateListOf()
   private val newDownloadMaps: HashMap<String, BrowserDownloadItem> = hashMapOf() // 保存当前启动后新增的临时列表
   var curDownloadItem by mutableStateOf<BrowserDownloadItem?>(null)
   var alreadyExists by mutableStateOf(false) // 用于判断当前的下载地址是否在 newDownloadMaps 中
@@ -38,10 +41,10 @@ class BrowserDownloadController(
   init {
     // 初始化下载数据
     browserNMM.scopeLaunch(cancelable = true) {
-      saveCompleteList.addAll(downloadStore.getCompleteAll())
-      saveDownloadList.addAll(downloadStore.getDownloadAll())
+      completeList.addAll(downloadStore.getCompleteAll())
+      downloadList.addAll(downloadStore.getDownloadAll())
       var save = false
-      saveDownloadList.forEach { item ->
+      downloadList.forEach { item ->
         if (item.state.state == DownloadState.Downloading) {
           save = true
           val current = item.taskId?.let { taskId -> browserNMM.currentDownload(taskId) } ?: 0L
@@ -59,32 +62,58 @@ class BrowserDownloadController(
   /**
    * 保存下载的数据
    */
-  private fun saveDownloadList(download: Boolean = true, complete: Boolean = false) =
+  private fun saveDownloadList(download: Boolean = true, complete: Boolean = false) {
     browserNMM.scopeLaunch(cancelable = false) {
-      if (download) downloadStore.saveDownloadList(saveDownloadList)
-      if (complete) downloadStore.saveCompleteList(saveCompleteList)
+      downloadStore.saveDownloadList(downloadList)
     }
+  }
+
+  private fun saveCompleteList() {
+    browserNMM.scopeLaunch(cancelable = false) {
+      downloadStore.saveCompleteList(completeList)
+    }
+  }
+
+  private val downloadLock = Mutex()
 
   /**
    * 创建任务，如果存在则恢复
    */
-  suspend fun startDownload(item: BrowserDownloadItem) {
-    val exist = item.taskId?.let { browserNMM.existsDownload(it) } ?: false
-    if (!exist) {
-      item.taskId = browserNMM.createDownloadTask(
+  suspend fun startDownload(item: BrowserDownloadItem) = downloadLock.withLock {
+    var taskId = item.taskId
+    if (taskId == null || browserNMM.existsDownload(taskId)) {
+      val downloadTask = browserNMM.createDownloadTask(
         item.downloadArgs.url, item.downloadArgs.contentLength, external = true
       )
-      item.alreadyWatch = false
+      item.taskId = downloadTask.id
+      taskId = downloadTask.id
 
-      // 如果重新下载时，需要将 已完成 和 下载中 列表的数据删除，然后将该记录插入到 下载中 的列表
-      saveCompleteList.remove(item)
-      saveDownloadList.remove(item)
-      saveDownloadList.add(0, item)
-      saveDownloadList(complete = true)
+      /// 如果重新下载时，需要将 已完成 和 下载中 列表的数据删除，然后将该记录插入到 下载中 的列表
+      completeList.remove(item)
+      saveCompleteList()
+
+      downloadList.remove(item)
+      downloadList.add(0, item)
+      saveCompleteList()
+
+      /// 监听
+      browserNMM.scopeLaunch(cancelable = true) {
+        if (watchProcess(taskId, item)) {
+          // 如果是完成的话，需要添加到 “已下载”列表并保存，如果是其他状态，直接保存“下载中”列表
+          if (downloadTask.status.state == DownloadState.Completed) {
+            downloadList.remove(item)
+            saveDownloadList()
+
+            completeList.add(0, item)
+            item.filePath = downloadTask.filepath // 保存下载路径
+            saveCompleteList()
+          } else {
+            saveDownloadList()
+          }
+        }
+      }
     }
-    if (!item.alreadyWatch) {
-      watchProcess(browserDownloadItem = item)
-    }
+
     browserNMM.startDownload(item.taskId!!)
   }
 
@@ -92,48 +121,35 @@ class BrowserDownloadController(
     browserNMM.pauseDownload(taskId)
   }
 
-  private suspend fun watchProcess(browserDownloadItem: BrowserDownloadItem) {
-    val taskId = browserDownloadItem.taskId ?: return
-    browserNMM.scopeLaunch(cancelable = true) {
-      browserDownloadItem.alreadyWatch = true
-      val res = browserNMM.createChannelOfDownload(taskId) {
-        val lastState = browserDownloadItem.state.state
-        browserDownloadItem.state = browserDownloadItem.state.copy(
-          current = downloadTask.status.current,
-          total = downloadTask.status.total,
-          state = downloadTask.status.state
-        )
-        if (lastState != downloadTask.status.state) {
-          // 如果是完成的话，需要添加到 “已下载”列表并保存，如果是其他状态，直接保存“下载中”列表
-          if (downloadTask.status.state == DownloadState.Completed) {
-            saveDownloadList.remove(browserDownloadItem)
-            saveCompleteList.add(0, browserDownloadItem)
-            browserDownloadItem.filePath = browserNMM.realPath(downloadTask.filepath) // 保存下载路径
-            saveDownloadList(complete = true)
-          } else {
-            saveDownloadList()
-          }
-        }
-        when (downloadTask.status.state) {
-          DownloadState.Completed -> {
-            // 关闭watchProcess
-            channel.close()
-            browserDownloadItem.alreadyWatch = false
-          }
 
-          else -> {}
-        }
+  private suspend fun watchProcess(
+    taskId: String,
+    browserDownloadItem: BrowserDownloadItem,
+  ): Boolean {
+    var success = false;
+    browserNMM.watchDownloadProgress(taskId) {
+      if (status.state == DownloadState.Completed) {
+        success = true
       }
-      debugBrowser("watchProcess", "/watch process error=>$res")
+      val newStatus = DownloadStateEvent(
+        current = status.current, total = status.total, state = status.state
+      )
+      if (newStatus != browserDownloadItem.state) {
+        browserDownloadItem.state = newStatus
+        saveDownloadList()
+      }
     }
+    return success
   }
 
   fun deleteDownloadItems(list: List<BrowserDownloadItem>) =
     browserNMM.scopeLaunch(cancelable = true) {
       list.forEach { item -> item.taskId?.let { taskId -> browserNMM.removeDownload(taskId) } }
-      saveCompleteList.removeAll(list)
-      saveDownloadList.removeAll(list)
-      saveDownloadList(download = true, complete = true)
+      completeList.removeAll(list)
+      saveCompleteList()
+
+      downloadList.removeAll(list)
+      saveDownloadList()
     }
 
   /**
@@ -155,10 +171,7 @@ class BrowserDownloadController(
         var index = 1
         var tmpName: String = name
         do {
-          if (
-            saveDownloadList.firstOrNull { it.fileName == tmpName && it.urlKey == urlKey } == null &&
-            saveCompleteList.firstOrNull { it.fileName == tmpName && it.urlKey == urlKey } == null
-          ) {
+          if (downloadList.firstOrNull { it.fileName == tmpName && it.urlKey == urlKey } == null && completeList.firstOrNull { it.fileName == tmpName && it.urlKey == urlKey } == null) {
             fileName = tmpName
             break
           }

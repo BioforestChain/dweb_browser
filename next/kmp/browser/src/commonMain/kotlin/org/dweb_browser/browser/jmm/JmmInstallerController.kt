@@ -8,7 +8,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.browser.jmm.ui.Render
-import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.compose.ObservableMutableState
 import org.dweb_browser.helper.compose.compositionChainOf
 import org.dweb_browser.sys.window.core.modal.WindowBottomSheetsController
@@ -70,6 +69,7 @@ class JmmInstallerController(
     bottomSheets.onClose {
     }
   }
+
   /**安装完成后打开app*/
   suspend fun openApp() {
     closeSelf() // 打开应用之前，需要关闭当前安装界面，否则在原生窗口的层级切换会出现问题
@@ -84,9 +84,8 @@ class JmmInstallerController(
   /**
    * 创建任务，如果存在则恢复
    */
-  suspend fun createAndStartDownload(): Boolean {
-    jmmController.createDownloadTask(installMetadata)
-    return jmmController.startDownloadTask(installMetadata)
+  suspend fun createAndStartDownload() {
+    jmmController.startDownloadTask(installMetadata)
   }
 
   suspend fun startDownload() = jmmController.startDownloadTask(installMetadata)

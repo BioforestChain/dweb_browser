@@ -9,6 +9,7 @@ import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.helper.OrderInvoker
+import org.dweb_browser.helper.SafeHashMap
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.encodeURIComponent
 import org.dweb_browser.helper.getOrPut
@@ -83,15 +84,15 @@ class MicroModuleStore(
       }
 
       val result: MutableMap<String, ByteArray> = when {
-        data.isEmpty() -> mutableMapOf()
-        else -> Cbor.decodeFromByteArray(data)
+        data.isEmpty() -> SafeHashMap()
+        else -> SafeHashMap(Cbor.decodeFromByteArray(data))
       }
       mm.debugMM("store-init-data", result)
       result
     } catch (e: Throwable) {
       // debugger(e)
       mm.debugMM("store-init-error", null, e)
-      mutableMapOf()
+      SafeHashMap()
     }
   }
 

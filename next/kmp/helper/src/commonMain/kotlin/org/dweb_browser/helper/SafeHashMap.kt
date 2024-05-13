@@ -3,8 +3,7 @@ package org.dweb_browser.helper
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
 
-class SafeHashMap<K, V> : MutableMap<K, V> {
-  val origin = mutableMapOf<K, V>()
+class SafeHashMap<K, V>(val origin: MutableMap<K, V> = mutableMapOf()) : MutableMap<K, V> {
   val lock = SynchronizedObject()
   inline fun <T> sync(block: MutableMap<K, V>.() -> T) = synchronized(lock) { origin.block() }
   override val size get() = sync { size }

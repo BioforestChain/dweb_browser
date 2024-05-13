@@ -24,17 +24,19 @@ suspend fun MicroModule.Runtime.existFile(path: String) = nativeFetch(
   "file://file.std.dweb/exist?path=$path"
 ).boolean()
 
-suspend fun MicroModule.Runtime.readFile(path: String, create: Boolean = false) = nativeFetch(
-  "file://file.std.dweb/read?path=$path&create=$create"
-)
+suspend fun MicroModule.Runtime.readFile(path: String, create: Boolean = false) =
+  nativeFetch(
+    "file://file.std.dweb/read?path=$path&create=$create"
+  )
 
 suspend fun MicroModule.Runtime.infoFile(path: String) = nativeFetch(
   "file://file.std.dweb/info?path=$path"
 ).text()
 
-suspend fun MicroModule.Runtime.pickFile(path: String) = nativeFetch(
-  "file://file.std.dweb/picker?path=$path"
-).text()
+suspend fun MicroModule.Runtime.pickFile(path: String) =
+  nativeFetch(
+    "file://file.std.dweb/picker?path=$path"
+  ).text()
 
 suspend fun MicroModule.Runtime.realPath(path: String) = nativeFetch(
   "file://file.std.dweb/realPath?path=$path"

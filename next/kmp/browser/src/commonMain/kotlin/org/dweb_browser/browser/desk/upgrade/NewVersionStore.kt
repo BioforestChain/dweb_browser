@@ -4,8 +4,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
 import org.dweb_browser.browser.download.DownloadState
+import org.dweb_browser.browser.download.DownloadStateEvent
 import org.dweb_browser.browser.download.DownloadTask
 import org.dweb_browser.browser.download.TaskId
 import org.dweb_browser.core.module.MicroModule
@@ -14,16 +14,18 @@ import org.dweb_browser.helper.compose.ObservableMutableState
 import org.dweb_browser.helper.datetimeNow
 
 @Serializable
-data class NewVersionItem(
+class NewVersionItem(
   val originUrl: String,
-  val versionCode: Long = datetimeNow(), // 暂时不确定是否用到，先申明一个预留字段
   val versionName: String,
-  val description: String? = null, //表示升级内容描述
-  var taskId: TaskId? = null,
-  @SerialName("status")
-  private var _status: NewVersionStatus = NewVersionStatus(),
-  val forceUpdate: Boolean = false, // 是否强制更新
 ) {
+  val versionCode: Long = datetimeNow() // 暂时不确定是否用到，先申明一个预留字段
+  val description: String? = null  //表示升级内容描述
+
+  @SerialName("status")
+  private var _status: NewVersionStatus = NewVersionStatus()
+  val forceUpdate: Boolean = false  // 是否强制更新
+  var taskId: TaskId? = null
+
   @Serializable
   data class NewVersionStatus(
     val current: Long = 0,
@@ -33,22 +35,16 @@ data class NewVersionItem(
 
   var status by ObservableMutableState(_status) { _status = it }
 
-  @Transient
-  var alreadyWatch: Boolean = false
-
-  suspend fun updateTaskId(taskId: TaskId, store: NewVersionStore) {
-    this.taskId = taskId
-    store.setNewVersion(this)
+  suspend fun initDownloadTask(downloadTask: DownloadTask, store: NewVersionStore) {
+    this.taskId = downloadTask.id
+    this.updateDownloadStatus(downloadTask.status, store)
   }
 
-  suspend fun updateDownloadTask(downloadTask: DownloadTask, store: NewVersionStore) {
-    val lastState = this.status.state
-    this.status = this.status.copy(
-      current = downloadTask.status.current,
-      total = downloadTask.status.total,
-      state = downloadTask.status.state
-    )
-    if (lastState != this.status.state) {
+  suspend fun updateDownloadStatus(status: DownloadStateEvent, store: NewVersionStore) {
+    val newStatus =
+      NewVersionStatus(current = status.current, total = status.total, state = status.state)
+    if (newStatus != this.status) {
+      this.status = newStatus
       store.setNewVersion(this)
     }
   }

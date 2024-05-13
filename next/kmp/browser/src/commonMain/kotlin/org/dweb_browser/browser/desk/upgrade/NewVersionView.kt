@@ -24,7 +24,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -151,7 +151,9 @@ private fun NewVersionController.DialogNewVersion() {
 @Composable
 private fun NewVersionController.DialogDownloadView() {
   val newVersion = newVersionItem ?: return
-  LaunchedEffect(Unit) { downloadApp() }
+  SideEffect {
+    deskNMM.scopeLaunch(cancelable = true) { downloadApp() }
+  }
   DialogContent(
     title = {
       Column(

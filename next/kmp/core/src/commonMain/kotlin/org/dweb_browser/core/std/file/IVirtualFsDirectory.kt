@@ -25,7 +25,7 @@ interface IVirtualFsDirectory {
    * 如果是文件系统
    * 获取真实的基本路径
    */
-  fun getFsBasePath(remote: IMicroModuleManifest): Path
+  fun getFsBasePath(remote: IMicroModuleManifest, firstPath: Path): Path
 }
 
 /**
@@ -35,7 +35,8 @@ fun commonVirtualFsDirectoryFactory(firstSegmentFlags: String, nativeFsPath: Pat
   object : IVirtualFsDirectory {
     override fun isMatch(firstSegment: String) = firstSegment == firstSegmentFlags
     override val fs: FileSystem = SystemFileSystem
-    override fun getFsBasePath(remote: IMicroModuleManifest) = nativeFsPath.resolve(remote.mmid)
+    override fun getFsBasePath(remote: IMicroModuleManifest, firstPath: Path) =
+      nativeFsPath.resolve(remote.mmid)
   }
 
 fun commonVirtualFsDirectoryFactory(firstSegment: String, nativeFsPath: String) =

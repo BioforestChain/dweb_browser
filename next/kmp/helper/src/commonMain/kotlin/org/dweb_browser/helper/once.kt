@@ -48,8 +48,12 @@ sealed class SuspendOnceBase<R> {
   }
 }
 
-class SuspendOnce<R>(val runnable: suspend CoroutineScope.() -> R) : SuspendOnceBase<R>() {
+class SuspendOnce<R>(
+  private val before: (suspend (SuspendOnce<R>.() -> Unit))? = null,
+  val runnable: suspend CoroutineScope.() -> R,
+) : SuspendOnceBase<R>() {
   suspend operator fun invoke(): R {
+    before?.invoke(this)
     return doInvoke {
       async(SupervisorJob(), start = CoroutineStart.UNDISPATCHED) {
         runnable()

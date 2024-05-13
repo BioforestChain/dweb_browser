@@ -30,8 +30,8 @@ class BrowserDownloadPage(
   }
 
   private val downloadController = browserController.downloadController
-  val saveDownloadList = downloadController.saveDownloadList
-  val saveCompleteList = downloadController.saveCompleteList
+  val saveDownloadList = downloadController.downloadList
+  val saveCompleteList = downloadController.completeList
 
   override fun isUrlMatch(url: String) = isDownloadUrl(url)
 

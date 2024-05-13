@@ -30,6 +30,7 @@ import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureStream
 import org.dweb_browser.pure.http.queryAsOrNull
+import org.dweb_browser.pure.io.SystemFileSystem
 import org.dweb_browser.pure.io.copyTo
 import org.dweb_browser.pure.io.toByteReadChannel
 
@@ -43,13 +44,19 @@ val debugFile = Debugger("file")
 class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
 
   companion object {
+    val nativeFileSystem = object : IVirtualFsDirectory {
+      override fun isMatch(firstSegment: String) = true
+      override val fs: FileSystem = SystemFileSystem
+      override fun getFsBasePath(remote: IMicroModuleManifest, firstPath: Path) = firstPath
+    }
+
     internal fun findVfsDirectory(firstSegment: String): IVirtualFsDirectory? {
       for (adapter in fileTypeAdapterManager.adapters) {
         if (adapter.isMatch(firstSegment)) {
           return adapter
         }
       }
-      return null
+      return nativeFileSystem
     }
 
     /// TODO 这个函数给出来是给内部使用的
@@ -124,38 +131,39 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
       }
     }
 
+    private val sysFileSystem = object : IVirtualFsDirectory {
+      override fun isMatch(firstSegment: String) = firstSegment == "sys"
+      override val fs: FileSystem = ResourceFileSystem.FileSystem
+      val basePath = "/".toPath()
+      override fun getFsBasePath(remote: IMicroModuleManifest, firstPath: Path) = basePath
+    }
+    private val pickerFileSystem = object : IVirtualFsDirectory {
+      override fun isMatch(firstSegment: String) = firstSegment == "picker"
+      override val fs: FileSystem = PickerFileSystem.FileSystem
+      val basePath = "/picker".toPath()
+      override fun getFsBasePath(remote: IMicroModuleManifest, firstPath: Path) = firstPath
+      val getPickerFile = PickerFileSystem::getPickerFile
+    }
+
     override suspend fun _bootstrap() {
       /// file:///data/*
       getDataVirtualFsDirectory().also {
-        debugFile("DIR/DATA", it.getFsBasePath(this))
         fileTypeAdapterManager.append(adapter = it).removeWhen(mmScope)
       }
       /// file:///cache/*
       getCacheVirtualFsDirectory().also {
-        debugFile("DIR/CACHE", it.getFsBasePath(this))
         fileTypeAdapterManager.append(adapter = it).removeWhen(mmScope)
       }
       /// file:///download/*
       getExternalDownloadVirtualFsDirectory().also {
-        debugFile("DIR/Ext Download", it.getFsBasePath(this))
         fileTypeAdapterManager.append(adapter = it).removeWhen(mmScope)
       }
 
       /// file:///sys/*
-      fileTypeAdapterManager.append(adapter = object : IVirtualFsDirectory {
-        override fun isMatch(firstSegment: String) = firstSegment == "sys"
-        override val fs: FileSystem = ResourceFileSystem.FileSystem
-        val basePath = "/".toPath()
-        override fun getFsBasePath(remote: IMicroModuleManifest) = basePath
-      }).removeWhen(mmScope)
+      fileTypeAdapterManager.append(adapter = sysFileSystem).removeWhen(mmScope)
 
       /// file:///picker/*
-      fileTypeAdapterManager.append(adapter = object : IVirtualFsDirectory {
-        override fun isMatch(firstSegment: String) = firstSegment == "picker"
-        override val fs: FileSystem = PickerFileSystem.FileSystem
-        val basePath = "/".toPath()
-        override fun getFsBasePath(remote: IMicroModuleManifest) = basePath
-      }).removeWhen(mmScope)
+      fileTypeAdapterManager.append(adapter = pickerFileSystem).removeWhen(mmScope)
 
       /// nativeFetch 适配 file:///*/** 的请求
       nativeFetchAdaptersManager.append(order = 2) { fromMM, request ->
@@ -359,12 +367,22 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
         "/picker" bind PureMethod.GET by defineStringResponse {
           val (realPath, fs) = getPath()
           val name = realPath.name
-          val pickerPathString = "/picker/${randomUUID()}/${name}"
+          val pickerPathString =
+            pickerFileSystem.basePath.resolve("${randomUUID()}/${name}").toString()
           PickerFileSystem.files[pickerPathString] = PickerFileSystem.PickerFile(fs, realPath)
           pickerPathString
         },
         "/realPath" bind PureMethod.GET by defineStringResponse {
-          getVfsPath().fsFullPath.toString()
+          var (path, fs) = getPath()
+          /// 解除开picker的递归
+          while (fs == pickerFileSystem.fs) {
+            val pickerFile = pickerFileSystem.getPickerFile(path)
+            if (pickerFile != null) {
+              path = pickerFile.path
+              fs = pickerFile.fs
+            }
+          }
+          path.toString()
         },
       )
     }
@@ -406,7 +424,7 @@ class VirtualFsPath(
   private val vfsDirectory = findVfsDirectory(virtualFirstSegment) ?: throw ResponseException(
     HttpStatusCode.NotFound, "No found top-folder: $virtualFirstSegment"
   )
-  private val fsBasePath = vfsDirectory.getFsBasePath(context)
+  private val fsBasePath = vfsDirectory.getFsBasePath(context, virtualFirstPath)
   val fsFullPath = fsBasePath.resolve(virtualContentPath)
   val fs = vfsDirectory.fs
 

@@ -26,7 +26,7 @@ class ZipNMM : NativeMicroModule("zip.browser.dweb", "Zip") {
       routes(
         "/decompress" bind PureMethod.GET by defineBooleanResponse {
           val sourcePath = realPath(request.query("sourcePath"))
-          val targetPath = request.query("targetPath")
+          val targetPath = realPath(request.query("targetPath"))
           // 先解压到一个临时目录
           val tmpVfsPath = "/data/tmp/${targetPath.substring(targetPath.lastIndexOf("/") + 1)}"
           // 获取真实目录

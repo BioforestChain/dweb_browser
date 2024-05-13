@@ -1,6 +1,5 @@
 package org.dweb_browser.browser.jmm
 
-import kotlinx.coroutines.launch
 import org.dweb_browser.browser.jmm.ui.ManagerViewRender
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.windowAdapterManager
@@ -42,7 +41,6 @@ class JmmHistoryController(
 
       JmmStatus.Completed -> {}
       else -> {
-        jmmController.createDownloadTask(historyMetadata)
         jmmController.startDownloadTask(historyMetadata)
       }
     }
