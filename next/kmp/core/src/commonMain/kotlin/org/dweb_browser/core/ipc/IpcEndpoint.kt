@@ -34,10 +34,8 @@ import org.dweb_browser.helper.SafeHashMap
 import org.dweb_browser.helper.SafeLinkList
 import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.SuspendOnce1
-import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.randomUUID
-import org.dweb_browser.helper.traceTimeout
 import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.helper.withScope
 import kotlin.math.max
@@ -59,7 +57,7 @@ abstract class IpcEndpoint {
   internal val forkedIpcMap = SafeHashMap<Int, CompletableDeferred<Ipc>>()
 
   suspend fun waitForkedIpc(pid: Int): Ipc {
-    val ipc = traceTimeout(1000, "waitForkedIpc", { "ipcEndpoint=$this pid=$pid" }) {
+    val ipc = debugEndpoint.timeout(1000, "waitForkedIpc", { "pid=$pid" }) {
       forkedIpcMap.getOrPut(pid) { CompletableDeferred() }.await()
     }
     return ipc
@@ -303,7 +301,7 @@ abstract class IpcEndpoint {
       else -> {}
     }
     beforeClose?.invoke(cause)
-    traceTimeout(1000, "doClose", { "ipcEndpoint=${this@IpcEndpoint}" }) {
+    debugEndpoint.timeout(1000, "doClose") {
       // 等待所有长任务完成
       launchJobs.joinAll()
     }

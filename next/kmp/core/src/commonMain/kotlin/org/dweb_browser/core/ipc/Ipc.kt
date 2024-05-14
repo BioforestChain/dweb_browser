@@ -45,7 +45,6 @@ import org.dweb_browser.helper.SuspendOnce1
 import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.asProducerWithOrder
 import org.dweb_browser.helper.collectIn
-import org.dweb_browser.helper.traceTimeout
 import org.dweb_browser.helper.withScope
 import org.dweb_browser.pure.http.IPureBody
 import org.dweb_browser.pure.http.PureClientRequest
@@ -125,7 +124,7 @@ class Ipc internal constructor(
       lifecycleLocaleFlow.emit(closed)
       runCatching { sendLifecycleToRemote(closed) }.getOrNull()
     }
-    traceTimeout(1000, "close", { "ipc=${this@Ipc}" }) {
+    debugIpc.timeout(1000, "close") {
       launchJobs.joinAll()
     }
     scope.cancel(cause)
