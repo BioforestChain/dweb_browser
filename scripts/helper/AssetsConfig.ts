@@ -6,7 +6,7 @@ import { emptyDirSync } from "@std/fs/empty-dir";
 import fs from "node:fs";
 import os from "node:os";
 import node_path from "node:path";
-import { createBaseResolveTo } from "./ConTasks.helper.ts";
+import { createBaseResolveTo } from "./resolveTo.ts";
 import { $ } from "./exec.ts";
 
 const rootResolve = createBaseResolveTo(import.meta.resolve("../../"));

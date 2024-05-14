@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import node_path from "node:path";
 import { Chalk } from "npm:chalk";
-import { createBaseResolveTo } from "../../../scripts/helper/ConTasks.helper.ts";
+import { createBaseResolveTo } from "../../../scripts/helper/resolveTo.ts";
 import { $BuildOptions, ESBuild } from "../../../scripts/helper/ESBuild.ts";
 import { npmNameToFolder } from "../../../scripts/helper/npmBuilder.ts";
 const chalk = new Chalk({ level: 3 });
