@@ -64,7 +64,9 @@ class RunningApp(
     /// 窗口销毁的时候
     newWin.onClose {
       /// 通知模块，销毁渲染
-      ipc.postMessage(IpcEvent.createRendererDestroy(newWin.id))
+      runCatching {// ipc 可能已经关闭掉了
+        ipc.postMessage(IpcEvent.createRendererDestroy(newWin.id))
+      }
       // 移除渲染适配器
       windowAdapterManager.renderProviders.remove(newWin.id)
       // 从引用中移除

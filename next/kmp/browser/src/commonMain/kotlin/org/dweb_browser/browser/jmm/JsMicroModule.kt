@@ -137,18 +137,18 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
         fileIpc.start(await = false)
         val fetchIpc2 = jsProcess.fetchIpc.fork(remote = fileIpc.remote)
         fetchIpc2.start(await = false)
-        fileIpc.onEvent("file~event~>fetch").collectIn(mmScope) { msgEvent ->
+        fileIpc.onEvent("file~(event)~>fetch").collectIn(mmScope) { msgEvent ->
           fetchIpc2.postMessage(msgEvent.consume())
         }
-        fetchIpc2.onEvent("fetch~event~file").collectIn(mmScope) { msgEvent ->
+        fetchIpc2.onEvent("fetch~(event)~>file").collectIn(mmScope) { msgEvent ->
           fileIpc.postMessage(msgEvent.consume())
         }
-        fileIpc.onRequest("file~request~>fetch").collectIn(mmScope) { msgEvent ->
+        fileIpc.onRequest("file~(request)~>fetch").collectIn(mmScope) { msgEvent ->
           val request = msgEvent.consume()
           val response = fetchIpc2.request(request.toPure().toClient())
           fetchIpc2.postResponse(request.reqId, response)
         }
-        fetchIpc2.onRequest("fetch~request~file").collectIn(mmScope) { msgEvent ->
+        fetchIpc2.onRequest("fetch~(request)~>file").collectIn(mmScope) { msgEvent ->
           val request = msgEvent.consume()
           val response = fileIpc.request(request.toPure().toClient())
           fetchIpc2.postResponse(request.reqId, response)
