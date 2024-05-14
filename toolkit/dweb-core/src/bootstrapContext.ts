@@ -17,9 +17,8 @@ export interface $DnsMicroModule {
    * @param reason
    */
   connect(mmid: $MMID, reason?: Request): $PromiseMaybe<Ipc>;
-  request(url: string): Promise<IpcResponse>;
   query(mmid: $MMID): Promise<$MicroModuleManifest | undefined>;
-  queryDeeplink(request: string): Promise<$MMID | undefined>;
+  queryDeeplink(deeplinkHref: string): Promise<$MicroModuleManifest | undefined>;
   /**
    * 根据类目搜索模块
    * > 这里暂时不需要支持复合搜索，未来如果有需要另外开接口

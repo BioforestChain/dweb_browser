@@ -141,7 +141,7 @@ open class DesktopController private constructor(
 
   private val appSortList = DaskSortStore(deskNMM)
   suspend fun getDesktopApps(): List<DeskAppMetaData> {
-    val apps = deskNMM.bootstrapContext.dns.search(MICRO_MODULE_CATEGORY.Application)
+    val apps = deskNMM.bootstrapContext.dns.search(MICRO_MODULE_CATEGORY.Application).toMutableList()
     // 简单的排序再渲染
     val sortList = appSortList.getApps()
     apps.sortBy { sortList.indexOf(it.mmid) }

@@ -42,6 +42,7 @@ import org.dweb_browser.helper.SafeHashMap
 import org.dweb_browser.helper.SafeLinkList
 import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.SuspendOnce1
+import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.asProducerWithOrder
 import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.traceTimeout
@@ -419,9 +420,14 @@ class Ipc internal constructor(
 
   /**发送各类消息到remote*/
   suspend fun postMessage(data: IpcMessage) {
-    awaitOpen("then-postMessage")
-    withScope(scope) {
-      endpoint.postIpcMessage(EndpointIpcMessage(pid, data))
+    runCatching {
+      awaitOpen("then-postMessage")
+      withScope(scope) {
+        endpoint.postIpcMessage(EndpointIpcMessage(pid, data))
+      }
+    }.getOrElse {
+      WARNING("fail to postMessage: $data")
+      WARNING(it)
     }
   }
 

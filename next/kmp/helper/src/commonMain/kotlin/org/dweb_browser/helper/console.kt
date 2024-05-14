@@ -29,7 +29,12 @@ fun debugger(@Suppress("UNUSED_PARAMETER") vararg params: Any?) {
 
 expect fun eprintln(message: String)
 
-fun WARNING(message: String) = eprintln("WARNING: $message")
+fun WARNING(message: Any?) {
+  val msg = if (message is Throwable) {
+    message.stackTraceToString()
+  } else message.toString()
+  eprintln(msg.split("\n").joinToString("\n") { "⚠️ | $it" })
+}
 
 //  scope.async(block=block).await()
 

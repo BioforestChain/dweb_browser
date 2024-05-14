@@ -139,7 +139,12 @@ export class JsProcessMicroModule extends MicroModule {
         }
       });
     });
-    const ctx: $BootstrapContext = {
+
+    const dnsRequest = async (pathname: string) => {
+      const dnsIpc = await this.runtime.connect("dns.std.dweb");
+      return await dnsIpc.request(`file://dns.std.dweb${pathname}`);
+    };
+    const ctx = {
       dns: {
         connect: (mmid: `${string}.dweb`, reason?: Request | undefined): $PromiseMaybe<core.Ipc> => {
           this.console.log("connect", mmid);
@@ -154,51 +159,47 @@ export class JsProcessMicroModule extends MicroModule {
 
           return po.promise;
         },
-        async request(url: string): Promise<core.IpcResponse> {
-          const dnsIpc = await this.connect("dns.std.dweb");
-          return await dnsIpc.request(`file://dns.std.dweb${url}`);
-        },
         async install(mmid: `${string}.dweb`): Promise<void> {
-          await this.request(`/install?app_id=${mmid}`);
+          await dnsRequest(`/install?app_id=${mmid}`);
         },
         uninstall: async function (mmid: `${string}.dweb`): Promise<boolean> {
-          const response = await this.request(`/install?app_id=${mmid}`);
+          const response = await dnsRequest(`/install?app_id=${mmid}`);
           return (await response.body.text()) === "true";
         },
         async query(mmid: `${string}.dweb`): Promise<core.$MicroModuleManifest | undefined> {
-          const response = await this.request(`/query?app_id=${mmid}`);
+          const response = await dnsRequest(`/query?app_id=${mmid}`);
           const manifest = await response.body.text();
           if (manifest === "") {
             return undefined;
           }
           return JSON.parse(manifest);
         },
-        async queryDeeplink(url: string): Promise<$MMID | undefined> {
-          const response = await this.request(`/queryDeeplink?deeplink=${url}`);
-          const mmid = await response.body.text();
-          if (mmid === "") {
+        async queryDeeplink(url: string): Promise<core.$MicroModuleManifest | undefined> {
+          const response = await dnsRequest(`/queryDeeplink?deeplink=${url}`);
+          const manifest = await response.body.text();
+          if (manifest === "") {
             return undefined;
           }
-          return mmid as $MMID;
+          return JSON.parse(manifest);
         },
         async search(category: MICRO_MODULE_CATEGORY): Promise<core.$MicroModuleManifest[]> {
-          const response = await this.request(`/search?category=${category}`);
+          const response = await dnsRequest(`/search?category=${category}`);
           const manifest = await response.body.text();
           return JSON.parse(manifest);
         },
         async open(mmid: `${string}.dweb`): Promise<boolean> {
-          const response = await this.request(`/open?app_id=${mmid}`);
+          const response = await dnsRequest(`/open?app_id=${mmid}`);
           return (await response.body.text()) === "true";
         },
         async close(mmid: `${string}.dweb`): Promise<boolean> {
-          const response = await this.request(`/mmid?app_id=${mmid}`);
+          const response = await dnsRequest(`/mmid?app_id=${mmid}`);
           return (await response.body.text()) === "true";
         },
         async restart(mmid: `${string}.dweb`): Promise<void> {
-          await this.request(`/restart?app_id=${mmid}`);
+          await dnsRequest(`/restart?app_id=${mmid}`);
         },
       },
-    };
+    } satisfies $BootstrapContext;
     this.fetchIpc.onClosed(() => {
       console.debug("fetch-ipc closed, then close the js-process-worker.");
       workerGlobal.close();
