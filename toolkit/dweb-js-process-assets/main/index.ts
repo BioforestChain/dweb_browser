@@ -64,7 +64,7 @@ const createProcess = async (
   worker.addEventListener("message", function live(event: MessageEvent<string>): void {
     if (typeof event.data === "string" && event.data.startsWith("js-process-live")) {
       worker.removeEventListener("message", live);
-      navigator.locks.request(event.data, () => {
+      navigator.locks?.request(event.data, () => {
         console.info("process die", event.data);
         queueMicrotask(onTerminate);
         worker.dispatchEvent(new CloseEvent("close"));

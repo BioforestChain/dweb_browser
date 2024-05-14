@@ -383,7 +383,7 @@ const waitFetchPort = () => {
     /// worker的生命信号
     const processLive = `js-process-live-${crypto.randomUUID()}`;
     console.info("process live", processLive);
-    navigator.locks.request(processLive, () => {
+    navigator.locks?.request(processLive, () => {
       postMessage(processLive);
       return new PromiseOut().promise;
     });

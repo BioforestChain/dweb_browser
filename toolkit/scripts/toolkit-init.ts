@@ -11,7 +11,7 @@ export const toolkitInit = async (options: { npmInstall?: boolean } = {}) => {
   await npmInit();
   if (npmInstall) {
     //await $(`pnpm install`);
-    await $(`pnpm install`, undefined, {useWhich: true});
+    await $(`pnpm install`, undefined, { useWhich: true });
   }
 };
 export const npmInit = async () => {
@@ -23,7 +23,7 @@ export const npmInit = async () => {
     const packageJsonFile = node_path.resolve(npmDir, "./package.json");
     if (!fs.existsSync(packageJsonFile)) {
       fs.mkdirSync(npmDir, { recursive: true });
-      // TODO 这里应该从项目中寻找同名的 package.json 源文件来进行拷贝
+      // TODO 这里应该先移除 exports、imports 配置
       fs.writeFileSync(packageJsonFile, JSON.stringify(toolkitPackageJsons.get(npmName) ?? { name: npmName }, null, 2));
       console.log(`npm package ${picocolors.green(npmName)} inited.`);
     }
