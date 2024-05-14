@@ -9,7 +9,7 @@ export const headersToRecord = (headers?: HeadersInit | null) => {
     } else if (headers instanceof Headers) {
       req_headers = headers;
     } else {
-      record = headers;
+      record = headers as Record<string, string>;
     }
     if (req_headers !== undefined) {
       req_headers.forEach((value, key) => {
@@ -31,6 +31,7 @@ export type $Method =
   | "CONNECT" // 双工
   | "TRACE"; // 调试
 
+// deno-lint-ignore ban-types
 export const httpMethodCanOwnBody = (method: $Method | (string & {}), headers?: HeadersInit) => {
   if (headers !== undefined && method === "GET") {
     return isWebSocket(method, headers instanceof Headers ? headers : new Headers(headers));

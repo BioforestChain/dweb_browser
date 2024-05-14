@@ -7,9 +7,10 @@
     "devDependencies": {
         "@types/node": "^20.12.7",
         "esbuild": "^0.17.19",
-        "esbuild-plugin-html-modules": "^0.6.0",
         "prettier": "^2.8.8",
         "prettier-plugin-organize-imports": "^3.2.4",
-        "vite": "^5.0.10"
+        "vite": "^5.0.10",
+        "@rollup/pluginutils": "^5.1.0",
+        "@swc/core": "^1.5.6"
     }
 }

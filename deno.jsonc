@@ -53,6 +53,6 @@
     "npm",
     "toolkit/dweb-desk-assets",
     "toolkit/dweb-offscreen-web-canvas-assets",
-    "toolkit/plaoc/examples/plugin-demo",
+    "toolkit/plaoc/examples/plugin-demo"
   ]
 }

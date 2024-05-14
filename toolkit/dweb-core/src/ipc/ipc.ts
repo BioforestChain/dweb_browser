@@ -26,6 +26,7 @@ import {
   type $IpcLifecycle,
 } from "./ipc-message/IpcLifecycle.ts";
 import type { $IpcMessage } from "./ipc-message/IpcMessage.ts";
+import { prepareIpcChannel } from "./ipc-message/channel/IpcChannel.ts";
 import { IPC_LIFECYCLE_STATE } from "./ipc-message/internal/IpcLifecycle.ts";
 import { IPC_MESSAGE_TYPE } from "./ipc-message/internal/IpcMessage.ts";
 
@@ -411,6 +412,9 @@ export class Ipc {
     await this.#closeOnce(cause);
   }
 
+  prepareChannel(headers: IpcHeaders, channelIpc?: Ipc | Promise<Ipc>) {
+    return prepareIpcChannel(this, headers, channelIpc);
+  }
   /**----- close end*/
 }
 export type $IpcRequestInit = {

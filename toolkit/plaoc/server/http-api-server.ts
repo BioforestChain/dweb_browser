@@ -84,7 +84,7 @@ export class Server_api extends HttpServer {
         return IpcResponse.fromText(event.reqId, 500, new IpcHeaders(), "invalid search params, miss 'id'", event.ipc);
       }
       const ipc = await mapHelper.getOrPut(this.callbacks, id, () => new PromiseOut<$Ipc>()).promise;
-      const response = await ipc.request(event.url.href, event.ipcRequest.toRequest());
+      const response = await ipc.request(event.url.href, event.ipcRequest.toPureClinetRequest());
       return response.toResponse();
     }
     /// websocket
@@ -116,7 +116,8 @@ export class Server_api extends HttpServer {
     const targetIpc = await jsProcess.connect(mmid as $MMID);
     const { ipcRequest } = event;
 
-    const req = ipcRequest.toRequest();
+    const req = ipcRequest.toPureClinetRequest();
+
     let ipcProxyResponse = await targetIpc.request(path, req);
 
     /// 尝试申请授权
@@ -125,10 +126,6 @@ export class Server_api extends HttpServer {
       if (await jsProcess.requestDwebPermissions(await ipcProxyResponse.body.text())) {
         ipcProxyResponse = await targetIpc.request(path, req);
       }
-    }
-
-    if (ipcRequest.hasDuplex) {
-      await ipcRequest.client.enableChannel();
     }
     return ipcProxyResponse.toResponse();
   }

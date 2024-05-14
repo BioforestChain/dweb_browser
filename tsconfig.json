@@ -1,21 +1,17 @@
 {
-    "compilerOptions": {
-        "module": "ESNext",
-        "moduleResolution": "Bundler",
-        "target": "ESNext",
-        "jsx": "react",
-        "noEmit": true,
-        "emitDeclarationOnly": true,
-        "allowImportingTsExtensions": true,
-        "useDefineForClassFields": false,
-        "verbatimModuleSyntax": true,
-        "strictNullChecks": true,
-        "strictFunctionTypes": true,
-        "experimentalDecorators": true
-    },
-    "exclude": [
-        "node_modules",
-        "**/node_modules/*",
-        "**/npm/*"
-    ]
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "target": "ESNext",
+    "jsx": "react",
+    "noEmit": true,
+    "emitDeclarationOnly": true,
+    "allowImportingTsExtensions": true,
+    "useDefineForClassFields": true,
+    "verbatimModuleSyntax": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "experimentalDecorators": true
+  },
+  "exclude": ["node_modules", "**/node_modules/*", "**/npm/*"]
 }

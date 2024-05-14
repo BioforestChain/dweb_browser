@@ -1,37 +1,59 @@
 import { PromiseOut } from "@dweb-browser/helper/PromiseOut.ts";
+import { $once } from "@dweb-browser/helper/decorator/$once.ts";
 import { ReadableStreamOut, streamRead } from "@dweb-browser/helper/stream/readableStreamHelper.ts";
-import { IpcEvent, type $IpcEvent } from "../ipc-message/IpcEvent.ts";
-import { PURE_CHANNEL_EVENT_PREFIX } from "../ipc-message/IpcRequest.ts";
-import { IPC_DATA_ENCODING } from "../ipc-message/internal/IpcData.ts";
-import type { Ipc } from "../ipc.ts";
+import type { Ipc } from "../../ipc.ts";
+import { IpcEvent, type $IpcEvent } from "../IpcEvent.ts";
+import { IPC_DATA_ENCODING } from "../internal/IpcData.ts";
+
+export const PURE_CHANNEL_EVENT_PREFIX = "§-";
+
+export const INCOME = Symbol.for("pureChannel.income") as unknown as "pureChannel.income";
+export const OUTGOING = Symbol.for("pureChannel.outgoing") as unknown as "pureChannel.outgoing";
 
 export class PureChannel {
-  constructor(
-    readonly income = new ReadableStreamOut<$PureFrame>(),
-    readonly outgoing = new ReadableStreamOut<$PureFrame>()
-  ) {}
+  constructor(income = new ReadableStreamOut<$PureFrame>(), outgoing = new ReadableStreamOut<$PureFrame>()) {
+    this.#income = income;
+    this.#outgoing = outgoing;
+  }
+  #income;
+  #outgoing;
   private _startLock = new PromiseOut<void>();
   afterStart() {
     return this._startLock.promise;
   }
-  start() {
+  start = $once(() => {
     this._startLock.resolve();
-    return {
-      incomeController: this.income.controller,
-      outgoingStream: this.outgoing.stream,
+    const ctx = {
+      [INCOME]: this.#income,
+      [OUTGOING]: this.#outgoing,
+      sendText: (text: string) => {
+        ctx.send(new PureTextFrame(text));
+      },
+      sendBinary: (binary: Uint8Array) => {
+        ctx.send(new PureBinaryFrame(binary));
+      },
+      send: (frame: $PureFrame) => {
+        this.#outgoing.controller.enqueue(frame);
+      },
+      close: () => {
+        this.close();
+      },
     };
-  }
+    return ctx;
+  });
   close() {
-    this.income.controller.close();
-    this.outgoing.controller.close();
+    this.#income.controller.close();
+    this.#outgoing.controller.close();
   }
-  private _reverse?: PureChannel;
+  #reverse?: PureChannel;
+  /**转换输入输出 */
   reverse() {
-    if (this._reverse === undefined) {
-      this._reverse = new PureChannel(this.outgoing, this.income);
-      this._reverse._reverse = this;
+    if (this.#reverse === undefined) {
+      const reverseChannel = new PureChannel(this.#outgoing, this.#income);
+      reverseChannel.#reverse = this;
+      this.#reverse = reverseChannel;
     }
-    return this._reverse;
+    return this.#reverse;
   }
 }
 
@@ -93,9 +115,9 @@ export const pureChannelToIpcEvent = async (channelIpc: Ipc, pureChannel: PureCh
   });
   const ctx = pureChannel.start();
   // 拿到输入流控制器，开始接收ipc发送过来的ipcEvent事件，并且转换成pureFrame写入队列
-  ipcListenToChannelPo.resolve(ctx.incomeController);
+  ipcListenToChannelPo.resolve(ctx[INCOME].controller);
   // 拿到输出流，准备进入ipc发送队列，转化成IpcEvent发送
-  const channelReadOut = ctx.outgoingStream;
+  const channelReadOut = ctx[OUTGOING].stream;
 
   await channelIpc.start(undefined, debugTag);
 

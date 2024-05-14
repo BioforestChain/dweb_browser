@@ -1,6 +1,6 @@
+import { INCOME } from "@dweb-browser/core/ipc/ipc-message/channel/PureChannel.ts";
 import type { $Core, $Ipc, $IpcRequest, $MMID } from "../deps.ts";
-import { ChannelEndpoint, PureBinaryFrame, PureTextFrame, streamRead } from "../deps.ts";
-import { merge } from "./merge.ts";
+import { ChannelEndpoint, streamRead } from "../deps.ts";
 
 type CreateDuplexIpcType = (ipcPool: $Core.IpcPool, subdomain: string, mmid: $MMID, ipcRequest: $IpcRequest) => $Ipc;
 
@@ -26,23 +26,19 @@ export const createDuplexIpc: CreateDuplexIpcType = (
 
   // 拿到自己前端的channel
   const pureServerChannel = ipcRequest.getChannel();
-  pureServerChannel.start();
+  const channel = pureServerChannel.start();
 
   // fetch(https://ext.dweb) => ipcRequest => streamIpc.request => streamIpc.postMessage => chunk => outgoing => ws.onMessage
   void (async () => {
     // 拿到网络层来的外部消息，发到前端处理
     for await (const chunk of streamRead(endpoint.stream)) {
-      if (typeof chunk === "string") {
-        pureServerChannel.outgoing.controller.enqueue(new PureTextFrame(chunk));
-      } else {
-        pureServerChannel.outgoing.controller.enqueue(new PureBinaryFrame(merge(chunk)));
-      }
+      channel.sendBinary(chunk);
     }
   })();
   // ws.send => income.pureFrame =>
   void (async () => {
     //  绑定自己前端发送的数据通道
-    for await (const pureFrame of streamRead(pureServerChannel.income.stream)) {
+    for await (const pureFrame of streamRead(channel[INCOME].stream)) {
       endpoint.send(pureFrame.data);
     }
   })();

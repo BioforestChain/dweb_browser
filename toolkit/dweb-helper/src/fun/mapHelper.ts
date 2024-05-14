@@ -2,8 +2,8 @@ export const mapHelper = new (class {
   getOrPut<M extends WeakMap<any, any>, K extends $WeakMapKey<M>>(
     map: M,
     key: K,
-    putter: (key: K) => $MapVal<M>
-  ): $MapVal<M>;
+    putter: (key: K) => $WeakMapVal<M>
+  ): $WeakMapVal<M>;
   getOrPut<M extends Map<any, any>, K extends $MapKey<M>>(map: M, key: K, putter: $MapGetOrPutter<M, K>): $MapVal<M>;
   getOrPut<M extends Map<any, any>, K extends $MapKey<M>>(map: M, key: K, putter: $MapGetOrPutter<M, K>): $MapVal<M> {
     if (map.has(key)) {

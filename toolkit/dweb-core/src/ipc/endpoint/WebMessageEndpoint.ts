@@ -4,6 +4,11 @@ import { CommonEndpoint } from "./CommonEndpoint.ts";
 import { ENDPOINT_PROTOCOL } from "./EndpointLifecycle.ts";
 import type { $EndpointRawMessage } from "./EndpointMessage.ts";
 import { ENDPOINT_LIFECYCLE_STATE } from "./internal/EndpointLifecycle.ts";
+declare global {
+  interface Navigator {
+    locks?: LockManager;
+  }
+}
 export class WebMessageEndpoint extends CommonEndpoint {
   override toString(): string {
     return `WebMessageEndpoint#${this.debugId}`;
@@ -14,19 +19,24 @@ export class WebMessageEndpoint extends CommonEndpoint {
   }
 
   override doStart() {
-    void navigator.locks.request(this.localSessionId, () => this.closePo.promise);
-    this.onLifecycle(async (lifecycle) => {
-      const localState = lifecycle.state;
-      if (localState.name === ENDPOINT_LIFECYCLE_STATE.OPENED) {
-        const remoteLock = await navigator.locks.query();
-        if (remoteLock.held && remoteLock.held.length > 0) {
-          const remoteSessionId = [...setHelper.intersect(localState.sessionPair.split("~"), [this.localSessionId])][0];
-          navigator.locks.request(remoteSessionId, () => {
-            this.close(`remote ipcEndpoint closed`);
-          });
+    const locks = navigator.locks;
+    if (locks) {
+      void locks.request(this.localSessionId, () => this.closePo.promise);
+      this.onLifecycle(async (lifecycle) => {
+        const localState = lifecycle.state;
+        if (localState.name === ENDPOINT_LIFECYCLE_STATE.OPENED) {
+          const remoteLock = await locks.query();
+          if (remoteLock.held && remoteLock.held.length > 0) {
+            const remoteSessionId = [
+              ...setHelper.intersect(localState.sessionPair.split("~"), [this.localSessionId]),
+            ][0];
+            locks.request(remoteSessionId, () => {
+              this.close(`remote ipcEndpoint closed`);
+            });
+          }
         }
-      }
-    });
+      });
+    }
     this.port.addEventListener("message", (event) => {
       const rawData = event.data;
       this.console.verbose("in", rawData);
