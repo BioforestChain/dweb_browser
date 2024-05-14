@@ -118,7 +118,7 @@ class Ipc internal constructor(
       lifecycleLocaleFlow.emit(closing)
       sendLifecycleToRemote(closing)
     }
-    messageProducer.producer.closeAndJoin(cause)
+    messageProducer.producer.close(cause)
     closeDeferred.complete(cause)
     IpcLifecycle(IpcLifecycleClosed(reason)).also { closed ->
       lifecycleLocaleFlow.emit(closed)
@@ -312,9 +312,7 @@ class Ipc internal constructor(
     }?.let { Pair(it, event.order) }
   }.asProducerWithOrder(messageProducer.producer.name + "/" + name, scope).also { producer ->
     onClosed { cause ->
-      launchJobs += scope.launch {
-        producer.closeAndJoin(cause.exceptionOrNull())
-      }
+      producer.close(cause.exceptionOrNull())
     }
   }
 

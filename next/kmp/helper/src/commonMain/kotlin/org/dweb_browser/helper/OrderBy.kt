@@ -14,10 +14,11 @@ val debugOrder = Debugger("order")
 class OrderDeferred(var current: Job? = null) {
   val lock = SynchronizedObject()
   val keys = SafeLinkList<Any?>()
-  fun <T> queue(key: Any?, scope: CoroutineScope, handler: suspend () -> T) = synchronized(lock) {
+  fun <T> queue(scope: CoroutineScope, key: Any?, handler: suspend () -> T) = synchronized(lock) {
     val preJob = current;
     keys.add(key)
-    val clearTimeout = debugOrder.timeout(scope, 1000, "queue@${hashCode()}") { "key=$key keys=$keys" }
+    val clearTimeout =
+      debugOrder.timeout(scope, 1000, "queue@${hashCode()}") { "key=$key keys=$keys" }
     scope.async(start = CoroutineStart.UNDISPATCHED) {
       preJob?.join();
       clearTimeout()
@@ -56,7 +57,7 @@ class OrderDeferred(var current: Job? = null) {
   }
 
   suspend fun <T> queueAndAwait(key: Any?, handler: suspend () -> T) = coroutineScope {
-    queue(key, this, handler).await()
+    queue(this, key, handler).await()
   }
 }
 

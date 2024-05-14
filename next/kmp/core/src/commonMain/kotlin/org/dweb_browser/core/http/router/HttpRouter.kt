@@ -13,6 +13,7 @@ import org.dweb_browser.core.std.http.PathRoute
 import org.dweb_browser.core.std.permission.AuthorizationStatus
 import org.dweb_browser.core.std.permission.PERMISSION_ID
 import org.dweb_browser.core.std.permission.ext.queryPermissions
+import org.dweb_browser.helper.remove
 import org.dweb_browser.pure.http.IPureBody
 import org.dweb_browser.pure.http.PureChannelContext
 import org.dweb_browser.pure.http.PureHeaders

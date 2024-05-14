@@ -32,7 +32,7 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
 
   init {
     parentScope.coroutineContext.job.invokeOnCompletion {
-      debugProducer("parentScope.invokeOnCompletion")
+      debugProducer("parent closed")
       scope.launch {
         this@Producer.close(it)
       }
@@ -340,52 +340,61 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
     private set
 
 
+  fun close(cause: Throwable? = null) {
+    @Suppress("DeferredResultUnused") doClose(cause)
+  }
+
   /**
    * 关闭 Producer
    * 首先会关闭写入，然后会将现有的events的调用末尾增加一个自消费
    * 注意，这个函数会自己在后台进行关闭，不会等待关闭后才返回
    * 如果有需要，请使用 closeAndAwait
    */
-  suspend fun close(cause: Throwable? = null) = actionQueue.queueAndAwait("close") {
-    scope.launch(start = CoroutineStart.UNDISPATCHED) {
-      if (isClosedForSend) {
-        return@launch
-      }
-      debugProducer("closeWrite", cause)
-      isClosedForSend = true
-      val bufferEvents = buffers.toList()
-      debugProducer("closeEvents", bufferEvents)
-      for (event in bufferEvents) {
-        scope.launch(start = CoroutineStart.UNDISPATCHED) {
-          event.orderInvoke("close") {
-            if (!event.consumed) {
-              event.consume()
-              event.complete()
-              debugProducer("closeWrite", "event=$event consumed by close")
+  private val doClose = Once1 { cause: Throwable? ->
+    actionQueue.queue(scope, "close") {
+      scope.launch(start = CoroutineStart.UNDISPATCHED) {
+        if (isClosedForSend) {
+          return@launch
+        }
+        debugProducer("closeWrite", cause)
+        isClosedForSend = true
+        val bufferEvents = buffers.toList()
+        debugProducer("closeEvents", bufferEvents)
+        for (event in bufferEvents) {
+          scope.launch(start = CoroutineStart.UNDISPATCHED) {
+            event.orderInvoke("close") {
+              if (!event.consumed) {
+                event.consume()
+                event.complete()
+                debugProducer("closeWrite", "event=$event consumed by close")
+              }
             }
           }
         }
-      }
 
-      debugProducer.timeout(1000, "close", { "closing and joinAll events=[${buffers.toList().joinToString(", ")}]" }) {
-        // 等待消费者全部完成
-        buffers.toList().joinAll()
-      }
+        debugProducer.timeout(
+          1000,
+          "close",
+          { "closing and joinAll events=[${buffers.toList().joinToString(", ")}]" }) {
+          // 等待消费者全部完成
+          buffers.toList().joinAll()
+        }
 
-      debugProducer("close", "close consumers")
-      // 关闭消费者channel，表示彻底无法再发数据
-      for (consumer in consumers) {
-        consumer.close(cause)
+        debugProducer("close", "close consumers")
+        // 关闭消费者channel，表示彻底无法再发数据
+        for (consumer in consumers) {
+          consumer.close(cause)
+        }
+        scope.cancelOrThrow(cause)
+        debugProducer("close", "free memory")
+        consumers.clear()
+        buffers.clear()
       }
-      scope.cancelOrThrow(cause)
-      debugProducer("close", "free memory")
-      consumers.clear()
-      buffers.clear()
     }
   }
 
   suspend fun closeAndJoin(cause: Throwable? = null) {
-    close(cause).await()
+    doClose(cause).await()
   }
 
   /**调用监听关闭*/

@@ -183,7 +183,7 @@ class Debugger(val scope: String) {
   suspend inline fun <R> timeout(
     ms: Long,
     tag: String = "traceTimeout",
-    crossinline log: () -> Any? = {},
+    crossinline log: () -> Any? = { "" },
     crossinline block: suspend () -> R,
   ) = if (isEnableTimeout) {
     val timeoutJob = CoroutineScope(currentCoroutineContext()).launch {
@@ -203,7 +203,7 @@ class Debugger(val scope: String) {
     scope: CoroutineScope,
     ms: Long,
     tag: String = "traceTimeout",
-    crossinline log: () -> Any? = {},
+    crossinline log: () -> Any? = { "" },
   ) = CompletableDeferred<Unit>().let { deferred ->
     scope.launch(start = CoroutineStart.UNDISPATCHED) {
       timeout(ms, tag, log) {
