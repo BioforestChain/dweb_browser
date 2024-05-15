@@ -62,7 +62,7 @@ import androidx.compose.ui.zIndex
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserDrawResource
 import org.dweb_browser.browser.BrowserI18nResource
-import org.dweb_browser.browser.common.CommonHorizontalPager
+import org.dweb_browser.browser.web.ui.common.BrowserHorizontalPager
 import org.dweb_browser.browser.web.model.LocalBrowserViewModel
 import org.dweb_browser.browser.web.model.LocalShowIme
 import org.dweb_browser.browser.web.model.page.BrowserHomePage
@@ -104,7 +104,7 @@ fun BrowserSearchBar(modifier: Modifier) {
 
     BoxWithConstraints(modifier = Modifier.weight(1f)) {
       if (maxWidth > 20.dp) { // 由于宽度压缩太小，导致HorizontalPager空间不足，width<0,引起的crash
-        CommonHorizontalPager(
+        BrowserHorizontalPager(
           state = viewModel.pagerStates.searchBar,
           modifier = Modifier.fillMaxWidth(),
           pageContent = { currentPage ->

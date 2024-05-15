@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.common
+package org.dweb_browser.browser.web.ui.common
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.BoxWithConstraintsScope
@@ -13,22 +13,20 @@ import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-actual fun BoxWithConstraintsScope.CommonHorizontalPager(
+actual fun BoxWithConstraintsScope.BrowserHorizontalPager(
   state: PagerState,
   modifier: Modifier,
   pageContent: @Composable() (PagerScope.(Int) -> Unit)
 ) {
-  if (maxWidth > 20.dp) {
-    HorizontalPager(
-      state = state,
-      modifier = modifier,
-      contentPadding = PaddingValues(10.dp),
-      pageSize = PageSize.Fill,
-      beyondBoundsPageCount = 5,
-      userScrollEnabled = true,
-      reverseLayout = false,
-      pageSpacing = 5.dp,
-      pageContent = pageContent
-    )
-  }
+  HorizontalPager(
+    state = state,
+    modifier = modifier,
+    contentPadding = PaddingValues(10.dp),
+    pageSize = PageSize.Fill,
+    beyondBoundsPageCount = 5,
+    userScrollEnabled = true,
+    reverseLayout = false,
+    pageSpacing = 5.dp,
+    pageContent = pageContent
+  )
 }

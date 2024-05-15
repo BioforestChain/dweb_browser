@@ -201,6 +201,7 @@ class BrowserViewModel(
     )
   }
 
+  var isFillPageSize by mutableStateOf(true) // 用于标志当前的HorizontalPager中的PageSize是Fill还是Fixed
   val pagerStates = BrowserPagerStates(this)
 
   @Composable
