@@ -8,7 +8,6 @@ import org.dweb_browser.dwebview.DWebView
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.asDesktop
 import org.dweb_browser.dwebview.create
-import org.dweb_browser.helper.now
 import org.dweb_browser.helper.platform.getComposeWindowOrNull
 import java.awt.Color
 import java.awt.Rectangle
@@ -72,9 +71,7 @@ class TaskbarView private constructor(
             val selfBounds = dialog.bounds
             val x = parentBounds.x + parentBounds.width + dialog.padding
             val y = parentBounds.y + parentBounds.height / 2 - selfBounds.height / 2
-            println("${now()} QAQ parentBounds=$parentBounds")
             if (x != selfBounds.x || y != selfBounds.y) {
-              println("QAQ autoPosition=$x,$y")
               dialog.setLocation(x, y)
             }
           }

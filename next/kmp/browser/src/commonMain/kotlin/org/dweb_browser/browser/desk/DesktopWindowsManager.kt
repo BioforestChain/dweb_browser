@@ -17,6 +17,8 @@ expect fun DesktopWindowsManager.Companion.getOrPutInstance(
   onPut: (wm: DesktopWindowsManager) -> Unit
 ): DesktopWindowsManager
 
+internal expect fun DesktopWindowsManager.focusPlatformDesktop(): Unit
+
 class DesktopWindowsManager internal constructor(
   val viewController: IPureViewController,
   val viewBox: IPureViewBox
@@ -62,5 +64,9 @@ class DesktopWindowsManager internal constructor(
       CompletableDeferred(Unit)
     else
       super.windowToggleKeepBackground(win, keepBackground)
+
+  override fun focusDesktop() {
+    focusPlatformDesktop()
+  }
 }
 

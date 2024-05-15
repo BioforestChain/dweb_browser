@@ -144,11 +144,13 @@ class TaskbarController private constructor(
    * 将其它视图临时最小化到 TaskbarView/TooggleDesktopButton 按钮里头，在此点击该按钮可以释放这些临时视图到原本的状态
    */
   suspend fun toggleDesktopView() {
-    val allWindows = desktopController.getDesktopWindowsManager().allWindows.keys.toList()
-    if (allWindows.find { it.isVisible() } != null) {
+    val windowsManager = desktopController.getDesktopWindowsManager()
+    val allWindows = windowsManager.allWindows.keys.toList()
+    if (allWindows.isEmpty() || allWindows.find { it.isVisible() } != null) {
       allWindows.forEach { win ->
         win.toggleVisible(false)
       }
+      windowsManager.focusDesktop()
     } else {
       allWindows.forEach { win ->
         win.toggleVisible(true)
@@ -185,6 +187,7 @@ class TaskbarController private constructor(
     url = getTaskbarUrl().toString(),
     openDevTools = envSwitch.isEnabled("taskbar-devtools"),
     privateNet = true,
+    enabledOffScreenRender = true,
     detachedStrategy = DWebViewOptions.DetachedStrategy.Ignore,
     tag = 2,
   )

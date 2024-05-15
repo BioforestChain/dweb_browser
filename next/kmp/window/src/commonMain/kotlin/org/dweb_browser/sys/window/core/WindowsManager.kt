@@ -19,7 +19,7 @@ import org.dweb_browser.sys.window.core.constant.WindowsManagerScope
 import org.dweb_browser.sys.window.core.constant.debugWindow
 import kotlin.math.abs
 
-open class WindowsManager<T : WindowController>(internal val viewBox: IPureViewBox) {
+abstract class WindowsManager<T : WindowController>(internal val viewBox: IPureViewBox) {
   val state = WindowsManagerState(viewBox)
 
   private val _winList = mutableStateListOf<T>()
@@ -410,4 +410,6 @@ open class WindowsManager<T : WindowController>(internal val viewBox: IPureViewB
     winLifecycleScopeAsync(win) {
       win.simpleToggleColorScheme(colorScheme)
     }
+
+  abstract fun focusDesktop()
 }

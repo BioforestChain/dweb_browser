@@ -456,7 +456,7 @@ class DWebViewEngine internal constructor(
       enableLocalStorage()
       enableImages()
       // 关闭此选项，否则会导致 windows 平台RenderMode异常 https://github.com/flutter/flutter-intellij/pull/4804
-      if (PureViewController.isMacOS) {
+      if (PureViewController.isMacOS || options.enabledOffScreenRender) {
         enableTransparentBackground()
       }
       enableOverscrollHistoryNavigation()
