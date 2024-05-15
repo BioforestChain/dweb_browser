@@ -12,6 +12,7 @@ import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.byChannel
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.core.std.file.ext.pickFile
 import org.dweb_browser.core.std.file.ext.realPath
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.DisplayMode
@@ -84,7 +85,7 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
             controller.downloadFactory(downloadTask)
           }
           /// TODO 使用新版的 模块文件系统替代 realPath，比如 file:///$mmid/{$downloadTask.filepath}
-          downloadTask.filepath = realPath(downloadTask.filepath).toString()
+          downloadTask.filepath = pickFile(downloadTask.filepath).toString()
           downloadTask.toJsonElement()
         },
         // 开始/恢复 下载

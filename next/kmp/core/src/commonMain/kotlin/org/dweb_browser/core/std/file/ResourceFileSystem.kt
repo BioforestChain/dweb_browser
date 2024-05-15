@@ -27,13 +27,13 @@ object ResourceFileSystem {
   fun prepare(path: Path) = sinkMap.getOrPut(path.toString()) {
     fsScope.async(start = CoroutineStart.UNDISPATCHED) {
       try {
-        Res.getUri("files$path")
+        Res.getUri("files/$path")
         path.parent?.also {
           fakeFileSystem.createDirectories(it, false)
         }
         val sink = fakeFileSystem.sink(path, true)
 
-        val content = Res.readBytes("files$path")
+        val content = Res.readBytes("files/$path")
         sink.buffer().apply {
           write(content)
           close()

@@ -13,11 +13,11 @@ import kotlinx.coroutines.runBlocking
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.dwebview.base.isWebUrlScheme
 import org.dweb_browser.dwebview.debugDWebView
+import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.pure.http.PureClientRequest
 import org.dweb_browser.pure.http.PureHeaders
 import org.dweb_browser.pure.http.PureMethod
-import org.dweb_browser.sys.toast.ext.showToast
 import java.io.InputStream
 
 class DWebOverwriteRequest(val engine: DWebViewEngine) : WebViewClient() {
@@ -108,9 +108,9 @@ class DWebOverwriteRequest(val engine: DWebViewEngine) : WebViewClient() {
     request: WebResourceRequest?,
     errorResponse: WebResourceResponse?,
   ) {
-    engine.ioScope.launch {
-      engine.remoteMM.showToast("request fail => ${errorResponse?.statusCode}:${errorResponse?.reasonPhrase}")
-    }
+    WARNING("onReceivedHttpError: [${request?.method}] ${request?.url}")
+    WARNING("status: ${errorResponse?.statusCode} ${errorResponse?.reasonPhrase}")
+    WARNING("body: ${errorResponse?.data}")
     super.onReceivedHttpError(view, request, errorResponse)
   }
 }

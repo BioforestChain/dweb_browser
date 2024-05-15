@@ -25,7 +25,7 @@ interface IVirtualFsDirectory {
    * 如果是文件系统
    * 获取真实的基本路径
    */
-  fun getFsBasePath(remote: IMicroModuleManifest, firstPath: Path): Path
+  fun resolveTo(remote: IMicroModuleManifest, virtualFullPath: Path): Path
 }
 
 /**
@@ -35,9 +35,19 @@ fun commonVirtualFsDirectoryFactory(firstSegmentFlags: String, nativeFsPath: Pat
   object : IVirtualFsDirectory {
     override fun isMatch(firstSegment: String) = firstSegment == firstSegmentFlags
     override val fs: FileSystem = SystemFileSystem
-    override fun getFsBasePath(remote: IMicroModuleManifest, firstPath: Path) =
-      nativeFsPath.resolve(remote.mmid)
+    override fun resolveTo(remote: IMicroModuleManifest, virtualFullPath: Path): Path {
+      val virtualFirstPath = "${virtualFullPath.root ?: "/"}$firstSegmentFlags".toPath()
+      val virtualContentPath = virtualFullPath.relativeTo(virtualFirstPath)
+      return nativeFsPath.resolve(remote.mmid).resolve(virtualContentPath)
+    }
   }
+
+val Path.first get() = "${root ?: " / "}${segments.first()}".toPath()
+
+operator fun Path.plus(path: Path) = resolve(path)
+operator fun Path.plus(path: String) = resolve(path.toPath())
+operator fun Path.minus(path: Path) = relativeTo(path)
+operator fun Path.minus(path: String) = relativeTo(path.toPath())
 
 fun commonVirtualFsDirectoryFactory(firstSegment: String, nativeFsPath: String) =
   commonVirtualFsDirectoryFactory(firstSegment, nativeFsPath.toPath())

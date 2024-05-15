@@ -88,8 +88,8 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Service") {
       val usr = object : IVirtualFsDirectory {
         override fun isMatch(firstSegment: String) = firstSegment == "usr"
         override val fs: FileSystem = SystemFileSystem
-        override fun getFsBasePath(remote: IMicroModuleManifest, firstPath: Path) =
-          appsDir.resolve("${remote.mmid}-${remote.version}${firstPath}")
+        override fun resolveTo(remote: IMicroModuleManifest, virtualFullPath: Path) =
+          appsDir.resolve("${remote.mmid}-${remote.version}${virtualFullPath}")
       }
       fileTypeAdapterManager.append(adapter = usr).removeWhen(mmScope)
 
