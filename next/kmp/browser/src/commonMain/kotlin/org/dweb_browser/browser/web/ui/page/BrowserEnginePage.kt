@@ -100,7 +100,7 @@ private fun BrowserSearchEngineListPage(
               leadingIcon = {
                 Icon(
                   imageVector = Icons.Rounded.GppBad,
-                  contentDescription = "Enable",
+                  contentDescription = "Disable",
                   tint = Color.Gray
                 )
               }
