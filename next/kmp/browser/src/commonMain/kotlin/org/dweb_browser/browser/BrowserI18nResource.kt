@@ -224,6 +224,12 @@ object BrowserI18nResource {
     val page_title = SimpleI18nResource(Language.ZH to "历史记录", Language.EN to "History Record")
   }
 
+  object Engine {
+    val page_title = SimpleI18nResource(Language.ZH to "引擎管理", Language.EN to "Engine Manage")
+    val status_enable = SimpleI18nResource(Language.ZH to "有效", Language.EN to "Enable")
+    val status_disable = SimpleI18nResource(Language.ZH to "无效", Language.EN to "Disable")
+  }
+
   object Download {
     val page_title =
       SimpleI18nResource(Language.ZH to "下载内容", Language.EN to "Downloads")

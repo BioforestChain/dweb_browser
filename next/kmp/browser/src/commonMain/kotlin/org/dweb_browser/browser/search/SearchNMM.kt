@@ -22,7 +22,8 @@ class SearchNMM : NativeMicroModule("search.browser.dweb", "Search Browser") {
   init {
     short_name = BrowserI18nResource.search_short_name.text
     categories = listOf(MICRO_MODULE_CATEGORY.Web_Browser)
-    icons = listOf(ImageResource(src = "file:///sys/browser-icons/$mmid.svg", type = "image/svg+xml"))
+    icons =
+      listOf(ImageResource(src = "file:///sys/browser-icons/$mmid.svg", type = "image/svg+xml"))
     display = DisplayMode.Fullscreen
   }
 
@@ -58,6 +59,15 @@ class SearchNMM : NativeMicroModule("search.browser.dweb", "Search Browser") {
             ?: throwException(HttpStatusCode.BadRequest, "not found key param")
           debugSearch("browser", "/injects key=$key")
           Json.encodeToString(controller.containsInject(key))
+        },
+        /**
+         * 修改搜索引擎状态
+         */
+        "/updateEngineState" bind PureMethod.POST by defineEmptyResponse {
+          val enable = request.queryBoolean("state", false)
+          val searchEngine = Json.decodeFromString<SearchEngine>(request.body.toPureString())
+          debugSearch("browser", "/updateEngineState enable=$enable, engine=$searchEngine")
+          controller.updateSearchEngine(searchEngine, enable)
         },
       )
 

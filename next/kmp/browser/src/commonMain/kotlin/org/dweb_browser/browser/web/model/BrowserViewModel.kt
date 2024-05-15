@@ -11,6 +11,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import io.ktor.http.Url
+import jdk.jfr.Enabled
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
@@ -26,6 +27,7 @@ import org.dweb_browser.browser.web.debugBrowser
 import org.dweb_browser.browser.web.deepLinkDoSearch
 import org.dweb_browser.browser.web.model.page.BrowserBookmarkPage
 import org.dweb_browser.browser.web.model.page.BrowserDownloadPage
+import org.dweb_browser.browser.web.model.page.BrowserEnginePage
 import org.dweb_browser.browser.web.model.page.BrowserHistoryPage
 import org.dweb_browser.browser.web.model.page.BrowserHomePage
 import org.dweb_browser.browser.web.model.page.BrowserPage
@@ -70,7 +72,8 @@ data class DwebLinkSearchItem(val link: String, val target: AppBrowserTarget) {
  * 这里作为 ViewModel
  */
 class BrowserViewModel(
-  internal val browserController: BrowserController, internal val browserNMM: BrowserNMM.BrowserRuntime
+  internal val browserController: BrowserController,
+  internal val browserNMM: BrowserNMM.BrowserRuntime
 ) {
   val browserOnVisible = browserController.onWindowVisible
   val browserOnClose = browserController.onCloseWindow
@@ -89,6 +92,7 @@ class BrowserViewModel(
 
 
   val previewPanelVisibleState = MutableTransitionState(PreviewPanelVisibleState.Close)
+
   /**
    * previewPanel 是否完成了布局计算，可以开始动画渲染
    */
@@ -124,6 +128,7 @@ class BrowserViewModel(
 
   private var searchEngineList = listOf<SearchEngine>()
   val filterShowEngines get() = searchEngineList.filter { it.enable }
+  val filterAllEngines get() = searchEngineList
 
   /**检查是否有设置过的默认搜索引擎，并且拼接成webUrl*/
   private suspend fun checkAndEnableSearchEngine(key: String): Url? {
@@ -414,6 +419,8 @@ class BrowserViewModel(
       BrowserDownloadPage(browserController)
     } else if (BrowserSettingPage.isSettingUrl(url)) {
       BrowserSettingPage(browserController)
+    } else if (BrowserEnginePage.isEngineUrl(url)) {
+      BrowserEnginePage(browserController)
     } else if (BrowserWebPage.isWebUrl(url)) { // 判断是否网页应该放在最下面
       createWebPage(url)
     } else null
@@ -587,6 +594,14 @@ class BrowserViewModel(
 
   fun showToastMessage(message: String, position: ToastPositionType? = null) {
     browserController.ioScope.launch { browserNMM.showToast(message, position = position) }
+  }
+
+  fun disableSearchEngine(searchEngine: SearchEngine) = ioScope.launch {
+    browserNMM.updateEngineState(searchEngine, false)
+  }
+
+  fun enableSearchEngine(searchEngine: SearchEngine) = ioScope.launch {
+    browserNMM.updateEngineState(searchEngine, true)
   }
 }
 
