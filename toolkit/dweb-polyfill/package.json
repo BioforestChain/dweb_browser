@@ -11,8 +11,5 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
-  "peerDependencies": {
-    "vite": "^5.0.10"
-  }
+  "license": "ISC"
 }
