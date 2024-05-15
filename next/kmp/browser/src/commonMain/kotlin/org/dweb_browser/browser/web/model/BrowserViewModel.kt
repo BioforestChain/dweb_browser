@@ -374,10 +374,10 @@ class BrowserViewModel(
       return@launch
     }
     // 尝试
-    val webUrl = url.toWebUrlOrWithoutProtocol()
-      ?: checkAndEnableSearchEngine(url) // 检查是否有默认的搜索引擎
+    val webUrl = checkAndEnableSearchEngine(url) // 检查是否有默认的搜索引擎
+      ?: url.toWebUrlOrWithoutProtocol()
       ?: filterShowEngines.firstOrNull()?.searchLinks?.first()?.format(url)?.toWebUrl() // 转换成搜索链接
-    debugBrowser("doSearchUI", "url=$url, webUrl=$webUrl, focusedPage=$focusedPage")
+    debugBrowser("doIOSearchUrl", "url=$url, webUrl=$webUrl, focusedPage=$focusedPage")
     // 当没有搜到需要的数据，给出提示
     if (webUrl == null) {
       showToastMessage(BrowserI18nResource.Home.search_error.text)
