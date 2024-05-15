@@ -279,7 +279,12 @@ abstract class WindowsManager<T : WindowController>(internal val viewBox: IPureV
       }
 
       else -> {
-        preFocusedWin?.simpleBlur()
+        preFocusedWin?.also {
+          // 如果两个窗口都是原生窗口，那么不需要做这个blur，因为原生窗口自己会因为focus、而去触发其它窗口的blur
+          if (!(it.state.isSystemWindow && win.state.isSystemWindow)) {
+            it.simpleBlur()
+          }
+        }
         win.simpleFocus()
         moveToTop(win)
         doLastFocusedWin()
