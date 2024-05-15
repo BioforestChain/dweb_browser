@@ -16,7 +16,7 @@ actual class OffscreenWebCanvas private actual constructor(width: Int, height: I
   internal actual val core = OffscreenWebCanvasCore()
   private val webview =
     WebviewEngine.offScreen(dataDir = dataDir.resolve(("offscreen-web-canvas"))).newBrowser().also {
-      if (envSwitch.has("offscreen-web-canvas-devtools")) {
+      if (envSwitch.isEnabled("offscreen-web-canvas-devtools")) {
         it.devTools().show()
       }
     }

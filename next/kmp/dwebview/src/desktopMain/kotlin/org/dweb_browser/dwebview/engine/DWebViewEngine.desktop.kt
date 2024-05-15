@@ -39,7 +39,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import okio.Path
-import okio.Path.Companion.toPath
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.file.ext.createDir
@@ -467,7 +466,7 @@ class DWebViewEngine internal constructor(
       allowLoadingImagesAutomatically()
     }
 
-    if (debugDWebView.isEnable && envSwitch.has("dwebview-js-console")) {
+    if (debugDWebView.isEnable && envSwitch.isEnabled("dwebview-js-console")) {
       browser.on(ConsoleMessageReceived::class.java) { event ->
         val consoleMessage = event.consoleMessage()
         val level = consoleMessage.level()

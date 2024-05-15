@@ -13,7 +13,7 @@ actual suspend fun WindowController.createDwebView(remoteMM: MicroModule.Runtime
     DWebViewOptions(
       url = url,
       // openDevTools = false,
-      openDevTools = envSwitch.has("*-window-devtools") || envSwitch.has("${remoteMM.mmid}-window-devtools"),
+      openDevTools = envSwitch.isEnabled("*-window-devtools") || envSwitch.isEnabled("${remoteMM.mmid}-window-devtools"),
       /// 我们会完全控制页面将如何离开，所以这里兜底默认为留在页面
       detachedStrategy = DWebViewOptions.DetachedStrategy.Ignore,
     )

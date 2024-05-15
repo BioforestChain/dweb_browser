@@ -237,7 +237,7 @@ suspend fun createJsProcessWeb(
   val dWebView = IDWebView.create(
     mm, DWebViewOptions(
       privateNet = true,
-      openDevTools = envSwitch.has("js-process-devtools"),
+      openDevTools = envSwitch.isEnabled("js-process-devtools"),
       enabledOffScreenRender = true
     )
   )

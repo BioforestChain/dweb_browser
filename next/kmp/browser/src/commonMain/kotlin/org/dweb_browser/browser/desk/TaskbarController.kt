@@ -6,6 +6,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import io.ktor.http.Url
 import kotlinx.serialization.Serializable
 import org.dweb_browser.browser.desk.types.DeskAppMetaData
 import org.dweb_browser.core.help.types.MMID
@@ -171,14 +172,18 @@ class TaskbarController private constructor(
       }
     }
 
-  fun getTaskbarUrl() =
-    taskbarServer.startResult.urlInfo.buildInternalUrl().build {
+  fun getTaskbarUrl() = when (val url = envSwitch.get("taskbar-dev-url")) {
+    "" -> taskbarServer.startResult.urlInfo.buildInternalUrl().build {
       resolvePath("/taskbar.html")
     }
 
+    else -> Url(url)
+  }
+
+
   fun getTaskbarDWebViewOptions() = DWebViewOptions(
     url = getTaskbarUrl().toString(),
-    openDevTools = envSwitch.has("taskbar-devtools"),
+    openDevTools = envSwitch.isEnabled("taskbar-devtools"),
     privateNet = true,
     detachedStrategy = DWebViewOptions.DetachedStrategy.Ignore,
     tag = 2,

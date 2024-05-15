@@ -13,6 +13,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
+import io.ktor.http.Url
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -77,7 +78,7 @@ open class DesktopController private constructor(
     val options = DWebViewOptions(
       url = getDesktopUrl().toString(),
       privateNet = true,
-      openDevTools = envSwitch.has("desktop-devtools"),
+      openDevTools = envSwitch.isEnabled("desktop-devtools"),
       detachedStrategy = DWebViewOptions.DetachedStrategy.Ignore,
       displayCutoutStrategy = DWebViewOptions.DisplayCutoutStrategy.Default,
       tag = 1
@@ -125,7 +126,7 @@ open class DesktopController private constructor(
     suspend fun create(
       deskNMM: DeskNMM.DeskRuntime,
       desktopServer: HttpDwebServer,
-      runningApps: ChangeableMap<MMID, RunningApp>
+      runningApps: ChangeableMap<MMID, RunningApp>,
     ) = DesktopController(deskNMM, desktopServer, runningApps)
   }
 
@@ -141,7 +142,8 @@ open class DesktopController private constructor(
 
   private val appSortList = DaskSortStore(deskNMM)
   suspend fun getDesktopApps(): List<DeskAppMetaData> {
-    val apps = deskNMM.bootstrapContext.dns.search(MICRO_MODULE_CATEGORY.Application).toMutableList()
+    val apps =
+      deskNMM.bootstrapContext.dns.search(MICRO_MODULE_CATEGORY.Application).toMutableList()
     // 简单的排序再渲染
     val sortList = appSortList.getApps()
     apps.sortBy { sortList.indexOf(it.mmid) }
@@ -198,8 +200,12 @@ open class DesktopController private constructor(
   }
 
 
-  private fun getDesktopUrl() = desktopServer.startResult.urlInfo.buildInternalUrl().build {
-    resolvePath("/desktop.html")
+  private fun getDesktopUrl() = when (val url = envSwitch.get("desktop-dev-url")) {
+    "" -> desktopServer.startResult.urlInfo.buildInternalUrl().build {
+      resolvePath("/desktop.html")
+    }
+
+    else -> Url(url)
   }
 
 

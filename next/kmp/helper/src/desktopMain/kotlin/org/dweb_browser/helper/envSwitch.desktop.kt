@@ -1,14 +1,18 @@
 package org.dweb_browser.helper
 
 actual class EnvSwitch {
-  actual fun add(switch: String) {
-    System.setProperty("dweb-$switch", "true")
+  actual fun add(switch: String, value: String) {
+    System.setProperty("dweb-$switch", value)
   }
 
   private val env = System.getenv()
 
-  actual fun has(switch: String): Boolean {
+  actual fun isEnabled(switch: String): Boolean {
+    return get(switch).isNotEmpty()
+  }
+
+  actual fun get(switch: String): String {
     val key = "dweb-$switch"
-    return (env[key] ?: System.getProperty(key, "false")) == "true"
+    return env[key] ?: System.getProperty(key, "")
   }
 }
