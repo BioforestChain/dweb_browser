@@ -7,7 +7,7 @@ actual class EnvSwitch {
   }
 
   actual fun isEnabled(switch: String): Boolean {
-    return get(switch).isNotEmpty()
+    return get(switch) == "true"
   }
 
   actual fun get(switch: String): String {
