@@ -15,8 +15,6 @@ class DwebWallpaperElement extends HTMLElement {
           height: 100%;
           z-index: 0;
           pointer-events: none;
-          object-fit: cover;
-          object-position: center;
           top: 0;
           overflow: hidden;
           --bg-color-1: #93f3ff;
@@ -26,6 +24,10 @@ class DwebWallpaperElement extends HTMLElement {
         }
         :host > svg {
           mix-blend-mode: var(--bg-mix-blend-mode);
+          object-fit: cover;
+          object-position: center;
+          height: 100%;
+          width: 100%;
         }
 
         @media (prefers-color-scheme: dark) {
