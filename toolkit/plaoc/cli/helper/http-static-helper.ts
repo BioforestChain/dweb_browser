@@ -13,6 +13,7 @@ const html = String.raw;
  * @param res
  * @returns
  */
+// deno-lint-ignore require-await
 export const staticServe = async (dir: string, req: http.IncomingMessage, res: http.ServerResponse) => {
   try {
     const filepath = node_path.join(dir, req.url || "/");

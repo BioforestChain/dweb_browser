@@ -329,7 +329,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
           queryByIdOrProtocol(mmid, ipc.remote)?.toManifest()?.toJsonElement() ?: JsonNull
         },
         "/queryDeeplink" bind PureMethod.GET by defineJsonResponse {
-          queryByDeeplink(request.queryDeepLink(), ipc.remote)?.toManifest().toJsonElement() 
+          queryByDeeplink(request.queryDeepLink(), ipc.remote)?.toManifest().toJsonElement()
         },
         "/search" bind PureMethod.GET by defineJsonResponse {
           val category = request.queryCategory()

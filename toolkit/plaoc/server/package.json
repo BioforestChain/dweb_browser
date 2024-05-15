@@ -25,11 +25,9 @@
     "./plaoc.server.js": "./dist/prod/plaoc.server.js"
   },
   "dependencies": {
-    "@types/web": "^0.0.143",
     "@dweb-browser/core": "workspace:~",
     "@dweb-browser/helper": "workspace:~",
     "@dweb-browser/js-process": "workspace:~",
-    "deep-object-diff": "^1.1.9",
     "is-mobile": "^4.0.0",
     "urlpattern-polyfill": "*"
   },

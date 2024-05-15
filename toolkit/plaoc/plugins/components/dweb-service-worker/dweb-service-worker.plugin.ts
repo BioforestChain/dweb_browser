@@ -75,7 +75,7 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
    * @example file://desktop.dweb.waterbang.top.dweb/say/hi?message="hi 今晚吃螃🦀️蟹吗？"
    */
   @bindThis
-  async fetch(url: string, init?: $DwebRquestInit | undefined) {
+  async fetch(url: string, init?: $DwebRquestInit | undefined): Promise<Response> {
     const ipc = await this.ipcPromise;
     const input = new URL(url);
     buildSearch(init?.search, (key, value) => {

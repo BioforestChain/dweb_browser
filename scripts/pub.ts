@@ -72,8 +72,9 @@ export const doUpdatePackage = async (inputConfigFile: string, target: string) =
 };
 
 export const doPub = async (args = Deno.args) => {
+  // 请勿随意更改发包顺序，发包只需要更改publish.json里的版本
   const targets =
-    args.length === 0 ? ["plugins", "cli", "server", "is-dweb", "core", "helper", "js-process", "polyfill"] : args;
+    args.length === 0 ? ["helper", "core", "js-process", "server", "plugins", "cli", "is-dweb", "polyfill"] : args;
   for (const target of targets) {
     console.log(picocolors.blue(`start pub ${picocolors.cyan(target)}:`));
     await doUpdatePackage(import.meta.resolve(`./publish.json`), target);
