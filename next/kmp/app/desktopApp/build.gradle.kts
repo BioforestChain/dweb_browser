@@ -84,6 +84,8 @@ compose.desktop {
         infoPlist {
           extraKeysRawXml = macExtraPlistKeys
         }
+        entitlementsFile.set(project.file("default-entitlements.plist"))
+        runtimeEntitlementsFile.set(project.file("runtime-entitlements.plist"))
       }
     }
   }
@@ -98,8 +100,5 @@ afterEvaluate {
     systemProperties["dwebbrowser.version"] = appVersion
 
     jvmArgs("--add-opens", "java.desktop/java.awt=ALL-UNNAMED")
-  }
-  tasks.getByName("desktopTest") {
-    println("QAQ desktopTest=${this::class}")
   }
 }
