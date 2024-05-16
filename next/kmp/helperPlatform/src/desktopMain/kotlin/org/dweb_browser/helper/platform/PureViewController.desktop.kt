@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import org.dweb_browser.helper.ENV_SWITCH_KEY
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.compose.LocalCompositionChain
@@ -70,7 +71,7 @@ class PureViewController(
         exitApp()
       }
       // 目前除了windows，其它平台（android、ios、macos）都能让背景透明地进行渲染
-      envSwitch.init("dwebview-enable-transparent-background") { "${!isWindows}" }
+      envSwitch.init(ENV_SWITCH_KEY.DWEBVIEW_ENABLE_TRANSPARENT_BACKGROUND) { "${!isWindows}" }
 
       Tray(icon = painterResource(Res.drawable.tray_dweb_browser), menu = {
         Item("Js Process", enabled = LocalViewHookJsProcess.isUse) {
