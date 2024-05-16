@@ -1,7 +1,7 @@
 const html = String.raw;
+const svg = String.raw;
 class DwebWallpaperElement extends HTMLElement {
-  readonly svg;
-  readonly rects;
+  readonly svgEle;
 
   constructor() {
     super();
@@ -32,75 +32,27 @@ class DwebWallpaperElement extends HTMLElement {
 
         @media (prefers-color-scheme: dark) {
           :host {
-            --bg-color-1: #333; /*#00a9be;*/
-            --bg-color-2: #333; /*#dd8400;*/
+            --bg-color-1: #999; /*#00a9be;*/
+            --bg-color-2: #999; /*#dd8400;*/
           }
         }
       </style>
-      <svg id="wallpaper-content" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">
-        <defs>
-          <radialGradient id="Gradient1" cx="50%" cy="50%" fx="0.441602%" fy="50%" r=".5">
-            <animate attributeName="fx" dur="34s" values="0%;3%;0%" repeatCount="indefinite"></animate>
-            <stop offset="0%" stop-color="rgba(255, 0, 255, 1)"></stop>
-            <stop offset="100%" stop-color="rgba(255, 0, 255, 0)"></stop>
-          </radialGradient>
-          <radialGradient id="Gradient2" cx="50%" cy="50%" fx="2.68147%" fy="50%" r=".5">
-            <animate attributeName="fx" dur="23.5s" values="0%;3%;0%" repeatCount="indefinite"></animate>
-            <stop offset="0%" stop-color="rgba(255, 255, 0, 1)"></stop>
-            <stop offset="100%" stop-color="rgba(255, 255, 0, 0)"></stop>
-          </radialGradient>
-          <radialGradient id="Gradient3" cx="50%" cy="50%" fx="0.836536%" fy="50%" r=".5">
-            <animate attributeName="fx" dur="21.5s" values="0%;3%;0%" repeatCount="indefinite"></animate>
-            <stop offset="0%" stop-color="rgba(0, 255, 255, 1)"></stop>
-            <stop offset="100%" stop-color="rgba(0, 255, 255, 0)"></stop>
-          </radialGradient>
-          <radialGradient id="Gradient4" cx="50%" cy="50%" fx="4.56417%" fy="50%" r=".5">
-            <animate attributeName="fx" dur="23s" values="0%;5%;0%" repeatCount="indefinite"></animate>
-            <stop offset="0%" stop-color="rgba(0, 255, 0, 1)"></stop>
-            <stop offset="100%" stop-color="rgba(0, 255, 0, 0)"></stop>
-          </radialGradient>
-          <radialGradient id="Gradient5" cx="50%" cy="50%" fx="2.65405%" fy="50%" r=".5">
-            <animate attributeName="fx" dur="24.5s" values="0%;5%;0%" repeatCount="indefinite"></animate>
-            <stop offset="0%" stop-color="rgba(0,0,255, 1)"></stop>
-            <stop offset="100%" stop-color="rgba(0,0,255, 0)"></stop>
-          </radialGradient>
-          <radialGradient id="Gradient6" cx="50%" cy="50%" fx="0.981338%" fy="50%" r=".5">
-            <animate attributeName="fx" dur="25.5s" values="0%;5%;0%" repeatCount="indefinite"></animate>
-            <stop offset="0%" stop-color="rgba(255,0,0, 1)"></stop>
-            <stop offset="100%" stop-color="rgba(255,0,0, 0)"></stop>
-          </radialGradient>
-        </defs>
-        <rect id="rect1" x="0" y="0" width="100%" height="100%" fill="url(#Gradient1)"></rect>
-        <rect id="rect2" x="0" y="0" width="100%" height="100%" fill="url(#Gradient2)"></rect>
-        <rect id="rect3" x="0" y="0" width="100%" height="100%" fill="url(#Gradient3)"></rect>
-        <rect id="rect4" x="0" y="0" width="100%" height="100%" fill="url(#Gradient4)"></rect>
-        <rect id="rect5" x="0" y="0" width="100%" height="100%" fill="url(#Gradient5)"></rect>
-        <rect id="rect6" x="0" y="0" width="100%" height="100%" fill="url(#Gradient6)"></rect>
-      </svg>
+      <svg id="wallpaper-content" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice"></svg>
     `;
-    const svg = shadow.querySelector("svg")!;
-    this.svg = svg;
-    const rects: SVGRectElement[] = [];
-    this.rects = rects;
-    svg.querySelectorAll("rect").forEach((ele, index) => {
-      rects.push(ele);
-      (globalThis as any)["rect" + index] = ele;
-    });
-    svg.querySelectorAll("radialGradient").forEach((ele) => {
-      this.aniGradient(ele);
-    });
+    const svgEle = shadow.querySelector("svg")!;
+    this.svgEle = svgEle;
   }
   readonly anis: Animation[] = [];
   private ti?: any;
-  doAni() {
+  doAni(rectEles: SVGRectElement[]) {
     return new Promise<void>((resolve) => {
       if (this.anis.length === 0) {
-        this.anis.push(...this.rects.map((ele) => this.aniRect(ele)));
+        this.anis.push(...rectEles.map((ele) => this.aniRect(ele)));
       }
       const anis = this.anis;
 
       let playbackRate = 1;
-      this.svg.unpauseAnimations();
+      this.svgEle.unpauseAnimations();
       anis.forEach((ani) => ani.play());
       const down = () => {
         playbackRate *= 0.99;
@@ -109,7 +61,7 @@ class DwebWallpaperElement extends HTMLElement {
           this.ti = setTimeout(down);
         } else {
           anis.forEach((ani) => ani.pause());
-          this.svg.pauseAnimations();
+          this.svgEle.pauseAnimations();
           resolve();
         }
       };
@@ -119,6 +71,90 @@ class DwebWallpaperElement extends HTMLElement {
   #sleep(ms: number) {
     return new Promise<void>((resolve) => (this.ti = setTimeout(resolve, ms)));
   }
+  config = this.innerText;
+  #mixBlendModeMap = (() => {
+    const mixBlendModeMap = Array.from({ length: 24 }, () => "hard-light");
+    this.config
+      .split("\n")
+      .map((line) => line.trim())
+      // 必须是数字开头
+      .filter((line) => /^\d/.test(line))
+      .forEach((line) => {
+        const [hours, mode] = line.split(":");
+        hours
+          .split(/[,\s]+/)
+          .map((h) => parseInt(h))
+          .forEach((hour) => {
+            mixBlendModeMap[hour] = mode;
+          });
+      });
+
+    return mixBlendModeMap.map((mode) => {
+      return mode.split(/[\s,]+/).filter((mode) => /^\w/.test(mode))[0] || "hard-light";
+    });
+  })();
+
+  #colorsMap = (() => {
+    const colorsMap = Array.from({ length: 24 }, () => `#043227 #097168 #ffcc88 #fa482e #f4a32e`);
+    this.config
+      .split("\n")
+      .map((line) => line.trim())
+      // 必须是数字开头
+      .filter((line) => /^\d/.test(line))
+      .forEach((line) => {
+        const [hours, colors] = line.split(":");
+        hours
+          .split(/[,\s]+/)
+          .map((h) => parseInt(h))
+          .forEach((hour) => {
+            colorsMap[hour] = colors;
+          });
+      });
+
+    return colorsMap.map((colors) => {
+      return colors
+        .trim()
+        .split(/[\s,]+/)
+        .filter((hex) => hex.startsWith("#"))
+        .map((hex) => hex.slice(1))
+        .map((hex) => [parseInt(hex.slice(0, 2), 16), parseInt(hex.slice(2, 4), 16), parseInt(hex.slice(4, 6), 16)]);
+    });
+  })();
+  doInit() {
+    // const hour = (new Date()).getHours();
+    let hour = parseInt(this.getAttribute("hour") || "NaN");
+    if (!Number.isFinite(hour)) {
+      hour = new Date().getHours();
+    }
+    const mixBlendMode = this.#mixBlendModeMap[hour % this.#mixBlendModeMap.length];
+    this.style.setProperty("--bg-mix-blend-mode", mixBlendMode);
+    const colors = this.#colorsMap[hour % this.#colorsMap.length];
+    this.svgEle.innerHTML += svg`<defs>
+      ${colors
+        .map(
+          (rgb, index) =>
+            svg`
+          <radialGradient id="Gradient${index}" cx="50%" cy="50%" fx="0%" fy="50%" r=".5">
+            <animate attributeName="fx" dur="0s" values="0%;0%;0%" repeatCount="indefinite"></animate>
+            <stop offset="0%" stop-color="rgba(${rgb}, 1)"></stop>
+            <stop offset="100%" stop-color="rgba(${rgb}, 0)"></stop>
+          </radialGradient>`,
+        )
+        .join("\n")}
+    </defs>
+    ${colors.map((_, index) => svg`<rect id="rect1" x="0" y="0" width="100%" height="100%" fill="url(#Gradient${index})"></rect>`)}
+    `;
+
+    const rectEles: SVGRectElement[] = [];
+    this.svgEle.querySelectorAll("rect").forEach((ele, index) => {
+      rectEles.push(ele);
+      (globalThis as any)["rect" + index] = ele;
+    });
+    this.svgEle.querySelectorAll("radialGradient").forEach((ele) => {
+      this.aniGradient(ele);
+    });
+    return rectEles;
+  }
 
   private connected = false;
   connectedCallback() {
@@ -126,7 +162,7 @@ class DwebWallpaperElement extends HTMLElement {
     this.connected = true;
     (async () => {
       while (this.connected) {
-        await this.doAni();
+        await this.doAni(this.doInit());
         const now = Date.now();
         const next = internal - (now % internal);
         await this.#sleep(next);
@@ -148,11 +184,13 @@ class DwebWallpaperElement extends HTMLElement {
     const rotateDir = rand() > 0 ? 1 : -1;
     const baseOriX = rand(30, 70);
     const baseOriY = rand(30, 70);
+    const scaleX = rand(80, 140);
+    const scaleY = rand(80, 140);
     const ani = rect.animate(
       randomArray(10, (frame) => {
         const keyframe = {
           ...frame,
-          transform: `rotate(${rotateDir * frame.offset * 360}deg)`,
+          transform: `rotate(${rotateDir * frame.offset * 360}deg) scale(${scaleX}%, ${scaleY}%)`,
           transformOrigin: `${absRand(frame.offset, 0.5, 10) + baseOriX}% ${absRand(frame.offset, 0.5, 10) + baseOriY}%`,
         };
 
