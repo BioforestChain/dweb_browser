@@ -26,17 +26,22 @@
     <script type="module" src="./src/pages/desktop/main.ts"></script>
     <link rel="stylesheet" href="./src/styles/tailwind.scss" />
     <script type="module" src="./src/wallpaper.ts"></script>
-    <dweb-wallpaper id="wallpaper" hour="11">
+    <dweb-wallpaper id="wallpaper">
       <pre>
-      // 晚上
-      19, 20, 21, 22, 23, 0, 1, 2, 3, 4: hard-light #043227 #097168 #ffcc88 #fa482e #f4a32e
-      // 凌晨
-      5: hard-light #043227 #097168 #ffcc88 #fa482e #f4a32e
-      // 日出
-      6, 7: hard-light #2060ff #209fff #20bfff #00cfff #ff7000 #ff4d00 #ff0000
-      // 日落
-      18: hard-light #043227 #097168 #ffcc88 #fa482e #f4a32e
-      10, 11, 12: multiply #ff7000 #ff4d00
+        // 晚上
+        19, 20, 21, 22, 23, 0: multiply #00C5DF #00C5DF #00C5D #F2371F 
+        // 凌晨
+        1, 2, 3, 4: multiply #18A0FB #1BC47D 
+        // 日出
+        5, 6: multiply #18A0FB #1BC47D #18A0FB #FFC700 #FFC700 #F2371F
+        // 早上
+        7,8,9,: multiply #18A0FB #907CFF 
+        // 中午
+        10,11,12: multiply #EE46D3 #907CFF
+        // 下午
+        13,14,15, 16: multiply #FFC700 #EE46D3 
+        // 日落
+        17,18: multiply #F2371F #18A0FB #907CFF #FFC700 
       </pre>
     </dweb-wallpaper>
   </body>
