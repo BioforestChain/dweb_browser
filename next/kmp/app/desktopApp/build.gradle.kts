@@ -33,7 +33,7 @@ kotlin {
   }
 }
 
-val appVersion = "3.5.1500"
+val appVersion = "3.5.1600"
 
 compose.desktop {
   application {
@@ -84,8 +84,8 @@ compose.desktop {
         infoPlist {
           extraKeysRawXml = macExtraPlistKeys
         }
-        entitlementsFile.set(project.file("default-entitlements.plist"))
-        runtimeEntitlementsFile.set(project.file("runtime-entitlements.plist"))
+//        entitlementsFile.set(project.file("default-entitlements.plist"))
+//        runtimeEntitlementsFile.set(project.file("runtime-entitlements.plist"))
       }
     }
   }
