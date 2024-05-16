@@ -27,7 +27,6 @@ import org.dweb_browser.browser.jmm.JmmStatusEvent
 import org.dweb_browser.browser.jmm.JsMicroModule
 import org.dweb_browser.browser.jmm.LocalJmmInstallerController
 import org.dweb_browser.helper.compose.AutoResizeTextContainer
-import org.dweb_browser.helper.compose.produceEvent
 import org.dweb_browser.helper.toSpaceSize
 
 @Composable
@@ -70,29 +69,31 @@ internal fun BoxScope.BottomDownloadButton() {
     }
 
     ElevatedButton(
-      onClick = produceEvent(jmmState, scope = jmmInstallerController.jmmNMM.getRuntimeScope()) {
-        when (jmmState.state) {
-          JmmStatus.Init, JmmStatus.Failed, JmmStatus.Canceled -> {
-            jmmInstallerController.createAndStartDownload()
-          }
+      onClick = {
+        jmmInstallerController.jmmNMM.scopeLaunch(cancelable = true) {
+          when (jmmState.state) {
+            JmmStatus.Init, JmmStatus.Failed, JmmStatus.Canceled -> {
+              jmmInstallerController.createAndStartDownload()
+            }
 
-          JmmStatus.NewVersion -> {
-            jmmInstallerController.closeApp()
-            jmmInstallerController.createAndStartDownload()
-          }
+            JmmStatus.NewVersion -> {
+              jmmInstallerController.closeApp()
+              jmmInstallerController.createAndStartDownload()
+            }
 
-          JmmStatus.Paused -> {
-            jmmInstallerController.startDownload()
-          }
+            JmmStatus.Paused -> {
+              jmmInstallerController.startDownload()
+            }
 
-          JmmStatus.Downloading -> {
-            jmmInstallerController.pause()
-          }
+            JmmStatus.Downloading -> {
+              jmmInstallerController.pause()
+            }
 
-          JmmStatus.Completed -> {}
-          JmmStatus.VersionLow -> {} // 版本偏低时，不响应按键
-          JmmStatus.INSTALLED -> {
-            jmmInstallerController.openApp()
+            JmmStatus.Completed -> {}
+            JmmStatus.VersionLow -> {} // 版本偏低时，不响应按键
+            JmmStatus.INSTALLED -> {
+              jmmInstallerController.openApp()
+            }
           }
         }
       },

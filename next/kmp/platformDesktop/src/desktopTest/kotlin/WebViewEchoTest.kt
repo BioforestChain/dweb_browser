@@ -39,7 +39,6 @@ class WebViewEchoTest {
       }
 
       val message = event.property<Any>("data").getOrNull()
-      println("message-in | $message")
       val success = when (message) {
         is String -> {
           messageChannel.trySend(message)

@@ -311,6 +311,9 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
             request.queryOrNull("open")?.toBooleanStrictOrNull()
           )
         },
+        "/taskbar/dragging" bind PureMethod.GET by defineBooleanResponse {
+          taskBarController.toggleDragging(request.queryAs("dragging"))
+        },
         "/showToast" bind PureMethod.GET by defineEmptyResponse {
           debugBrowser("showToast", request.href)
           val message = request.query("message")

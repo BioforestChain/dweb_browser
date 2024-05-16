@@ -32,7 +32,7 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
 
   init {
     parentScope.coroutineContext.job.invokeOnCompletion {
-      debugProducer("parent closed")
+      debugProducer.verbose("parent closed")
       scope.launch {
         this@Producer.close(it)
       }
@@ -174,7 +174,7 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
         if (consumed) {
           complete()
           if (consumeTimes.value != beforeConsumeTimes) {
-            debugProducer("emitBy", "consumer=$consumer consumed data=$data")
+            debugProducer.verbose("emitBy", "consumer=$consumer consumed data=$data")
           }
         }
       }
@@ -214,8 +214,8 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
     val event = Event(value, order)
     doEmit(event)
     when {
-      event.consumed -> debugProducer("sendBeacon", event)
-      else -> debugProducer("lostBeacon", event)
+      event.consumed -> debugProducer.verbose("sendBeacon", event)
+      else -> debugProducer.verbose("lostBeacon", event)
     }
   }
 
@@ -273,7 +273,7 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
       }
     }) { collector: FlowCollector<Event> ->
       val deferred = scope.async(SupervisorJob(), start = CoroutineStart.UNDISPATCHED) {
-        debugProducer("startCollect") {
+        debugProducer.verbose("startCollect") {
           Exception().stackTraceToString().split("\n").firstOrNull {
             it.trim().run {
               startsWith("at org.dweb_browser") && !(startsWith("at org.dweb_browser.helper"))
@@ -356,17 +356,17 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
         if (isClosedForSend) {
           return@launch
         }
-        debugProducer("closeWrite", cause)
+        debugProducer.verbose("closeWrite", cause)
         isClosedForSend = true
         val bufferEvents = buffers.toList()
-        debugProducer("closeEvents", bufferEvents)
+        debugProducer.verbose("closeEvents", bufferEvents)
         for (event in bufferEvents) {
           scope.launch(start = CoroutineStart.UNDISPATCHED) {
             event.orderInvoke("close") {
               if (!event.consumed) {
                 event.consume()
                 event.complete()
-                debugProducer("closeWrite", "event=$event consumed by close")
+                debugProducer.verbose("closeWrite", "event=$event consumed by close")
               }
             }
           }
@@ -380,13 +380,13 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
           buffers.toList().joinAll()
         }
 
-        debugProducer("close", "close consumers")
+        debugProducer.verbose("close", "close consumers")
         // 关闭消费者channel，表示彻底无法再发数据
         for (consumer in consumers) {
           consumer.close(cause)
         }
         scope.cancelOrThrow(cause)
-        debugProducer("close", "free memory")
+        debugProducer.verbose("close", "free memory")
         consumers.clear()
         buffers.clear()
       }

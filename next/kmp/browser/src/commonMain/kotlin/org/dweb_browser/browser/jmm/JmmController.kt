@@ -16,11 +16,11 @@ import org.dweb_browser.browser.download.DownloadTask
 import org.dweb_browser.browser.download.ext.cancelDownload
 import org.dweb_browser.browser.download.ext.createDownloadTask
 import org.dweb_browser.browser.download.ext.currentDownload
+import org.dweb_browser.browser.download.ext.downloadProgressFlow
 import org.dweb_browser.browser.download.ext.existsDownload
 import org.dweb_browser.browser.download.ext.pauseDownload
 import org.dweb_browser.browser.download.ext.removeDownload
 import org.dweb_browser.browser.download.ext.startDownload
-import org.dweb_browser.browser.download.ext.watchDownloadProgress
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.std.dns.nativeFetch
@@ -200,7 +200,7 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
 
   private suspend fun watchProcess(taskId: String, metadata: JmmHistoryMetadata): Boolean {
     var success = false;
-    jmmNMM.watchDownloadProgress(taskId) {
+    jmmNMM.downloadProgressFlow(taskId).collect { status ->
       if (status.state == DownloadState.Completed) {
         success = true
       }
@@ -249,8 +249,11 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
       }
     } else if (metadata.state.state == JmmStatus.Downloading) {
       jmmNMM.showToast(BrowserI18nResource.toast_message_download_downloading.text)
+    } else if (metadata.state.state == JmmStatus.Paused) {
+      jmmNMM.startDownload(taskId).falseAlso {
+        jmmNMM.showToast(BrowserI18nResource.toast_message_download_download_fail.text)
+      }
     } else {
-
     }
   }
 

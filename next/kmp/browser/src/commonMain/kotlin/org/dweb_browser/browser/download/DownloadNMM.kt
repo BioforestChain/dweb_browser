@@ -1,5 +1,6 @@
 package org.dweb_browser.browser.download
 
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.delay
@@ -13,7 +14,6 @@ import org.dweb_browser.core.http.router.byChannel
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.file.ext.pickFile
-import org.dweb_browser.core.std.file.ext.realPath
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.DisplayMode
 import org.dweb_browser.helper.ImageResource
@@ -131,6 +131,47 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
               delay(throttleMs)
             } else {
               WARNING("QAQ ctx.isClosed")
+            }
+          }
+        },
+        "/flow/progress" byChannel { ctx ->
+          val taskId = request.query("taskId")
+          val downloadTask = controller.downloadTaskMaps[taskId]
+            ?: return@byChannel close(Throwable("not Found download task!"))
+          debugDownload("/flow/progress", "taskId=$taskId")
+          var statusValue = downloadTask.status
+          var statusWaiter: CompletableDeferred<DownloadStateEvent>? = null
+          val off = downloadTask.onChange {
+            val stateEvent = it.status.copy()
+            statusValue = stateEvent
+            statusWaiter?.also { waiter ->
+              statusWaiter = null
+              waiter.complete(stateEvent)
+            }
+            when (stateEvent.state) {
+              DownloadState.Canceled, DownloadState.Failed, DownloadState.Completed -> {
+                ctx.sendJsonLine(stateEvent)// 直接发送结束帧
+                ctx.close()
+              }
+
+              else -> {}
+            }
+          }
+          ctx.onClose {
+            off()
+          }
+          var lastSentValue: Any? = null
+          // 同时处理 stateFlow 和 commandChannel
+          for (frame in ctx.income) {
+            if (frame.text == "get") {
+              lastSentValue = if (statusValue === lastSentValue) {
+                CompletableDeferred<DownloadStateEvent>().also {
+                  statusWaiter = it
+                }.await().copy()
+              } else {
+                statusValue
+              }
+              ctx.sendJsonLine(lastSentValue)
             }
           }
         },

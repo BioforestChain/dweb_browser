@@ -7,13 +7,19 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.now
 import org.dweb_browser.test.runCommonTest
 import kotlin.test.Test
+import kotlin.test.assertNotEquals
 
 class FlowTest {
 
@@ -95,5 +101,83 @@ class FlowTest {
     }
     flow1.channel.close()
     flow2.channel.close()
+  }
+
+  @Test
+  fun testThrottle() = runCommonTest {
+    val res = mutableListOf<Int>()
+    val total = 400
+    channelFlow {
+      for (i in 1..total) {
+        delay(10)
+        send(i)
+      }
+      close()
+    }.conflate().collect {
+      println(it)
+      res += it
+      delay(100)
+    }
+    assertNotEquals(res.size, total)
+  }
+
+  @Test
+  fun testCombine() = runCommonTest {
+    val serverToClientChannel = Channel<String>()
+    val clientToServerChannel = Channel<String>()
+    val stateFlow = channelFlow {
+      send(0)
+      for (i in 0..300) {
+        delay(10)
+        send(i)
+      }
+      close()
+      serverToClientChannel.send("end")// 直接发送结束帧
+      serverToClientChannel.close()
+      clientToServerChannel.close()
+      println("end 1")
+    }
+    launch {
+      var lastSentValue: Any? = null
+      var canSend = false
+      var frameAcc = 0
+      // 同时处理 stateFlow 和 commandChannel
+      stateFlow.combine(clientToServerChannel.receiveAsFlow().map {
+        println("QAQ canSend=${it}")
+        canSend = true
+        frameAcc++
+      }) { stateValue, frame ->
+        Pair(stateValue, frame)
+      }.collect { (stateValue) ->
+        if (canSend && stateValue != lastSentValue) {
+          println("QAQ do Send=${stateValue}")
+          canSend = false
+          lastSentValue = stateValue
+          serverToClientChannel.send(stateValue.toString())
+        }
+      }
+      println("end 2")
+    }
+
+    val result = channelFlow<String?> {
+      clientToServerChannel.send("hi")
+      for (msg in serverToClientChannel) {
+        println("QAQ get $msg")
+        delay(100)
+        send(msg)
+        send(null)
+        println("QAQ do Get")
+        if (!clientToServerChannel.isClosedForSend) {
+          clientToServerChannel.send("get")
+        }
+      }
+      println("end 3")
+      close()
+    }.filterNotNull()
+
+    result.collect {
+      println("QAQ collect $it")
+      delay(100)
+    }
   }
 }

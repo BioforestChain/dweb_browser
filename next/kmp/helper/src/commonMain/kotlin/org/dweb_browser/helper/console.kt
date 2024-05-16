@@ -96,7 +96,8 @@ fun addDebugTags(tags: Iterable<String>) {
 fun isScopeEnableDebug(scope: String) =
   debugTags.contains(scope) || debugTagsRegex.firstOrNull { regex -> regex.matches(scope) } != null
 
-fun isScopeEnableVerbose(scope: String) = isScopeEnableDebug(scope)//debugTags.contains(scope)
+fun isScopeEnableVerbose(scope: String) = debugTags.contains(scope)
+fun isScopeEnableTimeout(scope: String) = isScopeEnableDebug(scope)
 
 fun printDebug(scope: String, tag: String, message: Any?, error: Any? = null) {
   if (error == null && !isScopeEnableDebug(scope)) {
@@ -218,7 +219,7 @@ class Debugger(val scope: String) {
 
 
   val isEnableVerbose get() = isScopeEnableVerbose(scope)
-  val isEnableTimeout get() = isScopeEnableVerbose(scope)
+  val isEnableTimeout get() = isScopeEnableTimeout(scope)
 
   val isEnable get() = isScopeEnableDebug(scope)
 }

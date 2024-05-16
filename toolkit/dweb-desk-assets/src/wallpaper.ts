@@ -42,14 +42,10 @@ class DwebWallpaperElement extends HTMLElement {
     const svgEle = shadow.querySelector("svg")!;
     this.svgEle = svgEle;
   }
-  readonly anis: Animation[] = [];
   private ti?: any;
   doAni(rectEles: SVGRectElement[]) {
     return new Promise<void>((resolve) => {
-      if (this.anis.length === 0) {
-        this.anis.push(...rectEles.map((ele) => this.aniRect(ele)));
-      }
-      const anis = this.anis;
+      const anis = rectEles.map((ele, index) => this.aniRect(ele, index, rectEles.length));
 
       let playbackRate = 1;
       this.svgEle.unpauseAnimations();
@@ -129,7 +125,7 @@ class DwebWallpaperElement extends HTMLElement {
     const mixBlendMode = this.#mixBlendModeMap[hour % this.#mixBlendModeMap.length];
     this.style.setProperty("--bg-mix-blend-mode", mixBlendMode);
     const colors = this.#colorsMap[hour % this.#colorsMap.length];
-    this.svgEle.innerHTML += svg`<defs>
+    this.svgEle.innerHTML = svg`<defs>
       ${colors
         .map(
           (rgb, index) =>
@@ -162,13 +158,18 @@ class DwebWallpaperElement extends HTMLElement {
     this.connected = true;
     (async () => {
       while (this.connected) {
-        await this.doAni(this.doInit());
+        await this.redraw();
         const now = Date.now();
         const next = internal - (now % internal);
         await this.#sleep(next);
       }
     })();
   }
+  async redraw() {
+    clearTimeout(this.ti);
+    await this.doAni(this.doInit());
+  }
+
   disconnectedCallback() {
     this.connected = false;
     clearTimeout(this.ti);
@@ -180,12 +181,13 @@ class DwebWallpaperElement extends HTMLElement {
     const center = rand(0, 10) + "%";
     aniEle.setAttribute("values", `${start_end};${center};${start_end}`);
   }
-  aniRect(rect: SVGRectElement) {
+  aniRect(rect: SVGRectElement, index: number, length: number) {
     const rotateDir = rand() > 0 ? 1 : -1;
     const baseOriX = rand(30, 70);
     const baseOriY = rand(30, 70);
-    const scaleX = rand(80, 140);
-    const scaleY = rand(80, 140);
+    const scaleBase = (20 * (index + 1)) / length;
+    const scaleX = rand(80 + scaleBase, 140);
+    const scaleY = rand(80 + scaleBase, 140);
     const ani = rect.animate(
       randomArray(10, (frame) => {
         const keyframe = {

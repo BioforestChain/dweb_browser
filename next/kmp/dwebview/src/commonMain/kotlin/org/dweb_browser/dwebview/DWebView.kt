@@ -34,7 +34,7 @@ val debugDWebView = Debugger("dwebview")
 expect suspend fun IDWebView.Companion.create(
   mm: MicroModule.Runtime,
   options: DWebViewOptions = DWebViewOptions(),
-  viewBox: IPureViewBox? = null
+  viewBox: IPureViewBox? = null,
 ): IDWebView
 
 abstract class IDWebView(initUrl: String?) {
@@ -107,8 +107,8 @@ abstract class IDWebView(initUrl: String?) {
 
 
   abstract suspend fun createMessageChannel(): IWebMessageChannel
-  abstract suspend fun postMessage(data: String, ports: List<IWebMessagePort>)
-  abstract suspend fun postMessage(data: ByteArray, ports: List<IWebMessagePort>)
+  abstract suspend fun postMessage(data: String, ports: List<IWebMessagePort> = listOf())
+  abstract suspend fun postMessage(data: ByteArray, ports: List<IWebMessagePort> = listOf())
 
   abstract suspend fun setContentScale(scale: Float, width: Float, height: Float, density: Float)
   abstract suspend fun setPrefersColorScheme(colorScheme: WebColorScheme)
@@ -122,7 +122,7 @@ abstract class IDWebView(initUrl: String?) {
    * 注意，它是表达式。如果需要函数体，请手动包裹在一个匿名函数中
    */
   abstract suspend fun evaluateAsyncJavascriptCode(
-    script: String, afterEval: suspend () -> Unit = {}
+    script: String, afterEval: suspend () -> Unit = {},
   ): String
 
   abstract suspend fun setSafeAreaInset(bounds: Bounds)
@@ -171,7 +171,7 @@ class WebBeforeUnloadArgs(
   val title: String? = null,
   val leaveActionText: String? = null,
   val stayActionText: String? = null,
-  val isReload: Boolean = false
+  val isReload: Boolean = false,
 ) : SynchronizedObject() {
   private val hookReasons = mutableMapOf<Any, WebBeforeUnloadHook>()
   internal fun hook(reason: Any) = synchronized(this) {

@@ -141,6 +141,11 @@ class TaskbarController private constructor(
     state.layoutHeight = reSize.height
   }
 
+  fun toggleDragging(dragging: Boolean): Boolean {
+    state.desktopDragging = dragging
+    return dragging
+  }
+
   /**
    * 将其它视图临时最小化到 TaskbarView/TooggleDesktopButton 按钮里头，在此点击该按钮可以释放这些临时视图到原本的状态
    */

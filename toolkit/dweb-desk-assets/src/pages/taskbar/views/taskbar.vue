@@ -17,6 +17,7 @@ import {
   vibrateHeavyClick,
   watchTaskbarAppInfo,
   watchTaskBarStatus,
+  toggleDragging,
 } from "@/provider/api.ts";
 import { $TaskBarState, $WidgetAppData } from "@/types/app.type.ts";
 import { computed, onMounted, onUnmounted, ref, ShallowRef, shallowRef, triggerRef } from "vue";
@@ -166,7 +167,7 @@ onMounted(() => {
   if (element) {
     resizeOb = new ResizeObserver(async (entries) => {
       for (const entry of entries) {
-        const { width: _width, height: _height } = entry.contentRect;
+        const { blockSize: _height, inlineSize: _width } = entry.borderBoxSize[0];
         const height = Math.ceil(_height);
         const width = Math.ceil(_width);
         console.log("ResizeObserver", height, width);
@@ -178,6 +179,52 @@ onMounted(() => {
       console.log("requestAnimationFrame", element.clientWidth, element.clientHeight);
       resizeTaskbar(element.clientWidth, element.clientHeight);
     });
+    const enableFrame = () => {
+      element.classList.add("frame");
+
+      let down = 0;
+      let dragging = false;
+      const dragPrepare = () => {
+        const now = Date.now();
+        down = now;
+        element.classList.add("drag-start");
+        element.classList.remove("drag-end");
+        setTimeout(() => {
+          if (now === down) {
+            dragStart();
+          }
+        }, 800);
+      };
+      const dragStart = () => {
+        if (down !== 0 && !dragging) {
+          dragging = true;
+          element.classList.add("dragging");
+          toggleDragging(true);
+        }
+      };
+      const dragEnd = () => {
+        down = 0;
+        if (dragging) {
+          dragging = false;
+          element.classList.remove("dragging", "drag-start");
+          element.classList.add("drag-end");
+          toggleDragging(false);
+        }
+      };
+      Object.assign(globalThis, {
+        dragEnd,
+      });
+      element.addEventListener("pointerdown", dragPrepare);
+      element.addEventListener("pointermove", dragStart);
+
+      element.addEventListener("pointerup", dragEnd);
+      // element.addEventListener("pointercancel", dragEnd);
+      // element.addEventListener("pointerleave", dragEnd);
+    };
+    /// 桌面端默认开启 frame 边框的绘制
+    if ((navigator as any).userAgentData?.mobile === false) {
+      enableFrame();
+    }
   }
 });
 
@@ -235,10 +282,35 @@ const iconSize = "45px";
   height: min-content;
   width: min-content;
   max-height: v-bind(maxHeight);
-  -webkit-app-region: drag;
   cursor: move;
   user-select: none;
   overflow: hidden;
+  padding: 0.2rem 0;
+}
+.taskbar.frame {
+  background-color: rgb(255 255 255 / 32%);
+  border-radius: 0.8rem;
+}
+.taskbar.drag-start {
+  transition-duration: 0.54s;
+  transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+  transform-origin: center;
+}
+.taskbar.dragging {
+  transform: scale(0.9);
+  > * {
+    pointer-events: none;
+  }
+}
+.taskbar.drag-end {
+  transition-duration: 0.8s;
+  transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+  transform-origin: center;
+}
+@media (prefers-color-scheme: dark) {
+  .taskbar.frame {
+    background-color: rgb(0 0 0 / 40%);
+  }
 }
 .panel {
   display: flex;
@@ -263,9 +335,7 @@ const iconSize = "45px";
   box-sizing: content-box;
   flex-shrink: 0;
 }
-button {
-  -webkit-app-region: no-drag;
-}
+
 .app-icon-wrapper {
   cursor: pointer;
   width: 45px;

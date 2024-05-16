@@ -427,12 +427,6 @@ class VirtualFsPath(
   val fsFullPath = vfsDirectory.resolveTo(context, virtualFullPath)
   val fs = vfsDirectory.fs
 
-  init {
-    println("xxxxx=> virtualFirstSegment=$virtualFirstSegment")
-    println("xxxxx=> vfsDirectory=${vfsDirectory}")
-    println("xxxxx=> fsFullPath=$fsFullPath")
-  }
-
   private val virtualFirstPath by lazy {
     virtualFullPath.first
   }
