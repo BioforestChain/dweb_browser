@@ -379,7 +379,9 @@ class BrowserViewModel(
       return@launch
     }
     // 尝试
-    val webUrl = url.toWebUrl() ?: checkAndEnableSearchEngine(url) // 检查是否有默认的搜索引擎
+    val webUrl = url.toWebUrl()
+      ?: checkAndEnableSearchEngine(url) // 检查是否有默认的搜索引擎
+      ?: url.toWebUrlOrWithoutProtocol() // 上面先判断标准的网址和搜索引擎后，仍然为空时，执行一次域名转化判断
       ?: filterShowEngines.firstOrNull()?.searchLinks?.first()?.format(url)?.toWebUrl() // 转换成搜索链接
     debugBrowser("doIOSearchUrl", "url=$url, webUrl=$webUrl, focusedPage=$focusedPage")
     // 当没有搜到需要的数据，给出提示
