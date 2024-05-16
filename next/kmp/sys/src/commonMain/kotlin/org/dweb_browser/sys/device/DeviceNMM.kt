@@ -34,17 +34,8 @@ class DeviceNMM : NativeMicroModule("device.sys.dweb", "Device Info") {
       routes(
         /** 获取设备唯一标识uuid*/
         "/uuid" bind PureMethod.GET by defineJsonResponse {
-          if (requestSystemPermission(
-              name = SystemPermissionName.STORAGE,
-              title = "Request external storage permissions",
-              description = "Request external storage permissions"
-            )
-          ) {
-            val uuid = store.getOrPut(UUID_KEY) { DeviceManage.deviceUUID() }
-            UUIDResponse(uuid).toJsonElement()
-          } else {
-            throwException(HttpStatusCode.Unauthorized, "permission dined")
-          }
+          val uuid = store.getOrPut(UUID_KEY) { DeviceManage.deviceUUID() }
+          UUIDResponse(uuid).toJsonElement()
         },
         /** 获取设备当前安装的 DwebBrowser 版本 */
         "/version" bind PureMethod.GET by defineStringResponse {
