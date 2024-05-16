@@ -31,6 +31,7 @@ import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.ChangeableMap
+import org.dweb_browser.helper.ENV_SWITCH_KEY
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.build
 import org.dweb_browser.helper.envSwitch
@@ -78,10 +79,11 @@ open class DesktopController private constructor(
     val options = DWebViewOptions(
       url = getDesktopUrl().toString(),
       privateNet = true,
-      openDevTools = envSwitch.isEnabled("desktop-devtools"),
+      openDevTools = envSwitch.isEnabled(ENV_SWITCH_KEY.DESKTOP_DEVTOOLS),
       detachedStrategy = DWebViewOptions.DetachedStrategy.Ignore,
       displayCutoutStrategy = DWebViewOptions.DisplayCutoutStrategy.Default,
-      tag = 1
+      tag = 1,
+      subDataDirName = "desktop"
     );
     val webView = activity.createDwebView(deskNMM, options)
     // 隐藏滚动条
@@ -200,7 +202,7 @@ open class DesktopController private constructor(
   }
 
 
-  private fun getDesktopUrl() = when (val url = envSwitch.get("desktop-dev-url")) {
+  private fun getDesktopUrl() = when (val url = envSwitch.get(ENV_SWITCH_KEY.DESKTOP_DEV_URL)) {
     "" -> desktopServer.startResult.urlInfo.buildInternalUrl().build {
       resolvePath("/desktop.html")
     }

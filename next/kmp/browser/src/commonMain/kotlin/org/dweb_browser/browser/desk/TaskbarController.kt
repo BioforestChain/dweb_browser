@@ -13,6 +13,7 @@ import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.std.http.HttpDwebServer
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.helper.ChangeableMap
+import org.dweb_browser.helper.ENV_SWITCH_KEY
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
@@ -174,7 +175,7 @@ class TaskbarController private constructor(
       }
     }
 
-  fun getTaskbarUrl() = when (val url = envSwitch.get("taskbar-dev-url")) {
+  fun getTaskbarUrl() = when (val url = envSwitch.get(ENV_SWITCH_KEY.TASKBAR_DEV_URL)) {
     "" -> taskbarServer.startResult.urlInfo.buildInternalUrl().build {
       resolvePath("/taskbar.html")
     }
@@ -185,11 +186,14 @@ class TaskbarController private constructor(
 
   fun getTaskbarDWebViewOptions() = DWebViewOptions(
     url = getTaskbarUrl().toString(),
-    openDevTools = envSwitch.isEnabled("taskbar-devtools"),
+    openDevTools = envSwitch.isEnabled(ENV_SWITCH_KEY.TASKBAR_DEVTOOLS),
     privateNet = true,
-    enabledOffScreenRender = true,
+    // 这里使用离屏渲染，来确保能在jDialog中透明背景地显示
+    // 现在离屏渲染还有很严重的BUG没有修复，所以这里谨慎使用，只用在taskbar这种没有输入框的简单模块中
+    enabledOffScreenRender = !envSwitch.isEnabled(ENV_SWITCH_KEY.DWEBVIEW_ENABLE_TRANSPARENT_BACKGROUND),
     detachedStrategy = DWebViewOptions.DetachedStrategy.Ignore,
     tag = 2,
+    subDataDirName = "taskbar"
   )
 
   @Serializable

@@ -17,8 +17,8 @@ class DwebWallpaperElement extends HTMLElement {
           pointer-events: none;
           top: 0;
           overflow: hidden;
-          --bg-color-1: #93f3ff;
-          --bg-color-2: #ffca7b;
+          --bg-color-1: #fff; /*#93f3ff;*/
+          --bg-color-2: #fff; /*#ffca7b;*/
           --bg-mix-blend-mode: hard-light;
           background: linear-gradient(var(--bg-color-deg, 90deg), var(--bg-color-1), var(--bg-color-2));
         }
@@ -32,8 +32,8 @@ class DwebWallpaperElement extends HTMLElement {
 
         @media (prefers-color-scheme: dark) {
           :host {
-            --bg-color-1: #00a9be;
-            --bg-color-2: #dd8400;
+            --bg-color-1: #333; /*#00a9be;*/
+            --bg-color-2: #333; /*#dd8400;*/
           }
         }
       </style>

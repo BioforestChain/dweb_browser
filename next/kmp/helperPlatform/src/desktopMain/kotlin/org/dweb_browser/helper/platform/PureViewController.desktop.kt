@@ -23,6 +23,7 @@ import kotlinx.coroutines.runBlocking
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.compose.LocalCompositionChain
+import org.dweb_browser.helper.envSwitch
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.platform.desktop.os.WindowsRegistry
 import org.jetbrains.compose.resources.painterResource
@@ -30,7 +31,7 @@ import kotlin.system.exitProcess
 
 
 class PureViewController(
-  var createParams: PureViewCreateParams = PureViewCreateParams(mapOf())
+  var createParams: PureViewCreateParams = PureViewCreateParams(mapOf()),
 ) : IPureViewController {
   constructor(params: Map<String, Any?>) : this(PureViewCreateParams(params))
 
@@ -68,6 +69,9 @@ class PureViewController(
       exitDesktop = {
         exitApp()
       }
+      // 目前除了windows，其它平台（android、ios、macos）都能让背景透明地进行渲染
+      envSwitch.init("dwebview-enable-transparent-background") { "${!isWindows}" }
+
       Tray(icon = painterResource(Res.drawable.tray_dweb_browser), menu = {
         Item("Js Process", enabled = LocalViewHookJsProcess.isUse) {
           runBlocking {

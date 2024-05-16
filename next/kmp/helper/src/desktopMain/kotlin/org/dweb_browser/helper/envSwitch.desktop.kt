@@ -1,6 +1,6 @@
 package org.dweb_browser.helper
 
-actual class EnvSwitch {
+actual open class EnvSwitchCore {
   actual fun add(switch: String, value: String) {
     System.setProperty("dweb-$switch", value)
   }

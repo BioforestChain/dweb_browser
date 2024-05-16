@@ -1,6 +1,6 @@
 package org.dweb_browser.helper
 
-actual class EnvSwitch {
+actual open class EnvSwitchCore {
   private val switchSet = mutableMapOf<String, String>()
   actual fun add(switch: String, value: String) {
     switchSet[switch] = value

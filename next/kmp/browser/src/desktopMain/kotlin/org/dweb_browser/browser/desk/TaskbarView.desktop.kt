@@ -66,7 +66,6 @@ class TaskbarView private constructor(
 
         // 位置
         dialog.taskbarController.deskNMM.getComposeWindowOrNull()?.also { composeWindow ->
-          println("QAQ composeWindow=$composeWindow")
           fun autoTaskbarPosition(parentBounds: Rectangle = composeWindow.bounds) {
             val selfBounds = dialog.bounds
             val x = parentBounds.x + parentBounds.width + dialog.padding
