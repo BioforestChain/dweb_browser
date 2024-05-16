@@ -1,6 +1,13 @@
-import { ImpactStyle, NotificationType, barcodeScannerPlugin, dwebServiceWorker } from "@plaoc/plugins";
+import { ImpactStyle, NotificationType, barcodeScannerPlugin, configPlugin, dwebServiceWorker } from "@plaoc/plugins";
 const barcodeScanner = document.querySelector("dweb-barcode-scanning")!;
-const handleSubmit = async ($event: Event) => {
+
+const close = new CloseWatcher();
+
+close.addEventListener("close", () => {
+  alert("拦截到了回退时间");
+});
+
+const observerImgUpdate = async ($event: Event) => {
   $event.preventDefault();
 
   const target = document.getElementById("fileToUpload") as HTMLInputElement;
@@ -93,13 +100,22 @@ const restart = () => {
   dwebServiceWorker.restart();
 };
 
+const setLang = async () => {
+  const res = await configPlugin.setLang("en", false);
+  if (res) {
+    dwebServiceWorker.restart();
+  }
+  console.log("res=>", res);
+};
+
 Object.assign(globalThis, {
   sayHi,
   canOpenUrl,
   getUUID,
   restart,
   shareHandle,
-  handleSubmit,
+  observerImgUpdate,
   startScanning,
   dwebServiceWorker,
+  setLang,
 });
