@@ -1,6 +1,5 @@
 package org.dweb_browser.browser.web.model
 
-import jdk.jfr.Enabled
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.browser.search.SearchEngine
