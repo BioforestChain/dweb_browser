@@ -1,8 +1,7 @@
 import type { $PromiseMaybe } from "@dweb-browser/helper/$PromiseMaybe.ts";
-import type { IpcResponse } from "./ipc/ipc-message/IpcResponse.ts";
 import type { Ipc } from "./ipc/ipc.ts";
 import type { MICRO_MODULE_CATEGORY } from "./type/category.const.ts";
-import type { $MMID, $MicroModuleManifest } from "./types.ts";
+import type { $CommonAppManifest, $MMID, $MicroModuleManifest } from "./types.ts";
 
 export interface $BootstrapContext {
   dns: $DnsMicroModule;
@@ -17,8 +16,8 @@ export interface $DnsMicroModule {
    * @param reason
    */
   connect(mmid: $MMID, reason?: Request): $PromiseMaybe<Ipc>;
-  query(mmid: $MMID): Promise<$MicroModuleManifest | undefined>;
-  queryDeeplink(deeplinkHref: string): Promise<$MicroModuleManifest | undefined>;
+  query(mmid: $MMID): Promise<$CommonAppManifest | undefined>;
+  queryDeeplink(deeplinkHref: string): Promise<$CommonAppManifest | undefined>;
   /**
    * 根据类目搜索模块
    * > 这里暂时不需要支持复合搜索，未来如果有需要另外开接口

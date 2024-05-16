@@ -6,17 +6,7 @@ import LogPanel from "../components/LogPanel.vue";
 
 Object.assign(globalThis, { dwebServiceWorker, plaoc });
 
-// const progress = ref(0);
-
 onMounted(async () => {
-  // app暂停触发事件（这个时候后台还会运行，前端界面被关闭）
-  dwebServiceWorker.addEventListener("pause", (event) => {
-    console.log("app pause", event);
-  });
-  // app恢复触发事件
-  dwebServiceWorker.addEventListener("resume", (event) => {
-    console.log("app resume", event);
-  });
   dwebServiceWorker.addEventListener("shortcut", (event) => {
     console.log("shortcut", event.data);
     plaoc.toastPlugin.show({ text: event.data });
@@ -62,6 +52,10 @@ dwebServiceWorker.addEventListener("fetch", async (event) => {
   return event.respondWith(`Not match any routes:${url.pathname}`);
 });
 
+const updateApp = () => {
+  window.open("dweb://install?url=http://172.30.95.93:8000/metadata.json");
+};
+
 const title = "Dweb Service Worker";
 </script>
 
@@ -83,6 +77,7 @@ const title = "Dweb Service Worker";
       <div class="justify-end card-actions btn-group">
         <button class="inline-block rounded-full btn btn-accent" @click="close">close</button>
         <button class="inline-block rounded-full btn btn-accent" @click="restart">restart</button>
+        <button class="inline-block rounded-full btn btn-accent" @click="updateApp">查看升级</button>
       </div>
     </article>
   </div>

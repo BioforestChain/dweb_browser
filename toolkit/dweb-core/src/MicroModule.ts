@@ -200,9 +200,9 @@ export abstract class MicroModuleRuntime implements $MicroModuleRuntime {
           }
         });
         if (url) {
-          const mm = await this.bootstrapContext.dns.queryDeeplink(url);
-          if (mm) {
-            (await this.connect(mm.mmid)).request(url);
+          const mmid = (await this.bootstrapContext.dns.queryDeeplink(url))?.id;
+          if (mmid) {
+            (await this.connect(mmid as $MMID)).request(url);
           }
         }
       });
