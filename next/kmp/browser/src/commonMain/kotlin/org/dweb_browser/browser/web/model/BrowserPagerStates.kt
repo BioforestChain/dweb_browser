@@ -78,16 +78,21 @@ class BrowserPagerStates(val viewModel: BrowserViewModel) {
     } else {
       /// searchBarPager => contentPagePager
       // 目前桌面端的 PageSize使用 Fixed，所以这边不关心 currentPageOffsetFraction 值
-      LaunchedEffect(searchBarPager.currentPage, searchBarPager.isScrollInProgress) {
-        if (!searchBarPager.isScrollInProgress) {
+      LaunchedEffect(
+        searchBarPager.currentPage,
+        searchBarPager.isScrollInProgress,
+        searchBarPager.currentPageOffsetFraction
+      ) {
+        // 考虑到如果聚焦到最后一个page时，currentPage有偏移量的话，不进行聚焦
+        if (!searchBarPager.isScrollInProgress && searchBarPager.currentPageOffsetFraction == 0f) {
           viewModel.focusPageUI(searchBarPager.currentPage)
         }
       }
 
       // focusedPage => searchPagePager
-      LaunchedEffect(viewModel.focusedPageIndex) {
+      LaunchedEffect(viewModel.focusedPageIndex, contentPagePager.isScrollInProgress) {
         val pageIndex = viewModel.focusedPageIndex
-        if (!searchBarPager.isScrollInProgress) {
+        if (!contentPagePager.isScrollInProgress) {
           searchBarPager.scrollToPage(pageIndex)
           contentPagePager.scrollToPage(pageIndex)
         }
