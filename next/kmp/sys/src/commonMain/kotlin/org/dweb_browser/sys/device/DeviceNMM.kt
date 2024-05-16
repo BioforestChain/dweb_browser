@@ -1,6 +1,5 @@
 package org.dweb_browser.sys.device
 
-import io.ktor.http.HttpStatusCode
 import kotlinx.serialization.Serializable
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
@@ -10,8 +9,6 @@ import org.dweb_browser.core.std.file.ext.store
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.pure.http.PureMethod
-import org.dweb_browser.sys.permission.SystemPermissionName
-import org.dweb_browser.sys.permission.ext.requestSystemPermission
 
 val debugDevice = Debugger("Device")
 

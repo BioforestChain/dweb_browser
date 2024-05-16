@@ -2,10 +2,21 @@ package org.dweb_browser.sys.device
 
 import org.dweb_browser.core.std.file.FileNMM
 import org.dweb_browser.core.std.file.getApplicationRootDir
+import org.dweb_browser.core.std.permission.AuthorizationStatus
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.platform.desktop.os.OsType
+import org.dweb_browser.sys.permission.SystemPermissionAdapterManager
+import org.dweb_browser.sys.permission.SystemPermissionName
 
 actual object DeviceManage {
+  init {
+    SystemPermissionAdapterManager.append {
+      if(task.name == SystemPermissionName.STORAGE) {
+        AuthorizationStatus.GRANTED
+      } else null
+    }
+  }
+
   private val runtime by lazy { Runtime.getRuntime() }
   private val deviceUUID by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
     runCatching {
