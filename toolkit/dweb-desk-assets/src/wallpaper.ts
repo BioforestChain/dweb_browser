@@ -67,7 +67,7 @@ class DwebWallpaperElement extends HTMLElement {
   #sleep(ms: number) {
     return new Promise<void>((resolve) => (this.ti = setTimeout(resolve, ms)));
   }
-  config = this.innerText;
+  config = (this.textContent || "").trim();
   #mixBlendModeMap = (() => {
     const mixBlendModeMap = Array.from({ length: 24 }, () => "hard-light");
     this.config
