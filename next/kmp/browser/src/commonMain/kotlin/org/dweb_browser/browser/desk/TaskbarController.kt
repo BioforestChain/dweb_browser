@@ -24,8 +24,8 @@ import org.dweb_browser.helper.resolvePath
 class TaskbarController private constructor(
   val deskNMM: DeskNMM.DeskRuntime,
   val deskSessionId: String,
-  private val desktopController: DesktopController,
-  private val taskbarServer: HttpDwebServer,
+  val desktopController: DesktopController,
+  val taskbarServer: HttpDwebServer,
   private val runningApps: ChangeableMap<MMID, RunningApp>,
 ) {
   internal val state = TaskbarState();
