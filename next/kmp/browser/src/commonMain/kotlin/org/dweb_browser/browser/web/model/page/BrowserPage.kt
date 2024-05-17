@@ -1,20 +1,28 @@
 package org.dweb_browser.browser.web.model.page
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.unit.dp
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.web.BrowserController
 import org.dweb_browser.helper.SimpleSignal
@@ -35,6 +43,8 @@ sealed class BrowserPage(browserController: BrowserController) {
 
   var scale by mutableFloatStateOf(1f)
     private set
+
+  open fun isWebViewCompose(): Boolean = false // 用于标识是否是webview需要缩放，还是原生的compose需要缩放
 
   // 该字段是用来存储通过 deeplink 调用的 search 和 openinbrowser 关键字，关闭搜索界面需要直接置空
   var searchKeyWord by mutableStateOf<String?>(null)
@@ -102,7 +112,23 @@ sealed class BrowserPage(browserController: BrowserController) {
   @Composable
   fun Render(modifier: Modifier, scale: Float) {
     this.scale = scale
-    Render(modifier)
+    if (isWebViewCompose()) {
+      Render(modifier)
+    } else {
+      LaunchedEffect(Unit) { // 为了解决第一次截图失败问题：error=The Modifier.Node was detached
+        delay(500)
+        captureViewInBackground()
+      }
+      BoxWithConstraints(modifier = modifier) {
+        Box(
+          modifier = Modifier
+            .requiredSize((maxWidth.value / scale).dp, (maxHeight.value / scale).dp)
+            .scale(scale)
+        ) {
+          Render(Modifier.fillMaxSize())
+        }
+      }
+    }
   }
 
   private val destroySignal = SimpleSignal()

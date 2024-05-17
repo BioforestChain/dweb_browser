@@ -86,6 +86,8 @@ class BrowserWebPage(val webView: IDWebView, browserController: BrowserControlle
       searchEngine?.let { updateUrl(searchEngine.searchLinks.first().format(url)) }
     }
   }
+
+  override fun isWebViewCompose() = true // 用于判断webview的缩放，还是Compose原生的缩放
 }
 
 expect fun BrowserWebPage.requestCaptureInCompose(): Unit

@@ -91,8 +91,6 @@ internal fun BrowserWebPage.Effect() {
 internal fun BrowserWebPage.BrowserWebPageRender(
   modifier: Modifier
 ) {
-  val viewModel = LocalBrowserViewModel.current
-  val uiScope = rememberCoroutineScope()
   val webPage = this
   webPage.Effect()
   ///
