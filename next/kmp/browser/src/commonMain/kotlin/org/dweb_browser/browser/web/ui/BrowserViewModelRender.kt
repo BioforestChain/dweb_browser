@@ -49,7 +49,6 @@ internal fun <T> exitAnimationSpec() = tween<T>(300, easing = IosFastOutSlowInEa
 fun BrowserViewModalRender(
   viewModel: BrowserViewModel, modifier: Modifier, windowRenderScope: WindowContentRenderScope,
 ) {
-
   LocalCompositionChain.current.Provider(LocalBrowserViewModel provides viewModel) {
     viewModel.ViewModelEffect()
 

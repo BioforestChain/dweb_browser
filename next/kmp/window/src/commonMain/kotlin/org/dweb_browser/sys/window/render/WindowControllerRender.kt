@@ -222,7 +222,7 @@ fun WindowController.WindowRender(modifier: Modifier) {
           ).clip(winPadding.contentRounded.roundedCornerShape)
         ) {
           Column {
-            BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
+            BoxWithConstraints(Modifier.fillMaxSize()) {
               val limits = LocalWindowLimits.current
               val windowRenderScope =
                 remember(limits, maxWidth, maxHeight) {
