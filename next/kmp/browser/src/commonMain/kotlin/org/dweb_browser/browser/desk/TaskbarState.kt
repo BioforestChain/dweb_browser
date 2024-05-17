@@ -31,6 +31,6 @@ class TaskbarState() {
   /**
    * 专门用于桌面端的拖拽
    */
-  var desktopDragging by observable.observe(TASKBAR_PROPERTY_KEY.Dragging, false)
+  var taskbarDragging by observable.observe(TASKBAR_PROPERTY_KEY.Dragging, false)
 }
 

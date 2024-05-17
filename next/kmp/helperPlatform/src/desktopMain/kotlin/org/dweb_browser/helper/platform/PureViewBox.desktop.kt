@@ -24,7 +24,7 @@ actual suspend fun IPureViewBox.Companion.from(viewController: IPureViewControll
 }
 
 class PureViewBox(
-  val pureViewController: PureViewController
+  val pureViewController: PureViewController,
 ) : IPureViewBox {
   companion object {
     internal val instances = WeakHashMap<IPureViewController, IPureViewBox>()
@@ -40,7 +40,7 @@ class PureViewBox(
     with(composeWindow.toolkit.screenSize) { IntSize(width, height) }
 
   override suspend fun getViewControllerMaxBoundsPx() =
-    getViewControllerMaxBoundsPxSync(pureViewController.awaitComposeWindow())
+    pureViewController.awaitComposeWindow().getScreenBounds()
 
   /**
    * 参考算法：
@@ -72,7 +72,7 @@ class PureViewBox(
     val density = LocalDensity.current.density
     return remember(composeWindow, density, withSafeArea) {
       when {
-        withSafeArea -> getViewControllerMaxBoundsPxSync(composeWindow)
+        withSafeArea -> composeWindow.getScreenBounds()
         else -> getDisplaySizePxSync(composeWindow).toIntRect()
       } / density
     }

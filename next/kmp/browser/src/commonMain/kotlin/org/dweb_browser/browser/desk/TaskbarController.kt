@@ -142,7 +142,7 @@ class TaskbarController private constructor(
   }
 
   fun toggleDragging(dragging: Boolean): Boolean {
-    state.desktopDragging = dragging
+    state.taskbarDragging = dragging
     return dragging
   }
 

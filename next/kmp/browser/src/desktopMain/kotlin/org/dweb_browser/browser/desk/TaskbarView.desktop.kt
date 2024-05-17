@@ -5,23 +5,25 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.dweb_browser.core.std.file.ext.store
 import org.dweb_browser.dwebview.DWebView
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.asDesktop
 import org.dweb_browser.dwebview.create
+import org.dweb_browser.helper.PureIntPoint
+import org.dweb_browser.helper.platform.getAnimationFrameMs
 import org.dweb_browser.helper.platform.getComposeWindowOrNull
+import org.dweb_browser.helper.platform.getScreenBounds
+import org.dweb_browser.helper.toPureIntPoint
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.MouseInfo
 import java.awt.Point
-import java.awt.Rectangle
 import java.awt.Shape
-import java.awt.event.ComponentAdapter
-import java.awt.event.ComponentEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import java.awt.event.MouseMotionAdapter
 import javax.swing.JDialog
 import javax.swing.Timer
 import kotlin.math.max
@@ -50,17 +52,116 @@ class TaskbarView private constructor(
     val contentView = taskbarDWebView.viewEngine.wrapperView
     private val parentWindow = taskbarController.deskNMM.getComposeWindowOrNull()
 
-    private fun autoTaskbarPosition(parentBounds: Rectangle) {
-      if (dragging) {
+    private var ready = false
+
+    override fun setLocation(p0: Int, p1: Int) {
+      val current = location
+      if (current.x == p0 && current.y == p1) {
         return
       }
-      val selfBounds = bounds
-      val x = parentBounds.x + parentBounds.width + padding
-      val y = parentBounds.y + parentBounds.height / 2 - selfBounds.height / 2
-      if (x != selfBounds.x || y != selfBounds.y) {
-        setLocation(x, y)
+
+      super.setLocation(p0, p1)
+      if (ready && !taskbarMagnetEffect.isPlay) {
+        playMagnetEffect()
       }
     }
+
+    override fun setSize(p0: Int, p1: Int) {
+      val current = size
+      if (current.width == p0 && current.height == p1) {
+        return
+      }
+      super.setSize(p0, p1)
+      if (ready && !taskbarMagnetEffect.isPlay) {
+        playMagnetEffect()
+      }
+    }
+
+    private fun playMagnetEffect() {
+      taskbarMagnetEffect.start()
+    }
+
+    /**
+     * taskbar 吸附在屏幕边缘
+     */
+    private val taskbarMagnetEffect = MagnetEffect(
+      from = this,
+      isDisabled = { dragging },
+      getEnds = {
+        val viewBounds = bounds
+        val screenBounds = getScreenBounds()
+        val paddingX = padding
+        val paddingY = padding
+        val centerX = viewBounds.x + viewBounds.width / 2
+        println("QAQ viewBounds=$viewBounds parentBounds=$screenBounds")
+        val endX = when {
+          // 往右靠边
+          centerX - screenBounds.left > screenBounds.right - centerX -> {
+            screenBounds.right - viewBounds.width - paddingX
+          }
+          // 往左靠边
+          else -> {
+            screenBounds.left + paddingX
+          }
+        }
+        val endY = when {
+          // 如果上方溢出
+          viewBounds.y < screenBounds.top -> screenBounds.top + paddingY
+          // 如果下方溢出
+          viewBounds.y + viewBounds.height > screenBounds.bottom -> screenBounds.bottom - viewBounds.height - paddingY
+          // 保持
+          else -> viewBounds.y
+        }
+        PureIntPoint(endX, endY)
+      },
+    )
+
+    /**
+     * 桌面吸附在 taskbar 边缘
+     */
+    private val desktopMagnetEffect = parentWindow?.let { composeWindow ->
+      MagnetEffect(
+        from = composeWindow,
+        isDisabled = { taskbarMagnetEffect.isPlay },
+        getEnds = {
+          val windowBounds = composeWindow.bounds
+          val taskbarBounds = bounds
+          val taskbarCenterX = taskbarBounds.x + taskbarBounds.width / 2
+          val taskbarCenterY = taskbarBounds.y + taskbarBounds.height / 2
+          val screenBounds = getScreenBounds()
+          val screenCenterX = (screenBounds.right - screenBounds.left) / 2 + screenBounds.left
+
+          val endX = when {
+            // 屏幕左边空间更多
+            taskbarCenterX > screenCenterX -> taskbarBounds.x - padding - windowBounds.width
+            // 屏幕右边空间更多
+            else -> taskbarBounds.x + taskbarBounds.width + padding
+          }
+
+          /// y轴比较宽松，只要有部分交集就好了
+          var endY = when {
+            // window 顶部低于 taskbar 的中心
+            windowBounds.y > taskbarCenterY -> taskbarCenterY
+            // window 底部高于 taskbar 的中心
+            windowBounds.y + windowBounds.height < taskbarCenterY -> taskbarCenterY - windowBounds.height
+            else -> windowBounds.y
+          }
+          // 尽量不要溢出屏幕，优先确保顶部显示
+          if (endY < screenBounds.top) {
+            endY = screenBounds.top
+          } else if (endY + windowBounds.height > screenBounds.bottom) {
+            endY = screenBounds.bottom - windowBounds.height
+          }
+
+          PureIntPoint(endX, endY)
+        },
+      ).also {
+        taskbarMagnetEffect.onPlayEnd = {
+          it.start()
+        }
+      }
+    }
+
 
     private fun effectStyle() {
       val dialog = this
@@ -80,53 +181,44 @@ class TaskbarView private constructor(
     private fun effectRelativePosition() {
       val dialog = this
       // 位置
-      dialog.parentWindow?.also { composeWindow ->
-        dialog.addComponentListener(object : ComponentAdapter() {
-          override fun componentResized(p0: ComponentEvent?) {
-            dialog.autoTaskbarPosition(composeWindow.bounds)
+      dialog.taskbarController.deskNMM.also { nmm ->
+        nmm.scopeLaunch(cancelable = true) {
+          var location = nmm.store.getOrPut("taskbar.location") {
+            getScreenBounds().let {
+              PureIntPoint(
+                it.right - 100, (it.bottom - it.top) / 2 + it.top - 100
+              )
+            }
           }
-        })
-        composeWindow.addComponentListener(object : ComponentAdapter() {
-          override fun componentResized(p0: ComponentEvent?) {
-            dialog.autoTaskbarPosition(composeWindow.bounds)
-          }
+          dialog.setLocation(location.x, location.y)
+          // 初始化动画
+          playMagnetEffect()
+          desktopMagnetEffect?.start()
 
-          override fun componentMoved(p0: ComponentEvent?) {
-            dialog.autoTaskbarPosition(composeWindow.bounds)
+          while (true) {
+            delay(2000)
+            dialog.location.toPureIntPoint().also {
+              if (location != it) {
+                location = it
+                nmm.store.set("taskbar.location", it)
+              }
+            }
           }
-        })
-
-        // 初始化位置
-        dialog.autoTaskbarPosition(composeWindow.bounds)
+        }
       }
-      dialog.addMouseMotionListener(object : MouseMotionAdapter() {
-        override fun mouseDragged(p0: MouseEvent) {
-          println("QAQ mouseDragged ${p0.locationOnScreen}")
-        }
-
-        override fun mouseMoved(p0: MouseEvent) {
-          println("QAQ mouseMoved ${p0.locationOnScreen}")
-        }
-      })
       dialog.addMouseListener(object : MouseAdapter() {
         override fun mouseReleased(p0: MouseEvent) {
-          println("QAQ mouseReleased ${p0.locationOnScreen}")
           dragging = false
         }
 
         override fun mousePressed(p0: MouseEvent) {
-          println("QAQ mousePressed ${p0.locationOnScreen}")
           dragging = false
         }
 
         override fun mouseClicked(p0: MouseEvent) {
-          println("QAQ mouseClicked ${p0.locationOnScreen}")
           dragging = false
         }
       })
-//      Timer(1000) {
-//        println("QAQ $bounds ${contentView.bounds}")
-//      }.start()
     }
 
     private var dragTimer: Timer? = null
@@ -191,40 +283,26 @@ class TaskbarView private constructor(
       /**
        * 这里需要校准位置，否则延迟会偏移问题
        */
-      val contentStartLocation =
-        boxFollowMouse(
-          dialogStartLocation,
-          dialogStartSize,
-          startMousePoint,
-          /// css 写的是 scale(0.9)，所以这边确保鼠标在其内部
-          max((dialogStartSize.width * 0.1).toInt(), 10),
-          max((dialogStartSize.height * 0.1).toInt(), 10),
-        )
+      val contentStartLocation = boxFollowMouse(
+        dialogStartLocation,
+        dialogStartSize,
+        startMousePoint,
+        /// css 写的是 scale(0.9)，所以这边确保鼠标在其内部
+        max((dialogStartSize.width * 0.1).toInt(), 10),
+        max((dialogStartSize.height * 0.1).toInt(), 10),
+      )
       val composeWindow = dialog.parentWindow
-      val windowStartLocation = composeWindow?.location
 
       dialog.location = contentStartLocation
 
-      dragTimer = Timer(10) {
+      dragTimer = Timer(getAnimationFrameMs()) {
         val moveMousePoint = currentMousePosition ?: return@Timer endDrag()
         val moveX = moveMousePoint.x - startMousePoint.x
         val moveY = moveMousePoint.y - startMousePoint.y
         val contentX = contentStartLocation.x + moveX
         val contentY = contentStartLocation.y + moveY
         if (contentX != dialog.x || contentY != dialog.y) {
-
           dialog.setLocation(contentStartLocation.x + moveX, contentStartLocation.y + moveY)
-
-          println("QAQ MOVED dialogStartLocation=${dialogStartLocation} dialogStartSize=$dialogStartSize")
-          println("QAQ MOVED contentStartLocation=${contentStartLocation} startMousePoint=$startMousePoint")
-          println("QAQ MOVED location=${dialog.location} mousePoint=$currentMousePosition")
-
-          if (windowStartLocation != null) {
-            composeWindow.setLocation(
-              windowStartLocation.x + moveX,
-              windowStartLocation.y + moveY
-            )
-          }
         }
 
       }.also {
@@ -236,10 +314,8 @@ class TaskbarView private constructor(
       dragTimer?.stop()
       dragTimer = null
 
-      // 结束后，强制执行一次定位
-      parentWindow?.bounds?.also { autoTaskbarPosition(it) }
-      if (taskbarController.state.desktopDragging) {
-        taskbarController.state.desktopDragging = false
+      if (taskbarController.state.taskbarDragging) {
+        taskbarController.state.taskbarDragging = false
         /// 强行释放 js 里的状态
         taskbarDWebView.ioScope.launch(start = CoroutineStart.UNDISPATCHED) {
           runCatching {
@@ -247,11 +323,14 @@ class TaskbarView private constructor(
           }
         }
       }
+      // 结束后，强制执行复位动画
+      playMagnetEffect()
     }
 
     init {
       effectStyle()
       effectRelativePosition()
+      ready = true
     }
   }
 
@@ -266,9 +345,9 @@ class TaskbarView private constructor(
     taskbarController.state.composableHelper.apply {
       val layoutWidth by stateOf { layoutWidth.toInt() }
       val layoutHeight by stateOf { layoutHeight.toInt() }
-      val desktopDragging by stateOf { desktopDragging }
+      val taskbarDragging by stateOf { taskbarDragging }
       dialog.setSize(layoutWidth, layoutHeight)
-      dialog.dragging = desktopDragging
+      dialog.dragging = taskbarDragging
     }
   }
 
