@@ -58,10 +58,10 @@ fun BrowserViewModalRender(
           modifier.requiredSize((width / scale).dp, (height / scale).dp).scale(scale)
         }
       }) {
-        BrowserPreviewPanel(Modifier.fillMaxSize().zIndex(2f))
         // 搜索界面考虑到窗口和全屏问题，显示的问题，需要控制modifier
-        BrowserSearchPanel(Modifier.fillMaxSize())
-        BrowserQRCodePanel(Modifier.fillMaxSize())
+        if (BrowserPreviewPanel(Modifier.fillMaxSize().zIndex(2f))) return@Provider
+        if (BrowserSearchPanel(Modifier.fillMaxSize())) return@Provider
+        if (BrowserQRCodePanel(Modifier.fillMaxSize())) return@Provider
       }
       BrowserPagePanel(Modifier.fillMaxSize(), windowRenderScope)
     }
@@ -116,9 +116,9 @@ fun BrowserPageBox(windowRenderScope: WindowContentRenderScope) {
 fun BrowserBottomBar(modifier: Modifier, windowRenderScope: WindowContentRenderScope) {
   Box(
     modifier = modifier.fillMaxWidth().height(dimenBottomHeight).requiredSize(
-        width = (windowRenderScope.width / windowRenderScope.scale).dp,
-        height = (windowRenderScope.height / windowRenderScope.scale).dp
-      ).scale(windowRenderScope.scale), contentAlignment = Alignment.Center
+      width = (windowRenderScope.width / windowRenderScope.scale).dp,
+      height = (windowRenderScope.height / windowRenderScope.scale).dp
+    ).scale(windowRenderScope.scale), contentAlignment = Alignment.Center
   ) {
     BrowserSearchBar(Modifier.fillMaxSize())
   }
