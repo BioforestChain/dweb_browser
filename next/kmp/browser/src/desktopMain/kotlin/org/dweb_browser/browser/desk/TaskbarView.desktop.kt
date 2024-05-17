@@ -24,6 +24,7 @@ import java.awt.event.MouseEvent
 import java.awt.event.MouseMotionAdapter
 import javax.swing.JDialog
 import javax.swing.Timer
+import kotlin.math.max
 
 actual suspend fun ITaskbarView.Companion.create(taskbarController: TaskbarController): ITaskbarView =
   TaskbarView.from(taskbarController)
@@ -158,24 +159,25 @@ class TaskbarView private constructor(
       boxLocation: Point,
       boxSize: Dimension,
       mousePoint: Point,
-      safePadding: Int,
+      safePaddingX: Int,
+      safePaddingY: Int,
     ): Point {
       var startX = boxLocation.x
       var startY = boxLocation.y
-      val contentLeft = boxLocation.x + safePadding
-      val contentRight = boxLocation.x + boxSize.width - safePadding
-      val contentTop = boxLocation.y + safePadding
-      val contentBottom = boxLocation.y + boxSize.height - safePadding
+      val contentLeft = boxLocation.x + safePaddingX
+      val contentRight = boxLocation.x + boxSize.width - safePaddingX
+      val contentTop = boxLocation.y + safePaddingY
+      val contentBottom = boxLocation.y + boxSize.height - safePaddingY
 
       if (mousePoint.x < contentLeft) {
-        startX = mousePoint.x - safePadding
+        startX = mousePoint.x - safePaddingX
       } else if (mousePoint.x > contentRight) {
-        startX = mousePoint.x - boxSize.width + safePadding
+        startX = mousePoint.x - boxSize.width + safePaddingX
       }
       if (mousePoint.y < contentTop) {
-        startY = mousePoint.y - safePadding
+        startY = mousePoint.y - safePaddingY
       } else if (mousePoint.y > contentBottom) {
-        startY = mousePoint.y - boxSize.height + safePadding
+        startY = mousePoint.y - boxSize.height + safePaddingY
       }
       return Point(startX, startY)
     }
@@ -190,7 +192,14 @@ class TaskbarView private constructor(
        * 这里需要校准位置，否则延迟会偏移问题
        */
       val contentStartLocation =
-        boxFollowMouse(dialogStartLocation, dialogStartSize, startMousePoint, 10)
+        boxFollowMouse(
+          dialogStartLocation,
+          dialogStartSize,
+          startMousePoint,
+          /// css 写的是 scale(0.9)，所以这边确保鼠标在其内部
+          max((dialogStartSize.width * 0.1).toInt(), 10),
+          max((dialogStartSize.height * 0.1).toInt(), 10),
+        )
       val composeWindow = dialog.parentWindow
       val windowStartLocation = composeWindow?.location
 

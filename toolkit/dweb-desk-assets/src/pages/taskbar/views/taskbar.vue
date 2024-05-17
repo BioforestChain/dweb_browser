@@ -184,6 +184,10 @@ onMounted(() => {
 
       let down = 0;
       let dragging = false;
+      /**
+       * 需要至少 500 ms 的动作时间在元素上面
+       */
+      const startThreshold = 500;
       const dragPrepare = () => {
         const now = Date.now();
         down = now;
@@ -193,13 +197,15 @@ onMounted(() => {
           if (now === down) {
             dragStart();
           }
-        }, 800);
+        }, startThreshold);
       };
       const dragStart = () => {
-        if (down !== 0 && !dragging) {
-          dragging = true;
+        if (down !== 0) {
           element.classList.add("dragging");
-          toggleDragging(true);
+          if (!dragging && Date.now() >= down + startThreshold) {
+            dragging = true;
+            toggleDragging(true);
+          }
         }
       };
       const dragEnd = () => {
@@ -211,6 +217,13 @@ onMounted(() => {
           toggleDragging(false);
         }
       };
+      const dragCancel = () => {
+        if (dragging === false) {
+          down = 0;
+          element.classList.remove("dragging", "drag-start");
+          element.classList.add("drag-end");
+        }
+      };
       Object.assign(globalThis, {
         dragEnd,
       });
@@ -219,7 +232,7 @@ onMounted(() => {
 
       element.addEventListener("pointerup", dragEnd);
       // element.addEventListener("pointercancel", dragEnd);
-      // element.addEventListener("pointerleave", dragEnd);
+      element.addEventListener("pointerleave", dragCancel);
     };
     /// 桌面端默认开启 frame 边框的绘制
     if ((navigator as any).userAgentData?.mobile === false) {
