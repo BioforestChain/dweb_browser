@@ -55,6 +55,7 @@ class DesktopViewControllerCore(val viewController: IPureViewController) {
               if (it) taskbarController.toggleFloatWindow(false)
             }
           }
+          // 渲染app
           desktopController.Render(taskbarController, microModule)
         }
       }

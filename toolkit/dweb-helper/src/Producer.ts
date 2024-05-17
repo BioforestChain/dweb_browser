@@ -233,14 +233,16 @@ export class Producer<T> {
     #errorCatcher = new PromiseOut<string | undefined>();
 
     /**开始触发之前的 */
-    async #start() {
+    #start() {
       // 把自己添加进入消费者队列
       this.producer.consumers.add(this);
       this.#started = true;
-      const startingBuffers = this.producer.buffers;
-      for (const event of startingBuffers) {
-        await event.emitBy(this);
+      this.startingBuffers = this.producer.buffers;
+      for (const event of this.startingBuffers) {
+        event.emitBy(this);
       }
+      this.startingBuffers.clear();
+      this.startingBuffers = null;
     }
 
     /**收集事件 */

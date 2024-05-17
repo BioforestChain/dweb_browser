@@ -252,7 +252,6 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
         },
         // 读取文件，一次性读取，可以指定开始位置
         "/read" bind PureMethod.GET by definePureStreamHandler {
-          println("xxxxread=> ${request.query("path")}")
           val (filepath, fs) = getPath()
           val create = request.queryAsOrNull<Boolean>("create") ?: false
           debugFile("/read", "create=$create filepath=$filepath")

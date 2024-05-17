@@ -114,7 +114,7 @@ export class Ipc {
       }
     });
     const lifecycle = await op.promise;
-    this.console.log("awaitOpen", lifecycle, reason);
+    this.console.verbose("awaitOpen", lifecycle, reason);
     off();
     return lifecycle;
   }

@@ -64,7 +64,7 @@ export class WindowPlugin extends BasePlugin {
 
   /**
    *  设置窗口大小
-   * @param resizable 窗口是否手动改变宽高
+   * @param resizable 窗口是否允许手动改变宽高
    * @param width 宽
    * @param height 高
    * @returns
@@ -146,7 +146,7 @@ export class WindowPlugin extends BasePlugin {
     name: "",
   };
 
-  /** */
+  /**创建window的ipc连接 */
   private async wsToIpc(url: string) {
     const afterOpen = new PromiseOut<void>();
     const endpoint = new ChannelEndpoint("plaoc-window");
@@ -204,7 +204,7 @@ export class WindowPlugin extends BasePlugin {
     };
   }
 
-  /**关闭窗口 */
+  /**弹出窗口 */
   @bindThis
   async alert(options: $AlertOptions) {
     const args = await this.createModalArgs<$AlertOptions, $AlertModal>("alert", options, true, true);
@@ -215,7 +215,7 @@ export class WindowPlugin extends BasePlugin {
     });
     return result.promise;
   }
-  /**打开窗口 */
+  /**弹出从底部出现的窗口 */
   @bindThis
   async createBottomSheets(contentUrl: string) {
     const args = await this.createModalArgs<$BottomSheetsOptions, $BottomSheetsModal>("bottom-sheets", {}, true, true);
