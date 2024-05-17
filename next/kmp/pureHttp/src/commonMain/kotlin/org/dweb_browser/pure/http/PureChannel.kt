@@ -42,7 +42,7 @@ class PureChannelContext internal constructor(
   }
 
   @OptIn(InternalAPI::class)
-  suspend fun sendText(data: String) = outgoingChannel.send(PureTextFrame(data))
+  suspend fun sendText(data: String) = runCatching { outgoingChannel.send(PureTextFrame(data)) }
 
   suspend inline fun <reified T> sendJson(data: T) = sendText(Json.encodeToString(data))
 
@@ -50,7 +50,7 @@ class PureChannelContext internal constructor(
 
 
   @OptIn(InternalAPI::class)
-  suspend fun sendBinary(data: ByteArray) = outgoingChannel.send(PureBinaryFrame(data))
+  suspend fun sendBinary(data: ByteArray) = runCatching { outgoingChannel.send(PureBinaryFrame(data)) }
 
 
   @OptIn(ExperimentalSerializationApi::class)
@@ -59,6 +59,7 @@ class PureChannelContext internal constructor(
 
   fun close(cause: Throwable? = null) = getChannel().close(cause)
   val isClosed get() = getChannel().isClosed
+
   @OptIn(InternalAPI::class)
   val onClose = outgoingChannel::invokeOnClose
 }

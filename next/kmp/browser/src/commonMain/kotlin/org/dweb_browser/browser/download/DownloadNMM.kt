@@ -126,12 +126,10 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
               ctx.close()
             }
           }.conflate().collectIn(mmScope) {
-            if (!ctx.isClosed) {
-              ctx.sendJsonLine(it.status)
-              delay(throttleMs)
-            } else {
+            ctx.sendJsonLine(it.status).onFailure {
               WARNING("QAQ ctx.isClosed")
             }
+            delay(throttleMs)
           }
         },
         "/flow/progress" byChannel { ctx ->

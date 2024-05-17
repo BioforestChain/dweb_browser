@@ -83,9 +83,7 @@ suspend fun NativeMicroModule.NativeRuntime.downloadProgressFlow(
           channelFlow.send(Json.decodeFromString<DownloadStateEvent>(pureFrame.text))
           channelFlow.send(null)
           delay(next - Clock.System.now())
-          if (!ctx.isClosed) {
-            sendText("get")
-          }
+          sendText("get")
         }
 
         else -> {}
