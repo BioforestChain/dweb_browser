@@ -182,44 +182,46 @@ onMounted(() => {
     const enableFrame = () => {
       element.classList.add("frame");
 
-      let down = 0;
+      let downTime = 0;
       let dragging = false;
       /**
-       * 需要至少 500 ms 的动作时间在元素上面
+       * 需要的动作时间在元素上面
        */
-      const startThreshold = 500;
+      const startThreshold = 100;
       const dragPrepare = () => {
         const now = Date.now();
-        down = now;
+        downTime = now;
         element.classList.add("drag-start");
         element.classList.remove("drag-end");
         setTimeout(() => {
-          if (now === down) {
+          if (now === downTime) {
             dragStart();
           }
         }, startThreshold);
       };
       const dragStart = () => {
-        if (down !== 0) {
+        if (downTime !== 0) {
           element.classList.add("dragging");
-          if (!dragging && Date.now() >= down + startThreshold) {
+          if (!dragging && Date.now() >= downTime + startThreshold) {
             dragging = true;
             toggleDragging(true);
           }
         }
       };
       const dragEnd = () => {
-        down = 0;
-        if (dragging) {
-          dragging = false;
+        if (downTime !== 0) {
+          downTime = 0;
           element.classList.remove("dragging", "drag-start");
           element.classList.add("drag-end");
-          toggleDragging(false);
+          if (dragging) {
+            dragging = false;
+            toggleDragging(false);
+          }
         }
       };
       const dragCancel = () => {
-        if (dragging === false) {
-          down = 0;
+        if (downTime !== 0 && dragging === false) {
+          downTime = 0;
           element.classList.remove("dragging", "drag-start");
           element.classList.add("drag-end");
         }
