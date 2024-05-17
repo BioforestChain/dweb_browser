@@ -5,6 +5,8 @@ import org.dweb_browser.helper.compose.OneParamI18nResource
 import org.dweb_browser.helper.compose.SimpleI18nResource
 
 object BrowserI18nResource {
+  val application_name =
+    SimpleI18nResource(Language.ZH to "Dweb Browser", Language.EN to "Dweb Browser")
   val dialog_title_webview_upgrade =
     SimpleI18nResource(Language.ZH to "更新提示", Language.EN to "Update tip")
 
@@ -205,7 +207,10 @@ object BrowserI18nResource {
 
   object Home {
     val page_title = SimpleI18nResource(Language.ZH to "起始页", Language.EN to "Home Page")
-    val search_error = SimpleI18nResource(Language.ZH to "没有与您搜索相关的数据！", Language.EN to "No data relevant to your search！")
+    val search_error = SimpleI18nResource(
+      Language.ZH to "没有与您搜索相关的数据！",
+      Language.EN to "No data relevant to your search！"
+    )
   }
 
   object Web {

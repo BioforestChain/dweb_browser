@@ -13,10 +13,12 @@ import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.asDesktop
 import org.dweb_browser.dwebview.create
 import org.dweb_browser.helper.PureIntPoint
+import org.dweb_browser.helper.PureIntRect
 import org.dweb_browser.helper.platform.getAnimationFrameMs
 import org.dweb_browser.helper.platform.getComposeWindowOrNull
 import org.dweb_browser.helper.platform.getScreenBounds
 import org.dweb_browser.helper.toPureIntPoint
+import org.dweb_browser.helper.toPureIntRect
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.MouseInfo
@@ -183,14 +185,20 @@ class TaskbarView private constructor(
       // 位置
       dialog.taskbarController.deskNMM.also { nmm ->
         nmm.scopeLaunch(cancelable = true) {
-          var location = nmm.store.getOrPut("taskbar.location") {
+          var taskbarLocation = nmm.store.getOrPut("taskbar.location") {
             getScreenBounds().let {
               PureIntPoint(
                 it.right - 100, (it.bottom - it.top) / 2 + it.top - 100
               )
             }
+          }.apply {
+            dialog.setLocation(x, y)
           }
-          dialog.setLocation(location.x, location.y)
+
+          var desktopBounds = nmm.store.getOrNull<PureIntRect>("desktop.bounds")?.apply {
+            parentWindow?.setBounds(x, y, width, height)
+          }
+
           // 初始化动画
           playMagnetEffect()
           desktopMagnetEffect?.start()
@@ -198,9 +206,17 @@ class TaskbarView private constructor(
           while (true) {
             delay(2000)
             dialog.location.toPureIntPoint().also {
-              if (location != it) {
-                location = it
+              if (taskbarLocation != it) {
+                taskbarLocation = it
                 nmm.store.set("taskbar.location", it)
+              }
+            }
+            parentWindow?.apply {
+              bounds.toPureIntRect().also {
+                if (desktopBounds != it) {
+                  desktopBounds = it
+                  nmm.store.set("desktop.bounds", it)
+                }
               }
             }
           }
@@ -291,7 +307,6 @@ class TaskbarView private constructor(
         max((dialogStartSize.width * 0.1).toInt(), 10),
         max((dialogStartSize.height * 0.1).toInt(), 10),
       )
-      val composeWindow = dialog.parentWindow
 
       dialog.location = contentStartLocation
 
@@ -304,7 +319,6 @@ class TaskbarView private constructor(
         if (contentX != dialog.x || contentY != dialog.y) {
           dialog.setLocation(contentStartLocation.x + moveX, contentStartLocation.y + moveY)
         }
-
       }.also {
         it.start()
       }

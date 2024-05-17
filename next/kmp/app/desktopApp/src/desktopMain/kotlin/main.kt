@@ -5,6 +5,7 @@ import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.platform.PureViewController
 
 fun main(vararg args: String): Unit = runBlocking {
+  System.setProperty("apple.awt.application.name", "Dweb Browser");
   // https://github.com/JetBrains/kotlin-multiplatform-dev-docs/blob/master/topics/whats-new/whats-new-compose-1-6-0.md#desktop-experimental
   // 设置为WINDOW，则MenuPanel可以弹出到前面，而不会被webview遮挡
   System.setProperty("compose.layers.type", "WINDOW")
