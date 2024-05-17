@@ -191,7 +191,5 @@ const rowTemplateSize = (height: number) => {
   grid-template-rows: 1fr;
   grid-template-areas: "view";
   height: 100%;
-  user-select: none;
-  -webkit-touch-callout: none;
 }
 </style>

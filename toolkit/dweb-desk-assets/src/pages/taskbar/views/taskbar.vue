@@ -283,7 +283,6 @@ const iconSize = "45px";
   width: min-content;
   max-height: v-bind(maxHeight);
   cursor: move;
-  user-select: none;
   overflow: hidden;
   padding: 0.2rem 0;
 }
