@@ -14,6 +14,7 @@ import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.help.types.MMPT
+import org.dweb_browser.core.http.router.ResponseException
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.bindDwebDeeplink
 import org.dweb_browser.core.http.router.byChannel
@@ -98,8 +99,9 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
     // TODO 权限保护
     override suspend fun connect(mmpt: MMPT, reason: PureRequest?): Ipc {
       // 找到要连接的模块
-      val toMicroModule =
-        dnsMM.queryByIdOrProtocol(mmpt, fromMM) ?: throw Throwable("not found app->$mmpt")
+      val toMicroModule = dnsMM.queryByIdOrProtocol(mmpt, fromMM) ?: throw ResponseException(
+        code = HttpStatusCode.NotFound, message = "not found app->$mmpt"
+      )
 
       val toMMID = toMicroModule.mmid
       val fromMMID = fromMM.mmid
@@ -393,7 +395,9 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
         if (it.key != mmpt && it.key == fromMM.mmid) null else it.value
       } ?: run {
         debugDNS("dns_open", "$mmpt(by ${fromMM.mmid})")
-        val app = queryByIdOrProtocol(mmpt, fromMM) ?: throw Exception("no found app: $mmpt")
+        val app = queryByIdOrProtocol(mmpt, fromMM) ?: throw ResponseException(
+          code = HttpStatusCode.NotFound, message = "no found app: $mmpt"
+        )
         RunningApp(app, scopeAsync(cancelable = false) {
           bootstrapMicroModule(app)
         }).also { running ->

@@ -1,5 +1,6 @@
 package org.dweb_browser.browser.jsProcess
 
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.fullPath
 import kotlinx.coroutines.async
 import kotlinx.serialization.encodeToString
@@ -7,6 +8,7 @@ import kotlinx.serialization.json.Json
 import org.dweb_browser.browser.jmm.JsMicroModule
 import org.dweb_browser.browser.kit.GlobalWebMessageEndpoint
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
+import org.dweb_browser.core.http.router.ResponseException
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.ipc.NativeMessageChannel
@@ -138,8 +140,10 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
           debugMM("create-ipc-endpoint", request)
           val processToken = request.query("token")
 
-          val processId = tokenPidMap[processToken]
-            ?: throw Exception("ipc:${ipc.remote.mmid}/processId:$processToken invalid")
+          val processId = tokenPidMap[processToken] ?: throw ResponseException(
+            code = HttpStatusCode.NotFound,
+            message = "ipc:${ipc.remote.mmid}/processId:$processToken invalid"
+          )
 
           val manifestJson = request.query("manifest")
           val ids = NativeMessageChannel.getIds(
@@ -154,8 +158,10 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
         "/create-ipc" bind PureMethod.GET by defineEmptyResponse {
           debugMM("create-ipc", request)
           val processToken = request.query("token")
-          val processId = tokenPidMap[processToken]
-            ?: throw Exception("ipc:${ipc.remote.mmid}/processId:$processToken invalid")
+          val processId = tokenPidMap[processToken] ?: throw ResponseException(
+            code = HttpStatusCode.NotFound,
+            message = "ipc:${ipc.remote.mmid}/processId:$processToken invalid"
+          )
 
           val remoteGlobalId = request.query("globalId").toInt()
           val manifestJson = request.query("manifest")
@@ -170,9 +176,10 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
 //          val handlerId = request.query("id")
 //          val fromMMid = request.query("from_mmid")
 //          val toMMid = request.query("to_mmid")
-//          val processId = processIdMap[handlerId]
-//            ?: throw Exception("ipc:${ipc.remote.mmid}/processId:$handlerId invalid")
-//
+//          val processId = processIdMap[handlerId] ?: throw ResponseException(
+//            code = HttpStatusCode.NotFound,
+//            message = "ipc:${ipc.remote.mmid}/processId:$handlerId invalid"
+//          )
 //
 //          // 返回 port_id
 //          bridgeIpc(apis, ipcProcessID, fromMMid, toMMid)

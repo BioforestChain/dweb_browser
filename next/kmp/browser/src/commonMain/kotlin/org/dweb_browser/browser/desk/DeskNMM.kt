@@ -8,6 +8,7 @@ import org.dweb_browser.browser.web.debugBrowser
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.http.router.IHandlerContext
+import org.dweb_browser.core.http.router.ResponseException
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.bindPrefix
 import org.dweb_browser.core.http.router.byChannel
@@ -177,8 +178,12 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
 
     suspend fun IHandlerContext.getWindow(orElse: (suspend () -> WindowController)? = null) =
       request.queryOrNull("wid")?.let { wid ->
-        windowInstancesManager.get(wid) ?: throw Exception("No Found Window by wid: $wid")
-      } ?: orElse?.invoke() ?: throw Exception("Fail To Get Window")
+        windowInstancesManager.get(wid) ?: throw ResponseException(
+          code = HttpStatusCode.NotFound, message = "No Found Window by wid: $wid"
+        )
+      } ?: orElse?.invoke() ?: throw ResponseException(
+        code = HttpStatusCode.ExpectationFailed, message = "Fail To Get Window"
+      )
 
     override suspend fun _bootstrap() {
       listenApps()
