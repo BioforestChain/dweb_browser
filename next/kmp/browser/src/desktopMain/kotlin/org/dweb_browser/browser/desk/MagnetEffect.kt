@@ -142,12 +142,10 @@ class MagnetEffect(
     val (endX, endY) = getEnds()
 
     /// 对动画进行配置
-    println("QAQ x start=${fromBounds.x}, end=${endX}")
     xAni = tryCreateEdgeAni(fromBounds.x, endX, xAni) { start, end, ms ->
       XAni(start, end, ms)
     }
 
-    println("QAQ y start=${fromBounds.y}, end=${endY}")
     yAni = tryCreateEdgeAni(fromBounds.y, endY, xAni) { start, end, ms ->
       YAni(start, end, ms)
     }

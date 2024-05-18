@@ -194,21 +194,23 @@ onMounted(() => {
         element.classList.add("drag-start");
         element.classList.remove("drag-end");
         setTimeout(() => {
+          console.log(downTime,Date.now(),Date.now()-downTime)
           if (now === downTime) {
             dragStart();
           }
-        }, startThreshold);
+        }, 800);
       };
       const dragStart = () => {
         if (downTime !== 0) {
           element.classList.add("dragging");
-          if (!dragging && Date.now() >= downTime + startThreshold) {
+          if (false === dragging && Date.now() >= downTime + startThreshold) {
             dragging = true;
             toggleDragging(true);
           }
         }
       };
       const dragEnd = () => {
+        console.log('dragEnd',Date.now()-downTime)
         if (downTime !== 0) {
           downTime = 0;
           element.classList.remove("dragging", "drag-start");

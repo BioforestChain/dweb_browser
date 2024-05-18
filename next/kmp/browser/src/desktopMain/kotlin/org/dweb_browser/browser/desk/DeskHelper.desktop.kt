@@ -22,6 +22,9 @@ actual suspend fun DeskNMM.DeskRuntime.startDesktopView(deskSessionId: String) {
         PureViewController.exitDesktop()
       }
     }
+//    if (PureViewController.isWindows) {
+//      composeWindowParams.undecorated = true
+//    }
     scopeLaunch(cancelable = true) {
       val win = awaitComposeWindow()
       // 窗口overlay titlebar
@@ -29,8 +32,8 @@ actual suspend fun DeskNMM.DeskRuntime.startDesktopView(deskSessionId: String) {
         if (PureViewController.isMacOS) {
           putClientProperty("apple.awt.fullWindowContent", true);
           putClientProperty("apple.awt.transparentTitleBar", true)
-        } else if (PureViewController.isWindows) {
-          win.isUndecorated = true;
+      } else if (PureViewController.isWindows) {
+//          win.isUndecorated = true;
           windowDecorationStyle = JRootPane.FRAME;
         }
       }

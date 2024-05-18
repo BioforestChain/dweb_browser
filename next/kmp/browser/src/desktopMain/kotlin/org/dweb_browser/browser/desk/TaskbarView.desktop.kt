@@ -95,7 +95,6 @@ class TaskbarView private constructor(
         val paddingX = padding
         val paddingY = padding
         val centerX = viewBounds.x + viewBounds.width / 2
-        println("QAQ viewBounds=$viewBounds parentBounds=$screenBounds")
         val endX = when {
           // 往右靠边
           centerX - screenBounds.left > screenBounds.right - centerX -> {
