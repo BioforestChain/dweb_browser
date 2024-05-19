@@ -41,6 +41,10 @@ abstract class WindowController(
    */
   manager: WindowsManager<*>? = null,
 ) {
+  override fun toString(): String {
+    return "Win(${state.title}@$id)"
+  }
+
   protected var _manager: WindowsManager<*>? = null
 
   internal val _pureViewControllerState = MutableStateFlow<IPureViewController?>(null)
@@ -57,7 +61,7 @@ abstract class WindowController(
   }
 
   private suspend fun <R> managerRunOr(
-    withManager: (manager: WindowsManager<*>) -> Deferred<R>, orNull: suspend () -> R
+    withManager: (manager: WindowsManager<*>) -> Deferred<R>, orNull: suspend () -> R,
   ) = when (_manager) {
     null -> orNull()
     else -> withManager(_manager!!).await()
@@ -82,7 +86,7 @@ abstract class WindowController(
   private fun <R> createStateListener(
     key: WindowPropertyKeys,
     filter: (WindowState.(Observable.Change<WindowPropertyKeys, *>) -> Boolean)? = null,
-    map: (Observable.Change<WindowPropertyKeys, *>) -> R
+    map: (Observable.Change<WindowPropertyKeys, *>) -> R,
   ) = state.observable.changeSignal.createChild(
     {
       if ((it.key == key) && (filter?.invoke(state, it) != false)) it else null
@@ -90,9 +94,9 @@ abstract class WindowController(
   ).toListener()
 
   val onFocus =
-    createStateListener(WindowPropertyKeys.Focus, { focus }) { debugWindow("emit onFocus", id) }
+    createStateListener(WindowPropertyKeys.Focus, { focus }) { debugWindow("emit onFocus", this) }
   val onBlur =
-    createStateListener(WindowPropertyKeys.Focus, { !focus }) { debugWindow("emit onBlur", id) }
+    createStateListener(WindowPropertyKeys.Focus, { !focus }) { debugWindow("emit onBlur", this) }
 
   fun isFocused() = state.focus
   internal open suspend fun simpleFocus() {
@@ -126,7 +130,7 @@ abstract class WindowController(
   //#endregion Focus
 
   val onModeChange =
-    createStateListener(WindowPropertyKeys.Mode) { debugWindow("emit onModeChange", "$id $it") };
+    createStateListener(WindowPropertyKeys.Mode) { debugWindow("emit onModeChange", "$this $it") };
 
 
   //#region maximize
@@ -138,7 +142,7 @@ abstract class WindowController(
     mode == WindowMode.FULLSCREEN
 
   val onMaximize = createStateListener(WindowPropertyKeys.Mode,
-    { isMaximized(mode) }) { debugWindow("emit onMaximize", id) }
+    { isMaximized(mode) }) { debugWindow("emit onMaximize", this) }
 
   internal open suspend fun simpleMaximize() {
     if (!isMaximized()) {
@@ -169,7 +173,7 @@ abstract class WindowController(
    */
   val onUnMaximize = createStateListener(WindowPropertyKeys.Mode, {
     !isMaximized(mode) && isMaximized(it.oldValue as WindowMode)
-  }) { debugWindow("emit onUnMaximize", id) }
+  }) { debugWindow("emit onUnMaximize", this) }
 
   /**
    * 取消窗口最大化
@@ -224,10 +228,10 @@ abstract class WindowController(
   fun isVisible() = state.visible
 
   val onVisible = createStateListener(WindowPropertyKeys.Visible, { visible }) {
-    debugWindow("emit onVisible", id)
+    debugWindow("emit onVisible", this)
   }
   val onHidden = createStateListener(WindowPropertyKeys.Visible, { !visible }) {
-    debugWindow("emit onHidden", id)
+    debugWindow("emit onHidden", this)
   }
 
   internal open suspend fun simpleToggleVisible(visible: Boolean? = null) {
@@ -248,7 +252,7 @@ abstract class WindowController(
   //#region close
 
   val onClose = createStateListener(WindowPropertyKeys.Mode,
-    { mode == WindowMode.CLOSE }) { debugWindow("emit onClose", id) }
+    { mode == WindowMode.CLOSE }) { debugWindow("emit onClose", this) }
 
   fun isClosed() = state.mode == WindowMode.CLOSE
   internal open suspend fun simpleClose(force: Boolean = false) {
@@ -367,7 +371,7 @@ abstract class WindowController(
 
   @Composable
   fun GoBackHandler(
-    enabled: Boolean = true, onBack: suspend () -> Unit
+    enabled: Boolean = true, onBack: suspend () -> Unit,
   ) {
     val uiScope = rememberCoroutineScope()
     DisposableEffect(this, enabled, onBack) {
@@ -477,10 +481,11 @@ abstract class WindowController(
   /**
    * 尝试移除一个 modal
    */
-  suspend fun removeModal(module: MicroModule.Runtime, modalId: String) = modalsLock.withLock("write") {
-    val modal = state.modals[modalId] ?: return@withLock false
-    modal.safeDestroy(module)
-  }
+  suspend fun removeModal(module: MicroModule.Runtime, modalId: String) =
+    modalsLock.withLock("write") {
+      val modal = state.modals[modalId] ?: return@withLock false
+      modal.safeDestroy(module)
+    }
 
   suspend fun updateModalCloseTip(modalId: String, closeTip: String?) =
     modalsLock.withLock("write") {
@@ -526,8 +531,9 @@ abstract class WindowController(
    *
    * @return 返回true说明这次操作让这个 modal 关闭了。否则可能是 modal不存在、或者modal本来就是关闭的
    */
-  suspend fun closeModal(module: MicroModule.Runtime, modalId: String) = modalsLock.withLock("write") {
-    val modal = state.modals[modalId] ?: return@withLock false
-    modal.safeClose(module)
-  }
+  suspend fun closeModal(module: MicroModule.Runtime, modalId: String) =
+    modalsLock.withLock("write") {
+      val modal = state.modals[modalId] ?: return@withLock false
+      modal.safeClose(module)
+    }
 }
