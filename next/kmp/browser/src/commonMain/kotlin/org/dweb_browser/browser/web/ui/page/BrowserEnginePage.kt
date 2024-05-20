@@ -9,13 +9,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.GppBad
-import androidx.compose.material.icons.rounded.GppGood
+import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -23,7 +24,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.web.model.LocalBrowserViewModel
@@ -71,9 +71,9 @@ private fun BrowserSearchEngineListPage(
         trailingContent = {
           var isShowMenu by remember { mutableStateOf(false) }
           Icon(
-            imageVector = if (engineItem.enable) Icons.Rounded.GppGood else Icons.Rounded.GppBad,
-            contentDescription = if (engineItem.enable) "Enable" else "Disable",
-            tint = if (engineItem.enable) Color.Green else Color.Gray,
+            imageVector = if (engineItem.enable) Icons.Outlined.Visibility else Icons.Outlined.VisibilityOff,
+            contentDescription = if (engineItem.enable) "Visibility" else "VisibilityOff",
+            tint = if (engineItem.enable) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary,
             modifier = Modifier.clickable { isShowMenu = true }
           )
           DropdownMenu(expanded = isShowMenu, onDismissRequest = { isShowMenu = false }) {
@@ -85,9 +85,9 @@ private fun BrowserSearchEngineListPage(
               text = { Text(text = BrowserI18nResource.Engine.status_enable()) },
               leadingIcon = {
                 Icon(
-                  imageVector = Icons.Rounded.GppGood,
+                  imageVector = Icons.Outlined.Visibility,
                   contentDescription = "Enable",
-                  tint = Color.Green
+                  tint = MaterialTheme.colorScheme.primary
                 )
               }
             )
@@ -99,9 +99,9 @@ private fun BrowserSearchEngineListPage(
               text = { Text(text = BrowserI18nResource.Engine.status_disable()) },
               leadingIcon = {
                 Icon(
-                  imageVector = Icons.Rounded.GppBad,
+                  imageVector = Icons.Outlined.VisibilityOff,
                   contentDescription = "Disable",
-                  tint = Color.Gray
+                  tint = MaterialTheme.colorScheme.secondary
                 )
               }
             )

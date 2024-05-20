@@ -1,8 +1,11 @@
 package org.dweb_browser.browser.search
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import dweb_browser_kmp.browser.generated.resources.Res
 import dweb_browser_kmp.browser.generated.resources.ic_engine_360
@@ -113,7 +116,7 @@ enum class SearchEngine(
   ),
   ;
 
-  var enable: Boolean = false
+  var enable by mutableStateOf(false)
 
   @Composable
   fun painter() = painterResource(iconRes)

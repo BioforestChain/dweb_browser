@@ -129,12 +129,13 @@ class BrowserViewModel(
   val filterShowEngines get() = searchEngineList.filter { it.enable }
   val filterAllEngines get() = searchEngineList
 
-  /**检查是否有设置过的默认搜索引擎，并且拼接成webUrl*/
-  private suspend fun checkAndEnableSearchEngine(key: String): Url? {
-    val homeLink = withScope(ioScope) {
-      browserNMM.getEngineHomeLink(key.encodeURIComponent())
-    } // 将关键字对应的搜索引擎置为有效
-    return if (homeLink.isNotEmpty()) homeLink.toWebUrl() else null
+  init {
+    ioScope.launch {
+      // 同步搜索引擎列表
+      browserNMM.collectChannelOfEngines {
+        searchEngineList = engineList
+      }
+    }
   }
 
   val searchInjectList = mutableStateListOf<SearchInject>()
@@ -144,15 +145,6 @@ class BrowserViewModel(
     val list = browserNMM.getInjectList(searchText)
     searchInjectList.clear()
     searchInjectList.addAll(list)
-  }
-
-  init {
-    ioScope.launch {
-      // 同步搜索引擎列表
-      browserNMM.collectChannelOfEngines {
-        searchEngineList = engineList
-      }
-    }
   }
 
   suspend fun readFile(path: String) = browserNMM.readFile(path, create = false).binary()
@@ -366,6 +358,14 @@ class BrowserViewModel(
     // 最后，将移除的页面进行销毁
     page.destroy()
     return true
+  }
+
+  /**检查是否有设置过的默认搜索引擎，并且拼接成webUrl*/
+  private suspend fun checkAndEnableSearchEngine(key: String): Url? {
+    val homeLink = withScope(ioScope) {
+      browserNMM.getEngineHomeLink(key.encodeURIComponent())
+    } // 将关键字对应的搜索引擎置为有效
+    return if (homeLink.isNotEmpty()) homeLink.toWebUrl() else null
   }
 
   /**
