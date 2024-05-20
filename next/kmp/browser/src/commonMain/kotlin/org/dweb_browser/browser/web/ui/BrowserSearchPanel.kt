@@ -71,7 +71,7 @@ fun BrowserSearchPanel(modifier: Modifier = Modifier):Boolean {
   val searchPage = viewModel.showSearch
 
   AnimatedVisibility(
-    searchPage != null,
+    visible = searchPage != null,
     enter = remember { slideInVertically(enterAnimationSpec()) { it } },
     exit = remember { slideOutVertically(exitAnimationSpec()) { it } },
   ) {

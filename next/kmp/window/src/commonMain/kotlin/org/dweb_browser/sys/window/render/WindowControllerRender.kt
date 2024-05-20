@@ -36,7 +36,6 @@ import org.dweb_browser.sys.window.core.WindowContentRenderScope
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.windowAdapterManager
 
-
 @Composable
 fun WindowController.Prepare(
   winMaxWidth: Float,
@@ -216,37 +215,29 @@ fun WindowController.WindowRender(modifier: Modifier) {
         WindowTopBar(win, Modifier.height(winPadding.top.dp).fillMaxWidth())
         /// 内容区域
         BoxWithConstraints(
-          Modifier.weight(1f).padding(
-            start = 0.dp,
-            end = 0.dp,
-          ).clip(winPadding.contentRounded.roundedCornerShape)
+          Modifier.weight(1f).padding(start = 0.dp, end = 0.dp)
+            .clip(winPadding.contentRounded.roundedCornerShape)
         ) {
-          Column {
-            BoxWithConstraints(Modifier.fillMaxSize()) {
-              val limits = LocalWindowLimits.current
-              val windowRenderScope =
-                remember(limits, maxWidth, maxHeight) {
-                  WindowContentRenderScope(
-                    maxWidth.value,
-                    maxHeight.value,
-                    win.calcContentScale(limits, maxWidth.value, maxHeight.value),
-                    maxWidth,
-                    maxHeight
-                  )
-                }
-              /// 显示内容
-              windowAdapterManager.Renderer(
-                win.state.constants.wid, windowRenderScope, Modifier.fillMaxSize()
-              )
-            }
+          /// 底部安全区域
+          val keyboardInsetBottom by win.watchedState { keyboardInsetBottom }
+          val keyboardOverlaysContent by win.watchedState { keyboardOverlaysContent }
+          val paddingBottom = if (!keyboardOverlaysContent) keyboardInsetBottom.dp else 0.dp // 这边作为底部键盘区
 
-            /// 底部安全区域
-            val keyboardInsetBottom by win.watchedState { keyboardInsetBottom }
-            val keyboardOverlaysContent by win.watchedState { keyboardOverlaysContent }
-            if (!keyboardOverlaysContent) {
-              Box(Modifier.height(keyboardInsetBottom.dp))
-            }
+          val limits = LocalWindowLimits.current
+          val windowRenderScope = remember(limits, maxWidth, maxHeight, paddingBottom) {
+            val height = maxHeight - paddingBottom // 扣除底部区域，
+            WindowContentRenderScope(
+              maxWidth.value,
+              height.value,
+              win.calcContentScale(limits, maxWidth.value, height.value),
+              maxWidth,
+              height
+            )
           }
+          /// 显示内容
+          windowAdapterManager.Renderer(
+            win.state.constants.wid, windowRenderScope, Modifier.fillMaxSize()
+          )
         }
         /// 显示底部控制条
         WindowBottomBar(win, Modifier.height(winPadding.bottom.dp).fillMaxWidth())
