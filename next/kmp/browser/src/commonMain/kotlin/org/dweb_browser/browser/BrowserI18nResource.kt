@@ -345,4 +345,16 @@ object BrowserI18nResource {
       Language.EN to "Album"
     )
   }
+
+  object IconDescription {
+    val verified = SimpleI18nResource(
+      Language.ZH to "已认证",
+      Language.EN to "Verified"
+    )
+
+    val unverified = SimpleI18nResource(
+      Language.ZH to "未认证",
+      Language.EN to "Unverified"
+    )
+  }
 }
