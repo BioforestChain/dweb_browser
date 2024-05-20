@@ -138,7 +138,7 @@ export abstract class IpcEndpoint {
       await this.awaitOpen("from-start");
     }
   }
-  readonly localSessionId = crypto.randomUUID();
+  readonly localSessionId = "s-" + crypto.randomUUID();
 
   /**启动 */
   startOnce = $once(async () => {
@@ -240,7 +240,7 @@ export abstract class IpcEndpoint {
 
   //#region Close
 
-  protected closePo = new PromiseOut<string | undefined>();
+  protected closedPo = new PromiseOut<string | undefined>();
   private _isClose = false;
   get isClose() {
     return this._isClose;
@@ -251,26 +251,33 @@ export abstract class IpcEndpoint {
     await this.doClose(cause);
   }
 
+  awaitClosed() {
+    return this.closedPo.promise;
+  }
+
   async doClose(cause?: string) {
-    switch (this.lifecycle.state.name) {
-      case ENDPOINT_LIFECYCLE_STATE.OPENED:
-      case ENDPOINT_LIFECYCLE_STATE.OPENING: {
-        this.sendLifecycleToRemote(EndpointLifecycle(endpointLifecycleClosing()));
-        break;
+    try {
+      switch (this.lifecycle.state.name) {
+        case ENDPOINT_LIFECYCLE_STATE.OPENED:
+        case ENDPOINT_LIFECYCLE_STATE.OPENING: {
+          this.sendLifecycleToRemote(EndpointLifecycle(endpointLifecycleClosing()));
+          break;
+        }
+        case ENDPOINT_LIFECYCLE_STATE.CLOSED: {
+          return;
+        }
       }
-      case ENDPOINT_LIFECYCLE_STATE.CLOSED: {
-        return;
+      this.beforeClose?.();
+      /// 关闭所有的子通道
+      for (const channel of this.ipcMessageProducers.values()) {
+        await channel.producer.close(cause);
       }
+      this.ipcMessageProducers.clear();
+      this.sendLifecycleToRemote(EndpointLifecycle(endpointLifecycleClosed()));
+      this.afterClosed?.();
+    } finally {
+      this.closedPo.resolve(cause);
     }
-    this.closePo.resolve(cause);
-    this.beforeClose?.();
-    /// 关闭所有的子通道
-    for (const channel of this.ipcMessageProducers.values()) {
-      await channel.producer.close(cause);
-    }
-    this.ipcMessageProducers.clear();
-    this.sendLifecycleToRemote(EndpointLifecycle(endpointLifecycleClosed()));
-    this.afterClosed?.();
   }
 
   protected beforeClose?: (cause?: string) => void;

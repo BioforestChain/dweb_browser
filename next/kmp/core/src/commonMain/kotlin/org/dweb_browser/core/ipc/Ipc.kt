@@ -433,6 +433,11 @@ class Ipc internal constructor(
   }
   //#endregion
 
+  init {
+    endpoint.onClosed {
+      tryClose(CancellationException("endpoint closed", it))
+    }
+  }
 }
 
 data class IpcRequestInit(

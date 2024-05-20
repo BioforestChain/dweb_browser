@@ -64,7 +64,7 @@ const createProcess = async (
   worker.addEventListener("message", function live(event: MessageEvent<string>): void {
     if (typeof event.data === "string" && event.data.startsWith("js-process-live")) {
       worker.removeEventListener("message", live);
-      navigator.locks?.request(event.data, () => {
+      navigator.locks?.request(event.data, { mode: "shared" }, () => {
         console.info("process die", event.data);
         queueMicrotask(onTerminate);
         worker.dispatchEvent(new CloseEvent("close"));
@@ -138,6 +138,7 @@ const createIpc = async (
   const manifest = JSON.parse(mainfest_json) as $MicroModuleManifest;
   try {
     Object.assign(ipc_port, { __id__: manifest.mmid });
+    // deno-lint-ignore no-empty
   } catch (_) {}
 
   process.worker.postMessage([`ipc-connect/${manifest.mmid}`, manifest, auto_start], [ipc_port]);

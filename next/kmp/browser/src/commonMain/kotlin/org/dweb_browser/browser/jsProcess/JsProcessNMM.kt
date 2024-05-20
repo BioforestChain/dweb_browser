@@ -171,19 +171,6 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
             manifestJson
           ) {}
         }
-//        /// 桥接两个JMM
-//        "/bridge-ipc" bind PureMethod.GET by defineEmptyResponse {
-//          val handlerId = request.query("id")
-//          val fromMMid = request.query("from_mmid")
-//          val toMMid = request.query("to_mmid")
-//          val processId = processIdMap[handlerId] ?: throw ResponseException(
-//            code = HttpStatusCode.NotFound,
-//            message = "ipc:${ipc.remote.mmid}/processId:$handlerId invalid"
-//          )
-//
-//          // 返回 port_id
-//          bridgeIpc(apis, ipcProcessID, fromMMid, toMMid)
-//        }
       )
     }
 

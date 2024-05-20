@@ -55,6 +55,10 @@ export class Ipc {
     });
     this.lifecycleRemoteFlow = this.#lifecycleRemoteFlow;
     this.#forkProducer = new Producer<Ipc>(`fork#${this.debugId}`);
+
+    endpoint.awaitClosed().then((reason) => {
+      this.close(reason);
+    });
   }
   toString() {
     return `Ipc#${this.debugId}`;
@@ -147,7 +151,7 @@ export class Ipc {
     }
     // 监听远端生命周期指令，进行协议协商
     this.#lifecycleRemoteFlow((lifecycleRemote) => {
-      // this.console.log("lifecycle-in", `remote=${lifecycleRemote},local=${this.lifecycle}`);
+      this.console.verbose("lifecycle-in", `remote=${lifecycleRemote},local=${this.lifecycle}`);
       // 告知启动完成
       const doIpcOpened = () => {
         const opend = IpcLifecycle(IpcLifecycleOpened());

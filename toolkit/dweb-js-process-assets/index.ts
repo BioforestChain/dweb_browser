@@ -154,6 +154,9 @@ export class JsProcessMicroModule extends MicroModule {
           }
           const po = new PromiseOut<Ipc>();
           waitMap.set(mmid, po);
+          po.onFinished(() => {
+            waitMap.delete(mmid);
+          });
           // 发送指令
           this.fetchIpc.postMessage(core.IpcEvent.fromText("dns/connect", mmid));
 

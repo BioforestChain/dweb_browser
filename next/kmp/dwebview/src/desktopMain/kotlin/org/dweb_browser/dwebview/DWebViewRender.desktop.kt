@@ -3,11 +3,6 @@ package org.dweb_browser.dwebview
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.SwingPanel
-import com.teamdev.jxbrowser.compose.BrowserView
-import com.teamdev.jxbrowser.dsl.browser.renderingMode
-import com.teamdev.jxbrowser.engine.RenderingMode
-import org.dweb_browser.helper.platform.LocalPureViewController
-import org.dweb_browser.helper.platform.asDesktop
 
 @Composable
 actual fun IDWebView.Render(
@@ -16,23 +11,26 @@ actual fun IDWebView.Render(
   onDispose: (suspend IDWebView.() -> Unit)?
 ) {
   require(this is DWebView)
-  when (viewEngine.browser.renderingMode) {
-    RenderingMode.HARDWARE_ACCELERATED -> {
-      // view渲染到swingPanel上
-      SwingPanel(modifier = modifier, factory = {
-//        BrowserView.newInstance(viewEngine.browser)
-        viewEngine.wrapperView
-      })
-      // 取消menuBar的实现，因为这里会破坏windows端的样式
-      //  MenuEffect()
-    }
-
-    RenderingMode.OFF_SCREEN -> {
-      // TODO ime
-      LocalPureViewController.current.asDesktop().composeWindowParams.frameWindowScope?.BrowserView(
-        viewEngine.browser,
-        modifier
-      )
-    }
-  }
+//  when (viewEngine.browser.renderingMode) {
+//    RenderingMode.HARDWARE_ACCELERATED -> {
+//      // view渲染到swingPanel上
+//      SwingPanel(modifier = modifier, factory = {
+////        BrowserView.newInstance(viewEngine.browser)
+//        viewEngine.wrapperView
+//      })
+//      // 取消menuBar的实现，因为这里会破坏windows端的样式
+//      //  MenuEffect()
+//    }
+//
+//    RenderingMode.OFF_SCREEN -> {
+//      // TODO ime
+//      LocalPureViewController.current.asDesktop().composeWindowParams.frameWindowScope?.BrowserView(
+//        viewEngine.browser,
+//        modifier
+//      )
+//    }
+//  }
+  SwingPanel(modifier = modifier, factory = {
+    viewEngine.wrapperView
+  })
 }

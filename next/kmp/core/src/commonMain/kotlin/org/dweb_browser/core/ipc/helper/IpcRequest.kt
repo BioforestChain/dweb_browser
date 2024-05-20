@@ -98,7 +98,7 @@ internal suspend fun pureChannelToIpcEvent(
   /// 这里需要立刻开始绑定事件，否则外部可能对ipc进行start，最终导致直接 ipc 关闭。那么这些 event 就会因为 close 而被强制消费
   val job = channelIpc.onEvent("IpcEventToPureChannel").collectIn(channelIpc.scope) { event ->
     val ipcEvent = event.consumeFilter { it.name == eventData } ?: return@collectIn
-    channelIpc.debugIpc(debugTag) { "inChannelData=$ipcEvent" }
+//    channelIpc.debugIpc(debugTag) { "inChannelData=$ipcEvent" }
     val ipcListenToChannel = ipcListenToChannelDeferred.await()
     if (!ipcListenToChannel.isClosedForSend) ipcListenToChannel.send(ipcEvent.toPureFrame())
   }

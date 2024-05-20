@@ -52,7 +52,7 @@ class MultiWebViewController(
     /// 窗口销毁的时候
     win.onClose {
       // 清除释放所有的 webview
-      for (item in webViewList) {
+      for (item in webViewList.toList()) {
         closeWebView(item.webviewId)
       }
     }

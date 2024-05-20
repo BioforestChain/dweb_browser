@@ -21,16 +21,17 @@ export class WebMessageEndpoint extends CommonEndpoint {
   override doStart() {
     const locks = navigator.locks;
     if (locks) {
-      void locks.request(this.localSessionId, () => this.closePo.promise);
+      this.console.log("request-localSessionId", this.localSessionId);
+      void locks.request(this.localSessionId, () => this.closedPo.promise);
       this.onLifecycle(async (lifecycle) => {
         const localState = lifecycle.state;
         if (localState.name === ENDPOINT_LIFECYCLE_STATE.OPENED) {
           const remoteLock = await locks.query();
-          if (remoteLock.held && remoteLock.held.length > 0) {
-            const remoteSessionId = [
-              ...setHelper.intersect(localState.sessionPair.split("~"), [this.localSessionId]),
-            ][0];
-            locks.request(remoteSessionId, () => {
+          const remoteSessionId = [...setHelper.subtract(localState.sessionPair.split("~"), [this.localSessionId])][0];
+          if (remoteLock.held?.find((h) => h.name === remoteSessionId)) {
+            this.console.log("request-remoteSessionId", remoteSessionId);
+            locks.request(remoteSessionId, { mode: "shared" }, () => {
+              this.console.log("remoteSessionId-closed", remoteSessionId);
               this.close(`remote ipcEndpoint closed`);
             });
           }

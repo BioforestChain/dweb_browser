@@ -147,6 +147,7 @@ class JsProcessWebApi(internal val dWebView: IDWebView) {
     onClose: suspend () -> Unit,
   ) {
     val onCloseCallbackId = randomUUID()
+    // 连接方关闭
     dWebView.ioScope.launch {
       dWebView.evaluateAsyncJavascriptCode("(window['$onCloseCallbackId'] = new PromiseOut()).promise")
       onClose()
@@ -180,44 +181,6 @@ class JsProcessWebApi(internal val dWebView: IDWebView) {
       })
     }
   }
-//
-//  // 桥接两个worker
-//  suspend fun bridgeIpc(process_id: Int, fromMMid: MMID, toMMid: MMID) =
-//    withContext(Dispatchers.Main) {
-//      val channel = dWebView.createMessageChannel()
-//      val port1 = channel.port1
-//      val port2 = channel.port2
-//      val fromHid = hidAcc++
-//      val toHid = hidAcc++
-//      dWebView.evaluateAsyncJavascriptCode("""
-//        new Promise((resolve,reject)=>{
-//            addEventListener("message", async function doCreateIpc(event) {
-//                if (event.data === "js-process/create-ipc/$fromHid") {
-//                  try{
-//                    removeEventListener("message", doCreateIpc);
-//                    const ipc_port = event.ports[0];
-//                    resolve(await createIpc($process_id, `$fromMMid`, ipc_port))
-//                    }catch(err){
-//                        reject(err)
-//                    }
-//                } else if (event.data === "js-process/bridge-ipc/$toHid") {
-//                  try{
-//                    removeEventListener("message", doCreateIpc);
-//                    const ipc_port = event.ports[0];
-//                    resolve(await bridgeIpc(`$toMMid`, ipc_port))
-//                    }catch(err){
-//                        reject(err)
-//                    }
-//                }
-//            })
-//        })
-//        """.trimIndent(), afterEval = {
-//        dWebView.postMessage("js-process/create-ipc/$fromHid", listOf(port1))
-//        dWebView.postMessage("js-process/bridge-ipc/$toHid", listOf(port2))
-//      })
-//      return@withContext true
-//    }
-
 
   suspend fun destroy() {
     dWebView.destroy()
