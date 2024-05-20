@@ -34,7 +34,7 @@ actual suspend fun DeskNMM.DeskRuntime.startDesktopView(deskSessionId: String) {
           putClientProperty("apple.awt.transparentTitleBar", true)
       } else if (PureViewController.isWindows) {
 //          win.isUndecorated = true;
-          windowDecorationStyle = JRootPane.FRAME;
+//          windowDecorationStyle = JRootPane.FRAME;
         }
       }
     }
