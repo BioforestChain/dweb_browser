@@ -140,13 +140,14 @@ class DwebScreenEdgePanGestureRecognizer: NSObject {
 
 extension DwebScreenEdgePanGestureRecognizer: UIGestureRecognizerDelegate {
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldBeRequiredToFailBy otherGestureRecognizer: UIGestureRecognizer) -> Bool {
-        if otherGestureRecognizer == leftEdgePan || otherGestureRecognizer == rightEdgePan {
+        if gestureRecognizer == leftEdgePan || gestureRecognizer == rightEdgePan {
             return true
         }
         return false
     }
     
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
-        return gestureRecognizer.isKind(of: UIScreenEdgePanGestureRecognizer.self)
+        return false
+//        return gestureRecognizer.isKind(of: UIScreenEdgePanGestureRecognizer.self)
     }
 }
