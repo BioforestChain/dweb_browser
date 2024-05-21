@@ -7,6 +7,7 @@ actual fun calculateGridsCell(
   pageSize: Int, maxWidth: Dp, maxHeight: Dp
 ): Triple<Int, Dp, Dp> {
   val count = maxWidth * 0.8f / 320.dp
+  val cellCount = if(count < 1) 1 else count.toInt()
 
   if (count < 2) {
     val cellWidth = if (pageSize <= 1) {
@@ -15,8 +16,8 @@ actual fun calculateGridsCell(
       maxWidth * 0.8f / 2
     }
 
-    return Triple(count.toInt(), cellWidth, cellWidth * (maxHeight * 1.0f / maxWidth))
+    return Triple(cellCount, cellWidth, cellWidth * (maxHeight * 1.0f / maxWidth))
   } else {
-    return Triple(count.toInt(), 320.dp, 320.dp * (maxHeight * 1.0f / maxWidth))
+    return Triple(cellCount, 320.dp, 320.dp * (maxHeight * 1.0f / maxWidth))
   }
 }
