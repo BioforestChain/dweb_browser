@@ -1,7 +1,5 @@
 package org.dweb_browser.browser.web.model.page
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.twotone.Bookmarks
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -10,7 +8,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.web.BrowserController
 import org.dweb_browser.browser.web.data.WebSiteInfo
@@ -18,16 +15,16 @@ import org.dweb_browser.browser.web.ui.page.BrowserBookmarkPageRender
 
 class BrowserBookmarkPage(browserController: BrowserController) : BrowserPage(browserController) {
   companion object {
-    fun isBookmarkUrl(url: String) = isAboutPage(url, "bookmarks")
+    fun isBookmarkUrl(url: String) = BrowserPageType.Bookmark.isMatchUrl(url)
   }
 
   override val icon
-    @Composable get() = rememberVectorPainter(Icons.TwoTone.Bookmarks)
+    @Composable get() = BrowserPageType.Bookmark.iconPainter()
   override val iconColorFilter
     @Composable get() = ColorFilter.tint(LocalContentColor.current)
 
   init {
-    url = "about:bookmarks"
+    url = BrowserPageType.Bookmark.url // "about:bookmarks"
   }
 
   var isInEditMode by mutableStateOf(false)

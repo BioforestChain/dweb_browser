@@ -1,12 +1,9 @@
 package org.dweb_browser.browser.web.model.page
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.twotone.Download
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.web.BrowserController
@@ -17,16 +14,17 @@ class BrowserDownloadPage(
   private val browserController: BrowserController
 ) : BrowserPage(browserController) {
   companion object {
-    fun isDownloadUrl(url: String) = isAboutPage(url, "downloads")
+    fun isDownloadUrl(url: String) =
+      BrowserPageType.Download.isMatchUrl(url) // isAboutPage(url, "downloads")
   }
 
   override val icon
-    @Composable get() = rememberVectorPainter(Icons.TwoTone.Download)
+    @Composable get() = BrowserPageType.Download.iconPainter() // rememberVectorPainter(Icons.TwoTone.Download)
   override val iconColorFilter
     @Composable get() = ColorFilter.tint(LocalContentColor.current)
 
   init {
-    url = "about:downloads"
+    url = BrowserPageType.Download.url // "about:downloads"
   }
 
   private val downloadController = browserController.downloadController

@@ -4,6 +4,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.Bookmarks
+import androidx.compose.material.icons.twotone.Download
+import androidx.compose.material.icons.twotone.History
+import androidx.compose.material.icons.twotone.PersonSearch
+import androidx.compose.material.icons.twotone.Settings
+import androidx.compose.material.icons.twotone.Star
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -17,6 +24,8 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.unit.dp
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
@@ -24,9 +33,11 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.web.BrowserController
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.capturable.CaptureController
+import org.dweb_browser.helper.compose.SimpleI18nResource
 
 sealed class BrowserPage(browserController: BrowserController) {
   abstract fun isUrlMatch(url: String): Boolean
@@ -164,3 +175,22 @@ else false
 internal fun isAboutPage(url: String, name: String) =
   isMatchBaseUri(url, "chrome://$name") || isMatchBaseUri(url, "about:$name")
 
+enum class BrowserPageType(
+  val url: String, val icon: ImageVector, val title: SimpleI18nResource
+) {
+  Home("about:newtab", Icons.TwoTone.Star, BrowserI18nResource.Home.page_title),
+  Bookmark("about:bookmarks", Icons.TwoTone.Bookmarks, BrowserI18nResource.Bookmark.page_title),
+  Download("about:downloads", Icons.TwoTone.Download, BrowserI18nResource.Download.page_title),
+  History("about:history", Icons.TwoTone.History, BrowserI18nResource.History.page_title),
+  Engine("about:engines", Icons.TwoTone.PersonSearch, BrowserI18nResource.Engine.page_title),
+  Setting("about:settings", Icons.TwoTone.Settings, BrowserI18nResource.Setting.page_title)
+  ;
+
+  @Composable
+  fun iconPainter() = rememberVectorPainter(icon)
+
+  fun isMatchUrl(url: String) = isMatchBaseUri(url, this.url)
+
+  @Composable
+  fun pageTitle() = title()
+}

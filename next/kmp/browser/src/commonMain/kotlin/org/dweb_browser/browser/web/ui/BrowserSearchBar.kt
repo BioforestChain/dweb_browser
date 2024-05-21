@@ -2,8 +2,12 @@ package org.dweb_browser.browser.web.ui
 
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -19,6 +23,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -82,6 +87,7 @@ fun BrowserSearchBar(modifier: Modifier) {
       localFocus.clearFocus()
     }
   }
+  val onceItemSize = dimenSearchHeight
   Row(
     modifier,
     horizontalArrangement = Arrangement.SpaceAround,
@@ -96,7 +102,11 @@ fun BrowserSearchBar(modifier: Modifier) {
         }
       }
     }) {
-      Icon(Icons.Rounded.Add, "Add")
+      Icon(
+        imageVector = Icons.Rounded.Add,
+        contentDescription = "Add",
+        modifier = Modifier.size(onceItemSize).padding(4.dp)
+      )
     }
 
     BoxWithConstraints(modifier = Modifier.weight(1f)) {
@@ -111,20 +121,34 @@ fun BrowserSearchBar(modifier: Modifier) {
       }
     }
 
-    // 多窗口预览界面
-    IconButton({
-      viewModel.focusedPage?.captureViewInBackground()
-      viewModel.toggleShowPreviewUI(true)
-    }) {
-      Icon(getMultiImageVector(viewModel.pageSize), "Open Preview Panel")
-    }
+    Row(modifier = Modifier.width(onceItemSize * 2)) {
+      // 多窗口预览界面
+      IconButton(onClick = {
+        viewModel.focusedPage?.captureViewInBackground()
+        viewModel.toggleShowPreviewUI(true)
+      }) {
+        Icon(
+          imageVector = getMultiImageVector(viewModel.pageSize),
+          contentDescription = "Open Preview Panel",
+          modifier = Modifier.size(onceItemSize).padding(6.dp)
+        )
+      }
 
-    // 功能列表
-    IconButton(onClick = {
-      viewModel.showMore = true
-    }) {
-      BrowserMenuPanel()
-      Icon(Icons.Rounded.MoreVert, "Open Menu Panel")
+      AnimatedVisibility(
+        visible = viewModel.focusedPage is BrowserWebPage,
+        enter = fadeIn() + slideInHorizontally { fullWidth -> fullWidth },
+        exit = fadeOut() + slideOutHorizontally { fullWidth -> fullWidth }
+      ) {
+        // 功能列表
+        IconButton(onClick = { viewModel.showMore = true }) {
+          BrowserMenuPanel()
+          Icon(
+            imageVector = Icons.Rounded.MoreVert,
+            contentDescription = "Open Menu Panel",
+            modifier = Modifier.size(onceItemSize).padding(4.dp)
+          )
+        }
+      }
     }
   }
 }
