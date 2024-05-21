@@ -2,10 +2,8 @@ package org.dweb_browser.browser.web.ui
 
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -205,7 +203,8 @@ internal fun Modifier.searchInnerStyle(start: Boolean = true, end: Boolean = tru
 private fun SearchBox(page: BrowserPage) {
   val viewModel = LocalBrowserViewModel.current
   val scope = viewModel.ioScope
-  val isFocus = viewModel.isFillPageSize || page == viewModel.focusedPage // 确认是否是聚焦的页面，如果Page模式是fill直接聚焦，另外就是如果page是当前页，需要突出显示
+  val isFocus =
+    viewModel.isFillPageSize || page == viewModel.focusedPage // 确认是否是聚焦的页面，如果Page模式是fill直接聚焦，另外就是如果page是当前页，需要突出显示
 
   Box(
     modifier = Modifier.fillMaxWidth()

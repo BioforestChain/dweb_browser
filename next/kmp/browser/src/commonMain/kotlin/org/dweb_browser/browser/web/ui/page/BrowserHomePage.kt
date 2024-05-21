@@ -3,12 +3,14 @@ package org.dweb_browser.browser.web.ui.page
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -52,10 +54,26 @@ fun BrowserHomePage.BrowserHomePageRender(modifier: Modifier = Modifier) {
       }
     }
     Spacer(modifier = Modifier.height(16.dp))
-    Box(modifier = Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.TopCenter) {
-      LazyVerticalGrid(
-        columns = GridCells.Fixed(4)
-      ) {
+    BoxWithConstraints(
+      modifier = Modifier.fillMaxWidth().weight(1f),
+      contentAlignment = Alignment.TopCenter
+    ) {
+      val itemWidth = 80
+      val maxRowItemCount = maxWidth.value.toInt().div(itemWidth)
+      val gridCells: GridCells
+      val gridModifier: Modifier
+      if (maxRowItemCount > browserPageList.size) { // 如果大于的话，按照大小显示
+        gridModifier = Modifier.width((browserPageList.size * itemWidth).dp)
+        gridCells = GridCells.FixedSize(itemWidth.dp)
+      } else if (maxRowItemCount == browserPageList.size) { // 如果刚好到话，直接居中显示所有
+        gridModifier = Modifier.fillMaxWidth()
+        gridCells = GridCells.Fixed(maxRowItemCount)
+      } else {
+        gridModifier = Modifier.fillMaxWidth()
+        gridCells = GridCells.FixedSize(itemWidth.dp)
+      }
+
+      LazyVerticalGrid(modifier = gridModifier, columns = gridCells) {
         items(browserPageList) { pageType ->
           Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -67,7 +85,7 @@ fun BrowserHomePage.BrowserHomePageRender(modifier: Modifier = Modifier) {
               painter = pageType.iconPainter(),
               contentDescription = "download",
               tint = MaterialTheme.colorScheme.primary,
-              modifier = Modifier.size(42.dp).clip(CircleShape)
+              modifier = Modifier.size(48.dp).clip(CircleShape)
                 .background(MaterialTheme.colorScheme.outlineVariant)
                 .padding(8.dp)
             )
