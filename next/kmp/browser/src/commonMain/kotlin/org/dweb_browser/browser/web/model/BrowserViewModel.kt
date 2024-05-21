@@ -230,10 +230,10 @@ class BrowserViewModel(
     viewBox = browserController.viewBox
   )
 
-  private suspend fun createWebPage(dWebView: IDWebView) =
+  private suspend fun createWebPage(dWebView: IDWebView): BrowserWebPage =
     BrowserWebPage(dWebView, browserController).also {
       dWebView.onCreateWindow { itemDwebView ->
-        val newWebPage = BrowserWebPage(itemDwebView, browserController)
+        val newWebPage = createWebPage(itemDwebView)
         addNewPageUI(newWebPage)
       }
       addDownloadListener(dWebView.onDownloadListener)
