@@ -26,7 +26,6 @@ fun MultiWebViewController.Render(
   width: Float,
   height: Float,
 ) {
-  val win = LocalWindowController.current
   var list by remember {
     mutableStateOf(listOf<MultiWebViewController.MultiViewItem>())
   }
