@@ -237,7 +237,7 @@ export class Producer<T> {
       // 把自己添加进入消费者队列
       this.producer.consumers.add(this);
       this.#started = true;
-      this.startingBuffers = this.producer.buffers;
+      this.startingBuffers = new Set(this.producer.buffers);
       for (const event of this.startingBuffers) {
         event.emitBy(this);
       }
