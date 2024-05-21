@@ -23,6 +23,7 @@ import org.dweb_browser.core.std.file.ext.RespondLocalFileContext.Companion.resp
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.StringEnumSerializer
 import org.dweb_browser.helper.consumeEachCborPacket
+import org.dweb_browser.helper.decodeURIComponent
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.removeWhen
 import org.dweb_browser.helper.toJsonElement
@@ -99,9 +100,9 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
         /// 为 file:///  请求提供服务
         request.respondLocalFile {
           if (request.method == PureMethod.GET) {
-            val vfsPath = getVirtualFsPath(ipc.remote, request.url.encodedPath)
+            val vfsPath = getVirtualFsPath(ipc.remote, request.url.encodedPath.decodeURIComponent())
             val create = request.queryAsOrNull<Boolean>("create") ?: false
-            debugFile("easy-read", "create=$create filepath=${vfsPath.fsFullPath}")
+            debugFile("easy-read", "create=$create filepath=${vfsPath.fsFullPath},endCodePath:${request.url.encodedPath}")
             if (create) {
               touchFile(vfsPath.fsFullPath, vfsPath.fs)
             }
