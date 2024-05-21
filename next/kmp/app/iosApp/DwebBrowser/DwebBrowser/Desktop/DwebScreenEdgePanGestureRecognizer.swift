@@ -80,13 +80,15 @@ class DwebScreenEdgePanGestureRecognizer: NSObject {
                                              width: min(indicatorWidth + (p.x - leftBeginPoint.x), indicatorWidthMax),
                                              height: indicatorHeight)
             case .ended, .cancelled:
-                UIView.animate(withDuration: 0.5) {
-                    leftIndicator.transform = CGAffineTransform(scaleX: 0.01, y: 1.0)
+                leftEdgePan?.isEnabled = false
+                UIView.animate(withDuration: 0.3) {
+                    leftIndicator.transform = CGAffineTransform.identity.scaledBy(x: 0.1, y: 1)
                     leftIndicator.alpha = 0.0
                 } completion: { _ in
                     leftIndicator.transform = CGAffineTransform.identity
                     leftIndicator.alpha = 0.0
                     self.leftBeginPoint = CGPoint.zero
+                    self.leftEdgePan?.isEnabled = true
                 }
             default:
                 leftBeginPoint = CGPoint.zero
@@ -111,13 +113,15 @@ class DwebScreenEdgePanGestureRecognizer: NSObject {
                                               width: width,
                                               height: indicatorHeight)
             case .ended, .cancelled:
+                rightEdgePan?.isEnabled = false
                 UIView.animate(withDuration: 0.5) {
-                    rightIndicator.transform = CGAffineTransform(scaleX: 0.01, y: 1.0)
+                    rightIndicator.transform = CGAffineTransform.identity.scaledBy(x: 0.1, y: 1)
                     rightIndicator.alpha = 0.0
                 } completion: { _ in
                     rightIndicator.transform = CGAffineTransform.identity
                     rightIndicator.alpha = 0.0
                     self.rightBeginPoint = CGPoint.zero
+                    self.rightEdgePan?.isEnabled = true
                 }
             default:
                 rightBeginPoint = CGPoint.zero
