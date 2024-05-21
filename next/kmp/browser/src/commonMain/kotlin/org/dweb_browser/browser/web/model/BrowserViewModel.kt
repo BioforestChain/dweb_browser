@@ -198,7 +198,6 @@ class BrowserViewModel(
   @Composable
   fun ViewModelEffect() {
     val uiScope = rememberCoroutineScope()
-    pagerStates.BindingEffect()
 
     /// 初始化 isNoTrace
     LaunchedEffect(Unit) {

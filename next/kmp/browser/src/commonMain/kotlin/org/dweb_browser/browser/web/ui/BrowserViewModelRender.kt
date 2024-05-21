@@ -53,8 +53,6 @@ fun BrowserViewModalRender(
     viewModel.ViewModelEffect()
 
     Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-      // BrowserPagePanel 放到上面来是为了保证显示BrowserPreviewPanel的时候，该界面仍然在后台，否则会导致Preview选中时，当前界面没显示导致HorizontalPager滚动问题
-      BrowserPagePanel(Modifier.fillMaxSize(), windowRenderScope)
       Box(modifier = remember(windowRenderScope) {
         with(windowRenderScope) {
           modifier.requiredSize((width / scale).dp, (height / scale).dp).scale(scale)
@@ -65,12 +63,15 @@ fun BrowserViewModalRender(
         if (BrowserSearchPanel(Modifier.fillMaxSize())) return@Provider
         if (BrowserQRCodePanel(Modifier.fillMaxSize())) return@Provider
       }
+      BrowserPagePanel(Modifier.fillMaxSize(), windowRenderScope)
     }
   }
 }
 
 @Composable
 fun BrowserPagePanel(modifier: Modifier, windowRenderScope: WindowContentRenderScope) {
+  val viewModel = LocalBrowserViewModel.current
+  viewModel.pagerStates.BindingEffect()
   // 移除 viewModel.isPreviewInvisible, 避免显示的时候 WebView 重新加载。
   Column(modifier) {
     // 网页主体

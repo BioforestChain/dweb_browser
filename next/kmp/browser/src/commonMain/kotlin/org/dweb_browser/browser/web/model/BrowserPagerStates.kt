@@ -65,11 +65,11 @@ class BrowserPagerStates(val viewModel: BrowserViewModel) {
       }
 
       /// contentPagePager => focusedPage
-      LaunchedEffect(contentPagePager.currentPage, contentPagePager.isScrollInProgress) {
-        if (!contentPagePager.isScrollInProgress) {
-          viewModel.focusPageUI(contentPagePager.currentPage)
-        }
-      }
+//      LaunchedEffect(contentPagePager.currentPage, contentPagePager.isScrollInProgress) {
+//        if (!contentPagePager.isScrollInProgress) {
+//          viewModel.focusPageUI(contentPagePager.currentPage)
+//        }
+//      }
     } else {
       /// searchBarPager => contentPagePager
       // 目前桌面端的 PageSize使用 Fixed，所以这边不关心 currentPageOffsetFraction 值
