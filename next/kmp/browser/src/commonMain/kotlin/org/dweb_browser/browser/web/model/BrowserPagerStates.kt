@@ -8,6 +8,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.delay
+import org.dweb_browser.browser.web.ui.enterAnimationSpec
 
 @OptIn(ExperimentalFoundationApi::class)
 class BrowserPagerStates(val viewModel: BrowserViewModel) {
@@ -63,9 +65,7 @@ class BrowserPagerStates(val viewModel: BrowserViewModel) {
       LaunchedEffect(viewModel.focusedPageIndex) {
         val pageIndex = viewModel.focusedPageIndex
         if (!searchBarPager.isScrollInProgress) {
-          // searchBarPager.animateScrollToPage(pageIndex, animationSpec = enterAnimationSpec())
-          searchBarPager.scrollToPage(pageIndex)
-          contentPagePager.scrollToPage(pageIndex)
+          searchBarPager.animateScrollToPage(pageIndex, animationSpec = enterAnimationSpec())
         }
       }
 
@@ -94,7 +94,7 @@ class BrowserPagerStates(val viewModel: BrowserViewModel) {
         val pageIndex = viewModel.focusedPageIndex
         if (!contentPagePager.isScrollInProgress) {
           searchBarPager.scrollToPage(pageIndex)
-          contentPagePager.scrollToPage(pageIndex)
+          contentPagePager.animateScrollToPage(pageIndex)
         }
       }
     }
