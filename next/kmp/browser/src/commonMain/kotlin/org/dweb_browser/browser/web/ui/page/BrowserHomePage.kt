@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
@@ -89,7 +90,7 @@ fun BrowserHomePage.BrowserHomePageRender(modifier: Modifier = Modifier) {
                 .background(MaterialTheme.colorScheme.outlineVariant)
                 .padding(8.dp)
             )
-            Text(text = pageType.pageTitle(), maxLines = 1)
+            Text(text = pageType.pageTitle(), maxLines = 1, textAlign = TextAlign.Center)
           }
         }
       }
