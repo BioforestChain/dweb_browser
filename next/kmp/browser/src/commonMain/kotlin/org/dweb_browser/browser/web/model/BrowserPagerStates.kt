@@ -4,6 +4,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.snapshotFlow
 import org.dweb_browser.browser.web.ui.enterAnimationSpec
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -22,6 +23,24 @@ class BrowserPagerStates(val viewModel: BrowserViewModel) {
    * 用于表示下面搜索框等内容
    */
   val searchBar: PagerState = InnerPagerState()
+
+  /**
+   * 专门用来处理监听contentPage状态，然后做focusedUI操作
+   */
+  @Composable
+  fun PagerToFocusEffect() {
+    val viewModel = LocalBrowserViewModel.current
+    if (viewModel.isFillPageSize) {
+      LaunchedEffect(
+        contentPage.currentPage,
+        contentPage.isScrollInProgress
+      ) { // 这个状态判断不要放在BrowsersPagerStates中。
+        if (!contentPage.isScrollInProgress) {
+          viewModel.focusPageUI(contentPage.currentPage)
+        }
+      }
+    }
+  }
 
   @Composable
   fun BindingEffect() {

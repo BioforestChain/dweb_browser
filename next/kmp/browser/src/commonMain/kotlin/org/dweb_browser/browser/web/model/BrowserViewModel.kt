@@ -11,7 +11,6 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import io.ktor.http.Url
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -209,11 +208,7 @@ class BrowserViewModel(
       }
     }
 
-    LaunchedEffect(Unit) { // 这个状态判断不要放在BrowsersPagerStates中。
-      snapshotFlow { pagerStates.contentPage.currentPage }.collect {
-        focusPageUI(it)
-      }
-    }
+    pagerStates.PagerToFocusEffect() // 监听ContentPage页面，进行focusedUI操作
 
     /// 监听窗口关闭，进行资源释放
     DisposableEffect(Unit) {
