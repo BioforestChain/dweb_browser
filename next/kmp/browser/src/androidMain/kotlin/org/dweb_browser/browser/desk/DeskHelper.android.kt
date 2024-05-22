@@ -2,6 +2,7 @@ package org.dweb_browser.browser.desk
 
 import android.content.Intent
 import android.os.Bundle
+import androidx.compose.foundation.lazy.grid.GridCells
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.dweb_browser.browser.desk.upgrade.NewVersionItem
@@ -49,3 +50,5 @@ actual suspend fun loadApplicationNewVersion(): NewVersionItem? {
   }
   return loadNewVersion?.createNewVersionItem()
 }
+
+actual fun desktopGridLayout(): GridCells = GridCells.Fixed(4)

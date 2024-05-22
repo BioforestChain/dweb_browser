@@ -1,8 +1,14 @@
 package org.dweb_browser.browser.desk
 
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.animateIntOffsetAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -13,7 +19,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -44,7 +49,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -56,14 +60,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -84,10 +84,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
 import coil3.compose.AsyncImage
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.helper.UUID
@@ -95,7 +92,6 @@ import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.pure.image.compose.PureImageLoader
 import org.dweb_browser.pure.image.compose.SmartLoad
 import org.dweb_browser.pure.image.offscreenwebcanvas.FetchHook
-import org.dweb_browser.sys.window.render.AppIcon
 import org.dweb_browser.sys.window.render.imageFetchHook
 
 
@@ -120,24 +116,36 @@ fun NewDesktopView(
 
   var popUpApp by remember { mutableStateOf<DesktopAppModel?>(null) }
 
+  val toRunningApps by remember { mutableStateOf(mutableSetOf<String>()) }
+
   fun doGetApps() {
     scope.launch {
-      println("Mike doGetApps update")
+      println("Mike desktop update")
       val installApps = taskbarController.desktopController.getDesktopApps().map {
         val icon = it.icons.firstOrNull()?.src ?: ""
         val isSystermApp = taskbarController.desktopController.isSystermApp(it.mmid)
         println("Mike app: ${it.mmid} ${it.running}")
-        DesktopAppModel(
-          it.name,
-          it.mmid,
-          icon,
-          isSystermApp,
-          it.running,
-          null,
-          null,
-          null,
-          randomUUID()
-        )
+        val runStatus = if (it.running) {
+          toRunningApps.remove(it.mmid)
+          DesktopAppModel.DesktopAppRunStatus.RUNNING
+        } else if (toRunningApps.contains(it.mmid)) {
+          DesktopAppModel.DesktopAppRunStatus.TORUNNING
+        } else {
+          DesktopAppModel.DesktopAppRunStatus.NONE
+        }
+
+        val oldApp = apps.find { oldApp ->
+          oldApp.mmid == it.mmid
+        }
+
+        oldApp?.copy(running = runStatus)
+          ?: DesktopAppModel(
+            it.name,
+            it.mmid,
+            icon,
+            isSystermApp,
+            runStatus,
+          )
       }
       apps.clear()
       apps.addAll(installApps)
@@ -146,7 +154,6 @@ fun NewDesktopView(
 
   DisposableEffect(Unit) {
     val off = taskbarController.desktopController.onUpdate {
-      println("Mike desktop onUpdate")
       doGetApps()
     }
     onDispose {
@@ -166,12 +173,14 @@ fun NewDesktopView(
   }
 
   fun doOpen(mmid: String) {
+    toRunningApps.add(mmid)
     scope.launch {
       taskbarController.desktopController.open(mmid)
     }
   }
 
   fun doQuit(mmid: String) {
+    toRunningApps.remove(mmid)
     scope.launch {
       taskbarController.desktopController.quit(mmid)
     }
@@ -236,15 +245,14 @@ fun NewDesktopView(
         desktopSearchBar(modifier = Modifier.blur(blurValue.dp), ::doSearch, ::doHideKeyboard)
 
         LazyVerticalGrid(
-          columns = GridCells.Fixed(4),
+          columns = desktopGridLayout(),
           modifier = Modifier.fillMaxSize()
         ) {
 
           itemsIndexed(apps) { index, app ->
-            var alpha = 1F.apply {
-              if (popUpIndex != null) {
-                if (index == popUpIndex) 0F else 1F
-              }
+            var alpha = 1F
+            if (popUpIndex != null) {
+              alpha = if (index == popUpIndex) 0F else 1F
             }
 
             AppItem(
@@ -320,12 +328,7 @@ fun AppItem(
 
       DeskAppIcon(
         app,
-        hook,
-        modifier = Modifier
-          .fillMaxWidth()
-          .padding(8.dp)
-          .aspectRatio(1.0f)
-          .background(color = Color.White, shape = RoundedCornerShape(16.dp))
+        hook
       )
       Text(
         text = app.name,
@@ -344,15 +347,33 @@ fun AppItem(
 fun DeskAppIcon(
   app: DesktopAppModel,
   hook: FetchHook,
-  modifier: Modifier,
   width: Dp = 50.dp,
   height: Dp = 50.dp
 ) {
+  val toRuningAnimation = rememberInfiniteTransition()
+  val offY by toRuningAnimation.animateFloat(
+    initialValue = 0F,
+    targetValue = 8F,
+    animationSpec = infiniteRepeatable(
+      animation = tween(1000, easing = LinearEasing),
+      repeatMode = RepeatMode.Reverse
+    )
+  )
   Box(contentAlignment = Alignment.Center,
-    modifier = modifier.onGloballyPositioned {
-      app.size = it.size
-      app.offSet = it.positionInWindow().toIntOffset(1F)
-    }
+    modifier = Modifier
+      .fillMaxSize()
+      .padding(8.dp)
+      .offset(
+        0.dp,
+        if (app.running == DesktopAppModel.DesktopAppRunStatus.TORUNNING) offY.dp else 0.dp
+      )
+      .aspectRatio(1.0f)
+      .background(color = Color.White, shape = RoundedCornerShape(16.dp))
+      .onGloballyPositioned {
+        app.size = it.size
+        app.offSet = it.positionInWindow().toIntOffset(1F)
+      }
+
   ) {
     val imageResult = PureImageLoader.SmartLoad(app.icon, width, height, hook)
     if (imageResult.isSuccess) {
@@ -431,6 +452,7 @@ private fun moreAppItemsDisplay(displays: List<MoreAppModel>, dismiss: () -> Uni
   }
 }
 
+expect fun desktopGridLayout(): GridCells
 
 @Composable
 fun moreAppDisplay(
@@ -443,7 +465,14 @@ fun moreAppDisplay(
 ) {
 
   val displays = mutableListOf<MoreAppModel>()
-  displays.add(MoreAppModel(app.mmid, MoreAppModelType.OFF, quit, app.running))
+  displays.add(
+    MoreAppModel(
+      app.mmid,
+      MoreAppModelType.OFF,
+      quit,
+      app.running == DesktopAppModel.DesktopAppRunStatus.RUNNING
+    )
+  )
   if (!app.isSystermApp) {
     displays.add(MoreAppModel(app.mmid, MoreAppModelType.DETAIL, detail, true))
     displays.add(MoreAppModel(app.mmid, MoreAppModelType.UNINSTALL, uninstall, true))
@@ -561,12 +590,17 @@ data class DesktopAppModel(
   val mmid: MMID,
   val icon: String,
   val isSystermApp: Boolean,
-  val running: Boolean,
+  var running: DesktopAppRunStatus = DesktopAppRunStatus.NONE,
   var image: ImageBitmap? = null,
   var size: IntSize? = null,
   var offSet: IntOffset? = null,
-  val id: UUID = UUID()
+  val id: UUID = randomUUID()
 ) {
+
+  enum class DesktopAppRunStatus {
+    NONE, TORUNNING, RUNNING
+  }
+
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
     if (other == null || this::class != other::class) return false

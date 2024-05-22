@@ -50,9 +50,6 @@ fun DesktopController.Render(
     /// 悬浮框
     Box(contentAlignment = Alignment.TopStart) {
       taskbarController.TaskbarView { FloatWindow() }
-//      Box(modifier = Modifier.width(100.dp).height(200.dp).background(color = Color.Red)) {
-//        Text("taskbar")
-//      }
     }
 
     /// 错误信息

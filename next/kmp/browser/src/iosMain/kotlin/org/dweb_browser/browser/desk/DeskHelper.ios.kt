@@ -1,5 +1,7 @@
 package org.dweb_browser.browser.desk
 
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.browser.desk.upgrade.NewVersionItem
@@ -37,3 +39,5 @@ actual suspend fun loadApplicationNewVersion(): NewVersionItem? {
   WARNING("Not yet implement loadNewVersion")
   return null
 }
+
+actual fun desktopGridLayout(): GridCells = GridCells.Fixed(4)
