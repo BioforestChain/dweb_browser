@@ -230,9 +230,7 @@ internal fun WindowBottomNavigationThemeBar(
     ) {
       val canGoBack by win.watchedState(watchKey = WindowPropertyKeys.CanGoBack) { canGoBack }
       /// 后退或关闭按钮
-      BoxWithConstraints(
-        modifier = Modifier.weight(1f).fillMaxHeight()
-      ) {
+      Box(modifier = Modifier.weight(1f).fillMaxHeight()) {
         /// 在最大化的情况下，如果不能后退，那么显示关闭
         val isShowCloseBtn = isMaximized && canGoBack != true
 

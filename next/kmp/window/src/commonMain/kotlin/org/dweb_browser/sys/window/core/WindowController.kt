@@ -377,7 +377,7 @@ abstract class WindowController(
     DisposableEffect(this, enabled, onBack) {
       val record = GoBackRecord.from(onBack, enabled, uiScope)
       onBackRecords.add(record)
-      state.canGoBack = onBackRecords.size > 0
+      state.canGoBack = onBackRecords.any { it.enabled } // onBackRecords.size > 0
       onDispose {
         onBackRecords.remove(record)
         state.canGoBack = if (onBackRecords.isEmpty()) null else onBackRecords.any { it.enabled }

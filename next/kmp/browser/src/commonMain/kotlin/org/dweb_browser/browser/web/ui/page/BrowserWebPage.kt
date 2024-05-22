@@ -86,12 +86,14 @@ internal fun BrowserWebPage.Effect() {
   /// 返回按钮拦截
   key(viewModel) {
     val canGoBack by webView.canGoBackStateFlow.collectAsState()
-    var isFocusedPage by remember { mutableStateOf(false) } // 增加标识，根据focusedPage改变值
-    LaunchedEffect(viewModel.focusedPage) {
-      isFocusedPage = viewModel.focusedPage == webPage
-    }
-    LocalWindowController.current.GoBackHandler(isFocusedPage && canGoBack) {
-      webView.goBack()
+    val enable = viewModel.focusedPage == webPage
+    // 先判断是否聚焦，如果聚焦了，必定是可以返回的，在返回的时候判断是webview返回，还是关闭WebPage
+    LocalWindowController.current.GoBackHandler(enable) {
+      if (canGoBack) {
+        webView.goBack()
+      } else {
+        viewModel.closePageUI(webPage)
+      }
     }
   }
 }
