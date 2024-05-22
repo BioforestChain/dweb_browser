@@ -160,6 +160,9 @@ const showAppIcons = computed(() => {
   }
   return appRefList.value;
 });
+import { DwebWallpaperElement } from "../../../wallpaper-canvas.ts";
+
+const wallpaperEle = ref<DwebWallpaperElement>();
 
 let resizeOb: ResizeObserver | undefined;
 onMounted(() => {
@@ -188,29 +191,29 @@ onMounted(() => {
        * 需要的动作时间在元素上面
        */
       const startThreshold = 100;
-      const dragPrepare = () => {
-        const now = Date.now();
-        downTime = now;
+      const dragPrepare = (e: PointerEvent) => {
+        const prepareTime = Date.now();
+        downTime = prepareTime;
         element.classList.add("drag-start");
-        element.classList.remove("drag-end");
+        element.classList.remove("dragging", "drag-end");
         setTimeout(() => {
-          console.log(downTime,Date.now(),Date.now()-downTime)
-          if (now === downTime) {
+          console.log(downTime, prepareTime === downTime);
+          if (prepareTime === downTime) {
             dragStart();
           }
         }, 800);
       };
       const dragStart = () => {
         if (downTime !== 0) {
-          element.classList.add("dragging");
           if (false === dragging && Date.now() >= downTime + startThreshold) {
+            element.classList.add("dragging");
             dragging = true;
             toggleDragging(true);
           }
         }
       };
       const dragEnd = () => {
-        console.log('dragEnd',Date.now()-downTime)
+        console.log("dragEnd", Date.now() - downTime);
         if (downTime !== 0) {
           downTime = 0;
           element.classList.remove("dragging", "drag-start");
@@ -231,12 +234,12 @@ onMounted(() => {
       Object.assign(globalThis, {
         dragEnd,
       });
-      element.addEventListener("pointerdown", dragPrepare);
-      element.addEventListener("pointermove", dragStart);
+      element.addEventListener("pointerdown", dragPrepare, { passive: true });
+      element.addEventListener("pointermove", dragStart, { passive: true });
 
-      element.addEventListener("pointerup", dragEnd);
+      element.addEventListener("pointerup", dragEnd, { passive: true });
       // element.addEventListener("pointercancel", dragEnd);
-      element.addEventListener("pointerleave", dragCancel);
+      element.addEventListener("pointerleave", dragCancel, { passive: true });
     };
     /// 桌面端默认开启 frame 边框的绘制
     if ((navigator as any).userAgentData?.mobile === false) {
@@ -279,14 +282,43 @@ const iconSize = "45px";
       </button>
     </div>
     <hr v-if="appRefList.length !== 0" class="my-divider" />
-    <button class="desktop-button app-icon-wrapper z-grid" @click="toggleDesktopButton">
-      <AppIcon
-        class="z-view"
-        :icon="icons.layout_panel_top"
-        :size="iconSize"
-        bg-image="linear-gradient(to bottom, #f64f59, #c471ed, #12c2e9)"
-        bg-disable-translucent
-      ></AppIcon>
+    <button
+      class="desktop-button app-icon-wrapper z-grid"
+      @click="
+        () => {
+          console.log(wallpaperEle);
+          toggleDesktopButton();
+        }
+      "
+    >
+      <dweb-wallpaper
+        ref="wallpaperEle"
+        @click="
+          () => {
+            console.log(wallpaperEle);
+            wallpaperEle?.replay({ duration: 3000, startPlaybackRate: 5 });
+          }
+        "
+      >
+        <pre>
+        // 晚上
+        19, 20, 21, 22: multiply #00C5DF #00C5DF #00C5D #F2371F
+        // 极光
+        23, 0, 1: overlay #315787 #B8B5D6 #64ADBD #6B93C6 #000000
+        // 凌晨
+        1, 2, 3, 4: multiply #18A0FB #1BC47D
+        // 日出
+        5, 6: luminosity #18A0FB #1BC47D #18A0FB #FFC700 #FFC700 #F2371F
+        // 早上
+        7,8,9,: overlay #18A0FB #907CFF
+        // 中午
+        10,11,12,13: soft-light #EE46D3 #907CFF
+        // 下午
+        14, 15, 16: overlay #FFC700 #EE46D3
+        // 日落
+        17,18: overlay #F2371F #18A0FB #907CFF #FFC700
+        </pre>
+      </dweb-wallpaper>
     </button>
   </div>
 </template>
@@ -306,11 +338,11 @@ const iconSize = "45px";
 .taskbar.frame {
   background-color: rgb(255 255 255 / 32%);
   border-radius: 0.8rem;
+  transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+  transform-origin: center;
 }
 .taskbar.drag-start {
   transition-duration: 0.54s;
-  transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
-  transform-origin: center;
 }
 .taskbar.dragging {
   transform: scale(0.9);
@@ -319,9 +351,7 @@ const iconSize = "45px";
   }
 }
 .taskbar.drag-end {
-  transition-duration: 0.8s;
-  transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
-  transform-origin: center;
+  // transition-duration: 0.8s;
 }
 @media (prefers-color-scheme: dark) {
   .taskbar.frame {
@@ -395,6 +425,20 @@ const iconSize = "45px";
   .exit-icon {
     color: rgb(0 0 0 / 80%);
   }
+}
+dweb-wallpaper {
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+button {
+  transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+  transform-origin: center;
+  transition-duration: 0.8s;
+}
+button:active {
+  transition-duration: 0.2s;
+  transform: scale(1.1);
 }
 </style>
 

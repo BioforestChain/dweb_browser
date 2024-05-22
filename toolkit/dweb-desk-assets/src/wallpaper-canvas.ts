@@ -276,7 +276,7 @@ const looper = new (class Looper {
   }
 })();
 
-class DwebWallpaperElement extends HTMLElement {
+export class DwebWallpaperElement extends HTMLElement {
   readonly looper = looper;
   readonly canvasEle;
   readonly renderCtx;
@@ -288,6 +288,7 @@ class DwebWallpaperElement extends HTMLElement {
     shadow.innerHTML = html`
       <style>
         :host {
+          display: block;
           overflow: hidden;
           --bg-color-1: #fff; /*#93f3ff;*/
           --bg-color-2: #fff; /*#ffca7b;*/
