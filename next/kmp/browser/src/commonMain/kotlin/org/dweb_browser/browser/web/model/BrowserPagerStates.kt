@@ -64,7 +64,7 @@ class BrowserPagerStates(val viewModel: BrowserViewModel) {
         }
       }
 
-      /// contentPagePager => focusedPage
+      /// contentPagePager => focusedPage // 迁移到BrowserViewModel.ViewModelEffect中，如果放这边，会导致focused和pageIndex不一致时，最终又强制刷成pageIndex的
 //      LaunchedEffect(contentPagePager.currentPage, contentPagePager.isScrollInProgress) {
 //        if (!contentPagePager.isScrollInProgress) {
 //          viewModel.focusPageUI(contentPagePager.currentPage)

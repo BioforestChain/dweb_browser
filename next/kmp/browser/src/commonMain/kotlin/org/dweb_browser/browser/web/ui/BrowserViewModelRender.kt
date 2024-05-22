@@ -90,7 +90,7 @@ fun BrowserPageBox(windowRenderScope: WindowContentRenderScope) {
   val localFocusManager = LocalFocusManager.current
 
   viewModel.focusedPage?.also { focusPage ->
-    LocalWindowController.current.GoBackHandler {
+    LocalWindowController.current.GoBackHandler(viewModel.pageSize > 1) {
       viewModel.closePageUI(focusPage)
     }
   }

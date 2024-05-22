@@ -1,6 +1,7 @@
 package org.dweb_browser.browser.web.model
 
 import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -10,6 +11,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import io.ktor.http.Url
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -195,6 +197,7 @@ class BrowserViewModel(
   var isFillPageSize by mutableStateOf(true) // 用于标志当前的HorizontalPager中的PageSize是Fill还是Fixed
   val pagerStates = BrowserPagerStates(this)
 
+  @OptIn(ExperimentalFoundationApi::class)
   @Composable
   fun ViewModelEffect() {
     val uiScope = rememberCoroutineScope()
@@ -203,6 +206,12 @@ class BrowserViewModel(
     LaunchedEffect(Unit) {
       withScope(uiScope) {
         isIncognitoOn = browserController.getStringFromStore(KEY_NO_TRACE)?.isNotEmpty() ?: false
+      }
+    }
+
+    LaunchedEffect(Unit) { // 这个状态判断不要放在BrowsersPagerStates中。
+      snapshotFlow { pagerStates.contentPage.currentPage }.collect {
+        focusPageUI(it)
       }
     }
 
@@ -339,10 +348,9 @@ class BrowserViewModel(
       return false
     }
     if (focusedPage == page) {
-      val newFocusIndex = maxOf(index + 1, pages.size - 1)
-      if (newFocusIndex != index) {
-        pages.getOrNull(newFocusIndex)?.also { focusPageUI(it) }
-      }
+      // 如果要关闭当前的page，那么需要聚焦到下一个page，但是如果下一个page越界了，就聚焦上一个
+      val newFocusIndex = if (index + 1 >= pageSize) index - 1 else index + 1
+      pages.getOrNull(newFocusIndex)?.also { focusPageUI(it) }
     }
 
     /// 如果移除后，发现列表空了，手动补充一个。这个代码必须连着执行，否则会出问题
