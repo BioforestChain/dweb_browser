@@ -28,7 +28,6 @@
     "@dweb-browser/core": "workspace:~",
     "@dweb-browser/helper": "workspace:~",
     "@dweb-browser/js-process": "workspace:~",
-    "is-mobile": "^4.0.0",
     "urlpattern-polyfill": "*"
   },
   "peerDependencies": {

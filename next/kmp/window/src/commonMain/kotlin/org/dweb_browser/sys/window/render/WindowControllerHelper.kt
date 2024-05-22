@@ -87,9 +87,8 @@ fun <T> WindowController.watchedState(
 ): State<T> = remember(key) {
   val rememberState = mutableStateOf(getter.invoke(state), policy)
   val off = state.observable.onChange {
-    if ((if (watchKey != null) watchKey == it.key else true) && (if (watchKeys != null) watchKeys.contains(
-        it.key
-      ) else true) && filter?.invoke(it) != false
+    if ((if (watchKey != null) watchKey == it.key else true)
+      && (watchKeys?.contains(it.key) != false) && filter?.invoke(it) != false
     ) {
       runCatching {
         rememberState.value = getter.invoke(state)

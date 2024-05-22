@@ -35,7 +35,6 @@
     "canvg": "npm:canvg@^4.0.1",
     "cbor-x": "npm:cbor-x@^1.5.9",
     "deep-object-diff": "npm:deep-object-diff@^1.1.9",
-    "is-mobile": "npm:is-mobile@^4.0.0",
     "jszip": "npm:jszip@^3.10.1",
     "mime": "npm:mime@^4.0.3",
     "urlpattern-polyfill": "npm:urlpattern-polyfill@^10.0.0",
