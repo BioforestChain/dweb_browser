@@ -48,7 +48,7 @@ camera-version = "1.4.0-beta01"
 camera-barcode = "17.2.0"
 camera-zxing = "3.5.3"
 commons-compress = "1.26.1"
-jetbrains-compose-version = "1.6.10-rc03"
+jetbrains-compose-version = "1.6.10"
 
 # 测试
 test-junit = "5.10.1"
