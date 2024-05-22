@@ -173,7 +173,12 @@ class CanvasRectElement {
     return attrs;
   }
 
-  static draw(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, ele: CanvasRectElement) {
+  static draw(
+    canvas: HTMLCanvasElement,
+    ctx: CanvasRenderingContext2D,
+    ele: CanvasRectElement,
+    mixBlendMode: GlobalCompositeOperation,
+  ) {
     const attrs = ele.getAnimated();
     const { cx, cy, fr, fx, fy, r, stopColors } = attrs.fillStyle;
     const { width: W, height: H } = canvas;
@@ -181,7 +186,7 @@ class CanvasRectElement {
     const SIZE_H = SIZE_W;
     const width = SIZE_W * attrs.width;
     const height = SIZE_H * attrs.height;
-    const size = Math.min(width, height);
+    const size = Math.max(width, height);
     const gradient = ctx.createRadialGradient(fx * width, fy * height, fr * size, cx * width, cy * height, r * size);
     for (const sc of stopColors) {
       gradient.addColorStop(sc.offset, sc.color);
@@ -194,7 +199,7 @@ class CanvasRectElement {
     matrix.multiplySelf(attrs.transform);
     matrix.translateSelf(-transformOriginX, -transformOriginY);
     matrix.translateSelf((W - SIZE_W) / 2, (H - SIZE_H) / 2);
-    ctx.globalCompositeOperation = "screen"; //"lighten";
+    ctx.globalCompositeOperation = mixBlendMode;
     ctx.transform(matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f);
     ctx.fillRect(0, 0, width, height);
     ctx.resetTransform();
@@ -361,7 +366,7 @@ class DwebWallpaperElement extends HTMLElement {
   #draw() {
     this.renderCtx.clearRect(0, 0, this.canvasEle.width, this.canvasEle.height);
     for (const rect of this.#rectEles) {
-      CanvasRectElement.draw(this.canvasEle, this.renderCtx, rect);
+      CanvasRectElement.draw(this.canvasEle, this.renderCtx, rect, this.#mixBlendMode);
     }
   }
 
@@ -384,7 +389,7 @@ class DwebWallpaperElement extends HTMLElement {
       });
 
     return mixBlendModeMap.map((mode) => {
-      return mode.split(/[\s,]+/).filter((mode) => /^\w/.test(mode))[0] || "hard-light";
+      return (mode.split(/[\s,]+/).filter((mode) => /^\w/.test(mode))[0] || "hard-light") as GlobalCompositeOperation;
     });
   })();
 
@@ -416,6 +421,7 @@ class DwebWallpaperElement extends HTMLElement {
   })();
   #rectEles: CanvasRectElement[] = [];
   #currentConfig: string = "";
+  #mixBlendMode: GlobalCompositeOperation = "source-over";
   doInit() {
     // const hour = (new Date()).getHours();
     let hour = parseInt(this.getAttribute("hour") || "NaN");
@@ -423,6 +429,7 @@ class DwebWallpaperElement extends HTMLElement {
       hour = new Date().getHours();
     }
     const mixBlendMode = this.#mixBlendModeMap[hour % this.#mixBlendModeMap.length];
+    this.#mixBlendMode = mixBlendMode;
     const colors = this.#colorsMap[hour % this.#colorsMap.length];
 
     const config = JSON.stringify({ mixBlendMode, colors });
@@ -443,7 +450,7 @@ class DwebWallpaperElement extends HTMLElement {
           fr: 0,
           stopColors: [
             { color: `rgba(${rgb},1)`, offset: 0 },
-            { color: `rgba(${rgb},0)`, offset: 1 },
+            { color: `rgba(${rgb.map((c) => Math.min(Math.max(0, c + rand(-0, 20))))},0.0)`, offset: 1 },
           ],
         }),
       );
@@ -459,8 +466,8 @@ class DwebWallpaperElement extends HTMLElement {
   connectedCallback() {
     const resizeOb = new ResizeObserver((es) => {
       const { width, height } = es[0].contentRect;
-      this.canvasEle.width = width;
-      this.canvasEle.height = height;
+      this.canvasEle.width = width; //* devicePixelRatio;
+      this.canvasEle.height = height; //* devicePixelRatio;
       this.#draw();
     });
     resizeOb.observe(this);
