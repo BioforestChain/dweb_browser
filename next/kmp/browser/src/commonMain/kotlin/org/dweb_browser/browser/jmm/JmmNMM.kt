@@ -112,7 +112,15 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Service") {
             info.originUrl, info.installManifest.createJmmHistoryMetadata(info.originUrl)
           )
           true
-        }).cors()
+        },
+        // 是否有安装
+        "/isInstalled" bind PureMethod.GET by defineBooleanResponse {
+          val mmid = request.query("app_id")
+          debugJMM("isInstalled", mmid)
+           store.getApp(mmid) != null
+        },
+
+      ).cors()
 
       onRenderer {
         getMainWindow().apply {

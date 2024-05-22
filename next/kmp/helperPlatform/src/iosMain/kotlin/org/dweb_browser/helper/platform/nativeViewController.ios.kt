@@ -20,6 +20,8 @@ private var updateHook: (DwebUIViewControllerProperty) -> Unit = {}
 private var removeHook: (vcId: Int) -> Unit = {}
 private var navigationBarHook: (visible: Boolean) -> Unit = {}
 
+
+//Mike: NativeViewController充当与原生交互的桥梁。
 @Suppress("unused")
 class NativeViewController private constructor() {
   companion object {

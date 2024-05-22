@@ -2,6 +2,7 @@ package org.dweb_browser.browser.desk
 
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.safeContent
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
@@ -25,6 +26,7 @@ import org.dweb_browser.browser.desk.upgrade.NewVersionController
 import org.dweb_browser.browser.desk.upgrade.NewVersionItem
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
+import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.http.HttpDwebServer
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.IDWebView
@@ -54,7 +56,7 @@ open class DesktopController private constructor(
         return
       }
       field = value
-
+      //TODO: Mike 这边将Destop替换为compose
       if (_desktopView.isCompleted) {
         val oldView = _desktopView.getCompleted()
         oldView.ioScope.launch {
@@ -82,6 +84,7 @@ open class DesktopController private constructor(
       displayCutoutStrategy = DWebViewOptions.DisplayCutoutStrategy.Default,
       tag = 1
     );
+    println("Mike: desktp.html: ${options.url}")
     val webView = activity.createDwebView(deskNMM, options)
     // 隐藏滚动条
     webView.setVerticalScrollBarVisible(false)
@@ -118,6 +121,7 @@ open class DesktopController private constructor(
           view.goBack()
         }
       }
+      Text("Hellloooooooooo")
     }
   }
 
@@ -138,6 +142,34 @@ open class DesktopController private constructor(
       updateSignal.emit()
     }
   }
+
+  suspend fun observeApps() = onUpdate
+
+  suspend fun search(words: String) {
+
+  }
+
+  suspend fun open(mmid: String) {
+    deskNMM.nativeFetch("file://desk.browser.dweb/openAppOrActivate?app_id=$mmid")
+  }
+
+  suspend fun quit(mmid: String) {
+    deskNMM.nativeFetch("file://desk.browser.dweb/closeApp?app_id=$mmid")
+  }
+
+  suspend fun detail(mmid: String) {
+    deskNMM.nativeFetch("file://jmm.browser.dweb/detail?app_id=$mmid")
+  }
+
+  suspend fun uninstall(mmid: String) {
+    deskNMM.nativeFetch("file://jmm.browser.dweb/uninstall?app_id=$mmid")
+  }
+
+  suspend fun share(mmid: String) {
+    // TODO: 分享
+  }
+
+  suspend fun isSystermApp(mmid: String) = !deskNMM.nativeFetch("file://jmm.browser.dweb/isInstalled?app_id=$mmid").boolean()
 
   private val appSortList = DaskSortStore(deskNMM)
   suspend fun getDesktopApps(): List<DeskAppMetaData> {

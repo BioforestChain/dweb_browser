@@ -158,6 +158,7 @@ class PureViewController(
     }
   }
 
+  //Mike： 这边放置着需要显示的compose 视图。
   private val contents = mutableStateListOf<@Composable () -> Unit>();
   override fun getContents(): MutableList<() -> Unit> {
     return contents

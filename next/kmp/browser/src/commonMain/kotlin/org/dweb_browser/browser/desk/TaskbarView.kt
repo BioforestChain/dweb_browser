@@ -30,6 +30,8 @@ import org.dweb_browser.helper.clamp
 
 expect suspend fun ITaskbarView.Companion.create(taskbarController: TaskbarController): ITaskbarView
 
+typealias TaskBarViewType = @Composable () -> Unit
+
 abstract class ITaskbarView(private val taskbarController: TaskbarController) {
   val state = taskbarController.state
 

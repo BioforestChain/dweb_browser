@@ -188,8 +188,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       val deskSessionId = randomUUID()
 
       val desktopController = DesktopController.create(this, desktopServer, runningApps)
-      val taskBarController =
-        TaskbarController.create(deskSessionId, this, desktopController, taskbarServer, runningApps)
+      val taskBarController = TaskbarController.create(deskSessionId, this, desktopController, taskbarServer, runningApps)
       val deskControllers = DeskControllers(desktopController, taskBarController, this)
       controllersMap[deskSessionId] = deskControllers
 
@@ -217,6 +216,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         //
         "/openAppOrActivate" bind PureMethod.GET by defineEmptyResponse {
           val mmid = request.query("app_id")
+          println("Mike DesktopNMM open/Active $mmid")
           debugDesk("openAppOrActivate", "requestMMID=$mmid")
           // 内部接口，所以ipc通过connect获得
           val targetIpc = connect(mmid, request)
@@ -227,12 +227,14 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         // 获取isMaximized 的值
         "/toggleMaximize" bind PureMethod.GET by defineBooleanResponse {
           val mmid = request.query("app_id")
+          println("Mike DesktopNMM toggleMaximize $mmid")
           return@defineBooleanResponse desktopController.getDesktopWindowsManager()
             .toggleMaximize(mmid)
         },
         // 关闭app
         "/closeApp" bind PureMethod.GET by defineBooleanResponse {
           val mmid = request.query("app_id")
+          println("Mike DesktopNMM closeApp $mmid")
           when (val runningApp = runningApps[mmid]) {
             null -> false
             else -> {
@@ -244,10 +246,12 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         // 获取全部app数据
         "/desktop/apps" bind PureMethod.GET by defineJsonResponse {
           debugDesk("/desktop/apps", desktopController.getDesktopApps())
+          println("Mike DesktopNMM get apps ${desktopController.getDesktopApps().toJsonElement()}")
           return@defineJsonResponse desktopController.getDesktopApps().toJsonElement()
         },
         // 监听所有app数据
         "/desktop/observe/apps" byChannel { ctx ->
+          debugDesk("/desktop/apps", desktopController.getDesktopApps())
           val off = desktopController.onUpdate {
 //          debugDesk("/desktop/observe/apps", "onUpdate")
             try {
@@ -266,6 +270,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         // 获取所有taskbar数据
         "/taskbar/apps" bind PureMethod.GET by defineJsonResponse {
           val limit = request.queryOrNull("limit")?.toInt() ?: Int.MAX_VALUE
+          println("Mike DesktopNMM taskbar apps ${taskBarController.getTaskbarAppList(limit).toJsonElement()}")
           return@defineJsonResponse taskBarController.getTaskbarAppList(limit).toJsonElement()
         },
         // 监听所有taskbar数据
@@ -273,8 +278,10 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
           val limit = request.queryOrNull("limit")?.toInt() ?: Int.MAX_VALUE
           debugDesk("/taskbar/observe/apps", limit)
           val pureChannel = ctx.getChannel()
+          println("Mike DesktopNMM taskbar observe apps")
           taskBarController.onUpdate {
             try {
+              println("Mike DeskNMM taskbar send onUpdate to taskbar")
 //            debugDesk("/taskbar/observe/apps") { "onUpdate $pureChannel=>${request.body.toPureString()}" }
               val apps = taskBarController.getTaskbarAppList(limit)
 //            debugDesk("/taskbar/observe/apps") { "apps:$apps" }
@@ -289,7 +296,9 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         // 监听所有taskbar状态
         "/taskbar/observe/status" byChannel { ctx ->
           debugDesk("deskNMM", "/taskbar/observe/status")
+          println("Mike DesktopNMM taskbar observe status")
           taskBarController.onStatus { status ->
+            println("Mike DesktopNMM taskbar send status")
             ctx.sendJsonLine(status)
           }.removeWhen(onClose)
         },
@@ -297,16 +306,19 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         "/taskbar/resize" bind PureMethod.GET by defineJsonResponse {
           val size = request.queryAs<TaskbarController.ReSize>()
 //        debugDesk("get/taskbar/resize", "$size")
+          println("Mike DesktopNMM taskbar resize")
           taskBarController.resize(size)
           size.toJsonElement()
         },
         // 切换到桌面
         "/taskbar/toggle-desktop-view" bind PureMethod.GET by defineBooleanResponse {
+          println("Mike DesktopNMM taskbar toggle-desktop-view")
           taskBarController.toggleDesktopView()
           true
         },
         // 在app为全屏的时候，调出周围的高斯模糊，调整完全的taskbar
         "/taskbar/toggle-float-button-mode" bind PureMethod.GET by defineBooleanResponse {
+          println("Mike DesktopNMM taskbar toggle-float-button-mode")
           taskBarController.toggleFloatWindow(
             request.queryOrNull("open")?.toBooleanStrictOrNull()
           )
@@ -338,6 +350,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       val taskbarServer = createHttpDwebServer(DwebHttpServerOptions(subdomain = "taskbar"))
       val serverIpc = taskbarServer.listen()
       serverIpc.onRequest("TaskbarWebServer").collectIn(mmScope) { event ->
+//        println("Mike TaskbarWebServer collectIn: ${event.data.toString()}")
         val ipcServerRequest = event.consume()
         val pathName = ipcServerRequest.uri.encodedPathAndQuery
         val url = if (pathName.startsWith(API_PREFIX)) {
