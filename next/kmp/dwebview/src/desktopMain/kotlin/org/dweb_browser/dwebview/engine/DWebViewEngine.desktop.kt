@@ -30,6 +30,7 @@ import com.teamdev.jxbrowser.ui.Bitmap
 import com.teamdev.jxbrowser.ui.Point
 import com.teamdev.jxbrowser.view.swing.BrowserView
 import com.teamdev.jxbrowser.zoom.ZoomLevel
+import io.ktor.http.URLBuilder
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
@@ -54,12 +55,12 @@ import org.dweb_browser.dwebview.toReadyListener
 import org.dweb_browser.helper.ENV_SWITCH_KEY
 import org.dweb_browser.helper.JsonLoose
 import org.dweb_browser.helper.ReasonLock
+import org.dweb_browser.helper.buildUnsafeString
 import org.dweb_browser.helper.encodeURIComponent
 import org.dweb_browser.helper.envSwitch
 import org.dweb_browser.helper.getOrNull
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.mainAsyncExceptionHandler
-import org.dweb_browser.helper.platform.localViewHookExit
 import org.dweb_browser.helper.platform.toImageBitmap
 import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.platform.desktop.webview.WebviewEngine
@@ -100,7 +101,7 @@ class DWebViewEngine internal constructor(
      */
     internal fun createMainBrowser(
       remoteMM: MicroModule.Runtime,
-      dataDir: okio.Path,
+      dataDir: Path,
       enabledOffScreenRender: Boolean,
     ): Browser {
       val optionsBuilder: EngineOptions.Builder.() -> Unit = {
@@ -146,17 +147,6 @@ class DWebViewEngine internal constructor(
             }
           });
 
-        // 拦截内部浏览器dweb deeplink跳转
-//        engine.network().set(BeforeUrlRequestCallback::class.java, BeforeUrlRequestCallback {
-//          if (it.urlRequest().url().startsWith("dweb://")) {
-//            remoteMM.scopeLaunch(cancelable = true) {
-//              remoteMM.nativeFetch(it.urlRequest().url())
-//            }
-//            BeforeUrlRequestCallback.Response.cancel()
-//          } else {
-//            BeforeUrlRequestCallback.Response.proceed()
-//          }
-//        })
         //TODO 这里是还没做完的桌面端获取地址，改成ip位置？
         engine.permissions()
           .set(RequestPermissionCallback::class.java, RequestPermissionCallback { params, tell ->
@@ -172,11 +162,12 @@ class DWebViewEngine internal constructor(
           userDataDirectoryInUseMicroModuleSet.remove(remoteMM.mmid)
           engine.close()
         }
-        remoteMM.scopeLaunch(cancelable = true) {
-          localViewHookExit.collect {
-            engine.close()
-          }
-        }
+//        remoteMM.scopeLaunch(cancelable = true) {
+//          remoteMM.nativeFetch(URLBuilder("file://tray.sys.dweb/registry").apply {
+//            parameters["title"] = "Exit App"
+//            parameters["url"] = ""
+//          }.buildUnsafeString())
+//        }
         browser
       }
     }
@@ -184,16 +175,6 @@ class DWebViewEngine internal constructor(
 
   val wrapperView: BrowserView by lazy { BrowserView.newInstance(browser) }
 
-  //  class MyFrame(private val frame: Frame) : Frame by frame {
-  //    override fun executeJavaScript(code: String, c: Consumer<*>) {
-  //      return frame.executeJavaScript("debugger;$code", c)
-  //    }
-  //
-  //    override fun <T : Any?> executeJavaScript(code: String): T? {
-  //      return frame.executeJavaScript<T>("debugger;$code")
-  //    }
-  //  }
-  //  val mainFrame get() = MyFrame(browser.mainFrame().get())
   val mainFrame get() = browser.mainFrame().get()
   val mainFrameOrNull get() = browser.mainFrame().getOrNull()
   val document get() = mainFrame.document().get()

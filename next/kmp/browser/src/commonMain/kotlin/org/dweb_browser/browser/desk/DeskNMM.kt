@@ -328,9 +328,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       onActivity {
         startDesktopView(deskSessionId)
       }
-//      desktopController.onActivity {
-//        startDesktopView(deskSessionId)
-//      }
+
       coroutineScope {
         startDesktopView(deskSessionId)
       }

@@ -42,10 +42,12 @@ import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.Observable
 import org.dweb_browser.helper.PureRect
+import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.compose.AutoResizeTextContainer
 import org.dweb_browser.helper.compose.AutoSizeText
 import org.dweb_browser.helper.compose.compositionChainOf
+import org.dweb_browser.helper.debugger
 import org.dweb_browser.helper.getOrPut
 import org.dweb_browser.helper.platform.getCornerRadiusBottom
 import org.dweb_browser.helper.platform.getCornerRadiusTop
@@ -89,7 +91,11 @@ fun <T> WindowController.watchedState(
         it.key
       ) else true) && filter?.invoke(it) != false
     ) {
-      rememberState.value = getter.invoke(state)
+      runCatching {
+        rememberState.value = getter.invoke(state)
+      }.onFailure {
+        WARNING("watchKey=>$watchKey new:${getter.invoke(state)}")
+      }
     }
   }
   Pair(rememberState, off)

@@ -2,7 +2,6 @@ package org.dweb_browser.browser.jmm
 
 import okio.FileSystem
 import okio.Path
-import okio.Path.Companion.toPath
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
@@ -57,8 +56,6 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Service") {
   }
 
   inner class JmmRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
-    init {
-    }
 
     override suspend fun _bootstrap() {
       val store = JmmStore(this)

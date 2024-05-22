@@ -144,14 +144,26 @@ export class Producer<T> {
     this.#doSend(value);
   }
 
+  #waring_ti?: number;
   #doSend(value: T) {
     const event = this.event(value);
     this.buffers.add(event);
     if (this.buffers.size > this.bufferLimit) {
       if (this.bufferOverflowBehavior === "warn") {
-        this.console.warn(`${this} buffers overflow maybe leak: ${this.buffers.size}`);
+        if (this.#waring_ti === undefined) {
+          this.#waring_ti = setTimeout(() => {
+            if (this.buffers.size > this.bufferLimit) {
+              this.console.warn(`${this} buffers overflow maybe leak: ${this.buffers.size}`);
+            }
+          }, 1000);
+        }
       } else if (this.bufferOverflowBehavior === "throw") {
         throw new Error(`${this} buffers overflow: ${this.buffers.size}/${this.bufferLimit}`);
+      }
+    } else {
+      if (this.#waring_ti !== undefined) {
+        clearTimeout(this.#waring_ti);
+        this.#waring_ti = undefined;
       }
     }
     return this.doEmit(event);

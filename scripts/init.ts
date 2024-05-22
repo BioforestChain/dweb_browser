@@ -16,10 +16,10 @@ export const doInit = async (args: string[]) => {
   void doInitAssets(args.includes("--watch") || args.includes("--dev"));
 };
 
-AssetsConfig.createAndSave("helper-platform-drawable", [
+AssetsConfig.createAndSave("sys-drawable", [
   {
     type: "copyKmpResDrawable",
-    moduleName: "helperPlatform",
+    moduleName: "sys",
     ignoreSharedFix: true,
     moduleTarget: "desktopMain",
   },

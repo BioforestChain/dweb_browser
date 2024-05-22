@@ -29,7 +29,10 @@ fun main(vararg args: String): Unit = runBlocking {
     // 等待“应用”准备完毕
     PureViewController.awaitPrepared()
     // 启动内核
-    startDwebBrowser(System.getenv("debug") ?: System.getProperty("debug"))
+    startDwebBrowser(
+      System.getenv("debug") ?: System.getProperty("debug"),
+      listOf() //ExtMM(TrayNMM(), true)
+    )
   }
   // 启动“应用”
   PureViewController.startApplication()

@@ -156,7 +156,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
           }
         },
         "/create-ipc" bind PureMethod.GET by defineEmptyResponse {
-          debugMM("create-ipc", request)
+          debugMM("create-ipc") { request.url }
           val processToken = request.query("token")
           val processId = tokenPidMap[processToken] ?: throw ResponseException(
             code = HttpStatusCode.NotFound,
@@ -170,6 +170,10 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
             GlobalWebMessageEndpoint.get(remoteGlobalId).port,
             manifestJson
           ) {}
+        },
+        "/open-devTool" bind PureMethod.GET by defineEmptyResponse {
+          debugMM("open-debug") { request.url }
+          apis.dWebView.openDevTool()
         }
       )
     }
@@ -191,7 +195,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
        */
       val httpDwebServer = createHttpDwebServer(
         DwebHttpServerOptions(subdomain = "${remoteCodeIpc.remote.mmid}-${remoteCodeIpc.pid}"),
-      );
+      )
 
       /**
        * “模块之间的IPC通道”关闭的时候，关闭“代码IPC流通道”
@@ -252,33 +256,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
           apis.destroyProcess(processInfo.processId)
         }
       }
-//      /**
-//       * 收到 Worker 的数据请求，由 js-process 代理转发回去，然后将返回的内容再代理响应会去
-//       *
-//       * TODO 所有的 ipcMessage 应该都有 headers，这样我们在 workerIpcMessage.headers 中附带上当前的 processId，
-//       * 回来的 remoteIpcMessage.headers 同样如此，否则目前的模式只能代理一个 js-process 的消息。另外开 streamIpc 导致的翻译成本是完全没必要的
-//       */
-//      fetchIpc.onMessage("jsWorker-to-process").collectIn(mmScope) { workerIpcMessage ->
-//        /**
-//         * 直接转发给远端 ipc，如果是nativeIpc，那么几乎没有性能损耗
-//         */
-//        remoteFetchIpc.postMessage(workerIpcMessage.consume())
-//      }
-//      remoteFetchIpc.onMessage("process-to-jsWorker").collectIn(mmScope) { remoteIpcMessage ->
-//        fetchIpc.postMessage(remoteIpcMessage.consume())
-//      }
-//      /// 由于 MessagePort 的特殊性，它无法知道自己什么时候被关闭，所以这里通过宿主关系，绑定它的close触发时机
-//      remoteFetchIpc.onClosed {
-//        scopeLaunch(cancelable = false) {
-//          fetchIpc.close()
-//        }
-//      }
-//      /// 双向绑定关闭
-//      fetchIpc.onClosed {
-//        scopeLaunch(cancelable = false) {
-//          remoteFetchIpc.close()
-//        }
-//      }
+
 
       /**
        * 开始执行代码
@@ -293,15 +271,6 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
       return processInfo
     }
 
-
-//    private suspend fun bridgeIpc(
-//      apis: JsProcessWebApi,
-//      processId: Int,
-//      fromMMid: MMID,
-//      toMMid: MMID,
-//    ): Boolean {
-//      return apis.bridgeIpc(processId, fromMMid, toMMid)
-//    }
 
   }
 

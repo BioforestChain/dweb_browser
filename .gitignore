@@ -56,7 +56,7 @@ next/kmp/app/androidApp/key.properties
 /assets/*
 !/assets/browser-icons
 !/assets/browser-drawable
-!/assets/helper-platform-drawable
+!/assets/sys-drawable
 !/assets/sys-icons
 
 # 所有的资源目录全部由外部脚本进行管理

@@ -5,7 +5,7 @@ import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.platform.PureViewController
 import org.dweb_browser.helper.platform.PureViewCreateParams
 import org.dweb_browser.helper.platform.asDesktop
-import javax.swing.JRootPane
+import org.dweb_browser.sys.tray.TrayNMM
 
 private val DeskNMM.DeskRuntime.vcCore by lazy {
   val pvc = PureViewController()
@@ -32,7 +32,7 @@ actual suspend fun DeskNMM.DeskRuntime.startDesktopView(deskSessionId: String) {
         if (PureViewController.isMacOS) {
           putClientProperty("apple.awt.fullWindowContent", true);
           putClientProperty("apple.awt.transparentTitleBar", true)
-      } else if (PureViewController.isWindows) {
+        } else if (PureViewController.isWindows) {
 //          win.isUndecorated = true;
 //          windowDecorationStyle = JRootPane.FRAME;
         }
