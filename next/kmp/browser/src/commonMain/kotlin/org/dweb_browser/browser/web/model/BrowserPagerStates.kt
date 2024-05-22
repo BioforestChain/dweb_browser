@@ -4,7 +4,6 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.snapshotFlow
 import org.dweb_browser.browser.web.ui.enterAnimationSpec
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -31,12 +30,25 @@ class BrowserPagerStates(val viewModel: BrowserViewModel) {
   fun PagerToFocusEffect() {
     val viewModel = LocalBrowserViewModel.current
     if (viewModel.isFillPageSize) {
+      // contentPage => focusedPage
       LaunchedEffect(
         contentPage.currentPage,
         contentPage.isScrollInProgress
       ) { // 这个状态判断不要放在BrowsersPagerStates中。
         if (!contentPage.isScrollInProgress) {
           viewModel.focusPageUI(contentPage.currentPage)
+        }
+      }
+    } else {
+      // contentPage => focusedUI
+      LaunchedEffect(
+        searchBar.currentPage,
+        searchBar.isScrollInProgress,
+        searchBar.currentPageOffsetFraction
+      ) {
+        // 考虑到如果聚焦到最后一个page时，currentPage有偏移量的话，不进行聚焦
+        if (!searchBar.isScrollInProgress && searchBar.currentPageOffsetFraction == 0f) {
+          viewModel.focusPageUI(searchBar.currentPage)
         }
       }
     }
@@ -90,19 +102,6 @@ class BrowserPagerStates(val viewModel: BrowserViewModel) {
 //        }
 //      }
     } else {
-      /// searchBarPager => contentPagePager
-      // 目前桌面端的 PageSize使用 Fixed，所以这边不关心 currentPageOffsetFraction 值
-      LaunchedEffect(
-        searchBarPager.currentPage,
-        searchBarPager.isScrollInProgress,
-        searchBarPager.currentPageOffsetFraction
-      ) {
-        // 考虑到如果聚焦到最后一个page时，currentPage有偏移量的话，不进行聚焦
-        if (!searchBarPager.isScrollInProgress && searchBarPager.currentPageOffsetFraction == 0f) {
-          viewModel.focusPageUI(searchBarPager.currentPage)
-        }
-      }
-
       // focusedPage => searchPagePager
       LaunchedEffect(viewModel.focusedPageIndex, contentPagePager.isScrollInProgress) {
         val pageIndex = viewModel.focusedPageIndex

@@ -1,7 +1,6 @@
 package org.dweb_browser.browser.web.model
 
 import androidx.compose.animation.core.MutableTransitionState
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -196,7 +195,6 @@ class BrowserViewModel(
   var isFillPageSize by mutableStateOf(true) // 用于标志当前的HorizontalPager中的PageSize是Fill还是Fixed
   val pagerStates = BrowserPagerStates(this)
 
-  @OptIn(ExperimentalFoundationApi::class)
   @Composable
   fun ViewModelEffect() {
     val uiScope = rememberCoroutineScope()
