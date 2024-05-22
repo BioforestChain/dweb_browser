@@ -27,7 +27,6 @@ object ResourceFileSystem {
   fun prepare(path: Path) = sinkMap.getOrPut(path.toString()) {
     fsScope.async(start = CoroutineStart.UNDISPATCHED) {
       try {
-        Res.getUri("files/$path")
         path.parent?.also {
           fakeFileSystem.createDirectories(it, false)
         }
