@@ -12,7 +12,6 @@ class DwebURLSchemeHandler(microModule: MicroModule.Runtime) : NSObject(),
   WKURLSchemeHandlerProtocol {
   val helper = DURLSchemeHandlerHelper(microModule)
 
-  @Suppress("CONFLICTING_OVERLOADS")
   override fun webView(webView: WKWebView, startURLSchemeTask: WKURLSchemeTaskProtocol) {
     val url = startURLSchemeTask.request.URL?.absoluteString ?: return run {
       startURLSchemeTask.didFinish()

@@ -34,7 +34,7 @@ import platform.WebKit.WKWebView
 import platform.WebKit.WKWebpagePreferences
 import platform.darwin.NSObject
 
-@Suppress("CONFLICTING_OVERLOADS")
+@Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE", "CONFLICTING_OVERLOADS")
 class DWebNavigationDelegate(val engine: DWebViewEngine) : NSObject(),
   WKNavigationDelegateProtocol {
   override fun webViewWebContentProcessDidTerminate(webView: WKWebView) {

@@ -11,8 +11,8 @@ javaVersion = "VERSION_17" # JavaVersion.VERSION_17
 
 agp = "8.3.2"
 androidx-baselineprofile-version = "1.2.4"
-kotlin-version = "1.9.24"
-kotlin-serialization-gradle = "1.9.24"
+kotlin-version = "2.0.0"
+kotlin-serialization-gradle = "2.0.0"
 androidx-test = "1.5.2"
 coreKtx = "1.6.0-rc01"
 androidx-test-rules = "1.5.0"
@@ -230,6 +230,8 @@ gradlePlugin-android = { group = "com.android.tools.build", name = "gradle", ver
 gradlePlugin-kotlin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin-version" }
 gradlePlugin-serialization = { group = "org.jetbrains.kotlin", name = "kotlin-serialization", version.ref = "kotlin-serialization-gradle" }
 gradlePlugin-jetbrainsCompose = { group = "org.jetbrains.compose", name = "compose-gradle-plugin", version.ref = "jetbrains-compose-version" }
+gradlePlugin-composeCompiler = { group = "org.jetbrains.kotlin", name = "compose-compiler-gradle-plugin", version.ref = "jetbrains-compose-version" }
+#gradlePlugin-composeCompiler = { group = "org.jetbrains.kotlin", name = "kotlin-compose-compiler-plugin", version.ref = "kotlin-version" }
 gradlePlugin-jxbrowser = { group = "com.teamdev.jxbrowser", name = "JxBrowser-Gradle-Plugin", version.ref = "jxbrowser-gradle" }
 
 # 七牛数据
@@ -243,6 +245,7 @@ androidLibrary = { id = "com.android.library", version.ref = "agp" }
 kotlinxMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin-version" }
 kotlinPluginSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin-version" }
 kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin-version" }
+composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin-version" }
 
 
 [bundles]
