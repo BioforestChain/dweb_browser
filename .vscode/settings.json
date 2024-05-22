@@ -13,5 +13,8 @@
   },
   "[swift]": {
     "editor.defaultFormatter": "vknabel.vscode-apple-swift-format"
+  },
+  "[markdown]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
   }
 }

@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <link rel="icon" href="data:;base64,iVBORw0KGgo=" />
-    <title>desktop</title>
+    <title>wallpaper</title>
     <style>
       html,
       body {
@@ -19,7 +19,6 @@
         margin: 0;
         overflow-y: auto;
       }
-
       dweb-wallpaper {
         position: absolute;
         width: 100%;
@@ -27,17 +26,15 @@
         z-index: 0;
         pointer-events: none;
         top: 0;
+        overflow: hidden;
       }
       dweb-wallpaper pre {
-        visibility: hidden;
+        display: none;
       }
     </style>
   </head>
 
   <body>
-    <div id="app"></div>
-    <script type="module" src="./src/pages/desktop/main.ts"></script>
-    <link rel="stylesheet" href="./src/styles/tailwind.scss" />
     <script type="module" src="./src/wallpaper-canvas.ts"></script>
     <dweb-wallpaper id="wallpaper">
       <pre>
@@ -59,7 +56,7 @@
     </dweb-wallpaper>
     <script>
       Object.assign(window, { wallpaper });
-      app.addEventListener("click", () => {
+      document.body.addEventListener("click", () => {
         wallpaper.replay({ duration: 1000, startPlaybackRate: 2 });
       });
     </script>
