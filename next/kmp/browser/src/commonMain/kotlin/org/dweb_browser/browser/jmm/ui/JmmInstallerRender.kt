@@ -42,7 +42,6 @@ fun JmmInstallerController.Render(modifier: Modifier, renderScope: WindowContent
   }
 
   val win = LocalWindowController.current
-  win.state.title = this.installMetadata.manifest.name
   win.GoBackHandler {
     if (previewState.showPreview.targetState) {
       previewState.showPreview.targetState = false
