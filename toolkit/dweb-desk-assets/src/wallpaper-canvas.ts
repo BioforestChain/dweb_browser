@@ -173,12 +173,7 @@ class CanvasRectElement {
     return attrs;
   }
 
-  static draw(
-    canvas: HTMLCanvasElement,
-    ctx: CanvasRenderingContext2D,
-    ele: CanvasRectElement,
-    mixBlendMode: GlobalCompositeOperation,
-  ) {
+  static draw(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, ele: CanvasRectElement) {
     const attrs = ele.getAnimated();
     const { cx, cy, fr, fx, fy, r, stopColors } = attrs.fillStyle;
     const { width: W, height: H } = canvas;
@@ -199,7 +194,6 @@ class CanvasRectElement {
     matrix.multiplySelf(attrs.transform);
     matrix.translateSelf(-transformOriginX, -transformOriginY);
     matrix.translateSelf((W - SIZE_W) / 2, (H - SIZE_H) / 2);
-    ctx.globalCompositeOperation = mixBlendMode;
     ctx.transform(matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f);
     ctx.fillRect(0, 0, width, height);
     ctx.resetTransform();
@@ -366,13 +360,16 @@ export class DwebWallpaperElement extends HTMLElement {
 
   #draw() {
     this.renderCtx.clearRect(0, 0, this.canvasEle.width, this.canvasEle.height);
+    this.renderCtx.globalCompositeOperation = this.#mixBlendMode;
     for (const rect of this.#rectEles) {
-      CanvasRectElement.draw(this.canvasEle, this.renderCtx, rect, this.#mixBlendMode);
+      CanvasRectElement.draw(this.canvasEle, this.renderCtx, rect);
     }
   }
 
-  config = (this.textContent || "").trim();
-  #mixBlendModeMap = (() => {
+  get config() {
+    return (this.textContent || "").trim();
+  }
+  #calcMixBlendModeMap() {
     const mixBlendModeMap = Array.from({ length: 24 }, () => "hard-light");
     this.config
       .split("\n")
@@ -392,9 +389,9 @@ export class DwebWallpaperElement extends HTMLElement {
     return mixBlendModeMap.map((mode) => {
       return (mode.split(/[\s,]+/).filter((mode) => /^\w/.test(mode))[0] || "hard-light") as GlobalCompositeOperation;
     });
-  })();
+  }
 
-  #colorsMap = (() => {
+  #calcColorsMap() {
     const colorsMap = Array.from({ length: 24 }, () => `#043227 #097168 #ffcc88 #fa482e #f4a32e`);
     this.config
       .split("\n")
@@ -419,7 +416,7 @@ export class DwebWallpaperElement extends HTMLElement {
         .map((hex) => hex.slice(1))
         .map((hex) => [parseInt(hex.slice(0, 2), 16), parseInt(hex.slice(2, 4), 16), parseInt(hex.slice(4, 6), 16)]);
     });
-  })();
+  }
   #rectEles: CanvasRectElement[] = [];
   #currentConfig: string = "";
   #mixBlendMode: GlobalCompositeOperation = "source-over";
@@ -429,9 +426,11 @@ export class DwebWallpaperElement extends HTMLElement {
     if (!Number.isFinite(hour)) {
       hour = new Date().getHours();
     }
-    const mixBlendMode = this.#mixBlendModeMap[hour % this.#mixBlendModeMap.length];
+    const mixBlendModeMap = this.#calcMixBlendModeMap();
+    const mixBlendMode = mixBlendModeMap[hour % mixBlendModeMap.length];
     this.#mixBlendMode = mixBlendMode;
-    const colors = this.#colorsMap[hour % this.#colorsMap.length];
+    const colorsMap = this.#calcColorsMap();
+    const colors = colorsMap[hour % colorsMap.length];
 
     const config = JSON.stringify({ mixBlendMode, colors });
     if (config === this.#currentConfig) {
