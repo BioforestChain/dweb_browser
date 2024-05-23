@@ -2,6 +2,7 @@ package org.dweb_browser.pure.image.offscreenwebcanvas
 
 
 import androidx.compose.ui.graphics.ImageBitmap
+import org.dweb_browser.helper.OrderDeferred
 import org.dweb_browser.helper.platform.toImageBitmap
 import org.dweb_browser.pure.image.OffscreenWebCanvas
 
@@ -11,6 +12,7 @@ class WebCanvasContextSession private constructor(internal val core: OffscreenWe
     suspend fun <T> OffscreenWebCanvas.buildTask(builder: suspend WebCanvasContextSession.() -> T): T {
       return WebCanvasContextSession(core).builder()
     }
+    private val renderOrder = OrderDeferred()
   }
 
   private var jsCode = mutableListOf<String>();
@@ -36,14 +38,14 @@ class WebCanvasContextSession private constructor(internal val core: OffscreenWe
     /// fetch 如果使用 mode:'no-cors'，那么blob始终为空，所以匿名模式没有意义
     "(await fetchImageBitmap(wrapUrlByProxy(`$imageUri`),$containerWidth,$containerHeight))"
 
-  suspend fun toDataURL(type: String = "image/png", quality: Float = 0.8f): String {
+  suspend fun toDataURL(type: String = "image/png", quality: Float = 0.8f) = renderOrder.queueAndAwait(Unit) {
     jsCode += "return canvasToDataURL(canvas,{type:`$type`,quality:$quality});"
-    return core.evalJavaScriptReturnString(getExecCode())
+    core.evalJavaScriptReturnString(getExecCode())
   }
 
-  suspend fun toImageBitmap(type: String = "image/png", quality: Float = 0.8f): ImageBitmap {
+  suspend fun toImageBitmap(type: String = "image/png", quality: Float = 0.8f) = renderOrder.queueAndAwait(Unit) {
     jsCode += "return canvasToBlob(canvas,{type:`$type`,quality:$quality});"
-    return core.evalJavaScriptReturnByteArray(getExecCode()).toImageBitmap()
+    core.evalJavaScriptReturnByteArray(getExecCode()).toImageBitmap()
   }
 
   fun clearRect(x: Int, y: Int, w: Int, h: Int) {
