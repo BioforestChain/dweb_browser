@@ -84,6 +84,7 @@ class BrowserController(
         windowVisibleSignal.emit(true)
       }
       newWin.onHidden {
+        viewModel.hideAllPanel()
         windowVisibleSignal.emit(false)
       }
       newWin.onClose {

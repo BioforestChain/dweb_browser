@@ -89,7 +89,6 @@ class BrowserViewModel(
 
   var showQRCodePanel by mutableStateOf(false)
 
-
   val previewPanelVisibleState = MutableTransitionState(PreviewPanelVisibleState.Close)
 
   /**
@@ -111,7 +110,7 @@ class BrowserViewModel(
       if (show) PreviewPanelVisibleState.DisplayGrid else PreviewPanelVisibleState.Close
   }
 
-  var showSearch by mutableStateOf<BrowserPage?>(null)
+  var showSearchPage by mutableStateOf<BrowserPage?>(null)
   var scale by mutableFloatStateOf(1f)
 
   // 无痕模式状态
@@ -255,21 +254,19 @@ class BrowserViewModel(
   suspend fun openSearchPanelUI(searchText: String, target: AppBrowserTarget) {
     // 先判断search是否不为空，然后在判断search是否是地址，
     debugBrowser("openSearchPanelUI", "searchText=$searchText, target=$target")
-    deepLinkDoSearch(DwebLinkSearchItem(link = searchText, target = target)) // 调用Ios 接口，实现功能
+    deepLinkDoSearch(DwebLinkSearchItem(link = searchText, target = target)) // TODO 调用Ios 接口，实现功能
     // android 实现仍然在 commonMain这边
     when (target) {
       AppBrowserTarget.SELF -> {
         // 如果是搜索的话，直接在当前页显示搜索界面，并且显示待搜索的内容
         if (searchText.isNotEmpty()) {
-          showSearch = focusedPage?.apply { searchKeyWord = searchText } // 显示当前界面
+          showSearchPage = focusedPage?.apply { searchKeyWord = searchText } // 显示当前界面
         }
       }
 
       else -> {
         // 打开新tab，并聚焦到新page，如果打开地址失败，说明不是标准网址，新增tab，并且打开搜索界面
-        val replacePage = if (focusedPage != null && focusedPage is BrowserHomePage) {
-          focusedPage!!
-        } else null
+        val replacePage = focusedPage?.let { page -> if (page is BrowserHomePage) page else null }
         tryOpenUrlUI(searchText, replacePage) {
           debugBrowser("openSearchPanelUI", "tryOpenUrlUI fail, focusedPage=$focusedPage")
           val page = replacePage?.let { // 如果当前界面就是homepage，就不需要再创建新的
@@ -280,7 +277,7 @@ class BrowserViewModel(
               addNewPageUI(this) { addIndex = focusedPageIndex + 1 } // 直接移动到最后
             }
           }
-          showSearch = page
+          showSearchPage = page
         }
       }
     }
@@ -299,9 +296,7 @@ class BrowserViewModel(
     if (url.isEmpty()) return // 如果 url 是空的，直接返回，不操作
     // 判断如果已存在，直接focus，不新增界面
     if (replacePage == null) {
-      when (val samePage = pages.find { page ->
-        page.isUrlMatch(url)
-      }) {
+      when (val samePage = pages.find { page -> page.isUrlMatch(url) }) {
         null -> {
           // 尝试添加新页面
           val newPage = addNewPageUI(url) { replaceOldHomePage = true }
@@ -439,12 +434,12 @@ class BrowserViewModel(
     optionsModifier?.invoke(options)
 
     val oldPage = options.addIndex?.let { index ->
-      pages.getOrNull(index)?.also { _ ->
-        pages.add(index, newPage)
-      }
+      pages.getOrNull(index)?.also { pages.add(index, newPage) }
     } ?: focusedPage.also { pages.add(newPage) }
 
-    if ((options.replaceOldPage && oldPage != null) || (options.replaceOldHomePage && oldPage != focusedPage && oldPage is BrowserHomePage)) {
+    if ((options.replaceOldPage && oldPage != null) ||
+      (options.replaceOldHomePage && oldPage != focusedPage && oldPage is BrowserHomePage)
+    ) {
       closePageUI(oldPage)
     }
     if (options.focusPage) {
@@ -510,7 +505,6 @@ class BrowserViewModel(
 
   suspend fun addBookmarkUI(webPage: BrowserWebPage) =
     addBookmarkUI(webPage.webView.toWebSiteInfo(WebSiteType.Bookmark))
-
 
   suspend fun removeBookmarkUI(vararg items: WebSiteInfo) {
     showToastMessage(BrowserI18nResource.toast_message_remove_bookmark.text)
@@ -603,6 +597,16 @@ class BrowserViewModel(
 
   fun enableSearchEngine(searchEngine: SearchEngine) = ioScope.launch {
     browserNMM.updateEngineState(searchEngine, true)
+  }
+
+  /**
+   * 隐藏所有的Panel
+   */
+  fun hideAllPanel() {
+    previewPanelVisibleState.targetState = PreviewPanelVisibleState.Close
+    showSearchPage?.searchKeyWord = null
+    showSearchPage = null
+    showQRCodePanel = false
   }
 }
 
