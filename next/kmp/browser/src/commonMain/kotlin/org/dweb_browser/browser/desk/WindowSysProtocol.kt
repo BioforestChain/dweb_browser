@@ -28,8 +28,7 @@ suspend fun DeskNMM.DeskRuntime.windowProtocol(desktopController: DesktopControl
         createModal(ipc).toJsonElement()
       },
       "/openModal" bind PureMethod.GET by defineBooleanResponse {
-        val needRender = request.queryBoolean("render",true)
-        val controller = getAppMainWindow(ipc,needRender)
+        val controller = getAppMainWindow(ipc)
         controller.openModal(request.query("modalId"))
       },
       "/updateModalCloseTip" bind PureMethod.GET by defineBooleanResponse {

@@ -26,8 +26,8 @@ internal val LocalJmmInstallerController =
  * JS 模块安装 的 控制器
  */
 class JmmInstallerController(
+  metadata: JmmMetadata,
   internal val jmmNMM: JmmNMM.JmmRuntime,
-  private val metadata: JmmMetadata,
   private val jmmController: JmmController,
 ) {
   var installMetadata by ObservableMutableState(metadata) {}
@@ -60,7 +60,7 @@ class JmmInstallerController(
   suspend fun openRender() {
     /// 显示抽屉
     val bottomSheets = getBottomSheetView()
-    bottomSheets.open(false)
+    bottomSheets.open()
   }
 
   /**安装完成后打开app*/

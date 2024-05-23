@@ -26,5 +26,7 @@ suspend fun MicroModule.Runtime.getWindow(wid: UUID) =
   windowInstancesManager.get(wid)?.also { it.state.constants.microModule.value = this }
     ?: throw Exception("fail to got window for $mmid, wid=$wid is invalid, maybe microModule not an application")
 
-suspend fun NativeMicroModule.NativeRuntime.getOrOpenMainWindow() = getWindow(getOrOpenMainWindowId())
+suspend fun NativeMicroModule.NativeRuntime.getOrOpenMainWindow() =
+  getWindow(getOrOpenMainWindowId())
+
 suspend fun NativeMicroModule.NativeRuntime.getMainWindow() = getWindow(getMainWindowId())

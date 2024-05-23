@@ -77,12 +77,12 @@ sealed class WindowModalController(
   }
 
   val isDestroyed get() = isState(WindowModalState.DESTROYING, WindowModalState.DESTROY)
-  suspend fun open(render:Boolean = true) {
+  suspend fun open() {
     if (isDestroyed || isState(WindowModalState.OPEN, WindowModalState.OPENING)) {
       return
     }
     state = WindowModalState.OPENING
-    mm.nativeFetch("file://window.sys.dweb/openModal?modalId=${modal.modalId.encodeURIComponent()}&wid=${wid.encodeURIComponent()}&render=${render}")
+    mm.nativeFetch("file://window.sys.dweb/openModal?modalId=${modal.modalId.encodeURIComponent()}&wid=${wid.encodeURIComponent()}")
       .boolean()
   }
 

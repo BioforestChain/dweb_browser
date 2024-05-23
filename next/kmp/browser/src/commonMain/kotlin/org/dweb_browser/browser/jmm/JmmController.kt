@@ -55,7 +55,7 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
   suspend fun openHistoryView(win: WindowController) = historyController.openHistoryView(win)
 
   suspend fun loadHistoryMetadataUrl() {
-    val loadMap = jmmStore.getAllHistoryMetadata()
+    val loadMap = jmmStore.getAllMetadata()
     historyMetadataMaps.clear()
     if (loadMap.filter { (key, value) -> key != value.manifest.id }.isNotEmpty()) {
       // 为了替换掉旧数据，旧数据使用originUrl来保存的，现在改为mmid，add by 240201
@@ -63,12 +63,12 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
       loadMap.forEach { (_, value) ->
         saveMap.getOrPut(value.manifest.id) { mutableListOf() }.add(value)
       }
-      jmmStore.clearHistoryMetadata() // 先删除旧的，然后再重新插入新的
+      jmmStore.clearMetadata() // 先删除旧的，然后再重新插入新的
       saveMap.forEach { (key, list) ->
         list.sortByDescending { it.manifest.version.replace(".", "0").toLong() }
         list.firstOrNull()?.let { jmmStore.saveMetadata(key, it) } // 取最后新的版本进行保存
       }
-      historyMetadataMaps.putAll(jmmStore.getAllHistoryMetadata()) // 重新加载最新数据
+      historyMetadataMaps.putAll(jmmStore.getAllMetadata()) // 重新加载最新数据
     } else {
       historyMetadataMaps.putAll(loadMap)
     }
@@ -176,16 +176,16 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
       if (oldMetadata.state.state.valueIn(JmmStatus.Downloading, JmmStatus.Paused)) {
         oldMetadata.taskId?.let { taskId -> jmmNMM.cancelDownload(taskId) }
       }
-      val differentMetadata = newManifest.createJmmHistoryMetadata(
+      val differentMetadata = newManifest.createJmmMetadata(
         originUrl, JmmStatus.NewVersion, session?.installTime ?: datetimeNow()
       )
       saveMetadata(differentMetadata)
     }
     // 版本相同
     return if (newManifest.version == oldManifest.version) {
-      newManifest.createJmmHistoryMetadata(originUrl, JmmStatus.INSTALLED)
+      newManifest.createJmmMetadata(originUrl, JmmStatus.INSTALLED)
     } else { // 比安装的应用版本还低的，直接不能安装，提示版本过低，不存储
-      newManifest.createJmmHistoryMetadata(originUrl, JmmStatus.VersionLow)
+      newManifest.createJmmMetadata(originUrl, JmmStatus.VersionLow)
     }
   }
 
@@ -323,7 +323,7 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
   suspend fun removeHistoryMetadata(historyMetadata: JmmMetadata) {
     historyMetadataMaps.remove(historyMetadata.manifest.id)
     historyMetadata.taskId?.let { taskId -> jmmNMM.removeDownload(taskId) }
-    jmmStore.deleteHistoryMetadata(historyMetadata.manifest.id)
+    jmmStore.deleteMetadata(historyMetadata.manifest.id)
   }
 }
 

@@ -26,7 +26,7 @@ data class JsMicroModuleDBItem(val installManifest: JmmAppInstallManifest, val o
 
 class JmmStore(microModule: MicroModule.Runtime) {
   private val storeApp = microModule.createStore("jmm_apps", false)
-  private val storeHistoryMetadata = microModule.createStore("history_metadata", false)
+  private val storeMetadata = microModule.createStore("history_metadata", false)
 
   suspend fun getOrPutApp(key: MMID, value: JsMicroModuleDBItem): JsMicroModuleDBItem {
     return storeApp.getOrPut(key) { value }
@@ -52,22 +52,22 @@ class JmmStore(microModule: MicroModule.Runtime) {
    * JMM对应的json地址存储，以及下载的 taskId 信息
    */
   suspend fun saveMetadata(mmid: String, metadata: JmmMetadata) {
-    storeHistoryMetadata.set(mmid, metadata)
+    storeMetadata.set(mmid, metadata)
   }
 
-  suspend fun getAllHistoryMetadata(): MutableMap<String, JmmMetadata> {
-    return storeHistoryMetadata.getAll()
+  suspend fun getAllMetadata(): MutableMap<String, JmmMetadata> {
+    return storeMetadata.getAll()
   }
 
-  suspend fun getHistoryMetadata(mmid: String): String? {
-    return storeHistoryMetadata.getOrNull<String>(mmid)
+  suspend fun getMetadata(mmid: String): String? {
+    return storeMetadata.getOrNull<String>(mmid)
   }
 
-  suspend fun deleteHistoryMetadata(mmid: String): Boolean {
-    return storeHistoryMetadata.delete(mmid)
+  suspend fun deleteMetadata(mmid: String): Boolean {
+    return storeMetadata.delete(mmid)
   }
 
-  suspend fun clearHistoryMetadata() = storeHistoryMetadata.clear()
+  suspend fun clearMetadata() = storeMetadata.clear()
 }
 
 /**
@@ -146,7 +146,7 @@ data class JmmStatusEvent(
   }
 }
 
-fun JmmAppInstallManifest.createJmmHistoryMetadata(
+fun JmmAppInstallManifest.createJmmMetadata(
   url: String, state: JmmStatus = JmmStatus.Init, installTime: Long = datetimeNow(),
 ) = JmmMetadata(
   originUrl = url,

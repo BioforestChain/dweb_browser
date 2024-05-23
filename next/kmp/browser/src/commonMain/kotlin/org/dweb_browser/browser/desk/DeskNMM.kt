@@ -133,9 +133,9 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
 
     private val openAppLock = ReasonLock()
     suspend fun IHandlerContext.openOrActivateAppWindow(
-      ipc: Ipc, desktopController: DesktopController,
+      ipc: Ipc, desktopController: DesktopController
     ): WindowController {
-      val appId = ipc.remote.mmid;
+      val appId = ipc.remote.mmid
       debugDesk("ActivateAppWindow", appId)
       try {
         /// desk直接为应用打开窗口，因为窗口由desk统一管理，所以由desk窗口，并提供句柄
@@ -150,16 +150,12 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       }
     }
 
-    suspend fun IHandlerContext.getAppMainWindow(ipc: Ipc = this.ipc, needRender: Boolean = true) =
+    suspend fun IHandlerContext.getAppMainWindow(ipc: Ipc = this.ipc) =
       openAppLock.withLock("window") {
         getWindow {
           val runningApp = getRunningApp(ipc)
           /// desk直接为应用打开窗口，因为窗口由desk统一管理，所以由desk窗口，并提供句柄
-          val controller = runningApp.getMainWindow()
-          if (needRender) {
-            runningApp.rendererView(controller.id)
-          }
-          controller
+          runningApp.getMainWindow()
         }
       }
 

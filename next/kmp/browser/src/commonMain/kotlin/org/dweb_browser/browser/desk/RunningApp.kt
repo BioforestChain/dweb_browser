@@ -70,14 +70,10 @@ class RunningApp(
       // 从引用中移除
       windows.remove(newWin)
     }
-    return newWin
-  }
-
-  /**渲染页面*/
-  suspend fun rendererView(id: String) {
-    val rendererEvent = IpcEvent.createRenderer(id)
+    val rendererEvent = IpcEvent.createRenderer(newWin.id)
     debugDesk("createWindow") { "rendererEvent=$rendererEvent" }
     ipc.postMessage(rendererEvent)
+    return newWin
   }
 
   /**
@@ -89,8 +85,9 @@ class RunningApp(
   /**
    * 打开主窗口，默认只会有一个主窗口，重复打开不会重复创建
    */
-  suspend fun getMainWindow() = openLock.withLock {
+  suspend fun getMainWindow(visible:Boolean = true) = openLock.withLock {
     if (mainWin == null) {
+      latestWindowState?.visible = visible
       mainWin = warpCreateWindow()
     } else {
       mainWin?.focus()
