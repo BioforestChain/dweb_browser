@@ -14,6 +14,7 @@ import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.help.types.MMPT
+import org.dweb_browser.core.http.router.ResponseException
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.bindDwebDeeplink
 import org.dweb_browser.core.http.router.byChannel
@@ -31,6 +32,7 @@ import org.dweb_browser.helper.ChangeState
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.removeWhen
+import org.dweb_browser.helper.some
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.pure.http.PureClientRequest
 import org.dweb_browser.pure.http.PureMethod
@@ -67,7 +69,19 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
     }
 
     override fun query(mmpt: MMPT): MicroModule? {
-      return dnsMM.query(mmpt, fromMM)
+      return dnsMM.queryByIdOrProtocol(mmpt, fromMM)
+    }
+
+    override fun queryAll(mmpt: MMPT): List<MicroModule> {
+      return dnsMM.queryAllByIdOrProtocol(mmpt, fromMM)
+    }
+
+    override fun queryDeeplink(deeplinkUrl: String): MicroModule? {
+      return dnsMM.queryByDeeplink(deeplinkUrl, fromMM)
+    }
+
+    override fun queryDeeplinkAll(deeplinkUrl: String): List<MicroModule> {
+      return dnsMM.queryAllByDeeplink(deeplinkUrl, fromMM)
     }
 
     override suspend fun search(category: MICRO_MODULE_CATEGORY): MutableList<MicroModule> {
@@ -85,7 +99,9 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
     // TODO 权限保护
     override suspend fun connect(mmpt: MMPT, reason: PureRequest?): Ipc {
       // 找到要连接的模块
-      val toMicroModule = dnsMM.query(mmpt, fromMM) ?: throw Throwable("not found app->$mmpt")
+      val toMicroModule = dnsMM.queryByIdOrProtocol(mmpt, fromMM) ?: throw ResponseException(
+        code = HttpStatusCode.NotFound, message = "not found app->$mmpt"
+      )
 
       val toMMID = toMicroModule.mmid
       val fromMMID = fromMM.mmid
@@ -126,7 +142,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
    * 所有应用和协议列表，这里基于 MMID 与 Protocol 存储
    */
   private val _installApps = mutableMapOf<MMPT, MutableSet<MicroModule>>()
-  private fun installApps(mpid: MMPT) = _installApps.getOrElse(mpid) { emptySet() }
+  private fun queryInstallApps(mpid: MMPT) = _installApps.getOrElse(mpid) { emptySet() }
   private fun addInstallApps(mmpt: MMPT, app: MicroModule) {
     when (val beforeMms = _installApps[mmpt]) {
       null -> _installApps[mmpt] = mutableSetOf(app)
@@ -139,15 +155,6 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
       null -> false
       else -> beforeMms.remove(app)
     }
-
-
-  /**
-   * 根据mmid获取模块
-   * TODO 一个MMID被多个模块同时实现时，需要提供选择器
-   */
-  private fun getPreferenceApp(mmpt: MMPT, fromMM: IMicroModuleManifest) =
-    installApps(mmpt).map { it to if (it.mmid != fromMM.mmid) 1 else 0 }
-      .maxByOrNull { it.second }?.first
 
 
   private val runningAppLock = SynchronizedObject()
@@ -213,9 +220,32 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
     return true
   }
 
-  /** 查询应用 */
-  fun query(mmid: MMID, fromMM: IMicroModuleManifest): MicroModule? {
-    return getPreferenceApp(mmid, fromMM)
+  /** 根据mmid查询偏好模块 */
+  fun queryByIdOrProtocol(mmid: MMID, fromMM: IMicroModuleManifest): MicroModule? {
+    return queryInstallApps(mmid).map { it to if (it.mmid != fromMM.mmid) 1 else 0 }
+      .maxByOrNull { it.second }?.first
+  }
+
+  /** 根据mmid查询所有模块 */
+  fun queryAllByIdOrProtocol(mmid: MMID, fromMM: IMicroModuleManifest): List<MicroModule> {
+    return queryInstallApps(mmid).map { it to if (it.mmid != fromMM.mmid) 1 else 0 }
+      .sortedBy { it.second }.map { it.first }
+  }
+
+  fun queryByDeeplink(href: String, fromMM: IMicroModuleManifest): MicroModule? {
+    return allApps.values.firstOrNull { microModule ->
+      microModule.dweb_deeplinks.some { deeplink ->
+        href.startsWith(deeplink)
+      }
+    }
+  }
+
+  fun queryAllByDeeplink(href: String, fromMM: IMicroModuleManifest): List<MicroModule> {
+    return allApps.values.filter { microModule ->
+      microModule.dweb_deeplinks.some { deeplink ->
+        href.startsWith(deeplink)
+      }
+    }
   }
 
   /**
@@ -242,22 +272,14 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
 
       /**
        * dwebDeepLink 适配器
-       * TODO fire
        */
       nativeFetchAdaptersManager.append(order = 0) { fromMM, request ->
         if (request.href.startsWith("dweb:")) {
-          debugDNS("fetch deeplink", "$fromMM => ${request.href}")
-          for (microModule in allApps.values) {
-            for (deeplink in microModule.dweb_deeplinks) {
-              if (request.href.startsWith(deeplink)) {
-                val fromIpc = open(fromMM.mmid).connect(microModule.mmid, request)
-                return@append fromIpc.request(request)
-              }
-            }
-          }
-          return@append PureResponse(
-            HttpStatusCode.BadGateway, body = PureStringBody(request.href)
-          )
+          val toMM =
+            fromMM.bootstrapContext.dns.queryDeeplink(request.href) ?: return@append PureResponse(
+              HttpStatusCode.BadGateway, body = PureStringBody(request.href)
+            )
+          return@append fromMM.connect(toMM.mmid, request).request(request)
         } else null
       }.removeWhen(this.mmScope)
 
@@ -276,7 +298,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
         "/open" bind PureMethod.GET by openApp,
         "/install" bind PureMethod.GET by defineEmptyResponse {
           val mmid = request.queryAppId()
-          query(mmid, ipc.remote)?.let {
+          queryByIdOrProtocol(mmid, ipc.remote)?.let {
             install(it)
           }
         },
@@ -294,27 +316,22 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
         },
         "/restart" bind PureMethod.GET by defineEmptyResponse {
           val mmid = request.queryAppId()
-          debugDNS("get_restart/$mmid", request.url.fullPath)
-          val num = close(mmid)
-          debugDNS("dns_restart", "restart $num $mmid")
-          open(mmid)
+          val restartMMID = (request.queryOrNull("app_id") as MMID?) ?: ipc.remote.mmid
+          scopeLaunch(cancelable = true) {
+            debugDNS("restart", "start")
+            val num = close(restartMMID)
+            debugDNS("restart", "closed mmid=$restartMMID code=$num")
+            val mm = open(mmid)
+            debugDNS("restart", "opened mmid=$restartMMID mm=$mm")
+          }
         },
         //
         "/query" bind PureMethod.GET by defineJsonResponse {
           val mmid = request.queryAppId()
-          query(mmid, ipc.remote)?.toManifest()?.toJsonElement() ?: JsonNull
+          queryByIdOrProtocol(mmid, ipc.remote)?.toManifest()?.toJsonElement() ?: JsonNull
         },
-        "/queryDeeplink" bind PureMethod.GET by defineStringResponse {
-          val href = request.queryDeepLink()
-          for (microModule in allApps.values) {
-            for (deeplink in microModule.dweb_deeplinks) {
-              if (href.startsWith(deeplink)) {
-                return@defineStringResponse microModule.mmid
-              }
-            }
-          }
-          // 没找到给个空
-          ""
+        "/queryDeeplink" bind PureMethod.GET by defineJsonResponse {
+          queryByDeeplink(request.queryDeepLink(), ipc.remote)?.toManifest().toJsonElement()
         },
         "/search" bind PureMethod.GET by defineJsonResponse {
           val category = request.queryCategory()
@@ -378,7 +395,9 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
         if (it.key != mmpt && it.key == fromMM.mmid) null else it.value
       } ?: run {
         debugDNS("dns_open", "$mmpt(by ${fromMM.mmid})")
-        val app = query(mmpt, fromMM) ?: throw Exception("no found app: $mmpt")
+        val app = queryByIdOrProtocol(mmpt, fromMM) ?: throw ResponseException(
+          code = HttpStatusCode.NotFound, message = "no found app: $mmpt"
+        )
         RunningApp(app, scopeAsync(cancelable = false) {
           bootstrapMicroModule(app)
         }).also { running ->

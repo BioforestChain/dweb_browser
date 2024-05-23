@@ -8,7 +8,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import kotlinx.coroutines.delay
@@ -37,11 +41,13 @@ internal fun BrowserWebPage.Effect() {
     }
   }
   /// 绑定title
-  LaunchedEffect(tick) {
-    title = webView.getTitle().ifEmpty { BrowserI18nResource.Web.page_title.text }
+  LaunchedEffect(Unit) { // 不要直接使用tick做effect，会导致这个Compose一直重组，从而导致下面的 GoBackHandler 也在一直注册释放。影响性能
+    snapshotFlow { tick }.collect {
+      title = webView.getTitle().ifEmpty { BrowserI18nResource.Web.page_title.text }
+    }
   }
   /// 每一次页面加载完成的时候，触发一次脏检查
-  DisposableEffect(webView, tick) {
+  DisposableEffect(webView) {
     val off = webView.onReady {
       tick++
     }
@@ -80,8 +86,14 @@ internal fun BrowserWebPage.Effect() {
   /// 返回按钮拦截
   key(viewModel) {
     val canGoBack by webView.canGoBackStateFlow.collectAsState()
-    LocalWindowController.current.GoBackHandler(viewModel.focusedPage == webPage && canGoBack) {
-      webView.goBack()
+    val enable = viewModel.focusedPage == webPage
+    // 先判断是否聚焦，如果聚焦了，必定是可以返回的，在返回的时候判断是webview返回，还是关闭WebPage
+    LocalWindowController.current.GoBackHandler(enable) {
+      if (canGoBack) {
+        webView.goBack()
+      } else {
+        viewModel.closePageUI(webPage)
+      }
     }
   }
 }
@@ -91,8 +103,6 @@ internal fun BrowserWebPage.Effect() {
 internal fun BrowserWebPage.BrowserWebPageRender(
   modifier: Modifier
 ) {
-  val viewModel = LocalBrowserViewModel.current
-  val uiScope = rememberCoroutineScope()
   val webPage = this
   webPage.Effect()
   ///

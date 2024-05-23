@@ -1,6 +1,10 @@
 package org.dweb_browser.browser.download.ext
 
 import io.ktor.util.encodeBase64
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.datetime.Clock
 import kotlinx.serialization.json.Json
 import org.dweb_browser.browser.download.DownloadStateEvent
 import org.dweb_browser.browser.download.DownloadTask
@@ -11,9 +15,10 @@ import org.dweb_browser.pure.http.PureChannelContext
 import org.dweb_browser.pure.http.PureClientRequest
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureTextFrame
+import kotlin.time.Duration.Companion.microseconds
 
 suspend fun NativeMicroModule.NativeRuntime.createDownloadTask(
-  url: String, total: Long? = null, external: Boolean? = null
+  url: String, total: Long? = null, external: Boolean? = null,
 ): DownloadTask {
   // 将 url 转码，避免 url 内容被解析为 parameter，引起下载地址错误
   val encodeUrl = url.encodeToByteArray().encodeBase64()
@@ -45,17 +50,47 @@ suspend fun NativeMicroModule.NativeRuntime.removeDownload(taskId: String) = nat
 ).boolean()
 
 suspend fun NativeMicroModule.NativeRuntime.watchDownloadProgress(
-  taskId: String, resolve: suspend WatchDownloadContext.() -> Unit,
-) = createChannel("file://download.browser.dweb/watch/progress?taskId=$taskId") {
+  taskId: String, fps: Double = 10.0, resolve: suspend WatchDownloadContext.() -> Unit,
+) = createChannel("file://download.browser.dweb/watch/progress?taskId=$taskId&fps=$fps") {
   for (pureFrame in income) {
     when (pureFrame) {
       is PureTextFrame -> {
-        WatchDownloadContext(Json.decodeFromString<DownloadStateEvent>(pureFrame.text), this).resolve()
+        WatchDownloadContext(
+          Json.decodeFromString<DownloadStateEvent>(pureFrame.text),
+          this
+        ).resolve()
       }
 
       else -> {}
     }
   }
 }
+
+suspend fun NativeMicroModule.NativeRuntime.downloadProgressFlow(
+  taskId: String, fps: Double = 10.0,
+) = channelFlow<DownloadStateEvent?> {
+  val channelFlow = this
+  val throttleMs = (1000.0 / fps).microseconds
+  createChannel("file://download.browser.dweb/flow/progress?taskId=$taskId") {
+    val ctx = this
+    ctx.sendText("get")
+    for (pureFrame in ctx.income) {
+      val now = Clock.System.now()
+      val next = now.plus(throttleMs)
+
+      when (pureFrame) {
+        is PureTextFrame -> {
+          channelFlow.send(Json.decodeFromString<DownloadStateEvent>(pureFrame.text))
+          channelFlow.send(null)
+          delay(next - Clock.System.now())
+          sendText("get")
+        }
+
+        else -> {}
+      }
+    }
+    channelFlow.close()
+  }
+}.filterNotNull()
 
 class WatchDownloadContext(val status: DownloadStateEvent, val channel: PureChannelContext)

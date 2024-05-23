@@ -3,12 +3,12 @@ import fs from "node:fs";
 import { createRequire } from "node:module";
 import node_path from "node:path";
 import process from "node:process";
-import type { $JmmAppInstallManifest, $MMID } from "../deps/dweb-browser/core.ts";
 import { colors } from "../deps/cliffy.ts";
-import { $MetadataJsonGeneratorOptions, SERVE_MODE, defaultMetadata } from "./const.ts";
+import type { $JmmAppInstallManifest, $MMID } from "../deps/dweb-browser/core.ts";
+import { SERVE_MODE, defaultMetadata, type $MetadataJsonGeneratorOptions } from "./const.ts";
 import { GenerateTryFilepaths } from "./util.ts";
 import { WalkFiles } from "./walk-dir.ts";
-import { $ZipEntry, walkDirToZipEntries, zipEntriesToZip } from "./zip.ts";
+import { walkDirToZipEntries, zipEntriesToZip, type $ZipEntry } from "./zip.ts";
 const internalRequest = createRequire(import.meta.url);
 
 export class MetadataJsonGenerator {
@@ -230,7 +230,7 @@ export class BundleZipGenerator {
       }
       /// 本地文件
       else {
-        console.log('addpath_full',addpath_full)
+        console.log("addpath_full", addpath_full);
         if (fs.statSync(addpath_full).isFile()) {
           data = fs.readFileSync(addpath_full);
         } else {

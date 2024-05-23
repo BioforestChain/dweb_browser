@@ -27,7 +27,9 @@ import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.alsoLaunchIn
 import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.printError
+import org.dweb_browser.pure.http.PureClientRequest
 import org.dweb_browser.pure.http.PureMethod
+import org.dweb_browser.pure.http.PureRequest
 import org.dweb_browser.sys.toast.ext.showToast
 
 val debugJsMM = Debugger("JsMM")
@@ -59,15 +61,16 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
       val nativeToWhiteList = listOf<MMID>("js.browser.dweb", "file.std.dweb")
 
       data class MmDirection(
-        val endJmm: JsMicroModule.JmmRuntime, val startMm: MicroModule,
+        val startMm: MicroModule,
+        val endJmm: JsMicroModule.JmmRuntime,
       )
       // jsMM对外创建ipc的适配器，给DnsNMM的connectMicroModules使用
       connectAdapterManager.append(1) { fromMM, toMM, reason ->
 
         val jsMM = if (nativeToWhiteList.contains(toMM.mmid)) null
         /// 这里优先判断 toMM 是否是 endJmm
-        else if (toMM is JsMicroModule.JmmRuntime) MmDirection(toMM, fromMM)
-        else if (fromMM is JsMicroModule) MmDirection(fromMM.runtime, toMM.microModule)
+        else if (toMM is JsMicroModule.JmmRuntime) MmDirection(fromMM, toMM)
+        else if (fromMM is JsMicroModule) MmDirection(toMM.microModule, fromMM.runtime)
         else null
 
         jsMM?.let {
@@ -179,20 +182,33 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
                  *
                  * TODO 如果有必要，未来需要让 connect 函数支持 force 操作，支持多次连接。
                  */
-                val targetIpc = connect(connectMmid) // 由上面的适配器产生
+                val targetIpc = connect(
+                  connectMmid,
+                  // 如果对方是 jmm，会认得这个reason，它就不会做 beConnect
+                  // 而自己也是jmm，所以自己也不会执行 beConnect
+                  PureClientRequest("file://$connectMmid/jmm/dns/connect", method = PureMethod.GET),
+                ) // 由上面的适配器产生
+
                 /// 只要不是我们自己创建的直接连接的通道，就需要我们去 创造直连并进行桥接
                 val resultMmid: MMID
                 if (targetIpc.locale.mmid == mmid) {
                   resultMmid = targetIpc.remote.mmid
                   when (val globalEndpoint = targetIpc.endpoint) {
                     is GlobalWebMessageEndpoint -> {
+                      // 如果是jsMM相互连接，直接把port丢过去
                       jsProcess.bridgeIpc(globalEndpoint.globalId, targetIpc.remote)
+                    }
+
+                    else -> {
+                      // 发现自己还是需要做 beConnect，但是这句代码目前不可能走进来。
+                      beConnect(targetIpc, null)
                     }
                   }
                 } else {
                   resultMmid = targetIpc.locale.mmid
+                  // 发现自己还是需要做 beConnect
+                  beConnect(targetIpc, null)
                 }
-
 
                 /**
                  * connectMmid 可能是子协议，所以result提供真正的mmid
@@ -206,8 +222,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
                 val done = DnsConnectDone(connect = connectMmid, result = resultMmid)
                 jsProcess.fetchIpc.postMessage(
                   IpcEvent.fromUtf8(
-                    "dns/connect/done",
-                    Json.encodeToString(done)
+                    "dns/connect/done", Json.encodeToString(done)
                   )
                 )
               } catch (e: Exception) {
@@ -221,8 +236,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
                 )
                 jsProcess.fetchIpc.postMessage(
                   IpcEvent.fromUtf8(
-                    "dns/connect/error",
-                    Json.encodeToString(error)
+                    "dns/connect/error", Json.encodeToString(error)
                   )
                 )
               }
@@ -235,6 +249,24 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
       }
     }
 
+    override suspend fun connect(remoteMmid: MMID, reason: PureRequest?): Ipc {
+      val ipc = super.connect(remoteMmid, reason)
+      if (reason?.url?.encodedPath == "/jmm/dns/connect") {// && reason.url.host == mmid
+        connectionMap[remoteMmid]?.also {
+          if (it.isCompleted && it.getCompleted() == ipc) {
+            connectionMap.remove(remoteMmid, it)
+          }
+        }
+      }
+      return ipc
+    }
+
+    override suspend fun beConnect(ipc: Ipc, reason: PureRequest?) {
+      if (reason?.url?.encodedPath == "/jmm/dns/connect") {// && reason.url.host == mmid
+        return
+      }
+      super.beConnect(ipc, reason)
+    }
 
     private val fromMMIDOriginIpcWM = mutableMapOf<MMID, CompletableDeferred<Ipc>>();
 
@@ -242,14 +274,12 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
       fromMMIDOriginIpcWM.getOrPut(fromMM.mmid) {
         CompletableDeferred<Ipc>().alsoLaunchIn(mmScope) {
           debugJsMM("ipcBridge", "fromMmid:${fromMM.mmid} ")
-
+          // 创建通往worker的双向通信
           val toJmmIpc = getJsProcess().createIpc(fromMM.manifest)
           toJmmIpc.onClosed {
             debugJsMM("ipcBridge close", "toJmmIpc=>${toJmmIpc.remote.mmid} fromMM:${fromMM.mmid}")
             fromMMIDOriginIpcWM.remove(fromMM.mmid)
           }
-          // 如果是jsMM相互连接，直接把port丢过去
-
           toJmmIpc
         }
       }.await()

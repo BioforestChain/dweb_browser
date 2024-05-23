@@ -17,7 +17,7 @@ class GlobalWebMessageEndpoint(
   port: IWebMessagePort,
   debugIdPrefix: String = "native2js",
   parentScope: CoroutineScope = kotlinIpcPool.scope,
-) : WebMessageEndpoint("$debugIdPrefix-$globalIdAcc", parentScope, port) {
+) : WebMessageEndpoint("$debugIdPrefix@G$globalIdAcc", parentScope, port) {
   companion object {
     private var globalIdAcc by SafeInt(1);
     private val ALL = SafeHashMap<Int, GlobalWebMessageEndpoint>();

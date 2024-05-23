@@ -1,5 +1,6 @@
 package org.dweb_browser.core.std.http
 
+import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.runBlocking
@@ -10,6 +11,7 @@ import multipart.MultipartConsumer
 import multipart.getBoundary
 import multipart.processMultipartOpen
 import multipart.processMultipartWrite
+import org.dweb_browser.core.http.router.ResponseException
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
@@ -30,8 +32,9 @@ class MultipartNMM : NativeMicroModule("multipart.http.std.dweb", "multipart/for
     @OptIn(ExperimentalSerializationApi::class)
     override suspend fun _bootstrap() {
       routes("/parser" bind PureMethod.POST by defineCborPackageResponse {
-        val boundary =
-          getBoundary(request.headers.toMap()) ?: throw Exception("boundary parser failed")
+        val boundary = getBoundary(request.headers.toMap()) ?: throw ResponseException(
+          code = HttpStatusCode.BadRequest, message = "boundary parser failed"
+        )
         val deferred = CompletableDeferred<Int>()
         val context = SupervisorJob() + ioAsyncExceptionHandler
         val multipartEachArrayRangeCallback = object : MultipartConsumer {

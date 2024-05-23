@@ -29,8 +29,8 @@
   }
 
   .backdrop-ios-glass {
-    backdrop-filter: contrast(1.5) brightness(1.2) blur(6px);
-    background-color: rgba(255, 255, 255, 0.15);
+    backdrop-filter: brightness(1.2) blur(6px);
+    background-color: rgba(255, 255, 255, 0.25);
   }
 
   .bg-danger-overlay-scrim {

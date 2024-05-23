@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.common
+package org.dweb_browser.browser.web.ui.common
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.BoxWithConstraintsScope
@@ -9,7 +9,7 @@ import androidx.compose.ui.Modifier
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-expect fun BoxWithConstraintsScope.CommonHorizontalPager(
+expect fun BoxWithConstraintsScope.BrowserHorizontalPager(
   state: PagerState,
   modifier: Modifier = Modifier,
   pageContent: @Composable() (PagerScope.(Int) -> Unit)

@@ -7,11 +7,11 @@ import org.dweb_browser.browser.desk.debugDesk
 import org.dweb_browser.browser.desk.loadApplicationNewVersion
 import org.dweb_browser.browser.download.DownloadState
 import org.dweb_browser.browser.download.ext.createDownloadTask
+import org.dweb_browser.browser.download.ext.downloadProgressFlow
 import org.dweb_browser.browser.download.ext.existsDownload
 import org.dweb_browser.browser.download.ext.pauseDownload
 import org.dweb_browser.browser.download.ext.removeDownload
 import org.dweb_browser.browser.download.ext.startDownload
-import org.dweb_browser.browser.download.ext.watchDownloadProgress
 import org.dweb_browser.browser.web.openFileByPath
 import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.compose.Language
@@ -116,7 +116,7 @@ class NewVersionController(
 
   private suspend fun watchProcess(taskId: String, newVersionItem: NewVersionItem): Boolean {
     var success = false;
-    deskNMM.watchDownloadProgress(taskId) {
+    deskNMM.downloadProgressFlow(taskId).collect { status ->
       if (status.state == DownloadState.Completed) {
         success = true
       }

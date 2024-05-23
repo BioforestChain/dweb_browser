@@ -327,7 +327,9 @@ class DownloadController(private val downloadNMM: DownloadNMM.DownloadRuntime) {
         task.emitChanged()
       }
     }
-    fileAppend(task, output)
+    downloadNMM.scopeLaunch(cancelable = true) {
+      fileAppend(task, output)
+    }
     return true
   }
 

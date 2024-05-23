@@ -27,7 +27,7 @@ import javax.swing.SwingUtilities
 fun PureViewController.ModalDialog(
   requestClose: () -> Unit,
   state: DesktopPureDialogState = DesktopPureDialogState.default,
-  content: @Composable (JDialog) -> Unit
+  content: @Composable (JDialog) -> Unit,
 ) {
   // 强行设置渲染方式为 SAMECANVAS
   System.setProperty("compose.layers.type", "SAMECANVAS")

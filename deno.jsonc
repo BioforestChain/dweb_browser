@@ -35,7 +35,6 @@
     "canvg": "npm:canvg@^4.0.1",
     "cbor-x": "npm:cbor-x@^1.5.9",
     "deep-object-diff": "npm:deep-object-diff@^1.1.9",
-    "is-mobile": "npm:is-mobile@^4.0.0",
     "jszip": "npm:jszip@^3.10.1",
     "mime": "npm:mime@^4.0.3",
     "urlpattern-polyfill": "npm:urlpattern-polyfill@^10.0.0",
@@ -47,12 +46,12 @@
     "noImplicitOverride": true,
     "experimentalDecorators": true /* Enable experimental support for legacy experimental decorators. */,
     "emitDecoratorMetadata": true /* Emit design-type metadata for decorated declarations in source files. */,
-    "importsNotUsedAsValues": "error"
+    "verbatimModuleSyntax": true
   },
   "exclude": [
     "npm",
     "toolkit/dweb-desk-assets",
     "toolkit/dweb-offscreen-web-canvas-assets",
-    "toolkit/plaoc/examples/plugin-demo",
+    "toolkit/plaoc/examples/plugin-demo"
   ]
 }

@@ -97,7 +97,7 @@ abstract class CommonEndpoint(
               is EndpointLifecycle -> lifecycleRemoteMutableFlow.emit(endpointMessage)
               is EndpointIpcRawMessage -> {
                 val (pid, ipcMessage) = endpointMessage
-                debugEndpoint("message-in", "pid=$pid ipcMessage=$ipcMessage")
+                debugEndpoint.verbose("message-in", "pid=$pid ipcMessage=$ipcMessage")
                 getIpcMessageProducer(pid).also {
                   it.producer.trySend(ipcMessage.toIpcMessage(it.ipcDeferred.await()))
                 }
@@ -115,7 +115,7 @@ abstract class CommonEndpoint(
   override suspend fun postIpcMessage(msg: EndpointIpcMessage) {
     awaitOpen("then-postIpcMessage")
     withScope(scope) {
-      debugEndpoint("message-out", msg)
+      debugEndpoint.verbose("message-out", msg)
       when (protocol) {
         EndpointProtocol.JSON -> {
           val data = endpointMessageToJson(msg)

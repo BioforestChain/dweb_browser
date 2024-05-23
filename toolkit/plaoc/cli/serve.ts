@@ -1,9 +1,9 @@
+import crypto from "node:crypto";
 import fs from "node:fs";
 import http from "node:http";
 import os from "node:os";
-import crypto from 'node:crypto'
-import { Command, EnumType, colors,  } from "./deps/cliffy.ts";
-import { $ServeOptions, SERVE_MODE } from "./helper/const.ts";
+import { Command, EnumType, colors } from "./deps/cliffy.ts";
+import { SERVE_MODE, type $ServeOptions } from "./helper/const.ts";
 import {
   BackendServerGenerator,
   BundleZipGenerator,
@@ -12,7 +12,6 @@ import {
   PlaocJsonGenerator,
 } from "./helper/generator.ts";
 import { staticServe } from "./helper/http-static-helper.ts";
-
 
 const serveMode = new EnumType(SERVE_MODE);
 
@@ -36,6 +35,7 @@ export const doServeCommand = new Command()
     await startServe({ ...options, webPublic: arg1 } satisfies $ServeOptions);
   });
 
+// deno-lint-ignore require-await
 export const doServe = async (flags: $ServeOptions) => {
   const port = +flags.port;
   if (Number.isFinite(port) === false) {

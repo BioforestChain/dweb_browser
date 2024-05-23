@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,10 +22,8 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
-import kotlinx.coroutines.delay
 import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.browser.web.model.LocalBrowserViewModel
-import org.dweb_browser.browser.web.model.page.BrowserWebPage
 import org.dweb_browser.helper.capturable.capturable
 import org.dweb_browser.helper.compose.IosFastOutSlowInEasing
 import org.dweb_browser.helper.compose.LocalCompositionChain
@@ -52,24 +49,19 @@ internal fun <T> exitAnimationSpec() = tween<T>(300, easing = IosFastOutSlowInEa
 fun BrowserViewModalRender(
   viewModel: BrowserViewModel, modifier: Modifier, windowRenderScope: WindowContentRenderScope,
 ) {
-
   LocalCompositionChain.current.Provider(LocalBrowserViewModel provides viewModel) {
     viewModel.ViewModelEffect()
 
-    Box(modifier = remember(windowRenderScope) {
-      with(windowRenderScope) {
-        modifier.requiredSize((width / scale).dp, (height / scale).dp).scale(scale)
-      }
-    }.background(MaterialTheme.colorScheme.background)) {
-      if (BrowserPreviewPanel(Modifier.fillMaxSize().zIndex(2f))) {
-        return@Box
-      }
-      // 搜索界面考虑到窗口和全屏问题，显示的问题，需要控制modifier
-      if (BrowserSearchPanel(Modifier.fillMaxSize())) {
-        return@Box
-      }
-      if (BrowserQRCodePanel(Modifier.fillMaxSize())) {
-        return@Box
+    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+      Box(modifier = remember(windowRenderScope) {
+        with(windowRenderScope) {
+          modifier.requiredSize((width / scale).dp, (height / scale).dp).scale(scale)
+        }
+      }) {
+        // 搜索界面考虑到窗口和全屏问题，显示的问题，需要控制modifier
+        if (BrowserPreviewPanel(Modifier.fillMaxSize().zIndex(2f))) return@Provider
+        if (BrowserSearchPanel(Modifier.fillMaxSize())) return@Provider
+        if (BrowserQRCodePanel(Modifier.fillMaxSize())) return@Provider
       }
       BrowserPagePanel(Modifier.fillMaxSize(), windowRenderScope)
     }
@@ -78,6 +70,8 @@ fun BrowserViewModalRender(
 
 @Composable
 fun BrowserPagePanel(modifier: Modifier, windowRenderScope: WindowContentRenderScope) {
+  val viewModel = LocalBrowserViewModel.current
+  viewModel.pagerStates.BindingEffect()
   // 移除 viewModel.isPreviewInvisible, 避免显示的时候 WebView 重新加载。
   Column(modifier) {
     // 网页主体
@@ -85,9 +79,8 @@ fun BrowserPagePanel(modifier: Modifier, windowRenderScope: WindowContentRenderS
       BrowserPageBox(windowRenderScope)   // 中间网页主体
     }
     // 工具栏，包括搜索框和导航栏
-    BrowserBottomBar(Modifier.fillMaxWidth().wrapContentHeight())
+    BrowserBottomBar(Modifier.fillMaxWidth().wrapContentHeight(), windowRenderScope)
   }
-
 }
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -97,7 +90,7 @@ fun BrowserPageBox(windowRenderScope: WindowContentRenderScope) {
   val localFocusManager = LocalFocusManager.current
 
   viewModel.focusedPage?.also { focusPage ->
-    LocalWindowController.current.GoBackHandler {
+    LocalWindowController.current.GoBackHandler(viewModel.pageSize > 1) {
       viewModel.closePageUI(focusPage)
     }
   }
@@ -114,12 +107,6 @@ fun BrowserPageBox(windowRenderScope: WindowContentRenderScope) {
       beyondBoundsPageCount = 1,
       pageContent = { currentPage ->
         val browserPage = viewModel.getPage(currentPage)
-        LaunchedEffect(browserPage) {
-          if (browserPage !is BrowserWebPage) { // 为了解决第一次截图失败问题：error=The Modifier.Node was detached
-            delay(500)
-            browserPage.captureViewInBackground()
-          }
-        }
         browserPage.Render(
           Modifier.fillMaxSize().capturable(browserPage.captureController), windowRenderScope.scale
         )
@@ -128,8 +115,13 @@ fun BrowserPageBox(windowRenderScope: WindowContentRenderScope) {
 }
 
 @Composable
-fun BrowserBottomBar(modifier: Modifier) {
-  Box(modifier.fillMaxWidth().height(dimenBottomHeight), contentAlignment = Alignment.Center) {
+fun BrowserBottomBar(modifier: Modifier, windowRenderScope: WindowContentRenderScope) {
+  Box(
+    modifier = modifier.fillMaxWidth().height(dimenBottomHeight).requiredSize(
+      width = (windowRenderScope.width / windowRenderScope.scale).dp,
+      height = (windowRenderScope.height / windowRenderScope.scale).dp
+    ).scale(windowRenderScope.scale), contentAlignment = Alignment.Center
+  ) {
     BrowserSearchBar(Modifier.fillMaxSize())
   }
 }

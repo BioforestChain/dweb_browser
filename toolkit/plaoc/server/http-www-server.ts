@@ -1,4 +1,3 @@
-import { isMobile } from "is-mobile";
 import type { $PlaocConfig } from "./const.ts";
 import type { $Core, $Http } from "./deps.ts";
 import { IpcResponse, jsProcess } from "./deps.ts";
@@ -67,7 +66,7 @@ export class Server_www extends HttpServer {
         const sourceResponse = await jsProcess.nativeRequest(`file:///usr/${root}${pathname}?mode=stream`, {
           headers: proxyRequest.headers,
         });
-        if (sourceResponse.headers.get("Content-Type")?.includes("text/html") && !plaocShims.has("raw") && isMobile()) {
+        if (sourceResponse.headers.get("Content-Type")?.includes("text/html") && !plaocShims.has("raw")) {
           const rawText = await sourceResponse.toResponse().text();
           const text = `<script>(${setupDB.toString()})("${(await this.sessionInfo).installTime}");</script>${rawText}`;
           const binary = this.encoder.encode(text);

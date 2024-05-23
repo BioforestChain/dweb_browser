@@ -15,7 +15,10 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -91,32 +94,35 @@ class BottomSheetsModalState private constructor(
     /**
      * 传入 EmitModalVisibilityState 指令，如果指令让状态发生了改变，那么返回 成功:true
      */
-    val emitModalVisibilityChange: (state: EmitModalVisibilityState) -> Boolean = { state ->
-      when (state) {
-        EmitModalVisibilityState.Open -> {
-          emitDismiss(false)
-          true
-        }
+    val emitModalVisibilityChange: MutableState<(state: EmitModalVisibilityState) -> Boolean> =
+      remember {
+        mutableStateOf({ state ->
+          when (state) {
+            EmitModalVisibilityState.Open -> {
+              emitDismiss(false)
+              true
+            }
 
-        EmitModalVisibilityState.TryClose -> closeTip.let { closeTip ->
-          if (closeTip.isNullOrEmpty() || isShowCloseTip) {
-            emitDismiss(true)
-            hasExpanded
-          } else {
-            showCloseTip.value = closeTip
-            false
+            EmitModalVisibilityState.TryClose -> closeTip.let { closeTip ->
+              if (closeTip.isNullOrEmpty() || isShowCloseTip) {
+                emitDismiss(true)
+                hasExpanded
+              } else {
+                showCloseTip.value = closeTip
+                false
+              }
+            }
+
+            EmitModalVisibilityState.ForceClose -> {
+              emitDismiss(true);
+              false
+            }
           }
-        }
-
-        EmitModalVisibilityState.ForceClose -> {
-          emitDismiss(true);
-          false
-        }
+        })
       }
-    }
 
     /// 渲染关闭提示
-    TryShowCloseTip(onConfirmToClose = { emitModalVisibilityChange(EmitModalVisibilityState.ForceClose) })
+    TryShowCloseTip(onConfirmToClose = { emitModalVisibilityChange.value(EmitModalVisibilityState.ForceClose) })
 
     if (!show) {
       return
@@ -142,7 +148,7 @@ class BottomSheetsModalState private constructor(
         /// 关闭动作只能被 dismiss 触发，不能因为Dispose触发，否则Activity重载时就会导致销毁
       }
     }
-    RenderImpl(emitModalVisibilityChange)
+    RenderImpl(emitModalVisibilityChange.value)
   }
 }
 

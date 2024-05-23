@@ -42,9 +42,9 @@ import org.dweb_browser.helper.SafeHashMap
 import org.dweb_browser.helper.SafeLinkList
 import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.SuspendOnce1
+import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.asProducerWithOrder
 import org.dweb_browser.helper.collectIn
-import org.dweb_browser.helper.traceTimeout
 import org.dweb_browser.helper.withScope
 import org.dweb_browser.pure.http.IPureBody
 import org.dweb_browser.pure.http.PureClientRequest
@@ -118,13 +118,13 @@ class Ipc internal constructor(
       lifecycleLocaleFlow.emit(closing)
       sendLifecycleToRemote(closing)
     }
-    messageProducer.producer.closeAndJoin(cause)
+    messageProducer.producer.close(cause)
     closeDeferred.complete(cause)
     IpcLifecycle(IpcLifecycleClosed(reason)).also { closed ->
       lifecycleLocaleFlow.emit(closed)
       runCatching { sendLifecycleToRemote(closed) }.getOrNull()
     }
-    traceTimeout(1000, "close", { "ipc=${this@Ipc}" }) {
+    debugIpc.timeout(1000, "close") {
       launchJobs.joinAll()
     }
     scope.cancel(cause)
@@ -312,9 +312,7 @@ class Ipc internal constructor(
     }?.let { Pair(it, event.order) }
   }.asProducerWithOrder(messageProducer.producer.name + "/" + name, scope).also { producer ->
     onClosed { cause ->
-      launchJobs += scope.launch {
-        producer.closeAndJoin(cause.exceptionOrNull())
-      }
+      producer.close(cause.exceptionOrNull())
     }
   }
 
@@ -419,9 +417,14 @@ class Ipc internal constructor(
 
   /**发送各类消息到remote*/
   suspend fun postMessage(data: IpcMessage) {
-    awaitOpen("then-postMessage")
-    withScope(scope) {
-      endpoint.postIpcMessage(EndpointIpcMessage(pid, data))
+    runCatching {
+      awaitOpen("then-postMessage")
+      withScope(scope) {
+        endpoint.postIpcMessage(EndpointIpcMessage(pid, data))
+      }
+    }.getOrElse {
+      WARNING("fail to postMessage: $data")
+      WARNING(it)
     }
   }
 
@@ -430,6 +433,11 @@ class Ipc internal constructor(
   }
   //#endregion
 
+  init {
+    endpoint.onClosed {
+      tryClose(CancellationException("endpoint closed", it))
+    }
+  }
 }
 
 data class IpcRequestInit(

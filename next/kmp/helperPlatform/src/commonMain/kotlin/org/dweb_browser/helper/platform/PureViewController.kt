@@ -52,34 +52,3 @@ interface IPureViewCreateParams : Map<String, Any?> {
 
 // 视图控制器
 val LocalPureViewController = compositionChainOf<IPureViewController>("LocalPureViewController")
-
-// region 视图回调事件 TODO 感觉这种回调视图的事件操作方法是不是不太好？
-val LocalViewHookFlow = MutableSharedFlow<TrayEvent>()
-
-// jsProcess 控制台回调
-class LocalViewHookJsProcess {
-  companion object {
-    var isUse = false
-    fun flow(): Flow<Boolean> {
-      isUse = true
-      return LocalViewHookFlow.mapNotNull {
-        if (it == TrayEvent.JsProcess) true else null
-      }
-    }
-  }
-
-}
-
-/**
- * 返回销毁事件回调
- * TODO fuck this
- */
-val localViewHookExit = LocalViewHookFlow.mapNotNull {
-  if (it == TrayEvent.Exit) true else null
-}
-
-enum class TrayEvent {
-  Exit,
-  JsProcess
-}
-// endregion

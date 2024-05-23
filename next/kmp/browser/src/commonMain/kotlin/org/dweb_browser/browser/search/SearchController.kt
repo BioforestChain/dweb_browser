@@ -57,4 +57,13 @@ class SearchController(private val searchNMM: SearchNMM.SearchRuntime) {
       item.name.contains(key)
     }
   }
+
+  suspend fun updateSearchEngine(searchEngine: SearchEngine, enable: Boolean) {
+    searchEngineList.firstOrNull { it.homeLink == searchEngine.homeLink }?.let { item ->
+      debugSearch("updateSearchEngine", "item=$item>>${item.enable} => $enable")
+      item.enable = enable
+      engineUpdateSignal.emit()
+      searchNMM.scopeLaunch(cancelable = true) { searchStore.saveEngineState(item) }
+    }
+  }
 }

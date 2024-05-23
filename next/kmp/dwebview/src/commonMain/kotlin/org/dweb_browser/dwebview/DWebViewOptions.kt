@@ -43,7 +43,11 @@ data class DWebViewOptions(
    * 是否使用离屏渲染模式(目前主要用于桌面端web browser)
    * @suppress Desktop Only
    */
-  val enabledOffScreenRender: Boolean = false
+  val enabledOffScreenRender: Boolean = false,
+  /**
+   * 子文件夹，默认情况下，数据跟着模块id走。这里提供一个子文件夹名称，可以将同一个模块的多个dwebview分开来存储数据
+   */
+  val subDataDirName: String? = null,
 ) {
 
   enum class DetachedStrategy {

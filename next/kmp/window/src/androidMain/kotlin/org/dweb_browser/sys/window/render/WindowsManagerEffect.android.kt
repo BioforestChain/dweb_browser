@@ -25,14 +25,14 @@ import org.dweb_browser.sys.window.core.constant.debugWindow
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun <T : WindowController> WindowsManager<T>.EffectKeyboard() {
-  state.imeVisible =
-    LocalWindowsImeVisible.current.value // 由于小米手机的安全键盘存在问题，会出现WindowInsets.isImeVisible不正确的情况
+  val imeVisible = LocalWindowsImeVisible.current.value
   val ime = WindowInsets.imeAnimationTarget // 直接使用ime，数据不稳定，会变化，改为imeAnimationTarget就是固定值
   val density = LocalDensity.current
   val view = LocalView.current
 
-  LaunchedEffect(view, state.imeVisible) { // WindowInsets.ime 对象并不会变化，所以导致这个重组不会重复执行
-    state.imeBoundingRect = if (state.imeVisible) {
+  LaunchedEffect(view, imeVisible) { // WindowInsets.ime 对象并不会变化，所以导致这个重组不会重复执行
+    state.imeVisible = imeVisible // 由于小米手机的安全键盘存在问题，会出现WindowInsets.isImeVisible不正确的情况
+    state.imeBoundingRect = if (imeVisible) {
       val imeHeightDp = ime.getBottom(density) / density.density
       PureRect(
         x = 0f,

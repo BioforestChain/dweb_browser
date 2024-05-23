@@ -184,7 +184,7 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
     /**
      * MicroModule 引用池
      */
-    private val connectionLinks = SafeHashSet<Ipc>()
+    protected val connectionLinks = SafeHashSet<Ipc>()
 
 
     /**
@@ -199,14 +199,14 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
      */
     val onConnect = ipcConnectedProducer.consumer("for-internal")
 
-    private val connectionMap = SafeHashMap<MMID, CompletableDeferred<Ipc>>()
+    protected val connectionMap = SafeHashMap<MMID, CompletableDeferred<Ipc>>()
 
     suspend fun getConnected(remoteMmid: MMID) = connectionMap[remoteMmid]?.await()
 
     /**
      * 尝试连接到指定对象
      */
-    suspend fun connect(remoteMmid: MMID, reason: PureRequest? = null): Ipc {
+    open suspend fun connect(remoteMmid: MMID, reason: PureRequest? = null): Ipc {
       // 先进行快速判断
       connectionMap[remoteMmid]?.also {
         return it.await()
@@ -240,7 +240,7 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
     /**
      * 收到一个连接，触发相关事件
      */
-    suspend fun beConnect(ipc: Ipc, reason: PureRequest?) {
+    open suspend fun beConnect(ipc: Ipc, reason: PureRequest?) {
       if (connectionLinks.add(ipc)) {
         debugMM("beConnect-start", ipc)
         // 这个ipc分叉出来的ipc也会一并归入管理

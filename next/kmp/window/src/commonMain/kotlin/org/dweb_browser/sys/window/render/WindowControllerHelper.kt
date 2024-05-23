@@ -42,10 +42,12 @@ import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.Observable
 import org.dweb_browser.helper.PureRect
+import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.compose.AutoResizeTextContainer
 import org.dweb_browser.helper.compose.AutoSizeText
 import org.dweb_browser.helper.compose.compositionChainOf
+import org.dweb_browser.helper.debugger
 import org.dweb_browser.helper.getOrPut
 import org.dweb_browser.helper.platform.getCornerRadiusBottom
 import org.dweb_browser.helper.platform.getCornerRadiusTop
@@ -85,11 +87,14 @@ fun <T> WindowController.watchedState(
 ): State<T> = remember(key) {
   val rememberState = mutableStateOf(getter.invoke(state), policy)
   val off = state.observable.onChange {
-    if ((if (watchKey != null) watchKey == it.key else true) && (if (watchKeys != null) watchKeys.contains(
-        it.key
-      ) else true) && filter?.invoke(it) != false
+    if ((if (watchKey != null) watchKey == it.key else true)
+      && (watchKeys?.contains(it.key) != false) && filter?.invoke(it) != false
     ) {
-      rememberState.value = getter.invoke(state)
+      runCatching {
+        rememberState.value = getter.invoke(state)
+      }.onFailure {
+        WARNING("watchKey=>$watchKey new:${getter.invoke(state)}")
+      }
     }
   }
   Pair(rememberState, off)

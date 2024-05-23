@@ -1,4 +1,4 @@
-import { AssetsConfig, UseAssets } from "../../scripts/helper/AssetsConfig.ts";
+import { AssetsConfig, type UseAssets } from "../../scripts/helper/AssetsConfig.ts";
 import { esbuildTaskFactory } from "../../scripts/helper/ConTasks.helper.ts";
 import { ConTasks } from "../../scripts/helper/ConTasks.ts";
 

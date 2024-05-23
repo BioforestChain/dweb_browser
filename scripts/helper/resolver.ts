@@ -1,11 +1,17 @@
-import { $once } from "@dweb-browser/helper/decorator/$once.ts";
 import fs from "node:fs";
-import { createBaseResolveTo } from "./ConTasks.helper.ts";
+import { createBaseResolveTo } from "./resolveTo.ts";
 
-const rootDir = import.meta.resolve("../../");
+/// 为了兼容 vitest，这里没有用 import.meta.resolve
+export const rootDir = new URL("../../", import.meta.url).href;
 export const rootResolve = createBaseResolveTo(rootDir);
-export const resolveDenoJson = $once(() => {
-  return Function(`return(${fs.readFileSync(rootResolve("./deno.jsonc"))})`)() as {
-    imports: Record<string, string>;
-  };
-});
+
+let denoConfig:
+  | {
+      imports: Record<string, string>;
+    }
+  | undefined;
+export const resolveDenoJson = () => {
+  return (denoConfig ??= Function(`return(${fs.readFileSync(rootResolve("./deno.jsonc"))})`)()) as NonNullable<
+    typeof denoConfig
+  >;
+};

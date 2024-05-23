@@ -1,8 +1,10 @@
 package info.bagen.dwebbrowser
 
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
@@ -398,6 +400,7 @@ class ProducerTest {
       println("QAQ actual=$actual")
       assertEquals(expected, actual)
 
+      producer.close()
     }
   }
 
@@ -428,5 +431,30 @@ class ProducerTest {
     println("QAQ expected=$expected")
     println("QAQ actual=$actual")
     assertContentEquals(expected, actual)
+    producer.close()
+  }
+
+  @Test
+  fun testParentClose() = runCommonTest {
+    val parentScope = CoroutineScope(SupervisorJob())
+    val producer = Producer<Int>("test", parentScope)
+    producer.consumer("blocker").collectIn(this) {
+      delay(100000)
+      println(it.consume())
+    }
+    producer.send(123)
+    launch {
+      delay(3000)
+      parentScope.cancel()
+    }
+
+    val startTime = datetimeNow()
+    val deferred = CompletableDeferred<Unit>()
+    producer.invokeOnClose {
+      deferred.complete(Unit)
+    }
+    deferred.await()
+    val endTime = datetimeNow()
+    assertTrue(endTime - startTime < 4000)
   }
 }

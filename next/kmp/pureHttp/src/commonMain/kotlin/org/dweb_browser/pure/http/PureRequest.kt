@@ -3,6 +3,7 @@ package org.dweb_browser.pure.http
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.IFrom
 import org.dweb_browser.helper.commonAsyncExceptionHandler
@@ -28,7 +29,7 @@ sealed class PureRequest : PureUrl, IFrom {
   suspend fun getChannel() = channelPreparer.await()
   suspend fun byChannel(by: suspend PureChannel.() -> Unit): PureResponse {
     channelPreparer// check support
-    CoroutineScope(coroutineContext + commonAsyncExceptionHandler).launch {
+    CoroutineScope(coroutineContext + commonAsyncExceptionHandler).launch(start = CoroutineStart.UNDISPATCHED) {
       getChannel().by()
     }
     return PureResponse(HttpStatusCode.SwitchingProtocols)

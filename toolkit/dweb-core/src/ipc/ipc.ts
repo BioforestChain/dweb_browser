@@ -26,6 +26,7 @@ import {
   type $IpcLifecycle,
 } from "./ipc-message/IpcLifecycle.ts";
 import type { $IpcMessage } from "./ipc-message/IpcMessage.ts";
+import { prepareIpcChannel } from "./ipc-message/channel/IpcChannel.ts";
 import { IPC_LIFECYCLE_STATE } from "./ipc-message/internal/IpcLifecycle.ts";
 import { IPC_MESSAGE_TYPE } from "./ipc-message/internal/IpcMessage.ts";
 
@@ -54,6 +55,10 @@ export class Ipc {
     });
     this.lifecycleRemoteFlow = this.#lifecycleRemoteFlow;
     this.#forkProducer = new Producer<Ipc>(`fork#${this.debugId}`);
+
+    endpoint.awaitClosed().then((reason) => {
+      this.close(reason);
+    });
   }
   toString() {
     return `Ipc#${this.debugId}`;
@@ -113,7 +118,7 @@ export class Ipc {
       }
     });
     const lifecycle = await op.promise;
-    this.console.log("awaitOpen", lifecycle, reason);
+    this.console.verbose("awaitOpen", lifecycle, reason);
     off();
     return lifecycle;
   }
@@ -146,7 +151,7 @@ export class Ipc {
     }
     // 监听远端生命周期指令，进行协议协商
     this.#lifecycleRemoteFlow((lifecycleRemote) => {
-      // this.console.log("lifecycle-in", `remote=${lifecycleRemote},local=${this.lifecycle}`);
+      this.console.verbose("lifecycle-in", `remote=${lifecycleRemote},local=${this.lifecycle}`);
       // 告知启动完成
       const doIpcOpened = () => {
         const opend = IpcLifecycle(IpcLifecycleOpened());
@@ -411,6 +416,9 @@ export class Ipc {
     await this.#closeOnce(cause);
   }
 
+  prepareChannel(headers: IpcHeaders, channelIpc?: Ipc | Promise<Ipc>) {
+    return prepareIpcChannel(this, headers, channelIpc);
+  }
   /**----- close end*/
 }
 export type $IpcRequestInit = {

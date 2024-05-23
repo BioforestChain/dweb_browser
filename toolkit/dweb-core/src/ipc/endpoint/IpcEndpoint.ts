@@ -138,11 +138,11 @@ export abstract class IpcEndpoint {
       await this.awaitOpen("from-start");
     }
   }
-  readonly localSessionId = crypto.randomUUID();
+  readonly localSessionId = "s-" + crypto.randomUUID();
 
   /**启动 */
   startOnce = $once(async () => {
-    this.console.log("startOnce", this.lifecycle);
+    this.console.verbose("startOnce", this.lifecycle);
     await this.doStart();
     const localeSubProtocols = this.getLocaleSubProtocols();
     const localSessionId = this.localSessionId;
@@ -150,7 +150,7 @@ export abstract class IpcEndpoint {
     if (this.lifecycle.state.name === ENDPOINT_LIFECYCLE_STATE.INIT) {
       const opening = EndpointLifecycle(endpointLifecycleOpening(localeSubProtocols, [localSessionId]));
       this.sendLifecycleToRemote(opening);
-      this.console.log("emit-locale-lifecycle", opening);
+      this.console.verbose("emit-locale-lifecycle", opening);
       this.lifecycleLocaleFlow.emit(opening);
     } else {
       throw new Error(`endpoint state=${this.lifecycle.state.name}`);
@@ -174,7 +174,7 @@ export abstract class IpcEndpoint {
               endpointLifecycleOpend(localState.subProtocols, localState.sessionIds.join("~"))
             );
             this.sendLifecycleToRemote(opend);
-            this.console.log("emit-locale-lifecycle", opend);
+            this.console.verbose("emit-locale-lifecycle", opend);
             this.lifecycleLocaleFlow.emit(opend);
             /// 后面被链接的ipc，pid从奇数开始
             this.accPid++;
@@ -198,7 +198,7 @@ export abstract class IpcEndpoint {
                 (a, b) => a.localeCompare(b)
               );
               const opening = EndpointLifecycle(endpointLifecycleOpening(subProtocols, sessionIds));
-              this.console.log("emit-locale-lifecycle", opening);
+              this.console.verbose("emit-locale-lifecycle", opening);
               this.lifecycleLocaleFlow.emit(opening);
               nextState = opening;
             } else {
@@ -233,14 +233,14 @@ export abstract class IpcEndpoint {
       }
     });
     const lifecycle = await op.promise;
-    this.console.log("awaitOpen", lifecycle, reason);
+    this.console.verbose("awaitOpen", lifecycle, reason);
     off();
     return lifecycle;
   }
 
   //#region Close
 
-  protected closePo = new PromiseOut<string | undefined>();
+  protected closedPo = new PromiseOut<string | undefined>();
   private _isClose = false;
   get isClose() {
     return this._isClose;
@@ -251,26 +251,33 @@ export abstract class IpcEndpoint {
     await this.doClose(cause);
   }
 
+  awaitClosed() {
+    return this.closedPo.promise;
+  }
+
   async doClose(cause?: string) {
-    switch (this.lifecycle.state.name) {
-      case ENDPOINT_LIFECYCLE_STATE.OPENED:
-      case ENDPOINT_LIFECYCLE_STATE.OPENING: {
-        this.sendLifecycleToRemote(EndpointLifecycle(endpointLifecycleClosing()));
-        break;
+    try {
+      switch (this.lifecycle.state.name) {
+        case ENDPOINT_LIFECYCLE_STATE.OPENED:
+        case ENDPOINT_LIFECYCLE_STATE.OPENING: {
+          this.sendLifecycleToRemote(EndpointLifecycle(endpointLifecycleClosing()));
+          break;
+        }
+        case ENDPOINT_LIFECYCLE_STATE.CLOSED: {
+          return;
+        }
       }
-      case ENDPOINT_LIFECYCLE_STATE.CLOSED: {
-        return;
+      this.beforeClose?.();
+      /// 关闭所有的子通道
+      for (const channel of this.ipcMessageProducers.values()) {
+        await channel.producer.close(cause);
       }
+      this.ipcMessageProducers.clear();
+      this.sendLifecycleToRemote(EndpointLifecycle(endpointLifecycleClosed()));
+      this.afterClosed?.();
+    } finally {
+      this.closedPo.resolve(cause);
     }
-    this.closePo.resolve(cause);
-    this.beforeClose?.();
-    /// 关闭所有的子通道
-    for (const channel of this.ipcMessageProducers.values()) {
-      await channel.producer.close(cause);
-    }
-    this.ipcMessageProducers.clear();
-    this.sendLifecycleToRemote(EndpointLifecycle(endpointLifecycleClosed()));
-    this.afterClosed?.();
   }
 
   protected beforeClose?: (cause?: string) => void;

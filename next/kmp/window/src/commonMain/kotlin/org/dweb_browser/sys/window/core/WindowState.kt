@@ -168,6 +168,8 @@ class WindowState(internal var _constants: WindowConstants) {
    */
   internal val renderConfig = WindowRenderConfig()
 
+  val isSystemWindow get() = renderConfig.useSystemFrame
+
   /**
    * 键盘插入到内容底部的高度
    */

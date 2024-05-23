@@ -39,9 +39,12 @@ import org.dweb_browser.sys.scan.ScanningNMM
 import org.dweb_browser.sys.share.ShareNMM
 import org.dweb_browser.sys.shortcut.ShortcutNMM
 import org.dweb_browser.sys.toast.ToastNMM
+import org.dweb_browser.sys.tray.TrayNMM
 import java.awt.Desktop
 
-suspend fun startDwebBrowser(debugTags: String?): DnsNMM {
+class ExtMM(val microModule: MicroModule, val boot: Boolean)
+
+suspend fun startDwebBrowser(debugTags: String?, extMM: List<ExtMM> = listOf()): DnsNMM {
   /**
   "message-port-ipc",
   "stream-ipc",
@@ -63,8 +66,7 @@ suspend fun startDwebBrowser(debugTags: String?): DnsNMM {
   "desk",
   "JsMM",
   "http",
-   */
-  /*when (DEVELOPER.CURRENT) {
+   *//*when (DEVELOPER.CURRENT) {
     DEVELOPER.GAUBEE -> addDebugTags(listOf("/.+/"))
     DEVELOPER.WaterbangXiaoMi -> addDebugTags(listOf("/.+/"))
     DEVELOPER.WaterBang -> addDebugTags(listOf("/.+/"))
@@ -138,21 +140,28 @@ suspend fun startDwebBrowser(debugTags: String?): DnsNMM {
   val multipartNMM = MultipartNMM().setup()
   /// file chooser
   val fileChooser = FileChooserNMM().setup()
+  /// tray
+  val tray = TrayNMM().setup()
+
+  for (mm in extMM) {
+    mm.microModule.setup()
+  }
+  // 注册tray
+  PureViewController.contents["tray"] = tray.getRender()
+
 
   /// 安装Jmm
   val jmmNMM = JmmNMM().setup()
   val deskNMM = DeskNMM().setup()
 
   /// 启动程序
-  val bootNMM = BootNMM(
-    listOf(
-      downloadNMM.mmid, // 为了让jmmNMM判断是，download已具备
-      jmmNMM.mmid,// 为了使得桌面能够显示模块管理，以及安装的相应应用图标
-      browserNMM.mmid, // 为了启动后能够顺利加载添加到桌面的哪些数据，不加载browser界面
-      deskNMM.mmid,//
-      shortcutNMM.mmid, // 为了启动时，注入快捷内容
-    )
-  ).setup()
+  val bootNMM = BootNMM(listOf(
+    downloadNMM.mmid, // 为了让jmmNMM判断是，download已具备
+    jmmNMM.mmid,// 为了使得桌面能够显示模块管理，以及安装的相应应用图标
+    browserNMM.mmid, // 为了启动后能够顺利加载添加到桌面的哪些数据，不加载browser界面
+    deskNMM.mmid,//
+    shortcutNMM.mmid, // 为了启动时，注入快捷内容
+  ) + extMM.filter { it.boot }.map { it.microModule.mmid }).setup()
 
   if (debugPermission.isEnable) {
     PermissionProviderTNN().setup()

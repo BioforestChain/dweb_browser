@@ -261,7 +261,7 @@ export class IpcFetchEvent {
   }
   #request?: Request;
   get request() {
-    return (this.#request ??= this.ipcRequest.toRequest());
+    return (this.#request ??= this.ipcRequest.toPureClinetRequest());
   }
 
   //#region Body 相关的属性与方法

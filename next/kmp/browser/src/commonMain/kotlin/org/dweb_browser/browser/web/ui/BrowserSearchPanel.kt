@@ -71,7 +71,7 @@ fun BrowserSearchPanel(modifier: Modifier = Modifier):Boolean {
   val searchPage = viewModel.showSearch
 
   AnimatedVisibility(
-    searchPage != null,
+    visible = searchPage != null,
     enter = remember { slideInVertically(enterAnimationSpec()) { it } },
     exit = remember { slideOutVertically(exitAnimationSpec()) { it } },
   ) {
@@ -129,8 +129,8 @@ fun BrowserSearchPanel(modifier: Modifier = Modifier):Boolean {
               },
               // 输入框输入提交
               onSubmit = { url ->
+                hide()
                 viewModel.doIOSearchUrl(url)
-                hide() // 该操作需要在上面执行完成后执行，否则会导致uiScope被销毁，而不执行doSearchUI
               })
           }
         }
@@ -171,8 +171,8 @@ fun BrowserSearchPanel(modifier: Modifier = Modifier):Boolean {
               color = MaterialTheme.colorScheme.onSecondaryContainer
             ),
             onKeyboardSearch = {
-              viewModel.doIOSearchUrl(searchTextField.text.trim().trim('\u200B').trim())
               hide()
+              viewModel.doIOSearchUrl(searchTextField.text.trim().trim('\u200B').trim())
             },
           ) { innerTextField ->
             Row(

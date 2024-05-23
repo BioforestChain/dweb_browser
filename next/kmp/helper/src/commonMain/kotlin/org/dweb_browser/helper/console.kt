@@ -29,7 +29,13 @@ fun debugger(@Suppress("UNUSED_PARAMETER") vararg params: Any?) {
 
 expect fun eprintln(message: String)
 
-fun WARNING(message: String) = eprintln("WARNING: $message")
+fun WARNING(message: Any?) {
+  val msg = if (message is Throwable) {
+    message.stackTraceToString()
+  } else message.toString()
+  val datetime = now()
+  eprintln(msg.split("\n").joinToString("\n") { if (it.isEmpty()) it else "$datetime | ⚠️ | $it" })
+}
 
 //  scope.async(block=block).await()
 
@@ -90,7 +96,8 @@ fun addDebugTags(tags: Iterable<String>) {
 fun isScopeEnableDebug(scope: String) =
   debugTags.contains(scope) || debugTagsRegex.firstOrNull { regex -> regex.matches(scope) } != null
 
-fun isScopeEnableVerbose(scope: String) = isScopeEnableDebug(scope)//debugTags.contains(scope)
+fun isScopeEnableVerbose(scope: String) = debugTags.contains(scope)
+fun isScopeEnableTimeout(scope: String) = isScopeEnableDebug(scope)
 
 fun printDebug(scope: String, tag: String, message: Any?, error: Any? = null) {
   if (error == null && !isScopeEnableDebug(scope)) {
@@ -174,44 +181,47 @@ class Debugger(val scope: String) {
     }
   }
 
+  suspend inline fun <R> timeout(
+    ms: Long,
+    tag: String = "traceTimeout",
+    crossinline log: () -> Any? = { "" },
+    crossinline block: suspend () -> R,
+  ) = if (isEnableTimeout) {
+    val timeoutJob = CoroutineScope(currentCoroutineContext()).launch {
+      delay(ms);
+      printDebug(scope, tag, message = lazy { log() }, error = "⏲️ TIMEOUT!!")
+    }
+    try {
+      block()
+    } finally {
+      timeoutJob.cancel()
+    }
+  } else {
+    block()
+  }
+
+  inline fun timeout(
+    scope: CoroutineScope,
+    ms: Long,
+    tag: String = "traceTimeout",
+    crossinline log: () -> Any? = { "" },
+  ) = CompletableDeferred<Unit>().let { deferred ->
+    scope.launch(start = CoroutineStart.UNDISPATCHED) {
+      timeout(ms, tag, log) {
+        deferred.await()
+      }
+    }
+
+    return@let {
+      deferred.complete(Unit)
+    }
+  }
+
+
   val isEnableVerbose get() = isScopeEnableVerbose(scope)
+  val isEnableTimeout get() = isScopeEnableTimeout(scope)
 
   val isEnable get() = isScopeEnableDebug(scope)
 }
 
 val debugTest = Debugger("test")
-val debugTimeout = Debugger("timeout")
-suspend inline fun <R> traceTimeout(
-  ms: Long,
-  tag: String = "traceTimeout",
-  crossinline log: () -> Any?,
-  crossinline block: suspend () -> R,
-) = if (debugTimeout.isEnable) {
-  val timeoutJob = CoroutineScope(currentCoroutineContext()).launch {
-    delay(ms);debugTimeout(tag, msgGetter = log)
-  }
-  try {
-    block()
-  } finally {
-    timeoutJob.cancel()
-  }
-} else {
-  block()
-}
-
-inline fun traceTimeout(
-  scope: CoroutineScope,
-  ms: Long,
-  tag: String = "traceTimeout",
-  crossinline log: () -> Any?,
-) = CompletableDeferred<Unit>().let { deferred ->
-  scope.launch(start = CoroutineStart.UNDISPATCHED) {
-    traceTimeout(ms, tag, log) {
-      deferred.await()
-    }
-  }
-
-  return@let {
-    deferred.complete(Unit)
-  }
-}

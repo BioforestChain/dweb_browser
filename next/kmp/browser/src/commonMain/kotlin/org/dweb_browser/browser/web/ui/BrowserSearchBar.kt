@@ -4,6 +4,8 @@ package org.dweb_browser.browser.web.ui
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -19,11 +21,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Filter1
 import androidx.compose.material.icons.rounded.Filter2
@@ -49,7 +51,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.ColorFilter
@@ -61,14 +62,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserDrawResource
-import org.dweb_browser.browser.BrowserI18nResource
-import org.dweb_browser.browser.common.CommonHorizontalPager
 import org.dweb_browser.browser.web.model.LocalBrowserViewModel
 import org.dweb_browser.browser.web.model.LocalShowIme
 import org.dweb_browser.browser.web.model.page.BrowserHomePage
 import org.dweb_browser.browser.web.model.page.BrowserPage
 import org.dweb_browser.browser.web.model.page.BrowserWebPage
 import org.dweb_browser.browser.web.model.pageUrlTransformer
+import org.dweb_browser.browser.web.ui.common.BrowserHorizontalPager
 import org.dweb_browser.dwebview.rememberLoadingProgress
 import org.dweb_browser.helper.isDwebDeepLink
 
@@ -85,6 +85,7 @@ fun BrowserSearchBar(modifier: Modifier) {
       localFocus.clearFocus()
     }
   }
+  val onceItemSize = dimenSearchHeight
   Row(
     modifier,
     horizontalArrangement = Arrangement.SpaceAround,
@@ -99,12 +100,16 @@ fun BrowserSearchBar(modifier: Modifier) {
         }
       }
     }) {
-      Icon(Icons.Rounded.Add, "Add")
+      Icon(
+        imageVector = Icons.Rounded.Add,
+        contentDescription = "Add",
+        modifier = Modifier.size(onceItemSize).padding(4.dp)
+      )
     }
 
     BoxWithConstraints(modifier = Modifier.weight(1f)) {
       if (maxWidth > 20.dp) { // 由于宽度压缩太小，导致HorizontalPager空间不足，width<0,引起的crash
-        CommonHorizontalPager(
+        BrowserHorizontalPager(
           state = viewModel.pagerStates.searchBar,
           modifier = Modifier.fillMaxWidth(),
           pageContent = { currentPage ->
@@ -114,20 +119,34 @@ fun BrowserSearchBar(modifier: Modifier) {
       }
     }
 
-    // 多窗口预览界面
-    IconButton({
-      viewModel.focusedPage?.captureViewInBackground()
-      viewModel.toggleShowPreviewUI(true)
-    }) {
-      Icon(getMultiImageVector(viewModel.pageSize), "Open Preview Panel")
-    }
+    Row(modifier = Modifier.width(onceItemSize * 2)) {
+      // 多窗口预览界面
+      IconButton(onClick = {
+        viewModel.focusedPage?.captureViewInBackground()
+        viewModel.toggleShowPreviewUI(true)
+      }) {
+        Icon(
+          imageVector = getMultiImageVector(viewModel.pageSize),
+          contentDescription = "Open Preview Panel",
+          modifier = Modifier.size(onceItemSize).padding(6.dp)
+        )
+      }
 
-    // 功能列表
-    IconButton(onClick = {
-      viewModel.showMore = true
-    }) {
-      BrowserMenuPanel()
-      Icon(Icons.Rounded.MoreVert, "Open Menu Panel")
+      AnimatedVisibility(
+        visible = viewModel.focusedPage is BrowserWebPage,
+        enter = fadeIn() + slideInHorizontally { fullWidth -> fullWidth },
+        exit = fadeOut() + slideOutHorizontally { fullWidth -> fullWidth }
+      ) {
+        // 功能列表
+        IconButton(onClick = { viewModel.showMore = true }) {
+          BrowserMenuPanel()
+          Icon(
+            imageVector = Icons.Rounded.MoreVert,
+            contentDescription = "Open Menu Panel",
+            modifier = Modifier.size(onceItemSize).padding(4.dp)
+          )
+        }
+      }
     }
   }
 }
@@ -184,7 +203,8 @@ internal fun Modifier.searchInnerStyle(start: Boolean = true, end: Boolean = tru
 private fun SearchBox(page: BrowserPage) {
   val viewModel = LocalBrowserViewModel.current
   val scope = viewModel.ioScope
-  val isFocus = page == viewModel.focusedPage // 确认是否是聚焦的页面，如果是，需要突出显示
+  val isFocus =
+    viewModel.isFillPageSize || page == viewModel.focusedPage // 确认是否是聚焦的页面，如果Page模式是fill直接聚焦，另外就是如果page是当前页，需要突出显示
 
   Box(
     modifier = Modifier.fillMaxWidth()
@@ -211,85 +231,54 @@ private fun SearchBox(page: BrowserPage) {
       val emptyTheme = page is BrowserHomePage
       /// 左边的图标，正方形大小，图标剧中
       Box(Modifier.size(dimenSearchHeight), contentAlignment = Alignment.Center) {
-        if (emptyTheme) {
-          Icon(
-            Icons.Default.Search,
-            contentDescription = "Search",
-            modifier = Modifier.alpha(0.5f).wrapContentWidth(),
-            tint = LocalContentColor.current,
-          )
-        } else {
-          val pageTitle = page.title
-          val pageIcon = page.icon
-          val pageUrl = page.url
-          val painter: Painter
-          val colorFilter: ColorFilter?
-          when (remember(pageUrl) { pageUrl.isDwebDeepLink() }) {
-            true -> {
-              painter = BrowserDrawResource.Logo.painter()
-              colorFilter = BrowserDrawResource.Logo.getContentColorFilter()
+        val pageTitle = page.title
+        val pageIcon = page.icon
+        val pageUrl = page.url
+        val painter: Painter
+        val colorFilter: ColorFilter?
+        when (remember(pageUrl) { pageUrl.isDwebDeepLink() }) {
+          true -> {
+            painter = BrowserDrawResource.Logo.painter()
+            colorFilter = BrowserDrawResource.Logo.getContentColorFilter()
+          }
+
+          else -> when (pageIcon) {
+            null -> {
+              painter = BrowserDrawResource.Web.painter()
+              colorFilter = BrowserDrawResource.Web.getContentColorFilter()
             }
 
-            else -> when (pageIcon) {
-              null -> {
-                painter = BrowserDrawResource.Web.painter()
-                colorFilter = BrowserDrawResource.Web.getContentColorFilter()
-              }
-
-              else -> {
-                painter = pageIcon
-                colorFilter = page.iconColorFilter
-              }
+            else -> {
+              painter = pageIcon
+              colorFilter = page.iconColorFilter
             }
           }
-          Image(
-            painter = painter,
-            colorFilter = colorFilter,
-            contentDescription = pageTitle,
-            modifier = Modifier.size(24.dp),
-          )
         }
+        Image(
+          painter = painter,
+          colorFilter = colorFilter,
+          contentDescription = pageTitle,
+          modifier = Modifier.size(24.dp),
+        )
       }
 
       val textModifier = Modifier.weight(1f).searchInnerStyle(start = false, end = false)
-      if (emptyTheme) {
-        Text(
-          text = BrowserI18nResource.browser_search_hint(),
-          textAlign = TextAlign.Start,
-          maxLines = 2,
-          modifier = textModifier.alpha(0.5f),
-          fontSize = dimenTextFieldFontSize,
-          overflow = TextOverflow.Ellipsis,
-        )
-      } else {
-        val pageUrl = page.url
-        Text(
-          text = remember(pageUrl) { pageUrlTransformer(pageUrl) },
-          textAlign = TextAlign.Center,
-          maxLines = 2,
-          modifier = textModifier,
-          fontSize = dimenTextFieldFontSize,
-          overflow = TextOverflow.Ellipsis,
-        )
-      }
-
+      val pageUrl = page.url
+      Text(
+        text = remember(pageUrl) { pageUrlTransformer(pageUrl) },
+        textAlign = TextAlign.Center,
+        maxLines = 2,
+        modifier = textModifier,
+        fontSize = dimenTextFieldFontSize,
+        overflow = TextOverflow.Ellipsis,
+      )
       /// 右边的图标，正方形大小，图标剧中
       if (page is BrowserWebPage) {
-        IconButton({
-          scope.launch {
-            page.webView.reload()
-          }
-        }, modifier = Modifier.wrapContentWidth()) {
+        IconButton(
+          onClick = { scope.launch { page.webView.reload() } },
+          modifier = Modifier.wrapContentWidth()
+        ) {
           Icon(Icons.Default.Refresh, contentDescription = "Refresh")
-        }
-      } else if (emptyTheme) {
-        IconButton(onClick = { viewModel.showQRCodePanel = true }) {
-          Icon(
-            BrowserDrawResource.Scanner.painter(),
-            contentDescription = "Open Camera To Scan",
-            tint = LocalContentColor.current,
-            modifier = Modifier.size(24.dp),
-          )
         }
       }
     }

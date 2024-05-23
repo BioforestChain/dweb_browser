@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import { $WindowState, $WindowStyleColor, HTMLDwebWindowElement, windowPlugin } from "@plaoc/plugins";
 import { UnwrapRef, onMounted, reactive, ref } from "vue";
 import LogPanel, { defineLogAction, toConsole } from "../components/LogPanel.vue";
-import { $WindowState, $WindowStyleColor, HTMLDwebWindowElement } from "@plaoc/plugins";
 
 const title = "window";
 
@@ -70,10 +70,25 @@ const state: {
 } = reactive({
   openUrl: "https://dwebdapp.com",
 });
-async function open() {
+async function openInBrowser() {
   const res = window.open(`dweb://openinbrowser?url=${state.openUrl}`);
   console.log("open", res);
 }
+
+const createBottomSheet = () => {
+  windowPlugin.createBottomSheets(state.openUrl);
+};
+
+const windowAlert = () => {
+  windowPlugin.alert({
+    title: "alert标题",
+    message: "alert消息",
+    iconUrl: "https://www.bfmeta.info/imgs/logo3.webp",
+    iconAlt: "xxx",
+    confirmText: "确认✅",
+    dismissText: "取消❌",
+  });
+};
 
 const focus = () => {
   return windowComponent.focusWindow();
@@ -115,9 +130,11 @@ const setBounds = () => {
   <div class="card glass">
     <h2>{{ title }}</h2>
     <article class="card-body">
-      <h2 class="card-title">open</h2>
+      <h2 class="card-title">打开窗口操作</h2>
       <v-text-field label="属性描述符" v-model="state.openUrl"></v-text-field>
-      <v-btn color="indigo-darken-3" @click="open">open</v-btn>
+      <v-btn color="indigo-darken-3" @click="openInBrowser">打开浏览器页面</v-btn>
+      <v-btn color="indigo-darken-3" @click="createBottomSheet">创建模态框</v-btn>
+      <v-btn color="indigo-darken-3" @click="windowAlert">alart</v-btn>
     </article>
     <article class="card-body">
       <h2 class="card-title">设置窗口大小</h2>

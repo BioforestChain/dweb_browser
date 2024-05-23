@@ -1,4 +1,3 @@
-import { configPlugin, dwebServiceWorker } from "@plaoc/plugins";
 import "./common.ts";
 import { process } from "./helper/barcode-scannering.ts";
 import { message } from "./helper/debug.ts";
@@ -8,15 +7,6 @@ const runPlugins = () => {
   process();
 };
 
-const setLang = async () => {
-  const res = await configPlugin.setLang("en", false);
-  if (res) {
-    dwebServiceWorker.restart();
-  }
-  console.log("res=>", res);
-};
-
 Object.assign(globalThis, {
-  setLang,
   runPlugins,
 });

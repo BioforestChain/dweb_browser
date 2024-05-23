@@ -2,7 +2,6 @@ package org.dweb_browser.browser.jmm
 
 import okio.FileSystem
 import okio.Path
-import okio.Path.Companion.toPath
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
@@ -57,8 +56,6 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Service") {
   }
 
   inner class JmmRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
-    init {
-    }
 
     override suspend fun _bootstrap() {
       val store = JmmStore(this)
@@ -88,8 +85,8 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Service") {
       val usr = object : IVirtualFsDirectory {
         override fun isMatch(firstSegment: String) = firstSegment == "usr"
         override val fs: FileSystem = SystemFileSystem
-        override fun getFsBasePath(remote: IMicroModuleManifest, firstPath: Path) =
-          appsDir.resolve("${remote.mmid}-${remote.version}${firstPath}")
+        override fun resolveTo(remote: IMicroModuleManifest, virtualFullPath: Path) =
+          appsDir.resolve("${remote.mmid}-${remote.version}${virtualFullPath}")
       }
       fileTypeAdapterManager.append(adapter = usr).removeWhen(mmScope)
 
@@ -126,7 +123,7 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Service") {
         getMainWindow().apply {
           setStateFromManifest(manifest)
           state.keepBackground = true/// 保持在后台运行
-          jmmController.openHistoryView(this)
+//          jmmController.openHistoryView(this)
         }
       }
     }

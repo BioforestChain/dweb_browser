@@ -46,7 +46,8 @@ fun RenderWindowInNative(
   windowsManager: WindowsManager<*>,
   win: WindowController,
 ) {
-  val maxBounds = LocalPureViewBox.current.asDesktop().currentViewControllerMaxBounds(withSafeArea = !win.watchedIsFullscreen().value)
+  val maxBounds = LocalPureViewBox.current.asDesktop()
+    .currentViewControllerMaxBounds(withSafeArea = !win.watchedIsFullscreen().value)
   win.Prepare(
     winMaxWidth = maxBounds.width,
     winMaxHeight = maxBounds.height,

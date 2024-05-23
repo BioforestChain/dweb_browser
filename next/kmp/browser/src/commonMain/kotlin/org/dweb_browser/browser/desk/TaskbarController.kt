@@ -6,12 +6,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import io.ktor.http.Url
 import kotlinx.serialization.Serializable
 import org.dweb_browser.browser.desk.types.DeskAppMetaData
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.std.http.HttpDwebServer
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.helper.ChangeableMap
+import org.dweb_browser.helper.ENV_SWITCH_KEY
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
@@ -139,15 +141,22 @@ class TaskbarController private constructor(
     state.layoutHeight = reSize.height
   }
 
+  fun toggleDragging(dragging: Boolean): Boolean {
+    state.taskbarDragging = dragging
+    return dragging
+  }
+
   /**
    * 将其它视图临时最小化到 TaskbarView/TooggleDesktopButton 按钮里头，在此点击该按钮可以释放这些临时视图到原本的状态
    */
   suspend fun toggleDesktopView() {
-    val allWindows = desktopController.getDesktopWindowsManager().allWindows.keys.toList()
-    if (allWindows.find { it.isVisible() } != null) {
+    val windowsManager = desktopController.getDesktopWindowsManager()
+    val allWindows = windowsManager.allWindows.keys.toList()
+    if (allWindows.isEmpty() || allWindows.find { it.isVisible() } != null) {
       allWindows.forEach { win ->
         win.toggleVisible(false)
       }
+      windowsManager.focusDesktop()
     } else {
       allWindows.forEach { win ->
         win.toggleVisible(true)
@@ -171,17 +180,25 @@ class TaskbarController private constructor(
       }
     }
 
-  fun getTaskbarUrl() =
-    taskbarServer.startResult.urlInfo.buildInternalUrl().build {
+  fun getTaskbarUrl() = when (val url = envSwitch.get(ENV_SWITCH_KEY.TASKBAR_DEV_URL)) {
+    "" -> taskbarServer.startResult.urlInfo.buildInternalUrl().build {
       resolvePath("/taskbar.html")
     }
 
+    else -> Url(url)
+  }
+
+
   fun getTaskbarDWebViewOptions() = DWebViewOptions(
     url = getTaskbarUrl().toString(),
-    openDevTools = envSwitch.has("taskbar-devtools"),
+    openDevTools = envSwitch.isEnabled(ENV_SWITCH_KEY.TASKBAR_DEVTOOLS),
     privateNet = true,
+    // 这里使用离屏渲染，来确保能在jDialog中透明背景地显示
+    // 现在离屏渲染还有很严重的BUG没有修复，所以这里谨慎使用，只用在taskbar这种没有输入框的简单模块中
+    enabledOffScreenRender = !envSwitch.isEnabled(ENV_SWITCH_KEY.DWEBVIEW_ENABLE_TRANSPARENT_BACKGROUND),
     detachedStrategy = DWebViewOptions.DetachedStrategy.Ignore,
     tag = 2,
+    subDataDirName = "taskbar"
   )
 
   @Serializable

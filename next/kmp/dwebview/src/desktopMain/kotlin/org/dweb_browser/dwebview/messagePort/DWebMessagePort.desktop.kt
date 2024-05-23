@@ -86,7 +86,11 @@ class DWebMessagePort(val port: /* MessagePort */JsObject, private val webview: 
       if (startOnce.haveRun) {
         startOnce.getResult().close(cause)
       }
-      port.call<Unit>("close")
+      try {
+        port.call<Unit>("close")
+      } catch (e: ObjectClosedException) {
+        WARNING("messageChannel port 对象已经被释放！${cause}")
+      }
       unref()
     }
   }
@@ -114,7 +118,6 @@ class DWebMessagePort(val port: /* MessagePort */JsObject, private val webview: 
           require(it is DWebMessagePort)
           it.port
         }
-
         port.call<Unit>("postMessage", event.text, ports)
       }
     }

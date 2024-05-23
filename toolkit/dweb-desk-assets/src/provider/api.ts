@@ -159,3 +159,7 @@ export function resizeTaskbar(width: number, height: number, force = false) {
 export function toggleDesktopView() {
   return nativeFetch<Array<{ height: number; width: number; x: number; y: number }>>("/taskbar/toggle-desktop-view");
 }
+
+export function toggleDragging(dragging: boolean) {
+  return nativeFetch<{ width: number; height: number }>("/taskbar/dragging", { search: { dragging } });
+}

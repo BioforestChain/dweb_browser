@@ -23,6 +23,7 @@ import org.dweb_browser.core.std.file.ext.RespondLocalFileContext.Companion.resp
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.StringEnumSerializer
 import org.dweb_browser.helper.consumeEachCborPacket
+import org.dweb_browser.helper.decodeURIComponent
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.removeWhen
 import org.dweb_browser.helper.toJsonElement
@@ -47,7 +48,7 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
     val nativeFileSystem = object : IVirtualFsDirectory {
       override fun isMatch(firstSegment: String) = true
       override val fs: FileSystem = SystemFileSystem
-      override fun getFsBasePath(remote: IMicroModuleManifest, firstPath: Path) = firstPath
+      override fun resolveTo(remote: IMicroModuleManifest, virtualFullPath: Path) = virtualFullPath
     }
 
     internal fun findVfsDirectory(firstSegment: String): IVirtualFsDirectory? {
@@ -59,7 +60,6 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
       return nativeFileSystem
     }
 
-    /// TODO 这个函数给出来是给内部使用的
     private fun getVirtualFsPath(context: IMicroModuleManifest, virtualPathString: String) =
       VirtualFsPath(context, virtualPathString, ::findVfsDirectory)
   }
@@ -100,9 +100,9 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
         /// 为 file:///  请求提供服务
         request.respondLocalFile {
           if (request.method == PureMethod.GET) {
-            val vfsPath = getVirtualFsPath(ipc.remote, request.url.encodedPath)
+            val vfsPath = getVirtualFsPath(ipc.remote, request.url.encodedPath.decodeURIComponent())
             val create = request.queryAsOrNull<Boolean>("create") ?: false
-            debugFile("easy-read", "create=$create filepath=${vfsPath.fsFullPath}")
+            debugFile("easy-read", "create=$create filepath=${vfsPath.fsFullPath},endCodePath:${request.url.encodedPath}")
             if (create) {
               touchFile(vfsPath.fsFullPath, vfsPath.fs)
             }
@@ -135,13 +135,14 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
       override fun isMatch(firstSegment: String) = firstSegment == "sys"
       override val fs: FileSystem = ResourceFileSystem.FileSystem
       val basePath = "/".toPath()
-      override fun getFsBasePath(remote: IMicroModuleManifest, firstPath: Path) = basePath
+      override fun resolveTo(remote: IMicroModuleManifest, virtualFullPath: Path) =
+        virtualFullPath - virtualFullPath.first
     }
     private val pickerFileSystem = object : IVirtualFsDirectory {
       override fun isMatch(firstSegment: String) = firstSegment == "picker"
       override val fs: FileSystem = PickerFileSystem.FileSystem
       val basePath = "/picker".toPath()
-      override fun getFsBasePath(remote: IMicroModuleManifest, firstPath: Path) = firstPath
+      override fun resolveTo(remote: IMicroModuleManifest, virtualFullPath: Path) = virtualFullPath
       val getPickerFile = PickerFileSystem::getPickerFile
     }
 
@@ -420,17 +421,23 @@ class VirtualFsPath(
     }
   }
   private val virtualFirstSegment = virtualFullPath.segments.first()
-  private val virtualFirstPath = "${virtualFullPath.root?:"/"}$virtualFirstSegment".toPath()
-  private val virtualContentPath = virtualFullPath.relativeTo(virtualFirstPath)
-
   private val vfsDirectory = findVfsDirectory(virtualFirstSegment) ?: throw ResponseException(
     HttpStatusCode.NotFound, "No found top-folder: $virtualFirstSegment"
   )
-  private val fsBasePath = vfsDirectory.getFsBasePath(context, virtualFirstPath)
-  val fsFullPath = fsBasePath.resolve(virtualContentPath)
+  val fsFullPath = vfsDirectory.resolveTo(context, virtualFullPath)
   val fs = vfsDirectory.fs
 
-  fun toVirtualPath(fsPath: Path) = virtualFirstPath.resolve(fsPath.relativeTo(fsBasePath))
+  private val virtualFirstPath by lazy {
+    virtualFullPath.first
+  }
+  private val fsFirstPath by lazy {
+    vfsDirectory.resolveTo(context, virtualFirstPath)
+  }
+
+  /**
+   *  virtualFirstPath.resolve(fsPath.relativeTo(fsFirstPath))
+   */
+  fun toVirtualPath(fsPath: Path) = virtualFirstPath + (fsPath - fsFirstPath)
   fun toVirtualPathString(fsPath: Path) = toVirtualPath(fsPath).toString()
 }
 

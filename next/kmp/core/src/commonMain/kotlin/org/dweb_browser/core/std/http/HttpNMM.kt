@@ -12,6 +12,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
+import org.dweb_browser.core.http.router.ResponseException
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.by
 import org.dweb_browser.core.http.router.byChannel
@@ -208,8 +209,10 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
             debugHttp("gateway") {
               "host=${dwebGatewayInfo.host} gateway=${gatewayMap.contains(dwebGatewayInfo.host)}"
             }
-            gatewayMap[dwebGatewayInfo.host]
-              ?: throw Exception("No Found Gateway For '${dwebGatewayInfo.host}'")
+            gatewayMap[dwebGatewayInfo.host] ?: throw ResponseException(
+              code = HttpStatusCode.NotFound,
+              message = "No Found Gateway For '${dwebGatewayInfo.host}'"
+            )
           }?.let { gateway ->
             /// 尝试响应请求
             gateway.listener.hookHttpRequest(request) ?: PureResponse(HttpStatusCode.NotFound)
@@ -551,7 +554,11 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
     private fun start(ipc: Ipc, options: DwebHttpServerOptions): ServerStartResult {
       val serverUrlInfo = getServerUrlInfo(ipc, options)
       debugHttp("START/start", "$serverUrlInfo => $options")
-      if (gatewayMap.contains(serverUrlInfo.host)) throw Exception("already in listen: ${serverUrlInfo.internal_origin}")
+      if (gatewayMap.contains(serverUrlInfo.host)) {
+        throw ResponseException(
+          code = HttpStatusCode.BadGateway,
+          message = "already in listen: ${serverUrlInfo.internal_origin}")
+      }
       val listener = Gateway.PortListener(ipc, serverUrlInfo.host)
       /// ipc 在关闭的时候，自动释放所有的绑定
       ipc.onClosed {
@@ -579,7 +586,9 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
       routes: List<CommonRoute>,
     ) {
       debugHttp("LISTEN/start", token)
-      val gateway = tokenMap[token] ?: throw Exception("no gateway with token: $token")
+      val gateway = tokenMap[token] ?: throw ResponseException(
+        code = HttpStatusCode.BadGateway, message = "no gateway with token: $token"
+      )
 
       /// 接收一个body，body在关闭的时候，fetchIpc也会一同关闭
       /// 自己nmm销毁的时候，ipc也会被全部销毁

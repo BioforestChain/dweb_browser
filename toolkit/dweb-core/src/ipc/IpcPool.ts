@@ -42,6 +42,7 @@ export class IpcPool {
     this.#ipcSet.add(ipc);
     // 自动启动
     if (autoStart) {
+      console.log("do stat", startReason);
       void ipc.start(true, startReason ?? "autoStart");
     }
     ipc.onClosed(() => {

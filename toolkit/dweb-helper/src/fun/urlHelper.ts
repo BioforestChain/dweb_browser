@@ -32,6 +32,7 @@ export const appendUrlSearchs = (url: URL, extQuerys: Iterable<[string, string]>
 export const buildUrl = (
   url: URL | string,
   ext: {
+    // deno-lint-ignore ban-types
     search?: string | URLSearchParams | Record<string, unknown> | {};
     pathname?: string;
   }

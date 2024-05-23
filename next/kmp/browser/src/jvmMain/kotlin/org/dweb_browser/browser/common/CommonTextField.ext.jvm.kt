@@ -4,8 +4,10 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActionScope
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
@@ -36,6 +38,7 @@ actual fun CommonTextField(
     singleLine = singleLine,
     maxLines = maxLines,
     minLines = minLines,
-    decorationBox = decorationBox
+    decorationBox = decorationBox,
+    cursorBrush = SolidColor(MaterialTheme.colorScheme.onBackground)
   )
 }

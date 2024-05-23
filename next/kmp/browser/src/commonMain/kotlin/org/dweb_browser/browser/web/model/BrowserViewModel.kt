@@ -26,6 +26,7 @@ import org.dweb_browser.browser.web.debugBrowser
 import org.dweb_browser.browser.web.deepLinkDoSearch
 import org.dweb_browser.browser.web.model.page.BrowserBookmarkPage
 import org.dweb_browser.browser.web.model.page.BrowserDownloadPage
+import org.dweb_browser.browser.web.model.page.BrowserEnginePage
 import org.dweb_browser.browser.web.model.page.BrowserHistoryPage
 import org.dweb_browser.browser.web.model.page.BrowserHomePage
 import org.dweb_browser.browser.web.model.page.BrowserPage
@@ -70,7 +71,8 @@ data class DwebLinkSearchItem(val link: String, val target: AppBrowserTarget) {
  * 这里作为 ViewModel
  */
 class BrowserViewModel(
-  internal val browserController: BrowserController, internal val browserNMM: BrowserNMM.BrowserRuntime
+  internal val browserController: BrowserController,
+  internal val browserNMM: BrowserNMM.BrowserRuntime
 ) {
   val browserOnVisible = browserController.onWindowVisible
   val browserOnClose = browserController.onCloseWindow
@@ -89,6 +91,7 @@ class BrowserViewModel(
 
 
   val previewPanelVisibleState = MutableTransitionState(PreviewPanelVisibleState.Close)
+
   /**
    * previewPanel 是否完成了布局计算，可以开始动画渲染
    */
@@ -124,13 +127,15 @@ class BrowserViewModel(
 
   private var searchEngineList = listOf<SearchEngine>()
   val filterShowEngines get() = searchEngineList.filter { it.enable }
+  val filterAllEngines get() = searchEngineList
 
-  /**检查是否有设置过的默认搜索引擎，并且拼接成webUrl*/
-  private suspend fun checkAndEnableSearchEngine(key: String): Url? {
-    val homeLink = withScope(ioScope) {
-      browserNMM.getEngineHomeLink(key.encodeURIComponent())
-    } // 将关键字对应的搜索引擎置为有效
-    return if (homeLink.isNotEmpty()) homeLink.toWebUrl() else null
+  init {
+    ioScope.launch {
+      // 同步搜索引擎列表
+      browserNMM.collectChannelOfEngines {
+        searchEngineList = engineList
+      }
+    }
   }
 
   val searchInjectList = mutableStateListOf<SearchInject>()
@@ -140,15 +145,6 @@ class BrowserViewModel(
     val list = browserNMM.getInjectList(searchText)
     searchInjectList.clear()
     searchInjectList.addAll(list)
-  }
-
-  init {
-    ioScope.launch {
-      // 同步搜索引擎列表
-      browserNMM.collectChannelOfEngines {
-        searchEngineList = engineList
-      }
-    }
   }
 
   suspend fun readFile(path: String) = browserNMM.readFile(path, create = false).binary()
@@ -196,12 +192,12 @@ class BrowserViewModel(
     )
   }
 
+  var isFillPageSize by mutableStateOf(true) // 用于标志当前的HorizontalPager中的PageSize是Fill还是Fixed
   val pagerStates = BrowserPagerStates(this)
 
   @Composable
   fun ViewModelEffect() {
     val uiScope = rememberCoroutineScope()
-    pagerStates.BindingEffect()
 
     /// 初始化 isNoTrace
     LaunchedEffect(Unit) {
@@ -209,6 +205,8 @@ class BrowserViewModel(
         isIncognitoOn = browserController.getStringFromStore(KEY_NO_TRACE)?.isNotEmpty() ?: false
       }
     }
+
+    pagerStates.PagerToFocusEffect() // 监听ContentPage页面，进行focusedUI操作
 
     /// 监听窗口关闭，进行资源释放
     DisposableEffect(Unit) {
@@ -233,10 +231,10 @@ class BrowserViewModel(
     viewBox = browserController.viewBox
   )
 
-  private suspend fun createWebPage(dWebView: IDWebView) =
+  private suspend fun createWebPage(dWebView: IDWebView): BrowserWebPage =
     BrowserWebPage(dWebView, browserController).also {
       dWebView.onCreateWindow { itemDwebView ->
-        val newWebPage = BrowserWebPage(itemDwebView, browserController)
+        val newWebPage = createWebPage(itemDwebView)
         addNewPageUI(newWebPage)
       }
       addDownloadListener(dWebView.onDownloadListener)
@@ -343,10 +341,9 @@ class BrowserViewModel(
       return false
     }
     if (focusedPage == page) {
-      val newFocusIndex = maxOf(index + 1, pages.size - 1)
-      if (newFocusIndex != index) {
-        pages.getOrNull(newFocusIndex)?.also { focusPageUI(it) }
-      }
+      // 如果要关闭当前的page，那么需要聚焦到下一个page，但是如果下一个page越界了，就聚焦上一个
+      val newFocusIndex = if (index + 1 >= pageSize) index - 1 else index + 1
+      pages.getOrNull(newFocusIndex)?.also { focusPageUI(it) }
     }
 
     /// 如果移除后，发现列表空了，手动补充一个。这个代码必须连着执行，否则会出问题
@@ -363,6 +360,14 @@ class BrowserViewModel(
     return true
   }
 
+  /**检查是否有设置过的默认搜索引擎，并且拼接成webUrl*/
+  private suspend fun checkAndEnableSearchEngine(key: String): Url? {
+    val homeLink = withScope(ioScope) {
+      browserNMM.getEngineHomeLink(key.encodeURIComponent())
+    } // 将关键字对应的搜索引擎置为有效
+    return if (homeLink.isNotEmpty()) homeLink.toWebUrl() else null
+  }
+
   /**
    * 判断 url 是否是 deepLink
    * 是：直接代理访问
@@ -374,10 +379,11 @@ class BrowserViewModel(
       return@launch
     }
     // 尝试
-    val webUrl = url.toWebUrlOrWithoutProtocol()
+    val webUrl = url.toWebUrl()
       ?: checkAndEnableSearchEngine(url) // 检查是否有默认的搜索引擎
+      ?: url.toWebUrlOrWithoutProtocol() // 上面先判断标准的网址和搜索引擎后，仍然为空时，执行一次域名转化判断
       ?: filterShowEngines.firstOrNull()?.searchLinks?.first()?.format(url)?.toWebUrl() // 转换成搜索链接
-    debugBrowser("doSearchUI", "url=$url, webUrl=$webUrl, focusedPage=$focusedPage")
+    debugBrowser("doIOSearchUrl", "url=$url, webUrl=$webUrl, focusedPage=$focusedPage")
     // 当没有搜到需要的数据，给出提示
     if (webUrl == null) {
       showToastMessage(BrowserI18nResource.Home.search_error.text)
@@ -414,6 +420,8 @@ class BrowserViewModel(
       BrowserDownloadPage(browserController)
     } else if (BrowserSettingPage.isSettingUrl(url)) {
       BrowserSettingPage(browserController)
+    } else if (BrowserEnginePage.isEngineUrl(url)) {
+      BrowserEnginePage(browserController)
     } else if (BrowserWebPage.isWebUrl(url)) { // 判断是否网页应该放在最下面
       createWebPage(url)
     } else null
@@ -587,6 +595,14 @@ class BrowserViewModel(
 
   fun showToastMessage(message: String, position: ToastPositionType? = null) {
     browserController.ioScope.launch { browserNMM.showToast(message, position = position) }
+  }
+
+  fun disableSearchEngine(searchEngine: SearchEngine) = ioScope.launch {
+    browserNMM.updateEngineState(searchEngine, false)
+  }
+
+  fun enableSearchEngine(searchEngine: SearchEngine) = ioScope.launch {
+    browserNMM.updateEngineState(searchEngine, true)
   }
 }
 

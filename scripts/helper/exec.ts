@@ -1,5 +1,5 @@
 import picocolors from "npm:picocolors";
-import { createBaseResolveTo } from "./ConTasks.helper.ts";
+import { createBaseResolveTo } from "./resolveTo.ts";
 import { WalkAny } from "./WalkDir.ts";
 import { whichSync } from "./WhichCommand.ts";
 

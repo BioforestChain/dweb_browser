@@ -11,6 +11,7 @@ import androidx.compose.material.icons.filled.BookmarkAdd
 import androidx.compose.material.icons.filled.BookmarkRemove
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.PersonSearch
 import androidx.compose.material.icons.filled.Policy
 import androidx.compose.material.icons.filled.PrivateConnectivity
 import androidx.compose.material.icons.filled.Share
@@ -145,19 +146,22 @@ internal fun BrowserMenuPanel(modifier: Modifier = Modifier) {
 
     HorizontalDivider()
     // 搜索引擎
-//        RowItemMenuView(
-//          text = BrowserI18nResource.browser_options_search_engine(),
-//          trailingIcon = Icons.Default.Settings
-//        ) { openEngineManage() }
-
+    SettingListItem(
+      title = BrowserI18nResource.Engine.page_title(),
+      icon = Icons.Default.PersonSearch,
+      onClick = {
+        uiScope.launch { viewModel.tryOpenUrlUI("about:engines") }
+        hide()
+      },
+      trailingIcon = Icons.AutoMirrored.Filled.ArrowForwardIos
+    )
     // 下载管理界面
-    Spacer(modifier = Modifier.height(12.dp))
     SettingListItem(
       title = BrowserI18nResource.Download.page_title(),
       icon = Icons.Default.FileDownload,
       onClick = {
-        hide()
         uiScope.launch { viewModel.tryOpenUrlUI("about:downloads") }
+        hide()
       },
       trailingIcon = Icons.AutoMirrored.Filled.ArrowForwardIos
     )

@@ -11,16 +11,15 @@ import org.dweb_browser.browser.download.DownloadState
 import org.dweb_browser.browser.download.DownloadStateEvent
 import org.dweb_browser.browser.download.ext.createDownloadTask
 import org.dweb_browser.browser.download.ext.currentDownload
+import org.dweb_browser.browser.download.ext.downloadProgressFlow
 import org.dweb_browser.browser.download.ext.existsDownload
 import org.dweb_browser.browser.download.ext.pauseDownload
 import org.dweb_browser.browser.download.ext.removeDownload
 import org.dweb_browser.browser.download.ext.startDownload
-import org.dweb_browser.browser.download.ext.watchDownloadProgress
 import org.dweb_browser.browser.web.data.BrowserDownloadItem
 import org.dweb_browser.browser.web.data.BrowserDownloadStore
 import org.dweb_browser.browser.web.data.BrowserDownloadType
 import org.dweb_browser.core.ipc.helper.IpcEvent
-import org.dweb_browser.core.std.file.ext.realPath
 import org.dweb_browser.dwebview.WebDownloadArgs
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.collectIn
@@ -127,7 +126,7 @@ class BrowserDownloadController(
     browserDownloadItem: BrowserDownloadItem,
   ): Boolean {
     var success = false;
-    browserNMM.watchDownloadProgress(taskId) {
+    browserNMM.downloadProgressFlow(taskId).collect { status ->
       if (status.state == DownloadState.Completed) {
         success = true
       }

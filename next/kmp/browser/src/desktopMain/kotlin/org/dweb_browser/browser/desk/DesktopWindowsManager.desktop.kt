@@ -2,6 +2,7 @@ package org.dweb_browser.browser.desk
 
 import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.helper.platform.IPureViewController
+import org.dweb_browser.helper.platform.asDesktop
 
 actual fun DesktopWindowsManager.Companion.getOrPutInstance(
   platformViewController: IPureViewController,
@@ -14,4 +15,8 @@ actual fun DesktopWindowsManager.Companion.getOrPutInstance(
       instances.remove(platformViewController)
     }
   }
+}
+
+actual fun DesktopWindowsManager.focusPlatformDesktop() {
+  viewController.asDesktop().getComposeWindowOrNull()?.toFront()
 }

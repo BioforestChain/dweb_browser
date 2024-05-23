@@ -1,5 +1,6 @@
 package org.dweb_browser.browser.download
 
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.delay
@@ -12,7 +13,7 @@ import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.byChannel
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
-import org.dweb_browser.core.std.file.ext.realPath
+import org.dweb_browser.core.std.file.ext.pickFile
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.DisplayMode
 import org.dweb_browser.helper.ImageResource
@@ -84,7 +85,7 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
             controller.downloadFactory(downloadTask)
           }
           /// TODO 使用新版的 模块文件系统替代 realPath，比如 file:///$mmid/{$downloadTask.filepath}
-          downloadTask.filepath = realPath(downloadTask.filepath).toString()
+          downloadTask.filepath = pickFile(downloadTask.filepath).toString()
           downloadTask.toJsonElement()
         },
         // 开始/恢复 下载
@@ -125,11 +126,50 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
               ctx.close()
             }
           }.conflate().collectIn(mmScope) {
-            if (!ctx.isClosed) {
-              ctx.sendJsonLine(it.status)
-              delay(throttleMs)
-            } else {
-              WARNING("QAQ ctx.isClosed")
+            ctx.sendJsonLine(it.status).onFailure {
+              WARNING("ctx.isClosed")
+            }
+            delay(throttleMs)
+          }
+        },
+        "/flow/progress" byChannel { ctx ->
+          val taskId = request.query("taskId")
+          val downloadTask = controller.downloadTaskMaps[taskId]
+            ?: return@byChannel close(Throwable("not Found download task!"))
+          debugDownload("/flow/progress", "taskId=$taskId")
+          var statusValue = downloadTask.status
+          var statusWaiter: CompletableDeferred<DownloadStateEvent>? = null
+          val off = downloadTask.onChange {
+            val stateEvent = it.status.copy()
+            statusValue = stateEvent
+            statusWaiter?.also { waiter ->
+              statusWaiter = null
+              waiter.complete(stateEvent)
+            }
+            when (stateEvent.state) {
+              DownloadState.Canceled, DownloadState.Failed, DownloadState.Completed -> {
+                ctx.sendJsonLine(stateEvent)// 直接发送结束帧
+                ctx.close()
+              }
+
+              else -> {}
+            }
+          }
+          ctx.onClose {
+            off()
+          }
+          var lastSentValue: Any? = null
+          // 同时处理 stateFlow 和 commandChannel
+          for (frame in ctx.income) {
+            if (frame.text == "get") {
+              lastSentValue = if (statusValue === lastSentValue) {
+                CompletableDeferred<DownloadStateEvent>().also {
+                  statusWaiter = it
+                }.await().copy()
+              } else {
+                statusValue
+              }
+              ctx.sendJsonLine(lastSentValue)
             }
           }
         },

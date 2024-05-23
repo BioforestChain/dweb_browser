@@ -2,7 +2,7 @@ import type { $Core, $Http, $Ipc, $MMID } from "./deps.ts";
 import { ChannelEndpoint, IpcHeaders, IpcResponse, PromiseOut, jsProcess, mapHelper } from "./deps.ts";
 
 import { HttpServer } from "./helper/http-helper.ts";
-import { close_window, mwebview_destroy } from "./helper/mwebview-helper.ts";
+import { mwebview_destroy } from "./helper/mwebview-helper.ts";
 const DNS_PREFIX = "/dns.std.dweb/";
 const INTERNAL_PREFIX = "/internal/";
 
@@ -41,12 +41,9 @@ export class Server_api extends HttpServer {
     const result = async () => {
       if (pathname === "/restart") {
         // 这里只需要把请求发送过去，因为app已经被关闭，已经无法拿到返回值
-        setTimeout(async () => {
-          const winId = await this.getWid();
-          // 这里面在窗口关闭的时候，会触发dns.close 因此不能等待close_window返回再去关闭
-          close_window(winId);
+        queueMicrotask(() => {
           this.jsRuntime.dns.restart(jsProcess.mmid);
-        }, 200);
+        });
         return Response.json(true);
       }
 
@@ -87,7 +84,7 @@ export class Server_api extends HttpServer {
         return IpcResponse.fromText(event.reqId, 500, new IpcHeaders(), "invalid search params, miss 'id'", event.ipc);
       }
       const ipc = await mapHelper.getOrPut(this.callbacks, id, () => new PromiseOut<$Ipc>()).promise;
-      const response = await ipc.request(event.url.href, event.ipcRequest.toRequest());
+      const response = await ipc.request(event.url.href, event.ipcRequest.toPureClinetRequest());
       return response.toResponse();
     }
     /// websocket
@@ -119,7 +116,8 @@ export class Server_api extends HttpServer {
     const targetIpc = await jsProcess.connect(mmid as $MMID);
     const { ipcRequest } = event;
 
-    const req = ipcRequest.toRequest();
+    const req = ipcRequest.toPureClinetRequest();
+
     let ipcProxyResponse = await targetIpc.request(path, req);
 
     /// 尝试申请授权
@@ -128,10 +126,6 @@ export class Server_api extends HttpServer {
       if (await jsProcess.requestDwebPermissions(await ipcProxyResponse.body.text())) {
         ipcProxyResponse = await targetIpc.request(path, req);
       }
-    }
-
-    if (ipcRequest.hasDuplex) {
-      await ipcRequest.client.enableChannel();
     }
     return ipcProxyResponse.toResponse();
   }

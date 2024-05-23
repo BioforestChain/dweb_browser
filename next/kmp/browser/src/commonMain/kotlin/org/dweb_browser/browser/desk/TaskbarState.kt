@@ -11,6 +11,7 @@ enum class TASKBAR_PROPERTY_KEY(val propertyKey: String) {
   LayoutTopPadding("topPadding"),
   LayoutLeftPadding("leftPadding"),
   FloatActivityState("float"),
+  Dragging("dragging"),
 }
 
 /**
@@ -26,5 +27,10 @@ class TaskbarState() {
   var layoutTopPadding by observable.observe(TASKBAR_PROPERTY_KEY.LayoutTopPadding, 0f)
   var layoutLeftPadding by observable.observe(TASKBAR_PROPERTY_KEY.LayoutLeftPadding, 0f)
   var floatActivityState by observable.observe(TASKBAR_PROPERTY_KEY.FloatActivityState, false)
+
+  /**
+   * 专门用于桌面端的拖拽
+   */
+  var taskbarDragging by observable.observe(TASKBAR_PROPERTY_KEY.Dragging, false)
 }
 

@@ -91,7 +91,7 @@ class NativeEndpoint(
   override suspend fun postIpcMessage(msg: EndpointIpcMessage) {
     awaitOpen("then-postIpcMessage")
     withScope(scope) {
-      debugEndpoint("message-out", msg)
+      debugEndpoint.verbose("message-out", msg)
       messageOut.send(msg)
     }
   }
@@ -99,7 +99,7 @@ class NativeEndpoint(
   override suspend fun doStart() {
     scope.launch {
       for ((pid, ipcMessage) in messageIn) {
-        debugEndpoint("message-in", "pid=$pid ipcMessage=$ipcMessage")
+        debugEndpoint.verbose("message-in", "pid=$pid ipcMessage=$ipcMessage")
         /**
          * UNDISPATCHED 能确保 orderBy 的顺序
          */

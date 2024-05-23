@@ -2,17 +2,15 @@ import { CacheGetter } from "@dweb-browser/helper/cacheGetter.ts";
 import { binaryToU8a, isBinary, type $Binary } from "@dweb-browser/helper/fun/binaryHelper.ts";
 import { parseUrl } from "@dweb-browser/helper/fun/urlHelper.ts";
 import { IpcHeaders } from "../helper/IpcHeaders.ts";
-import { PureChannel, pureChannelToIpcEvent } from "../helper/PureChannel.ts";
 import { PURE_METHOD, toPureMethod } from "../helper/PureMethod.ts";
-import { buildRequestX } from "../helper/ipcRequestHelper.ts";
+import { httpMethodCanOwnBody } from "../helper/httpHelper.ts";
 import type { $IpcRequestInit, Ipc } from "../ipc.ts";
+import { X_IPC_UPGRADE_KEY, getIpcChannel } from "./channel/IpcChannel.ts";
+import { PURE_CHANNEL_EVENT_PREFIX, PureChannel, pureChannelToIpcEvent } from "./channel/PureChannel.ts";
 import { IPC_MESSAGE_TYPE, ipcMessageBase } from "./internal/IpcMessage.ts";
 import type { IpcBody } from "./stream/IpcBody.ts";
 import { IpcBodySender } from "./stream/IpcBodySender.ts";
 import type { MetaBody } from "./stream/MetaBody.ts";
-
-export const PURE_CHANNEL_EVENT_PREFIX = "§-";
-export const X_IPC_UPGRADE_KEY = "X-Dweb-Ipc-Upgrade-Key";
 
 export type $IpcRawRequest = ReturnType<typeof IpcRawRequest>;
 export const IpcRawRequest = (
@@ -75,14 +73,6 @@ export abstract class IpcRequest {
   protected abstract channel: CacheGetter<PureChannel>;
   getChannel() {
     return this.channel.value;
-  }
-
-  toRequest() {
-    return buildRequestX(this.url, {
-      method: this.method,
-      headers: this.headers,
-      body: this.body.raw,
-    });
   }
 
   toSerializable() {
@@ -161,15 +151,31 @@ export class IpcClientRequest extends IpcRequest {
       ipcBody = IpcBodySender.fromText(init.body ?? "", ipc);
     }
 
-    return new IpcClientRequest(reqId, url, method, headers, ipcBody, ipc);
+    const clientIpcRequest = new IpcClientRequest(reqId, url, method, headers, ipcBody, ipc);
+
+    /// 如果外部 定义了 clientPureChannel，说明外部不是使用 channelIpc 来发送数据的，
+    // 而是使用 pureChannel 来发送数据，于是为他们进行手动的绑定。
+    const clientPureChannel =
+      init.headers instanceof Headers ? client_headers_pure_channel_wm.get(init.headers) : undefined;
+    if (clientPureChannel !== undefined) {
+      /// 强制初始化 channelIpc
+      void ipc.prepareChannel(headers);
+      /// 强制初始化 channelIpc 与 clientPureChannel 的关联
+      clientIpcRequest.pureChannel = clientPureChannel;
+      void clientIpcRequest.channel;
+    }
+
+    return clientIpcRequest;
   }
 
+  private pureChannel?: PureChannel;
+
   protected channel = new CacheGetter(() => {
-    const channelIpc = this._channelIpc;
+    const channelIpc = getIpcChannel(this.headers);
     if (channelIpc === undefined) {
       throw new Error("no channel");
     }
-    const channel = new PureChannel();
+    const channel = (this.pureChannel ??= new PureChannel());
     void (async () => {
       const forkedIpc = await channelIpc;
       await pureChannelToIpcEvent(forkedIpc, channel, "IpcClientRequest");
@@ -177,16 +183,6 @@ export class IpcClientRequest extends IpcRequest {
 
     return channel;
   });
-
-  private _channelIpc?: Promise<Ipc>;
-
-  // deno-lint-ignore require-await
-  async enableChannel() {
-    this._channelIpc ??= this._channelIpc = this.ipc.fork().then((ipc) => {
-      this.headers.set(X_IPC_UPGRADE_KEY, `${PURE_CHANNEL_EVENT_PREFIX}${ipc.pid}`);
-      return ipc;
-    });
-  }
 }
 
 export class IpcServerRequest extends IpcRequest {
@@ -203,4 +199,39 @@ export class IpcServerRequest extends IpcRequest {
     })();
     return channel;
   });
+
+  toPureClinetRequest() {
+    const url = this.url;
+    const method = this.method;
+    const body = httpMethodCanOwnBody(method) ? this.body.raw : undefined;
+    const request_init: RequestInit = {
+      method,
+      headers: new Headers(this.headers), // 复制一份全新的
+      body,
+    };
+    if (body instanceof ReadableStream) {
+      Reflect.set(request_init, "duplex", "half");
+    }
+    const request = new Request(url, request_init);
+
+    if (this.hasDuplex) {
+      const serverChannel = this.getChannel();
+      // 拿到channel转换输入输出,意味着输出变成输入，那么也就自然的继续进行转发的流程
+      const clientChannel = serverChannel.reverse();
+      client_headers_pure_channel_wm.set(request.headers, clientChannel);
+    }
+
+    // 兼容浏览器不支持的情况chrome < 105
+    if (request_init.body instanceof ReadableStream && request.body != request_init.body) {
+      Object.defineProperty(request, "body", {
+        configurable: true,
+        enumerable: true,
+        writable: false,
+        value: request_init.body,
+      });
+    }
+    return request;
+  }
 }
+
+const client_headers_pure_channel_wm = new WeakMap<Headers, PureChannel>();

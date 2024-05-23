@@ -14,6 +14,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
+import io.ktor.http.Url
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -32,6 +33,7 @@ import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.ChangeableMap
+import org.dweb_browser.helper.ENV_SWITCH_KEY
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.build
 import org.dweb_browser.helper.envSwitch
@@ -79,10 +81,11 @@ open class DesktopController private constructor(
     val options = DWebViewOptions(
       url = getDesktopUrl().toString(),
       privateNet = true,
-      openDevTools = envSwitch.has("desktop-devtools"),
+      openDevTools = envSwitch.isEnabled(ENV_SWITCH_KEY.DESKTOP_DEVTOOLS),
       detachedStrategy = DWebViewOptions.DetachedStrategy.Ignore,
       displayCutoutStrategy = DWebViewOptions.DisplayCutoutStrategy.Default,
-      tag = 1
+      tag = 1,
+      subDataDirName = "desktop"
     );
     println("Mike: desktp.html: ${options.url}")
     val webView = activity.createDwebView(deskNMM, options)
@@ -129,7 +132,7 @@ open class DesktopController private constructor(
     suspend fun create(
       deskNMM: DeskNMM.DeskRuntime,
       desktopServer: HttpDwebServer,
-      runningApps: ChangeableMap<MMID, RunningApp>
+      runningApps: ChangeableMap<MMID, RunningApp>,
     ) = DesktopController(deskNMM, desktopServer, runningApps)
   }
 
@@ -171,7 +174,8 @@ open class DesktopController private constructor(
 
   private val appSortList = DaskSortStore(deskNMM)
   suspend fun getDesktopApps(): List<DeskAppMetaData> {
-    val apps = deskNMM.bootstrapContext.dns.search(MICRO_MODULE_CATEGORY.Application)
+    val apps =
+      deskNMM.bootstrapContext.dns.search(MICRO_MODULE_CATEGORY.Application).toMutableList()
     // 简单的排序再渲染
     val sortList = appSortList.getApps()
     apps.sortBy { sortList.indexOf(it.mmid) }
@@ -228,8 +232,12 @@ open class DesktopController private constructor(
   }
 
 
-  private fun getDesktopUrl() = desktopServer.startResult.urlInfo.buildInternalUrl().build {
-    resolvePath("/desktop.html")
+  private fun getDesktopUrl() = when (val url = envSwitch.get(ENV_SWITCH_KEY.DESKTOP_DEV_URL)) {
+    "" -> desktopServer.startResult.urlInfo.buildInternalUrl().build {
+      resolvePath("/desktop.html")
+    }
+
+    else -> Url(url)
   }
 
 

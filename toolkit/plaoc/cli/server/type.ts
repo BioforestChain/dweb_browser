@@ -1,4 +1,4 @@
-import { ArgumentValue, Type, ValidationError } from "../deps/cliffy.ts";
+import { Type, ValidationError, type ArgumentValue } from "../deps/cliffy.ts";
 
 export class HostType extends Type<string> {
   public parse({ label, name, value }: ArgumentValue): string {

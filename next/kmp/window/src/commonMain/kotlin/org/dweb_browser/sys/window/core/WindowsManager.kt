@@ -19,7 +19,7 @@ import org.dweb_browser.sys.window.core.constant.WindowsManagerScope
 import org.dweb_browser.sys.window.core.constant.debugWindow
 import kotlin.math.abs
 
-open class WindowsManager<T : WindowController>(internal val viewBox: IPureViewBox) {
+abstract class WindowsManager<T : WindowController>(internal val viewBox: IPureViewBox) {
   val state = WindowsManagerState(viewBox)
 
   private val _winList = mutableStateListOf<T>()
@@ -279,7 +279,12 @@ open class WindowsManager<T : WindowController>(internal val viewBox: IPureViewB
       }
 
       else -> {
-        preFocusedWin?.simpleBlur()
+        preFocusedWin?.also {
+          // 如果两个窗口都是原生窗口，那么不需要做这个blur，因为原生窗口自己会因为focus、而去触发其它窗口的blur
+          if (!(it.state.isSystemWindow && win.state.isSystemWindow)) {
+            it.simpleBlur()
+          }
+        }
         win.simpleFocus()
         moveToTop(win)
         doLastFocusedWin()
@@ -410,4 +415,6 @@ open class WindowsManager<T : WindowController>(internal val viewBox: IPureViewB
     winLifecycleScopeAsync(win) {
       win.simpleToggleColorScheme(colorScheme)
     }
+
+  abstract fun focusDesktop()
 }

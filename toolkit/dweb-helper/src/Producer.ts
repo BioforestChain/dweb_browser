@@ -144,14 +144,26 @@ export class Producer<T> {
     this.#doSend(value);
   }
 
+  #waring_ti?: number;
   #doSend(value: T) {
     const event = this.event(value);
     this.buffers.add(event);
     if (this.buffers.size > this.bufferLimit) {
       if (this.bufferOverflowBehavior === "warn") {
-        this.console.warn(`${this} buffers overflow maybe leak: ${this.buffers.size}`);
+        if (this.#waring_ti === undefined) {
+          this.#waring_ti = setTimeout(() => {
+            if (this.buffers.size > this.bufferLimit) {
+              this.console.warn(`${this} buffers overflow maybe leak: ${this.buffers.size}`);
+            }
+          }, 1000);
+        }
       } else if (this.bufferOverflowBehavior === "throw") {
         throw new Error(`${this} buffers overflow: ${this.buffers.size}/${this.bufferLimit}`);
+      }
+    } else {
+      if (this.#waring_ti !== undefined) {
+        clearTimeout(this.#waring_ti);
+        this.#waring_ti = undefined;
       }
     }
     return this.doEmit(event);
@@ -233,14 +245,16 @@ export class Producer<T> {
     #errorCatcher = new PromiseOut<string | undefined>();
 
     /**开始触发之前的 */
-    async #start() {
+    #start() {
       // 把自己添加进入消费者队列
       this.producer.consumers.add(this);
       this.#started = true;
-      const startingBuffers = this.producer.buffers;
-      for (const event of startingBuffers) {
-        await event.emitBy(this);
+      this.startingBuffers = new Set(this.producer.buffers);
+      for (const event of this.startingBuffers) {
+        event.emitBy(this);
       }
+      this.startingBuffers.clear();
+      this.startingBuffers = null;
     }
 
     /**收集事件 */

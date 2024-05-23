@@ -22,16 +22,23 @@ interface DnsApi {
   suspend fun uninstall(mmpt: MMPT): Boolean
 
   /**
-   * 动态js应用查询
+   * 根据 mmid 或者 protocol 查询 模块
    */
   fun query(mmpt: MMPT): MicroModule?
+  fun queryAll(mmpt: MMPT): List<MicroModule>
+
+  /**
+   * 根据 url 查询能匹配响应的模块
+   */
+  fun queryDeeplink(deeplinkUrl: String): MicroModule?;
+  fun queryDeeplinkAll(deeplinkUrl: String): List<MicroModule>;
 
   /**
    * 根据类目搜索模块
    * > 这里暂时不需要支持复合搜索，未来如果有需要另外开接口
    * @param category
    */
-  suspend fun search(category: MICRO_MODULE_CATEGORY): MutableList<MicroModule>
+  suspend fun search(category: MICRO_MODULE_CATEGORY): List<MicroModule>
 
   /**
    * 重启应用

@@ -125,7 +125,7 @@ class IpcBodyReceiver(
         }, onClose = {
           ipcCloseDisposable.dispose()
           metaToStreamConsumer.close()
-          if (!isStreamEnd) {
+          if (!isStreamEnd && !ipc.isClosed) {
             // 跟对面讲，我关闭了,不再接受消息了，可以丢弃这个ByteChannel的内容了
             ipc.postMessage(IpcStreamAbort(streamId))
           }
