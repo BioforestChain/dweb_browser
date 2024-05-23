@@ -1,5 +1,6 @@
 package org.dweb_browser.browser.jsProcess
 
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.serialization.SerialName
@@ -66,11 +67,15 @@ class JsProcessWebApi(internal val dWebView: IDWebView) {
     val gatewayPort = dwebHttpGatewayServer.startServer()
 
     val onTerminateCallbackId = randomUUID()
+    val onTerminateCallbackReady = CompletableDeferred<Unit>()
     dWebView.ioScope.launch {
-      dWebView.evaluateAsyncJavascriptCode("(window['$onTerminateCallbackId'] = new PromiseOut()).promise")
+      dWebView.evaluateAsyncJavascriptCode("(window['$onTerminateCallbackId'] = new PromiseOut()).promise") {
+        onTerminateCallbackReady.complete(Unit)
+      }
       onTerminate()
       port2.close()
     }
+    onTerminateCallbackReady.await()
 
     val hid = hidAcc++
     val processInfoJson = dWebView.evaluateAsyncJavascriptCode("""
@@ -148,10 +153,14 @@ class JsProcessWebApi(internal val dWebView: IDWebView) {
   ) {
     val onCloseCallbackId = randomUUID()
     // 连接方关闭
+    val onTerminateCallbackReady = CompletableDeferred<Unit>()
     dWebView.ioScope.launch {
-      dWebView.evaluateAsyncJavascriptCode("(window['$onCloseCallbackId'] = new PromiseOut()).promise")
+      dWebView.evaluateAsyncJavascriptCode("(window['$onCloseCallbackId'] = new PromiseOut()).promise") {
+        onTerminateCallbackReady.complete(Unit)
+      }
       onClose()
     }
+    onTerminateCallbackReady.await()
 
     withMainContext {
       val hid = hidAcc++
