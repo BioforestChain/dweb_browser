@@ -1,5 +1,6 @@
 package org.dweb_browser.core.module
 
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
@@ -168,7 +169,7 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
         }
         debugMM("shutdown-end")
         // 取消所有的工作
-        mmScope.cancel()
+        mmScope.cancel(CancellationException("${debugMM.scope} was cancelled"))
       }
       state = MMState.SHUTDOWN
     }
