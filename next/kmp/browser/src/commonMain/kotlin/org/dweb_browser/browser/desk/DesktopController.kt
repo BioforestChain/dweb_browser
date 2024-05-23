@@ -153,12 +153,6 @@ open class DesktopController private constructor(
       return@map DeskAppMetaData().apply {
         running = runningApps.containsKey(metaData.mmid)
         winStates = getDesktopWindowsManager().getWindowStates(metaData.mmid)
-        winStates.firstOrNull()?.let { state ->
-          debugDesk(
-            "getDesktopApps", "winStates -> ${winStates.size}, ${state.mode}, ${state.focus}"
-          )
-        }
-        assign(metaData.manifest)
       }
     }
     return runApps

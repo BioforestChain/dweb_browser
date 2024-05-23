@@ -52,7 +52,7 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
   private val historyController = JmmHistoryController(jmmNMM, this)
 
   // 打开历史界面
-  suspend fun openHistoryView(win: WindowController) = historyController.openHistoryView(win)
+  suspend fun openHistoryView(win: WindowController) = historyController.showHistoryView(win)
 
   suspend fun loadHistoryMetadataUrl() {
     val loadMap = jmmStore.getAllMetadata()

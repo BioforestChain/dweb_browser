@@ -84,6 +84,7 @@ open class WindowPropertyField<T : Any> private constructor(
     val IconMonochrome = required(WindowPropertyKeys.IconMonochrome, false)
     val Mode = required(WindowPropertyKeys.Mode, WindowMode.FLOAT)
     val Visible = required(WindowPropertyKeys.Visible, true)
+    val Closed = required(WindowPropertyKeys.Closed, false)
     val CanGoBack = optional<Boolean>(WindowPropertyKeys.CanGoBack, false)
     val CanGoForward = optional<Boolean>(WindowPropertyKeys.CanGoForward)
     val Resizable = required(WindowPropertyKeys.Resizable, true)

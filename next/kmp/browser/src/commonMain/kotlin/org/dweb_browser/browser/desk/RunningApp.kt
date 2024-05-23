@@ -83,19 +83,7 @@ class RunningApp(
    */
   private var mainWin: WindowController? = null
   private val openLock = Mutex()
-
-  /**
-   * 打开主窗口，默认只会有一个主窗口，重复打开不会重复创建
-   */
-  suspend fun getMainWindow(visible: Boolean = true) = openLock.withLock {
-    if (mainWin == null) {
-      latestWindowState?.visible = visible
-      mainWin = warpCreateWindow()
-    } else {
-      mainWin?.focus()
-    }
-    mainWin!!
-  }
+  suspend fun getOpenMainWindow() = openLock.withLock { mainWin }
 
   /**
    * 最后一次窗口的state信息，在重新启动的新窗口的时候，用来参考、继承
@@ -103,22 +91,34 @@ class RunningApp(
    */
   private var latestWindowState: WindowState? = defaultWindowState
 
-  private suspend fun warpCreateWindow() =
-    createWindow(latestWindowState).also { win ->
-      latestWindowState = win.state
-      win.onClose {
-        println("QAQ 关闭窗口信号 ${ipc.debugId} ${ipc.remote.mmid}")
-        if (mainWin == win) {
-          mainWin = null
-        }
-        /// 如果不是允许后台运行，那么主窗口关闭后，也要直接关闭程序
-        if (!win.state.keepBackground) {
-          bootstrapContext.dns.close(ipc.remote.mmid)
+  /**
+   * 打开主窗口，默认只会有一个主窗口，重复打开不会重复创建
+   */
+  suspend fun tryOpenMainWindow(visible: Boolean = true) = openLock.withLock {
+    if (mainWin == null) {
+      latestWindowState?.visible = visible
+      mainWin = createWindow(latestWindowState).also { win ->
+        latestWindowState = win.state
+        win.onClose {
+          openLock.withLock {
+            if (mainWin == win) {
+              mainWin = null
+            }
+          }
+          /// 如果不是允许后台运行，那么主窗口关闭后，也要直接关闭程序
+          if (!win.state.keepBackground) {
+            bootstrapContext.dns.close(ipc.remote.mmid)
+          }
         }
       }
+    } else {
+      mainWin?.focus()
     }
+    mainWin!!
+  }
+
 
   suspend fun closeMainWindow(force: Boolean = false) {
-    getMainWindow().closeRoot(force)
+    tryOpenMainWindow().closeRoot(force)
   }
 }

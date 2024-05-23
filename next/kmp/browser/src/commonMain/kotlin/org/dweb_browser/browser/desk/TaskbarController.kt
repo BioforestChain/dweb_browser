@@ -153,13 +153,13 @@ class TaskbarController private constructor(
     val windowsManager = desktopController.getDesktopWindowsManager()
     val allWindows = windowsManager.allWindows.keys.toList()
     if (allWindows.isEmpty() || allWindows.find { it.isVisible() } != null) {
-      allWindows.forEach { win ->
-        win.toggleVisible(false)
+      allWindows.map { win ->
+        win.hide()
       }
       windowsManager.focusDesktop()
     } else {
-      allWindows.forEach { win ->
-        win.toggleVisible(true)
+      allWindows.map { win ->
+        win.open()
       }
     }
   }

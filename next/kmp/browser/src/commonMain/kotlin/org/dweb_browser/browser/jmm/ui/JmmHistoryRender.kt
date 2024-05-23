@@ -77,7 +77,7 @@ fun JmmHistoryController.ManagerViewRender(
       .scale(scale)
   }) {
     CommonSimpleTopBar(BrowserI18nResource.top_bar_title_install()) {
-      scope.launch { this@ManagerViewRender.close() }
+      scope.launch { this@ManagerViewRender.hideView() }
     }
 
     SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {

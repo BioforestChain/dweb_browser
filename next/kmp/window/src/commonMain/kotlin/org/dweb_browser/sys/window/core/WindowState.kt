@@ -140,11 +140,11 @@ class WindowState(internal var _constants: WindowConstants) {
   }
 
   inline fun updateBounds(
-    reason: UpdateReason = UpdateReason.Inner, updater: PureRect.() -> PureRect
+    reason: UpdateReason = UpdateReason.Inner, updater: PureRect.() -> PureRect,
   ) = updater.invoke(bounds).also { updateBounds(it, reason) }
 
   inline fun updateMutableBounds(
-    reason: UpdateReason = UpdateReason.Inner, updater: PureRect.Mutable.() -> Unit
+    reason: UpdateReason = UpdateReason.Inner, updater: PureRect.Mutable.() -> Unit,
   ) = bounds.toMutable().also(updater).toImmutable().also { updateBounds(it, reason) }
 
   internal class WindowRenderConfig {
@@ -217,14 +217,19 @@ class WindowState(internal var _constants: WindowConstants) {
   var iconMonochrome by WindowPropertyField.IconMonochrome.toObserve(observable)
 
   /**
-   * 窗口模式
+   * 窗口显示模式（最大化、全屏、浮动窗口、画中画）
    */
   var mode by WindowPropertyField.Mode.toObserve(observable)
 
   /**
-   * 窗口是否可见
+   * 窗口是否隐藏（最小化）
    */
   var visible by WindowPropertyField.Visible.toObserve(observable)
+
+  /**
+   * 窗口是否关闭（销毁）
+   */
+  var closed by WindowPropertyField.Closed.toObserve(observable)
 
   /**
    * 导航是否可以后退
@@ -430,4 +435,8 @@ class WindowState(internal var _constants: WindowConstants) {
 
 // 设置窗口大小，并且可以传递是否需要让用户可以调整窗口大小
 @Serializable
-data class SetWindowSize(val resizable: Boolean = false, val width: Float? = null, val height: Float? = null)
+data class SetWindowSize(
+  val resizable: Boolean = false,
+  val width: Float? = null,
+  val height: Float? = null,
+)

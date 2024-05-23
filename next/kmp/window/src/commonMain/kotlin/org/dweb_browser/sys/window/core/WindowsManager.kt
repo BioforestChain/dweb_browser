@@ -10,6 +10,7 @@ import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.ChangeableSet
 import org.dweb_browser.helper.OffListener
+import org.dweb_browser.helper.SafeHashMap
 import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.helper.some
 import org.dweb_browser.sys.window.core.constant.LowLevelWindowAPI
@@ -38,9 +39,10 @@ abstract class WindowsManager<T : WindowController>(internal val viewBox: IPureV
   /**
    * 存储最大化的窗口
    */
-  val hasMaximizedWins = ChangeableSet<T>(viewBox.lifecycleScope.coroutineContext)
+  val hasMaximizedWins = ChangeableSet<T>(context = viewBox.lifecycleScope.coroutineContext)
 
-  val allWindows = ChangeableMap<T, WindowsManagerScope>(viewBox.lifecycleScope.coroutineContext);
+  val allWindows =
+    ChangeableMap<T, WindowsManagerScope>(viewBox.lifecycleScope.coroutineContext, SafeHashMap());
 
   /**
    * 寻找最后一个聚焦的窗口
@@ -363,12 +365,21 @@ abstract class WindowsManager<T : WindowController>(internal val viewBox: IPureV
     win.simpleUnMaximize()
   }
 
+//  fun minimizeWindow(win: WindowController) = winLifecycleScopeAsync(win) {
+//    win.simpleMinimize()
+//  }
+//
+//  fun unMinimizeWindow(win: WindowController) = winLifecycleScopeAsync(win) {
+//    win.simpleUnMinimize()
+//  }
+
+
   fun setBroad(win: WindowController, board: SetWindowSize) = winLifecycleScopeAsync(win) {
     win.setBoard(board)
   }
 
 
-  fun toggleVisibleWindow(win: WindowController, visible: Boolean? = null) =
+  internal fun toggleVisibleWindow(win: WindowController, visible: Boolean? = null) =
     winLifecycleScopeAsync(win) {
       win.simpleToggleVisible(visible)
     }

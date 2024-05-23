@@ -22,6 +22,11 @@ enum class WindowMode(val mode: String) {
    * 最大化
    */
   MAXIMIZE("maximize"),
+//
+//  /**
+//   * 最小化
+//   */
+//  MINIMIZE("minimize"),
 
   /**
    * 全屏
@@ -50,12 +55,7 @@ enum class WindowMode(val mode: String) {
    * > 提示:如果不想 PIP 功能把当前的 win-view  吃掉,那么可以打开一个子窗口来申请 PIP 模式。
    */
   PIP("picture-in-picture"),
-
-  /**
-   * 窗口关闭
-   */
-  CLOSE("close"), ;
-
+  ;
 
   companion object {
     val ALL_VALUES = entries.associateBy { it.mode }

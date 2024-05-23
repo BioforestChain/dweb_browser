@@ -138,20 +138,33 @@ abstract class WindowController(
   fun isMaximized(mode: WindowMode = state.mode) =
     mode == WindowMode.MAXIMIZE || mode == WindowMode.FULLSCREEN
 
+//  fun isMinimized(mode: WindowMode = state.mode) =
+//    mode == WindowMode.MINIMIZE
+
   fun isFullscreen(mode: WindowMode = state.mode) =
     mode == WindowMode.FULLSCREEN
 
   val onMaximize = createStateListener(WindowPropertyKeys.Mode,
     { isMaximized(mode) }) { debugWindow("emit onMaximize", this) }
+//  val onMinimize = createStateListener(WindowPropertyKeys.Mode,
+//    { isMinimized(mode) }) { debugWindow("emit onMinimize", this) }
 
   internal open suspend fun simpleMaximize() {
     if (!isMaximized()) {
-      _beforeMaximizeBounds = state.bounds.copy()
+      beforeMaximizeBounds = state.bounds.copy()
       state.mode = WindowMode.MAXIMIZE
     }
   }
 
+//  internal open suspend fun simpleMinimize() {
+//    if (!isMaximized()) {
+//      beforeMinimizeMode = state.mode
+//      state.mode = WindowMode.MINIMIZE
+//    }
+//  }
+
   suspend fun maximize() = managerRunOr({ it.maximizeWindow(this) }, { simpleMaximize() })
+//  suspend fun minimize() = managerRunOr({ it.minimizeWindow(this) }, { simpleMinimize() })
 
   fun fullscreen() {
     if (!isFullscreen()) {
@@ -159,12 +172,13 @@ abstract class WindowController(
     }
   }
 
-  private var _beforeMaximizeBounds: PureRect? = null
-
   /**
    * 记忆窗口最大化之前的大小
    */
-  val beforeMaximizeBounds get() = _beforeMaximizeBounds;
+  var beforeMaximizeBounds: PureRect? = null
+    private set
+  var beforeMinimizeMode: WindowMode? = null
+    private set
 
 
   /**
@@ -181,7 +195,7 @@ abstract class WindowController(
   internal open suspend fun simpleUnMaximize() {
     if (isMaximized()) {
       // 看看有没有记忆了之前的窗口大小
-      when (val value = _beforeMaximizeBounds) {
+      when (val value = beforeMaximizeBounds) {
         null -> {
           state.setDefaultFloatWindowBounds(
             state.bounds.width, state.bounds.height, state.zIndex.toFloat(), true
@@ -190,7 +204,7 @@ abstract class WindowController(
 
         else -> {
           state.updateBounds(value, WindowState.UpdateReason.Inner)
-          _beforeMaximizeBounds = null
+          beforeMaximizeBounds = null
         }
       }
       // 将窗口变成浮动模式，会触发双向绑定
@@ -199,6 +213,28 @@ abstract class WindowController(
   }
 
   suspend fun unMaximize() = managerRunOr({ it.unMaximizeWindow(this) }, { simpleUnMaximize() })
+
+//  /**
+//   * 取消窗口最小化
+//   */
+//  internal open suspend fun simpleUnMinimize() {
+//    if (isMinimized()) {
+//      // 看看有没有记忆了之前的窗口模式
+//      when (val value = beforeMinimizeMode) {
+//        null -> {
+//          state.mode = WindowMode.FLOAT
+//        }
+//
+//        else -> {
+//          state.mode = value
+//          beforeMinimizeMode = null
+//        }
+//      }
+//    }
+//  }
+//
+//  suspend fun unMinimize() = managerRunOr({ it.unMinimizeWindow(this) }, { simpleUnMinimize() })
+
 
   //#endregion maximize
 
@@ -244,17 +280,17 @@ abstract class WindowController(
   suspend fun toggleVisible(visible: Boolean? = null) =
     managerRunOr({ it.toggleVisibleWindow(this, visible) }, { simpleToggleVisible(visible) })
 
-  suspend fun show() = toggleVisible(true)
+  suspend fun open() = toggleVisible(true)
   suspend fun hide() = toggleVisible(false)
 
   //#endregion
 
   //#region close
 
-  val onClose = createStateListener(WindowPropertyKeys.Mode,
-    { mode == WindowMode.CLOSE }) { debugWindow("emit onClose", this) }
+  val onClose = createStateListener(WindowPropertyKeys.Closed,
+    { closed }) { debugWindow("emit onClose", this) }
 
-  fun isClosed() = state.mode == WindowMode.CLOSE
+  fun isClosed() = state.closed
   internal open suspend fun simpleClose(force: Boolean = false) {
     if (!force) {
       /// 如果有关闭提示，并且没有显示，那么就显示一下
@@ -263,7 +299,7 @@ abstract class WindowController(
         return
       }
     }
-    state.mode = WindowMode.CLOSE
+    state.closed = true
   }
 
   /**

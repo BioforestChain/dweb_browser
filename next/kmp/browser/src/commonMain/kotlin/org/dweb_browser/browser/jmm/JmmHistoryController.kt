@@ -13,16 +13,16 @@ class JmmHistoryController(
 ) {
   fun getHistoryMetadataMap() = jmmController.historyMetadataMaps
 
-  suspend fun close() {
+  suspend fun hideView() {
     jmmNMM.getMainWindow().hide()
   }
 
   /**打开jmm下载历史视图*/
-  suspend fun openHistoryView(win: WindowController) {
+  suspend fun showHistoryView(win: WindowController) {
     windowAdapterManager.provideRender(win.id) { modifier ->
       ManagerViewRender(modifier = modifier, windowRenderScope = this)
     }
-    win.show()
+    win.open()
   }
 
   suspend fun buttonClick(historyMetadata: JmmMetadata) {

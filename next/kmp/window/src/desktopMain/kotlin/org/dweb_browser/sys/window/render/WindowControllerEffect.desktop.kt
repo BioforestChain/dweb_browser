@@ -166,27 +166,36 @@ private fun WindowController.ModeEffect(
   RememberEffect(composeWindowParams) {
     state.observable.onChange {
       // 针对固定窗口大小的绑定
-      if (it.key == WindowPropertyKeys.Resizable) {
-        composeWindow.isResizable = it.newValue as Boolean
-      }
-      // 针对桌面端原生窗口的浮动 最大化 全屏 绑定
-      if (it.key == WindowPropertyKeys.Mode) {
-        when (it.newValue as WindowMode) {
-          WindowMode.FLOAT -> {
-            composeWindow.placement = WindowPlacement.Floating
-          }
-
-          WindowMode.MAXIMIZE -> {
-            composeWindow.placement = WindowPlacement.Maximized
-          }
-
-          WindowMode.FULLSCREEN -> {
-            composeWindow.placement = WindowPlacement.Fullscreen
-          }
-
-          WindowMode.PIP -> WARNING("ComposeWindow No Support PIP")
-          WindowMode.CLOSE -> composeWindowParams.closeWindow()
+      when (it.key) {
+        WindowPropertyKeys.Resizable -> {
+          composeWindow.isResizable = it.newValue as Boolean
         }
+        // 针对桌面端原生窗口的浮动 最大化 全屏 绑定
+        WindowPropertyKeys.Mode -> {
+          when (it.newValue as WindowMode) {
+            WindowMode.FLOAT -> {
+              composeWindow.placement = WindowPlacement.Floating
+            }
+
+            WindowMode.MAXIMIZE -> {
+              composeWindow.placement = WindowPlacement.Maximized
+            }
+
+            WindowMode.FULLSCREEN -> {
+              composeWindow.placement = WindowPlacement.Fullscreen
+            }
+
+            WindowMode.PIP -> WARNING("ComposeWindow No Support PIP")
+          }
+        }
+
+        WindowPropertyKeys.Closed -> {
+          if (it.newValue as Boolean) {
+            composeWindowParams.closeWindow()
+          }
+        }
+
+        else -> {}
       }
     }
   }
