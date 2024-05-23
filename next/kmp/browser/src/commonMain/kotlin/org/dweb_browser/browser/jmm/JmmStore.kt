@@ -51,11 +51,11 @@ class JmmStore(microModule: MicroModule.Runtime) {
   /*****************************************************************************
    * JMM对应的json地址存储，以及下载的 taskId 信息
    */
-  suspend fun saveHistoryMetadata(mmid: String, metadata: JmmHistoryMetadata) {
+  suspend fun saveMetadata(mmid: String, metadata: JmmMetadata) {
     storeHistoryMetadata.set(mmid, metadata)
   }
 
-  suspend fun getAllHistoryMetadata(): MutableMap<String, JmmHistoryMetadata> {
+  suspend fun getAllHistoryMetadata(): MutableMap<String, JmmMetadata> {
     return storeHistoryMetadata.getAll()
   }
 
@@ -74,10 +74,10 @@ class JmmStore(microModule: MicroModule.Runtime) {
  * 用于存储安装历史记录
  */
 @Serializable
-data class JmmHistoryMetadata(
+data class JmmMetadata(
   val originUrl: String,
-  @SerialName("metadata")
-  private var _metadata: JmmAppInstallManifest,
+  @SerialName("manifest")
+  private var _manifest: JmmAppInstallManifest,
   var taskId: TaskId? = null, // 用于保存下载任务，下载完成置空
   @SerialName("state")
   private var _state: JmmStatusEvent = JmmStatusEvent(), // 用于显示下载状态
@@ -85,7 +85,7 @@ data class JmmHistoryMetadata(
   var upgradeTime: Long = datetimeNow(),
 ) {
   var state by ObservableMutableState(_state) { _state = it }
-  var metadata by ObservableMutableState(_metadata) { _metadata = it }
+  var manifest by ObservableMutableState(_manifest) { _manifest = it }
   suspend fun initDownloadTask(downloadTask: DownloadTask, store: JmmStore) {
     this.taskId = downloadTask.id
     updateDownloadStatus(downloadTask.status, store)
@@ -106,28 +106,28 @@ data class JmmHistoryMetadata(
     )
     if (newStatus != state) { // 只要前后不一样，就进行保存，否则不保存，主要为了防止downloading频繁保存
       state = newStatus
-      store.saveHistoryMetadata(this.metadata.id, this@JmmHistoryMetadata)
+      store.saveMetadata(this.manifest.id, this@JmmMetadata)
     }
   }
 
   suspend fun initState(store: JmmStore) {
     state = state.copy(state = JmmStatus.Init)
-    store.saveHistoryMetadata(this.metadata.id, this@JmmHistoryMetadata)
+    store.saveMetadata(this.manifest.id, this@JmmMetadata)
   }
 
   suspend fun installComplete(store: JmmStore) {
     debugJMM("installComplete")
     state = state.copy(state = JmmStatus.INSTALLED)
-    store.saveHistoryMetadata(this.metadata.id, this)
+    store.saveMetadata(this.manifest.id, this)
     store.setApp(
-      metadata.id, JsMicroModuleDBItem(metadata, originUrl)
+      manifest.id, JsMicroModuleDBItem(manifest, originUrl)
     )
   }
 
   suspend fun installFail(store: JmmStore) {
     debugJMM("installFail")
     state = state.copy(state = JmmStatus.Failed)
-    store.saveHistoryMetadata(this.metadata.id, this)
+    store.saveMetadata(this.manifest.id, this)
   }
 }
 
@@ -148,9 +148,9 @@ data class JmmStatusEvent(
 
 fun JmmAppInstallManifest.createJmmHistoryMetadata(
   url: String, state: JmmStatus = JmmStatus.Init, installTime: Long = datetimeNow(),
-) = JmmHistoryMetadata(
+) = JmmMetadata(
   originUrl = url,
-  _metadata = this,
+  _manifest = this,
   _state = JmmStatusEvent(total = this.bundle_size, state = state),
   installTime = installTime
 )

@@ -25,10 +25,10 @@ class JmmHistoryController(
     win.show()
   }
 
-  suspend fun buttonClick(historyMetadata: JmmHistoryMetadata) {
+  suspend fun buttonClick(historyMetadata: JmmMetadata) {
     when (historyMetadata.state.state) {
       JmmStatus.INSTALLED -> {
-        jmmNMM.bootstrapContext.dns.open(historyMetadata.metadata.id)
+        jmmNMM.bootstrapContext.dns.open(historyMetadata.manifest.id)
       }
 
       JmmStatus.Paused -> {
@@ -46,18 +46,19 @@ class JmmHistoryController(
     }
   }
 
-  fun openInstallerView(historyMetadata: JmmHistoryMetadata) = jmmNMM.scopeLaunch(cancelable = false) {
-    jmmController.openOrUpsetInstallerView(historyMetadata.originUrl, historyMetadata, true)
+  /** 打开详情界面*/
+  fun openDetail(historyMetadata: JmmMetadata) = jmmNMM.scopeLaunch(cancelable = false) {
+    jmmController.openBottomSheet(historyMetadata)
   }
 
   /// 卸载app
-  fun unInstall(historyMetadata: JmmHistoryMetadata) {
+  fun unInstall(historyMetadata: JmmMetadata) {
     jmmNMM.scopeLaunch(cancelable = false) {
-      jmmController.uninstall(historyMetadata.metadata.id)
+      jmmController.uninstall(historyMetadata.manifest.id)
     }
   }
 
-  fun removeHistoryMetadata(historyMetadata: JmmHistoryMetadata) {
+  fun removeHistoryMetadata(historyMetadata: JmmMetadata) {
     jmmNMM.scopeLaunch(cancelable = false) {
       jmmController.removeHistoryMetadata(historyMetadata)
     }

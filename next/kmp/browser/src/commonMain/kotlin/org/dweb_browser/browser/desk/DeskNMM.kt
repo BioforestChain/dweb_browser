@@ -150,12 +150,16 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       }
     }
 
-    suspend fun IHandlerContext.getAppMainWindow(ipc: Ipc = this.ipc) =
+    suspend fun IHandlerContext.getAppMainWindow(ipc: Ipc = this.ipc, needRender: Boolean = true) =
       openAppLock.withLock("window") {
         getWindow {
           val runningApp = getRunningApp(ipc)
           /// desk直接为应用打开窗口，因为窗口由desk统一管理，所以由desk窗口，并提供句柄
-          runningApp.getMainWindow()
+          val controller = runningApp.getMainWindow()
+          if (needRender) {
+            runningApp.rendererView(controller.id)
+          }
+          controller
         }
       }
 

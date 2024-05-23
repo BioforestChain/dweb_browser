@@ -46,7 +46,7 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.common.CommonSimpleTopBar
 import org.dweb_browser.browser.jmm.JmmHistoryController
-import org.dweb_browser.browser.jmm.JmmHistoryMetadata
+import org.dweb_browser.browser.jmm.JmmMetadata
 import org.dweb_browser.browser.jmm.JmmStatus
 import org.dweb_browser.browser.jmm.JmmTabs
 import org.dweb_browser.helper.compose.LazySwipeColumn
@@ -105,36 +105,36 @@ fun JmmHistoryController.JmmTabsView(tab: JmmTabs) {
   }.sortedByDescending { it.upgradeTime }
 
   LazySwipeColumn(
-    items = list, key = { item -> item.metadata.id },
+    items = list, key = { item -> item.manifest.id },
     onRemove = { item -> removeHistoryMetadata(item) },
     noDataValue = BrowserI18nResource.no_apps_data(),
     background = { Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) }
   ) { metadata ->
     JmmViewItem(
-      jmmHistoryMetadata = metadata,
+      jmmMetadata = metadata,
       buttonClick = produceEvent(metadata, scope = jmmNMM.getRuntimeScope()) {
         this@JmmTabsView.buttonClick(metadata)
       },
       uninstall = { this@JmmTabsView.unInstall(metadata) },
-      detail = { this@JmmTabsView.openInstallerView(metadata) }
+      detail = { this@JmmTabsView.openDetail(metadata) }
     )
   }
 }
 
 @Composable
 fun JmmViewItem(
-  jmmHistoryMetadata: JmmHistoryMetadata,
+  jmmMetadata: JmmMetadata,
   buttonClick: () -> Unit,
   uninstall: () -> Unit,
   detail: () -> Unit
 ) {
-  var showMore by remember(jmmHistoryMetadata) { mutableStateOf(false) }
+  var showMore by remember(jmmMetadata) { mutableStateOf(false) }
 
   Column {
     ListItem(
       headlineContent = {
         Text(
-          text = jmmHistoryMetadata.metadata.name,
+          text = jmmMetadata.manifest.name,
           maxLines = 1,
           overflow = TextOverflow.Ellipsis,
           color = MaterialTheme.colorScheme.onBackground,
@@ -144,23 +144,23 @@ fun JmmViewItem(
       supportingContent = {
         Column {
           Text(
-            text = jmmHistoryMetadata.metadata.version,
+            text = jmmMetadata.manifest.version,
             fontWeight = FontWeight.SemiBold
           )
           Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
           ) {
-            Text(text = jmmHistoryMetadata.metadata.bundle_size.toSpaceSize())
-            Text(text = jmmHistoryMetadata.installTime.formatDatestampByMilliseconds())
+            Text(text = jmmMetadata.manifest.bundle_size.toSpaceSize())
+            Text(text = jmmMetadata.installTime.formatDatestampByMilliseconds())
           }
         }
       },
       leadingContent = {
         Box(modifier = Modifier.height(72.dp), contentAlignment = Alignment.Center) {
-          key(jmmHistoryMetadata.metadata.logo) {
+          key(jmmMetadata.manifest.logo) {
             CoilAsyncImage(
-              model = jmmHistoryMetadata.metadata.logo,
+              model = jmmMetadata.manifest.logo,
               contentDescription = "icon",
               modifier = Modifier.size(56.dp),
             )
@@ -172,11 +172,11 @@ fun JmmViewItem(
           modifier = Modifier.size(64.dp).clickableWithNoEffect { buttonClick() },
           contentAlignment = Alignment.Center
         ) {
-          val progress = with(jmmHistoryMetadata.state) {
+          val progress = with(jmmMetadata.state) {
             if (total > 0) progress() else 0f
           }
           val primary = MaterialTheme.colorScheme.primary
-          when (jmmHistoryMetadata.state.state) {
+          when (jmmMetadata.state.state) {
             JmmStatus.Downloading -> {
               Box(
                 modifier = Modifier.size(40.dp),
@@ -216,7 +216,7 @@ fun JmmViewItem(
                 )
 
                 Text(
-                  text = jmmHistoryMetadata.state.state.showText(),
+                  text = jmmMetadata.state.state.showText(),
                   color = MaterialTheme.colorScheme.background,
                   fontWeight = FontWeight.W900,
                   modifier = Modifier.align(Alignment.Center),
@@ -233,7 +233,7 @@ fun JmmViewItem(
                 contentAlignment = Alignment.Center
               ) {
                 Text(
-                  text = jmmHistoryMetadata.state.state.showText(),
+                  text = jmmMetadata.state.state.showText(),
                   color = MaterialTheme.colorScheme.background,
                   fontWeight = FontWeight.W900,
                   textAlign = TextAlign.Center,
@@ -247,7 +247,7 @@ fun JmmViewItem(
     )
     if (showMore) {
       Row(modifier = Modifier.fillMaxWidth().padding(start = 72.dp)) {
-        if (jmmHistoryMetadata.state.state == JmmStatus.INSTALLED) {
+        if (jmmMetadata.state.state == JmmStatus.INSTALLED) {
           TextButton(onClick = uninstall) {
             Text(text = BrowserI18nResource.jmm_history_uninstall())
           }

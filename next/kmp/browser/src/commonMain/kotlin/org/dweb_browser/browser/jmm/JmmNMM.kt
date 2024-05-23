@@ -74,7 +74,7 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Service") {
         }
         val jmmAppInstallManifest = response.json<JmmAppInstallManifest>()
         debugJMM("listenDownload", "$metadataUrl ${jmmAppInstallManifest.id}")
-        jmmController.openOrUpsetInstallerView(
+        jmmController.openInstallerView(
           metadataUrl, jmmAppInstallManifest.createJmmHistoryMetadata(metadataUrl)
         )
       }
@@ -105,7 +105,7 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Service") {
           val mmid = request.query("app_id")
           debugJMM("detailApp", mmid)
           val info = store.getApp(mmid) ?: return@defineBooleanResponse false
-          jmmController.openOrUpsetInstallerView(
+          jmmController.openInstallerView(
             info.originUrl, info.installManifest.createJmmHistoryMetadata(info.originUrl)
           )
           true
@@ -115,7 +115,7 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Service") {
         getMainWindow().apply {
           setStateFromManifest(manifest)
           state.keepBackground = true/// 保持在后台运行
-//          jmmController.openHistoryView(this)
+          jmmController.openHistoryView(this)
         }
       }
     }
