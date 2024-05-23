@@ -499,8 +499,12 @@ export class DwebWallpaperElement extends HTMLElement {
   connectedCallback() {
     const resizeOb = new ResizeObserver((es) => {
       const { width, height } = es[0].contentRect;
-      this.canvasEle.width = width; //* devicePixelRatio;
-      this.canvasEle.height = height; //* devicePixelRatio;
+      let dpr = parseFloat(this.getAttribute("dpr") || "NaN");
+      if (Number.isFinite(dpr) === false) {
+        dpr = devicePixelRatio;
+      }
+      this.canvasEle.width = width * dpr;
+      this.canvasEle.height = height * dpr;
       this.#draw();
     });
     resizeOb.observe(this);

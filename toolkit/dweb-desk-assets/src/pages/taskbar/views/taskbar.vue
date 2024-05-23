@@ -429,6 +429,10 @@ const iconSize = "45px";
 dweb-wallpaper {
   border-radius: 50%;
   overflow: hidden;
+
+  box-shadow:
+    1px 1px 5px -2px rgb(0 0 0 / 50%),
+    -1px -1px 5px -2px rgb(255 255 255 / 50%);
 }
 
 button {

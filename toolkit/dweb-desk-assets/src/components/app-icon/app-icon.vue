@@ -78,6 +78,7 @@ const bg_image = computed(() => {
       mask-repeat: no-repeat;
       mask-position: center;
       mask-size: cover;
+      background: linear-gradient(0deg, rgb(255 255 255 / 70%), rgb(255 255 255 / 45%));
     }
 
     border-radius: 16%; // 高斯模糊的圆角

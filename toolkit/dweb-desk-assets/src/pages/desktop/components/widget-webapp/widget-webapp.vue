@@ -136,7 +136,7 @@ function outsideCloseMenu(e: PointerEvent) {
             size="58px"
             :icon="appicon"
           ></AppIcon>
-          <AppName :style="{ opacity: isShowMenu ? 0 : 1 }">
+          <AppName :style="isShowMenu ? { opacity: 0 } : {}">
             {{ appname }}
           </AppName>
         </MenuBox>

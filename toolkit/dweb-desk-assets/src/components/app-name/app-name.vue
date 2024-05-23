@@ -4,7 +4,7 @@ defineOptions({
 });
 </script>
 <template>
-  <div class="app-name backdrop-ios-glass ios-ani">
+  <div class="app-name ios-ani">
     <slot></slot>
   </div>
 </template>
@@ -14,20 +14,22 @@ defineOptions({
   overflow: hidden;
   text-overflow: ellipsis;
   font-size: 12px;
-  margin-top: 10px;
+  margin-top: 6px;
+  margin-bottom: 4px;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   word-break: break-word;
 
-  color: rgb(0 0 0 / 80%);
-  -webkit-text-stroke: rgb(255 255 255 / 15%);
-  -webkit-text-stroke-width: 0.55px;
+  color: #fff;
+  text-shadow: 0 0 2px rgba(0, 0, 0, 0.678);
 
   text-align: center;
   text-wrap: balance;
   border-radius: 0.5em; // 高斯模糊的圆角
   padding: 0.1em 0.25em;
   box-sizing: content-box;
+
+  opacity: 0.85;
 }
 </style>
