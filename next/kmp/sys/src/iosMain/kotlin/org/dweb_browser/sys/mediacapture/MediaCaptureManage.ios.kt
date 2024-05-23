@@ -10,8 +10,9 @@ import org.dweb_browser.core.std.permission.AuthorizationStatus
 import org.dweb_browser.helper.NSInputStreamToByteReadChannel
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.withMainContext
+import org.dweb_browser.platform.ios.SoundRecordManager
 import org.dweb_browser.pure.http.PureStream
-import org.dweb_browser.sys.permission.SystemPermissionAdapterManager
+import org.dweb_browser.sys.permission.RequestSystemPermission
 import org.dweb_browser.sys.permission.SystemPermissionName
 import platform.AVFAudio.AVAudioApplication
 import platform.AVFAudio.AVAudioApplicationRecordPermissionDenied
@@ -22,59 +23,56 @@ import platform.AVFoundation.AVCaptureDevice
 import platform.AVFoundation.AVMediaTypeVideo
 import platform.AVFoundation.authorizationStatusForMediaType
 import platform.AVFoundation.requestAccessForMediaType
-import platform.UIKit.UIApplication
-import org.dweb_browser.platform.ios.SoundRecordManager
 import platform.Foundation.NSInputStream
 import platform.Foundation.NSURL
+import platform.UIKit.UIApplication
 
 actual class MediaCaptureManage actual constructor() {
-  init {
-    SystemPermissionAdapterManager.append {
-      when (task.name) {
-        SystemPermissionName.CAMERA -> cameraAuthorizationStatus()
-        SystemPermissionName.MICROPHONE -> microphoneAuthorizationStatus()
-        else -> null
+  companion object {
+    internal val cameraPermission: RequestSystemPermission = {
+      if (task.name == SystemPermissionName.CAMERA) {
+        when (AVCaptureDevice.authorizationStatusForMediaType(AVMediaTypeVideo)) {
+          AVAuthorizationStatusAuthorized -> AuthorizationStatus.GRANTED
+          AVAuthorizationStatusNotDetermined -> {
+            val result = CompletableDeferred<AuthorizationStatus>()
+            AVCaptureDevice.requestAccessForMediaType(AVMediaTypeVideo) { granted ->
+              if (granted) {
+                result.complete(AuthorizationStatus.GRANTED)
+              } else {
+                result.complete(AuthorizationStatus.DENIED)
+              }
+            }
+            result.await()
+          }
+
+          else -> AuthorizationStatus.DENIED
+        }
+      } else {
+        null
       }
     }
-  }
 
-  private suspend fun cameraAuthorizationStatus(): AuthorizationStatus {
-    val status = when (AVCaptureDevice.authorizationStatusForMediaType(AVMediaTypeVideo)) {
-      AVAuthorizationStatusAuthorized -> AuthorizationStatus.GRANTED
-      AVAuthorizationStatusNotDetermined -> {
-        val result = CompletableDeferred<AuthorizationStatus>()
-        AVCaptureDevice.requestAccessForMediaType(AVMediaTypeVideo) { granted ->
-          if (granted) {
-            result.complete(AuthorizationStatus.GRANTED)
-          } else {
-            result.complete(AuthorizationStatus.DENIED)
+    internal val microPhonePermission: RequestSystemPermission = {
+      if (task.name == SystemPermissionName.MICROPHONE) {
+        when (AVAudioApplication.sharedInstance.recordPermission) {
+          AVAudioApplicationRecordPermissionDenied -> AuthorizationStatus.DENIED
+          AVAudioApplicationRecordPermissionGranted -> AuthorizationStatus.GRANTED
+          else -> {
+            val result = CompletableDeferred<AuthorizationStatus>()
+            AVAudioApplication.requestRecordPermissionWithCompletionHandler { success ->
+              if (success) {
+                result.complete(AuthorizationStatus.GRANTED)
+              } else {
+                result.complete(AuthorizationStatus.DENIED)
+              }
+            }
+            result.await()
           }
         }
-        return result.await()
-      }
-
-      else -> AuthorizationStatus.DENIED
-    }
-    return status
-  }
-
-  private suspend fun microphoneAuthorizationStatus(): AuthorizationStatus {
-    val status = when (AVAudioApplication.sharedInstance.recordPermission) {
-      AVAudioApplicationRecordPermissionDenied -> AuthorizationStatus.DENIED
-      AVAudioApplicationRecordPermissionGranted -> AuthorizationStatus.GRANTED
-      else -> {
-        val result = CompletableDeferred<AuthorizationStatus>()
-        AVAudioApplication.requestRecordPermissionWithCompletionHandler { success ->
-          if (success) {
-            result.complete(AuthorizationStatus.GRANTED)
-          } else {
-            result.complete(AuthorizationStatus.DENIED)
-          }
-        }
-        return result.await()
+      } else {
+        null
       }
     }
-    return status
   }
 
   actual suspend fun takePicture(microModule: MicroModule.Runtime): PureStream? {
@@ -102,7 +100,7 @@ actual class MediaCaptureManage actual constructor() {
           result.complete(ByteReadChannel.Empty)
         }
       }
-      rootController?.presentViewController(videoController,true,null)
+      rootController?.presentViewController(videoController, true, null)
     }
     return PureStream(result.await())
   }
@@ -117,7 +115,7 @@ actual class MediaCaptureManage actual constructor() {
       val rootController = UIApplication.sharedApplication.keyWindow?.rootViewController
       val recordController = manager.createRecordController()//manager.create()
       manager.completeSingleRecordWithCallback { path ->
-          recordController.dismissViewControllerAnimated(true, null)
+        recordController.dismissViewControllerAnimated(true, null)
         if (!path.isNullOrEmpty()) {
           val url = NSURL.fileURLWithPath(path)
           val inputStream = NSInputStream(url)
@@ -127,7 +125,7 @@ actual class MediaCaptureManage actual constructor() {
           result.complete(ByteReadChannel(""))
         }
       }
-      rootController?.presentViewController(recordController,true,null)
+      rootController?.presentViewController(recordController, true, null)
     }
     return PureStream(result.await())
   }

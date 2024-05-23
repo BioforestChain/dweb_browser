@@ -1,6 +1,5 @@
 package org.dweb_browser.sys.notification
 
-import android.Manifest
 import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -8,41 +7,17 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import org.dweb_browser.core.module.MicroModule
-import org.dweb_browser.core.std.permission.AuthorizationStatus
 import org.dweb_browser.helper.getAppContextUnsafe
 import org.dweb_browser.sys.R
-import org.dweb_browser.sys.permission.AndroidPermissionTask
-import org.dweb_browser.sys.permission.PermissionActivity
-import org.dweb_browser.sys.permission.SystemPermissionAdapterManager
-import org.dweb_browser.sys.permission.SystemPermissionName
 
 actual class NotificationManager {
-  init {
-    SystemPermissionAdapterManager.append {
-      when (task.name) {
-        SystemPermissionName.Notification -> {
-
-          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            PermissionActivity.launchAndroidSystemPermissionRequester(
-              microModule, AndroidPermissionTask(
-                listOf(Manifest.permission.POST_NOTIFICATIONS), task.title, task.description
-              )
-            ).values.firstOrNull()
-          } else {
-            AuthorizationStatus.GRANTED
-          }
-        }
-
-        else -> null
-      }
-    }
-  }
-
-  actual suspend fun createNotification(microModule: MicroModule.Runtime, message: NotificationWebItem) {
+  actual suspend fun createNotification(
+    microModule: MicroModule.Runtime,
+    message: NotificationWebItem
+  ) {
     val channelType = if (message.renotify) ChannelType.IMPORTANT else ChannelType.DEFAULT
     createNewNotification(
       title = message.actions.firstOrNull()?.title ?: microModule.mmid,

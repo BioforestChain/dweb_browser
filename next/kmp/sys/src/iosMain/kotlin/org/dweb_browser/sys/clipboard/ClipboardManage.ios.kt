@@ -12,16 +12,7 @@ import platform.UIKit.UIImagePNGRepresentation
 import platform.UIKit.UIPasteboard
 
 actual class ClipboardManage {
-  init {
-    SystemPermissionAdapterManager.append {
-      if (task.name == SystemPermissionName.CLIPBOARD) {
-        AuthorizationStatus.GRANTED
-      } else null
-    }
-  }
-
   val clipboard get() = UIPasteboard.generalPasteboard
-
 
   actual fun writeText(
     content: String,

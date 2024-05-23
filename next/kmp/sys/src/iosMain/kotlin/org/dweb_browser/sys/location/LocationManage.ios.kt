@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.first
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.permission.AuthorizationStatus
 import org.dweb_browser.helper.withMainContext
-import org.dweb_browser.sys.permission.SystemPermissionAdapterManager
+import org.dweb_browser.sys.permission.RequestSystemPermission
 import org.dweb_browser.sys.permission.SystemPermissionName
 import platform.CoreLocation.CLAuthorizationStatus
 import platform.CoreLocation.CLLocationManager
@@ -22,26 +22,22 @@ actual class LocationManage actual constructor(actual val mm: MicroModule.Runtim
     private val locationDelegate by lazy { LocationDelegate(clLocationManager) }
 
     private var authorizationStatus: AuthorizationStatus? = null
-
-    init {
-      SystemPermissionAdapterManager.append {
-
-        if (task.name == SystemPermissionName.LOCATION) {
-          authorizationStatus ?: run {
-            val status = matchAuthorizationStatus(clLocationManager.authorizationStatus)
-            if (status == AuthorizationStatus.UNKNOWN) {
-              val deferred = CompletableDeferred<AuthorizationStatus>()
-              locationDelegate.authorizationStatusListeners.add {
-                deferred.complete(matchAuthorizationStatus(it))
-              }
-              clLocationManager.requestWhenInUseAuthorization()
-              deferred.await().also {
-                locationDelegate.authorizationStatusListeners.clear()
-              }
-            } else status
-          }.also { authorizationStatus = it }
-        } else null
-      }
+    internal val locationPermission: RequestSystemPermission = {
+      if (task.name == SystemPermissionName.LOCATION) {
+        authorizationStatus ?: run {
+          val status = matchAuthorizationStatus(clLocationManager.authorizationStatus)
+          if (status == AuthorizationStatus.UNKNOWN) {
+            val deferred = CompletableDeferred<AuthorizationStatus>()
+            locationDelegate.authorizationStatusListeners.add {
+              deferred.complete(matchAuthorizationStatus(it))
+            }
+            clLocationManager.requestWhenInUseAuthorization()
+            deferred.await().also {
+              locationDelegate.authorizationStatusListeners.clear()
+            }
+          } else status
+        }.also { authorizationStatus = it }
+      } else null
     }
 
     private fun matchAuthorizationStatus(clAuthorizationStatus: CLAuthorizationStatus) =
