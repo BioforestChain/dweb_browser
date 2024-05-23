@@ -46,7 +46,7 @@ data class Gateway(
     val onDestroy = DeferredSignal(destroyDeferred)
 
     suspend fun destroy() {
-      _routerSet.forEach {
+      _routerSet.toList().forEach {
         it.ipc.close()
       }
       _routerSet.clear()

@@ -77,7 +77,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
       nativeFetchAdaptersManager.append(order = 1) { fromMM, request ->
         if (request.url.protocol.name == "file" && request.url.host.endsWith(".dweb")) {
           val mpid = request.url.host
-          fromMM.debugMM("fetch ipc", "$fromMM => ${request.href}")
+          fromMM.debugMM("fetch ipc", "${fromMM.mmid} => ${request.href}")
           val url = request.href
           val reasonRequest = buildRequestX(url, request.method, request.headers, request.body);
           val fromIpc = runCatching {
