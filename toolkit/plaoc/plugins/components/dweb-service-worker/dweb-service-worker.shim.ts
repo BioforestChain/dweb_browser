@@ -92,6 +92,7 @@ class DwebServiceWorker extends EventTarget {
     listenerFunc: ListenerCallback<DwebWorkerEventMap[K]>,
     options?: boolean | AddEventListenerOptions
   ) {
+    void super.addEventListener(eventName, listenerFunc as EventListenerOrEventListenerObject, options);
     // 虽然有类型安全，但是这里还是做强验证
     if (eventName === "fetch") {
       this.start();
@@ -101,7 +102,6 @@ class DwebServiceWorker extends EventTarget {
       this.startShortcut();
       this.isRegister = true;
     }
-    void super.addEventListener(eventName, listenerFunc as EventListenerOrEventListenerObject, options);
   }
 
   /**移除监听器 */

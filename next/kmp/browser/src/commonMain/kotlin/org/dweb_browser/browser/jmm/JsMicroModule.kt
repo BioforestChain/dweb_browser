@@ -1,6 +1,7 @@
 package org.dweb_browser.browser.jmm
 
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -24,7 +25,6 @@ import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.permission.PermissionProvider
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.ImageResource
-import org.dweb_browser.helper.alsoLaunchIn
 import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.printError
 import org.dweb_browser.pure.http.PureClientRequest
@@ -251,6 +251,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
       }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     override suspend fun connect(remoteMmid: MMID, reason: PureRequest?): Ipc {
       val ipc = super.connect(remoteMmid, reason)
       if (reason?.url?.encodedPath == "/jmm/dns/connect") {// && reason.url.host == mmid
@@ -270,30 +271,13 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
       super.beConnect(ipc, reason)
     }
 
-    private val fromMMIDOriginIpcWM = mutableMapOf<MMID, CompletableDeferred<Ipc>>();
-
-    internal suspend fun ipcBridge(fromMM: MicroModule) =
-      fromMMIDOriginIpcWM.getOrPut(fromMM.mmid) {
-        CompletableDeferred<Ipc>().alsoLaunchIn(mmScope) {
-          debugJsMM("ipcBridge", "fromMmid:${fromMM.mmid} ")
-          // 创建通往worker的双向通信
-          val toJmmIpc = getJsProcess().createIpc(fromMM.manifest)
-          toJmmIpc.onClosed {
-            debugJsMM("ipcBridge close", "toJmmIpc=>${toJmmIpc.remote.mmid} fromMM:${fromMM.mmid}")
-            fromMMIDOriginIpcWM.remove(fromMM.mmid)
-          }
-          toJmmIpc
-        }
-      }.await()
-
+    internal suspend fun ipcBridge(fromMM: MicroModule) = getJsProcess().createIpc(fromMM.manifest)
 
     override suspend fun _shutdown() {
-      debugJsMM("shutdown") {
-        "ipc-count=>${fromMMIDOriginIpcWM.size}"
+      debugJsMM("shutdown $mmid") {
       }
       val jsProcess = getJsProcess()
       jsProcess.codeIpc.close()
-      fromMMIDOriginIpcWM.clear()
     }
   }
 

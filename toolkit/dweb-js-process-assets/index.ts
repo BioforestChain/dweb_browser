@@ -198,7 +198,7 @@ export class JsProcessMicroModule extends MicroModule {
           const response = await dnsRequest(`/mmid?app_id=${mmid}`);
           return (await response.body.text()) === "true";
         },
-        async restart(mmid: `${string}.dweb`): Promise<void> {
+        restart: async (mmid: `${string}.dweb`) => {
           await dnsRequest(`/restart?app_id=${mmid}`);
         },
       },
@@ -326,6 +326,7 @@ export class JsProcessMicroModuleRuntime extends MicroModuleRuntime {
             waiter.close();
             return true;
           }
+          return false;
         });
       });
       return pid_po.promise.then((pid) => {

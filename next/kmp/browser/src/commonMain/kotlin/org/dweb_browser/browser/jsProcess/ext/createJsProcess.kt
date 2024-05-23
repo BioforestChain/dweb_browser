@@ -5,6 +5,7 @@ import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.dweb_browser.browser.jmm.debugJsMM
 import org.dweb_browser.browser.jsProcess.CreateProcessReturn
 import org.dweb_browser.browser.kit.GlobalWebMessageEndpoint
 import org.dweb_browser.core.help.types.MicroModuleManifest
@@ -85,6 +86,7 @@ class JsProcess(
         parameters["manifest"] = Json.encodeToString(remoteMM)
       }.buildUnsafeString()
     ).int()
+    debugJsMM("create-ipc") { "globalId=$globalId,processToken=$processToken" }
     return kotlinIpcPool.createIpc(
       endpoint = GlobalWebMessageEndpoint.get(globalId),
       pid = 0,

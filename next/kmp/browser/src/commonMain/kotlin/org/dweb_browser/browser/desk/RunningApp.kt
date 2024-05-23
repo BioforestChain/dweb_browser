@@ -64,7 +64,9 @@ class RunningApp(
     /// 窗口销毁的时候
     newWin.onClose {
       /// 通知模块，销毁渲染
-      ipc.postMessage(IpcEvent.createRendererDestroy(newWin.id))
+      if (!ipc.isClosed) {
+        ipc.postMessage(IpcEvent.createRendererDestroy(newWin.id))
+      }
       // 移除渲染适配器
       windowAdapterManager.renderProviders.remove(newWin.id)
       // 从引用中移除
@@ -85,7 +87,7 @@ class RunningApp(
   /**
    * 打开主窗口，默认只会有一个主窗口，重复打开不会重复创建
    */
-  suspend fun getMainWindow(visible:Boolean = true) = openLock.withLock {
+  suspend fun getMainWindow(visible: Boolean = true) = openLock.withLock {
     if (mainWin == null) {
       latestWindowState?.visible = visible
       mainWin = warpCreateWindow()
