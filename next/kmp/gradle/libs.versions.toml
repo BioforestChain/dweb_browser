@@ -230,8 +230,7 @@ gradlePlugin-android = { group = "com.android.tools.build", name = "gradle", ver
 gradlePlugin-kotlin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin-version" }
 gradlePlugin-serialization = { group = "org.jetbrains.kotlin", name = "kotlin-serialization", version.ref = "kotlin-serialization-gradle" }
 gradlePlugin-jetbrainsCompose = { group = "org.jetbrains.compose", name = "compose-gradle-plugin", version.ref = "jetbrains-compose-version" }
-gradlePlugin-composeCompiler = { group = "org.jetbrains.kotlin", name = "compose-compiler-gradle-plugin", version.ref = "jetbrains-compose-version" }
-#gradlePlugin-composeCompiler = { group = "org.jetbrains.kotlin", name = "kotlin-compose-compiler-plugin", version.ref = "kotlin-version" }
+gradlePlugin-composeCompiler = { group = "org.jetbrains.kotlin", name = "compose-compiler-gradle-plugin", version.ref = "kotlin-version" }
 gradlePlugin-jxbrowser = { group = "com.teamdev.jxbrowser", name = "JxBrowser-Gradle-Plugin", version.ref = "jxbrowser-gradle" }
 
 # 七牛数据
