@@ -415,8 +415,8 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
 
 
     /** 关闭应用 */
-    suspend fun close(mmid: MMID): Int {
-      return getRunningApps(mmid).let { apps ->
+    suspend fun close(mmid: MMID) = openLock.withLock {
+      getRunningApps(mmid).let { apps ->
         var count = 0;
         apps.filter { it.key == mmid }.forEach {
           it.value.ready().shutdown()

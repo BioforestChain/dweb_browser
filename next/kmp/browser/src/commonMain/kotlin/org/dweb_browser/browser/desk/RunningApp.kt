@@ -105,7 +105,7 @@ class RunningApp(
     createWindow(latestWindowState).also { win ->
       latestWindowState = win.state
       win.onClose {
-        println("关闭窗口信号 ${ipc.debugId} ${ipc.remote.mmid}")
+        println("QAQ 关闭窗口信号 ${ipc.debugId} ${ipc.remote.mmid}")
         if (mainWin == win) {
           mainWin = null
         }
