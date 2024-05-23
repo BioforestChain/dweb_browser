@@ -2,6 +2,7 @@ package org.dweb_browser.browser.desk
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Error
@@ -16,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import org.dweb_browser.browser.desk.upgrade.NewVersionView
 import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.dwebview.Render
 import org.dweb_browser.helper.compose.LocalCompositionChain
 import org.dweb_browser.helper.platform.SetSystemBarsColor
 import org.dweb_browser.sys.window.core.constant.LocalWindowMM
@@ -33,16 +35,13 @@ fun DesktopController.Render(
   ) {
     Box(modifier = Modifier.fillMaxWidth()) {
 
-      // Mike: 桌面 -> 替换为新的原生的desktop实现
-//      DesktopView {
-//        Render(Modifier.fillMaxSize())
-//      }
+      DesktopView {
+        Render(Modifier.fillMaxSize())
+      }
 
-      // Mike:
       NewDesktopView(taskbarController, microModule)
-      /// 窗口视图
 
-      // Mike: app的窗口渲染 --不需要改动
+      /// 窗口视图
       DesktopWindowsManager {
         SceneRender()
       }

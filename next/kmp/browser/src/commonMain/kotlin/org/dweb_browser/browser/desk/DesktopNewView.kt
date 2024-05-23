@@ -575,13 +575,13 @@ fun desktopSearchBar(modifier: Modifier, search: (String) -> Unit, hideKeyBoad: 
 
 @Composable
 fun desktopBackgroundView(modifier: Modifier) {
-  Box(modifier = modifier.fillMaxSize().background(color = Color.Black.copy(alpha = 0.3f))) {
-    //TODO: Mike 这边需要设置背景图片。
-    AsyncImage(
-      "https://images.pexels.com/photos/22866338/pexels-photo-22866338.jpeg",
-      contentDescription = null,
-      contentScale = ContentScale.FillBounds
-    )
+  Box(modifier = modifier.fillMaxSize().background(color = Color.Transparent)) {
+  //TODO: Mike 这边需要设置背景图片。
+  //    AsyncImage(
+  //      "https://images.pexels.com/photos/22866338/pexels-photo-22866338.jpeg",
+  //      contentDescription = null,
+  //      contentScale = ContentScale.FillBounds
+  //    )
   }
 }
 

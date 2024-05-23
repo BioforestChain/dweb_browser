@@ -124,7 +124,6 @@ open class DesktopController private constructor(
           view.goBack()
         }
       }
-      Text("Hellloooooooooo")
     }
   }
 
