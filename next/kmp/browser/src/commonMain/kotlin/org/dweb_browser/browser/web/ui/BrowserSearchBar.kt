@@ -122,8 +122,10 @@ fun BrowserSearchBar(modifier: Modifier) {
     Row(modifier = Modifier.width(onceItemSize * 2)) {
       // 多窗口预览界面
       IconButton(onClick = {
-        viewModel.focusedPage?.captureViewInBackground()
-        viewModel.toggleShowPreviewUI(true)
+        uiScope.launch {
+          viewModel.focusedPage?.captureView()
+          viewModel.toggleShowPreviewUI(true)
+        }
       }) {
         Icon(
           imageVector = getMultiImageVector(viewModel.pageSize),

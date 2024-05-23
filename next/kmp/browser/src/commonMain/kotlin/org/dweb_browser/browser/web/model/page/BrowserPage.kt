@@ -27,10 +27,7 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.unit.dp
-import kotlinx.atomicfu.locks.SynchronizedObject
-import kotlinx.atomicfu.locks.synchronized
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
@@ -38,6 +35,7 @@ import org.dweb_browser.browser.web.BrowserController
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.capturable.CaptureController
 import org.dweb_browser.helper.compose.SimpleI18nResource
+import org.dweb_browser.helper.ioAsyncExceptionHandler
 
 sealed class BrowserPage(browserController: BrowserController) {
   abstract fun isUrlMatch(url: String): Boolean
@@ -75,9 +73,6 @@ sealed class BrowserPage(browserController: BrowserController) {
       thumbnail?.let { BitmapPainter(it) }
     }
 
-  private val captureLock = SynchronizedObject()
-  private var captureJob: Job? = null
-
   suspend fun captureView() {
     captureViewInBackground().join()
   }
@@ -93,28 +88,8 @@ sealed class BrowserPage(browserController: BrowserController) {
     return true
   }
 
-  @OptIn(ExperimentalCoroutinesApi::class)
-  fun captureViewInBackground() = synchronized(captureLock) {
-    captureJob ?: captureController.captureAsync().also { job ->
-      captureJob = job
-
-
-      // 如果调用截图失败，释放相关资源
-      if (!onRequestCapture()) {
-        captureJob = null
-      }
-      job.invokeOnCompletion { error ->
-        if (error == null) {
-          thumbnail = job.getCompleted()
-        }
-        // 清理掉锁
-        synchronized(captureLock) {
-          if (captureJob == job) {
-            captureJob = null
-          }
-        }
-      }
-    }
+  fun captureViewInBackground() = CoroutineScope(ioAsyncExceptionHandler).launch {
+    thumbnail = captureController.captureAsync().await()
   }
 
   @Composable
@@ -132,8 +107,10 @@ sealed class BrowserPage(browserController: BrowserController) {
       }
       BoxWithConstraints(modifier = modifier) {
         Box(
-          modifier = Modifier
-            .requiredSize((maxWidth.value / scale).dp, (maxHeight.value / scale).dp)
+          modifier = Modifier.requiredSize(
+            (maxWidth.value / scale).dp,
+            (maxHeight.value / scale).dp
+          )
             .scale(scale)
         ) {
           Render(Modifier.fillMaxSize())
@@ -178,13 +155,32 @@ internal fun isAboutPage(url: String, name: String) =
 enum class BrowserPageType(
   val url: String, val icon: ImageVector, val title: SimpleI18nResource
 ) {
-  Home("about:newtab", Icons.TwoTone.Star, BrowserI18nResource.Home.page_title),
-  Bookmark("about:bookmarks", Icons.TwoTone.Bookmarks, BrowserI18nResource.Bookmark.page_title),
-  Download("about:downloads", Icons.TwoTone.Download, BrowserI18nResource.Download.page_title),
-  History("about:history", Icons.TwoTone.History, BrowserI18nResource.History.page_title),
-  Engine("about:engines", Icons.TwoTone.PersonSearch, BrowserI18nResource.Engine.page_title),
-  Setting("about:settings", Icons.TwoTone.Settings, BrowserI18nResource.Setting.page_title)
-  ;
+  Home(
+    "about:newtab",
+    Icons.TwoTone.Star,
+    BrowserI18nResource.Home.page_title
+  ),
+  Bookmark(
+    "about:bookmarks",
+    Icons.TwoTone.Bookmarks,
+    BrowserI18nResource.Bookmark.page_title
+  ),
+  Download(
+    "about:downloads",
+    Icons.TwoTone.Download,
+    BrowserI18nResource.Download.page_title
+  ),
+  History(
+    "about:history",
+    Icons.TwoTone.History,
+    BrowserI18nResource.History.page_title
+  ),
+  Engine(
+    "about:engines",
+    Icons.TwoTone.PersonSearch,
+    BrowserI18nResource.Engine.page_title
+  ),
+  Setting("about:settings", Icons.TwoTone.Settings, BrowserI18nResource.Setting.page_title);
 
   @Composable
   fun iconPainter() = rememberVectorPainter(icon)
