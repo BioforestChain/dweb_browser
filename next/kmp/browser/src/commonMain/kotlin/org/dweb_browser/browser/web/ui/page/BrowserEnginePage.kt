@@ -9,8 +9,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Visibility
-import androidx.compose.material.icons.outlined.VisibilityOff
+import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.SearchOff
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -71,8 +71,8 @@ private fun BrowserSearchEngineListPage(
         trailingContent = {
           var isShowMenu by remember { mutableStateOf(false) }
           Icon(
-            imageVector = if (engineItem.enable) Icons.Outlined.Visibility else Icons.Outlined.VisibilityOff,
-            contentDescription = if (engineItem.enable) "Visibility" else "VisibilityOff",
+            imageVector = if (engineItem.enable) Icons.Outlined.Search else Icons.Outlined.SearchOff,
+            contentDescription = if (engineItem.enable) "Search" else "SearchOff",
             tint = if (engineItem.enable) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary,
             modifier = Modifier.clickable { isShowMenu = true }
           )
@@ -85,7 +85,7 @@ private fun BrowserSearchEngineListPage(
               text = { Text(text = BrowserI18nResource.Engine.status_enable()) },
               leadingIcon = {
                 Icon(
-                  imageVector = Icons.Outlined.Visibility,
+                  imageVector = Icons.Outlined.Search,
                   contentDescription = "Enable",
                   tint = MaterialTheme.colorScheme.primary
                 )
@@ -99,7 +99,7 @@ private fun BrowserSearchEngineListPage(
               text = { Text(text = BrowserI18nResource.Engine.status_disable()) },
               leadingIcon = {
                 Icon(
-                  imageVector = Icons.Outlined.VisibilityOff,
+                  imageVector = Icons.Outlined.SearchOff,
                   contentDescription = "Disable",
                   tint = MaterialTheme.colorScheme.secondary
                 )

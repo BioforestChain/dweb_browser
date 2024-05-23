@@ -230,7 +230,7 @@ object BrowserI18nResource {
   }
 
   object Engine {
-    val page_title = SimpleI18nResource(Language.ZH to "搜索引擎", Language.EN to "Search Engine")
+    val page_title = SimpleI18nResource(Language.ZH to "搜索引擎", Language.EN to "Engines")
     val status_enable = SimpleI18nResource(Language.ZH to "开启", Language.EN to "Enable")
     val status_disable = SimpleI18nResource(Language.ZH to "关闭", Language.EN to "Disable")
   }
