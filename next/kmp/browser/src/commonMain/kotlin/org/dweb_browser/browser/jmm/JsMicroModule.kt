@@ -156,6 +156,8 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
           val response = fileIpc.request(request.toPure().toClient())
           fetchIpc2.postResponse(request.reqId, response)
         }
+        /// 将pid发送给js
+        jsProcess.fetchIpc.postMessage(IpcEvent.fromUtf8("file-ipc-pid", fetchIpc2.pid.toString()))
       }
 
       /**

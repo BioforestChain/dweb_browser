@@ -315,10 +315,26 @@ export class JsProcessMicroModuleRuntime extends MicroModuleRuntime {
 
     this.ipcPool = this.microModule.ipcPool;
     this.fetchIpc = this.microModule.fetchIpc;
-    this.fileIpcPo = this.fetchIpc.waitForkedIpc(2).then((fileIpc) => {
-      void fileIpc.start();
-      return fileIpc;
-    });
+
+    this.fileIpcPo = (() => {
+      const waiter = this.fetchIpc.onEvent("wait-file-ipc-pid");
+      const pid_po = new PromiseOut<number>();
+      waiter.collect((event) => {
+        event.consumeFilter((ipcEvent) => {
+          if (ipcEvent.name === "file-ipc-pid") {
+            pid_po.resolve(parseInt(core.IpcEvent.text(ipcEvent)));
+            waiter.close();
+            return true;
+          }
+        });
+      });
+      return pid_po.promise.then((pid) => {
+        return this.fetchIpc.waitForkedIpc(pid).then((fileIpc) => {
+          void fileIpc.start();
+          return fileIpc;
+        });
+      });
+    })();
     this.connectionLinks.add(this.fetchIpc);
     this.meta = this.microModule.meta;
 
