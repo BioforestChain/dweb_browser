@@ -5,10 +5,12 @@ import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.animateIntAsState
+import androidx.compose.animation.core.animateIntOffset
 import androidx.compose.animation.core.animateIntOffsetAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -120,7 +122,6 @@ fun NewDesktopView(
 
   fun doGetApps() {
     scope.launch {
-      println("Mike desktop update")
       val installApps = taskbarController.desktopController.getDesktopApps().map {
         val icon = it.icons.firstOrNull()?.src ?: ""
         val isSystermApp = taskbarController.desktopController.isSystermApp(it.mmid)
@@ -495,25 +496,28 @@ fun desktopSearchBar(modifier: Modifier, search: (String) -> Unit, hideKeyBoad: 
     mutableStateOf(TextFieldValue(""))
   }
 
-  var moved by remember { mutableStateOf(0) }
-  val offset by animateIntOffsetAsState(
-    targetValue = if (moved < 0) {
-      IntOffset(moved, 0)
+  val searchBarWR = 0.9F
+  var expand by remember { mutableStateOf(0F) }
+  var transition = updateTransition(expand, "search bar expand")
+  var searchIconOffset = transition.animateIntOffset {
+    if (it > 0) {
+
+      IntOffset(-(it * searchBarWR / 2.0 - 40).toInt(), 0)
     } else {
       IntOffset.Zero
-    },
-    label = "offset"
-  )
+    }
+  }
+  var searchBarWidthRadio = transition.animateFloat {
+    if (it > 0) {
+      searchBarWR
+    } else {
+      0.5F
+    }
+  }
 
-  var searchWidthRatio by remember { mutableStateOf(0.5) }
-  val searchWidthFraction by animateFloatAsState(
-    targetValue = searchWidthRatio.toFloat(),
-    label = "Search width fraction"
-  )
 
   fun doSearchTirggleAnimation(on: Boolean, searchTextFieldWidth: Int) {
-    searchWidthRatio = if (on) 1.0 else 0.5
-    moved = -1 * if (on) (searchTextFieldWidth / 2 - 50) else 0
+    expand = if (on) searchTextFieldWidth.toFloat() else 0F
   }
 
   BoxWithConstraints(modifier = modifier.padding(10.dp)) {
@@ -541,7 +545,7 @@ fun desktopSearchBar(modifier: Modifier, search: (String) -> Unit, hideKeyBoad: 
             contentDescription = null,
             tint = Color.White,
             modifier = Modifier.offset {
-              offset
+              searchIconOffset.value
             }
               .padding(8.dp)
           )
@@ -560,14 +564,11 @@ fun desktopSearchBar(modifier: Modifier, search: (String) -> Unit, hideKeyBoad: 
         .onFocusChanged {
           doSearchTirggleAnimation(it.isFocused, constraints.maxWidth)
         }
-        .fillMaxWidth(searchWidthFraction)
+        .fillMaxWidth(searchBarWidthRadio.value)
         .height(44.dp)
         .background(color = Color.Transparent)
-        .clip(RoundedCornerShape(22.dp))
-        .border(1.dp, color = Color.Gray, shape = RoundedCornerShape(22.dp))
-        .shadow(
-          elevation = 3.dp, shape = RoundedCornerShape(22.dp)
-        )
+        .clip(RoundedCornerShape(8.dp))
+        .border(1.dp, color = Color.White, shape = RoundedCornerShape(22.dp))
         .windowInsetsPadding(WindowInsets.safeGestures)
     )
   }

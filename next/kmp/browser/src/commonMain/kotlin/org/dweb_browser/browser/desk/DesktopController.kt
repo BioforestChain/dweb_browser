@@ -87,7 +87,7 @@ open class DesktopController private constructor(
       tag = 1,
       subDataDirName = "desktop"
     );
-    println("Mike: desktp.html: ${options.url}")
+
     val webView = activity.createDwebView(deskNMM, options)
     // 隐藏滚动条
     webView.setVerticalScrollBarVisible(false)
