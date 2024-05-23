@@ -143,10 +143,8 @@ open class DesktopController private constructor(
     }
   }
 
-  suspend fun observeApps() = onUpdate
-
   suspend fun search(words: String) {
-
+    deskNMM.nativeFetch("file://web.browser.dweb/search?q=$words")
   }
 
   suspend fun open(mmid: String) {

@@ -66,15 +66,17 @@ class BrowserNMM : NativeMicroModule("web.browser.dweb", "Web Browser") {
           true
         } ?: false
       }
-
-      routes("search" bindDwebDeeplink defineBooleanResponse {
+      val searchBrowser = defineBooleanResponse {
         debugBrowser("do search", request.href)
         request.queryOrNull("q")?.let { url ->
           openMainWindow()
           browserController.tryOpenBrowserPage(url = url, target = AppBrowserTarget.SELF)
           true
         } ?: false
-      },
+      }
+
+      routes("search" bindDwebDeeplink searchBrowser,
+        "/search" bind PureMethod.GET by searchBrowser,
         "openinbrowser" bindDwebDeeplink openBrowser,
         "/openinbrowser" bind PureMethod.GET by openBrowser,
         "/uninstall" bind PureMethod.GET by defineBooleanResponse {
