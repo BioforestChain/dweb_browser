@@ -153,6 +153,8 @@ open class DesktopController private constructor(
       return@map DeskAppMetaData().apply {
         running = runningApps.containsKey(metaData.mmid)
         winStates = getDesktopWindowsManager().getWindowStates(metaData.mmid)
+        //...复制metaData属性
+        assign(metaData.manifest)
       }
     }
     return runApps
