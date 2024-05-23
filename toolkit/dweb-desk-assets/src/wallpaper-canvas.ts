@@ -1,11 +1,3 @@
-const html = String.raw;
-const isDesktop = (() => {
-  try {
-    return (navigator as any).userAgentData.mobile == false;
-  } catch {
-    return false;
-  }
-})();
 const easeOutCubic = (t: number) => {
   const t1 = t - 1;
   return t1 * t1 * t1 + 1;
@@ -182,7 +174,15 @@ class CanvasRectElement {
     const width = SIZE_W * attrs.width;
     const height = SIZE_H * attrs.height;
     const size = Math.max(width, height);
-    const gradient = ctx.createRadialGradient(fx * width, fy * height, fr * size, cx * width, cy * height, r * size);
+    const min_size = Math.min(width, height);
+    const gradient = ctx.createRadialGradient(
+      fx * min_size,
+      fy * min_size,
+      fr * min_size,
+      cx * min_size,
+      cy * min_size,
+      r * min_size,
+    );
     for (const sc of stopColors) {
       gradient.addColorStop(sc.offset, sc.color);
     }
@@ -279,15 +279,40 @@ export class DwebWallpaperElement extends HTMLElement {
     super();
     // Create a shadow root
     const shadow = this.attachShadow({ mode: "open" });
+    const html = String.raw;
+
+    const propertys = ["--bg-img-deg"];
+    try {
+      CSS.registerProperty({
+        name: "--bg-img-deg",
+        syntax: "<angle>",
+        inherits: false,
+        initialValue: "0deg",
+      });
+      for (let i = 0; i < 10; i++) {
+        propertys.push(`--bg-img-color-${i}`);
+        CSS.registerProperty({
+          name: `--bg-img-color-${i}`,
+          syntax: "<color>",
+          inherits: false,
+          initialValue: "rgba(0, 0, 0, 0)",
+        });
+      }
+    } catch {
+      //
+    }
     shadow.innerHTML = html`
       <style>
         :host {
           display: block;
           overflow: hidden;
-          --bg-color-1: #fff; /*#93f3ff;*/
-          --bg-color-2: #fff; /*#ffca7b;*/
           --bg-mix-blend-mode: hard-light;
-          background: linear-gradient(var(--bg-color-deg, 90deg), var(--bg-color-1), var(--bg-color-2));
+          --bg-img-deg: 0deg;
+          background: var(--bg-img);
+          background-color: #fff;
+          transition-duration: 2s;
+          transition-timing-function: ease-in-out;
+          transition-property: ${propertys.join(", ")};
         }
         :host > canvas {
           /* mix-blend-mode: var(--bg-mix-blend-mode); */
@@ -299,8 +324,7 @@ export class DwebWallpaperElement extends HTMLElement {
 
         @media (prefers-color-scheme: dark) {
           :host {
-            --bg-color-1: #999; /*#00a9be;*/
-            --bg-color-2: #999; /*#dd8400;*/
+            background-color: #999;
           }
         }
       </style>
@@ -418,27 +442,36 @@ export class DwebWallpaperElement extends HTMLElement {
     });
   }
   #rectEles: CanvasRectElement[] = [];
-  #currentConfig: string = "";
   #mixBlendMode: GlobalCompositeOperation = "source-over";
+  #background = "linear-gradient(var(--bg-img-deg, 0deg), #fff, #fff)";
   doInit() {
     // const hour = (new Date()).getHours();
     let hour = parseInt(this.getAttribute("hour") || "NaN");
     if (!Number.isFinite(hour)) {
       hour = new Date().getHours();
     }
+    let minutes = parseInt(this.getAttribute("minutes") || "NaN");
+    if (!Number.isFinite(minutes)) {
+      minutes = new Date().getMinutes();
+    }
+    this.style.setProperty("--bg-img-deg", `${(minutes / 60) * 360}deg`);
+
     const mixBlendModeMap = this.#calcMixBlendModeMap();
     const mixBlendMode = mixBlendModeMap[hour % mixBlendModeMap.length];
-    this.#mixBlendMode = mixBlendMode;
     const colorsMap = this.#calcColorsMap();
     const colors = colorsMap[hour % colorsMap.length];
+    const background = `linear-gradient(var(--bg-img-deg, 0deg), ${colors.map((rgb, i) => `var(--bg-img-color-${i}, rgba(${rgb},1))`).join(", ")})`;
+    colors.forEach((rgb, i) => {
+      this.style.setProperty(`--bg-img-color-${i}`, `rgba(${rgb},0.2)`);
+    });
 
-    const config = JSON.stringify({ mixBlendMode, colors });
-    if (config === this.#currentConfig) {
+    if (mixBlendMode === this.#mixBlendMode && background === this.#background) {
       return this.#rectEles;
     }
-    this.#currentConfig = config;
+    this.#mixBlendMode = mixBlendMode;
+    this.#background = background;
     this.style.setProperty("--bg-mix-blend-mode", mixBlendMode);
-
+    this.style.setProperty("background", background);
     this.#rectEles = colors.map((rgb) => {
       return new CanvasRectElement(
         new CanvasRectAttributes(1, 1, {
@@ -473,7 +506,7 @@ export class DwebWallpaperElement extends HTMLElement {
     resizeOb.observe(this);
     this.resizeOb = resizeOb;
 
-    const internal = 60 * 60 * 1000;
+    const internal = 5 * 60 * 1000; // 五分钟绘制一次
     this.connected = true;
     (async () => {
       while (this.connected) {
@@ -536,8 +569,8 @@ export class DwebWallpaperElement extends HTMLElement {
     const startScaleX = startRect ? calcMatrixScaleX(startRect.transform) : scaleX();
     const startScaleY = startRect ? calcMatrixScaleY(startRect.transform) : scaleY();
     const startRotate = startRect ? calcMatrixAngle(startRect.transform) : rand(0, 360);
-    const startRectTransformOriginX = startRect ? startRect.transformOriginX : rand(0.3, 0.7);
-    const startRectTransformOriginY = startRect ? startRect.transformOriginY : rand(0.3, 0.7);
+    const startRectTransformOriginX = startRect ? startRect.transformOriginX : rand(0.4, 0.6);
+    const startRectTransformOriginY = startRect ? startRect.transformOriginY : rand(0.4, 0.6);
 
     const keyframes = randomArray(rand(3, 10), (frame) => {
       if (frame.offset === 0) {
@@ -565,8 +598,8 @@ export class DwebWallpaperElement extends HTMLElement {
         rotate: startRotate + rotateDir * frame.offset * 360,
         scaleX: scaleX(),
         scaleY: scaleY(),
-        transformOriginX: absRand(frame.offset, 0.5, 10) / 100 + startRectTransformOriginX,
-        transformOriginY: absRand(frame.offset, 0.5, 10) / 100 + startRectTransformOriginY,
+        transformOriginX: (absMax(frame.offset, 0.5) / 10) * rand() + startRectTransformOriginX,
+        transformOriginY: (absMax(frame.offset, 0.5) / 10) * rand() + startRectTransformOriginY,
       };
     });
 
@@ -622,6 +655,6 @@ export class DwebWallpaperElement extends HTMLElement {
 const randomArray = <R>(len: number, map: (ele: { offset: number }, index: number) => R) =>
   Array.from({ length: (len = Math.round(len)) }, (_, index) => map({ offset: index / (len - 1) }, len));
 const rand = (min = -1, max = 1) => Math.random() * (max - min) + min;
-const absRand = (offset: number, mid: number, size: number) => (mid - Math.abs(mid - offset)) * rand() * size;
+const absMax = (val: number, max: number) => max - Math.abs(max - val);
 
 customElements.define("dweb-wallpaper", DwebWallpaperElement);
