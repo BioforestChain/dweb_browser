@@ -5,7 +5,7 @@ import { gridMeshKey } from "./inject.ts";
 const props = defineProps({
   columnTemplateSize: {
     type: Number,
-    default: 90,
+    default: 78,
   },
   rowTemplateSize: {
     type: Number,
@@ -74,7 +74,7 @@ onUnmounted(() => {
   grid-auto-flow: row dense;
   align-items: center;
   justify-items: stretch;
-  padding-inline: 0.5em;
+  padding-inline: 1em;
   padding-top: env(safe-area-inset-top);
   padding-bottom: env(safe-area-inset-bottom);
 }

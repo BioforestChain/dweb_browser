@@ -27,14 +27,16 @@ const props = defineProps({
 
 const mono_css = computed(() => props.icon.monoimage ?? props.icon.monocolor ?? "none");
 const icon_css = computed(() => `url(${props.icon.src})`);
-const squircle_css = `url(${squircle_svg_url})`;
+console.log("squircle_svg_url", squircle_svg_url);
+const squircle_css = `url("${squircle_svg_url}")`;
 const bg_image = computed(() => {
   if (props.bgImage) {
     return props.bgImage;
   } else {
-    return `linear-gradient(to bottom, ${props.bgColor}, ${props.bgColor})`;
+    return `linear-gradient(0deg, rgb(255 255 255 / 70%), rgb(255 255 255 / 45%))`;
   }
 });
+const bg_color = computed(() => props.bgColor);
 </script>
 
 <template>
@@ -70,6 +72,7 @@ const bg_image = computed(() => {
     .squircle {
       width: 100%;
       height: 100%;
+      background-color: v-bind(bg_color);
       background-image: v-bind(bg_image);
       background-size: contain;
       background-position: center;
@@ -78,7 +81,6 @@ const bg_image = computed(() => {
       mask-repeat: no-repeat;
       mask-position: center;
       mask-size: cover;
-      background: linear-gradient(0deg, rgb(255 255 255 / 70%), rgb(255 255 255 / 45%));
     }
 
     border-radius: 16%; // 高斯模糊的圆角

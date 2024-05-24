@@ -21,7 +21,6 @@ import {
 } from "@/provider/api.ts";
 import { $TaskBarState, $WidgetAppData } from "@/types/app.type.ts";
 import { computed, onMounted, onUnmounted, ref, ShallowRef, shallowRef, triggerRef } from "vue";
-import { icons } from "./icons/index.ts";
 import x_circle_svg from "/taskbar/x-circle.svg";
 
 /** 打开桌面面板 */
@@ -248,19 +247,26 @@ onMounted(() => {
   }
 });
 
-const iconSize = "45px";
+const iconSize = "40px";
+const gapSize = "8px";
 </script>
 <template>
-  <div class="taskbar min-w-[4.0rem]" ref="taskbarEle">
-    <div class="panel" v-for="(appIcon, index) in showAppIcons" :key="index">
-      <button class="app-icon-wrapper z-grid" :class="{ active: appIcon.metaData.running }">
+  <div class="taskbar" ref="taskbarEle">
+    <div class="app-icon-list">
+      <button
+        class="app-icon-wrapper z-grid"
+        v-for="(appIcon, index) in showAppIcons"
+        :key="index"
+        :class="{ active: appIcon.metaData.running }"
+      >
         <transition name="scale">
           <MenuBox @menu="tryOpenMenuOverlay(appIcon.metaData)">
             <AppIcon
               class="z-view"
               :icon="appIcon.ref.value"
               :size="iconSize"
-              bg-color="#FFF"
+              bg-color="#eeee"
+              bg-image="linear-gradient(0deg, rgb(255 255 255), rgb(255 255 255 / 45%))"
               bg-disable-translucent
               @click="doOpen(appIcon.metaData)"
               @dblclick="doToggleMaximize(appIcon.metaData)"
@@ -282,20 +288,11 @@ const iconSize = "45px";
       </button>
     </div>
     <hr v-if="appRefList.length !== 0" class="my-divider" />
-    <button
-      class="desktop-button app-icon-wrapper z-grid"
-      @click="
-        () => {
-          console.log(wallpaperEle);
-          toggleDesktopButton();
-        }
-      "
-    >
+    <button class="desktop-button app-icon-wrapper z-grid" @click="toggleDesktopButton">
       <dweb-wallpaper
         ref="wallpaperEle"
         @click="
           () => {
-            console.log(wallpaperEle);
             wallpaperEle?.replay({ duration: 3000, startPlaybackRate: 5 });
           }
         "
@@ -333,7 +330,6 @@ const iconSize = "45px";
   max-height: v-bind(maxHeight);
   cursor: move;
   overflow: hidden;
-  padding: 0.2rem 0;
 }
 .taskbar.frame {
   background-color: rgb(255 255 255 / 32%);
@@ -358,34 +354,38 @@ const iconSize = "45px";
     background-color: rgb(0 0 0 / 40%);
   }
 }
-.panel {
+.app-icon-list {
   display: flex;
   flex-direction: column;
-  gap: 1em;
   flex: 1;
+  gap: v-bind(gapSize);
   flex-wrap: wrap;
   justify-content: space-around;
-  padding: 0.4rem;
+  padding: v-bind(gapSize);
+  padding-bottom: calc(v-bind(gapSize) * 0.62);
 }
 .my-divider {
   width: 90%;
   height: 1px;
   border-radius: 1px;
   border: 0;
-  background: linear-gradient(to right, transparent, currentColor, transparent);
+  // background: linear-gradient(to right, transparent, currentColor, transparent);
+  background: radial-gradient(currentColor, transparent, transparent);
+  opacity: 0.62;
   margin: 0;
   flex-shrink: 0;
 }
 .desktop-button {
-  padding: 0.4rem;
+  padding: v-bind(gapSize);
+  padding-top: calc(v-bind(gapSize) * 0.62);
   box-sizing: content-box;
   flex-shrink: 0;
 }
 
 .app-icon-wrapper {
   cursor: pointer;
-  width: 45px;
-  height: 45px;
+  width: v-bind(iconSize);
+  height: v-bind(iconSize);
   .img {
     width: 90%;
     height: auto;
