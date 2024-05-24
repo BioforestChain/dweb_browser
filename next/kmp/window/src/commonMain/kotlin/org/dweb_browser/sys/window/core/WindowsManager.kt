@@ -74,7 +74,7 @@ abstract class WindowsManager<T : WindowController>(internal val viewBox: IPureV
 
     /// 从最底层的窗口往上遍历
     suspend fun findInWinList(winList: List<T>) {
-      for (win in winList) {
+      for (win in winList.filter { it.isVisible() }) {
         if (win.isFocused()) {
           /// 如果发现之前赋值过，这时候需要将之前的窗口给blur掉
           lastFocusedWin?.simpleBlur()
@@ -100,6 +100,19 @@ abstract class WindowsManager<T : WindowController>(internal val viewBox: IPureV
     /// 窗口聚焦时，需要将其挪到最上层，否则该聚焦会失效
     offListenerList += win.onFocus {
       focusWindow(win).join()
+    }
+    if (!win.state.isSystemWindow) {
+      offListenerList += win.onHidden {
+        var index = winListTop.indexOf(win)
+        if (index == -1) {
+          index = winList.indexOf(win)
+        }
+        if (index != -1) {
+          val nearWin =
+            allWindows.keys.filter { it.isVisible() }.minByOrNull { abs(it.state.zIndex - index) }
+          nearWin?.focus()
+        }
+      }
     }
 
     offListenerList += win.onMaximize {
