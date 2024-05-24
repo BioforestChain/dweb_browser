@@ -1,6 +1,6 @@
 import { bindThis } from "../../helper/bindThis.ts";
 import { BasePlugin } from "../base/base.plugin.ts";
-import { $GeolocationController, $GeolocationPosition, $LocationOptions } from "./geolocation.type.ts";
+import type { $GeolocationPosition, $LocationOptions } from "./geolocation.type.ts";
 
 export class GeolocationPlugin extends BasePlugin {
   constructor() {
@@ -24,28 +24,49 @@ export class GeolocationPlugin extends BasePlugin {
    * @param precise 是否使用精确位置 default false
    * @returns Promise<$GeolocationController>
    */
-  async createLocation(option?: $LocationOptions): Promise<$GeolocationController> {
+  async createLocation(option?: $LocationOptions) {
     const ws = await this.buildChannel("/location", {
       search: {
         precise: option?.precise,
         minDistance: option?.minDistance,
       },
     });
-    const controller = {
-      listen(callback: (position: $GeolocationPosition) => void) {
-        ws.onmessage = async (ev) => {
-          const data = typeof ev.data === "string" ? ev.data : await (ev.data as Blob).text();
-          if (data) {
-            const res = JSON.parse(data) as $GeolocationPosition;
-            callback(res);
-          }
-        };
-      },
-      stop() {
-        ws.close();
-      },
+    return new GeolocationController(ws);
+  }
+}
+
+export class GeolocationController {
+  readonly #ws;
+  constructor(ws: WebSocket) {
+    this.#ws = ws;
+  }
+  listen(callback: (position: $GeolocationPosition) => void) {
+    if (this.isClosed) {
+      throw new Error("GeolocationController already closed");
+    }
+    const onmessage = async (ev: MessageEvent) => {
+      const data = typeof ev.data === "string" ? ev.data : await (ev.data as Blob).text();
+      if (data) {
+        const res = JSON.parse(data) as $GeolocationPosition;
+        callback(res);
+      }
     };
-    return controller;
+    this.#ws.addEventListener("message", onmessage);
+    return () => {
+      this.#ws.removeEventListener("message", onmessage);
+    };
+  }
+  get isClosed() {
+    return this.#ws.readyState === WebSocket.CLOSING || this.#ws.readyState === WebSocket.CLOSED;
+  }
+  stop() {
+    this.#ws.close();
+  }
+  get onclose() {
+    return this.#ws.onclose;
+  }
+  set onclose(value) {
+    this.#ws.onclose = value;
   }
 }
 

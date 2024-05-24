@@ -1,20 +1,19 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
-import LogPanel, { toConsole } from "../components/LogPanel.vue";
 import type { $GeolocationController, HTMLGeolocationElement } from "@plaoc/plugins";
 import { geolocationPlugin } from "@plaoc/plugins";
+import { onMounted, ref } from "vue";
+import LogPanel, { toConsole } from "../components/LogPanel.vue";
 
 const $geolocationElement = ref<HTMLGeolocationElement>();
 const $logPanel = ref<typeof LogPanel>();
 
 let console: Console;
 let geolocation: HTMLGeolocationElement;
-let controller: $GeolocationController;
+let controller: $GeolocationController | undefined;
 
 onMounted(async () => {
   geolocation = $geolocationElement.value!;
   console = toConsole($logPanel);
-  controller = await geolocationPlugin.createLocation();
 });
 
 // 获取一次
@@ -25,17 +24,20 @@ async function getLocation() {
 
 // 创建控制器
 async function createLocation() {
-  onLocation();
+  if (controller !== undefined) {
+    console.info("already listening.");
+  } else {
+    controller = await geolocationPlugin.createLocation();
+    controller.listen((res) => {
+      console.log("location", res.state.message);
+      const coords = res.coords;
+      console.log(`经度：${coords.longitude}纬度：${coords.latitude}海拔：${coords.altitude}`);
+    });
+  }
 }
 function stop() {
-  controller.stop();
-}
-function onLocation() {
-  controller.listen((res) => {
-    console.log("location", res.state.message);
-    const coords = res.coords;
-    console.log(`经度：${coords.longitude}纬度：${coords.latitude}海拔：${coords.altitude}`);
-  });
+  controller?.stop();
+  controller = undefined;
 }
 </script>
 <template>

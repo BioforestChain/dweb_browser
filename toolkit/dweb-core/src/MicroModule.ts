@@ -191,7 +191,7 @@ export abstract class MicroModuleRuntime implements $MicroModuleRuntime {
       this.console.log("beConnect", ipc);
       ipc.onFork("beConnect").collect(async (forkEvent) => {
         ipc.console.log("onFork", forkEvent.data);
-        await this.beConnect(forkEvent.consume());
+        await this.beConnect(forkEvent.consume(), undefined);
       });
       ipc.onRequest(`${this.mmid}-deepLink`).collect(async (event) => {
         const url = event.consumeMapNotNull((request) => {
@@ -220,6 +220,7 @@ export abstract class MicroModuleRuntime implements $MicroModuleRuntime {
         this.connectionMap.set(ipc.remote.mmid, PromiseOut.resolve(ipc));
       }
       this.#ipcConnectedProducer.send(ipc);
+      this.console.log("beConnect-end", ipc);
     }
   }
   getConnected(mmid: $MMID) {

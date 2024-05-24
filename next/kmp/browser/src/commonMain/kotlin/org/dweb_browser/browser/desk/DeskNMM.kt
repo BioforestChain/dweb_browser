@@ -279,7 +279,6 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         "/taskbar/observe/apps" byChannel { ctx ->
           val limit = request.queryOrNull("limit")?.toInt() ?: Int.MAX_VALUE
           debugDesk("/taskbar/observe/apps", limit)
-          val pureChannel = ctx.getChannel()
           taskBarController.onUpdate {
             try {
 //            debugDesk("/taskbar/observe/apps") { "onUpdate $pureChannel=>${request.body.toPureString()}" }
@@ -290,7 +289,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
               close(cause = e)
             }
           }.removeWhen(onClose)
-          debugDesk("/taskbar/observe/apps") { "firstEmit $pureChannel=>${request.body.toPureString()}" }
+          debugDesk("/taskbar/observe/apps") { "firstEmit =>${request.body.toPureString()}" }
           taskBarController.updateSignal.emit()
         },
         // 监听所有taskbar状态

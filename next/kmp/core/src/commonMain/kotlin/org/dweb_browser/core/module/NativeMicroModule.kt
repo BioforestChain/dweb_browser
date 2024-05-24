@@ -164,7 +164,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
       onConnect.listen { connectEvent ->
         val (clientIpc) = connectEvent.consume()
         debugMM("onConnect-start", clientIpc)
-        clientIpc.onRequest("file-dweb-router").collectIn(mmScope) { event ->
+        clientIpc.onRequest("routes").collectIn(mmScope) { event ->
           val ipcRequest = event.consumeFilter {
             when (it.uri.protocol.name) {
               "file", "dweb" -> routesCheckAllowDweb(it)
@@ -172,7 +172,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
               else -> false
             }
           } ?: return@collectIn
-          debugMM("NMM/Handler", ipcRequest.url)
+          debugMM("NMM/Handler-start", ipcRequest.url)
           /// 根据host找到对应的路由模块
           val routers = protocolRouters[ipcRequest.uri.host] ?: protocolRouters["*"]
           val request = ipcRequest.toPure()
@@ -188,12 +188,12 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
             }
           }
 
-          clientIpc.postResponse(ipcRequest.reqId,
-            response ?: runCatching {
-              routesNotFound(ctx)
-            }.getOrElse {
-              ctx.defaultRoutesNotFound(it)
-            })
+          clientIpc.postResponse(ipcRequest.reqId, response ?: runCatching {
+            routesNotFound(ctx)
+          }.getOrElse {
+            ctx.defaultRoutesNotFound(it)
+          })
+          debugMM("NMM/Handler-done", ipcRequest.url)
         }
 
         /// 在 NMM 这里，只要绑定好了，就可以开始握手通讯

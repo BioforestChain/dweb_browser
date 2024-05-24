@@ -37,6 +37,7 @@ const createProcess = async (
   const process_id = allocProcessId();
   try {
     Object.assign(fetch_port, { __id__: `fetch-ipc:${process_name}` });
+    // deno-lint-ignore no-empty
   } catch (_) {}
   const worker_url = URL.createObjectURL(
     new Blob(

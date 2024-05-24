@@ -8,6 +8,7 @@ import org.dweb_browser.core.std.file.ext.moveFile
 import org.dweb_browser.core.std.file.ext.realPath
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.ImageResource
+import org.dweb_browser.helper.falseAlso
 import org.dweb_browser.pure.http.PureMethod
 
 val debugZip = Debugger("ZipManager")
@@ -24,7 +25,7 @@ class ZipNMM : NativeMicroModule("zip.browser.dweb", "Zip") {
   inner class ZipRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
     override suspend fun _bootstrap() {
       routes(
-        "/decompress" bind PureMethod.GET by defineBooleanResponse {
+        "/decompress" bind PureMethod.GET by defineEmptyResponse {
           val sourcePath = realPath(request.query("sourcePath"))
           val targetPath = realPath(request.query("targetPath"))
           // 先解压到一个临时目录
@@ -34,9 +35,11 @@ class ZipNMM : NativeMicroModule("zip.browser.dweb", "Zip") {
           // 开始解压
           val ok = decompress(sourcePath.toString(), tmpPath.toString())
           if (!ok) {
-            return@defineBooleanResponse false
+            throwException(message = "decompress fail")
           }
-          return@defineBooleanResponse moveFile(tmpVfsPath, targetPath.toString())
+          moveFile(tmpVfsPath, targetPath.toString()).falseAlso {
+            throwException(message = "moveFile fail")
+          }
         }
       )
     }

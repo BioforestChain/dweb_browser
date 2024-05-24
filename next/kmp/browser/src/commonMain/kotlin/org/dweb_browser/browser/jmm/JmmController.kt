@@ -142,6 +142,7 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
     // 不管是否替换的，都进行一次存储新状态，因为需要更新下载状态
     installerController.installMetadata = metadata
   }
+
   /**尝试更新元数据*/
   private suspend fun updateMetadata(originUrl: String, newMetadata: JmmMetadata): JmmMetadata {
     val mmid = newMetadata.manifest.id
@@ -281,17 +282,19 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
     var jmm = task.url.substring(task.url.lastIndexOf("/") + 1)
     jmm = jmm.substring(0, jmm.lastIndexOf("."))
     val sourcePath = task.filepath
-    val targetPath = jmmNMM.pickFile("/data/apps/$jmm")
 
     // 用于校验jmmApp下载文件是不是完整
     if (!jmmAppHashVerify(jmmNMM, jmmMetadata, sourcePath)) {
+      debugJMM("decompress", "校验失败")
       return false
     }
 
-    return jmmNMM.nativeFetch(buildUrlString("file://zip.browser.dweb/decompress") {
+    val targetPath = jmmNMM.pickFile("/data/apps/$jmm")
+    val decompressRes = jmmNMM.nativeFetch(buildUrlString("file://zip.browser.dweb/decompress") {
       parameters.append("sourcePath", sourcePath)
       parameters.append("targetPath", targetPath)
-    }).boolean().trueAlso {
+    })
+    return decompressRes.isOk.trueAlso {
       // 保存 session（记录安装时间） 和 metadata （app数据源）
       jmmNMM.writeFile(
         path = "/data/apps/$jmm/usr/sys/metadata.json",
@@ -305,6 +308,8 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
           put("installUrl", JsonPrimitive(jmmMetadata.originUrl))
         }))
       )
+    }.falseAlso {
+      debugJMM("decompress", "解压失败", "${decompressRes.status} ${decompressRes.text()}")
     }
   }
 
