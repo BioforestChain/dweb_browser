@@ -1,8 +1,5 @@
 package org.dweb_browser.sys.permission
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.GppBad
@@ -25,38 +22,26 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.std.permission.AuthorizationRecord
 import org.dweb_browser.core.std.permission.AuthorizationStatus
 import org.dweb_browser.core.std.permission.PermissionTable
 import org.dweb_browser.helper.compose.NoDataRender
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
+import org.dweb_browser.sys.window.core.WindowContentScaffold
+import org.dweb_browser.sys.window.render.LocalWindowController
 
 @Composable
 fun PermissionManagerRender(
   modifier: Modifier,
   windowRenderScope: WindowContentRenderScope,
-  table: PermissionTable
+  table: PermissionTable,
 ) {
-  Column(windowRenderScope.run {
-    modifier
-      .fillMaxSize()
-      .requiredSize((width / scale).dp, (height / scale).dp) // 原始大小
-      .scale(scale)
-  }) {
+  windowRenderScope.WindowContentScaffold(topBarTitle = PermissionI18nResource.record_list_title()) {
     for (item in table.AllData().also {
       if (it.isEmpty()) {
         NoDataRender(PermissionI18nResource.no_record())
-      } else {
-        ListItem(headlineContent = {
-          Text(
-            PermissionI18nResource.record_list_title(),
-            style = MaterialTheme.typography.titleLarge,
-          )
-        })
       }
     }) {
       ListItem(

@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -22,6 +21,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -30,21 +30,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
-import org.dweb_browser.browser.common.CommonSimpleTopBar
 import org.dweb_browser.browser.jmm.JmmHistoryController
 import org.dweb_browser.browser.jmm.JmmMetadata
 import org.dweb_browser.browser.jmm.JmmStatus
@@ -53,42 +49,69 @@ import org.dweb_browser.helper.compose.LazySwipeColumn
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.compose.produceEvent
 import org.dweb_browser.helper.formatDatestampByMilliseconds
+import org.dweb_browser.helper.platform.theme.dimens
 import org.dweb_browser.helper.toSpaceSize
 import org.dweb_browser.pure.image.compose.CoilAsyncImage
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
+import org.dweb_browser.sys.window.core.WindowContentScaffold
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun JmmHistoryController.ManagerViewRender(
-  modifier: Modifier, windowRenderScope: WindowContentRenderScope
+  modifier: Modifier, windowRenderScope: WindowContentRenderScope,
 ) {
-  val scope = rememberCoroutineScope()
   var curTab by remember { mutableStateOf(JmmTabs.NoInstall) }
-
-  Column(modifier = windowRenderScope.run {
-    modifier
-      .fillMaxSize()
-      .requiredSize((width / scale).dp, (height / scale).dp) // 原始大小
-      .scale(scale)
-  }) {
-    CommonSimpleTopBar(BrowserI18nResource.top_bar_title_install()) {
-      scope.launch { this@ManagerViewRender.hideView() }
-    }
-
-    SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-      JmmTabs.entries.forEachIndexed { index, jmmTab ->
-        SegmentedButton(
-          selected = index == curTab.index,
-          onClick = { curTab = JmmTabs.entries[index] },
-          shape = RoundedCornerShape(16.dp),
-          icon = { Icon(imageVector = jmmTab.vector, contentDescription = jmmTab.title()) },
-          label = { Text(text = jmmTab.title()) }
-        )
+  windowRenderScope.WindowContentScaffold(topBarTitle = BrowserI18nResource.top_bar_title_install()) { innerPadding ->
+    Column(
+      modifier = Modifier.padding(innerPadding),
+      verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+      SingleChoiceSegmentedButtonRow(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = MaterialTheme.dimens.medium)
+      ) {
+        JmmTabs.entries.forEachIndexed { index, jmmTab ->
+          SegmentedButton(
+            shape = SegmentedButtonDefaults.itemShape(
+              index = index,
+              count = JmmTabs.entries.size
+            ),
+            onClick = { curTab = JmmTabs.entries[index] },
+            selected = index == curTab.index,
+            icon = { Icon(imageVector = jmmTab.vector, contentDescription = jmmTab.title()) },
+            label = { Text(text = jmmTab.title()) }
+          )
+        }
       }
-    }
 
-    JmmTabsView(curTab)
+      JmmTabsView(curTab)
+    }
   }
+//  Column(modifier = windowRenderScope.run {
+//    modifier
+//      .fillMaxSize()
+//      .requiredSize((width / scale).dp, (height / scale).dp) // 原始大小
+//      .scale(scale)
+//  }) {
+//    CommonSimpleTopBar(BrowserI18nResource.top_bar_title_install()) {
+//      scope.launch { this@ManagerViewRender.hideView() }
+//    }
+//
+//    SingleChoiceSegmentedButtonRow(
+//      modifier = Modifier.fillMaxWidth().paddingFrom(Alignment.Start)
+//    ) {
+//      JmmTabs.entries.forEachIndexed { index, jmmTab ->
+//        SegmentedButton(
+//          shape = SegmentedButtonDefaults.itemShape(index = index, count = JmmTabs.entries.size),
+//          onClick = { curTab = JmmTabs.entries[index] },
+//          selected = index == curTab.index,
+//          icon = { Icon(imageVector = jmmTab.vector, contentDescription = jmmTab.title()) },
+//          label = { Text(text = jmmTab.title()) }
+//        )
+//      }
+//    }
+//
+//    JmmTabsView(curTab)
+//  }
 }
 
 @Composable
@@ -121,7 +144,7 @@ fun JmmViewItem(
   jmmMetadata: JmmMetadata,
   buttonClick: () -> Unit,
   uninstall: () -> Unit,
-  detail: () -> Unit
+  detail: () -> Unit,
 ) {
   var showMore by remember(jmmMetadata) { mutableStateOf(false) }
 
