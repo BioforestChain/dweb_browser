@@ -56,7 +56,6 @@ import org.dweb_browser.helper.formatDatestampByMilliseconds
 import org.dweb_browser.helper.toSpaceSize
 import org.dweb_browser.pure.image.compose.CoilAsyncImage
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
-import org.dweb_browser.sys.window.render.LocalWindowController
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -65,10 +64,6 @@ fun JmmHistoryController.ManagerViewRender(
 ) {
   val scope = rememberCoroutineScope()
   var curTab by remember { mutableStateOf(JmmTabs.NoInstall) }
-  val win = LocalWindowController.current
-  win.GoBackHandler {
-    win.hide()
-  }
 
   Column(modifier = windowRenderScope.run {
     modifier

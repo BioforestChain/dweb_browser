@@ -34,7 +34,6 @@ import org.dweb_browser.core.std.permission.AuthorizationStatus
 import org.dweb_browser.core.std.permission.PermissionTable
 import org.dweb_browser.helper.compose.NoDataRender
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
-import org.dweb_browser.sys.window.render.LocalWindowController
 
 @Composable
 fun PermissionManagerRender(
@@ -42,10 +41,6 @@ fun PermissionManagerRender(
   windowRenderScope: WindowContentRenderScope,
   table: PermissionTable
 ) {
-  val win = LocalWindowController.current
-  win.GoBackHandler {
-    win.hide()
-  }
   Column(windowRenderScope.run {
     modifier
       .fillMaxSize()
