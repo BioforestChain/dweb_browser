@@ -237,13 +237,13 @@ fun NewDesktopView(
 
       Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeContent)
+        modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeContent).padding(top = desktopTap())
           .noRippleClickable {
             doHideKeyboard()
           }
       ) {
 
-        desktopSearchBar(modifier = Modifier.blur(blurValue.dp), ::doSearch, ::doHideKeyboard)
+        desktopSearchBar(modifier = Modifier.windowInsetsPadding(WindowInsets.safeGestures).blur(blurValue.dp), ::doSearch, ::doHideKeyboard)
 
         LazyVerticalGrid(
           columns = desktopGridLayout(),
@@ -454,6 +454,7 @@ private fun moreAppItemsDisplay(displays: List<MoreAppModel>, dismiss: () -> Uni
 }
 
 expect fun desktopGridLayout(): GridCells
+expect fun desktopTap(): Dp
 
 @Composable
 fun moreAppDisplay(
@@ -501,8 +502,9 @@ fun desktopSearchBar(modifier: Modifier, search: (String) -> Unit, hideKeyBoad: 
   var transition = updateTransition(expand, "search bar expand")
   var searchIconOffset = transition.animateIntOffset {
     if (it > 0) {
-
-      IntOffset(-(it * searchBarWR / 2.0 - 40).toInt(), 0)
+      val density = LocalDensity.current.density
+      //30指的是size = 30.dp, 这边需要重新将dp转为px
+      IntOffset(-(it * searchBarWR / 2.0 - 30 * density / 2.0 - 5).toInt(), 0)
     } else {
       IntOffset.Zero
     }
@@ -514,7 +516,6 @@ fun desktopSearchBar(modifier: Modifier, search: (String) -> Unit, hideKeyBoad: 
       0.5F
     }
   }
-
 
   fun doSearchTirggleAnimation(on: Boolean, searchTextFieldWidth: Int) {
     expand = if (on) searchTextFieldWidth.toFloat() else 0F
@@ -544,10 +545,9 @@ fun desktopSearchBar(modifier: Modifier, search: (String) -> Unit, hideKeyBoad: 
             imageVector = Icons.Outlined.Search,
             contentDescription = null,
             tint = Color.White,
-            modifier = Modifier.offset {
+            modifier = Modifier.size(30.dp).offset {
               searchIconOffset.value
             }
-              .padding(8.dp)
           )
 
           Box(

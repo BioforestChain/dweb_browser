@@ -1,6 +1,7 @@
 package org.dweb_browser.browser.desk
 
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -41,3 +42,5 @@ actual suspend fun loadApplicationNewVersion(): NewVersionItem? {
 }
 
 actual fun desktopGridLayout(): GridCells = GridCells.Fixed(4)
+
+actual fun desktopTap(): Dp = 0.dp

@@ -1,6 +1,7 @@
 package org.dweb_browser.browser.desk
 
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import org.dweb_browser.browser.desk.upgrade.NewVersionItem
 import org.dweb_browser.helper.WARNING
@@ -49,3 +50,4 @@ actual suspend fun loadApplicationNewVersion(): NewVersionItem? {
 }
 
 actual fun desktopGridLayout(): GridCells = GridCells.FixedSize(100.dp)
+actual fun desktopTap(): Dp = 20.dp
