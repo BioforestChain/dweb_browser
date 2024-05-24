@@ -223,6 +223,11 @@ export class JsProcessMicroModuleRuntime extends MicroModuleRuntime {
         void fileIpc.start();
         return fileIpc;
       }
+      case "permission.std.dweb": {
+        const permissionIpc = await this.permissionIpcPo;
+        void permissionIpc.start();
+        return permissionIpc;
+      }
     }
     return await super.connect(mmid, auto_start);
   }
@@ -305,6 +310,7 @@ export class JsProcessMicroModuleRuntime extends MicroModuleRuntime {
   readonly ipcPool;
   readonly fetchIpc;
   readonly fileIpcPo;
+  readonly permissionIpcPo;
   readonly meta;
 
   constructor(
@@ -315,13 +321,12 @@ export class JsProcessMicroModuleRuntime extends MicroModuleRuntime {
 
     this.ipcPool = this.microModule.ipcPool;
     this.fetchIpc = this.microModule.fetchIpc;
-
-    this.fileIpcPo = (() => {
-      const waiter = this.fetchIpc.onEvent("wait-file-ipc-pid");
+    const waitProxyIpcTunnel = (key: string) => {
+      const waiter = this.fetchIpc.onEvent(`wait-${key}-ipc-pid`);
       const pid_po = new PromiseOut<number>();
       waiter.collect((event) => {
         event.consumeFilter((ipcEvent) => {
-          if (ipcEvent.name === "file-ipc-pid") {
+          if (ipcEvent.name === `${key}-ipc-pid`) {
             pid_po.resolve(parseInt(core.IpcEvent.text(ipcEvent)));
             waiter.close();
             return true;
@@ -335,7 +340,10 @@ export class JsProcessMicroModuleRuntime extends MicroModuleRuntime {
           return fileIpc;
         });
       });
-    })();
+    };
+
+    this.fileIpcPo = waitProxyIpcTunnel("file");
+    this.permissionIpcPo = waitProxyIpcTunnel("permission");
     this.connectionLinks.add(this.fetchIpc);
     this.meta = this.microModule.meta;
 

@@ -388,7 +388,7 @@ class Ipc internal constructor(
         // 消耗掉
         val response = event.consume()
         val result = reqResMap.remove(response.reqId) ?: return@collectIn debugIpc(
-          "reqResMap", "onResponse", "no found response by reqId: ${event.data.reqId}"
+          "reqResMap", "onResponse", "no found response [${event.data}]  by reqId: ${event.data.reqId}"
         )
         result.complete(response)
       }

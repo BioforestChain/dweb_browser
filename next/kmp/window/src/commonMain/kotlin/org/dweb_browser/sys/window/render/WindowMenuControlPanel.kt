@@ -8,6 +8,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Assignment
+import androidx.compose.material.icons.automirrored.outlined.HelpCenter
+import androidx.compose.material.icons.automirrored.outlined.VolumeDown
+import androidx.compose.material.icons.automirrored.twotone.Assignment
+import androidx.compose.material.icons.automirrored.twotone.HelpCenter
+import androidx.compose.material.icons.automirrored.twotone.VolumeUp
 import androidx.compose.material.icons.outlined.Assignment
 import androidx.compose.material.icons.outlined.BluetoothDisabled
 import androidx.compose.material.icons.outlined.DarkMode
@@ -206,8 +212,8 @@ fun WindowControlPanel(win: WindowController, modifier: Modifier = Modifier) {
       // 音量控制
       item {
         WindowMenuItem(
-          iconVector = Icons.Outlined.VolumeDown,
-          selectedIconVector = Icons.TwoTone.VolumeUp,
+          iconVector = Icons.AutoMirrored.Outlined.VolumeDown,
+          selectedIconVector = Icons.AutoMirrored.TwoTone.VolumeUp,
           labelText = "音量",
           selected = true,
           enabled = false,
@@ -243,8 +249,8 @@ fun WindowControlPanel(win: WindowController, modifier: Modifier = Modifier) {
       // 使用说明
       item {
         WindowMenuItem(
-          iconVector = Icons.Outlined.HelpCenter,
-          selectedIconVector = Icons.TwoTone.HelpCenter,
+          iconVector = Icons.AutoMirrored.Outlined.HelpCenter,
+          selectedIconVector = Icons.AutoMirrored.TwoTone.HelpCenter,
           labelText = "使用说明",
           enabled = false,
         )
@@ -252,8 +258,8 @@ fun WindowControlPanel(win: WindowController, modifier: Modifier = Modifier) {
       // 更新日志
       item {
         WindowMenuItem(
-          iconVector = Icons.Outlined.Assignment,
-          selectedIconVector = Icons.TwoTone.Assignment,
+          iconVector = Icons.AutoMirrored.Outlined.Assignment,
+          selectedIconVector = Icons.AutoMirrored.TwoTone.Assignment,
           labelText = "更新日志",
           enabled = false,
         )

@@ -58,7 +58,8 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
     const val PATCH = 0
 
     init {
-      val nativeToWhiteList = listOf<MMID>("js.browser.dweb", "file.std.dweb")
+      val nativeToWhiteList =
+        listOf<MMID>("js.browser.dweb", "file.std.dweb", "permission.sys.dweb")
 
       data class MmDirection(
         val startMm: MicroModule,
@@ -134,31 +135,33 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
         tryShutdown()
       }
 
-      /// 提供file.std.dweb的绑定
-      scopeLaunch(cancelable = true) {
-        val fileIpc = connect("file.std.dweb")
-        fileIpc.start(await = false)
-        val fetchIpc2 = jsProcess.fetchIpc.fork(remote = fileIpc.remote)
-        fetchIpc2.start(await = false)
-        fileIpc.onEvent("file~(event)~>fetch").collectIn(mmScope) { msgEvent ->
-          fetchIpc2.postMessage(msgEvent.consume())
+      fun proxyIpcTunnel(remoteMmid: MMID, key: String) = scopeLaunch(cancelable = true) {
+        val conIpc = connect(remoteMmid)
+        conIpc.start(await = false)
+        val proxyIpc = jsProcess.fetchIpc.fork(remote = conIpc.remote)
+        proxyIpc.start(await = false)
+        conIpc.onEvent("$key~(event)~>proxy").collectIn(mmScope) { msgEvent ->
+          proxyIpc.postMessage(msgEvent.consume())
         }
-        fetchIpc2.onEvent("fetch~(event)~>file").collectIn(mmScope) { msgEvent ->
-          fileIpc.postMessage(msgEvent.consume())
+        proxyIpc.onEvent("proxy~(event)~>$key").collectIn(mmScope) { msgEvent ->
+          conIpc.postMessage(msgEvent.consume())
         }
-        fileIpc.onRequest("file~(request)~>fetch").collectIn(mmScope) { msgEvent ->
+        conIpc.onRequest("$key~(request)~>proxy").collectIn(mmScope) { msgEvent ->
           val request = msgEvent.consume()
-          val response = fetchIpc2.request(request.toPure().toClient())
-          fetchIpc2.postResponse(request.reqId, response)
+          val response = proxyIpc.request(request.toPure().toClient())
+          proxyIpc.postResponse(request.reqId, response)
         }
-        fetchIpc2.onRequest("fetch~(request)~>file").collectIn(mmScope) { msgEvent ->
+        proxyIpc.onRequest("proxy~(request)~>$key").collectIn(mmScope) { msgEvent ->
           val request = msgEvent.consume()
-          val response = fileIpc.request(request.toPure().toClient())
-          fetchIpc2.postResponse(request.reqId, response)
+          val response = conIpc.request(request.toPure().toClient())
+          proxyIpc.postResponse(request.reqId, response)
         }
         /// 将pid发送给js
-        jsProcess.fetchIpc.postMessage(IpcEvent.fromUtf8("file-ipc-pid", fetchIpc2.pid.toString()))
+        jsProcess.fetchIpc.postMessage(IpcEvent.fromUtf8("$key-ipc-pid", proxyIpc.pid.toString()))
       }
+      /// 提供file.std.dweb的绑定
+      proxyIpcTunnel("file.std.dweb", "file")
+      proxyIpcTunnel("permission.sys.dweb", "permission")
 
       /**
        * 收到 Worker 的事件，如果是指令，执行一些特定的操作
