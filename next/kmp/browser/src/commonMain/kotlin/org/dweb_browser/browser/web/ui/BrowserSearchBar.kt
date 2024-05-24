@@ -119,36 +119,28 @@ fun BrowserSearchBar(modifier: Modifier) {
       }
     }
 
-    Row(modifier = Modifier.width(onceItemSize * 2)) {
-      // 多窗口预览界面
-      IconButton(onClick = {
-        uiScope.launch {
-          viewModel.focusedPage?.captureView()
-          viewModel.toggleShowPreviewUI(true)
-        }
-      }) {
-        Icon(
-          imageVector = getMultiImageVector(viewModel.pageSize),
-          contentDescription = "Open Preview Panel",
-          modifier = Modifier.size(onceItemSize).padding(6.dp)
-        )
+    // 多窗口预览界面
+    IconButton(modifier = Modifier.size(onceItemSize), onClick = {
+      uiScope.launch {
+        viewModel.focusedPage?.captureView()
+        viewModel.toggleShowPreviewUI(true)
       }
+    }) {
+      Icon(
+        imageVector = getMultiImageVector(viewModel.pageSize),
+        contentDescription = "Open Preview Panel",
+        modifier = Modifier.size(onceItemSize).padding(6.dp)
+      )
+    }
 
-      AnimatedVisibility(
-        visible = viewModel.focusedPage is BrowserWebPage,
-        enter = fadeIn() + slideInHorizontally { fullWidth -> fullWidth },
-        exit = fadeOut() + slideOutHorizontally { fullWidth -> fullWidth }
-      ) {
-        // 功能列表
-        IconButton(onClick = { viewModel.showMore = true }) {
-          BrowserMenuPanel()
-          Icon(
-            imageVector = Icons.Rounded.MoreVert,
-            contentDescription = "Open Menu Panel",
-            modifier = Modifier.size(onceItemSize).padding(4.dp)
-          )
-        }
-      }
+    // 功能列表
+    IconButton(modifier = Modifier.size(onceItemSize), onClick = { viewModel.showMore = true }) {
+      BrowserMenuPanel()
+      Icon(
+        imageVector = Icons.Rounded.MoreVert,
+        contentDescription = "Open Menu Panel",
+        modifier = Modifier.size(onceItemSize).padding(4.dp)
+      )
     }
   }
 }
