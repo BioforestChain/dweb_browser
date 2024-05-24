@@ -3,10 +3,8 @@ package org.dweb_browser.browser.desk
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.animateIntOffset
-import androidx.compose.animation.core.animateIntOffsetAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
@@ -62,7 +60,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
@@ -84,7 +81,6 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Popup
 import coil3.compose.AsyncImage
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.help.types.MMID
@@ -237,13 +233,18 @@ fun NewDesktopView(
 
       Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeContent).padding(top = desktopTap())
+        modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeContent)
+          .padding(top = desktopTap())
           .noRippleClickable {
             doHideKeyboard()
           }
       ) {
 
-        desktopSearchBar(modifier = Modifier.windowInsetsPadding(WindowInsets.safeGestures).blur(blurValue.dp), ::doSearch, ::doHideKeyboard)
+        desktopSearchBar(
+          modifier = Modifier.windowInsetsPadding(WindowInsets.safeGestures).blur(blurValue.dp),
+          ::doSearch,
+          ::doHideKeyboard
+        )
 
         LazyVerticalGrid(
           columns = desktopGridLayout(),
@@ -282,25 +283,31 @@ fun NewDesktopView(
       val height = (popUpApp!!.size!!.height / density) * scale
       Box(contentAlignment = Alignment.TopStart,
         modifier = Modifier.fillMaxSize()
-          .clickable {}
+          .noRippleClickable {
+            doHidePopUp()
+          }
       ) {
+
         Box(
           contentAlignment = Alignment.Center,
           modifier = Modifier
             .size(width = width.dp, height = height.dp).offset(offX.dp, offY.dp)
             .aspectRatio(1.0f)
             .background(color = Color.White, shape = RoundedCornerShape(16.dp))
+            .noRippleClickable {
+              doOpen(popUpApp!!.mmid)
+              doHidePopUp()
+            }
         ) {
           Image(popUpApp!!.image!!, contentDescription = null)
         }
 
-        Popup(
-          onDismissRequest = ::doHidePopUp,
-          offset = IntOffset(
+        Box(modifier = Modifier.offset {
+          IntOffset(
             x = (offX * density).toInt(),
             y = ((offY + height + 15) * density).toInt()
           )
-        ) {
+        }) {
           moreAppDisplay(popUpApp!!, ::doQuit, ::doDetail, ::doUninstall, ::doShare, ::doHidePopUp)
         }
       }
@@ -576,14 +583,14 @@ fun desktopSearchBar(modifier: Modifier, search: (String) -> Unit, hideKeyBoad: 
 
 @Composable
 fun desktopBackgroundView(modifier: Modifier) {
-  Box(modifier = modifier.fillMaxSize().background(color = Color.Transparent)) {
-  //TODO: Mike 这边需要设置背景图片。
-  //    AsyncImage(
-  //      "https://images.pexels.com/photos/22866338/pexels-photo-22866338.jpeg",
-  //      contentDescription = null,
-  //      contentScale = ContentScale.FillBounds
-  //    )
-  }
+//  Box(modifier = modifier.fillMaxSize().background(color = Color.Transparent)) {
+//    //TODO: Mike 这边需要设置背景图片。
+//    AsyncImage(
+//      "https://images.pexels.com/photos/22866338/pexels-photo-22866338.jpeg",
+//      contentDescription = null,
+//      contentScale = ContentScale.FillWidth
+//    )
+//  }
 }
 
 data class DesktopAppModel(
