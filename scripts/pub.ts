@@ -69,6 +69,18 @@ export const doUpdatePackage = async (inputConfigFile: string, target: string) =
     {}
   );
   await doPublish(config.buildToRootDir);
+  await asyncNpmMirror(config.name);
+};
+const SYNCS_NPM_NIRROR = "https://registry-direct.npmmirror.com/-/package/";
+const asyncNpmMirror = async (name: string) => {
+  const path = SYNCS_NPM_NIRROR + `${name}/syncs`;
+  const res = await fetch(path, { method: "PUT" });
+  const result = await res.json();
+  if (result.ok) {
+    console.log("🏆npm_nirror 镜像站同步成功", `状态：${result.state}`);
+  } else {
+    console.log("💢npm_nirror 同步失败", result);
+  }
 };
 
 export const doPub = async (args = Deno.args) => {
