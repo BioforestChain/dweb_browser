@@ -430,9 +430,10 @@ dweb-wallpaper {
   border-radius: 50%;
   overflow: hidden;
 
+  background: radial-gradient(circle at 26% 26%, #fff 0%, rgb(51 51 51 / 70%) 100%);
   box-shadow:
-    1px 1px 5px -2px rgb(0 0 0 / 50%),
-    -1px -1px 5px -2px rgb(255 255 255 / 50%);
+    -2px -2px 4px -2px rgb(255 255 255 / 50%),
+    2px 2px 4px -2px rgb(0 0 0 / 50%);
 }
 
 button {
