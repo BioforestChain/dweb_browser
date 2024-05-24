@@ -54,6 +54,10 @@ export interface $WindowState {
    */
   focus: boolean;
   /**
+   * 是否可见
+   */
+  visible: boolean;
+  /**
    * 当前窗口层叠顺序
    */
   zIndex: Int;
@@ -143,7 +147,7 @@ export interface $WindowState {
  *
  * 窗口关闭
  */
-export type $WindowMode = "floating" | "maximize" | "minimize" | "fullscreen" | "picture-in-picture" | "closed";
+export type $WindowMode = "floating" | "maximize" | "minimize" | "fullscreen" | "picture-in-picture";
 
 export interface $Rectangle {
   left: Int;

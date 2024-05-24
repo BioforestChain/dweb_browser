@@ -143,7 +143,7 @@ const isFocusTaskBar = ref(false);
 const signalIcon = computed(() => {
   // 寻找符合调教的应用
   const findApp = appRefList.value.find((app) =>
-    app.metaData.winStates.find((win) => win.mode === "maximize" && win.focus),
+    app.metaData.winStates.find((win) => win.mode === "maximize" && win.focus && win.visible),
   );
   return findApp;
 });

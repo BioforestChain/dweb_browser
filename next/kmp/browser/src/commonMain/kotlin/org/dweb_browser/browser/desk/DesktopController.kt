@@ -17,6 +17,12 @@ import io.ktor.http.Url
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -32,6 +38,7 @@ import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.ENV_SWITCH_KEY
+import org.dweb_browser.helper.OffListener
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.build
 import org.dweb_browser.helper.envSwitch
@@ -39,6 +46,7 @@ import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.helper.platform.IPureViewController
 import org.dweb_browser.helper.platform.from
 import org.dweb_browser.helper.resolvePath
+import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.render.NativeBackHandler
 
 @Stable
@@ -133,12 +141,18 @@ open class DesktopController private constructor(
   }
 
   // 状态更新信号
-  internal val updateSignal = SimpleSignal()
-  val onUpdate = updateSignal.toListener()
+  internal val updateFlow = MutableSharedFlow<Unit>()
+  val onUpdate = channelFlow {
+    updateFlow.conflate().collect {
+      delay(100)
+      send(it)
+    }
+    close()
+  }.shareIn(deskNMM.getRuntimeScope(), started = SharingStarted.Eagerly)
 
   init {
     runningApps.onChange { map ->
-      updateSignal.emit()
+      updateFlow.emit(Unit)
     }
   }
 
@@ -170,13 +184,30 @@ open class DesktopController private constructor(
   suspend fun getDesktopWindowsManager() = wmLock.withLock {
     val vc = this.activity!!
     DesktopWindowsManager.getOrPutInstance(vc, IPureViewBox.from(vc)) { dwm ->
-      dwm.hasMaximizedWins.onChange { updateSignal.emit() }
+      dwm.hasMaximizedWins.onChange { updateFlow.emit(Unit) }
+
+      val watchWindows = mutableMapOf<WindowController, OffListener<*>>()
+      fun watchAllWindows() {
+        watchWindows.keys.subtract(dwm.allWindows.keys).forEach { win ->
+          watchWindows.remove(win)?.invoke()
+        }
+        for (win in dwm.allWindows.keys) {
+          if (watchWindows.contains(win)) {
+            continue
+          }
+          watchWindows[win] = win.state.observable.onChange {
+            updateFlow.emit(Unit)
+          }
+        }
+      }
 
       /// 但有窗口信号变动的时候，确保 MicroModule.IpcEvent<Activity> 事件被激活
       dwm.allWindows.onChange {
-        updateSignal.emit()
+        watchAllWindows()
+        updateFlow.emit(Unit)
         _activitySignal.emit()
       }.removeWhen(dwm.viewController.lifecycleScope)
+      watchAllWindows()
 
       preDesktopWindowsManager?.also { preDwm ->
         deskNMM.scopeLaunch(Dispatchers.Main, cancelable = true) {

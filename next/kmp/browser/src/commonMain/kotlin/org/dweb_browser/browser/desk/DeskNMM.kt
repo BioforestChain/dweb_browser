@@ -255,20 +255,20 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         },
         // 监听所有app数据
         "/desktop/observe/apps" byChannel { ctx ->
-          val off = desktopController.onUpdate {
-//          debugDesk("/desktop/observe/apps", "onUpdate")
+          val job = desktopController.onUpdate.collectIn(mmScope) {
+            // debugDesk("/desktop/observe/apps", "onUpdate")
             try {
               val apps = desktopController.getDesktopApps()
-//            debugDesk("/desktop/observe/apps") { "apps:$apps" }
+              // debugDesk("/desktop/observe/apps") { "apps:$apps" }
               ctx.sendJsonLine(apps)
             } catch (e: Throwable) {
               close(cause = e)
             }
           }
           onClose {
-            off()
+            job.cancel()
           }
-          desktopController.updateSignal.emit()
+          desktopController.updateFlow.emit(Unit)
         },
         // 获取所有taskbar数据
         "/taskbar/apps" bind PureMethod.GET by defineJsonResponse {

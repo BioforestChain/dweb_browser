@@ -18,6 +18,7 @@ import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.build
+import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.envSwitch
 import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.helper.resolvePath
@@ -102,7 +103,7 @@ class TaskbarController private constructor(
       }
     }
     // 监听窗口状态改变
-    desktopController.onUpdate {
+    desktopController.onUpdate.collectIn(deskNMM.getRuntimeScope()) {
       updateSignal.emit()
     }
   }
