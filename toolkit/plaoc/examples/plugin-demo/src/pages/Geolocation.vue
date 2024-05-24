@@ -36,8 +36,11 @@ async function createLocation() {
   }
 }
 function stop() {
-  controller?.stop();
-  controller = undefined;
+  if (controller !== undefined) {
+    controller.stop();
+    controller = undefined;
+    console.log("location stoped");
+  }
 }
 </script>
 <template>

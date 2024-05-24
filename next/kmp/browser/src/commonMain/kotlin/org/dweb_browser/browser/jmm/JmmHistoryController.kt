@@ -41,7 +41,7 @@ class JmmHistoryController(
 
       JmmStatus.Completed -> {}
       else -> {
-        jmmController.startDownloadTask(historyMetadata)
+        jmmController.startDownloadTaskByUrl(historyMetadata.originUrl)
       }
     }
   }

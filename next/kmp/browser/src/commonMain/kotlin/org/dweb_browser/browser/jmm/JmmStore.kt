@@ -22,7 +22,11 @@ import org.dweb_browser.helper.compose.SimpleI18nResource
 import org.dweb_browser.helper.datetimeNow
 
 @Serializable
-data class JsMicroModuleDBItem(val installManifest: JmmAppInstallManifest, val originUrl: String)
+data class JsMicroModuleDBItem(val installManifest: JmmAppInstallManifest, val originUrl: String) {
+  val jmmMetadata by lazy {
+    installManifest.createJmmMetadata(originUrl)
+  }
+}
 
 class JmmStore(microModule: MicroModule.Runtime) {
   private val storeApp = microModule.createStore("jmm_apps", false)
@@ -81,7 +85,7 @@ data class JmmMetadata(
   var taskId: TaskId? = null, // 用于保存下载任务，下载完成置空
   @SerialName("state")
   private var _state: JmmStatusEvent = JmmStatusEvent(), // 用于显示下载状态
-  val installTime: Long = datetimeNow(), // 表示安装应用的时间
+  var installTime: Long = datetimeNow(), // 表示安装应用的时间
   var upgradeTime: Long = datetimeNow(),
 ) {
   var state by ObservableMutableState(_state) { _state = it }

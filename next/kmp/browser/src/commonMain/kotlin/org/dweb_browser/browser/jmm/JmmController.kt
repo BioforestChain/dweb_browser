@@ -23,6 +23,7 @@ import org.dweb_browser.browser.download.ext.removeDownload
 import org.dweb_browser.browser.download.ext.startDownload
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MMID
+import org.dweb_browser.core.http.router.ResponseException
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.file.ext.pickFile
 import org.dweb_browser.core.std.file.ext.readFile
@@ -101,13 +102,34 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
     val mmid = metadata.manifest.id
     val installerController = installViews.getOrPut(mmid) {
       JmmInstallerController(
-        jmmNMM = jmmNMM,
-        metadata = metadata,
-        jmmController = this@JmmController
+        jmmNMM = jmmNMM, metadata = metadata, jmmController = this@JmmController
       )
     }
     installerController.openRender()
     return installerController
+  }
+
+  suspend fun fetchJmmMetadata(metadataUrl: String): JmmMetadata {
+    val response = jmmNMM.nativeFetch(metadataUrl)
+    if (!response.isOk) {
+      throw ResponseException(code = response.status)
+    }
+    val manifest = response.json<JmmAppInstallManifest>()
+
+    val baseURI = when (manifest.baseURI?.isWebUrl()) {
+      true -> manifest.baseURI!!
+      else -> when (val baseUri = manifest.baseURI) {
+        null -> metadataUrl
+        else -> buildUrlString(metadataUrl) { resolvePath(baseUri) }
+      }.also { uri ->
+        manifest.baseURI = uri
+      }
+    }
+    // 如果bundle_url没有host
+    if (!manifest.bundle_url.isWebUrl()) {
+      manifest.bundle_url = buildUrlString(baseURI) { resolvePath(manifest.bundle_url) }
+    }
+    return manifest.createJmmMetadata(metadataUrl)
   }
 
   /**
@@ -116,35 +138,19 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
    * @openHistoryMetadata 元数据
    * @fromHistory 是否是
    */
-  suspend fun openInstallerView(
-    originUrl: String,
-    newMetadata: JmmMetadata,
-  ) {
-    debugJMM("openInstallerView", "$originUrl, $newMetadata")
-    val installManifest = newMetadata.manifest
-    val baseURI = when (installManifest.baseURI?.isWebUrl()) {
-      true -> installManifest.baseURI!!
-      else -> when (val baseUri = installManifest.baseURI) {
-        null -> originUrl
-        else -> buildUrlString(originUrl) { resolvePath(baseUri) }
-      }.also { uri ->
-        installManifest.baseURI = uri
-      }
-    }
-    // 如果bundle_url没有host
-    if (!installManifest.bundle_url.isWebUrl()) {
-      installManifest.bundle_url =
-        baseURI.replace("metadata.json", installManifest.bundle_url.substring(2))
-    }
-    debugJMM("openInstallerView", installManifest.bundle_url)
-    val metadata = updateMetadata(originUrl, newMetadata)
-    val installerController = openBottomSheet(metadata)
+  suspend fun openInstallerView(newMetadata: JmmMetadata) {
+    debugJMM("openInstallerView", newMetadata.manifest.bundle_url)
+    compareLocalMetadata(newMetadata)
+    val installerController = openBottomSheet(newMetadata)
     // 不管是否替换的，都进行一次存储新状态，因为需要更新下载状态
-    installerController.installMetadata = metadata
+    installerController.installMetadata = newMetadata
   }
 
-  /**尝试更新元数据*/
-  private suspend fun updateMetadata(originUrl: String, newMetadata: JmmMetadata): JmmMetadata {
+  /**
+   * 对比本地已经存在的数据，从而更新这个 JmmMetadata 的一些相关状态。
+   * 并按需触发数据库保存
+   **/
+  private suspend fun compareLocalMetadata(newMetadata: JmmMetadata, save: Boolean = true) {
     val mmid = newMetadata.manifest.id
     // 拿到已经安装过的准备对比
     val oldMM = jmmNMM.bootstrapContext.dns.query(mmid)
@@ -152,21 +158,14 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
     debugJMM("openInstallerView", "installMM=${oldMetadata?.manifest?.version}")
     // 从未安装过，直接替换成当前的，不考虑是否比历史列表高
     if (oldMetadata == null || oldMM == null) {
-      saveMetadata(newMetadata)
-      return newMetadata
+      if (save) {
+        saveMetadata(newMetadata)
+      }
+      return
     }
-    return diffVersion(originUrl, newMetadata.manifest, oldMetadata)
-  }
 
-  /**
-   * 如果历史已经存在该应用，判断版本如果高于历史，替换历史版本
-   * */
-  private suspend fun diffVersion(
-    originUrl: String,
-    newManifest: JmmAppInstallManifest,
-    oldMetadata: JmmMetadata
-  ): JmmMetadata {
     val oldManifest = oldMetadata.manifest
+    val newManifest = newMetadata.manifest
     // 比安装高，直接进行替换
     if (newManifest.version.isGreaterThan(oldManifest.version)) {
       oldVersion = oldMetadata.manifest.version
@@ -177,16 +176,19 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
       if (oldMetadata.state.state.valueIn(JmmStatus.Downloading, JmmStatus.Paused)) {
         oldMetadata.taskId?.let { taskId -> jmmNMM.cancelDownload(taskId) }
       }
-      val differentMetadata = newManifest.createJmmMetadata(
-        originUrl, JmmStatus.NewVersion, session?.installTime ?: datetimeNow()
-      )
-      saveMetadata(differentMetadata)
+
+      newMetadata.state = JmmStatusEvent(state = JmmStatus.NewVersion)
+      newMetadata.installTime = session?.installTime ?: datetimeNow()
+      if (save) {
+        saveMetadata(newMetadata)
+      }
+      return
     }
     // 版本相同
-    return if (newManifest.version == oldManifest.version) {
-      newManifest.createJmmMetadata(originUrl, JmmStatus.INSTALLED)
+    if (newManifest.version == oldManifest.version) {
+      newMetadata.state = JmmStatusEvent(state = JmmStatus.INSTALLED)
     } else { // 比安装的应用版本还低的，直接不能安装，提示版本过低，不存储
-      newManifest.createJmmMetadata(originUrl, JmmStatus.VersionLow)
+      newMetadata.state = JmmStatusEvent(state = JmmStatus.VersionLow)
     }
   }
 
@@ -195,8 +197,7 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
     debugJMM("saveMetadata", differentMetadata)
     historyMetadataMaps[differentMetadata.manifest.id] = differentMetadata
     jmmStore.saveMetadata(
-      differentMetadata.manifest.id,
-      differentMetadata
+      differentMetadata.manifest.id, differentMetadata
     )
   }
 
@@ -225,10 +226,20 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
 
   private val downloadLock = Mutex()
 
+
+  suspend fun startDownloadTaskByUrl(originUrl: String) {
+    val metadata = fetchJmmMetadata(originUrl)
+    compareLocalMetadata(metadata)
+    when (val state = metadata.state.state) {
+      JmmStatus.Init -> startDownloadTask(metadata)
+      else -> debugJMM("startDownloadTaskByUrl", "fail to start state=$state url=$originUrl")
+    }
+  }
+
   /**
    * 创建任务并下载，可以判断 taskId 在 download 中是否存在，如果不存在就创建，存在直接下载
    */
-  suspend fun startDownloadTask(metadata: JmmMetadata) = downloadLock.withLock {
+  suspend fun startDownloadTask(metadata: JmmMetadata): Unit = downloadLock.withLock {
     var taskId = metadata.taskId
     if (taskId == null || !jmmNMM.existsDownload(taskId)) {
       val downloadTask = with(metadata.manifest) {
