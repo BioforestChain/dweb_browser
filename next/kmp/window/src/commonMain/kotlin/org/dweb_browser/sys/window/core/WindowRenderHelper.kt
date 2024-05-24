@@ -12,19 +12,23 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.dweb_browser.sys.window.render.LocalWindowController
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WindowContentRenderScope.WindowContentScaffold(
   modifier: Modifier = Modifier,
-  topBar: @Composable () -> Unit = {},
+  topBar: @Composable (scrollBehavior: TopAppBarScrollBehavior) -> Unit = {},
   content: @Composable (PaddingValues) -> Unit,
 ) {
   val windowRenderScope = this
@@ -32,17 +36,18 @@ fun WindowContentRenderScope.WindowContentScaffold(
 //  win.GoBackHandler {
 //    win.hide()
 //  }
+  val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
   Scaffold(
     modifier = windowRenderScope.run {
       modifier
         .fillMaxSize()
         .requiredSize((width / scale).dp, (height / scale).dp) // 原始大小
         .scale(scale)
-    },
+    }.nestedScroll(scrollBehavior.nestedScrollConnection),
     // TODO 添加 ime 的支持
     contentWindowInsets = WindowInsets(0),
     topBar = {
-      topBar()
+      topBar(scrollBehavior)
     },
   ) { innerPadding ->
     content(innerPadding)
@@ -56,7 +61,7 @@ fun WindowContentRenderScope.WindowContentScaffold(
   topBarTitle: String,
   content: @Composable (PaddingValues) -> Unit,
 ) {
-  WindowContentScaffold(modifier, topBar = {
+  WindowContentScaffold(modifier, topBar = { scrollBehavior ->
     val win = LocalWindowController.current
     val uiScope = rememberCoroutineScope()
     TopAppBar(
@@ -79,6 +84,7 @@ fun WindowContentRenderScope.WindowContentScaffold(
           )
         }
       },
+      scrollBehavior = scrollBehavior
     )
   }, content = content)
 }

@@ -1,7 +1,8 @@
 package org.dweb_browser.core.std.permission
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import kotlinx.coroutines.sync.Mutex
@@ -31,16 +32,21 @@ class PermissionTable(private val nmm: NativeMicroModule.NativeRuntime) {
   )
 
   @Composable
-  fun AllData(): MutableList<PermissionRow> {
+  fun AllData(): List<PermissionRow> {
     nmm.debugMM("PermissionTable/AllData")
     // 订阅变动
-    val all = remember { mutableStateListOf<PermissionRow>() }
-    all.clear()
-    for ((permissionId, map) in authorizationMap) {
-      for ((applicantMmid, record) in map) {
-        all += PermissionRow(permissionId, applicantMmid, record)
+    val all by remember {
+      derivedStateOf {
+        mutableListOf<PermissionRow>().also { all ->
+          for ((permissionId, map) in authorizationMap) {
+            for ((applicantMmid, record) in map) {
+              all += PermissionRow(permissionId, applicantMmid, record)
+            }
+          }
+        }
       }
     }
+
     return all
   }
 
