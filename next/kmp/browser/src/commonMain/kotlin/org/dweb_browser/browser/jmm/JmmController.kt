@@ -127,7 +127,8 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
     }
     // 如果bundle_url没有host
     if (!manifest.bundle_url.isWebUrl()) {
-      manifest.bundle_url = buildUrlString(baseURI) { resolvePath(manifest.bundle_url) }
+      manifest.bundle_url =
+        baseURI.replace("metadata.json", manifest.bundle_url.substring(2))
     }
     return manifest.createJmmMetadata(metadataUrl)
   }
