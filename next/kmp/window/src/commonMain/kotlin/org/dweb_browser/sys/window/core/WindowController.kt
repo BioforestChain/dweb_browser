@@ -1,13 +1,7 @@
 package org.dweb_browser.sys.window.core
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.focus.FocusRequester
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -16,9 +10,6 @@ import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.helper.Observable
 import org.dweb_browser.helper.PureRect
 import org.dweb_browser.helper.ReasonLock
-import org.dweb_browser.helper.SimpleSignal
-import org.dweb_browser.helper.WeakHashMap
-import org.dweb_browser.helper.getOrPut
 import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.helper.platform.IPureViewController
 import org.dweb_browser.sys.window.core.constant.LowLevelWindowAPI
@@ -28,59 +19,36 @@ import org.dweb_browser.sys.window.core.constant.WindowMode
 import org.dweb_browser.sys.window.core.constant.WindowPropertyKeys
 import org.dweb_browser.sys.window.core.constant.WindowStyle
 import org.dweb_browser.sys.window.core.constant.debugWindow
+import org.dweb_browser.sys.window.core.helper.WindowNavigation
 import org.dweb_browser.sys.window.core.helper.setDefaultFloatWindowBounds
 import org.dweb_browser.sys.window.core.modal.ModalState
 
-abstract class WindowController(
-  /**
-   * 窗口的基本信息
-   */
+
+open class WindowController(
   val state: WindowState,
-  /**
-   * 传入多窗口管理器，可以不提供，那么由 Controller 自身以缺省的逻辑对 WindowState 进行修改
-   */
-  manager: WindowsManager<*>? = null,
+  val viewBox: IPureViewBox,
 ) {
+  /**
+   * 需要提供一个生命周期对象
+   */
+  open val lifecycleScope = viewBox.lifecycleScope
   override fun toString(): String {
     return "Win(${state.title}@$id)"
   }
-
-  protected var _manager: WindowsManager<*>? = null
 
   internal val _pureViewControllerState = MutableStateFlow<IPureViewController?>(null)
   val pureViewControllerState: StateFlow<IPureViewController?> get() = _pureViewControllerState
   val pureViewController get() = pureViewControllerState.value
 
-  /**
-   * 窗口管理器
-   * 默认情况下，WindowController 的接口只对 Manager 开放，所以如果有需要，请调用 manager 的接口来控制窗口
-   */
-  open val manager get() = _manager
+  val id = state.constants.wid;
+
+
+  private var _manager: WindowsManager<*>? = null
+  open fun getManager() = _manager
+
   open fun upsetManager(manager: WindowsManager<*>?) {
     _manager = manager
   }
-
-  private suspend fun <R> managerRunOr(
-    withManager: (manager: WindowsManager<*>) -> Deferred<R>, orNull: suspend () -> R,
-  ) = when (_manager) {
-    null -> orNull()
-    else -> withManager(_manager!!).await()
-  }
-
-  init {
-    this.upsetManager(manager)
-  }
-
-  /**
-   * 在Android中，一个窗口对象必然附加在某一个Context/Activity中
-   */
-  abstract val viewBox: IPureViewBox
-
-  /**
-   * 需要提供一个生命周期对象
-   */
-  abstract val lifecycleScope: CoroutineScope
-  val id = state.constants.wid;
 
   //#region Focus
   private fun <R> createStateListener(
@@ -98,14 +66,13 @@ abstract class WindowController(
   val onBlur =
     createStateListener(WindowPropertyKeys.Focus, { !focus }) { debugWindow("emit onBlur", this) }
 
-  fun isFocused() = state.focus
-  internal open suspend fun simpleFocus() {
+  val isFocused get() = state.focus
+  open suspend fun focus() {
     state.focus = true
     // 如果窗口聚焦，那么同时要确保可见性
-    simpleToggleVisible(true)
+    show()
   }
 
-  suspend fun focus() = managerRunOr({ it.focusWindow(this) }, { simpleFocus() })
   fun focusInBackground() = lifecycleScope.launch { focus() }
 
   val focusRequester = FocusRequester().also { focusRequester ->
@@ -121,11 +88,10 @@ abstract class WindowController(
     }
   }
 
-  internal open suspend fun simpleBlur() {
+  open suspend fun blur() {
     state.focus = false
   }
 
-  suspend fun blur() = managerRunOr({ it.blurWindow(this) }, { simpleBlur() })
 
   //#endregion Focus
 
@@ -135,38 +101,36 @@ abstract class WindowController(
 
   //#region maximize
 
+  val isMaximized get() = isMaximized()
   fun isMaximized(mode: WindowMode = state.mode) =
     mode == WindowMode.MAXIMIZE || mode == WindowMode.FULLSCREEN
 
 //  fun isMinimized(mode: WindowMode = state.mode) =
 //    mode == WindowMode.MINIMIZE
 
-  fun isFullscreen(mode: WindowMode = state.mode) =
-    mode == WindowMode.FULLSCREEN
+  fun isFullscreen(mode: WindowMode = state.mode) = mode == WindowMode.FULLSCREEN
 
   val onMaximize = createStateListener(WindowPropertyKeys.Mode,
     { isMaximized(mode) }) { debugWindow("emit onMaximize", this) }
 //  val onMinimize = createStateListener(WindowPropertyKeys.Mode,
 //    { isMinimized(mode) }) { debugWindow("emit onMinimize", this) }
 
-  internal open suspend fun simpleMaximize() {
+  open suspend fun maximize() {
     if (!isMaximized()) {
       beforeMaximizeBounds = state.bounds.copy()
       state.mode = WindowMode.MAXIMIZE
     }
   }
 
-//  internal open suspend fun simpleMinimize() {
+//  open suspend fun minimize() {
 //    if (!isMaximized()) {
 //      beforeMinimizeMode = state.mode
 //      state.mode = WindowMode.MINIMIZE
 //    }
 //  }
 
-  suspend fun maximize() = managerRunOr({ it.maximizeWindow(this) }, { simpleMaximize() })
-//  suspend fun minimize() = managerRunOr({ it.minimizeWindow(this) }, { simpleMinimize() })
 
-  fun fullscreen() {
+  suspend fun fullscreen() {
     if (!isFullscreen()) {
       state.mode = WindowMode.FULLSCREEN
     }
@@ -192,7 +156,7 @@ abstract class WindowController(
   /**
    * 取消窗口最大化
    */
-  internal open suspend fun simpleUnMaximize() {
+  open suspend fun unMaximize() {
     if (isMaximized()) {
       // 看看有没有记忆了之前的窗口大小
       when (val value = beforeMaximizeBounds) {
@@ -212,12 +176,11 @@ abstract class WindowController(
     }
   }
 
-  suspend fun unMaximize() = managerRunOr({ it.unMaximizeWindow(this) }, { simpleUnMaximize() })
 
 //  /**
 //   * 取消窗口最小化
 //   */
-//  internal open suspend fun simpleUnMinimize() {
+//   open suspend fun unMinimize() {
 //    if (isMinimized()) {
 //      // 看看有没有记忆了之前的窗口模式
 //      when (val value = beforeMinimizeMode) {
@@ -233,35 +196,31 @@ abstract class WindowController(
 //    }
 //  }
 //
-//  suspend fun unMinimize() = managerRunOr({ it.unMinimizeWindow(this) }, { simpleUnMinimize() })
 
 
   //#endregion maximize
 
   //#region 设置窗口大小
-  internal open suspend fun setBoard(board: SetWindowSize) {
+  open suspend fun setBounds(bounds: SetWindowSize) {
     if (state.mode != WindowMode.FLOAT) {
       state.mode = WindowMode.FLOAT
     }
-    state.resizable = board.resizable
+    state.resizable = bounds.resizable
     // 当有传递的时候再设置
     state.updateMutableBounds {
-      if (board.width != null) {
-        this.width = board.width
+      if (bounds.width != null) {
+        this.width = bounds.width
       }
-      if (board.height != null) {
-        this.height = board.height
+      if (bounds.height != null) {
+        this.height = bounds.height
       }
     }
   }
 
-  suspend fun setBroad(board: SetWindowSize) =
-    managerRunOr({ it.setBroad(this, board) }, { setBoard(board) })
-
   //#endregion
 
   //# region visible
-  fun isVisible() = state.visible
+  val isVisible get() = state.visible
 
   val onVisible = createStateListener(WindowPropertyKeys.Visible, { visible }) {
     debugWindow("emit onVisible", this)
@@ -270,28 +229,28 @@ abstract class WindowController(
     debugWindow("emit onHidden", this)
   }
 
-  internal open suspend fun simpleToggleVisible(visible: Boolean? = null) {
+  open suspend fun toggleVisible(visible: Boolean? = null) {
     val value = visible ?: !state.visible
     if (value != state.visible) {
       state.visible = value
     }
   }
 
-  suspend fun toggleVisible(visible: Boolean? = null) =
-    managerRunOr({ it.toggleVisibleWindow(this, visible) }, { simpleToggleVisible(visible) })
-
-  suspend fun open() = toggleVisible(true)
-  suspend fun hide() = toggleVisible(false)
-
   //#endregion
 
   //#region close
 
-  val onClose = createStateListener(WindowPropertyKeys.Closed,
-    { closed }) { debugWindow("emit onClose", this) }
+  val onClose =
+    createStateListener(WindowPropertyKeys.Closed, { closed }) { debugWindow("emit onClose", this) }
 
   fun isClosed() = state.closed
-  internal open suspend fun simpleClose(force: Boolean = false) {
+
+  /**
+   * 关闭窗口
+   * 一般来来说不要直接使用该核心接口，请使用 tryCloseOrHide 、 closeRoot 等业务接口进行替代
+   */
+  @LowLevelWindowAPI
+  open suspend fun close(force: Boolean = false) {
     if (!force) {
       /// 如果有关闭提示，并且没有显示，那么就显示一下
       if (state.closeTip != null && !state.showCloseTip) {
@@ -302,13 +261,6 @@ abstract class WindowController(
     state.closed = true
   }
 
-  /**
-   * 关闭窗口
-   * 一般来来说不要直接使用该核心接口，请使用 tryCloseOrHide 、 closeRoot 等业务接口进行替代
-   */
-  @LowLevelWindowAPI
-  suspend fun close(force: Boolean = false) =
-    managerRunOr({ it.closeWindow(this, force) }, { simpleClose(force) })
 
   val isMainWindow get() = state.parent == null
 
@@ -319,7 +271,7 @@ abstract class WindowController(
    */
   @OptIn(LowLevelWindowAPI::class)
   suspend fun tryCloseOrHide(force: Boolean = false) {
-    if (isMainWindow) hide()
+    if (isMainWindow) toggleVisible(false)
     else close(force)
   }
 
@@ -350,7 +302,7 @@ abstract class WindowController(
   //#endregion
 
   //#region 窗口样式修饰
-  internal open suspend fun simpleSetStyle(style: WindowStyle) {
+  open suspend fun setStyle(style: WindowStyle) {
     with(style) {
       topBarOverlay?.also { state.topBarOverlay = it }
       bottomBarOverlay?.also { state.bottomBarOverlay = it }
@@ -369,137 +321,35 @@ abstract class WindowController(
     }
   }
 
-  suspend fun setStyle(style: WindowStyle) = managerRunOr({
-    it.windowSetStyle(
-      this, style
-    )
-  }, { simpleSetStyle(style) })
-
-  private val goBackSignal = SimpleSignal()
-  val onGoBack = goBackSignal.toListener()
-
-  private class GoBackRecord private constructor(
-    val onBack: suspend () -> Unit,
-    var enabled: Boolean,
-    var uiScope: CoroutineScope,
-  ) {
-    companion object {
-      private val WM = WeakHashMap<suspend () -> Unit, GoBackRecord>()
-      fun from(onBack: suspend () -> Unit, enabled: Boolean, uiScope: CoroutineScope) =
-        WM.getOrPut(onBack) { GoBackRecord(onBack, enabled, uiScope) }.also {
-          it.enabled = enabled
-          it.uiScope = uiScope
-        }
-    }
-  }
-
-  private val onBackRecords by lazy {
-    mutableStateListOf<GoBackRecord>().also { records ->
-      onGoBack {
-        records.lastOrNull { it.enabled }?.apply {
-          uiScope.launch {
-            onBack()
-          }
-        }
-      }
-    }
-  }
-
-  @Composable
-  fun GoBackHandler(
-    enabled: Boolean = true, onBack: suspend () -> Unit,
-  ) {
-    val uiScope = rememberCoroutineScope()
-    DisposableEffect(this, enabled, onBack) {
-      val record = GoBackRecord.from(onBack, enabled, uiScope)
-      onBackRecords.add(record)
-      state.canGoBack = onBackRecords.any { it.enabled } // onBackRecords.size > 0
-      onDispose {
-        onBackRecords.remove(record)
-        state.canGoBack = if (onBackRecords.isEmpty()) null else onBackRecords.any { it.enabled }
-      }
-    }
-  }
-
-  internal open suspend fun simpleEmitGoBack() {
-    goBackSignal.emit()
-  }
-
-  suspend fun emitGoBack() = managerRunOr({ it.windowEmitGoBack(this) }, { simpleEmitGoBack() })
+  val navigation = WindowNavigation(state)
 
 
-  private val goForwardSignal = SimpleSignal()
-  val onGoForward = goForwardSignal.toListener()
-
-  @Composable
-  fun GoForwardHandler(enabled: Boolean = true, onForward: () -> Unit) {
-    state.canGoForward = enabled
-    DisposableEffect(this, enabled) {
-      val off = goForwardSignal.listen { if (enabled) onForward() }
-      onDispose {
-        state.canGoForward = null
-        off()
-      }
-    }
-  }
-
-
-  internal open suspend fun simpleEmitGoForward() {
-    goForwardSignal.emit()
-  }
-
-  suspend fun emitGoForward() =
-    managerRunOr({ it.windowEmitGoForward(this) }, { simpleEmitGoForward() })
-
-
-  internal open fun simpleHideCloseTip() {
+  open fun hideCloseTip() {
     state.showCloseTip = false
   }
 
-  suspend fun hideCloseTip() =
-    managerRunOr({ it.windowHideCloseTip(this) }, { simpleHideCloseTip() })
 
-  internal open fun simpleToggleMenuPanel(show: Boolean?) {
+  open fun toggleMenuPanel(show: Boolean? = null) {
     state.showMenuPanel = show ?: !state.showMenuPanel
   }
 
-  suspend fun toggleMenuPanel(show: Boolean? = null) =
-    managerRunOr({ it.windowToggleMenuPanel(this, show) }, { simpleToggleMenuPanel(show) })
+  fun hideMenuPanel() = toggleMenuPanel(false)
 
-  suspend fun hideMenuPanel() = toggleMenuPanel(false)
+  fun showMenuPanel() = toggleMenuPanel(true)
 
-  suspend fun showMenuPanel() = toggleMenuPanel(true)
-
-  internal open suspend fun simpleToggleAlwaysOnTop(onTop: Boolean? = null) {
+  internal open suspend fun toggleAlwaysOnTop(onTop: Boolean? = null) {
     state.alwaysOnTop = onTop ?: !state.alwaysOnTop
   }
 
-  suspend fun toggleAlwaysOnTop(onTop: Boolean? = null) =
-    managerRunOr({ it.windowToggleAlwaysOnTop(this, onTop) }, { simpleToggleAlwaysOnTop(onTop) })
-
-  suspend fun disableAlwaysOnTop() = toggleAlwaysOnTop(false)
-
-  suspend fun enableAlwaysOnTop() = toggleAlwaysOnTop(true)
-
-  internal open suspend fun simpleToggleKeepBackground(keepBackground: Boolean? = null) {
+  open suspend fun toggleKeepBackground(keepBackground: Boolean? = null) {
     state.keepBackground = keepBackground ?: !state.keepBackground
   }
 
-  suspend fun toggleKeepBackground(keepBackground: Boolean? = null) =
-    managerRunOr({ it.windowToggleKeepBackground(this, keepBackground) },
-      { simpleToggleKeepBackground(keepBackground) })
 
-  suspend fun disableKeepBackground() = toggleKeepBackground(false)
-
-  suspend fun enableKeepBackground() = toggleKeepBackground(true)
-
-  internal open suspend fun simpleToggleColorScheme(colorScheme: WindowColorScheme? = null) {
+  open suspend fun toggleColorScheme(colorScheme: WindowColorScheme? = null) {
     state.colorScheme = colorScheme ?: state.colorScheme.next()
   }
 
-  suspend fun toggleColorScheme(colorScheme: WindowColorScheme? = null) =
-    managerRunOr({ it.windowToggleColorScheme(this, colorScheme) },
-      { simpleToggleColorScheme(colorScheme) })
 
   private val modalsLock = ReasonLock()
 
@@ -523,7 +373,7 @@ abstract class WindowController(
       modal.safeDestroy(module)
     }
 
-  suspend fun updateModalCloseTip(modalId: String, closeTip: String?) =
+  suspend fun updateModalCloseTip(modalId: String, closeTip: String? = null) =
     modalsLock.withLock("write") {
       val modal = state.modals[modalId] ?: return@withLock false
       modal.closeTip = closeTip
@@ -572,4 +422,24 @@ abstract class WindowController(
       val modal = state.modals[modalId] ?: return@withLock false
       modal.safeClose(module)
     }
+
+
+  suspend fun show() = toggleVisible(true)
+  suspend fun hide() = toggleVisible(false)
+  suspend fun disableAlwaysOnTop() = toggleAlwaysOnTop(false)
+  suspend fun enableAlwaysOnTop() = toggleAlwaysOnTop(true)
+  suspend fun disableKeepBackground() = toggleKeepBackground(false)
+  suspend fun enableKeepBackground() = toggleKeepBackground(true)
+
 }
+
+//expect fun windowController(
+//  /**
+//   * 窗口的基本信息
+//   */
+//  state: WindowState,
+//  /**
+//   * 传入多窗口管理器，可以不提供，那么由 Controller 自身以缺省的逻辑对 WindowState 进行修改
+//   */
+//  manager: WindowsManager<*>? = null,
+//): WindowController<M>

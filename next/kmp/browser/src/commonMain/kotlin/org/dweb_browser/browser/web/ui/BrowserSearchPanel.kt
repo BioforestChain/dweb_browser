@@ -85,7 +85,7 @@ fun BrowserSearchPanel(modifier: Modifier = Modifier):Boolean {
       viewModel.showSearchPage = null
     }
     /// 返回关闭搜索
-    LocalWindowController.current.GoBackHandler {
+    LocalWindowController.current.navigation.GoBackHandler {
       hide()
     }
     var searchTextField by remember(showSearchPage.searchKeyWord, showSearchPage.url) {

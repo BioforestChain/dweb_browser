@@ -122,6 +122,9 @@ class WindowsManagerState(
     WindowManagerPropertyKeys.ImeBoundingRect, PureRect(0f, 0f, 0f, 0f)
   )
 
+  /**
+   * IME 是否可见
+   */
   var imeVisible by observable.observe(WindowManagerPropertyKeys.ImeVisible, false)
 
   /**

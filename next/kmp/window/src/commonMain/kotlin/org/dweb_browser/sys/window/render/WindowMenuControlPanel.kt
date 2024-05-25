@@ -14,7 +14,6 @@ import androidx.compose.material.icons.automirrored.outlined.VolumeDown
 import androidx.compose.material.icons.automirrored.twotone.Assignment
 import androidx.compose.material.icons.automirrored.twotone.HelpCenter
 import androidx.compose.material.icons.automirrored.twotone.VolumeUp
-import androidx.compose.material.icons.outlined.Assignment
 import androidx.compose.material.icons.outlined.BluetoothDisabled
 import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.DataUsage
@@ -25,7 +24,6 @@ import androidx.compose.material.icons.outlined.Feedback
 import androidx.compose.material.icons.outlined.FindReplace
 import androidx.compose.material.icons.outlined.FitScreen
 import androidx.compose.material.icons.outlined.Gavel
-import androidx.compose.material.icons.outlined.HelpCenter
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.LayersClear
@@ -36,9 +34,7 @@ import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material.icons.outlined.Screenshot
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.VerifiedUser
-import androidx.compose.material.icons.outlined.VolumeDown
 import androidx.compose.material.icons.outlined.WifiTetheringOff
-import androidx.compose.material.icons.twotone.Assignment
 import androidx.compose.material.icons.twotone.Bluetooth
 import androidx.compose.material.icons.twotone.DarkMode
 import androidx.compose.material.icons.twotone.DataUsage
@@ -46,7 +42,6 @@ import androidx.compose.material.icons.twotone.DeveloperBoard
 import androidx.compose.material.icons.twotone.DeveloperMode
 import androidx.compose.material.icons.twotone.Feedback
 import androidx.compose.material.icons.twotone.Gavel
-import androidx.compose.material.icons.twotone.HelpCenter
 import androidx.compose.material.icons.twotone.Home
 import androidx.compose.material.icons.twotone.Language
 import androidx.compose.material.icons.twotone.Layers
@@ -55,7 +50,6 @@ import androidx.compose.material.icons.twotone.LocationOn
 import androidx.compose.material.icons.twotone.Person
 import androidx.compose.material.icons.twotone.PushPin
 import androidx.compose.material.icons.twotone.VerifiedUser
-import androidx.compose.material.icons.twotone.VolumeUp
 import androidx.compose.material.icons.twotone.WifiTethering
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue

@@ -16,7 +16,6 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.dwebview.Render
 import org.dweb_browser.dwebview.rememberCanGoBack
 import org.dweb_browser.dwebview.rememberCanGoForward
-import org.dweb_browser.sys.window.render.LocalWindowController
 import org.dweb_browser.sys.window.render.watchedIsMaximized
 
 @Composable
@@ -69,7 +68,7 @@ fun MultiWebViewController.Render(
 @Composable
 private fun MultiWebViewController.LatestEffect(
   viewItem: MultiWebViewController.MultiViewItem,
-  list: List<MultiWebViewController.MultiViewItem>
+  list: List<MultiWebViewController.MultiViewItem>,
 ) {
   val webView = viewItem.webView
   /// 返回按钮的拦截只跟最后一个视图有关系，直到这最后一个视图被关闭了
@@ -81,7 +80,7 @@ private fun MultiWebViewController.LatestEffect(
     }
     val canGoBack =
       if (isMaximized) true else webView.closeWatcher.canClose || webView.rememberCanGoBack()
-    win.GoBackHandler(canGoBack) {
+    win.navigation.GoBackHandler(canGoBack) {
       if (webView.canGoBack()) {
         webView.goBack()
       } else if (list.size > 1) {

@@ -8,10 +8,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
@@ -88,7 +85,7 @@ internal fun BrowserWebPage.Effect() {
     val canGoBack by webView.canGoBackStateFlow.collectAsState()
     val enable = viewModel.focusedPage == webPage
     // 先判断是否聚焦，如果聚焦了，必定是可以返回的，在返回的时候判断是webview返回，还是关闭WebPage
-    LocalWindowController.current.GoBackHandler(enable) {
+    LocalWindowController.current.navigation.GoBackHandler(enable) {
       if (canGoBack) {
         webView.goBack()
       } else {
@@ -101,7 +98,7 @@ internal fun BrowserWebPage.Effect() {
 
 @Composable
 internal fun BrowserWebPage.BrowserWebPageRender(
-  modifier: Modifier
+  modifier: Modifier,
 ) {
   val webPage = this
   webPage.Effect()

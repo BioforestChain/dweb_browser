@@ -1,0 +1,86 @@
+package org.dweb_browser.sys.window.core.helper
+
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import org.dweb_browser.helper.SimpleSignal
+import org.dweb_browser.helper.WeakHashMap
+import org.dweb_browser.helper.getOrPut
+import org.dweb_browser.sys.window.core.WindowState
+
+class WindowNavigation(val state: WindowState) {
+
+  private val goBackSignal = SimpleSignal()
+  val onGoBack = goBackSignal.toListener()
+
+  private class GoBackRecord private constructor(
+    val onBack: suspend () -> Unit,
+    var enabled: Boolean,
+    var uiScope: CoroutineScope,
+  ) {
+    companion object {
+      private val WM = WeakHashMap<suspend () -> Unit, GoBackRecord>()
+      fun from(onBack: suspend () -> Unit, enabled: Boolean, uiScope: CoroutineScope) =
+        WM.getOrPut(onBack) { GoBackRecord(onBack, enabled, uiScope) }.also {
+          it.enabled = enabled
+          it.uiScope = uiScope
+        }
+    }
+  }
+
+  private val onBackRecords by lazy {
+    mutableStateListOf<GoBackRecord>().also { records ->
+      onGoBack {
+        records.lastOrNull { it.enabled }?.apply {
+          uiScope.launch {
+            onBack()
+          }
+        }
+      }
+    }
+  }
+
+  @Composable
+  fun GoBackHandler(
+    enabled: Boolean = true, onBack: suspend () -> Unit,
+  ) {
+    val uiScope = rememberCoroutineScope()
+    DisposableEffect(this, enabled, onBack) {
+      val record = GoBackRecord.from(onBack, enabled, uiScope)
+      onBackRecords.add(record)
+      state.canGoBack = onBackRecords.any { it.enabled } // onBackRecords.size > 0
+      onDispose {
+        onBackRecords.remove(record)
+        state.canGoBack = if (onBackRecords.isEmpty()) null else onBackRecords.any { it.enabled }
+      }
+    }
+  }
+
+  suspend fun emitGoBack() {
+    goBackSignal.emit()
+  }
+
+
+  private val goForwardSignal = SimpleSignal()
+  val onGoForward = goForwardSignal.toListener()
+
+  @Composable
+  fun GoForwardHandler(enabled: Boolean = true, onForward: () -> Unit) {
+    state.canGoForward = enabled
+    DisposableEffect(this, enabled) {
+      val off = goForwardSignal.listen { if (enabled) onForward() }
+      onDispose {
+        state.canGoForward = null
+        off()
+      }
+    }
+  }
+
+
+  suspend fun emitGoForward() {
+    goForwardSignal.emit()
+  }
+}

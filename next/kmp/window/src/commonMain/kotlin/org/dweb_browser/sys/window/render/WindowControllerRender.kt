@@ -85,7 +85,7 @@ fun WindowController.Prepare(
       /// 渲染窗口关闭提示，该提示不受 isVisible 的控制
       win.RenderCloseTip()
 
-      val isVisible by win.watchedState { isVisible() }
+      val isVisible by win.watchedState { isVisible }
 
       /**
        * 窗口缩放
@@ -137,7 +137,7 @@ fun WindowController.WindowRender(modifier: Modifier) {
     }
   }
 
-  val isVisible by win.watchedState { win.isVisible() }
+  val isVisible by win.watchedState { win.isVisible }
   val inMove by win.inMove
 
   /**
@@ -221,7 +221,8 @@ fun WindowController.WindowRender(modifier: Modifier) {
           /// 底部安全区域
           val keyboardInsetBottom by win.watchedState { keyboardInsetBottom }
           val keyboardOverlaysContent by win.watchedState { keyboardOverlaysContent }
-          val paddingBottom = if (!keyboardOverlaysContent) keyboardInsetBottom.dp else 0.dp // 这边作为底部键盘区
+          val paddingBottom =
+            if (!keyboardOverlaysContent) keyboardInsetBottom.dp else 0.dp // 这边作为底部键盘区
 
           val limits = LocalWindowLimits.current
           val windowRenderScope = remember(limits, maxWidth, maxHeight, paddingBottom) {

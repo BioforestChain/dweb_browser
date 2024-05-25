@@ -38,7 +38,7 @@ fun BrowserQRCodePanel(modifier: Modifier): Boolean {
         viewModel.showQRCodePanel = false
       }
     }
-    LocalWindowController.current.GoBackHandler {
+    LocalWindowController.current.navigation.GoBackHandler {
       when (qrCodeScanModel.state) {
         QRCodeState.CameraCheck, QRCodeState.AlarmCheck -> {
           qrCodeScanModel.updateQRCodeStateUI(QRCodeState.Scanning)

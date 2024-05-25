@@ -4,7 +4,6 @@ import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.create
-import org.dweb_browser.sys.window.core.WindowController
 
 actual suspend fun WindowController.createDwebView(remoteMM: MicroModule.Runtime, url: String) =
   IDWebView.create(

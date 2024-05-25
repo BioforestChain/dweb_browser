@@ -47,7 +47,6 @@ import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.compose.AutoResizeTextContainer
 import org.dweb_browser.helper.compose.AutoSizeText
 import org.dweb_browser.helper.compose.compositionChainOf
-import org.dweb_browser.helper.debugger
 import org.dweb_browser.helper.getOrPut
 import org.dweb_browser.helper.platform.getCornerRadiusBottom
 import org.dweb_browser.helper.platform.getCornerRadiusTop

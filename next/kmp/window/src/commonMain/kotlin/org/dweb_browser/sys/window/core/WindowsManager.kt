@@ -1,203 +1,166 @@
 package org.dweb_browser.sys.window.core
 
-import androidx.compose.runtime.mutableStateListOf
-import kotlinx.atomicfu.locks.SynchronizedObject
-import kotlinx.atomicfu.locks.synchronized
+
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import org.dweb_browser.core.help.types.MMID
-import org.dweb_browser.helper.ChangeableMap
-import org.dweb_browser.helper.ChangeableSet
 import org.dweb_browser.helper.OffListener
-import org.dweb_browser.helper.SafeHashMap
+import org.dweb_browser.helper.OrderDeferred
 import org.dweb_browser.helper.platform.IPureViewBox
+import org.dweb_browser.helper.platform.IPureViewController
 import org.dweb_browser.helper.some
-import org.dweb_browser.sys.window.core.constant.LowLevelWindowAPI
-import org.dweb_browser.sys.window.core.constant.WindowColorScheme
-import org.dweb_browser.sys.window.core.constant.WindowStyle
+import org.dweb_browser.helper.trueAlso
+import org.dweb_browser.helper.withScope
 import org.dweb_browser.sys.window.core.constant.WindowsManagerScope
 import org.dweb_browser.sys.window.core.constant.debugWindow
-import kotlin.math.abs
 
-abstract class WindowsManager<T : WindowController>(internal val viewBox: IPureViewBox) {
+/**
+ * 管理行为委托，用来实现多个窗口之间的互动行为
+ * 比方说：
+ * 1. 当一个窗口聚焦时，其它窗口会发生什么事情
+ * 1. 当一个窗口不可见时，其它窗口会发生什么事情
+ */
+expect class WindowsManagerDelegate<T : WindowController>(
+  manager: WindowsManager<T>,
+) {
+  suspend fun focusWindow(win: WindowController)
+  suspend fun focusWindows(windows: List<T>)
+  fun focusDesktop()
+  suspend fun addedWindow(win: T, offListenerList: MutableList<OffListener<*>>)
+}
+
+
+class WindowsManagerDelegate2<T : WindowController>(
+  manager: WindowsManager<T>,
+) {}
+
+
+/**
+ * 窗口管理器，存储查询窗口，并根据行为委托器来对窗口进行操控管理
+ */
+open class WindowsManager<T : WindowController>(
+  internal val viewController: IPureViewController,
+  internal val viewBox: IPureViewBox,
+) {
+  private val delegate by lazy { WindowsManagerDelegate(this) }
+
   val state = WindowsManagerState(viewBox)
 
-  private val _winList = mutableStateListOf<T>()
-  private val _winListSync = SynchronizedObject()
+
+  val allWindowsFlow = MutableStateFlow(mapOf<T, WindowsManagerScope>())
+  val allWindows get() = allWindowsFlow.value.keys
+
+  private val reCombFlow = MutableSharedFlow<Unit>()
 
   /**
    * 一个已经根据 zIndex 排序完成的只读列表
    */
-  val winList get() = synchronized(_winListSync) { _winList }
+  val winListFlow = allWindowsFlow.combine(reCombFlow) { it, _ -> it }.map { windows ->
+    windows.keys.filter { !it.state.alwaysOnTop }.sortedBy { it.state.zIndex }
+  }.stateIn(viewBox.lifecycleScope, started = SharingStarted.Eagerly, initialValue = listOf())
+  val winList get() = winListFlow.value
 
   /**
    * 置顶窗口，一个已经根据 zIndex 排序完成的只读列表
    */
-  val winListTop = mutableStateListOf<T>()
+  val topWinListFlow = allWindowsFlow.combine(reCombFlow) { it, _ -> it }.map { windows ->
+    windows.keys.filter { it.state.alwaysOnTop }.sortedBy { it.state.zIndex }
+  }.stateIn(viewBox.lifecycleScope, started = SharingStarted.Eagerly, initialValue = listOf())
+  val topWinList = topWinListFlow.value
 
   /**
    * 存储最大化的窗口
    */
-  val hasMaximizedWins = ChangeableSet<T>(context = viewBox.lifecycleScope.coroutineContext)
+  val maximizedWinsFlow =
+    allWindowsFlow.map { windows -> windows.keys.filter { it.isMaximized && it.isVisible }.toSet() }
+      .stateIn(viewBox.lifecycleScope, started = SharingStarted.Eagerly, initialValue = setOf())
+  val maximizedWins get() = maximizedWinsFlow.value
 
-  val allWindows =
-    ChangeableMap<T, WindowsManagerScope>(viewBox.lifecycleScope.coroutineContext, SafeHashMap());
-
-  /**
-   * 寻找最后一个聚焦的窗口
-   */
-  val lastFocusedWin: T?
-    get() {
-      /// 从最顶层的窗口往下遍历
-      fun findInWinList(winList: List<T>): T? {
-        for (win in winList.toMutableList()
-          .asReversed()) { // 增加 toMutableList 是为了避免 winList数据变化引起的 for 异常
-          if (win.isFocused()) {
-            /// 如果发现之前赋值过，这时候需要将之前的窗口给blur掉
-            return win
-          }
-        }
-        return null
-      }
-
-      return findInWinList(winList) ?: findInWinList(winListTop)
-    }
-
-  /**
-   * 确保窗口现在只对最后一个元素聚焦
-   *
-   * 允许不存在聚焦的窗口，聚焦应该由用户行为触发
-   */
-  internal suspend fun doLastFocusedWin(): T? {
-    var lastFocusedWin: T? = null
-
-    /// 从最底层的窗口往上遍历
-    suspend fun findInWinList(winList: List<T>) {
-      for (win in winList.filter { it.isVisible() }) {
-        if (win.isFocused()) {
-          /// 如果发现之前赋值过，这时候需要将之前的窗口给blur掉
-          lastFocusedWin?.simpleBlur()
-          lastFocusedWin = win
-        }
-      }
-    }
-
-    findInWinList(winList)
-    findInWinList(winListTop)
-    return lastFocusedWin
-  }
 
   /**
    * 将一个窗口添加进来管理
    */
-  protected open fun addNewWindow(win: T, autoFocus: Boolean = true) {
+  open suspend fun addNewWindow(win: T, autoFocus: Boolean = true) = withWindowLifecycleScope {
     // 更新窗口的管理者角色
-    win.upsetManager(this);
+    win.upsetManager(this@WindowsManager);
     /// 对窗口做一些启动准备
     val offListenerList = mutableListOf<OffListener<*>>()
 
-    /// 窗口聚焦时，需要将其挪到最上层，否则该聚焦会失效
-    offListenerList += win.onFocus {
-      focusWindow(win).join()
-    }
-    if (!win.state.isSystemWindow) {
-      offListenerList += win.onHidden {
-        var index = winListTop.indexOf(win)
-        if (index == -1) {
-          index = winList.indexOf(win)
-        }
-        if (index != -1) {
-          val nearWin =
-            allWindows.keys.filter { it.isVisible() }.minByOrNull { abs(it.state.zIndex - index) }
-          nearWin?.focus()
-        }
-      }
-    }
 
-    offListenerList += win.onMaximize {
-      hasMaximizedWins.add(win)
-    }
-    offListenerList += win.onUnMaximize {
-      hasMaximizedWins.remove(win)
-    }
-
-    /// 立即执行
-    if (win.isMaximized()) {
-      hasMaximizedWins.add(win)
-    }
     /// 窗口销毁的时候，做引用释放
     offListenerList += win.onClose {
       removeWindow(win)
+      delegate.focusWindows(allWindows.filter { it.isVisible && it.isMaximized })
     }
     /// 存储窗口与它的 状态机（销毁函数）
-    allWindows[win] = WindowsManagerScope {
+    allWindowsFlow.value += win to WindowsManagerScope {
       for (off in offListenerList) {
         off()
       }
     }
+    delegate.addedWindow(win, offListenerList)
 
     /// 第一次装载窗口，默认将它聚焦到最顶层
     if (autoFocus) {
-      @Suppress("DeferredResultUnused") focusWindow(win) // void job
+      delegate.focusWindow(win) // void job
     }
   }
 
   /**
    * 移除一个窗口
    */
-  internal suspend fun removeWindow(win: T, autoFocus: Boolean = true) =
-    allWindows.remove(win)?.let { inManageState ->
-      /// 移除最大化窗口集合
-      hasMaximizedWins.remove(win)
+  suspend fun removeWindow(win: T) = removeWindows(setOf(win))
 
-      if (autoFocus) {
-        /// 对窗口进行重新排序
-        reOrderZIndex()
+  suspend fun removeWindows(windows: Set<T>) = withWindowLifecycleScope {
+    val rmWindows = allWindows.intersect(windows)
+    rmWindows.isNotEmpty().trueAlso {
+      allWindowsFlow.value = allWindowsFlow.value.filter {
+        !(rmWindows.contains(it.key).trueAlso {
+          it.value.doDestroy()
+        })
       }
-
-      /// 最后，销毁绑定事件
-      inManageState.doDestroy()
-      true
-    } ?: false
-
+      reComb()
+    }
+  }
 
   /**
    * 将窗口迁移到另一个管理器中，并且维护这些窗口的状态
    */
-  suspend fun moveWindows(
-    other: WindowsManager<T>, windows: Iterable<T>? = null,
-  ) {
-    val wins = when (windows) {
-      null -> {/*拷贝一份避免并发修改导致的问题，这里默认使用 zIndex 的顺序来迁移，可以避免问题*/
-        synchronized(_winListSync) {
-          _winList.toList()
+  suspend fun moveWindowsTo(other: WindowsManager<T>, windows: Iterable<T>? = null) {
+    if (other == this) {
+      return
+    }
+    withWindowLifecycleScope {
+      other.withWindowLifecycleScope {
+        val moveWins = windows ?: winList
+        removeWindows(moveWins.toSet())
+        /// 窗口迁移
+        for (win in moveWins) {
+          other.addNewWindow(win, false)
         }
+        reComb()
+        other.reComb()
+        debugWindow(
+          "moveWindows",
+          "self:${winList.size}/${topWinList.size} => other: ${other.winList.size}/${other.topWinList.size}"
+        )
       }
-
-      else -> windows
     }
-    /// 窗口迁移
-    for (win in wins) {
-      removeWindow(win, false)
-      other.addNewWindow(win, false)
-    }
-    reOrderZIndex()
-    other.reOrderZIndex()
-    debugWindow(
-      "moveWindows",
-      "self:${this.winList.size}/${this.winListTop.size} => other: ${other.winList.size}/${other.winListTop.size}"
-    )
   }
 
   /**
    * 依据窗口的属性，对窗口进行分组并排序，并对zIndex属性进行调整
    */
-  private suspend fun reOrderZIndex() {
+  suspend fun reComb() = withWindowLifecycleScope {
     /// 根据 alwaysOnTop 进行分组
-    var winList = mutableListOf<T>()
-    var winListTop = mutableListOf<T>()
-    for (win in allWindows.keys) {
+    val winList = mutableListOf<T>()
+    val winListTop = mutableListOf<T>()
+    for (win in allWindows) {
       if (win.state.alwaysOnTop) {
         winListTop += win
       } else {
@@ -206,62 +169,24 @@ abstract class WindowsManager<T : WindowController>(internal val viewBox: IPureV
     }
 
     /// 对窗口的 zIndex 进行重新赋值
-    fun setByZIndex(
-      oldList: List<T>, newList: List<T>, setList: (newList: List<T>) -> Unit,
-    ): Int {
-      var changes = abs(newList.size - oldList.size) // 首先，只要有长度变动，就已经意味着改变了
-      val sortedList = newList.sortedBy { it.state.zIndex }
+    fun List<T>.setByZIndex(): Int {
+      var changes = 0
+      val sortedList = sortedBy { it.state.zIndex }
       for ((index, win) in sortedList.withIndex()) {
         if (win.state.zIndex != index) {
           win.state.zIndex = index
           changes += 1 // 每一次改变都进行一次标记
         }
       }
-      if (changes > 0) {
-        setList(sortedList)
-      }
       return changes
     }
+    if (winList.setByZIndex() + winListTop.setByZIndex() != 0) {
+      reCombFlow.emit(Unit)
+    }
+  }
 
-    val anyChanges =
-      // changes 1
-      setByZIndex(this.winList, winList) {
-        this.winList.clear()
-        this.winList.addAll(it)
-        winList = it.toMutableList()
-      } + // changes 2
-          setByZIndex(this.winListTop, winListTop) {
-            this.winListTop.clear()
-            this.winListTop.addAll(it)
-            winListTop = it.toMutableList()
-          }
-
-    if (anyChanges > 0) {
-      allWindows.emitChange()
-    }
-
-    /// 最后，查询是否有窗口处于聚焦状态，如果没有，那么强制进行聚焦
-    fun hasFocus(list: List<T>): Boolean {
-      val lastWin = list.lastOrNull()
-      return lastWin?.isFocused() ?: false
-    }
-    if (hasFocus(winListTop) || hasFocus(winList)) {
-      return
-    }
-
-    suspend fun reFocus(writeableList: MutableList<T>): Boolean {
-      val lastWin = writeableList.lastOrNull()
-      if (lastWin != null) {
-        if (!lastWin.isFocused()) {
-          lastWin.focus()
-        }
-        return true
-      }
-      return false
-    }
-    if (!reFocus(winListTop)) {
-      reFocus(winList)
-    }
+  suspend fun reFocus() {
+    delegate.focusWindows(allWindows.filter { it.isVisible && it.isMaximized })
   }
 
   /**
@@ -270,78 +195,63 @@ abstract class WindowsManager<T : WindowController>(internal val viewBox: IPureV
   suspend fun moveToTop(win: WindowController) {
     /// 窗口被聚焦，那么遍历所有的窗口，为它们重新生成zIndex值
     win.state.zIndex += allWindows.size
-    reOrderZIndex()
-  }
-
-  protected fun <T : WindowController, R> winLifecycleScopeAsync(
-    @Suppress("UNUSED_PARAMETER") win: T, block: suspend CoroutineScope.() -> R,
-  ) = viewBox.lifecycleScope.async(start = CoroutineStart.UNDISPATCHED) {
-    // TODO 检测 win 的所属权
-    block()
+    reComb()
   }
 
   /**
-   * 对一个窗口做聚焦操作
+   * 顺序执行窗口相关的操作，避免并发异常
    */
-  fun focusWindow(win: WindowController) = winLifecycleScopeAsync(win) {
-    // 要聚焦窗口，首先切换它的可见性
-    win.toggleVisible(true)
+  private val orderDeferred = OrderDeferred()
+//  internal fun <R> withWindowLifecycleScopeAsync(block: suspend CoroutineScope.() -> R) =
+//    viewBox.lifecycleScope.async(start = CoroutineStart.UNDISPATCHED) {
+//      orderDeferred.queueAndAwait(null) {
+//        // TODO 检测 win 的所属权
+//        block()
+//      }
+//    }
 
-    // 然后再触发它的 focus 属性
-    when (val preFocusedWin = lastFocusedWin) {
-      win -> {
-        false
-      }
 
-      else -> {
-        preFocusedWin?.also {
-          // 如果两个窗口都是原生窗口，那么不需要做这个blur，因为原生窗口自己会因为focus、而去触发其它窗口的blur
-          if (!(it.state.isSystemWindow && win.state.isSystemWindow)) {
-            it.simpleBlur()
+  private var inQueue = false
+  internal suspend fun <R> withWindowLifecycleScope(block: suspend CoroutineScope.() -> R) =
+    withScope(viewBox.lifecycleScope) {
+      if (inQueue) {
+        block()
+      } else {
+        inQueue = true
+        try {
+          orderDeferred.queueAndAwait(null) {
+            // TODO 检测 win 的所属权
+            block()
           }
+        } finally {
+          inQueue = false
         }
-        win.simpleFocus()
-        moveToTop(win)
-        doLastFocusedWin()
-        true
       }
     }
-  }
+
 
   /**
    * 对一个窗口做失焦操作
    */
-  fun blurWindow(win: WindowController) = winLifecycleScopeAsync(win) {
-    if (lastFocusedWin == win) {
-      win.simpleBlur()
-      true
-    } else false
-  }
 
   /**
    * 对一些窗口做聚焦操作
    */
   suspend fun focusWindow(mmid: MMID) {
     val windows = findWindows(mmid)
-    lastFocusedWin?.let {
-      if (!windows.contains(it)) {
-        it.simpleBlur()
-      }
-    }
-    for (win in windows) {
-      focusWindow(win).join()
-    }
+    delegate.focusWindows(windows)
   }
 
-  fun findWindows(mmid: MMID) =
-    allWindows.keys.filter { win -> win.state.constants.owner == mmid }.sortedBy { it.state.zIndex }
+  open fun findWindows(mmid: MMID) =
+    allWindows.filter { win -> win.state.constants.owner == mmid }
+      .sortedBy { it.state.zIndex }
 
   /**
    * 获取窗口状态
    */
-  fun getWindowStates(mmid: MMID): MutableList<WindowState> {
+  fun getWindowStates(mmid: MMID): List<WindowState> {
     val states = mutableListOf<WindowState>()
-    for (win in allWindows.keys) {
+    for (win in allWindows) {
       if (win.state.constants.owner == mmid) {
         states.add(win.state)
       }
@@ -361,84 +271,20 @@ abstract class WindowsManager<T : WindowController>(internal val viewBox: IPureV
     val isMaximized = windows.some { win -> win.isMaximized() };
     for (win in windows) {
       if (isMaximized) {
-        win.simpleUnMaximize()
+        win.unMaximize()
       } else {
-        win.simpleMaximize()
+        win.maximize()
       }
     }
     return !isMaximized
   }
 
-  fun maximizeWindow(win: WindowController) = winLifecycleScopeAsync(win) {
-    focusWindow(win).join()
-    win.simpleMaximize()
+  suspend fun maximizeWindow(win: WindowController) = withWindowLifecycleScope {
+    delegate.focusWindow(win)
+    win.maximize()
   }
 
-  fun unMaximizeWindow(win: WindowController) = winLifecycleScopeAsync(win) {
-    win.simpleUnMaximize()
+  fun focusDesktop() {
+    delegate.focusDesktop()
   }
-
-//  fun minimizeWindow(win: WindowController) = winLifecycleScopeAsync(win) {
-//    win.simpleMinimize()
-//  }
-//
-//  fun unMinimizeWindow(win: WindowController) = winLifecycleScopeAsync(win) {
-//    win.simpleUnMinimize()
-//  }
-
-
-  fun setBroad(win: WindowController, board: SetWindowSize) = winLifecycleScopeAsync(win) {
-    win.setBoard(board)
-  }
-
-
-  internal fun toggleVisibleWindow(win: WindowController, visible: Boolean? = null) =
-    winLifecycleScopeAsync(win) {
-      win.simpleToggleVisible(visible)
-    }
-
-  @LowLevelWindowAPI
-  fun closeWindow(win: WindowController, force: Boolean = false) = winLifecycleScopeAsync(win) {
-    win.simpleClose(force)
-  }
-
-  fun windowSetStyle(
-    win: WindowController,
-    style: WindowStyle,
-  ) = winLifecycleScopeAsync(win) {
-    win.simpleSetStyle(style)
-  }
-
-  fun windowEmitGoBack(win: WindowController) = winLifecycleScopeAsync(win) {
-    win.simpleEmitGoBack()
-  }
-
-  fun windowEmitGoForward(win: WindowController) = winLifecycleScopeAsync(win) {
-    win.simpleEmitGoForward()
-  }
-
-  fun windowHideCloseTip(win: WindowController) = winLifecycleScopeAsync(win) {
-    win.simpleHideCloseTip()
-  }
-
-  fun windowToggleMenuPanel(win: WindowController, show: Boolean?) = winLifecycleScopeAsync(win) {
-    win.simpleToggleMenuPanel(show)
-  }
-
-  fun windowToggleAlwaysOnTop(win: WindowController, onTop: Boolean?) =
-    winLifecycleScopeAsync(win) {
-      win.simpleToggleAlwaysOnTop(onTop)
-    }
-
-  open fun windowToggleKeepBackground(win: WindowController, keepBackground: Boolean?) =
-    winLifecycleScopeAsync(win) {
-      win.simpleToggleKeepBackground(keepBackground)
-    }
-
-  fun windowToggleColorScheme(win: WindowController, colorScheme: WindowColorScheme?) =
-    winLifecycleScopeAsync(win) {
-      win.simpleToggleColorScheme(colorScheme)
-    }
-
-  abstract fun focusDesktop()
 }

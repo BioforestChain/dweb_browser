@@ -41,6 +41,7 @@ import org.dweb_browser.helper.ENV_SWITCH_KEY
 import org.dweb_browser.helper.OffListener
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.build
+import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.envSwitch
 import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.helper.platform.IPureViewController
@@ -184,14 +185,14 @@ open class DesktopController private constructor(
   suspend fun getDesktopWindowsManager() = wmLock.withLock {
     val vc = this.activity!!
     DesktopWindowsManager.getOrPutInstance(vc, IPureViewBox.from(vc)) { dwm ->
-      dwm.hasMaximizedWins.onChange { updateFlow.emit(Unit) }
+      dwm.maximizedWinsFlow.collectIn(vc.lifecycleScope) { updateFlow.emit(Unit) }
 
       val watchWindows = mutableMapOf<WindowController, OffListener<*>>()
       fun watchAllWindows() {
-        watchWindows.keys.subtract(dwm.allWindows.keys).forEach { win ->
+        watchWindows.keys.subtract(dwm.allWindows).forEach { win ->
           watchWindows.remove(win)?.invoke()
         }
-        for (win in dwm.allWindows.keys) {
+        for (win in dwm.allWindows) {
           if (watchWindows.contains(win)) {
             continue
           }
@@ -202,17 +203,17 @@ open class DesktopController private constructor(
       }
 
       /// 但有窗口信号变动的时候，确保 MicroModule.IpcEvent<Activity> 事件被激活
-      dwm.allWindows.onChange {
+      dwm.allWindowsFlow.collectIn(dwm.viewController.lifecycleScope) {
         watchAllWindows()
         updateFlow.emit(Unit)
         _activitySignal.emit()
-      }.removeWhen(dwm.viewController.lifecycleScope)
+      }
       watchAllWindows()
 
       preDesktopWindowsManager?.also { preDwm ->
         deskNMM.scopeLaunch(Dispatchers.Main, cancelable = true) {
           /// 窗口迁移
-          preDwm.moveWindows(dwm)
+          preDwm.moveWindowsTo(dwm)
         }
       }
       preDesktopWindowsManager = dwm

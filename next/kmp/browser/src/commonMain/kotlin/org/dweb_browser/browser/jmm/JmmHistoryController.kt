@@ -22,7 +22,7 @@ class JmmHistoryController(
     windowAdapterManager.provideRender(win.id) { modifier ->
       ManagerViewRender(modifier = modifier, windowRenderScope = this)
     }
-    win.open()
+    win.show()
   }
 
   suspend fun buttonClick(historyMetadata: JmmMetadata) {

@@ -152,15 +152,15 @@ class TaskbarController private constructor(
    */
   suspend fun toggleDesktopView() {
     val windowsManager = desktopController.getDesktopWindowsManager()
-    val allWindows = windowsManager.allWindows.keys.toList()
-    if (allWindows.isEmpty() || allWindows.find { it.isVisible() } != null) {
+    val allWindows = windowsManager.allWindowsFlow.value.keys.toList()
+    if (allWindows.isEmpty() || allWindows.find { it.isVisible } != null) {
       allWindows.map { win ->
         win.hide()
       }
       windowsManager.focusDesktop()
     } else {
       allWindows.map { win ->
-        win.open()
+        win.show()
       }
     }
   }

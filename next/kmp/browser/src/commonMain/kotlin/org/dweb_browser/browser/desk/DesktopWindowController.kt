@@ -7,19 +7,33 @@ import org.dweb_browser.sys.window.core.WindowsManager
 class DesktopWindowController(
   manager: DesktopWindowsManager,
   state: WindowState,
-) : WindowController(state, manager) {
-  override val manager get() = _manager as DesktopWindowsManager
-  override val viewBox = manager.viewBox
-  override val lifecycleScope get() = viewBox.lifecycleScope
-  override fun upsetManager(manager: WindowsManager<*>?) {
-    when (val deskManager = manager) {
-      is DesktopWindowsManager -> {
-        super.upsetManager(deskManager)
-        state.observable.coroutineScope =
-          deskManager.viewController.lifecycleScope
-      }
+) : WindowController(state, manager.viewBox) {
 
-      else -> throw Exception("invalid type $manager should be DesktopWindowsManager")
+  override fun getManager(): DesktopWindowsManager {
+    return super.getManager() as DesktopWindowsManager
+  }
+
+  override fun upsetManager(manager: WindowsManager<*>?) {
+    super.upsetManager(manager)
+
+    if (manager != null) {
+      when (manager) {
+        is DesktopWindowsManager ->
+          state.observable.coroutineScope = manager.viewController.lifecycleScope
+
+        else -> throw Exception("invalid type $manager should be DesktopWindowsManager")
+      }
     }
+    super.upsetManager(manager)
+  }
+
+  override suspend fun toggleKeepBackground(keepBackground: Boolean?) {
+    /// 内部模块的设置，不允许修改
+    if (state.constants.owner.let {
+        it.endsWith(".browser.dweb") || it.endsWith(".std.dweb") || it.endsWith(".sys.dweb")
+      }) {
+      return
+    }
+    super.toggleKeepBackground(keepBackground)
   }
 }

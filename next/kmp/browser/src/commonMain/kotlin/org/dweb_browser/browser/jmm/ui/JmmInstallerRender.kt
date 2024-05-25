@@ -42,7 +42,7 @@ fun JmmInstallerController.Render(modifier: Modifier, renderScope: WindowContent
   }
 
   val win = LocalWindowController.current
-  win.GoBackHandler {
+  win.navigation.GoBackHandler {
     if (previewState.showPreview.targetState) {
       previewState.showPreview.targetState = false
     } else {

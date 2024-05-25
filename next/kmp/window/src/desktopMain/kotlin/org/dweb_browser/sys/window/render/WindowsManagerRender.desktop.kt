@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.rememberUpdatedState
@@ -25,6 +26,7 @@ actual fun <T : WindowController> WindowsManager<T>.SceneRender() {
   BoxWithConstraints {
     WindowsManagerEffect()
     /// 普通层级的窗口
+    val winList by winListFlow.collectAsState()
     debugWindow("WindowsManager.Render", "winList: ${winList.size}")
     for (win in winList) {
       key(win.id) {
@@ -32,8 +34,9 @@ actual fun <T : WindowController> WindowsManager<T>.SceneRender() {
       }
     }
     /// 置顶层级的窗口
-    debugWindow("WindowsManager.Render", "winListTop: ${winListTop.size}")
-    for (win in winListTop) {
+    val topWinList by topWinListFlow.collectAsState()
+    debugWindow("WindowsManager.Render", "winListTop: ${topWinList.size}")
+    for (win in topWinList) {
       key(win.id) {
         RenderWindowInNative(windowsManager, win)
       }
@@ -71,7 +74,7 @@ fun RenderWindowInNative(
 }
 
 private fun WindowController.getDesktopWindowNativeView(
-  windowsManager: WindowsManager<*>, compositionChain: State<CompositionChain>
+  windowsManager: WindowsManager<*>, compositionChain: State<CompositionChain>,
 ) = DesktopWindowNativeView.INSTANCES.getOrPut(this) {
   DesktopWindowNativeView(
     mutableMapOf(
@@ -83,7 +86,7 @@ private fun WindowController.getDesktopWindowNativeView(
 private class DesktopWindowNativeView(
   params: Map<String, Any?>,
   private val win: WindowController,
-  private val windowsManager: WindowsManager<*>
+  private val windowsManager: WindowsManager<*>,
 ) {
   val pvc = PureViewController(params).also { pvc ->
     pvc.onCreate { params ->
