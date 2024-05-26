@@ -144,11 +144,11 @@ class IpcPoolTest {
     val dnsRuntime = dns.bootstrap()
     val clientRuntime = dnsRuntime.open(clientMM.mmid);
     val clientIpc = clientRuntime.connect(serverMM.mmid)
-    println("QAQ clientIpc=$clientIpc then fork")
+    println("QWQ clientIpc=$clientIpc then fork")
     val forkedIpc = clientIpc.fork()
-    println("QAQ forkedIpc=$forkedIpc then start")
+    println("QWQ forkedIpc=$forkedIpc then start")
     forkedIpc.start(reason = "then-request")
-    println("QAQ forkedIpc=$forkedIpc then request")
+    println("QWQ forkedIpc=$forkedIpc then request")
     forkedIpc.request("file://request.mm.dweb/test")
     /// TODO reqId 会乱窜
     val res = forkedIpc.request("https://test.com/test")
@@ -188,7 +188,7 @@ class IpcPoolTest {
     ipc1.await().postMessage(ipcEvent1)
     val ipcEvent2 = ipc2.await()
       .onEvent("wait-hi-$time")
-      .map { it.consume().also { println("QAQ got-hi = $it") } }
+      .map { it.consume().also { println("QWQ got-hi = $it") } }
       .first();
 
     assertEquals(ipcEvent1.text, ipcEvent2.text)

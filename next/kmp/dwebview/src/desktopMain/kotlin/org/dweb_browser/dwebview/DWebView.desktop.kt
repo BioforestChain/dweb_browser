@@ -105,6 +105,10 @@ class DWebView(
   }
 
   override suspend fun setContentScale(scale: Float, width: Float, height: Float, density: Float) {
+    setContentScaleUnsafe(scale, width, height, density)
+  }
+
+  override fun setContentScaleUnsafe(scale: Float, width: Float, height: Float, density: Float) {
     viewEngine.setContentScale(scale.toDouble())
   }
 

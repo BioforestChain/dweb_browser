@@ -225,6 +225,11 @@ val LocalWindowsImeVisible =
   compositionChainOf("WindowsImeVisible") { mutableStateOf(false) } // 由于小米手机键盘收起会有异常，所以自行维护键盘的显示和隐藏
 
 /**
+ * 窗口是否在动画状态中
+ */
+val LocalWindowInResizeAnimation = compositionChainOf<WindowLimits>("WindowInResizeAnimation")
+
+/**
  * 存储窗口样式：
  * 窗口透明度与窗口缩放比例
  * 这些值不在 窗口属性中，属于窗口渲染器直接提供
@@ -524,7 +529,8 @@ fun WindowController.calcContentScale(
   /**
    * 计算进度
    */
-  fun calcProgress(from: Float, now: Float, to: Float) = ((now - from) / (to - from)).toDouble()
+  fun calcProgress(from: Float, now: Float, to: Float) =
+    min(1f, ((now - from) / (to - from))).toDouble()
 
   /**
    * 将动画进度还原成所需的缩放值

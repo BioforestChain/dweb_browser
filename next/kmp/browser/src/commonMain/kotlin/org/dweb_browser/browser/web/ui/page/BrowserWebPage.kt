@@ -112,14 +112,7 @@ internal fun BrowserWebPage.BrowserWebPageRender(
 
     val density = LocalDensity.current.density
     /// 同步缩放量
-    LaunchedEffect(scale, maxWidth, maxHeight, density) {
-      webView.setContentScale(
-        scale,
-        maxWidth.value,
-        maxHeight.value,
-        density,
-      )
-    }
+    webView.setContentScaleUnsafe(scale, maxWidth.value, maxHeight.value, density)
 
     webView.Render(Modifier.fillMaxSize())
   }

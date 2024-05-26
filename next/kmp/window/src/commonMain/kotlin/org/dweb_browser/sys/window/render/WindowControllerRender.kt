@@ -1,6 +1,7 @@
 package org.dweb_browser.sys.window.render
 
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.animateRectAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
@@ -19,12 +20,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import org.dweb_browser.helper.compose.LocalCompositionChain
 import org.dweb_browser.helper.compose.LocalFocusRequester
@@ -33,6 +40,7 @@ import org.dweb_browser.helper.compose.iosTween
 import org.dweb_browser.helper.platform.LocalPureViewController
 import org.dweb_browser.helper.platform.bindPureViewController
 import org.dweb_browser.helper.platform.unbindPureViewController
+import org.dweb_browser.helper.toRect
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.windowAdapterManager
@@ -182,56 +190,33 @@ fun WindowController.WindowRender(modifier: Modifier) {
   ) {
     /// 开始绘制窗口
     win.state.safePadding = winPadding.boxSafeAreaInsets
+    val winBounds by win.watchedBounds()
+    var inResizeAnimation by remember { mutableStateOf(false) }
+    val modifierRect = when {
+      win.state.isSystemWindow -> null
+      else -> winBounds.toRect().let { rect ->
+        when {
+          inMove -> rect
+          else -> animateRectAsState(
+            targetValue = rect,
+            animationSpec = iosTween(durationIn = isMaximized),
+            label = "bounds-rect",
+          ).value.also {
+            inResizeAnimation = it != rect
+          }
+        }
+      }
+    }
     Box(
       modifier = modifier.composed {
-        when {
+        when (modifierRect) {
           // 如果使用 原生窗口的边框，那么只需要填充满画布即可
-          win.state.isSystemWindow -> fillMaxSize()
+          null -> fillMaxSize()
           // 否则使用 模拟窗口的边框，需要自定义坐标、阴影、缩放
           else -> {
-            val bounds by win.watchedBounds()
-            val isMaximized by win.watchedIsMaximized()
-            val x = when {
-              inMove -> bounds.x
-              else -> animateFloatAsState(
-                targetValue = bounds.x,
-                animationSpec = iosTween(durationIn = isMaximized),
-                label = "bounds.x"
-              ).value
-            }
-            val y = when {
-              inMove -> bounds.y
-              else -> animateFloatAsState(
-                targetValue = bounds.y,
-                animationSpec = iosTween(durationIn = isMaximized),
-                label = "bounds.y"
-              ).value
-            }
-            val width = when {
-              inMove -> bounds.width
-              else -> animateFloatAsState(
-                targetValue = bounds.width,
-                animationSpec = iosTween(durationIn = isMaximized),
-                label = "bounds.width"
-              ).value
-            }
-            val height = when {
-              inMove -> bounds.height
-              else -> animateFloatAsState(
-                targetValue = bounds.height,
-                animationSpec = iosTween(durationIn = isMaximized),
-                label = "bounds.height"
-              ).value
-            }
-            val scaleX = when {
-              inMove -> scale
-              else -> scale * bounds.width / width
-            }
-            val scaleY = when {
-              inMove -> scale
-              else -> scale * bounds.height / height
-            }
-            offset(x.dp, y.dp).size(width.dp, height.dp).graphicsLayer {
+            offset(modifierRect.left.dp, modifierRect.top.dp).size(
+              modifierRect.width.dp, modifierRect.height.dp
+            ).graphicsLayer {
               this.alpha = opacity
               this.scaleX = scale
               this.scaleY = scale
@@ -251,12 +236,24 @@ fun WindowController.WindowRender(modifier: Modifier) {
     ) {
       val theme = LocalWindowControllerTheme.current
       //#region 窗口内容
-      Column(Modifier.background(theme.winFrameBrush)
-        .clickableWithNoEffect {
-          win.focusInBackground()
-        }) {
+      Column(Modifier.background(theme.winFrameBrush).clickableWithNoEffect {
+        win.focusInBackground()
+      }) {
+        val density = LocalDensity.current.density
+        fun safeDp(dp: Dp): Dp {
+          val dpValue = (dp.value * density).toInt() / density
+          return when (dp.value) {
+            dpValue -> dp
+            else -> dpValue.dp
+          }
+        }
+
+        var topBarHeight by remember { mutableFloatStateOf(Float.NaN) }
+        var bottomBarHeight by remember { mutableFloatStateOf(Float.NaN) }
         /// 标题栏
-        WindowTopBar(win, Modifier.height(winPadding.top.dp).fillMaxWidth())
+        WindowTopBar(win, Modifier.height(winPadding.top.dp).fillMaxWidth().onGloballyPositioned {
+          topBarHeight = it.size.height / density
+        })
         /// 内容区域
         BoxWithConstraints(
           Modifier.weight(1f).padding(start = 0.dp, end = 0.dp)
@@ -265,18 +262,41 @@ fun WindowController.WindowRender(modifier: Modifier) {
           /// 底部安全区域
           val keyboardInsetBottom by win.watchedState { keyboardInsetBottom }
           val keyboardOverlaysContent by win.watchedState { keyboardOverlaysContent }
-          val paddingBottom =
-            if (!keyboardOverlaysContent) keyboardInsetBottom.dp else 0.dp // 这边作为底部键盘区
+
+          /**
+           * 用于扣除的底部区域
+           * 这边使用键盘与窗口的交集作为底部区域
+           */
+          val paddingBottom = if (!keyboardOverlaysContent) keyboardInsetBottom else 0f
 
           val limits = LocalWindowLimits.current
-          val windowRenderScope = remember(limits, maxWidth, maxHeight, paddingBottom) {
-            val height = maxHeight - paddingBottom // 扣除底部区域，
+          val windowRenderScope = remember(
+            limits,
+            maxWidth,
+            maxHeight,
+            winBounds,
+            inResizeAnimation,
+            paddingBottom,
+            topBarHeight,
+            bottomBarHeight
+          ) {
+            val targetHeight: Dp
+            val targetWidth: Dp
+            if (!inResizeAnimation || topBarHeight.isNaN() || bottomBarHeight.isNaN()) {
+              targetWidth = maxWidth
+              targetHeight = maxHeight - paddingBottom.dp
+            } else {
+              targetWidth = safeDp(winBounds.width.dp)
+              targetHeight =
+                safeDp((winBounds.height - topBarHeight - paddingBottom - bottomBarHeight).dp)
+            }
             WindowContentRenderScope(
-              maxWidth.value,
-              height.value,
-              win.calcContentScale(limits, maxWidth.value, height.value),
-              maxWidth,
-              height
+              targetWidth.value,
+              targetHeight.value,
+              win.calcContentScale(limits, targetWidth.value, targetHeight.value),
+              targetWidth,
+              targetHeight,
+              inResizeAnimation
             )
           }
           /// 显示内容
@@ -285,7 +305,10 @@ fun WindowController.WindowRender(modifier: Modifier) {
           )
         }
         /// 显示底部控制条
-        WindowBottomBar(win, Modifier.height(winPadding.bottom.dp).fillMaxWidth())
+        WindowBottomBar(win,
+          Modifier.height(winPadding.bottom.dp).fillMaxWidth().onGloballyPositioned {
+            bottomBarHeight = it.size.height / density
+          })
       }
       //#endregion
 

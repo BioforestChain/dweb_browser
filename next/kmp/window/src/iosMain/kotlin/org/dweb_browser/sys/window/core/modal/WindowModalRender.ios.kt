@@ -111,7 +111,7 @@ internal actual fun BottomSheetsModalState.RenderImpl(emitModalVisibilityChange:
          */
         val afterDismiss = CompletableDeferred<Unit>()
         override fun sheetPresentationControllerDidChangeSelectedDetentIdentifier(
-          sheetPresentationController: UISheetPresentationController
+          sheetPresentationController: UISheetPresentationController,
         ) {
           uiScope.launch {
             onResize.emit()
@@ -160,7 +160,7 @@ internal actual fun BottomSheetsModalState.RenderImpl(emitModalVisibilityChange:
                   )
                 ) {
                   val windowRenderScope = remember(winPadding, maxWidth, maxHeight) {
-                    WindowContentRenderScope.fromDp(maxWidth, maxHeight, 1f)
+                    WindowContentRenderScope.fromDp(maxWidth, maxHeight, 1f, false)
                   }
                   windowAdapterManager.Renderer(
                     renderId,
@@ -250,7 +250,7 @@ internal actual fun BottomSheetsModalState.RenderImpl(emitModalVisibilityChange:
     }
   }
   // 返回按钮按下的时候
-  win.GoBackHandler {
+  win.navigation.GoBackHandler {
     if (emitModalVisibilityChange(EmitModalVisibilityState.TryClose)) {
       sheetUiDelegate.afterDismiss.complete(Unit)
     }

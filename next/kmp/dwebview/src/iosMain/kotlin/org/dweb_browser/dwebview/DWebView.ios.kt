@@ -46,7 +46,7 @@ import kotlin.native.runtime.NativeRuntimeApi
 actual suspend fun IDWebView.Companion.create(
   mm: MicroModule.Runtime,
   options: DWebViewOptions,
-  viewBox: IPureViewBox?
+  viewBox: IPureViewBox?,
 ): IDWebView =
   create(
     CGRectMake(0.0, 0.0, 100.0, 100.0),
@@ -74,7 +74,7 @@ internal suspend fun IDWebView.Companion.create(
 @OptIn(ExperimentalForeignApi::class, NativeRuntimeApi::class)
 class DWebView private constructor(
   viewEngine: DWebViewEngine,
-  initUrl: String? = null
+  initUrl: String? = null,
 ) : IDWebView(initUrl ?: viewEngine.options.url) {
   companion object {
     val prepare = SuspendOnce {
@@ -94,7 +94,7 @@ class DWebView private constructor(
 
     suspend fun create(
       viewEngine: DWebViewEngine,
-      initUrl: String? = null
+      initUrl: String? = null,
     ) = DWebView(viewEngine, initUrl).also { dwebView ->
       viewEngine.remoteMM.onBeforeShutdown {
         dwebView.destroy()
@@ -205,9 +205,14 @@ class DWebView private constructor(
     DWebMessageChannel(port1, port2)
   }
 
-  @OptIn(ExperimentalForeignApi::class)
   override suspend fun setContentScale(scale: Float, width: Float, height: Float, density: Float) =
+    withMainContext {
+      setContentScaleUnsafe(scale, width, height, density)
+    }
+
+  override fun setContentScaleUnsafe(scale: Float, width: Float, height: Float, density: Float) {
     engine.setScale(scale);
+  }
 
   override suspend fun setPrefersColorScheme(colorScheme: WebColorScheme) {
     engine.overrideUserInterfaceStyle = when (colorScheme) {
@@ -227,7 +232,7 @@ class DWebView private constructor(
 
   override suspend fun evaluateAsyncJavascriptCode(
     script: String,
-    afterEval: suspend () -> Unit
+    afterEval: suspend () -> Unit,
   ) = withMainContext {
     engine.awaitAsyncJavaScript<String>(
       "return JSON.stringify(await($script))??'undefined'",

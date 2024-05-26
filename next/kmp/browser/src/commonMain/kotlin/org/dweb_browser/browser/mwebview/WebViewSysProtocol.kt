@@ -1,6 +1,5 @@
 package org.dweb_browser.browser.mwebview
 
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalDensity
 import org.dweb_browser.browser.common.createDwebView
 import org.dweb_browser.core.http.router.bind
@@ -25,9 +24,7 @@ suspend fun MultiWebViewNMM.MultiWebViewRuntime.webViewSysProtocol() {
 
         windowAdapterManager.provideRender(rid) { modifier ->
           val density = LocalDensity.current.density
-          LaunchedEffect(scale, width, height) {
-            webView.setContentScale(scale, width, height, density)
-          }
+          webView.setContentScaleUnsafe(scale, width, height, density)
           webView.Render(modifier)
         }.removeWhen(ipc.scope)
 

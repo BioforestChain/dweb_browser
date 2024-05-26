@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -53,9 +52,7 @@ fun MultiWebViewController.Render(
         Box(
           modifier = Modifier.fillMaxSize()
         ) {
-          LaunchedEffect(scale, width, height) {
-            viewItem.webView.setContentScale(scale, width, height, density)
-          }
+          viewItem.webView.setContentScaleUnsafe(scale, width, height, density)
           // 开始分平台渲染web view
           viewItem.webView.Render(Modifier.fillMaxSize())
           AfterViewItemRender(viewItem)

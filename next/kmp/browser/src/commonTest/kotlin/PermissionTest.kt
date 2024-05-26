@@ -106,8 +106,8 @@ class PermissionTest {
     val dnsRuntime = dns.bootstrap()
     val clientRuntime = dnsRuntime.open(clientNMM.mmid)
     val response = clientRuntime.nativeFetch("file://${serverNMM.mmid}/demo")
-    println("QAQ response=$response")
+    println("QWQ response=$response")
     assertEquals(response.text(), "okk")
-    println("QAQ okk")
+    println("QWQ okk")
   }
 }

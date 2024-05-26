@@ -38,20 +38,30 @@ data class WindowContentRenderScope internal constructor(
   val scale: Float,
   val widthDp: Dp,
   val heightDp: Dp,
+  val inResizeAnimation: Boolean,
 ) {
   companion object {
     fun fromDp(
       widthDp: Dp,
       heightDp: Dp,
       scale: Float,
-    ) = WindowContentRenderScope(widthDp.value, heightDp.value, scale, widthDp, heightDp)
+      inResizeAnimation: Boolean,
+    ) = WindowContentRenderScope(
+      widthDp.value,
+      heightDp.value,
+      scale,
+      widthDp,
+      heightDp,
+      inResizeAnimation
+    )
   }
 
   constructor(
     width: Float,
     height: Float,
     scale: Float,
-  ) : this(width, height, scale, width.dp, height.dp)
+    inResizeAnimation: Boolean,
+  ) : this(width, height, scale, width.dp, height.dp, inResizeAnimation)
 }
 typealias WindowRenderProvider = @Composable WindowContentRenderScope.(modifier: Modifier) -> Unit
 
@@ -94,7 +104,7 @@ class WindowAdapterManager : AdapterManager<CreateWindowAdapter>() {
 
   @Composable
   fun Renderer(
-    rid: String, windowRenderScope: WindowContentRenderScope, contentModifier: Modifier = Modifier
+    rid: String, windowRenderScope: WindowContentRenderScope, contentModifier: Modifier = Modifier,
   ) {
     when (val render = windowAdapterManager.rememberRender(rid)) {
       null -> {

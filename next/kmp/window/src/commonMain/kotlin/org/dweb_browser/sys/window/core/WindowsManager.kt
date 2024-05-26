@@ -1,6 +1,7 @@
 package org.dweb_browser.sys.window.core
 
 
+import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -211,7 +212,7 @@ open class WindowsManager<T : WindowController>(
 //    }
 
 
-  private var inQueue = false
+  private var inQueue by atomic(false)
   internal suspend fun <R> withWindowLifecycleScope(block: suspend CoroutineScope.() -> R) =
     withScope(viewBox.lifecycleScope) {
       if (inQueue) {
