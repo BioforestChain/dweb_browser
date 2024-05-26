@@ -181,7 +181,8 @@ open class PropMetas<T : PropMetas.Constructor<T>>(
       true
     } else false
 
-    fun get(propName: String) = data.get(propName)
+    fun get(propName: String) = data[propName]
+    fun remove(propName: String) = data.remove(propName)
   }
 
   class PropValueConfig<T : Any?>(private val propValue: PropValue<T>) {

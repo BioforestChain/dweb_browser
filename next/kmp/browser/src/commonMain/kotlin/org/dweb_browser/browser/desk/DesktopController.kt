@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -39,6 +40,7 @@ import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.ENV_SWITCH_KEY
 import org.dweb_browser.helper.OffListener
+import org.dweb_browser.helper.SafeHashSet
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.build
 import org.dweb_browser.helper.collectIn
@@ -142,18 +144,28 @@ open class DesktopController private constructor(
   }
 
   // 状态更新信号
-  internal val updateFlow = MutableSharedFlow<Unit>()
+  internal val updateFlow = MutableSharedFlow<String>()
   val onUpdate = channelFlow {
-    updateFlow.conflate().collect {
+    val reasons = SafeHashSet<String>()
+    updateFlow.onEach {
+      reasons.addAll(it.split("|"))
+    }.conflate().collect {
       delay(100)
-      send(it)
+      val result = reasons.sync {
+        val result = joinToString("|")
+        clear()
+        result
+      }
+      if (result.isNotEmpty()) {
+        send(result)
+      }
     }
     close()
   }.shareIn(deskNMM.getRuntimeScope(), started = SharingStarted.Eagerly)
 
   init {
     runningApps.onChange { map ->
-      updateFlow.emit(Unit)
+      updateFlow.emit("apps")
     }
   }
 
@@ -185,8 +197,6 @@ open class DesktopController private constructor(
   suspend fun getDesktopWindowsManager() = wmLock.withLock {
     val vc = this.activity!!
     DesktopWindowsManager.getOrPutInstance(vc, IPureViewBox.from(vc)) { dwm ->
-      dwm.maximizedWinsFlow.collectIn(vc.lifecycleScope) { updateFlow.emit(Unit) }
-
       val watchWindows = mutableMapOf<WindowController, OffListener<*>>()
       fun watchAllWindows() {
         watchWindows.keys.subtract(dwm.allWindows).forEach { win ->
@@ -197,7 +207,7 @@ open class DesktopController private constructor(
             continue
           }
           watchWindows[win] = win.state.observable.onChange {
-            updateFlow.emit(Unit)
+            updateFlow.emit(it.key.fieldName)
           }
         }
       }
@@ -205,7 +215,7 @@ open class DesktopController private constructor(
       /// 但有窗口信号变动的时候，确保 MicroModule.IpcEvent<Activity> 事件被激活
       dwm.allWindowsFlow.collectIn(dwm.viewController.lifecycleScope) {
         watchAllWindows()
-        updateFlow.emit(Unit)
+        updateFlow.emit("windows")
         _activitySignal.emit()
       }
       watchAllWindows()

@@ -21,6 +21,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.graphicsLayer
@@ -181,28 +182,71 @@ fun WindowController.WindowRender(modifier: Modifier) {
   ) {
     /// 开始绘制窗口
     win.state.safePadding = winPadding.boxSafeAreaInsets
-    val renderConfig = win.state.renderConfig
     Box(
-      modifier = when {
-        // 如果使用 原生窗口的边框，那么只需要填充满画布即可
-        renderConfig.useSystemFrame -> modifier.fillMaxSize()
-        // 否则使用 模拟窗口的边框，需要自定义坐标、阴影、缩放
-        else -> with(win.watchedBounds().value) {
-          modifier.offset(x.dp, y.dp).size(width.dp, height.dp)
-        }.graphicsLayer {
-          alpha = opacity
-          scaleX = scale
-          scaleY = scale
-        }.shadow(
-          /**
-           * 窗口海拔阴影
-           */
-          elevation = animateFloatAsState(
-            targetValue = (if (inMove) 20f else 1f) + zIndex,
-            animationSpec = tween(durationMillis = if (inMove) 250 else 500),
-            label = "elevation"
-          ).value.dp, shape = winPadding.boxRounded.roundedCornerShape
-        ).focusable()
+      modifier = modifier.composed {
+        when {
+          // 如果使用 原生窗口的边框，那么只需要填充满画布即可
+          win.state.isSystemWindow -> fillMaxSize()
+          // 否则使用 模拟窗口的边框，需要自定义坐标、阴影、缩放
+          else -> {
+            val bounds by win.watchedBounds()
+            val isMaximized by win.watchedIsMaximized()
+            val x = when {
+              inMove -> bounds.x
+              else -> animateFloatAsState(
+                targetValue = bounds.x,
+                animationSpec = iosTween(durationIn = isMaximized),
+                label = "bounds.x"
+              ).value
+            }
+            val y = when {
+              inMove -> bounds.y
+              else -> animateFloatAsState(
+                targetValue = bounds.y,
+                animationSpec = iosTween(durationIn = isMaximized),
+                label = "bounds.y"
+              ).value
+            }
+            val width = when {
+              inMove -> bounds.width
+              else -> animateFloatAsState(
+                targetValue = bounds.width,
+                animationSpec = iosTween(durationIn = isMaximized),
+                label = "bounds.width"
+              ).value
+            }
+            val height = when {
+              inMove -> bounds.height
+              else -> animateFloatAsState(
+                targetValue = bounds.height,
+                animationSpec = iosTween(durationIn = isMaximized),
+                label = "bounds.height"
+              ).value
+            }
+            val scaleX = when {
+              inMove -> scale
+              else -> scale * bounds.width / width
+            }
+            val scaleY = when {
+              inMove -> scale
+              else -> scale * bounds.height / height
+            }
+            offset(x.dp, y.dp).size(width.dp, height.dp).graphicsLayer {
+              this.alpha = opacity
+              this.scaleX = scale
+              this.scaleY = scale
+            }.shadow(
+              /**
+               * 窗口海拔阴影
+               */
+              elevation = animateFloatAsState(
+                targetValue = (if (inMove) 20f else 1f) + zIndex,
+                animationSpec = tween(durationMillis = if (inMove) 250 else 500),
+                label = "elevation"
+              ).value.dp, shape = winPadding.boxRounded.roundedCornerShape
+            ).focusable()
+          }
+        }
       },
     ) {
       val theme = LocalWindowControllerTheme.current

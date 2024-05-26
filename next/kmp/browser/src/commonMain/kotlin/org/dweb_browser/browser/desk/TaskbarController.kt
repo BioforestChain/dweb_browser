@@ -7,6 +7,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import io.ktor.http.Url
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.serialization.Serializable
 import org.dweb_browser.browser.desk.types.DeskAppMetaData
 import org.dweb_browser.core.help.types.MMID
@@ -15,8 +22,8 @@ import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.ENV_SWITCH_KEY
 import org.dweb_browser.helper.PromiseOut
+import org.dweb_browser.helper.SafeHashSet
 import org.dweb_browser.helper.Signal
-import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.build
 import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.envSwitch
@@ -70,8 +77,24 @@ class TaskbarController private constructor(
   /** 展示在taskbar中的应用列表 */
   private suspend fun getTaskbarShowAppList() = taskbarStore.getApps()
   private suspend fun getFocusApp() = getTaskbarShowAppList().firstOrNull()
-  internal val updateSignal = SimpleSignal()
-  val onUpdate = updateSignal.toListener()
+  internal val updateFlow = MutableSharedFlow<String>()
+  val onUpdate = channelFlow {
+    val reasons = SafeHashSet<String>()
+    updateFlow.onEach {
+      reasons.addAll(it.split("|"))
+    }.conflate().collect {
+      delay(100)
+      val result = reasons.sync {
+        val result = joinToString("|")
+        clear()
+        result
+      }
+      if (result.isNotEmpty()) {
+        send(result)
+      }
+    }
+    close()
+  }.shareIn(deskNMM.getRuntimeScope(), started = SharingStarted.Eagerly)
 
   // 触发状态更新
   private val stateSignal = Signal<TaskBarState>()
@@ -99,12 +122,12 @@ class TaskbarController private constructor(
         /// 保存到数据库
         taskbarStore.setApps(apps)
         // 窗口打开时触发
-        updateSignal.emit()
+        updateFlow.emit("apps")
       }
     }
     // 监听窗口状态改变
     desktopController.onUpdate.collectIn(deskNMM.getRuntimeScope()) {
-      updateSignal.emit()
+      updateFlow.emit(it)
     }
   }
 

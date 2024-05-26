@@ -2,6 +2,7 @@ package org.dweb_browser.browser.desk
 
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import org.dweb_browser.browser.web.debugBrowser
@@ -255,11 +256,18 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         },
         // 监听所有app数据
         "/desktop/observe/apps" byChannel { ctx ->
-          val job = desktopController.onUpdate.collectIn(mmScope) {
-            // debugDesk("/desktop/observe/apps", "onUpdate")
+          // 默认不同步 bounds 字段，否则move的时候数据量会非常大
+          val enableBounds = request.queryAsOrNull<Boolean>("bounds") ?: false
+          val job = desktopController.onUpdate.run {
+            when {
+              enableBounds -> this
+              // 如果只有 bounds ，那么忽略，不发送
+              else -> filter { it != "bounds" }
+            }
+          }.collectIn(mmScope) {
+            debugDesk("/desktop/observe/apps") { "changes=$it" }
             try {
               val apps = desktopController.getDesktopApps()
-              // debugDesk("/desktop/observe/apps") { "apps:$apps" }
               ctx.sendJsonLine(apps)
             } catch (e: Throwable) {
               close(cause = e)
@@ -268,7 +276,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
           onClose {
             job.cancel()
           }
-          desktopController.updateFlow.emit(Unit)
+          desktopController.updateFlow.emit("init")
         },
         // 获取所有taskbar数据
         "/taskbar/apps" bind PureMethod.GET by defineJsonResponse {
@@ -278,19 +286,29 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         // 监听所有taskbar数据
         "/taskbar/observe/apps" byChannel { ctx ->
           val limit = request.queryOrNull("limit")?.toInt() ?: Int.MAX_VALUE
-          debugDesk("/taskbar/observe/apps", limit)
-          taskBarController.onUpdate {
+          debugDesk("/taskbar/observe/apps", "limit=$limit")
+          // 默认不同步 bounds 字段，否则move的时候数据量会非常大
+          val enableBounds = request.queryAsOrNull<Boolean>("bounds") ?: false
+          val job = taskBarController.onUpdate.run {
+            when {
+              enableBounds -> this
+              // 如果只有 bounds ，那么忽略，不发送
+              else -> filter { it != "bounds" }
+            }
+          }.collectIn(mmScope) {
+            debugDesk("/taskbar/observe/apps") { "changes=$it" }
             try {
-//            debugDesk("/taskbar/observe/apps") { "onUpdate $pureChannel=>${request.body.toPureString()}" }
               val apps = taskBarController.getTaskbarAppList(limit)
-//            debugDesk("/taskbar/observe/apps") { "apps:$apps" }
               ctx.sendJsonLine(apps)
             } catch (e: Exception) {
               close(cause = e)
             }
-          }.removeWhen(onClose)
+          }
+          onClose {
+            job.cancel()
+          }
           debugDesk("/taskbar/observe/apps") { "firstEmit =>${request.body.toPureString()}" }
-          taskBarController.updateSignal.emit()
+          taskBarController.updateFlow.emit("init")
         },
         // 监听所有taskbar状态
         "/taskbar/observe/status" byChannel { ctx ->

@@ -243,8 +243,7 @@ open class WindowsManager<T : WindowController>(
   }
 
   open fun findWindows(mmid: MMID) =
-    allWindows.filter { win -> win.state.constants.owner == mmid }
-      .sortedBy { it.state.zIndex }
+    allWindows.filter { win -> win.state.constants.owner == mmid }.sortedBy { it.state.zIndex }
 
   /**
    * 获取窗口状态

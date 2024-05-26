@@ -20,22 +20,22 @@ private fun <T> i18nResource(res: OneParamI18nResource<T>, param: T): String {
     ?: res.i18nValues.firstOrNull()?.second)?.invoke(param) ?: "Undefined"
 }
 
-/**
- * 跟随操作系统的设置，初始化语言
- */
-private var currentLanguage = Language.getLanguage(Locale.current.language)
-
 enum class Language(val code: String) {
-  EN("en"), ZH("zh"), ;
+  EN("en"), ZH("zh"),
+  ;
 
   companion object {
-    val current get() = currentLanguage
-    fun getLanguage(language: String) = entries.find { it.code == language } ?: ZH
+    /**
+     * 跟随操作系统的设置，初始化语言
+     */
+    val current get() = Language.getLanguage(Locale.current.language)
+    private val languageMap = entries.associateBy { it.code }
+    fun getLanguage(language: String) = languageMap[language] ?: ZH
   }
 }
 
 class SimpleI18nResource(
-  internal val i18nValues: List<Pair<Language, String>>, ignoreWarn: Boolean = false
+  internal val i18nValues: List<Pair<Language, String>>, ignoreWarn: Boolean = false,
 ) {
   constructor(vararg i18nValues: Pair<Language, String>, ignoreWarn: Boolean = false) : this(
     i18nValues = i18nValues.toList(),

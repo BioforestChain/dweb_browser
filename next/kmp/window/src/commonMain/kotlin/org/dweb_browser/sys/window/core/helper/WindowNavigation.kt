@@ -3,6 +3,8 @@ package org.dweb_browser.sys.window.core.helper
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -48,8 +50,13 @@ class WindowNavigation(val state: WindowState) {
     enabled: Boolean = true, onBack: suspend () -> Unit,
   ) {
     val uiScope = rememberCoroutineScope()
-    DisposableEffect(this, enabled, onBack) {
-      val record = GoBackRecord.from(onBack, enabled, uiScope)
+    val onBackState = remember { mutableStateOf(onBack) }
+    onBackState.value = onBack
+
+    DisposableEffect(this, enabled, onBackState) {
+      val record = GoBackRecord.from({
+        onBackState.value()
+      }, enabled, uiScope)
       onBackRecords.add(record)
       state.canGoBack = onBackRecords.any { it.enabled } // onBackRecords.size > 0
       onDispose {
