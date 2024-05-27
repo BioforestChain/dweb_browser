@@ -4,5 +4,5 @@ val libs = the<LibrariesForLibs>()
 
 plugins {
   id("org.jetbrains.compose")
-  id("org.jetbrains.kotlin.plugin.compose")
+  kotlin("plugin.compose")
 }
