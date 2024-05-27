@@ -90,7 +90,7 @@ export class Server_external extends HttpServer {
           );
         }
         // 是否需要激活应用
-        this.#needActivity = !!request.parsed_url.searchParams.get("activite");
+        this.#needActivity = !!request.parsed_url.searchParams.get("activate");
         await mapHelper.getOrPut(this.#externalWaitters, mmid, async () => {
           const ipc = await jsProcess.connect(mmid).catch((err) => {
             this.#externalWaitters.delete(mmid);
