@@ -99,8 +99,7 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
   suspend fun openBottomSheet(
     metadata: JmmMetadata
   ): JmmInstallerController {
-    val mmid = metadata.manifest.id
-    val installerController = installViews.getOrPut(mmid) {
+    val installerController = installViews.getOrPut(metadata.manifest.id) {
       JmmInstallerController(
         jmmNMM = jmmNMM, metadata = metadata, jmmController = this@JmmController
       )
@@ -109,6 +108,9 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
     return installerController
   }
 
+  /**
+   * 显示应用安装界面时，需要最新的 AppInstallManifest 数据
+   */
   suspend fun fetchJmmMetadata(metadataUrl: String): JmmMetadata {
     val response = jmmNMM.nativeFetch(metadataUrl)
     if (!response.isOk) {
@@ -187,7 +189,12 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
     }
     // 版本相同
     if (newManifest.version == oldManifest.version) {
-      newMetadata.state = JmmStatusEvent(state = JmmStatus.INSTALLED)
+      // 这里表示二者是一样的，此时new状态需要跟old保持一致，而不是直接置为 Installed
+      newMetadata.state = JmmStatusEvent(
+        current = oldMetadata.state.current,
+        total = oldMetadata.state.total,
+        state = oldMetadata.state.state
+      )
     } else { // 比安装的应用版本还低的，直接不能安装，提示版本过低，不存储
       newMetadata.state = JmmStatusEvent(state = JmmStatus.VersionLow)
     }
