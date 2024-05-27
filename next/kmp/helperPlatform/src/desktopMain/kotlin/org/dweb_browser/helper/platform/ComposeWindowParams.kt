@@ -36,6 +36,10 @@ class ComposeWindowParams(
   private val pvc: PureViewController,
   private val innerContent: @Composable FrameWindowScope.() -> Unit
 ) {
+  companion object {
+    var defaultIcon by mutableStateOf<Painter?>(null)
+  }
+
   val content: @Composable FrameWindowScope.() -> Unit = {
     window.minimumSize = Dimension(200, 200) // 设置窗口最小值，避免过小引起的渲染异常
     frameWindowScope = this
@@ -94,7 +98,8 @@ class ComposeWindowParams(
   var onCloseRequest by mutableStateOf<() -> Unit>({})
   var visible by mutableStateOf<Boolean>(true)
   var title by mutableStateOf<String>("Untitled")
-  var icon by mutableStateOf<Painter?>(null)
+  var icon by mutableStateOf<Painter?>(defaultIcon)
+  val defaultIcon get() = ComposeWindowParams.defaultIcon
   var undecorated by mutableStateOf<Boolean>(false)
   var transparent by mutableStateOf<Boolean>(false)
   var resizable by mutableStateOf<Boolean>(true)

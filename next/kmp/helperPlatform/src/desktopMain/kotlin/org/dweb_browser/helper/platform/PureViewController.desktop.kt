@@ -99,7 +99,7 @@ class PureViewController(
             state = state,
             visible = winRender.visible,
             title = winRender.title,
-            icon = winRender.icon,
+            icon = winRender.icon ?: winRender.defaultIcon,
             undecorated = winRender.undecorated,
             transparent = winRender.transparent,
             resizable = winRender.resizable,

@@ -44,6 +44,12 @@ AssetsConfig.createAndSave("browser-icons", [
     moduleName: "browser",
   },
 ]);
+AssetsConfig.createAndSave("window-drawable", [
+  {
+    type: "copyKmpResDrawable",
+    moduleName: "window",
+  },
+]);
 
 export const doInitAssets = $once(async (watch: boolean) => {
   /// 这里是为了让 toolkitTasks 将 AssetsConfig 写满
