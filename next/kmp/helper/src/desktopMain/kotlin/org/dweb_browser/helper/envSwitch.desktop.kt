@@ -13,6 +13,7 @@ actual open class EnvSwitchCore {
 
   actual fun get(switch: String): String {
     val key = "dweb-$switch"
-    return env[key] ?: System.getProperty(key, "")
+    // 环境变量不方便配置 “-” 符号，所以替换成下划线
+    return env[key] ?: env[key.replace("-", "_")] ?: System.getProperty(key, "")
   }
 }
