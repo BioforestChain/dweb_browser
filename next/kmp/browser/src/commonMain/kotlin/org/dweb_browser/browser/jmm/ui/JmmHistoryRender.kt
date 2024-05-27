@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
@@ -195,7 +196,7 @@ fun JmmViewItem(
           }
           val primary = MaterialTheme.colorScheme.primary
           when (jmmMetadata.state.state) {
-            JmmStatus.Downloading -> {
+            JmmStatus.Downloading, JmmStatus.Paused -> {
               Box(
                 modifier = Modifier.size(40.dp),
                 contentAlignment = Alignment.Center
@@ -211,36 +212,39 @@ fun JmmViewItem(
                   )
                 }
                 // 画图标
+                val isDownloading = jmmMetadata.state.state == JmmStatus.Downloading
                 Image(
-                  imageVector = Icons.Default.Download,
+                  imageVector = if (isDownloading) Icons.Default.Download else Icons.Default.Pause,
                   contentDescription = "Download",
-                  modifier = Modifier.clip(CircleShape).size(36.dp),
+                  modifier = Modifier.size(38.dp).clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.outlineVariant)
+                    .padding(2.dp),
                   contentScale = ContentScale.FillBounds
                 )
               }
             }
 
-            JmmStatus.Paused -> {
-              Box(
-                modifier = Modifier
-                  .size(width = 64.dp, height = 30.dp)
-                  .clip(RoundedCornerShape(8.dp))
-                  .background(MaterialTheme.colorScheme.outlineVariant)
-              ) {
-                Box(
-                  modifier = Modifier
-                    .size(width = (64 * progress).dp, height = 30.dp)
-                    .background(MaterialTheme.colorScheme.primary)
-                )
-
-                Text(
-                  text = jmmMetadata.state.state.showText(),
-                  color = MaterialTheme.colorScheme.background,
-                  fontWeight = FontWeight.W900,
-                  modifier = Modifier.align(Alignment.Center),
-                )
-              }
-            }
+//            JmmStatus.Paused -> {
+//              Box(
+//                modifier = Modifier
+//                  .size(width = 64.dp, height = 30.dp)
+//                  .clip(RoundedCornerShape(8.dp))
+//                  .background(MaterialTheme.colorScheme.outlineVariant)
+//              ) {
+//                Box(
+//                  modifier = Modifier
+//                    .size(width = (64 * progress).dp, height = 30.dp)
+//                    .background(MaterialTheme.colorScheme.primary)
+//                )
+//
+//                Text(
+//                  text = jmmMetadata.state.state.showText(),
+//                  color = MaterialTheme.colorScheme.background,
+//                  fontWeight = FontWeight.W900,
+//                  modifier = Modifier.align(Alignment.Center),
+//                )
+//              }
+//            }
 
             else -> {
               Box(
