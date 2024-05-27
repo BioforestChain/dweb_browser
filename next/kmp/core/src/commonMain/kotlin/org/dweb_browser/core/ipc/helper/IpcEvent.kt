@@ -11,24 +11,24 @@ import org.dweb_browser.pure.http.PureTextFrame
 
 @Serializable
 @SerialName(IPC_MESSAGE_TYPE_EVENT)
-class IpcEventRawString(
+data class IpcEventRawString(
   val name: String,
   val data: String,
   val encoding: IPC_DATA_ENCODING,
   override val order: Int? = null,
 ) : IpcRawMessage, OrderBy {
-  fun toIpcEvent() = IpcEvent(name, data, encoding)
+  fun toIpcEvent() = IpcEvent(name, data, encoding, order)
 }
 
 @Serializable
 @SerialName(IPC_MESSAGE_TYPE_EVENT)
-class IpcEventRawBinary(
+data class IpcEventRawBinary(
   val name: String,
   val data: ByteArray,
   val encoding: IPC_DATA_ENCODING,
   override val order: Int? = null,
 ) : IpcRawMessage, OrderBy {
-  fun toIpcEvent() = IpcEvent(name, data, encoding)
+  fun toIpcEvent() = IpcEvent(name, data, encoding, order)
 }
 
 class IpcEvent(
@@ -105,7 +105,7 @@ class IpcEvent(
         binary,
         IPC_DATA_ENCODING.BINARY,
         order,
-      )
+      )/**/
     }
   }
 
