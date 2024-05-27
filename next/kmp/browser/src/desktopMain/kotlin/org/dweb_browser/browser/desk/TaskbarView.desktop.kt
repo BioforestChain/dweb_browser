@@ -133,8 +133,8 @@ class TaskbarView private constructor(
           val screenCenterX = (screenBounds.right - screenBounds.left) / 2 + screenBounds.left
 
           val endX = when {
-            // 屏幕左边空间更多
-            taskbarCenterX > screenCenterX -> taskbarBounds.x - padding - windowBounds.width
+            // 屏幕左边空间更多, 如果windowBounds.width > taskbar.x - padding，例如全屏，则 endX = 0 不该左移，否则会溢出屏幕
+            taskbarCenterX > screenCenterX -> (taskbarBounds.x - padding - windowBounds.width).let { if (it > 0) it else 0 }
             // 屏幕右边空间更多
             else -> taskbarBounds.x + taskbarBounds.width + padding
           }
