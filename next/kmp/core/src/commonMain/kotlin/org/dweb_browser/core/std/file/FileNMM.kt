@@ -134,7 +134,6 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
     private val sysFileSystem = object : IVirtualFsDirectory {
       override fun isMatch(firstSegment: String) = firstSegment == "sys"
       override val fs: FileSystem = ResourceFileSystem.FileSystem
-      val basePath = "/".toPath()
       override fun resolveTo(remote: IMicroModuleManifest, virtualFullPath: Path) =
         virtualFullPath - virtualFullPath.first
     }
@@ -270,7 +269,7 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
         // 写入文件，一次性写入
         "/write" bind PureMethod.POST by defineEmptyResponse {
           val (filepath, fs) = getPath()
-          debugFile("/write", filepath)
+//          debugFile("/write", filepath)
           val create = request.queryAsOrNull<Boolean>("create") ?: false
           if (create) {
             touchFile(filepath, fs)

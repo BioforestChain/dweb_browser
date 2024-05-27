@@ -1,5 +1,6 @@
 package org.dweb_browser.helper
 
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
@@ -38,7 +39,7 @@ class Queue<R>(
             block()
           }
         },
-        _all.first(),
+        _all.firstOrNull() ?: CompletableDeferred(),
         _all.slice(1 until _all.size),
       ).strategy()
 

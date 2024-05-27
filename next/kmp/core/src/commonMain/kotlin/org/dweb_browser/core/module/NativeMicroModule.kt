@@ -77,7 +77,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
       nativeFetchAdaptersManager.append(order = 1) { fromMM, request ->
         if (request.url.protocol.name == "file" && request.url.host.endsWith(".dweb")) {
           val mpid = request.url.host
-          fromMM.debugMM("fetch ipc", "${fromMM.mmid} => ${request.href}")
+          fromMM.debugMM("fetch ipc") { "${fromMM.mmid} => ${request.href}" }
           val url = request.href
           val reasonRequest = buildRequestX(url, request.method, request.headers, request.body);
           val fromIpc = runCatching {
@@ -172,7 +172,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
               else -> false
             }
           } ?: return@collectIn
-          debugMM("NMM/Handler-start", ipcRequest.url)
+          debugMM("NMM/Handler-start") { ipcRequest.url }
           /// 根据host找到对应的路由模块
           val routers = protocolRouters[ipcRequest.uri.host] ?: protocolRouters["*"]
           val request = ipcRequest.toPure()
@@ -193,7 +193,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
           }.getOrElse {
             ctx.defaultRoutesNotFound(it)
           })
-          debugMM("NMM/Handler-done", ipcRequest.url)
+          debugMM("NMM/Handler-done") { ipcRequest.url }
         }
 
         /// 在 NMM 这里，只要绑定好了，就可以开始握手通讯
