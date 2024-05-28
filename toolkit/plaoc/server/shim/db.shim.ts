@@ -3,9 +3,19 @@
 export const setupDB = async (sessionId: string) => {
   document.currentScript?.parentElement?.removeChild(document.currentScript);
   const KEY = "--plaoc-session-id--";
-
+  console.log(
+    KEY,
+    localStorage.getItem(KEY) !== sessionId,
+    localStorage.getItem(KEY) == null,
+    localStorage.getItem(KEY)
+  );
   if (localStorage.getItem(KEY) !== sessionId) {
-    console.log("触发清空", sessionId);
+    // 解决target2版本适配，临时代码
+    if (localStorage.getItem(KEY) == null) {
+      localStorage.setItem(KEY, sessionId);
+      return;
+    }
+    console.log("clearSession=>", sessionId);
     localStorage.clear();
     localStorage.setItem(KEY, sessionId);
     sessionStorage.clear();
