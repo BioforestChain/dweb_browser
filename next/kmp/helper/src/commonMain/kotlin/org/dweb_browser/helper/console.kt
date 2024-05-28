@@ -132,6 +132,10 @@ fun String.padEndAndSub(length: Int): String {
 }
 
 class Debugger(val scope: String) {
+  init {
+    println("Debugger scope: $scope")
+  }
+
   operator fun invoke(tag: String, msg: Any? = "", err: Any? = null) {
     printDebug(scope, tag, msg, err)
   }

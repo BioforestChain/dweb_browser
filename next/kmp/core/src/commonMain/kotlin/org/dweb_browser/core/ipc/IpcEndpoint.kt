@@ -89,7 +89,7 @@ abstract class IpcEndpoint {
     internal val ipcCompletableDeferred = CompletableDeferred<Ipc>()
     val ipcDeferred: Deferred<Ipc> get() = ipcCompletableDeferred
     val producer = Producer<IpcMessage>("ipc-msg/$debugId/${pid}", scope).apply {
-      consumer("watch-fork").collectIn(scope) { event ->
+      consumer("watch-fork").collectIn(coroutineContext) { event ->
         when (val ipcFork = event.data) {
           is IpcFork -> accPid.getAndUpdate {
             max(it, ipcFork.pid - 1)

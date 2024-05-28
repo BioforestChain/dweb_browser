@@ -43,7 +43,6 @@ import org.dweb_browser.helper.SafeLinkList
 import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.SuspendOnce1
 import org.dweb_browser.helper.WARNING
-import org.dweb_browser.helper.asProducerWithOrder
 import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.withScope
 import org.dweb_browser.pure.http.IPureBody
@@ -197,7 +196,7 @@ class Ipc internal constructor(
       // 告知对方我启动了
       is IpcLifecycleInit -> IpcLifecycle(IpcLifecycleOpening).also {
         sendLifecycleToRemote(it)
-        debugIpc("emit-locale-lifecycle", it)
+        debugIpc.verbose("emit-locale-lifecycle", it)
         lifecycleLocaleFlow.emit(it)
       }
 
@@ -205,10 +204,10 @@ class Ipc internal constructor(
     }
     // 监听远端生命周期指令，进行协议协商
     lifecycleRemoteFlow.collectIn(scope) { lifecycleRemote ->
-      debugIpc("lifecycle-in") { "remote=$lifecycleRemote locale=$lifecycle" }
+      debugIpc.verbose("lifecycle-in") { "remote=$lifecycleRemote locale=$lifecycle" }
       val doIpcOpened = suspend {
         IpcLifecycle(IpcLifecycleOpened).also {
-          debugIpc("emit-locale-lifecycle", it)
+          debugIpc.verbose("emit-locale-lifecycle", it)
           sendLifecycleToRemote(it)
           lifecycleLocaleFlow.emit(it)
         }
@@ -252,7 +251,7 @@ class Ipc internal constructor(
    * 向远端发送 生命周期 信号
    */
   private suspend fun sendLifecycleToRemote(state: IpcLifecycle) {
-    debugIpc("lifecycle-out", state)
+    debugIpc.verbose("lifecycle-out", state)
     endpoint.postIpcMessage(EndpointIpcMessage(pid, state))
   }
 

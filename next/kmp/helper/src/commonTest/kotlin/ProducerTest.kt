@@ -312,6 +312,7 @@ class ProducerTest {
 
   @Test
   fun testMultiConsumer() = runCommonTest {
+    addDebugTags(listOf("Producer<test>"))
     data class Data(val data: Int) : OrderBy {
       override val order = 1
     }
@@ -322,18 +323,18 @@ class ProducerTest {
 
     producer.consumer("consumer1").collectIn(this) {
       res.add(it.consume())
-      println("${now()} $it")
+      println("${now()} $it ${res.size}")
     }
     producer.consumer("consumer2").collectIn(this) {
       res.add(it.consume())
-      println("${now()} $it")
+      println("${now()} $it ${res.size}")
     }
     for (i in 1..MAX) {
       producer.send(Data(i))
     }
     producer.closeAndJoin()
 
-    assertEquals(MAX, res.size / 2)
+    assertEquals(MAX * 2, res.size)
   }
 
   @Test

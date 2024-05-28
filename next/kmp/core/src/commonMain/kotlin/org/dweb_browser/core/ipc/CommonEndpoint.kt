@@ -55,7 +55,7 @@ abstract class CommonEndpoint(
    */
   override fun getLocaleSubProtocols() = setOf(EndpointProtocol.CBOR, EndpointProtocol.JSON)
   override suspend fun sendLifecycleToRemote(state: EndpointLifecycle) {
-    debugEndpoint("lifecycle-out") { "${this@CommonEndpoint} >> $state " }
+    debugEndpoint.verbose("lifecycle-out") { "${this@CommonEndpoint} >> $state " }
     when (protocol) {
       EndpointProtocol.JSON -> {
         val data = endpointMessageToJson(state)

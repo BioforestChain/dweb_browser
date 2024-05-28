@@ -9,6 +9,7 @@ import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -16,26 +17,27 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.job
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.plus
 import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
+import kotlin.coroutines.CoroutineContext
 
 /**
  * 消息生产者，彻底的消费掉消息需要显示调用consume()
  */
-class Producer<T>(val name: String, parentScope: CoroutineScope) {
+class Producer<T>(val name: String, parentContext: CoroutineContext) {
+  constructor(name: String, parentScope: CoroutineScope) : this(name, parentScope.coroutineContext)
+
   private val job = SupervisorJob()
-  val scope = parentScope + job
+  val coroutineContext = parentContext + job
   val debugProducer by lazy { Debugger(this.toString()) }
   val join = job::join
 
   init {
-    parentScope.coroutineContext.job.invokeOnCompletion {
+    parentContext.job.invokeOnCompletion {
       debugProducer.verbose("parent closed")
-      scope.launch {
-        this@Producer.close(it)
-      }
+      this@Producer.close(it)
     }
   }
 
@@ -202,7 +204,7 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
     if (buffers.size > 10) {
       warn()
     }
-    scope.launch(start = CoroutineStart.UNDISPATCHED) {
+    CoroutineScope(coroutineContext).launch(start = CoroutineStart.UNDISPATCHED) {
       doEmit(event, consumers)
     }
   }
@@ -231,7 +233,7 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
 
   private suspend fun doEmit(event: Event, consumers: List<Consumer> = this.consumers.toList()) {
     event.orderInvoke("doEmit") {
-      withScope(scope) {
+      withContext(coroutineContext) {
         for (consumer in consumers) {
           if (!consumer.started || consumer.startingBuffers?.contains(event) == true) {
             continue
@@ -273,7 +275,10 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
         throw Exception("$this was collected")
       }
     }) { collector: FlowCollector<Event> ->
-      val deferred = scope.async(SupervisorJob(), start = CoroutineStart.UNDISPATCHED) {
+      val deferred = CoroutineScope(this@Producer.coroutineContext).async(
+        SupervisorJob(),
+        start = CoroutineStart.UNDISPATCHED
+      ) {
         debugProducer.verbose("startCollect") {
           Exception().stackTraceToString().split("\n").firstOrNull {
             it.trim().run {
@@ -282,7 +287,7 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
           }
         }
 
-        val job = input.filterNotNull().collectIn(scope) { event ->
+        val job = input.filterNotNull().collectIn(this@Producer.coroutineContext) { event ->
           // 同一个事件的处理，不做任何阻塞，直接发出
           // 这里包一层launch，目的是确保不阻塞input的循环，从而确保上游event能快速涌入
           event.emitJobs += launch(start = CoroutineStart.UNDISPATCHED) {
@@ -352,17 +357,17 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
    * 如果有需要，请使用 closeAndAwait
    */
   private val doClose = Once1 { cause: Throwable? ->
-    actionQueue.queue(scope, "close") {
-      scope.launch(start = CoroutineStart.UNDISPATCHED) {
-        if (isClosedForSend) {
-          return@launch
-        }
-        debugProducer.verbose("closeWrite", cause)
-        isClosedForSend = true
-        val bufferEvents = buffers.toList()
-        debugProducer.verbose("closeEvents", bufferEvents)
+    actionQueue.queue(coroutineContext, "close") {
+      if (isClosedForSend) {
+        return@queue
+      }
+      debugProducer.verbose("closeWrite", cause)
+      isClosedForSend = true
+      val bufferEvents = buffers.toList()
+      debugProducer.verbose("closeEvents", bufferEvents)
+      coroutineScope {
         for (event in bufferEvents) {
-          scope.launch(start = CoroutineStart.UNDISPATCHED) {
+          launch(start = CoroutineStart.UNDISPATCHED) {
             event.orderInvoke("close") {
               if (!event.consumed) {
                 event.consume()
@@ -372,54 +377,36 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
             }
           }
         }
-
-        debugProducer.timeout(
-          1000,
-          "close",
-          { "closing and joinAll events=[${buffers.toList().joinToString(", ")}]" }) {
-          // 等待消费者全部完成
-          buffers.toList().joinAll()
-        }
-
-        debugProducer.verbose("close", "close consumers")
-        // 关闭消费者channel，表示彻底无法再发数据
-        for (consumer in consumers) {
-          consumer.close(cause)
-        }
-        scope.cancelOrThrow(cause)
-        debugProducer.verbose("close", "free memory")
-        consumers.clear()
-        buffers.clear()
       }
+
+
+      debugProducer.timeout(
+        1000,
+        "close",
+        { "closing and joinAll events=[${buffers.toList().joinToString(", ")}]" }) {
+        // 等待消费者全部完成
+        buffers.toList().joinAll()
+      }
+
+      debugProducer.verbose("close", "close consumers")
+      // 关闭消费者channel，表示彻底无法再发数据
+      for (consumer in consumers) {
+        consumer.close(cause)
+      }
+      job.cancelOrThrow(cause)
+      debugProducer.verbose("close", "free memory")
+      consumers.clear()
+      buffers.clear()
     }
   }
 
   suspend fun closeAndJoin(cause: Throwable? = null) {
-    doClose(cause).await()
+    runCatching {// 这里会抛出 job was cancelled 的异常
+      doClose(cause).await()
+    }
   }
 
   /**调用监听关闭*/
   fun invokeOnClose(handler: CompletionHandler) =
-    scope.coroutineContext[Job]!!.invokeOnCompletion(handler)
-}
-
-/**创建一个新的消耗者继续传递*/
-fun <T> Flow<T>.asProducer(
-  name: String,
-  scope: CoroutineScope,
-  emitter: suspend Producer<T>.(T) -> Unit = { send(it) },
-) = Producer<T>(name, scope).also { producer ->
-  collectIn(producer.scope) {
-    emitter(producer, it)
-  }
-}
-
-fun <T> Flow<Pair<T, Int?>>.asProducerWithOrder(
-  name: String,
-  scope: CoroutineScope,
-  emitter: suspend Producer<T>.(Pair<T, Int?>) -> Unit = { send(it.first, it.second) },
-) = Producer<T>(name, scope).also { producer ->
-  collectIn(producer.scope) {
-    emitter(producer, it)
-  }
+    job.invokeOnCompletion(handler)
 }
