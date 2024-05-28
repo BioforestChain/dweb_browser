@@ -3,7 +3,7 @@ package org.dweb_browser.sys.window.render
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.TextButton
@@ -41,7 +41,7 @@ actual fun RowScope.WindowBottomBarMenuPanel(win: WindowController) {
       modifier = Modifier.align(Alignment.Center).fillMaxWidth(),
     ) {
       win.IconRender(
-        modifier = Modifier.align(Alignment.CenterVertically).fillMaxSize(),
+        modifier = Modifier.align(Alignment.CenterVertically).fillMaxHeight(),
         primaryColor = contentColor
       )
     }

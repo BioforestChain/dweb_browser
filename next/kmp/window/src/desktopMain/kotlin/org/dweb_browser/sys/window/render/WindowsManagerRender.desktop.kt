@@ -52,9 +52,7 @@ fun RenderWindowInNative(
   val maxBounds = LocalPureViewBox.current.asDesktop()
     .currentViewControllerMaxBounds(withSafeArea = !win.watchedIsFullscreen().value)
   win.Prepare(
-    winMaxWidth = maxBounds.width,
-    winMaxHeight = maxBounds.height,
-    minScale = 1.0
+    winMaxWidth = maxBounds.width, winMaxHeight = maxBounds.height, minScale = 1.0
   ) {
     val compositionChain = rememberUpdatedState(LocalCompositionChain.current)
     val pvc = win.getDesktopWindowNativeView(windowsManager, compositionChain).pvc

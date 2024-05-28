@@ -44,21 +44,20 @@ fun MultiWebViewController.Render(
   Box(modifier) {
     list.forEach { viewItem ->
       key(viewItem.webviewId) {
-        LatestEffect(viewItem, list)
-
         /// 为了防止在窗口状态下，webview返回时失真问题。所以在webview加载完成后出发刷新
         val density = LocalDensity.current.density
+        viewItem.webView.setContentScaleUnsafe(scale, width, height, density)
 
-        Box(
-          modifier = Modifier.fillMaxSize()
-        ) {
-          viewItem.webView.setContentScaleUnsafe(scale, width, height, density)
-          // 开始分平台渲染web view
-          viewItem.webView.Render(Modifier.fillMaxSize())
-          AfterViewItemRender(viewItem)
+        val lambdaComposableCanFixSwingPanelFlash: @Composable () -> Unit = remember {
+          {
+            viewItem.webView.Render(Modifier.fillMaxSize())
+          }
         }
+        lambdaComposableCanFixSwingPanelFlash()
+        AfterViewItemRender(viewItem)
       }
     }
+    list.lastOrNull()?.also { LatestEffect(it, list) }
   }
 }
 

@@ -108,8 +108,12 @@ class DWebView(
     setContentScaleUnsafe(scale, width, height, density)
   }
 
+  private var contentScale = 1f
   override fun setContentScaleUnsafe(scale: Float, width: Float, height: Float, density: Float) {
-    viewEngine.setContentScale(scale.toDouble())
+    if (contentScale != scale) {
+      contentScale = scale
+      viewEngine.setContentScale(scale.toDouble())
+    }
   }
 
   override suspend fun setPrefersColorScheme(colorScheme: WebColorScheme) {
