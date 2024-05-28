@@ -65,8 +65,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
@@ -81,7 +81,6 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil3.compose.AsyncImage
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.module.NativeMicroModule
@@ -121,7 +120,6 @@ fun NewDesktopView(
       val installApps = taskbarController.desktopController.getDesktopApps().map {
         val icon = it.icons.firstOrNull()?.src ?: ""
         val isSystermApp = taskbarController.desktopController.isSystermApp(it.mmid)
-        println("Mike app: ${it.mmid} ${it.running}")
         val runStatus = if (it.running) {
           toRunningApps.remove(it.mmid)
           DesktopAppModel.DesktopAppRunStatus.RUNNING
@@ -273,20 +271,28 @@ fun NewDesktopView(
       }
     }
 
+
     // floating
     if (popUpApp?.image != null) {
-      val density = LocalDensity.current.density
-      val scale = 1.05
-      val offX = popUpApp!!.offSet!!.x / density
-      val offY = popUpApp!!.offSet!!.y / density
-      val width = (popUpApp!!.size!!.width / density) * scale
-      val height = (popUpApp!!.size!!.height / density) * scale
-      Box(contentAlignment = Alignment.TopStart,
-        modifier = Modifier.fillMaxSize()
+      BoxWithConstraints(contentAlignment = Alignment.TopStart,
+        modifier = Modifier
+          .fillMaxSize()
           .noRippleClickable {
             doHidePopUp()
           }
       ) {
+
+        var popSize by remember { mutableStateOf(IntSize.Zero) }
+        var popAlpha by remember { mutableStateOf(0f) }
+        val density = LocalDensity.current.density
+        val box_width = constraints.maxWidth
+        val box_height = constraints.maxHeight
+
+        val scale = 1.05
+        val offX = popUpApp!!.offSet!!.x / density
+        val offY = popUpApp!!.offSet!!.y / density
+        val width = (popUpApp!!.size!!.width / density) * scale
+        val height = (popUpApp!!.size!!.height / density) * scale
 
         Box(
           contentAlignment = Alignment.Center,
@@ -302,13 +308,26 @@ fun NewDesktopView(
           Image(popUpApp!!.image!!, contentDescription = null)
         }
 
-        Box(modifier = Modifier.offset {
-          IntOffset(
-            x = (offX * density).toInt(),
-            y = ((offY + height + 15) * density).toInt()
-          )
-        }) {
-          moreAppDisplay(popUpApp!!, ::doQuit, ::doDetail, ::doUninstall, ::doShare, ::doHidePopUp)
+        var popOffX =
+          kotlin.math.min((offX * density), (box_width - popSize.width).toFloat()).toInt()
+        var popOffY = ((offY + height + 15) * density).toInt()
+        if (popOffY + popSize.height + 15> box_height) {
+          popOffY = ((offY - popSize.height - 15) * density).toInt()
+        }
+
+
+        Box(modifier = Modifier
+          .offset {
+            IntOffset(
+              x = popOffX,
+              y = popOffY
+            )
+          }.alpha(popAlpha)
+        ) {
+          moreAppDisplay(popUpApp!!, ::doQuit, ::doDetail, ::doUninstall, ::doShare, ::doHidePopUp) {
+            popSize = it
+            popAlpha = 1f
+          }
         }
       }
     }
@@ -470,8 +489,9 @@ fun moreAppDisplay(
   detail: AppItemAction,
   uninstall: AppItemAction,
   share: AppItemAction,
-  dismiss: () -> Unit
-) {
+  dismiss: () -> Unit,
+  onSize: (IntSize) -> Unit,
+  ) {
 
   val displays = mutableListOf<MoreAppModel>()
   displays.add(
@@ -491,6 +511,9 @@ fun moreAppDisplay(
   Box(
     modifier = Modifier.clip(RoundedCornerShape(8.dp))
       .background(color = Color.White.copy(alpha = 0.6F))
+      .onSizeChanged {
+        onSize(it)
+      }
   ) {
 
     moreAppItemsDisplay(displays, dismiss)
