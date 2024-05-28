@@ -114,12 +114,7 @@ internal fun BrowserWebPage.BrowserWebPageRender(
     val density = LocalDensity.current.density
     /// 同步缩放量
     webView.setContentScaleUnsafe(scale, maxWidth.value, maxHeight.value, density)
-    val lambdaComposableCanFixSwingPanelFlash: @Composable () -> Unit = remember {
-      {
-        webView.Render(Modifier.fillMaxSize())
-      }
-    }
-    lambdaComposableCanFixSwingPanelFlash()
+    webView.Render(Modifier.fillMaxSize())
   }
   LoadingView(webPage.isLoading) { webPage.isLoading = false } // 先不显示加载框。
 }

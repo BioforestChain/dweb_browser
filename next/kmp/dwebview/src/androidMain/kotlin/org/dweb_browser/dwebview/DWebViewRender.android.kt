@@ -49,22 +49,28 @@ actual fun IDWebView.Render(
     AccompanistWebView(
       state = state,
       navigator = navigator,
-      layoutParams = FrameLayout.LayoutParams(
-        FrameLayout.LayoutParams.MATCH_PARENT,
-        FrameLayout.LayoutParams.MATCH_PARENT,
-      ),
-      modifier = modifier.requiredSize(contentWidth, contentHeight),
-      factory = {
-        // 修复 activity 已存在父级时导致的异常
-        webView.parent?.let { parentView ->
-          (parentView as ViewGroup).removeAllViews()
-        }
-        webView.setBackgroundColor(Color.Transparent.toArgb())
-        webView
+      layoutParams = remember {
+        FrameLayout.LayoutParams(
+          FrameLayout.LayoutParams.MATCH_PARENT,
+          FrameLayout.LayoutParams.MATCH_PARENT,
+        )
       },
-      onCreated = {
-        onCreate?.also {
-          engine.ioScope.launch { onCreate.invoke(this@Render) }
+      modifier = modifier.requiredSize(contentWidth, contentHeight),
+      factory =  remember {
+        {
+          // 修复 activity 已存在父级时导致的异常
+          webView.parent?.let { parentView ->
+            (parentView as ViewGroup).removeAllViews()
+          }
+          webView.setBackgroundColor(Color.Transparent.toArgb())
+          webView
+        }
+      },
+      onCreated =remember {
+        {
+          onCreate?.also {
+            engine.ioScope.launch { onCreate.invoke(this@Render) }
+          }
         }
       },
       client = client,
