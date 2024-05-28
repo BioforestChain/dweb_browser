@@ -190,13 +190,14 @@ fun WindowController.WindowRender(modifier: Modifier) {
   ) {
     /// 开始绘制窗口
     win.state.safePadding = winPadding.boxSafeAreaInsets
+    val inResizeFrame by win.inResize
     val winBounds by win.watchedBounds()
     var inResizeAnimation by remember { mutableStateOf(false) }
     val modifierRect = when {
       win.state.isSystemWindow -> null
       else -> winBounds.toRect().let { rect ->
         when {
-          inMove -> rect
+          inResizeFrame || inMove -> rect
           else -> animateRectAsState(
             targetValue = rect,
             animationSpec = iosTween(durationIn = isMaximized),
@@ -270,19 +271,20 @@ fun WindowController.WindowRender(modifier: Modifier) {
           val paddingBottom = if (!keyboardOverlaysContent) keyboardInsetBottom else 0f
 
           val limits = LocalWindowLimits.current
+          val inResize = inResizeAnimation || inResizeFrame
           val windowRenderScope = remember(
             limits,
             maxWidth,
             maxHeight,
             winBounds,
-            inResizeAnimation,
+            inResize,
             paddingBottom,
             topBarHeight,
             bottomBarHeight
           ) {
             val targetHeight: Dp
             val targetWidth: Dp
-            if (!inResizeAnimation || topBarHeight.isNaN() || bottomBarHeight.isNaN()) {
+            if (!inResize || topBarHeight.isNaN() || bottomBarHeight.isNaN()) {
               targetWidth = maxWidth
               targetHeight = maxHeight - paddingBottom.dp
             } else {
