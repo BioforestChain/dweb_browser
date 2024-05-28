@@ -108,25 +108,28 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
             ctx.onClose {
               this@callbackFlow.close()
             }
-            val off = downloadTask.onChange {
+            val job = downloadTask.onChange.collectIn(mmScope) {
               this@callbackFlow.send(it)
-              when (it.status.state) {
+              val status = downloadTask.status.copy()
+              when (status.state) {
                 DownloadState.Canceled, DownloadState.Failed, DownloadState.Completed -> {
-                  ctx.sendJsonLine(it.status)// 强行发送一帧
+                  ctx.sendJsonLine(status)// 强行发送一帧
                   this@callbackFlow.close()
                 }
 
                 else -> {}
               }
             }
-            off.removeWhen(onClose)
+            onClose {
+              job.cancel()
+            }
             downloadTask.emitChanged()
             awaitClose {
-              off()
+              job.cancel()
               ctx.close()
             }
           }.conflate().collectIn(mmScope) {
-            ctx.sendJsonLine(it.status).onFailure {
+            ctx.sendJsonLine(downloadTask.status).onFailure {
               WARNING("ctx.isClosed")
             }
             delay(throttleMs)
@@ -139,8 +142,8 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
           debugDownload("/flow/progress", "taskId=$taskId")
           var statusValue = downloadTask.status
           var statusWaiter: CompletableDeferred<DownloadStateEvent>? = null
-          val off = downloadTask.onChange {
-            val stateEvent = it.status.copy()
+          val job = downloadTask.onChange.collectIn(mmScope) {
+            val stateEvent = downloadTask.status.copy()
             statusValue = stateEvent
             statusWaiter?.also { waiter ->
               statusWaiter = null
@@ -156,7 +159,7 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
             }
           }
           ctx.onClose {
-            off()
+            job.cancel()
           }
           var lastSentValue: Any? = null
           // 同时处理 stateFlow 和 commandChannel
@@ -174,11 +177,12 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
           }
         },
         // 暂停下载
-        "/pause" bind PureMethod.GET by defineBooleanResponse {
+        "/pause" bind PureMethod.GET by defineJsonResponse {
           val taskId = request.query("taskId")
-          val task = controller.downloadTaskMaps[taskId] ?: return@defineBooleanResponse false
+          val task = controller.downloadTaskMaps[taskId]
+            ?: throwException(message = "no found taskId=$taskId")
           controller.pauseDownload(task)
-          true
+          task.status.toJsonElement()
         },
         // 取消下载
         "/cancel" bind PureMethod.GET by defineBooleanResponse {

@@ -10,6 +10,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlin.coroutines.CoroutineContext
 
 /**
+ * TODO 废弃它，只使用flow
  * 策略：
  * 1. *默认* 放弃排队
  * 2. 与之前排队的合并成一个

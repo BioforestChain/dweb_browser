@@ -12,6 +12,8 @@ import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.cancel
 import io.ktor.utils.io.close
 import io.ktor.utils.io.core.ByteReadPacket
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Serializable
@@ -29,8 +31,6 @@ import org.dweb_browser.core.std.file.ext.appendFile
 import org.dweb_browser.core.std.file.ext.existFile
 import org.dweb_browser.core.std.file.ext.infoFile
 import org.dweb_browser.core.std.file.ext.removeFile
-import org.dweb_browser.helper.Queue
-import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.consumeEachArrayRange
 import org.dweb_browser.helper.createByteChannel
@@ -67,35 +67,26 @@ data class DownloadTask(
   var filepath: String,
   /** 标记当前下载状态 */
   val status: DownloadStateEvent,
-/// DBEUG
-  var frame: Int = 0,
+///// DBEUG
+//  var frame: Int = 0,
 ) {
 
   @Transient
   var readChannel: ByteReadChannel? = null
 
-  // 监听下载进度 不存储到内存
+  // 监听下载进度 不存储到数据库
   @Transient
-  private val changeSignal: Signal<DownloadTask> = Signal()
+  private val changeFlow = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
 
-  @Transient
-  val emitChanged = Queue.merge {
-    changeSignal.emit(this)
-    frame++
+  fun emitChanged() {
+    changeFlow.tryEmit(Unit)
   }
 
   @Transient
-  val onChange = changeSignal.toListener()
-
-  //  // 帮助实现下载暂停
-//  @Transient
-//  var paused = PromiseOut<Unit>()
-//
-  @Transient
-  var pauseFlag = false
+  val onChange = changeFlow.asSharedFlow()
 
   @Transient
-  var paused = Mutex()
+  internal val paused = Mutex()
 
   fun cancel() {
     status.state = DownloadState.Canceled

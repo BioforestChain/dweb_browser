@@ -97,7 +97,7 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
 
   /**打开bottomSheet的详情页面*/
   suspend fun openBottomSheet(
-    metadata: JmmMetadata
+    metadata: JmmMetadata,
   ): JmmInstallerController {
     val installerController = installViews.getOrPut(metadata.metadata.id) {
       JmmInstallerController(
@@ -296,8 +296,9 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
   }
 
   suspend fun pause(metadata: JmmMetadata) = metadata.taskId?.let { taskId ->
-    jmmNMM.pauseDownload(taskId)
-  } ?: false
+    val status = jmmNMM.pauseDownload(taskId)
+    metadata.updateDownloadStatus(status, jmmStore)
+  }
 
   private suspend fun decompress(
     task: DownloadTask,

@@ -32,7 +32,7 @@ suspend fun NativeMicroModule.NativeRuntime.startDownload(taskId: String) =
   nativeFetch("file://download.browser.dweb/start?taskId=$taskId").boolean()
 
 suspend fun NativeMicroModule.NativeRuntime.pauseDownload(taskId: String) =
-  nativeFetch("file://download.browser.dweb/pause?taskId=$taskId").boolean()
+  nativeFetch("file://download.browser.dweb/pause?taskId=$taskId").json<DownloadStateEvent>()
 
 suspend fun NativeMicroModule.NativeRuntime.cancelDownload(taskId: String) =
   nativeFetch("file://download.browser.dweb/cancel?taskId=$taskId").boolean()
