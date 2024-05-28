@@ -93,7 +93,7 @@ class DWebView private constructor(internal val engine: DWebViewEngine, initUrl:
       }
   }
 
-
+  override val remoteMM get() = engine.remoteMM
   override val ioScope get() = engine.ioScope
   override suspend fun startLoadUrl(url: String) = withMainContext {
     engine.loadUrl(url)

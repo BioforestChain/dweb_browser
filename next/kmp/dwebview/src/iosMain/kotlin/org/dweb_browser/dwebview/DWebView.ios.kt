@@ -103,6 +103,7 @@ class DWebView private constructor(
   }
 
 
+  override val remoteMM get() = engine.remoteMM
   private var _engine: DWebViewEngine? = viewEngine
   internal val engine get() = _engine ?: throw NullPointerException("dwebview already been destroy")
   private val _engineLazy = RememberLazy(viewEngine) { _engine }

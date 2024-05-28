@@ -9,6 +9,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import org.dweb_browser.browser.common.createDwebView
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.module.MicroModule
+import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.base.ViewItem
 import org.dweb_browser.helper.ChangeableList
@@ -95,7 +96,12 @@ class MultiWebViewController(
     ).also { viewItem ->
       webViewList.add(viewItem)
       dWebView.onCreateWindow {
-        appendWebViewAsItem(it)
+        val url = it.getUrl()
+        if (url.startsWith("dweb://")) {
+          dWebView.remoteMM.nativeFetch(url)
+        } else {
+          appendWebViewAsItem(it)
+        }
       }
       dWebView.onDestroy {
         closeWebView(webviewId)

@@ -52,6 +52,7 @@ class DWebView(
     }
   }
 
+  override val remoteMM get() = viewEngine.remoteMM
   override val ioScope: CoroutineScope
     get() = viewEngine.ioScope
 

@@ -38,6 +38,7 @@ expect suspend fun IDWebView.Companion.create(
 ): IDWebView
 
 abstract class IDWebView(initUrl: String?) {
+  abstract val remoteMM: MicroModule.Runtime
   abstract val ioScope: CoroutineScope
 
   @Serializable
