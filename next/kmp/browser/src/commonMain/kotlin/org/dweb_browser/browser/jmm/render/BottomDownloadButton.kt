@@ -138,7 +138,7 @@ internal fun BoxScope.BottomDownloadButton() {
   }
 }
 
-private val JmmStatusEvent.progressText: String
+private val JmmStatusEvent.progressText: String?
   get() {
     var text = ""
     if (current > 0) {
@@ -150,7 +150,7 @@ private val JmmStatusEvent.progressText: String
       }
       text += total.toSpaceSize()
     }
-    return text
+    return text.trim().ifEmpty { null } // 如果字符串是空的，直接返回 null
   }
 
 /**
