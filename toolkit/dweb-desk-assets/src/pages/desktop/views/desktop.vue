@@ -154,6 +154,23 @@ onUnmounted(() => {
   }
 });
 
+const getGridStyle = (item: $LayoutInfo) => {
+  let style = {
+    gridColumn: "",
+    gridRow: ""
+  };
+
+  // 根据 item 的宽度和高度处理布局
+  if(item.xywh.w === "100%") {
+    style.gridColumn = "1 / -1"; // 占据所有列，实现独占一行
+  } else {
+    style.gridColumn = `span ${item.xywh.w}`;
+    style.gridRow = `span ${item.xywh.h}`;
+  }
+  
+  return style;
+}
+
 const rowTemplateSize = (height: number) => {
   if (layoutInfoListRef.value.length == 1) return 119;
   const row = Math.ceil(layoutInfoListRef.value.length / Math.floor(window.innerWidth / 94));
@@ -172,9 +189,8 @@ const rowTemplateSize = (height: number) => {
       <TileItem
         v-for="info in layoutInfoListRef"
         :key="info.id"
-        :width="info.xywh.w"
-        :height="info.xywh.h"
         :title="`${info.id}/${info.xywh.w}/${info.xywh.h}`"
+        :style="getGridStyle(info)"
       >
         <WidgetApp v-if="info.type === 'app'" :app-meta-data="info.data"></WidgetApp>
         <WidgetWebApp v-if="info.type === 'webapp'" :app-meta-data="info.data"></WidgetWebApp>
