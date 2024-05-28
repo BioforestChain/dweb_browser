@@ -5,14 +5,18 @@ import androidx.webkit.WebMessageCompat
 import androidx.webkit.WebMessagePortCompat
 import androidx.webkit.WebViewFeature
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.getOrElse
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import org.dweb_browser.core.ipc.helper.DWebMessage
 import org.dweb_browser.core.ipc.helper.IWebMessagePort
 import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.helper.WeakHashMap
+import org.dweb_browser.helper.mainAsyncExceptionHandler
 
 @SuppressLint("RestrictedApi")
 class DWebMessagePort private constructor(
@@ -35,21 +39,23 @@ class DWebMessagePort private constructor(
   @SuppressLint("RequiresFeature")
   private val _started = lazy {
     val messageChannel = Channel<DWebMessage>(Channel.UNLIMITED)
-    port.setWebMessageCallback(object : WebMessagePortCompat.WebMessageCallbackCompat() {
-      override fun onMessage(port: WebMessagePortCompat, message: WebMessageCompat?) {
-        message ?: return
-        val dWebMessage = when (message.type) {
-          WebMessageCompat.TYPE_STRING -> DWebMessage.DWebMessageString(message.data ?: "",
-            message.ports?.map { from(it, engine) } ?: emptyList())
+    CoroutineScope(mainAsyncExceptionHandler).launch(start = CoroutineStart.UNDISPATCHED) {
+      port.setWebMessageCallback(object : WebMessagePortCompat.WebMessageCallbackCompat() {
+        override fun onMessage(port: WebMessagePortCompat, message: WebMessageCompat?) {
+          message ?: return
+          val dWebMessage = when (message.type) {
+            WebMessageCompat.TYPE_STRING -> DWebMessage.DWebMessageString(message.data ?: "",
+              message.ports?.map { from(it, engine) } ?: emptyList())
 
-          WebMessageCompat.TYPE_ARRAY_BUFFER -> DWebMessage.DWebMessageBytes(message.arrayBuffer,
-            message.ports?.map { from(it, engine) } ?: emptyList())
+            WebMessageCompat.TYPE_ARRAY_BUFFER -> DWebMessage.DWebMessageBytes(message.arrayBuffer,
+              message.ports?.map { from(it, engine) } ?: emptyList())
 
-          else -> return
+            else -> return
+          }
+          messageChannel.trySend(dWebMessage).getOrElse { err -> err?.printStackTrace() }
         }
-        messageChannel.trySend(dWebMessage).getOrElse { err -> err?.printStackTrace() }
-      }
-    })
+      })
+    }
 
     if (WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_PORT_CLOSE)) {
       messageChannel.invokeOnClose {
