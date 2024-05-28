@@ -4,6 +4,8 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.utils.io.core.toByteArray
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.encodeToByteArray
@@ -172,28 +174,30 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
               else -> false
             }
           } ?: return@collectIn
-          debugMM("NMM/Handler-start") { ipcRequest.url }
-          /// 根据host找到对应的路由模块
-          val routers = protocolRouters[ipcRequest.uri.host] ?: protocolRouters["*"]
-          val request = ipcRequest.toPure()
-          val ctx = HandlerContext(request, clientIpc)
-          var response: PureResponse? = null
-          if (!routers.isNullOrEmpty()) {
-            for (router in routers) {
-              val res = router.withFilter(request)?.invoke(ctx)
-              if (res != null) {
-                response = res
-                break
+          mmScope.launch(start = CoroutineStart.UNDISPATCHED) {
+            debugMM("NMM/Handler-start") { ipcRequest.url }
+            /// 根据host找到对应的路由模块
+            val routers = protocolRouters[ipcRequest.uri.host] ?: protocolRouters["*"]
+            val request = ipcRequest.toPure()
+            val ctx = HandlerContext(request, clientIpc)
+            var response: PureResponse? = null
+            if (!routers.isNullOrEmpty()) {
+              for (router in routers) {
+                val res = router.withFilter(request)?.invoke(ctx)
+                if (res != null) {
+                  response = res
+                  break
+                }
               }
             }
-          }
 
-          clientIpc.postResponse(ipcRequest.reqId, response ?: runCatching {
-            routesNotFound(ctx)
-          }.getOrElse {
-            ctx.defaultRoutesNotFound(it)
-          })
-          debugMM("NMM/Handler-done") { ipcRequest.url }
+            clientIpc.postResponse(ipcRequest.reqId, response ?: runCatching {
+              routesNotFound(ctx)
+            }.getOrElse {
+              ctx.defaultRoutesNotFound(it)
+            })
+            debugMM("NMM/Handler-done") { ipcRequest.url }
+          }
         }
 
         /// 在 NMM 这里，只要绑定好了，就可以开始握手通讯
