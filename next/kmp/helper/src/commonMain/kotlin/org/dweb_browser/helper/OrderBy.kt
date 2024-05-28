@@ -7,6 +7,7 @@ import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlin.coroutines.CoroutineContext
 
 
 val debugOrder = Debugger("order")
@@ -55,6 +56,9 @@ class OrderDeferred(var current: Job? = null) {
 //      }
     }
   }
+
+  fun <T> queue(context: CoroutineContext, key: Any?, handler: suspend () -> T) =
+    queue(CoroutineScope(context), key, handler)
 
   suspend fun <T> queueAndAwait(key: Any?, handler: suspend () -> T) = coroutineScope {
     queue(this, key, handler).await()

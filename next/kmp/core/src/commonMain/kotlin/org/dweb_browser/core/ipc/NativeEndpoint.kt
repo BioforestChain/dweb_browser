@@ -118,7 +118,7 @@ class NativeEndpoint(
   override fun getLocaleSubProtocols() = setOf<EndpointProtocol>()
 
   override suspend fun sendLifecycleToRemote(state: EndpointLifecycle) {
-    debugEndpoint("lifecycle-out", state)
+    debugEndpoint.verbose("lifecycle-out", state)
     lifecycleRemoteFlow.emit(state)
   }
 }
