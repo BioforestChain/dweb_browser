@@ -316,7 +316,7 @@ class DownloadController(private val downloadNMM: DownloadNMM.DownloadRuntime) {
           task.emitChanged()
           // debugDownload("middleware", "progress id:$taskId current:${downloadTask.status.current}")
         }
-        debugDownload("middleware", "end id:$taskId, ${task.status}")
+        debugDownload("middleware") { "end id:$taskId, ${task.status}" }
       } catch (e: Throwable) {
         // 这里捕获的一般是 connection reset by peer 当前没有重试机制，用户再次点击即为重新下载
         debugDownload("middleware", "${e.message}")

@@ -124,7 +124,7 @@ fun JmmHistoryController.JmmTabsView(tab: JmmTabs) {
   }.sortedByDescending { it.upgradeTime }
 
   LazySwipeColumn(
-    items = list, key = { item -> item.manifest.id },
+    items = list, key = { item -> item.metadata.id },
     onRemove = { item -> removeHistoryMetadata(item) },
     noDataValue = BrowserI18nResource.no_apps_data(),
     background = { Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) }
@@ -153,7 +153,7 @@ fun JmmViewItem(
     ListItem(
       headlineContent = {
         Text(
-          text = jmmMetadata.manifest.name,
+          text = jmmMetadata.metadata.name,
           maxLines = 1,
           overflow = TextOverflow.Ellipsis,
           color = MaterialTheme.colorScheme.onBackground,
@@ -163,23 +163,23 @@ fun JmmViewItem(
       supportingContent = {
         Column {
           Text(
-            text = jmmMetadata.manifest.version,
+            text = jmmMetadata.metadata.version,
             fontWeight = FontWeight.SemiBold
           )
           Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
           ) {
-            Text(text = jmmMetadata.manifest.bundle_size.toSpaceSize())
+            Text(text = jmmMetadata.metadata.bundle_size.toSpaceSize())
             Text(text = jmmMetadata.installTime.formatDatestampByMilliseconds())
           }
         }
       },
       leadingContent = {
         Box(modifier = Modifier.height(72.dp), contentAlignment = Alignment.Center) {
-          key(jmmMetadata.manifest.logo) {
+          key(jmmMetadata.metadata.logo) {
             CoilAsyncImage(
-              model = jmmMetadata.manifest.logo,
+              model = jmmMetadata.metadata.logo,
               contentDescription = "icon",
               modifier = Modifier.size(56.dp),
             )

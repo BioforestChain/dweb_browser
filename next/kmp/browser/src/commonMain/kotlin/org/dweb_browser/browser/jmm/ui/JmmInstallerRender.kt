@@ -58,14 +58,14 @@ fun JmmInstallerController.Render(modifier: Modifier, renderScope: WindowContent
         .padding(0.dp, 0.dp, 0.dp, bottomSafePadding.dp)
         .scale(scale)
     }) {
-      installMetadata.manifest.Render { index, imageLazyListState ->
+      installMetadata.metadata.Render { index, imageLazyListState ->
         previewState.selectIndex.value = index
         previewState.imageLazy = imageLazyListState
         previewState.offset.value = measureCenterOffset(index, previewState)
         previewState.showPreview.targetState = true
       }
       BottomDownloadButton()
-      ImagePreview(installMetadata.manifest, previewState)
+      ImagePreview(installMetadata.metadata, previewState)
       WebviewVersionWarningDialog()
     }
   }

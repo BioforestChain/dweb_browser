@@ -28,7 +28,7 @@ class JmmHistoryController(
   suspend fun buttonClick(historyMetadata: JmmMetadata) {
     when (historyMetadata.state.state) {
       JmmStatus.INSTALLED -> {
-        jmmNMM.bootstrapContext.dns.open(historyMetadata.manifest.id)
+        jmmNMM.bootstrapContext.dns.open(historyMetadata.metadata.id)
       }
 
       JmmStatus.Paused -> {
@@ -54,7 +54,7 @@ class JmmHistoryController(
   /// 卸载app
   fun unInstall(historyMetadata: JmmMetadata) {
     jmmNMM.scopeLaunch(cancelable = false) {
-      jmmController.uninstall(historyMetadata.manifest.id)
+      jmmController.uninstall(historyMetadata.metadata.id)
     }
   }
 

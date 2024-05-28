@@ -80,8 +80,8 @@ class JmmStore(microModule: MicroModule.Runtime) {
 @Serializable
 data class JmmMetadata(
   val originUrl: String,
-  @SerialName("manifest")
-  private var _manifest: JmmAppInstallManifest,
+  @SerialName("metadata")
+  private var _metadata: JmmAppInstallManifest,
   var taskId: TaskId? = null, // 用于保存下载任务，下载完成置空
   @SerialName("state")
   private var _state: JmmStatusEvent = JmmStatusEvent(), // 用于显示下载状态
@@ -89,7 +89,7 @@ data class JmmMetadata(
   var upgradeTime: Long = datetimeNow(),
 ) {
   var state by ObservableMutableState(_state) { _state = it }
-  var manifest by ObservableMutableState(_manifest) { _manifest = it }
+  var metadata by ObservableMutableState(_metadata) { _metadata = it }
   suspend fun initDownloadTask(downloadTask: DownloadTask, store: JmmStore) {
     this.taskId = downloadTask.id
     updateDownloadStatus(downloadTask.status, store)
@@ -110,28 +110,28 @@ data class JmmMetadata(
     )
     if (newStatus != state) { // 只要前后不一样，就进行保存，否则不保存，主要为了防止downloading频繁保存
       state = newStatus
-      store.saveMetadata(this.manifest.id, this@JmmMetadata)
+      store.saveMetadata(this.metadata.id, this@JmmMetadata)
     }
   }
 
   suspend fun initState(store: JmmStore) {
     state = state.copy(state = JmmStatus.Init)
-    store.saveMetadata(this.manifest.id, this@JmmMetadata)
+    store.saveMetadata(this.metadata.id, this@JmmMetadata)
   }
 
   suspend fun installComplete(store: JmmStore) {
     debugJMM("installComplete")
     state = state.copy(state = JmmStatus.INSTALLED)
-    store.saveMetadata(this.manifest.id, this)
+    store.saveMetadata(this.metadata.id, this)
     store.setApp(
-      manifest.id, JsMicroModuleDBItem(manifest, originUrl)
+      metadata.id, JsMicroModuleDBItem(metadata, originUrl)
     )
   }
 
   suspend fun installFail(store: JmmStore) {
     debugJMM("installFail")
     state = state.copy(state = JmmStatus.Failed)
-    store.saveMetadata(this.manifest.id, this)
+    store.saveMetadata(this.metadata.id, this)
   }
 }
 
@@ -154,7 +154,7 @@ fun JmmAppInstallManifest.createJmmMetadata(
   url: String, state: JmmStatus = JmmStatus.Init, installTime: Long = datetimeNow(),
 ) = JmmMetadata(
   originUrl = url,
-  _manifest = this,
+  _metadata = this,
   _state = JmmStatusEvent(total = this.bundle_size, state = state),
   installTime = installTime
 )

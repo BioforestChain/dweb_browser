@@ -58,15 +58,15 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
   suspend fun loadHistoryMetadataUrl() {
     val loadMap = jmmStore.getAllMetadata()
     historyMetadataMaps.clear()
-    if (loadMap.filter { (key, value) -> key != value.manifest.id }.isNotEmpty()) {
+    if (loadMap.filter { (key, value) -> key != value.metadata.id }.isNotEmpty()) {
       // 为了替换掉旧数据，旧数据使用originUrl来保存的，现在改为mmid，add by 240201
       val saveMap = mutableMapOf<String, MutableList<JmmMetadata>>()
       loadMap.forEach { (_, value) ->
-        saveMap.getOrPut(value.manifest.id) { mutableListOf() }.add(value)
+        saveMap.getOrPut(value.metadata.id) { mutableListOf() }.add(value)
       }
       jmmStore.clearMetadata() // 先删除旧的，然后再重新插入新的
       saveMap.forEach { (key, list) ->
-        list.sortByDescending { it.manifest.version.replace(".", "0").toLong() }
+        list.sortByDescending { it.metadata.version.replace(".", "0").toLong() }
         list.firstOrNull()?.let { jmmStore.saveMetadata(key, it) } // 取最后新的版本进行保存
       }
       historyMetadataMaps.putAll(jmmStore.getAllMetadata()) // 重新加载最新数据
@@ -83,7 +83,7 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
           historyMetadata.state.copy(state = JmmStatus.Init)
         }
         jmmStore.saveMetadata(key, historyMetadata)
-      } else if (jmmNMM.bootstrapContext.dns.query(historyMetadata.manifest.id) == null) {
+      } else if (jmmNMM.bootstrapContext.dns.query(historyMetadata.metadata.id) == null) {
         historyMetadata.state = historyMetadata.state.copy(state = JmmStatus.Init) // 如果没有找到，说明被卸载了
         jmmStore.saveMetadata(key, historyMetadata)
       }
@@ -99,7 +99,7 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
   suspend fun openBottomSheet(
     metadata: JmmMetadata
   ): JmmInstallerController {
-    val installerController = installViews.getOrPut(metadata.manifest.id) {
+    val installerController = installViews.getOrPut(metadata.metadata.id) {
       JmmInstallerController(
         jmmNMM = jmmNMM, metadata = metadata, jmmController = this@JmmController
       )
@@ -142,7 +142,7 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
    * @fromHistory 是否是
    */
   suspend fun openInstallerView(newMetadata: JmmMetadata) {
-    debugJMM("openInstallerView", newMetadata.manifest.bundle_url)
+    debugJMM("openInstallerView", newMetadata.metadata.bundle_url)
     compareLocalMetadata(newMetadata)
     val installerController = openBottomSheet(newMetadata)
     // 不管是否替换的，都进行一次存储新状态，因为需要更新下载状态
@@ -153,12 +153,17 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
    * 对比本地已经存在的数据，从而更新这个 JmmMetadata 的一些相关状态。
    * 并按需触发数据库保存
    **/
-  private suspend fun compareLocalMetadata(newMetadata: JmmMetadata, save: Boolean = true) {
-    val mmid = newMetadata.manifest.id
+  private suspend fun compareLocalMetadata(
+    newMetadata: JmmMetadata,
+    save: Boolean = true
+  ) {
+    val mmid = newMetadata.metadata.id
     // 拿到已经安装过的准备对比
     val oldMM = jmmNMM.bootstrapContext.dns.query(mmid)
     val oldMetadata = historyMetadataMaps[mmid]
-    debugJMM("openInstallerView", "installMM=${oldMetadata?.manifest?.version}")
+    debugJMM("compareLocalMetadata") {
+      "installMM=${oldMetadata?.metadata?.version} mmid=$mmid"
+    }
     // 从未安装过，直接替换成当前的，不考虑是否比历史列表高
     if (oldMetadata == null || oldMM == null) {
       if (save) {
@@ -167,13 +172,13 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
       return
     }
 
-    val oldManifest = oldMetadata.manifest
-    val newManifest = newMetadata.manifest
+    val oldManifest = oldMetadata.metadata
+    val newManifest = newMetadata.metadata
     // 比安装高，直接进行替换
     if (newManifest.version.isGreaterThan(oldManifest.version)) {
-      oldVersion = oldMetadata.manifest.version
+      oldVersion = oldMetadata.metadata.version
       // session 处理
-      val session = getAppSessionInfo(newManifest.id, oldMetadata.manifest.version)
+      val session = getAppSessionInfo(newManifest.id, oldMetadata.metadata.version)
       debugJMM("openInstallerView", "is order app and session=$session")
       // 如果列表的应用是下载中的，那么需要移除掉
       if (oldMetadata.state.state.valueIn(JmmStatus.Downloading, JmmStatus.Paused)) {
@@ -203,9 +208,9 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
   /**只有需要存储的时候才存起来*/
   private suspend fun saveMetadata(differentMetadata: JmmMetadata) {
     debugJMM("saveMetadata", differentMetadata)
-    historyMetadataMaps[differentMetadata.manifest.id] = differentMetadata
+    historyMetadataMaps[differentMetadata.metadata.id] = differentMetadata
     jmmStore.saveMetadata(
-      differentMetadata.manifest.id, differentMetadata
+      differentMetadata.metadata.id, differentMetadata
     )
   }
 
@@ -250,7 +255,7 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
   suspend fun startDownloadTask(metadata: JmmMetadata): Unit = downloadLock.withLock {
     var taskId = metadata.taskId
     if (taskId == null || !jmmNMM.existsDownload(taskId)) {
-      val downloadTask = with(metadata.manifest) {
+      val downloadTask = with(metadata.metadata) {
         jmmNMM.createDownloadTask(url = bundle_url, total = bundle_size)
       }
       metadata.initDownloadTask(downloadTask, jmmStore)
@@ -260,8 +265,8 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
       jmmNMM.scopeLaunch(cancelable = true) {
         if (watchProcess(taskId, metadata)) {
           if (decompress(downloadTask, metadata)) {
-            jmmNMM.bootstrapContext.dns.uninstall(metadata.manifest.id)
-            jmmNMM.bootstrapContext.dns.install(JsMicroModule(metadata.manifest))
+            jmmNMM.bootstrapContext.dns.uninstall(metadata.metadata.id)
+            jmmNMM.bootstrapContext.dns.install(JsMicroModule(metadata.metadata))
             metadata.installComplete(jmmStore)
           } else {
             jmmNMM.showToast(BrowserI18nResource.toast_message_download_unzip_fail.text)
@@ -271,7 +276,7 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
           jmmNMM.removeFile(downloadTask.filepath)
           // 更新完需要删除旧的app版本，这里如果有保存用户数据需要一起移动过去，但是现在这里是单纯的删除
           if (oldVersion != null) {
-            jmmNMM.removeFile("/data/apps/${metadata.manifest.id}-${oldVersion}")
+            jmmNMM.removeFile("/data/apps/${metadata.metadata.id}-${oldVersion}")
             oldVersion = null
           }
         }
@@ -313,12 +318,14 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
       parameters.append("sourcePath", sourcePath)
       parameters.append("targetPath", targetPath)
     })
+    debugJMM("decompress") { "$jmm ok:${decompressRes.isOk}"}
     return decompressRes.isOk.trueAlso {
       // 保存 session（记录安装时间） 和 metadata （app数据源）
       jmmNMM.writeFile(
         path = "/data/apps/$jmm/usr/sys/metadata.json",
-        body = IPureBody.from(Json.encodeToString(jmmMetadata.manifest))
+        body = IPureBody.from(Json.encodeToString(jmmMetadata.metadata))
       )
+      debugJMM("decompress") { "installTime=${jmmMetadata.installTime} installUrl:${jmmMetadata.originUrl}"}
       jmmNMM.writeFile(
         path = "/data/apps/$jmm/usr/sys/session.json",
         body = IPureBody.from(Json.encodeToString(buildJsonObject {
@@ -345,9 +352,9 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
   }
 
   suspend fun removeHistoryMetadata(historyMetadata: JmmMetadata) {
-    historyMetadataMaps.remove(historyMetadata.manifest.id)
+    historyMetadataMaps.remove(historyMetadata.metadata.id)
     historyMetadata.taskId?.let { taskId -> jmmNMM.removeDownload(taskId) }
-    jmmStore.deleteMetadata(historyMetadata.manifest.id)
+    jmmStore.deleteMetadata(historyMetadata.metadata.id)
   }
 }
 
