@@ -72,7 +72,7 @@ data class DwebLinkSearchItem(val link: String, val target: AppBrowserTarget) {
  */
 class BrowserViewModel(
   internal val browserController: BrowserController,
-  internal val browserNMM: BrowserNMM.BrowserRuntime
+  internal val browserNMM: BrowserNMM.BrowserRuntime,
 ) {
   val browserOnVisible = browserController.onWindowVisible
   val browserOnClose = browserController.onCloseWindow
@@ -84,7 +84,8 @@ class BrowserViewModel(
   var showMore by mutableStateOf(false)
 
   enum class PreviewPanelVisibleState(val isVisible: Boolean) {
-    DisplayGrid(true), Close(false), ;
+    DisplayGrid(true), Close(false),
+    ;
   }
 
   var showQRCodePanel by mutableStateOf(false)
@@ -182,7 +183,7 @@ class BrowserViewModel(
    * 请求系统权限
    */
   suspend fun requestSystemPermission(
-    title: String = "", description: String = "", permissionName: SystemPermissionName
+    title: String = "", description: String = "", permissionName: SystemPermissionName,
   ): Boolean {
     return browserNMM.requestSystemPermission(
       SystemPermissionTask(
@@ -233,8 +234,13 @@ class BrowserViewModel(
   private suspend fun createWebPage(dWebView: IDWebView): BrowserWebPage =
     BrowserWebPage(dWebView, browserController).also {
       dWebView.onCreateWindow { itemDwebView ->
-        val newWebPage = createWebPage(itemDwebView)
-        addNewPageUI(newWebPage)
+        val url =itemDwebView.getUrl()
+        if (url.startsWith("dweb://")) {
+          browserNMM.nativeFetch(url)
+        } else {
+          val newWebPage = createWebPage(itemDwebView)
+          addNewPageUI(newWebPage)
+        }
       }
       addDownloadListener(dWebView.onDownloadListener)
     }
@@ -291,7 +297,7 @@ class BrowserViewModel(
    * > 为了适应 ios，从而将 webview 的处理独立开
    */
   suspend fun tryOpenUrlUI(
-    url: String, replacePage: BrowserPage? = null, unknownUrl: (suspend (String) -> Unit)? = null
+    url: String, replacePage: BrowserPage? = null, unknownUrl: (suspend (String) -> Unit)? = null,
   ) {
     if (url.isEmpty()) return // 如果 url 是空的，直接返回，不操作
     // 判断如果已存在，直接focus，不新增界面
@@ -403,7 +409,7 @@ class BrowserViewModel(
   suspend fun addNewPageUI(
     url: String? = null,
     options: AddPageOptions = AddPageOptions(),
-    optionsModifier: (AddPageOptions.() -> Unit)? = null
+    optionsModifier: (AddPageOptions.() -> Unit)? = null,
   ): BrowserPage? {
     val newPage = if (url == null || BrowserHomePage.isNewTabUrl(url)) {
       BrowserHomePage(browserController)
@@ -429,7 +435,7 @@ class BrowserViewModel(
   private suspend fun addNewPageUI(
     newPage: BrowserPage,
     options: AddPageOptions = AddPageOptions(),
-    optionsModifier: (AddPageOptions.() -> Unit)? = null
+    optionsModifier: (AddPageOptions.() -> Unit)? = null,
   ) {
     optionsModifier?.invoke(options)
 
