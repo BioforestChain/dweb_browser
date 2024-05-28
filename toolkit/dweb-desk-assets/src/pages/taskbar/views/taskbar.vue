@@ -252,7 +252,7 @@ const gapSize = "8px";
 </script>
 <template>
   <div class="taskbar" ref="taskbarEle">
-    <div class="app-icon-list">
+    <div :class="showAppIcons.length > 0 ? 'app-icon-list' : 'app-icon-list-empty'">
       <button
         class="app-icon-wrapper z-grid"
         v-for="(appIcon, index) in showAppIcons"
@@ -288,7 +288,11 @@ const gapSize = "8px";
       </button>
     </div>
     <hr v-if="appRefList.length !== 0" class="my-divider" />
-    <button class="desktop-button app-icon-wrapper z-grid" @click="toggleDesktopButton">
+    <button
+      :class="showAppIcons.length > 0 ? 'desktop-button' : 'desktop-button-empty-app'"
+      class="app-icon-wrapper z-grid"
+      @click="toggleDesktopButton"
+    >
       <dweb-wallpaper
         ref="wallpaperEle"
         @click="
@@ -364,6 +368,8 @@ const gapSize = "8px";
   padding: v-bind(gapSize);
   padding-bottom: calc(v-bind(gapSize) * 0.62);
 }
+.app-icon-list-empty {
+}
 .my-divider {
   width: 90%;
   height: 1px;
@@ -378,6 +384,11 @@ const gapSize = "8px";
 .desktop-button {
   padding: v-bind(gapSize);
   padding-top: calc(v-bind(gapSize) * 0.62);
+  box-sizing: content-box;
+  flex-shrink: 0;
+}
+.desktop-button-empty-app {
+  padding: v-bind(gapSize);
   box-sizing: content-box;
   flex-shrink: 0;
 }
