@@ -51,7 +51,6 @@ fun BrowserViewModalRender(
 ) {
   LocalCompositionChain.current.Provider(LocalBrowserViewModel provides viewModel) {
     viewModel.ViewModelEffect()
-
     Box(modifier = remember(windowRenderScope) {
       with(windowRenderScope) {
         println("QAQ requiredSize $widthDp $heightDp $scale")
@@ -59,9 +58,9 @@ fun BrowserViewModalRender(
       }
     }.background(MaterialTheme.colorScheme.background)) {
       // 搜索界面考虑到窗口和全屏问题，显示的问题，需要控制modifier
-      if (BrowserPreviewPanel(Modifier.fillMaxSize().zIndex(2f))) return@Provider
-      if (BrowserSearchPanel(Modifier.fillMaxSize())) return@Provider
-      if (BrowserQRCodePanel(Modifier.fillMaxSize())) return@Provider
+      if (BrowserPreviewPanel(Modifier.fillMaxSize().zIndex(2f))) return@Box
+      if (BrowserSearchPanel(Modifier.fillMaxSize())) return@Box
+      if (BrowserQRCodePanel(Modifier.fillMaxSize())) return@Box
 
       BrowserPagePanel(Modifier.fillMaxSize(), windowRenderScope.scale)
     }
