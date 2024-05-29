@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.rememberUpdatedState
@@ -24,7 +25,7 @@ import org.dweb_browser.sys.window.core.constant.debugWindow
 private class IosWindowNativeView(
   params: Map<String, Any?>,
   private val win: WindowController,
-  private val windowsManager: WindowsManager<*>
+  private val windowsManager: WindowsManager<*>,
 ) {
   val pvc = PureViewController(params).also { pvc ->
     pvc.onCreate { params ->
@@ -46,7 +47,7 @@ private class IosWindowNativeView(
     fun from(
       win: WindowController,
       windowsManager: WindowsManager<*>,
-      compositionChain: State<CompositionChain>
+      compositionChain: State<CompositionChain>,
     ) = IosWindowNativeView.INSTANCES.getOrPut(win) {
       IosWindowNativeView(
         mutableMapOf(
@@ -63,7 +64,7 @@ private fun RenderWindowInNewLayer(
   win: WindowController,
   sceneMaxWidth: Float,
   sceneMaxHeight: Float,
-  zIndexBase: Int
+  zIndexBase: Int,
 ) {
   win.Prepare(
     winMaxWidth = sceneMaxWidth,
@@ -102,6 +103,7 @@ actual fun <T : WindowController> WindowsManager<T>.SceneRender() {
   BoxWithConstraints {
     WindowsManagerEffect()
     /// 普通层级的窗口
+    val winList by winListFlow.collectAsState()
     debugWindow("WindowsManager.Render", "winList: ${winList.size}")
     for (win in winList) {
       key(win.id) {
@@ -109,8 +111,9 @@ actual fun <T : WindowController> WindowsManager<T>.SceneRender() {
       }
     }
     /// 置顶层级的窗口
-    debugWindow("WindowsManager.Render", "winListTop: ${winListTop.size}")
-    for (win in winListTop) {
+    val topWinList by topWinListFlow.collectAsState()
+    debugWindow("WindowsManager.Render", "winListTop: ${topWinList.size}")
+    for (win in topWinList) {
       key(win.id) {
         RenderWindowInNewLayer(windowsManager, win, maxWidth.value, maxHeight.value, 10000)
       }

@@ -51,46 +51,44 @@ fun BrowserViewModalRender(
 ) {
   LocalCompositionChain.current.Provider(LocalBrowserViewModel provides viewModel) {
     viewModel.ViewModelEffect()
-
-    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-      Box(modifier = remember(windowRenderScope) {
-        with(windowRenderScope) {
-          modifier.requiredSize((width / scale).dp, (height / scale).dp).scale(scale)
-        }
-      }) {
-        // 搜索界面考虑到窗口和全屏问题，显示的问题，需要控制modifier
-        if (BrowserPreviewPanel(Modifier.fillMaxSize().zIndex(2f))) return@Provider
-        if (BrowserSearchPanel(Modifier.fillMaxSize())) return@Provider
-        if (BrowserQRCodePanel(Modifier.fillMaxSize())) return@Provider
+    Box(modifier = remember(windowRenderScope) {
+      with(windowRenderScope) {
+        modifier.requiredSize(widthDp / scale, heightDp / scale).scale(scale)
       }
-      BrowserPagePanel(Modifier.fillMaxSize(), windowRenderScope)
+    }.background(MaterialTheme.colorScheme.background)) {
+      // 搜索界面考虑到窗口和全屏问题，显示的问题，需要控制modifier
+      if (BrowserPreviewPanel(Modifier.fillMaxSize().zIndex(2f))) return@Box
+      if (BrowserSearchPanel(Modifier.fillMaxSize())) return@Box
+      if (BrowserQRCodePanel(Modifier.fillMaxSize())) return@Box
+
+      BrowserPagePanel(Modifier.fillMaxSize(), windowRenderScope.scale)
     }
   }
 }
 
 @Composable
-fun BrowserPagePanel(modifier: Modifier, windowRenderScope: WindowContentRenderScope) {
+fun BrowserPagePanel(modifier: Modifier, contentScaled: Float) {
   val viewModel = LocalBrowserViewModel.current
   viewModel.pagerStates.BindingEffect()
   // 移除 viewModel.isPreviewInvisible, 避免显示的时候 WebView 重新加载。
   Column(modifier) {
     // 网页主体
     Box(modifier = Modifier.weight(1f)) {
-      BrowserPageBox(windowRenderScope)   // 中间网页主体
+      BrowserPageBox(contentScaled)   // 中间网页主体
     }
     // 工具栏，包括搜索框和导航栏
-    BrowserBottomBar(Modifier.fillMaxWidth().wrapContentHeight(), windowRenderScope)
+    BrowserBottomBar(Modifier.fillMaxWidth().wrapContentHeight())
   }
 }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun BrowserPageBox(windowRenderScope: WindowContentRenderScope) {
+fun BrowserPageBox(contentScaled: Float) {
   val viewModel = LocalBrowserViewModel.current
   val localFocusManager = LocalFocusManager.current
 
   viewModel.focusedPage?.also { focusPage ->
-    LocalWindowController.current.GoBackHandler(viewModel.pageSize > 1) {
+    LocalWindowController.current.navigation.GoBackHandler(viewModel.pageSize > 1) {
       viewModel.closePageUI(focusPage)
     }
   }
@@ -107,20 +105,17 @@ fun BrowserPageBox(windowRenderScope: WindowContentRenderScope) {
       beyondBoundsPageCount = 1,
       pageContent = { currentPage ->
         val browserPage = viewModel.getPage(currentPage)
-        browserPage.Render(
-          Modifier.fillMaxSize().capturable(browserPage.captureController), windowRenderScope.scale
-        )
+        browserPage.scale = contentScaled
+        browserPage.Render(Modifier.fillMaxSize().capturable(browserPage.captureController))
       })
   }
 }
 
 @Composable
-fun BrowserBottomBar(modifier: Modifier, windowRenderScope: WindowContentRenderScope) {
+fun BrowserBottomBar(modifier: Modifier) {
   Box(
-    modifier = modifier.fillMaxWidth().height(dimenBottomHeight).requiredSize(
-      width = (windowRenderScope.width / windowRenderScope.scale).dp,
-      height = (windowRenderScope.height / windowRenderScope.scale).dp
-    ).scale(windowRenderScope.scale), contentAlignment = Alignment.Center
+    modifier = modifier.fillMaxWidth().height(dimenBottomHeight),
+    contentAlignment = Alignment.Center
   ) {
     BrowserSearchBar(Modifier.fillMaxSize())
   }

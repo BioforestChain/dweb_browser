@@ -2,6 +2,8 @@ package org.dweb_browser.sys.window.render
 
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.zIndex
@@ -20,6 +22,7 @@ actual fun <T : WindowController> WindowsManager<T>.SceneRender() {
       WindowsManagerEffect()
 
       /// 普通层级的窗口
+      val winList by winListFlow.collectAsState()
       debugWindow("WindowsManager.Render", "winList: ${winList.size}")
       for (win in winList) {
         key(win.id) {
@@ -37,8 +40,9 @@ actual fun <T : WindowController> WindowsManager<T>.SceneRender() {
         }
       }
       /// 置顶层级的窗口
-      debugWindow("WindowsManager.Render", "winListTop: ${winListTop.size}")
-      for (win in winListTop) {
+      val topWinList by topWinListFlow.collectAsState()
+      debugWindow("WindowsManager.Render", "winListTop: ${topWinList.size}")
+      for (win in topWinList) {
         key(win.id) {
           /// 渲染窗口
           win.MaterialTheme {

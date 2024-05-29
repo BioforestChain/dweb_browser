@@ -4,6 +4,8 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.utils.io.core.toByteArray
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.encodeToByteArray
@@ -77,7 +79,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
       nativeFetchAdaptersManager.append(order = 1) { fromMM, request ->
         if (request.url.protocol.name == "file" && request.url.host.endsWith(".dweb")) {
           val mpid = request.url.host
-          fromMM.debugMM("fetch ipc", "$fromMM => ${request.href}")
+          fromMM.debugMM("fetch ipc") { "${fromMM.mmid} => ${request.href}" }
           val url = request.href
           val reasonRequest = buildRequestX(url, request.method, request.headers, request.body);
           val fromIpc = runCatching {
@@ -164,7 +166,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
       onConnect.listen { connectEvent ->
         val (clientIpc) = connectEvent.consume()
         debugMM("onConnect-start", clientIpc)
-        clientIpc.onRequest("file-dweb-router").collectIn(mmScope) { event ->
+        clientIpc.onRequest("routes").collectIn(mmScope) { event ->
           val ipcRequest = event.consumeFilter {
             when (it.uri.protocol.name) {
               "file", "dweb" -> routesCheckAllowDweb(it)
@@ -172,28 +174,30 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
               else -> false
             }
           } ?: return@collectIn
-          debugMM("NMM/Handler", ipcRequest.url)
-          /// 根据host找到对应的路由模块
-          val routers = protocolRouters[ipcRequest.uri.host] ?: protocolRouters["*"]
-          val request = ipcRequest.toPure()
-          val ctx = HandlerContext(request, clientIpc)
-          var response: PureResponse? = null
-          if (!routers.isNullOrEmpty()) {
-            for (router in routers) {
-              val res = router.withFilter(request)?.invoke(ctx)
-              if (res != null) {
-                response = res
-                break
+          mmScope.launch(start = CoroutineStart.UNDISPATCHED) {
+            debugMM("NMM/Handler-start") { ipcRequest.url }
+            /// 根据host找到对应的路由模块
+            val routers = protocolRouters[ipcRequest.uri.host] ?: protocolRouters["*"]
+            val request = ipcRequest.toPure()
+            val ctx = HandlerContext(request, clientIpc)
+            var response: PureResponse? = null
+            if (!routers.isNullOrEmpty()) {
+              for (router in routers) {
+                val res = router.withFilter(request)?.invoke(ctx)
+                if (res != null) {
+                  response = res
+                  break
+                }
               }
             }
-          }
 
-          clientIpc.postResponse(ipcRequest.reqId,
-            response ?: runCatching {
+            clientIpc.postResponse(ipcRequest.reqId, response ?: runCatching {
               routesNotFound(ctx)
             }.getOrElse {
               ctx.defaultRoutesNotFound(it)
             })
+            debugMM("NMM/Handler-done") { ipcRequest.url }
+          }
         }
 
         /// 在 NMM 这里，只要绑定好了，就可以开始握手通讯

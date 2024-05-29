@@ -92,14 +92,18 @@ class DWebViewClient(val engine: DWebViewEngine) : WebViewClient() {
   override fun onReceivedError(
     view: WebView, request: WebResourceRequest?, error: WebResourceError?
   ) {
-    scope.launchWithMain {
-      loadStateChangeSignal.emit(
-        WebLoadErrorState(
-          view.url ?: "about:blank",
-          error?.let { "[${it.errorCode}]${it.description}" } ?: ""
+    // url必须相等，否则一些网页内资源异常会导致下一个网页无法正常加载
+    if (request?.url?.toString()?.trimEnd('/') == view.url?.trimEnd('/')) {
+      scope.launchWithMain {
+        loadStateChangeSignal.emit(
+          WebLoadErrorState(
+            view.url ?: "about:blank",
+            error?.let { "[${it.errorCode}]${it.description}" } ?: ""
+          )
         )
-      )
+      }
     }
+
     inners("onReceivedError").forEach { it.onReceivedError(view, request, error) }
     super.onReceivedError(view, request, error)
   }

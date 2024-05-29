@@ -59,7 +59,7 @@ class DecompressModel(private val downloadController: DownloadController) {
 fun DecompressView() {
   val decompressModel = LocalDecompressModel.current
   if (decompressModel.downloadTask.value != null) {
-    LocalWindowController.current.GoBackHandler {
+    LocalWindowController.current.navigation.GoBackHandler {
       decompressModel.hide()
     }
     Column(

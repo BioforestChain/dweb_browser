@@ -4,20 +4,9 @@ import com.teamdev.jxbrowser.js.JsFunctionCallback
 import com.teamdev.jxbrowser.js.JsObject
 import kotlinx.coroutines.CompletableDeferred
 import org.dweb_browser.core.module.MicroModule
-import org.dweb_browser.core.std.permission.AuthorizationStatus
 import org.dweb_browser.helper.runIf
-import org.dweb_browser.sys.permission.SystemPermissionAdapterManager
-import org.dweb_browser.sys.permission.SystemPermissionName
 
 actual class LocationManage actual constructor(actual val mm: MicroModule.Runtime) {
-  init {
-    SystemPermissionAdapterManager.append {
-      if (task.name == SystemPermissionName.LOCATION) {
-        AuthorizationStatus.GRANTED
-      } else null
-    }
-  }
-
   /**
    * 获取当前的位置信息
    */

@@ -4,15 +4,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.awt.ComposeWindow
+import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.window.WindowPlacement
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.PureRect
 import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.platform.ComposeWindowParams
 import org.dweb_browser.helper.platform.LocalPureViewController
 import org.dweb_browser.helper.platform.asDesktop
+import org.dweb_browser.pure.image.OffscreenWebCanvas
+import org.dweb_browser.pure.image.compose.WebImageLoader
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.WindowState
 import org.dweb_browser.sys.window.core.constant.WindowMode
@@ -105,6 +109,7 @@ fun WindowController.WindowControllerEffect() {
   }
   // 把状态都作用到窗口上
   TitleEffect(composeWindowParams)
+  IconEffect(composeWindowParams)
   VisibleEffect(composeWindowParams)
   ModeEffect(composeWindow, composeWindowParams)
   FocusEffect(composeWindow, composeWindowParams)
@@ -118,6 +123,30 @@ private fun WindowController.TitleEffect(composeWindowParams: ComposeWindowParam
   val title by watchedState { title }
   LaunchedEffect(composeWindowParams, title) {
     composeWindowParams.title = title ?: ""
+  }
+}
+
+
+/**
+ * icon 的单向绑定
+ */
+@Composable
+private fun WindowController.IconEffect(composeWindowParams: ComposeWindowParams) {
+  val iconUrl by watchedState { iconUrl }
+  LaunchedEffect(composeWindowParams, iconUrl) {
+    iconUrl?.let { url ->
+      WebImageLoader.defaultInstance.load(
+        OffscreenWebCanvas.defaultInstance,
+        url,
+        64,
+        64,
+        state.constants.microModule.value?.imageFetchHook
+      ).firstOrNull {
+        it.isSuccess
+      }?.success?.also {
+        composeWindowParams.icon = BitmapPainter(it)
+      }
+    }
   }
 }
 
@@ -166,27 +195,36 @@ private fun WindowController.ModeEffect(
   RememberEffect(composeWindowParams) {
     state.observable.onChange {
       // 针对固定窗口大小的绑定
-      if (it.key == WindowPropertyKeys.Resizable) {
-        composeWindow.isResizable = it.newValue as Boolean
-      }
-      // 针对桌面端原生窗口的浮动 最大化 全屏 绑定
-      if (it.key == WindowPropertyKeys.Mode) {
-        when (it.newValue as WindowMode) {
-          WindowMode.FLOAT -> {
-            composeWindow.placement = WindowPlacement.Floating
-          }
-
-          WindowMode.MAXIMIZE -> {
-            composeWindow.placement = WindowPlacement.Maximized
-          }
-
-          WindowMode.FULLSCREEN -> {
-            composeWindow.placement = WindowPlacement.Fullscreen
-          }
-
-          WindowMode.PIP -> WARNING("ComposeWindow No Support PIP")
-          WindowMode.CLOSE -> composeWindowParams.closeWindow()
+      when (it.key) {
+        WindowPropertyKeys.Resizable -> {
+          composeWindow.isResizable = it.newValue as Boolean
         }
+        // 针对桌面端原生窗口的浮动 最大化 全屏 绑定
+        WindowPropertyKeys.Mode -> {
+          when (it.newValue as WindowMode) {
+            WindowMode.FLOAT -> {
+              composeWindow.placement = WindowPlacement.Floating
+            }
+
+            WindowMode.MAXIMIZE -> {
+              composeWindow.placement = WindowPlacement.Maximized
+            }
+
+            WindowMode.FULLSCREEN -> {
+              composeWindow.placement = WindowPlacement.Fullscreen
+            }
+
+            WindowMode.PIP -> WARNING("ComposeWindow No Support PIP")
+          }
+        }
+
+        WindowPropertyKeys.Closed -> {
+          if (it.newValue as Boolean) {
+            composeWindowParams.closeWindow()
+          }
+        }
+
+        else -> {}
       }
     }
   }

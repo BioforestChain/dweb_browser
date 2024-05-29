@@ -84,7 +84,7 @@ export class Server_api extends HttpServer {
         return IpcResponse.fromText(event.reqId, 500, new IpcHeaders(), "invalid search params, miss 'id'", event.ipc);
       }
       const ipc = await mapHelper.getOrPut(this.callbacks, id, () => new PromiseOut<$Ipc>()).promise;
-      const response = await ipc.request(event.url.href, event.ipcRequest.toPureClinetRequest());
+      const response = await ipc.request(event.url.href, event.ipcRequest.toPureClientRequest());
       return response.toResponse();
     }
     /// websocket
@@ -116,7 +116,7 @@ export class Server_api extends HttpServer {
     const targetIpc = await jsProcess.connect(mmid as $MMID);
     const { ipcRequest } = event;
 
-    const req = ipcRequest.toPureClinetRequest();
+    const req = ipcRequest.toPureClientRequest();
 
     let ipcProxyResponse = await targetIpc.request(path, req);
 

@@ -116,7 +116,7 @@ open class Signal<Args>(autoStart: Boolean = true) : SynchronizedObject() {
   /**
    * Child 采用独立的实现，从而避开 clear 的影响
    */
-  private data class Child<Args, F : Any, R>(
+  data class Child<Args, F : Any, R>(
     val parentSignal: Signal<Args>,
     val childSignal: Signal<R>,
     val filter: (Args) -> F?,
@@ -153,8 +153,8 @@ open class Signal<Args>(autoStart: Boolean = true) : SynchronizedObject() {
           else -> listenerSet.toSet()
         }
       }
-      if (cbs != null) {
-        _emit(args, cbs)
+      if (cbs != null || children.isNotEmpty()) {
+        _emit(args, cbs?: setOf())
       }
     }
   }

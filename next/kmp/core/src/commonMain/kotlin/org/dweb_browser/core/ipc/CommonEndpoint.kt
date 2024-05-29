@@ -15,6 +15,7 @@ import org.dweb_browser.core.ipc.helper.EndpointLifecycleInit
 import org.dweb_browser.core.ipc.helper.EndpointLifecycleOpened
 import org.dweb_browser.core.ipc.helper.EndpointProtocol
 import org.dweb_browser.core.ipc.helper.EndpointRawMessage
+import org.dweb_browser.core.ipc.helper.IpcEvent
 import org.dweb_browser.core.ipc.helper.endpointMessageToCbor
 import org.dweb_browser.core.ipc.helper.endpointMessageToJson
 import org.dweb_browser.core.ipc.helper.toIpcMessage
@@ -86,22 +87,14 @@ abstract class CommonEndpoint(
     }
     launchJobs += scope.launch {
       for (endpointMessage in endpointMsgChannel) {
-        launch(start = CoroutineStart.UNDISPATCHED) {
-          orderInvoker.tryInvoke(
-            /**
-             * EndpointLifecycle 属于 OrderBy
-             */
-            endpointMessage
-          ) {
-            when (endpointMessage) {
-              is EndpointLifecycle -> lifecycleRemoteMutableFlow.emit(endpointMessage)
-              is EndpointIpcRawMessage -> {
-                val (pid, ipcMessage) = endpointMessage
-                debugEndpoint.verbose("message-in", "pid=$pid ipcMessage=$ipcMessage")
-                getIpcMessageProducer(pid).also {
-                  it.producer.trySend(ipcMessage.toIpcMessage(it.ipcDeferred.await()))
-                }
-              }
+        when (endpointMessage) {
+          is EndpointLifecycle -> lifecycleRemoteMutableFlow.emit(endpointMessage)
+          is EndpointIpcRawMessage -> launch(start = CoroutineStart.UNDISPATCHED) {
+            val (pid, ipcMessage) = endpointMessage
+            debugEndpoint.verbose("message-in", "pid=$pid ipcMessage=$ipcMessage")
+            getIpcMessageProducer(pid).also {
+              val ipcMsg = ipcMessage.toIpcMessage(it.ipcDeferred.await())
+              it.producer.trySend(ipcMsg)
             }
           }
         }

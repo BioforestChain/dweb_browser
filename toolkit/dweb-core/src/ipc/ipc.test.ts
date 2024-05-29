@@ -153,7 +153,7 @@ test("channel-forward", async () => {
     ipc2.onRequest("xxx-request-ipc2").collect(async (requestEvent) => {
       const serverRequest = requestEvent.consume();
       assert.isTrue(serverRequest.hasDuplex);
-      const request = serverRequest.toPureClinetRequest();
+      const request = serverRequest.toPureClientRequest();
       // 转换完发给3
       const response = await ipc3.request(request.url, request);
       // 回给2

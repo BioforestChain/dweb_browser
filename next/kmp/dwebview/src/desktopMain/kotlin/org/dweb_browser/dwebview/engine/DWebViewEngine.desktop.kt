@@ -30,7 +30,6 @@ import com.teamdev.jxbrowser.ui.Bitmap
 import com.teamdev.jxbrowser.ui.Point
 import com.teamdev.jxbrowser.view.swing.BrowserView
 import com.teamdev.jxbrowser.zoom.ZoomLevel
-import io.ktor.http.URLBuilder
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
@@ -55,7 +54,6 @@ import org.dweb_browser.dwebview.toReadyListener
 import org.dweb_browser.helper.ENV_SWITCH_KEY
 import org.dweb_browser.helper.JsonLoose
 import org.dweb_browser.helper.ReasonLock
-import org.dweb_browser.helper.buildUnsafeString
 import org.dweb_browser.helper.encodeURIComponent
 import org.dweb_browser.helper.envSwitch
 import org.dweb_browser.helper.getOrNull
@@ -466,7 +464,11 @@ class DWebViewEngine internal constructor(
             "<$source:$lineNumber>",
           )
 
-          else -> debugDWebView.verbose("JsConsole/$level", message)
+          ConsoleMessageLevel.WARNING -> debugDWebView(
+            "JsConsole/$level",
+            "$message <$source:$lineNumber>"
+          )
+          else -> debugDWebView.verbose("JsConsole/$level", "$message <$source:$lineNumber>")
         }
       }
     }

@@ -7,9 +7,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.module.getUIApplication
-import org.dweb_browser.core.std.permission.AuthorizationStatus
-import org.dweb_browser.sys.permission.SystemPermissionAdapterManager
-import org.dweb_browser.sys.permission.SystemPermissionName
 import platform.Contacts.CNContact
 import platform.Contacts.CNContactFormatter
 import platform.Contacts.CNContactFormatterStyle
@@ -21,16 +18,6 @@ import platform.darwin.NSObject
 
 
 actual class ContactManage {
-  init {
-    SystemPermissionAdapterManager.append {
-      when (task.name) {
-        // iOS使用CNContactPickerViewController控件，不再需要向iOS系统索要权限，所以直接放开联系人权限。
-        SystemPermissionName.CONTACTS -> AuthorizationStatus.GRANTED
-        else -> null
-      }
-    }
-  }
-
   class CNContactDelegate(val cancel: () -> Unit, val selected: (CNContact) -> Unit) : NSObject(),
     CNContactPickerDelegateProtocol {
 

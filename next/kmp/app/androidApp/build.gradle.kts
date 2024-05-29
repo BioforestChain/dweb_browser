@@ -101,7 +101,7 @@ android {
       versionNameSuffix = null
 
       // 修改release打包应用名
-      val archivesName = "Dweb Browser_v${libs.versions.versionName.get()}"
+      val archivesName = "DwebBrowser_v${libs.versions.versionName.get()}"
       applicationVariants.all {
         outputs.all {
           // 修改bundle名

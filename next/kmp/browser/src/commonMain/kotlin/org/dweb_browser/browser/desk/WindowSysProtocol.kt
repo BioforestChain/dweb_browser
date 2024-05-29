@@ -28,7 +28,8 @@ suspend fun DeskNMM.DeskRuntime.windowProtocol(desktopController: DesktopControl
         createModal(ipc).toJsonElement()
       },
       "/openModal" bind PureMethod.GET by defineBooleanResponse {
-        getAppMainWindow().openModal(request.query("modalId"))
+        val controller = getAppMainWindow(ipc)
+        controller.openModal(request.query("modalId"))
       },
       "/updateModalCloseTip" bind PureMethod.GET by defineBooleanResponse {
         getAppMainWindow().updateModalCloseTip(
@@ -77,17 +78,17 @@ suspend fun DeskNMM.DeskRuntime.windowProtocol(desktopController: DesktopControl
       },
       // 设置窗口大小
       "/setBounds" bind PureMethod.GET by defineEmptyResponse {
-        getWindow().setBroad(request.queryAs<SetWindowSize>())
+        getWindow().setBounds(request.queryAs<SetWindowSize>())
       },
       // 获取窗口信息
       "/getDisplayInfo" bind PureMethod.GET by defineJsonResponse {
         val manager =
-          getWindow().manager ?: return@defineJsonResponse "not found window".toJsonElement()
+          getWindow().getManager() ?: throwException(message = "not found window")
         val state = manager.state
 
         @Serializable
         data class Display(
-          val height: Float, val width: Float, val imeBoundingRect: PureRect
+          val height: Float, val width: Float, val imeBoundingRect: PureRect,
         )
 
         val displaySize = state.viewBox.getDisplaySize()

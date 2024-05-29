@@ -306,13 +306,16 @@ class Ipc internal constructor(
   private inline fun <T : Any> messagePipeMap(
     name: String,
     crossinline mapNotNull: suspend (value: IpcMessage) -> T?,
-  ) = onMessage(name).mapNotNull { event ->
-    event.consumeMapNotNull {
-      mapNotNull(it)
-    }?.let { Pair(it, event.order) }
-  }.asProducerWithOrder(messageProducer.producer.name + "/" + name, scope).also { producer ->
+  ) = Producer<T>(name, scope).also { producer ->
     onClosed { cause ->
       producer.close(cause.exceptionOrNull())
+    }
+    onMessage(name).collectIn(scope) { event ->
+      event.consumeMapNotNull {
+        mapNotNull(it)
+      }?.also {
+        producer.send(it, event.order)
+      }
     }
   }
 
@@ -388,7 +391,9 @@ class Ipc internal constructor(
         // 消耗掉
         val response = event.consume()
         val result = reqResMap.remove(response.reqId) ?: return@collectIn debugIpc(
-          "reqResMap", "onResponse", "no found response by reqId: ${event.data.reqId}"
+          "reqResMap",
+          "onResponse",
+          "no found response [${event.data}]  by reqId: ${event.data.reqId}"
         )
         result.complete(response)
       }

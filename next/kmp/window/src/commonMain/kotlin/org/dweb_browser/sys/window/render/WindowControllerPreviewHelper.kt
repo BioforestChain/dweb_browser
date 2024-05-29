@@ -38,8 +38,8 @@ fun WindowPreviewer(
 
   class PreviewWindowController(
     state: WindowState,
-    override val viewBox: IPureViewBox
-  ) : WindowController(state) {
+    viewBox: IPureViewBox,
+  ) : WindowController(state, viewBox) {
     override val lifecycleScope: CoroutineScope
       get() = scope
   }

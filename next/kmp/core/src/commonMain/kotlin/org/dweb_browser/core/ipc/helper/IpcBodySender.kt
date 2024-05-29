@@ -185,7 +185,7 @@ class IpcBodySender private constructor(
     val streamId = getStreamId(stream)
     // 注册数据拉取
     onPulling(streamId)
-    debugIpcBodySender("streamAsMeta", "sender INIT => $streamId => $stream")
+    debugIpcBodySender("streamAsMeta") { "sender INIT => $streamId => $stream" }
     val streamAsMetaScope =
       CoroutineScope(CoroutineName("sender/$stream/$streamId") + ioAsyncExceptionHandler)
     val reader by lazy { stream.getReader("ipcBodySender StreamAsMeta") }

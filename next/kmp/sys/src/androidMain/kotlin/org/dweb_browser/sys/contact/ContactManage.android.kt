@@ -1,33 +1,12 @@
 package org.dweb_browser.sys.contact
 
-import android.Manifest
 import android.annotation.SuppressLint
 import android.net.Uri
 import android.provider.ContactsContract
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.helper.getAppContextUnsafe
-import org.dweb_browser.sys.permission.AndroidPermissionTask
-import org.dweb_browser.sys.permission.PermissionActivity
-import org.dweb_browser.sys.permission.SystemPermissionAdapterManager
-import org.dweb_browser.sys.permission.SystemPermissionName
 
 actual class ContactManage {
-  init {
-    SystemPermissionAdapterManager.append {
-      when (task.name) {
-        SystemPermissionName.CONTACTS -> {
-          PermissionActivity.launchAndroidSystemPermissionRequester(
-            microModule, AndroidPermissionTask(
-              listOf(Manifest.permission.READ_CONTACTS), task.title, task.description
-            )
-          ).values.firstOrNull()
-        }
-
-        else -> null
-      }
-    }
-  }
-
   @SuppressLint("Recycle", "Range")
   actual suspend fun pickContact(microModule: MicroModule.Runtime): ContactInfo? =
     ContactPickerActivity.launchAndroidPickerContact(microModule)?.let { uri ->

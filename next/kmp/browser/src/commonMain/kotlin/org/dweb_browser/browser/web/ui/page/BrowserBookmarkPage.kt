@@ -54,7 +54,7 @@ fun BrowserBookmarkPageRender(
 ) {
   val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
   val isInEditMode = page.isInEditMode
-  LocalWindowController.current.GoBackHandler(isInEditMode) {
+  LocalWindowController.current.navigation.GoBackHandler(isInEditMode) {
     page.isInEditMode = false
   }
   val viewModal = LocalBrowserViewModel.current

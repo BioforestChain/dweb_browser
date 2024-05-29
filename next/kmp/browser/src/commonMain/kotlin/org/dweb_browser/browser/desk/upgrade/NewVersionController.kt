@@ -8,7 +8,7 @@ import org.dweb_browser.browser.desk.loadApplicationNewVersion
 import org.dweb_browser.browser.download.DownloadState
 import org.dweb_browser.browser.download.ext.createDownloadTask
 import org.dweb_browser.browser.download.ext.downloadProgressFlow
-import org.dweb_browser.browser.download.ext.existsDownload
+import org.dweb_browser.browser.download.ext.existDownloadTask
 import org.dweb_browser.browser.download.ext.pauseDownload
 import org.dweb_browser.browser.download.ext.removeDownload
 import org.dweb_browser.browser.download.ext.startDownload
@@ -138,7 +138,7 @@ class NewVersionController(
   }) {
     newVersionItem?.let { newVersion ->
       var taskId = newVersion.taskId
-      if (taskId == null || !deskNMM.existsDownload(taskId)) {
+      if (taskId == null || !deskNMM.existDownloadTask(taskId)) {
         val downloadTask = deskNMM.createDownloadTask(url = newVersion.originUrl, external = true)
         taskId = downloadTask.id
         newVersion.initDownloadTask(downloadTask, store)

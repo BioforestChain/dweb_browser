@@ -3,6 +3,7 @@ package org.dweb_browser.dwebview
 import android.content.Context
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
+import android.widget.FrameLayout
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.requiredSize
@@ -15,11 +16,6 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import com.google.accompanist.web.AccompanistWebChromeClient
-import com.google.accompanist.web.AccompanistWebViewClient
-import com.google.accompanist.web.WebView
-import com.google.accompanist.web.rememberSaveableWebViewState
-import com.google.accompanist.web.rememberWebViewNavigator
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.compose.LocalFocusRequester
 
@@ -48,21 +44,33 @@ actual fun IDWebView.Render(
     }
   ) {
     val contentScale by contentScale
-    WebView(
+    val contentWidth = maxWidth / contentScale
+    val contentHeight = maxHeight / contentScale
+    AccompanistWebView(
       state = state,
       navigator = navigator,
-      modifier = modifier.requiredSize(maxWidth / contentScale, maxHeight / contentScale),
-      factory = {
-        // 修复 activity 已存在父级时导致的异常
-        webView.parent?.let { parentView ->
-          (parentView as ViewGroup).removeAllViews()
-        }
-        webView.setBackgroundColor(Color.Transparent.toArgb())
-        webView
+      layoutParams = remember {
+        FrameLayout.LayoutParams(
+          FrameLayout.LayoutParams.MATCH_PARENT,
+          FrameLayout.LayoutParams.MATCH_PARENT,
+        )
       },
-      onCreated = {
-        onCreate?.also {
-          engine.ioScope.launch { onCreate.invoke(this@Render) }
+      modifier = modifier.requiredSize(contentWidth, contentHeight),
+      factory =  remember {
+        {
+          // 修复 activity 已存在父级时导致的异常
+          webView.parent?.let { parentView ->
+            (parentView as ViewGroup).removeAllViews()
+          }
+          webView.setBackgroundColor(Color.Transparent.toArgb())
+          webView
+        }
+      },
+      onCreated =remember {
+        {
+          onCreate?.also {
+            engine.ioScope.launch { onCreate.invoke(this@Render) }
+          }
         }
       },
       client = client,

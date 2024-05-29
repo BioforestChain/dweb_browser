@@ -47,7 +47,6 @@ import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.compose.AutoResizeTextContainer
 import org.dweb_browser.helper.compose.AutoSizeText
 import org.dweb_browser.helper.compose.compositionChainOf
-import org.dweb_browser.helper.debugger
 import org.dweb_browser.helper.getOrPut
 import org.dweb_browser.helper.platform.getCornerRadiusBottom
 import org.dweb_browser.helper.platform.getCornerRadiusTop
@@ -87,8 +86,9 @@ fun <T> WindowController.watchedState(
 ): State<T> = remember(key) {
   val rememberState = mutableStateOf(getter.invoke(state), policy)
   val off = state.observable.onChange {
-    if ((if (watchKey != null) watchKey == it.key else true)
-      && (watchKeys?.contains(it.key) != false) && filter?.invoke(it) != false
+    if ((if (watchKey != null) watchKey == it.key else true) && (watchKeys?.contains(it.key) != false) && filter?.invoke(
+        it
+      ) != false
     ) {
       runCatching {
         rememberState.value = getter.invoke(state)
@@ -224,6 +224,11 @@ val LocalWindowController = compositionChainOf<WindowController>("WindowControll
 val LocalWindowsManager = compositionChainOf<WindowsManager<*>>("WindowsManager")
 val LocalWindowsImeVisible =
   compositionChainOf("WindowsImeVisible") { mutableStateOf(false) } // 由于小米手机键盘收起会有异常，所以自行维护键盘的显示和隐藏
+
+/**
+ * 窗口是否在动画状态中
+ */
+val LocalWindowInResizeAnimation = compositionChainOf<WindowLimits>("WindowInResizeAnimation")
 
 /**
  * 存储窗口样式：
@@ -525,7 +530,8 @@ fun WindowController.calcContentScale(
   /**
    * 计算进度
    */
-  fun calcProgress(from: Float, now: Float, to: Float) = ((now - from) / (to - from)).toDouble()
+  fun calcProgress(from: Float, now: Float, to: Float) =
+    min(1f, ((now - from) / (to - from))).toDouble()
 
   /**
    * 将动画进度还原成所需的缩放值

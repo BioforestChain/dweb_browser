@@ -101,7 +101,8 @@ export const pureChannelToIpcEvent = async (channelIpc: Ipc, pureChannel: PureCh
 
   const ipcListenToChannelPo = new PromiseOut<ReadableStreamDefaultController<$PureFrame>>();
   // 接收event消息。转换成PureFrame，发送到channel的income里面去
-  channelIpc.onEvent("pureChannelToIpcEvent").collect(async (event) => {
+  const consumer = channelIpc.onEvent("pureChannelToIpcEvent");
+  consumer.collect(async (event) => {
     const ipcEvent = event.consumeMapNotNull((ipcEvent) => {
       if (ipcEvent.name === eventData) {
         return ipcEvent;
@@ -125,4 +126,5 @@ export const pureChannelToIpcEvent = async (channelIpc: Ipc, pureChannel: PureCh
   for await (const pureFrame of streamRead(channelReadOut)) {
     channelIpc.postMessage(pureFrameToIpcEvent(eventData, pureFrame, orderBy));
   }
+  consumer.close();
 };

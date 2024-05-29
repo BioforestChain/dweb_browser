@@ -1,6 +1,7 @@
 import picocolors from "npm:picocolors";
 import { whichSync } from "./helper/WhichCommand.ts";
 import { cwdResolve } from "./helper/cwd.ts";
+import { asyncNpmMirror } from "./sync_npm.ts";
 
 /**检查版本 */
 export const checkVersion = async (cwd: string, target: { name: string; version: string }) => {
@@ -69,6 +70,7 @@ export const doUpdatePackage = async (inputConfigFile: string, target: string) =
     {}
   );
   await doPublish(config.buildToRootDir);
+  await asyncNpmMirror(config.name);
 };
 
 export const doPub = async (args = Deno.args) => {

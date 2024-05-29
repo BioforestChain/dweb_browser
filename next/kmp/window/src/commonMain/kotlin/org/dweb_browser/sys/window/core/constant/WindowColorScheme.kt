@@ -28,4 +28,10 @@ enum class WindowColorScheme(val scheme: String) : Comparator<WindowColorScheme>
     return a.scheme.compareTo(b.scheme)
   }
 
+  fun toBooleanOrNull(isDark: Boolean = false) = when (this) {
+    Normal -> null
+    Light -> !isDark
+    Dark -> isDark
+  }
+
 }

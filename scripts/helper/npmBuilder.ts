@@ -1,13 +1,13 @@
-import { BuildOptions, PackageJson, build } from "@deno/dnt";
+import { build, type BuildOptions, type PackageJson } from "@deno/dnt";
 import { $once } from "@dweb-browser/helper/decorator/$once.ts";
 import node_fs from "node:fs";
 import node_path from "node:path";
 import { fileURLToPath } from "node:url";
 import { viteTaskFactory } from "./ConTasks.helper.ts";
-import { createBaseResolveTo } from "./resolveTo.ts";
 import { ConTasks } from "./ConTasks.ts";
 import { WalkFiles } from "./WalkDir.ts";
 import { calcDirHash } from "./dirHash.ts";
+import { createBaseResolveTo } from "./resolveTo.ts";
 import { rootResolve } from "./resolver.ts";
 
 export const npmNameToFolderName = (name: string) => name.replace("/", "__");

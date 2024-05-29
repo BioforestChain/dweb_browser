@@ -128,7 +128,7 @@ export class IpcClientRequest extends IpcRequest {
     return new IpcClientRequest(reqId, url, method, headers, IpcBodySender.fromStream(stream, ipc), ipc);
   }
 
-  static fromRequest(reqId: number, ipc: Ipc, url: string, init: $IpcRequestInit = {}) {
+  static async fromRequest(reqId: number, ipc: Ipc, url: string, init: $IpcRequestInit = {}) {
     const method = toPureMethod(init.method);
     const headers = init.headers instanceof IpcHeaders ? init.headers : new IpcHeaders(init.headers);
 
@@ -159,10 +159,11 @@ export class IpcClientRequest extends IpcRequest {
       init.headers instanceof Headers ? client_headers_pure_channel_wm.get(init.headers) : undefined;
     if (clientPureChannel !== undefined) {
       /// 强制初始化 channelIpc
-      void ipc.prepareChannel(headers);
+      await ipc.prepareChannel(headers);
       /// 强制初始化 channelIpc 与 clientPureChannel 的关联
       clientIpcRequest.pureChannel = clientPureChannel;
-      void clientIpcRequest.channel;
+      /// 强制初始化channel
+      void clientIpcRequest.getChannel();
     }
 
     return clientIpcRequest;
@@ -200,7 +201,7 @@ export class IpcServerRequest extends IpcRequest {
     return channel;
   });
 
-  toPureClinetRequest() {
+  toPureClientRequest() {
     const url = this.url;
     const method = this.method;
     const body = httpMethodCanOwnBody(method) ? this.body.raw : undefined;

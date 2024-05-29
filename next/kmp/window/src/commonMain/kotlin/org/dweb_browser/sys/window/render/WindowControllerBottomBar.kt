@@ -50,7 +50,7 @@ import kotlin.math.min
  */
 @Composable
 internal fun WindowBottomBar(
-  win: WindowController, modifier: Modifier = Modifier
+  win: WindowController, modifier: Modifier = Modifier,
 ) {
   val contentColor = LocalWindowControllerTheme.current.bottomContentColor
   CompositionLocalProvider(
@@ -260,7 +260,7 @@ internal fun WindowBottomNavigationThemeBar(
              */
             fun goBackOrClose() {
               scope.launch {
-                win.emitGoBack()
+                win.navigation.emitGoBack()
               }
             }
             /// 监听物理返回按钮，只有当前聚焦的窗口可以执行这个监听
@@ -299,7 +299,7 @@ internal fun WindowBottomNavigationThemeBar(
             TextButton(
               onClick = {
                 scope.launch {
-                  win.emitGoForward()
+                  win.navigation.emitGoForward()
                 }
               },
               enabled = enabled,

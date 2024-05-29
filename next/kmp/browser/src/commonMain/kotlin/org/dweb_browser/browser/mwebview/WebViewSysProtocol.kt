@@ -1,14 +1,17 @@
 package org.dweb_browser.browser.mwebview
 
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalDensity
 import org.dweb_browser.browser.common.createDwebView
+import org.dweb_browser.browser.common.toWebColorScheme
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.dwebview.Render
 import org.dweb_browser.helper.removeWhen
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.sys.window.core.windowAdapterManager
 import org.dweb_browser.sys.window.ext.getWindow
+import org.dweb_browser.sys.window.render.watchedState
 
 suspend fun MultiWebViewNMM.MultiWebViewRuntime.webViewSysProtocol() {
   protocol("webview.sys.dweb") {
@@ -24,13 +27,14 @@ suspend fun MultiWebViewNMM.MultiWebViewRuntime.webViewSysProtocol() {
         val webView = win.createDwebView(remoteMm, url)
 
         windowAdapterManager.provideRender(rid) { modifier ->
-          val density = LocalDensity.current.density
-          LaunchedEffect(scale, width, height) {
-            webView.setContentScale(scale, width, height, density)
+          val colorScheme by win.watchedState { colorScheme }
+          LaunchedEffect(colorScheme) {
+            webView.setPrefersColorScheme(colorScheme.toWebColorScheme())
           }
+          val density = LocalDensity.current.density
+          webView.setContentScaleUnsafe(scale, width, height, density)
           webView.Render(modifier)
-        }.removeWhen(ipc.scope)
-
+        }.removeWhen(win.lifecycleScope)
       }).cors()
   }
 }

@@ -397,7 +397,7 @@ class ProducerTest {
       val expected = 123456
       producer.send(Data(expected))
       val actual = actualDeferred.await()
-      println("QAQ actual=$actual")
+      println("QWQ actual=$actual")
       assertEquals(expected, actual)
 
       producer.close()
@@ -428,8 +428,8 @@ class ProducerTest {
     }
 
     val actual = res.map { it.await().data }
-    println("QAQ expected=$expected")
-    println("QAQ actual=$actual")
+    println("QWQ expected=$expected")
+    println("QWQ actual=$actual")
     assertContentEquals(expected, actual)
     producer.close()
   }

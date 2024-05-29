@@ -4,13 +4,11 @@ import okio.FileSystem
 import okio.Path
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.core.help.types.IMicroModuleManifest
-import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.bindDwebDeeplink
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
-import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.file.IVirtualFsDirectory
 import org.dweb_browser.core.std.file.ext.realPath
 import org.dweb_browser.core.std.file.fileTypeAdapterManager
@@ -31,8 +29,7 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Service") {
     init {
       IDWebView.Companion.brands.add(
         IDWebView.UserAgentBrandData(
-          "jmm.browser.dweb",
-          "${JsMicroModule.VERSION}.${JsMicroModule.PATCH}"
+          "jmm.browser.dweb", "${JsMicroModule.VERSION}.${JsMicroModule.PATCH}"
         )
       )
     }
@@ -67,16 +64,10 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Service") {
       val routeInstallHandler = defineEmptyResponse {
         val metadataUrl = request.query("url")
 
+        debugJMM("fetchJmmMetadata", metadataUrl)
         // 加载url资源，这一步可能要多一些时间
-        val response = nativeFetch(metadataUrl)
-        if (!response.isOk) {
-          throwException(code = response.status)
-        }
-        val jmmAppInstallManifest = response.json<JmmAppInstallManifest>()
-        debugJMM("listenDownload", "$metadataUrl ${jmmAppInstallManifest.id}")
-        jmmController.openOrUpsetInstallerView(
-          metadataUrl, jmmAppInstallManifest.createJmmHistoryMetadata(metadataUrl)
-        )
+        val jmmMetadata = jmmController.fetchJmmMetadata(metadataUrl)
+        jmmController.openInstallerView(jmmMetadata)
       }
 
       /// 提供JsMicroModule的文件适配器
@@ -105,9 +96,7 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Service") {
           val mmid = request.query("app_id")
           debugJMM("detailApp", mmid)
           val info = store.getApp(mmid) ?: return@defineBooleanResponse false
-          jmmController.openOrUpsetInstallerView(
-            info.originUrl, info.installManifest.createJmmHistoryMetadata(info.originUrl)
-          )
+          jmmController.openInstallerView(info.jmmMetadata)
           true
         },
         // 是否有安装
@@ -123,7 +112,7 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Service") {
         getMainWindow().apply {
           setStateFromManifest(manifest)
           state.keepBackground = true/// 保持在后台运行
-//          jmmController.openHistoryView(this)
+          jmmController.openHistoryView(this)
         }
       }
     }

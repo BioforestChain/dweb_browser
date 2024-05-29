@@ -1,6 +1,7 @@
 package org.dweb_browser.browser.desk
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -79,7 +80,7 @@ class TaskbarView private constructor(
       }
     }
 
-    private fun playMagnetEffect() {
+    internal fun playMagnetEffect() {
       taskbarMagnetEffect.start()
     }
 
@@ -133,8 +134,8 @@ class TaskbarView private constructor(
           val screenCenterX = (screenBounds.right - screenBounds.left) / 2 + screenBounds.left
 
           val endX = when {
-            // 屏幕左边空间更多
-            taskbarCenterX > screenCenterX -> taskbarBounds.x - padding - windowBounds.width
+            // 屏幕左边空间更多, 如果windowBounds.width > taskbar.x - padding，例如全屏，则 endX = 0 不该左移，否则会溢出屏幕
+            taskbarCenterX > screenCenterX -> (taskbarBounds.x - padding - windowBounds.width).let { if (it > 0) it else 0 }
             // 屏幕右边空间更多
             else -> taskbarBounds.x + taskbarBounds.width + padding
           }
@@ -349,6 +350,12 @@ class TaskbarView private constructor(
 
   private val dialog = TaskbarDialog(taskbarController, taskbarDWebView.asDesktop())
 
+  init {
+    taskbarController.deskNMM.onBeforeShutdown{
+      dialog.dispose()
+    }
+  }
+
   @Composable
   override fun TaskbarViewRender(draggableHelper: DraggableHelper, modifier: Modifier) {
     // TODO 将拖动反应到窗口位置上
@@ -359,7 +366,12 @@ class TaskbarView private constructor(
       val layoutWidth by stateOf { layoutWidth.toInt() }
       val layoutHeight by stateOf { layoutHeight.toInt() }
       val taskbarDragging by stateOf { taskbarDragging }
-      dialog.setSize(layoutWidth, layoutHeight)
+      LaunchedEffect(layoutWidth, layoutHeight) {
+        dialog.setSize(layoutWidth, layoutHeight)
+        if (!dialog.dragging) {
+          dialog.playMagnetEffect()
+        }
+      }
       dialog.dragging = taskbarDragging
     }
   }

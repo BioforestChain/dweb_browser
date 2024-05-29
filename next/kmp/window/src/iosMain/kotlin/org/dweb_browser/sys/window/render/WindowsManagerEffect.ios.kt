@@ -2,12 +2,11 @@ package org.dweb_browser.sys.window.render
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.interop.LocalUIViewController
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.coroutines.launch
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.getOrPut
 import org.dweb_browser.helper.platform.NativeViewController.Companion.nativeViewController
@@ -25,22 +24,14 @@ private fun <T : WindowController> WindowsManager<T>.EffectKeyboard() {
 
 @Composable
 private fun <T : WindowController> WindowsManager<T>.EffectNavigationBar() {
-  val scope = rememberCoroutineScope()
-  DisposableEffect(hasMaximizedWins) {
-    debugWindow("WindowsManager.Render", "start watch maximize")
-    val off = hasMaximizedWins.onChange {
-      val visible = it.isEmpty()
-      /// 如果有窗口处于全屏模式，将操作系统的导航栏标记为隐藏，反之显示
-      nativeViewController.navigationBar(visible)
-      debugWindow("navigationBar visible", visible)
-    }
-    scope.launch {
-      off.emitSelf(hasMaximizedWins)
-    }
+  val maximizedWins by maximizedWinsFlow.collectAsState(maximizedWinsFlow.value)
+  DisposableEffect(maximizedWins) {
+    val noMaximized = maximizedWins.isEmpty();
+    /// 如果有窗口处于全屏模式，将操作系统的导航栏标记为隐藏，反之显示
+    nativeViewController.navigationBar(noMaximized)
+    debugWindow("navigationBar visible", noMaximized)
     onDispose {
-      debugWindow("WindowsManager.Render", "stop watch maximize")
       nativeViewController.navigationBar(true)
-      off()
     }
   }
 }

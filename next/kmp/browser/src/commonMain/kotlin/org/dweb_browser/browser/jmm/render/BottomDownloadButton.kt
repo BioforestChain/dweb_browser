@@ -107,9 +107,8 @@ internal fun BoxScope.BottomDownloadButton() {
       enabled = canSupportTarget && jmmState.state != JmmStatus.VersionLow // 版本太低，按键置灰
     ) {
       if (canSupportTarget) {
-        val (label, info) = JmmStatusText(jmmState)
-        when {
-          info?.isNotEmpty() == true -> {
+        JmmStatusText(jmmState) { statusName, progressText ->
+          progressText?.let {
             Row(
               modifier = Modifier.fillMaxWidth(),
               verticalAlignment = Alignment.CenterVertically,
@@ -117,7 +116,7 @@ internal fun BoxScope.BottomDownloadButton() {
             ) {
               AutoResizeTextContainer(Modifier.weight(1f)) {
                 Text(
-                  text = label,
+                  text = statusName,
                   textAlign = TextAlign.Center,
                   softWrap = false,
                   maxLines = 1,
@@ -125,16 +124,13 @@ internal fun BoxScope.BottomDownloadButton() {
                 )
               }
               Text(
-                text = info,
+                text = progressText,
                 modifier = Modifier.weight(2f),
                 textAlign = TextAlign.End
               )
             }
-          }
-
-          else -> Text(text = label)
+          } ?: Text(text = statusName)
         }
-
       } else {
         Text(text = BrowserI18nResource.install_button_incompatible())
       }
@@ -142,7 +138,7 @@ internal fun BoxScope.BottomDownloadButton() {
   }
 }
 
-private val JmmStatusEvent.progressText: String
+private val JmmStatusEvent.progressText: String?
   get() {
     var text = ""
     if (current > 0) {
@@ -154,51 +150,45 @@ private val JmmStatusEvent.progressText: String
       }
       text += total.toSpaceSize()
     }
-    return text
+    return text.trim().ifEmpty { null } // 如果字符串是空的，直接返回 null
   }
 
+/**
+ * 通过 JmmStatusEvent，返回需要显示的状态和文件大小或者进度值
+ */
 @Composable
-fun JmmStatusText(state: JmmStatusEvent): Pair<String, String?> {
+fun JmmStatusText(state: JmmStatusEvent, content: @Composable (String, String?) -> Unit) {
   return when (state.state) {
-    JmmStatus.Init, JmmStatus.Canceled -> Pair(
-      first = BrowserI18nResource.install_button_install(),
-      second = state.progressText,
+    JmmStatus.Init, JmmStatus.Canceled -> content(
+      BrowserI18nResource.install_button_install(), state.progressText
     )
 
-    JmmStatus.NewVersion -> Pair(
-      first = BrowserI18nResource.install_button_update(),
-      second = state.progressText,
-
-      )
-
-    JmmStatus.Downloading -> Pair(
-      first = BrowserI18nResource.install_button_downloading(),
-      second = state.progressText,
+    JmmStatus.NewVersion -> content(
+      BrowserI18nResource.install_button_update(), state.progressText
     )
 
-    JmmStatus.Paused -> Pair(
-      first = BrowserI18nResource.install_button_paused(),
-      second = state.progressText,
+    JmmStatus.Downloading -> content(
+      BrowserI18nResource.install_button_downloading(), state.progressText,
     )
 
-    JmmStatus.Completed -> Pair(
-      first = BrowserI18nResource.install_button_installing(),
-      second = null
+    JmmStatus.Paused -> content(
+      BrowserI18nResource.install_button_paused(), state.progressText,
     )
 
-    JmmStatus.INSTALLED -> Pair(
-      first = BrowserI18nResource.install_button_open(),
-      second = null
+    JmmStatus.Completed -> content(
+      BrowserI18nResource.install_button_installing(), null
     )
 
-    JmmStatus.Failed -> Pair(
-      first = BrowserI18nResource.install_button_retry(),
-      second = null
+    JmmStatus.INSTALLED -> content(
+      BrowserI18nResource.install_button_open(), null
     )
 
-    JmmStatus.VersionLow -> Pair(
-      first = BrowserI18nResource.install_button_lower(),
-      second = null
+    JmmStatus.Failed -> content(
+      BrowserI18nResource.install_button_retry(), null
+    )
+
+    JmmStatus.VersionLow -> content(
+      BrowserI18nResource.install_button_lower(), null
     )
   }
 }

@@ -1,6 +1,7 @@
 package org.dweb_browser.dwebview
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.SwingPanel
 
@@ -30,7 +31,9 @@ actual fun IDWebView.Render(
 //      )
 //    }
 //  }
-  SwingPanel(modifier = modifier, factory = {
-    viewEngine.wrapperView
+  SwingPanel(modifier = modifier, factory = remember {
+    {
+      viewEngine.wrapperView
+    }
   })
 }

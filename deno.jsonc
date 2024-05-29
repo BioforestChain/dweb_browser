@@ -13,7 +13,9 @@
     "plaoc:demo2": "node ./npm/@plaoc__cli/esm/plaoc.js serve ./npm/@plaoc__examples/html-demo",
     "plaoc:html": "node ./npm/@plaoc__cli/esm/plaoc.js serve ./npm/@plaoc__examples/html-demo",
     "pub": "deno run -A ./scripts/pub.ts",
-    "pub:all": "deno run -A ./scripts/pub-all.ts"
+    "pub:all": "deno run -A ./scripts/pub-all.ts",
+    "sync": "deno run -A ./scripts/sync_npm.ts",
+    "toolkit:fix-import": "deno run -A ./scripts/toolKitFix.ts"
   },
   "imports": {
     "@deno/dnt": "jsr:@deno/dnt@^0.41.1",

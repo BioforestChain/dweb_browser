@@ -7,26 +7,13 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import io.ktor.util.sha1
-import org.dweb_browser.core.std.permission.AuthorizationStatus
 import org.dweb_browser.helper.getAppContextUnsafe
-import org.dweb_browser.sys.permission.SystemPermissionAdapterManager
-import org.dweb_browser.sys.permission.SystemPermissionName
 
 private val clipboard by lazy {
   getAppContextUnsafe().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
 }
 
 actual class ClipboardManage {
-
-  init {
-    SystemPermissionAdapterManager.append {
-      if (task.name == SystemPermissionName.CLIPBOARD) {
-        AuthorizationStatus.GRANTED
-      } else null
-    }
-  }
-
-
   /**
    * @param content 剪辑中的实际文本
    * @param label 剪辑数据的用户可见标签

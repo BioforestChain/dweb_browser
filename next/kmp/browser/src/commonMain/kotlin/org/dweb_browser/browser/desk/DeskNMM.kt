@@ -2,6 +2,7 @@ package org.dweb_browser.browser.desk
 
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import org.dweb_browser.browser.web.debugBrowser
@@ -135,7 +136,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
     suspend fun IHandlerContext.openOrActivateAppWindow(
       ipc: Ipc, desktopController: DesktopController,
     ): WindowController {
-      val appId = ipc.remote.mmid;
+      val appId = ipc.remote.mmid
       debugDesk("ActivateAppWindow", appId)
       try {
         /// desk直接为应用打开窗口，因为窗口由desk统一管理，所以由desk窗口，并提供句柄
@@ -155,7 +156,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         getWindow {
           val runningApp = getRunningApp(ipc)
           /// desk直接为应用打开窗口，因为窗口由desk统一管理，所以由desk窗口，并提供句柄
-          runningApp.getMainWindow()
+          runningApp.tryOpenMainWindow()
         }
       }
 
@@ -238,13 +239,14 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         },
         // 关闭app
         "/closeApp" bind PureMethod.GET by defineBooleanResponse {
-          val mmid = request.query("app_id")
-          println("Mike DesktopNMM closeApp $mmid")
-          when (val runningApp = runningApps[mmid]) {
-            null -> false
-            else -> {
-              runningApp.closeMainWindow();
-              true
+          openAppLock.withLock("app") {
+            val mmid = request.query("app_id")
+            when (val runningApp = runningApps[mmid]) {
+              null -> false
+              else -> {
+                runningApp.closeMainWindow();
+                true
+              }
             }
           }
         },
@@ -256,21 +258,27 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         },
         // 监听所有app数据
         "/desktop/observe/apps" byChannel { ctx ->
-          debugDesk("/desktop/apps", desktopController.getDesktopApps())
-          val off = desktopController.onUpdate {
-//          debugDesk("/desktop/observe/apps", "onUpdate")
+          // 默认不同步 bounds 字段，否则move的时候数据量会非常大
+          val enableBounds = request.queryAsOrNull<Boolean>("bounds") ?: false
+          val job = desktopController.onUpdate.run {
+            when {
+              enableBounds -> this
+              // 如果只有 bounds ，那么忽略，不发送
+              else -> filter { it != "bounds" }
+            }
+          }.collectIn(mmScope) {
+            debugDesk("/desktop/observe/apps") { "changes=$it" }
             try {
               val apps = desktopController.getDesktopApps()
-//            debugDesk("/desktop/observe/apps") { "apps:$apps" }
               ctx.sendJsonLine(apps)
             } catch (e: Throwable) {
               close(cause = e)
             }
           }
           onClose {
-            off()
+            job.cancel()
           }
-          desktopController.updateSignal.emit()
+          desktopController.updateFlow.emit("init")
         },
         // 获取所有taskbar数据
         "/taskbar/apps" bind PureMethod.GET by defineJsonResponse {
@@ -281,22 +289,29 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         // 监听所有taskbar数据
         "/taskbar/observe/apps" byChannel { ctx ->
           val limit = request.queryOrNull("limit")?.toInt() ?: Int.MAX_VALUE
-          debugDesk("/taskbar/observe/apps", limit)
-          val pureChannel = ctx.getChannel()
-          println("Mike DesktopNMM taskbar observe apps")
-          taskBarController.onUpdate {
+          debugDesk("/taskbar/observe/apps", "limit=$limit")
+          // 默认不同步 bounds 字段，否则move的时候数据量会非常大
+          val enableBounds = request.queryAsOrNull<Boolean>("bounds") ?: false
+          val job = taskBarController.onUpdate.run {
+            when {
+              enableBounds -> this
+              // 如果只有 bounds ，那么忽略，不发送
+              else -> filter { it != "bounds" }
+            }
+          }.collectIn(mmScope) {
+            debugDesk("/taskbar/observe/apps") { "changes=$it" }
             try {
-              println("Mike DeskNMM taskbar send onUpdate to taskbar")
-//            debugDesk("/taskbar/observe/apps") { "onUpdate $pureChannel=>${request.body.toPureString()}" }
               val apps = taskBarController.getTaskbarAppList(limit)
-//            debugDesk("/taskbar/observe/apps") { "apps:$apps" }
               ctx.sendJsonLine(apps)
             } catch (e: Exception) {
               close(cause = e)
             }
-          }.removeWhen(onClose)
-          debugDesk("/taskbar/observe/apps") { "firstEmit $pureChannel=>${request.body.toPureString()}" }
-          taskBarController.updateSignal.emit()
+          }
+          onClose {
+            job.cancel()
+          }
+          debugDesk("/taskbar/observe/apps") { "firstEmit =>${request.body.toPureString()}" }
+          taskBarController.updateFlow.emit("init")
         },
         // 监听所有taskbar状态
         "/taskbar/observe/status" byChannel { ctx ->

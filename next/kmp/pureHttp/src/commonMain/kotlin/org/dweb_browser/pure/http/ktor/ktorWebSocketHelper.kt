@@ -26,7 +26,7 @@ suspend fun pipeToPureChannel(
   /// 将从 pureChannel 收到的数据，传输到 websocket 的 frame 中
   launch {
     for (pureFrame in outgoing) {
-      debugPureChannel("WebSocketToPureChannel") { "outgoing-to-ws:$pureFrame/$url" }
+      debugPureChannel.verbose("WebSocketToPureChannel") { "outgoing-to-ws:$pureFrame/$url" }
       val wsFrame = when (pureFrame) {
         is PureTextFrame -> Frame.Text(pureFrame.text)
         is PureBinaryFrame -> Frame.Binary(true, pureFrame.binary)

@@ -58,6 +58,7 @@ next/kmp/app/androidApp/key.properties
 !/assets/browser-drawable
 !/assets/sys-drawable
 !/assets/sys-icons
+!/assets/window-drawable
 
 # 所有的资源目录全部由外部脚本进行管理
 # 请不要挪动这些配置，我们的自动清理脚本需要读取这个ignore配置来避免错误的清理，否则将导致清理失效

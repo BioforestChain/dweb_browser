@@ -89,12 +89,12 @@ class JsProcessTest {
   fun testCreateProcess() = runCommonTest(timeout = 600.seconds) {
     buildJsProcessTestContext {
       val actual = randomUUID()
-      println("QAQ actual=$actual")
+      println("QWQ actual=$actual")
       val testRuntime = dnsRunTime.open(test1NMM.mmid) as TestJmm.TestJmmRuntime
       val jsProcess = testRuntime.getJsProcess()
       jsProcess.defineEsm {
         "/" bindPrefix PureMethod.GET by defineStringResponse {
-          println("QAQ request.url=${request.url}")
+          println("QWQ request.url=${request.url}")
           request.url.toString()
           when (request.url.encodedPath) {
             "/index.js" -> """
@@ -111,7 +111,7 @@ class JsProcessTest {
       val expected = jsProcess.fetchIpc.onEvent("wait-js").mapNotNull { event ->
         event.consumeFilter { it.name == "test" }?.text
       }.first()
-      println("QAQ expected=$expected")
+      println("QWQ expected=$expected")
       assertEquals(actual, expected)
     }
   }
@@ -140,11 +140,11 @@ class JsProcessTest {
       val jsHttpUrl = jsProcess.fetchIpc.onEvent("wait-js").mapNotNull { event ->
         event.consumeFilter { it.name == "http-server" }?.text
       }.first()
-      println("QAQ jsHttpUrl=$jsHttpUrl")
+      println("QWQ jsHttpUrl=$jsHttpUrl")
 
       val actual = randomUUID()
       val expected = testRuntime.nativeFetch("$jsHttpUrl$actual").text()
-      println("QAQ expected=$expected")
+      println("QWQ expected=$expected")
       assertEquals(actual, expected)
     }
   }
@@ -153,7 +153,7 @@ class JsProcessTest {
   fun testJmmConnectJmm() = runCommonTest(timeout = 600.seconds) {
     buildJsProcessTestContext {
       val actual = randomUUID()
-      println("QAQ actual=$actual")
+      println("QWQ actual=$actual")
       test1NMM.esmLoader = {
         "/index.js" bind PureMethod.GET by defineStringResponse {
           """
@@ -182,7 +182,7 @@ class JsProcessTest {
       val ipc3 = test3Runtime.connect(test2Runtime.mmid)
       val result = ipc3.onEvent("js2js").map { it.consume() }.first()
       val expected = result.text
-      println("QAQ expected=$expected")
+      println("QWQ expected=$expected")
       assertEquals(actual, expected)
     }
   }
@@ -192,7 +192,7 @@ class JsProcessTest {
   fun testJmmOpenJmm() = runCommonTest(timeout = 600.seconds) {
     buildJsProcessTestContext {
       val actual = randomUUID()
-      println("QAQ actual=$actual")
+      println("QWQ actual=$actual")
       test1NMM.esmLoader = {
         "/index.js" bind PureMethod.GET by defineStringResponse {
           """
@@ -220,7 +220,7 @@ class JsProcessTest {
       val ipc3 = fileRuntime.connect(test2Runtime.mmid)
       val result = ipc3.onEvent("js2js").map { it.consume() }.first()
       val expected = result.text
-      println("QAQ expected=$expected")
+      println("QWQ expected=$expected")
       assertEquals(actual, expected)
     }
   }
@@ -230,7 +230,7 @@ class JsProcessTest {
   fun testJsProcessClose() = runCommonTest(timeout = 600.seconds) {
     buildJsProcessTestContext {
       val actual = randomUUID()
-//      println("QAQ actual=$actual")
+//      println("QWQ actual=$actual")
       test1NMM.esmLoader = {
         "/index.js" bind PureMethod.GET by defineStringResponse {
           """
@@ -296,7 +296,7 @@ class JsProcessTest {
       val jsHttpUrl = jsProcess.fetchIpc.onEvent("wait-js").mapNotNull { event ->
         event.consumeFilter { it.name == "http-server" }?.text
       }.first()
-      println("QAQ jsHttpUrl=$jsHttpUrl")
+      println("QWQ jsHttpUrl=$jsHttpUrl")
 
       val dwebview = IDWebView.create(testRuntime, DWebViewOptions(openDevTools = true))
       dwebview.loadUrl(jsHttpUrl)

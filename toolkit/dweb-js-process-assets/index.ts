@@ -198,7 +198,7 @@ export class JsProcessMicroModule extends MicroModule {
           const response = await dnsRequest(`/mmid?app_id=${mmid}`);
           return (await response.body.text()) === "true";
         },
-        async restart(mmid: `${string}.dweb`): Promise<void> {
+        restart: async (mmid: `${string}.dweb`) => {
           await dnsRequest(`/restart?app_id=${mmid}`);
         },
       },
@@ -222,6 +222,11 @@ export class JsProcessMicroModuleRuntime extends MicroModuleRuntime {
         const fileIpc = await this.fileIpcPo;
         void fileIpc.start();
         return fileIpc;
+      }
+      case "permission.std.dweb": {
+        const permissionIpc = await this.permissionIpcPo;
+        void permissionIpc.start();
+        return permissionIpc;
       }
     }
     return await super.connect(mmid, auto_start);
@@ -305,6 +310,7 @@ export class JsProcessMicroModuleRuntime extends MicroModuleRuntime {
   readonly ipcPool;
   readonly fetchIpc;
   readonly fileIpcPo;
+  readonly permissionIpcPo;
   readonly meta;
 
   constructor(
@@ -315,10 +321,29 @@ export class JsProcessMicroModuleRuntime extends MicroModuleRuntime {
 
     this.ipcPool = this.microModule.ipcPool;
     this.fetchIpc = this.microModule.fetchIpc;
-    this.fileIpcPo = this.fetchIpc.waitForkedIpc(2).then((fileIpc) => {
-      void fileIpc.start();
-      return fileIpc;
-    });
+    const waitProxyIpcTunnel = (key: string) => {
+      const waiter = this.fetchIpc.onEvent(`wait-${key}-ipc-pid`);
+      const pid_po = new PromiseOut<number>();
+      waiter.collect((event) => {
+        event.consumeFilter((ipcEvent) => {
+          if (ipcEvent.name === `${key}-ipc-pid`) {
+            pid_po.resolve(parseInt(core.IpcEvent.text(ipcEvent)));
+            waiter.close();
+            return true;
+          }
+          return false;
+        });
+      });
+      return pid_po.promise.then((pid) => {
+        return this.fetchIpc.waitForkedIpc(pid).then((fileIpc) => {
+          void fileIpc.start();
+          return fileIpc;
+        });
+      });
+    };
+
+    this.fileIpcPo = waitProxyIpcTunnel("file");
+    this.permissionIpcPo = waitProxyIpcTunnel("permission");
     this.connectionLinks.add(this.fetchIpc);
     this.meta = this.microModule.meta;
 

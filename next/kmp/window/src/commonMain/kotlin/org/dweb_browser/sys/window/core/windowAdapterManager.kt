@@ -1,13 +1,11 @@
 package org.dweb_browser.sys.window.core
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -28,7 +26,10 @@ import org.dweb_browser.core.help.AdapterManager
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.compose.MetaBallLoadingView
 import org.dweb_browser.helper.defaultAsyncExceptionHandler
+import org.dweb_browser.helper.platform.theme.DwebBrowserAppTheme
+import org.dweb_browser.sys.window.render.LocalWindowController
 import org.dweb_browser.sys.window.render.LocalWindowControllerTheme
+import org.dweb_browser.sys.window.render.watchedState
 
 typealias CreateWindowAdapter = suspend (winState: WindowState) -> WindowController?
 
@@ -38,20 +39,34 @@ data class WindowContentRenderScope internal constructor(
   val scale: Float,
   val widthDp: Dp,
   val heightDp: Dp,
+  val isResizing: Boolean,
 ) {
+  override fun toString(): String {
+    return "WindowContentRenderScope(width=$width, height=$height, scale=$scale, isResizing=$isResizing)"
+  }
+
   companion object {
     fun fromDp(
       widthDp: Dp,
       heightDp: Dp,
       scale: Float,
-    ) = WindowContentRenderScope(widthDp.value, heightDp.value, scale, widthDp, heightDp)
+      isResizing: Boolean = false,
+    ) = WindowContentRenderScope(
+      widthDp.value,
+      heightDp.value,
+      scale,
+      widthDp,
+      heightDp,
+      isResizing
+    )
   }
 
   constructor(
     width: Float,
     height: Float,
     scale: Float,
-  ) : this(width, height, scale, width.dp, height.dp)
+    isResizing: Boolean = false,
+  ) : this(width, height, scale, width.dp, height.dp, isResizing)
 }
 typealias WindowRenderProvider = @Composable WindowContentRenderScope.(modifier: Modifier) -> Unit
 
@@ -94,43 +109,44 @@ class WindowAdapterManager : AdapterManager<CreateWindowAdapter>() {
 
   @Composable
   fun Renderer(
-    rid: String, windowRenderScope: WindowContentRenderScope, contentModifier: Modifier = Modifier
+    rid: String, windowRenderScope: WindowContentRenderScope, contentModifier: Modifier = Modifier,
   ) {
-    when (val render = windowAdapterManager.rememberRender(rid)) {
-      null -> {
-        val colorScheme = MaterialTheme.colorScheme
-        Box(
-          modifier = Modifier
-            .fillMaxSize()
-            .background(colorScheme.onPrimary),
-          contentAlignment = Alignment.Center
-        ) {
-          /*Text(
-            "Op！视图被销毁了",
-            modifier = Modifier.align(Alignment.Center),
-            style = typography.bodyMedium.copy(
-              color = colorScheme.error,
-            )
-          )*/
-          MetaBallLoadingView(modifier = Modifier.size(100.dp))
+    val colorScheme by LocalWindowController.current.watchedState { colorScheme }
+    DwebBrowserAppTheme(colorScheme.toBooleanOrNull(isDark = true)) {
+      when (val render = windowAdapterManager.rememberRender(rid)) {
+        null -> {
+          Box(
+            modifier = Modifier
+              .fillMaxSize(),
+            contentAlignment = Alignment.Center
+          ) {
+            /*Text(
+              "Op！视图被销毁了",
+              modifier = Modifier.align(Alignment.Center),
+              style = typography.bodyMedium.copy(
+                color = colorScheme.error,
+              )
+            )*/
+            MetaBallLoadingView(modifier = Modifier.size(100.dp))
+          }
         }
-      }
 
-      else -> {
-        val theme = LocalWindowControllerTheme.current
-        CompositionLocalProvider(
-          LocalContentColor provides theme.themeContentColor,
-        ) {
-          /**
-           * 视图的宽高随着窗口的缩小而缩小，随着窗口的放大而放大，
-           * 但这些缩放不是等比的，而是会以一定比例进行换算。
-           */
-          render(
-            windowRenderScope,
-            Modifier
-              .requiredSize(windowRenderScope.width.dp, windowRenderScope.height.dp)
-              .then(contentModifier),
-          )
+        else -> {
+          val theme = LocalWindowControllerTheme.current
+          CompositionLocalProvider(
+            LocalContentColor provides theme.themeContentColor,
+          ) {
+            /**
+             * 视图的宽高随着窗口的缩小而缩小，随着窗口的放大而放大，
+             * 但这些缩放不是等比的，而是会以一定比例进行换算。
+             */
+            render(
+              windowRenderScope,
+              Modifier
+                .requiredSize(windowRenderScope.width.dp, windowRenderScope.height.dp)
+                .then(contentModifier),
+            )
+          }
         }
       }
     }

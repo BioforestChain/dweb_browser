@@ -52,7 +52,7 @@ Object.assign(globalThis, {
     const formEle = btnEle.form!;
     event.preventDefault();
     const formData = new FormData(formEle);
-    const q = formData.get("q") as string;
+    const q = (formData.get("q") as string).trim();
     const method = formEle.method;
     let url: string;
     //  dweb://install?url=http://172.30.94.135:8096/metadata.json

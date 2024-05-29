@@ -6,12 +6,13 @@ import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.datetime.Clock
 import kotlinx.serialization.json.Json
+import org.dweb_browser.browser.download.DownloadState
 import org.dweb_browser.browser.download.DownloadStateEvent
 import org.dweb_browser.browser.download.DownloadTask
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.createChannel
 import org.dweb_browser.core.std.dns.nativeFetch
-import org.dweb_browser.pure.http.PureChannelContext
+import org.dweb_browser.helper.valueNotIn
 import org.dweb_browser.pure.http.PureClientRequest
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureTextFrame
@@ -28,20 +29,18 @@ suspend fun NativeMicroModule.NativeRuntime.createDownloadTask(
   return response.json<DownloadTask>()
 }
 
-suspend fun NativeMicroModule.NativeRuntime.startDownload(taskId: String) =
-  nativeFetch("file://download.browser.dweb/start?taskId=$taskId").boolean()
+suspend fun NativeMicroModule.NativeRuntime.getDownloadTask(taskId: String): DownloadTask? {
+  val response = nativeFetch("file://download.browser.dweb/getTask?taskId=$taskId")
+  return if (response.isOk) {
+    response.json<DownloadTask>()
+  } else null
+}
 
-suspend fun NativeMicroModule.NativeRuntime.pauseDownload(taskId: String) =
-  nativeFetch("file://download.browser.dweb/pause?taskId=$taskId").boolean()
-
-suspend fun NativeMicroModule.NativeRuntime.cancelDownload(taskId: String) =
-  nativeFetch("file://download.browser.dweb/cancel?taskId=$taskId").boolean()
-
-suspend fun NativeMicroModule.NativeRuntime.existsDownload(taskId: String) =
-  nativeFetch("file://download.browser.dweb/exists?taskId=$taskId").boolean()
-
-suspend fun NativeMicroModule.NativeRuntime.currentDownload(taskId: String) =
-  nativeFetch("file://download.browser.dweb/current?taskId=$taskId").long()
+suspend fun NativeMicroModule.NativeRuntime.existDownloadTask(taskId: String): Boolean {
+  return getDownloadTask(taskId)?.status?.state?.valueNotIn(
+    DownloadState.Completed, DownloadState.Canceled
+  ) ?: false
+}
 
 suspend fun NativeMicroModule.NativeRuntime.removeDownload(taskId: String) = nativeFetch(
   PureClientRequest(
@@ -49,26 +48,18 @@ suspend fun NativeMicroModule.NativeRuntime.removeDownload(taskId: String) = nat
   )
 ).boolean()
 
-suspend fun NativeMicroModule.NativeRuntime.watchDownloadProgress(
-  taskId: String, fps: Double = 10.0, resolve: suspend WatchDownloadContext.() -> Unit,
-) = createChannel("file://download.browser.dweb/watch/progress?taskId=$taskId&fps=$fps") {
-  for (pureFrame in income) {
-    when (pureFrame) {
-      is PureTextFrame -> {
-        WatchDownloadContext(
-          Json.decodeFromString<DownloadStateEvent>(pureFrame.text),
-          this
-        ).resolve()
-      }
+suspend fun NativeMicroModule.NativeRuntime.startDownload(taskId: String) =
+  nativeFetch("file://download.browser.dweb/start?taskId=$taskId").boolean()
 
-      else -> {}
-    }
-  }
-}
+suspend fun NativeMicroModule.NativeRuntime.pauseDownload(taskId: String) =
+  nativeFetch("file://download.browser.dweb/pause?taskId=$taskId").json<DownloadStateEvent>()
+
+suspend fun NativeMicroModule.NativeRuntime.cancelDownload(taskId: String) =
+  nativeFetch("file://download.browser.dweb/cancel?taskId=$taskId").boolean()
 
 suspend fun NativeMicroModule.NativeRuntime.downloadProgressFlow(
   taskId: String, fps: Double = 10.0,
-) = channelFlow<DownloadStateEvent?> {
+) = channelFlow {
   val channelFlow = this
   val throttleMs = (1000.0 / fps).microseconds
   createChannel("file://download.browser.dweb/flow/progress?taskId=$taskId") {
@@ -92,5 +83,3 @@ suspend fun NativeMicroModule.NativeRuntime.downloadProgressFlow(
     channelFlow.close()
   }
 }.filterNotNull()
-
-class WatchDownloadContext(val status: DownloadStateEvent, val channel: PureChannelContext)

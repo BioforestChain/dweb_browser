@@ -306,15 +306,12 @@ export class DwebWallpaperElement extends HTMLElement {
         :host {
           display: block;
           overflow: hidden;
-          --bg-mix-blend-mode: hard-light;
-          --bg-img-deg: 0deg;
-          background: var(--bg-img);
           background-color: #fff;
+        }
+        :host > canvas {
           transition-duration: 2s;
           transition-timing-function: ease-in-out;
           transition-property: ${propertys.join(", ")};
-        }
-        :host > canvas {
           /* mix-blend-mode: var(--bg-mix-blend-mode); */
           object-fit: cover;
           object-position: center;
@@ -328,7 +325,7 @@ export class DwebWallpaperElement extends HTMLElement {
           }
         }
       </style>
-      <canvas id="wallpaper-content"></canvas>
+      <canvas part="canvas" id="wallpaper-content"></canvas>
     `;
     const canvasEle = shadow.querySelector("canvas")!;
     this.canvasEle = canvasEle;
@@ -454,7 +451,8 @@ export class DwebWallpaperElement extends HTMLElement {
     if (!Number.isFinite(minutes)) {
       minutes = new Date().getMinutes();
     }
-    this.style.setProperty("--bg-img-deg", `${(minutes / 60) * 360}deg`);
+    const style = this.canvasEle.style;
+    style.setProperty("--bg-img-deg", `${(minutes / 60) * 360}deg`);
 
     const mixBlendModeMap = this.#calcMixBlendModeMap();
     const mixBlendMode = mixBlendModeMap[hour % mixBlendModeMap.length];
@@ -462,7 +460,7 @@ export class DwebWallpaperElement extends HTMLElement {
     const colors = colorsMap[hour % colorsMap.length];
     const background = `linear-gradient(var(--bg-img-deg, 0deg), ${colors.map((rgb, i) => `var(--bg-img-color-${i}, rgba(${rgb},1))`).join(", ")})`;
     colors.forEach((rgb, i) => {
-      this.style.setProperty(`--bg-img-color-${i}`, `rgba(${rgb},0.2)`);
+      style.setProperty(`--bg-img-color-${i}`, `rgba(${rgb},0.2)`);
     });
 
     if (mixBlendMode === this.#mixBlendMode && background === this.#background) {
@@ -470,8 +468,7 @@ export class DwebWallpaperElement extends HTMLElement {
     }
     this.#mixBlendMode = mixBlendMode;
     this.#background = background;
-    this.style.setProperty("--bg-mix-blend-mode", mixBlendMode);
-    this.style.setProperty("background", background);
+    style.setProperty("background", background);
     this.#rectEles = colors.map((rgb) => {
       return new CanvasRectElement(
         new CanvasRectAttributes(1, 1, {

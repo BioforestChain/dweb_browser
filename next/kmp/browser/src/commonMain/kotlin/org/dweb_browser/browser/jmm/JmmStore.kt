@@ -12,7 +12,6 @@ import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.download.DownloadState
 import org.dweb_browser.browser.download.DownloadStateEvent
 import org.dweb_browser.browser.download.DownloadTask
-import org.dweb_browser.browser.download.TaskId
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.module.MicroModule
@@ -22,11 +21,15 @@ import org.dweb_browser.helper.compose.SimpleI18nResource
 import org.dweb_browser.helper.datetimeNow
 
 @Serializable
-data class JsMicroModuleDBItem(val installManifest: JmmAppInstallManifest, val originUrl: String)
+data class JsMicroModuleDBItem(val installManifest: JmmAppInstallManifest, val originUrl: String) {
+  val jmmMetadata by lazy {
+    installManifest.createJmmMetadata(originUrl)
+  }
+}
 
 class JmmStore(microModule: MicroModule.Runtime) {
   private val storeApp = microModule.createStore("jmm_apps", false)
-  private val storeHistoryMetadata = microModule.createStore("history_metadata", false)
+  private val storeMetadata = microModule.createStore("history_metadata", false)
 
   suspend fun getOrPutApp(key: MMID, value: JsMicroModuleDBItem): JsMicroModuleDBItem {
     return storeApp.getOrPut(key) { value }
@@ -51,43 +54,43 @@ class JmmStore(microModule: MicroModule.Runtime) {
   /*****************************************************************************
    * JMM对应的json地址存储，以及下载的 taskId 信息
    */
-  suspend fun saveHistoryMetadata(mmid: String, metadata: JmmHistoryMetadata) {
-    storeHistoryMetadata.set(mmid, metadata)
+  suspend fun saveMetadata(mmid: String, metadata: JmmMetadata) {
+    storeMetadata.set(mmid, metadata)
   }
 
-  suspend fun getAllHistoryMetadata(): MutableMap<String, JmmHistoryMetadata> {
-    return storeHistoryMetadata.getAll()
+  suspend fun getAllMetadata(): MutableMap<String, JmmMetadata> {
+    return storeMetadata.getAll()
   }
 
-  suspend fun getHistoryMetadata(mmid: String): String? {
-    return storeHistoryMetadata.getOrNull<String>(mmid)
+  suspend fun getMetadata(mmid: String): String? {
+    return storeMetadata.getOrNull<String>(mmid)
   }
 
-  suspend fun deleteHistoryMetadata(mmid: String): Boolean {
-    return storeHistoryMetadata.delete(mmid)
+  suspend fun deleteMetadata(mmid: String): Boolean {
+    return storeMetadata.delete(mmid)
   }
 
-  suspend fun clearHistoryMetadata() = storeHistoryMetadata.clear()
+  suspend fun clearMetadata() = storeMetadata.clear()
 }
 
 /**
  * 用于存储安装历史记录
  */
 @Serializable
-data class JmmHistoryMetadata(
+data class JmmMetadata(
   val originUrl: String,
   @SerialName("metadata")
   private var _metadata: JmmAppInstallManifest,
-  var taskId: TaskId? = null, // 用于保存下载任务，下载完成置空
+  var downloadTask: DownloadTask? = null, // 用于保存下载任务，下载完成置空
   @SerialName("state")
   private var _state: JmmStatusEvent = JmmStatusEvent(), // 用于显示下载状态
-  val installTime: Long = datetimeNow(), // 表示安装应用的时间
+  var installTime: Long = datetimeNow(), // 表示安装应用的时间
   var upgradeTime: Long = datetimeNow(),
 ) {
   var state by ObservableMutableState(_state) { _state = it }
   var metadata by ObservableMutableState(_metadata) { _metadata = it }
   suspend fun initDownloadTask(downloadTask: DownloadTask, store: JmmStore) {
-    this.taskId = downloadTask.id
+    this.downloadTask = downloadTask
     updateDownloadStatus(downloadTask.status, store)
   }
 
@@ -106,19 +109,19 @@ data class JmmHistoryMetadata(
     )
     if (newStatus != state) { // 只要前后不一样，就进行保存，否则不保存，主要为了防止downloading频繁保存
       state = newStatus
-      store.saveHistoryMetadata(this.metadata.id, this@JmmHistoryMetadata)
+      store.saveMetadata(this.metadata.id, this@JmmMetadata)
     }
   }
 
   suspend fun initState(store: JmmStore) {
     state = state.copy(state = JmmStatus.Init)
-    store.saveHistoryMetadata(this.metadata.id, this@JmmHistoryMetadata)
+    store.saveMetadata(this.metadata.id, this@JmmMetadata)
   }
 
   suspend fun installComplete(store: JmmStore) {
     debugJMM("installComplete")
     state = state.copy(state = JmmStatus.INSTALLED)
-    store.saveHistoryMetadata(this.metadata.id, this)
+    store.saveMetadata(this.metadata.id, this)
     store.setApp(
       metadata.id, JsMicroModuleDBItem(metadata, originUrl)
     )
@@ -127,7 +130,7 @@ data class JmmHistoryMetadata(
   suspend fun installFail(store: JmmStore) {
     debugJMM("installFail")
     state = state.copy(state = JmmStatus.Failed)
-    store.saveHistoryMetadata(this.metadata.id, this)
+    store.saveMetadata(this.metadata.id, this)
   }
 }
 
@@ -146,9 +149,9 @@ data class JmmStatusEvent(
   }
 }
 
-fun JmmAppInstallManifest.createJmmHistoryMetadata(
+fun JmmAppInstallManifest.createJmmMetadata(
   url: String, state: JmmStatus = JmmStatus.Init, installTime: Long = datetimeNow(),
-) = JmmHistoryMetadata(
+) = JmmMetadata(
   originUrl = url,
   _metadata = this,
   _state = JmmStatusEvent(total = this.bundle_size, state = state),

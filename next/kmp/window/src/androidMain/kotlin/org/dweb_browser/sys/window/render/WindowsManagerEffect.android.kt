@@ -7,13 +7,13 @@ import androidx.compose.foundation.layout.imeAnimationTarget
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowInsetsControllerCompat
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
-import kotlinx.coroutines.launch
 import org.dweb_browser.helper.PureRect
 import org.dweb_browser.helper.platform.LocalPureViewBox
 import org.dweb_browser.helper.platform.asAndroid
@@ -52,27 +52,21 @@ private fun <T : WindowController> WindowsManager<T>.EffectKeyboard() {
 
 }
 
+@Suppress("DEPRECATION")
 @Composable
 private fun <T : WindowController> WindowsManager<T>.EffectNavigationBar() {
   val systemUiController = rememberSystemUiController()
-  val scope = rememberCoroutineScope()
-  DisposableEffect(hasMaximizedWins) {
+  val maximizedWins by maximizedWinsFlow.collectAsState(maximizedWinsFlow.value)
+  SideEffect {
     systemUiController.systemBarsBehavior =
       WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-
-    debugWindow("WindowsManager.Render", "start watch maximize")
-    val off = hasMaximizedWins.onChange {
-      val hasMaximized = it.size > 0;
-      /// 如果有窗口处于全屏模式，将操作系统的导航栏标记为隐藏，反之显示
-      systemUiController.isNavigationBarVisible = !hasMaximized
-      debugWindow("hasMaximized", hasMaximized)
-    }
-    scope.launch {
-      off.emitSelf(hasMaximizedWins)
-    }
+  }
+  DisposableEffect(maximizedWins) {
+    val noMaximized = maximizedWins.isEmpty();
+    /// 如果有窗口处于全屏模式，将操作系统的导航栏标记为隐藏，反之显示
+    systemUiController.isNavigationBarVisible = !noMaximized
     onDispose {
-      debugWindow("WindowsManager.Render", "stop watch maximize")
-      off()
+      systemUiController.isNavigationBarVisible = true
     }
   }
 }

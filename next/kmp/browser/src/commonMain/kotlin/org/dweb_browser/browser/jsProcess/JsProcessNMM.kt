@@ -156,7 +156,6 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
           }
         },
         "/create-ipc" bind PureMethod.GET by defineEmptyResponse {
-          debugMM("create-ipc") { request.url }
           val processToken = request.query("token")
           val processId = tokenPidMap[processToken] ?: throw ResponseException(
             code = HttpStatusCode.NotFound,
@@ -165,6 +164,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
 
           val remoteGlobalId = request.query("globalId").toInt()
           val manifestJson = request.query("manifest")
+          debugMM("/create-ipc") { "remoteGlobalId=$remoteGlobalId,manifestJson=$manifestJson" }
           apis.createJsIpc(
             processId,
             GlobalWebMessageEndpoint.get(remoteGlobalId).port,

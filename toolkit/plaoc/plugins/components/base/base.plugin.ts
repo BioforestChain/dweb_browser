@@ -1,7 +1,7 @@
 import { IpcPool } from "@dweb-browser/core";
 import { X_PLAOC_QUERY } from "../../common/const.ts";
 import { createSignal } from "../../helper/createSignal.ts";
-import { $BuildRequestInit, buildRequest } from "../../helper/request.ts";
+import { buildRequest, type $BuildRequestInit } from "../../helper/request.ts";
 import type { $BuildChannelWithBaseInit, $BuildRequestWithBaseInit, $MMID } from "./base.type.ts";
 
 export const webIpcPool = new IpcPool(`web-${location.host}`);

@@ -1,24 +1,11 @@
 package org.dweb_browser.sys.device
 
 import kotlinx.coroutines.runBlocking
-import org.dweb_browser.helper.WARNING
 import platform.Foundation.NSBundle
 import platform.UIKit.UIDevice
-import org.dweb_browser.core.std.permission.AuthorizationStatus
-import org.dweb_browser.sys.permission.SystemPermissionAdapterManager
-import org.dweb_browser.sys.permission.SystemPermissionName
 
 @OptIn(ExperimentalSettingsImplementation::class)
 actual object DeviceManage {
-  init {
-    SystemPermissionAdapterManager.append {
-      when (task.name) {
-        SystemPermissionName.STORAGE -> AuthorizationStatus.GRANTED
-        else -> null
-      }
-    }
-  }
-
   private const val UUID = "ConfigUUID"
 
   private val keychain = KeychainSettings()

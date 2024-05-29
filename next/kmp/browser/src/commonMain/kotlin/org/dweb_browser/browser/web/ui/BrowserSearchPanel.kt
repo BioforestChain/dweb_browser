@@ -68,28 +68,28 @@ import org.dweb_browser.sys.window.render.LocalWindowsImeVisible
 @Composable
 fun BrowserSearchPanel(modifier: Modifier = Modifier):Boolean {
   val viewModel = LocalBrowserViewModel.current
-  val searchPage = viewModel.showSearch
+  val showSearchPage = viewModel.showSearchPage
 
   AnimatedVisibility(
-    visible = searchPage != null,
+    visible = showSearchPage != null,
     enter = remember { slideInVertically(enterAnimationSpec()) { it } },
     exit = remember { slideOutVertically(exitAnimationSpec()) { it } },
   ) {
-    if (searchPage == null) {
+    if (showSearchPage == null) {
       return@AnimatedVisibility
     }
     val focusManager = LocalFocusManager.current
     val hide = {
       focusManager.clearFocus()
-      viewModel.showSearch?.searchKeyWord = null // 关闭之前，先把这个字段内容情况，避免下次显示关键字仍然为之前的
-      viewModel.showSearch = null
+      viewModel.showSearchPage?.searchKeyWord = null // 关闭之前，先把这个字段内容情况，避免下次显示关键字仍然为之前的
+      viewModel.showSearchPage = null
     }
     /// 返回关闭搜索
-    LocalWindowController.current.GoBackHandler {
+    LocalWindowController.current.navigation.GoBackHandler {
       hide()
     }
-    var searchTextField by remember(searchPage.searchKeyWord, searchPage.url) {
-      val text = searchPage.searchKeyWord ?: searchPage.url
+    var searchTextField by remember(showSearchPage.searchKeyWord, showSearchPage.url) {
+      val text = showSearchPage.searchKeyWord ?: showSearchPage.url
       mutableStateOf(
         TextFieldValue(text = text, selection = TextRange(0, text.length))
       )
@@ -198,7 +198,7 @@ fun BrowserSearchPanel(modifier: Modifier = Modifier):Boolean {
               IconButton(onClick = {
                 // 清空文本之后再次点击需要还原文本内容并对输入框失焦
                 if (searchTextField.text.isEmpty()) {
-                  searchTextField = TextFieldValue(searchPage.url)
+                  searchTextField = TextFieldValue(showSearchPage.url)
                   hide()
                 } else {
                   searchTextField = TextFieldValue("")
@@ -213,7 +213,7 @@ fun BrowserSearchPanel(modifier: Modifier = Modifier):Boolean {
     }
 
   }
-  return searchPage != null
+  return showSearchPage != null
 }
 
 /**

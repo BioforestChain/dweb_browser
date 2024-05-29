@@ -1,3 +1,5 @@
+import type { GeolocationController } from "./geolocation.plugin.ts";
+
 export interface $GeolocationPosition {
   /**当前状态 */
   state: $GeolocationPositionState;
@@ -24,9 +26,4 @@ export interface $LocationOptions {
   minDistance?: number;
 }
 
-export interface $GeolocationController {
-  /**不断的监听位置 */
-  listen(callback: (position: $GeolocationPosition) => void): void;
-  /**关闭位置监听 */
-  stop(): void;
-}
+export type $GeolocationController = GeolocationController;

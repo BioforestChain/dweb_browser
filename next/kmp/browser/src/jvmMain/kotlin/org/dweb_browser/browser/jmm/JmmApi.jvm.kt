@@ -7,7 +7,7 @@ import java.security.MessageDigest
 
 actual suspend fun jmmAppHashVerify(
   jmmNMM: JmmNMM.JmmRuntime,
-  jmmHistoryMetadata: JmmHistoryMetadata,
+  jmmMetadata: JmmMetadata,
   zipFilePath: String,
 ): Boolean {
   val messageDigest = MessageDigest.getInstance("SHA-256")
@@ -18,11 +18,11 @@ actual suspend fun jmmAppHashVerify(
         messageDigest.update(byteArray)
       } else {
         val hashValue = messageDigest.digest().joinToString("") { "%02x".format(it) }
-        debugJMM("jmmAppHashVerify", "bundleHash=${jmmHistoryMetadata.metadata.bundle_hash}")
+        debugJMM("jmmAppHashVerify", "bundleHash=${jmmMetadata.metadata.bundle_hash}")
         debugJMM("jmmAppHashVerify", "zipFileHash=sha256:${hashValue}")
         deferred.complete(hashValue)
       }
     }
 
-  return "sha256:${deferred.await()}" == jmmHistoryMetadata.metadata.bundle_hash
+  return "sha256:${deferred.await()}" == jmmMetadata.metadata.bundle_hash
 }

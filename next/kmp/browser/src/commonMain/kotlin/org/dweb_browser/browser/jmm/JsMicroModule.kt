@@ -1,6 +1,7 @@
 package org.dweb_browser.browser.jmm
 
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -24,7 +25,6 @@ import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.permission.PermissionProvider
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.ImageResource
-import org.dweb_browser.helper.alsoLaunchIn
 import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.printError
 import org.dweb_browser.pure.http.PureClientRequest
@@ -58,7 +58,8 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
     const val PATCH = 0
 
     init {
-      val nativeToWhiteList = listOf<MMID>("js.browser.dweb", "file.std.dweb")
+      val nativeToWhiteList =
+        listOf<MMID>("js.browser.dweb", "file.std.dweb", "permission.sys.dweb")
 
       data class MmDirection(
         val startMm: MicroModule,
@@ -134,29 +135,33 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
         tryShutdown()
       }
 
-      /// 提供file.std.dweb的绑定
-      scopeLaunch(cancelable = true) {
-        val fileIpc = connect("file.std.dweb")
-        fileIpc.start(await = false)
-        val fetchIpc2 = jsProcess.fetchIpc.fork(remote = fileIpc.remote)
-        fetchIpc2.start(await = false)
-        fileIpc.onEvent("file~(event)~>fetch").collectIn(mmScope) { msgEvent ->
-          fetchIpc2.postMessage(msgEvent.consume())
+      fun proxyIpcTunnel(remoteMmid: MMID, key: String) = scopeLaunch(cancelable = true) {
+        val conIpc = connect(remoteMmid)
+        conIpc.start(await = false)
+        val proxyIpc = jsProcess.fetchIpc.fork(remote = conIpc.remote)
+        proxyIpc.start(await = false)
+        conIpc.onEvent("$key~(event)~>proxy").collectIn(mmScope) { msgEvent ->
+          proxyIpc.postMessage(msgEvent.consume())
         }
-        fetchIpc2.onEvent("fetch~(event)~>file").collectIn(mmScope) { msgEvent ->
-          fileIpc.postMessage(msgEvent.consume())
+        proxyIpc.onEvent("proxy~(event)~>$key").collectIn(mmScope) { msgEvent ->
+          conIpc.postMessage(msgEvent.consume())
         }
-        fileIpc.onRequest("file~(request)~>fetch").collectIn(mmScope) { msgEvent ->
+        conIpc.onRequest("$key~(request)~>proxy").collectIn(mmScope) { msgEvent ->
           val request = msgEvent.consume()
-          val response = fetchIpc2.request(request.toPure().toClient())
-          fetchIpc2.postResponse(request.reqId, response)
+          val response = proxyIpc.request(request.toPure().toClient())
+          proxyIpc.postResponse(request.reqId, response)
         }
-        fetchIpc2.onRequest("fetch~(request)~>file").collectIn(mmScope) { msgEvent ->
+        proxyIpc.onRequest("proxy~(request)~>$key").collectIn(mmScope) { msgEvent ->
           val request = msgEvent.consume()
-          val response = fileIpc.request(request.toPure().toClient())
-          fetchIpc2.postResponse(request.reqId, response)
+          val response = conIpc.request(request.toPure().toClient())
+          proxyIpc.postResponse(request.reqId, response)
         }
+        /// 将pid发送给js
+        jsProcess.fetchIpc.postMessage(IpcEvent.fromUtf8("$key-ipc-pid", proxyIpc.pid.toString()))
       }
+      /// 提供file.std.dweb的绑定
+      proxyIpcTunnel("file.std.dweb", "file")
+      proxyIpcTunnel("permission.sys.dweb", "permission")
 
       /**
        * 收到 Worker 的事件，如果是指令，执行一些特定的操作
@@ -249,6 +254,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
       }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     override suspend fun connect(remoteMmid: MMID, reason: PureRequest?): Ipc {
       val ipc = super.connect(remoteMmid, reason)
       if (reason?.url?.encodedPath == "/jmm/dns/connect") {// && reason.url.host == mmid
@@ -268,30 +274,13 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
       super.beConnect(ipc, reason)
     }
 
-    private val fromMMIDOriginIpcWM = mutableMapOf<MMID, CompletableDeferred<Ipc>>();
-
-    internal suspend fun ipcBridge(fromMM: MicroModule) =
-      fromMMIDOriginIpcWM.getOrPut(fromMM.mmid) {
-        CompletableDeferred<Ipc>().alsoLaunchIn(mmScope) {
-          debugJsMM("ipcBridge", "fromMmid:${fromMM.mmid} ")
-          // 创建通往worker的双向通信
-          val toJmmIpc = getJsProcess().createIpc(fromMM.manifest)
-          toJmmIpc.onClosed {
-            debugJsMM("ipcBridge close", "toJmmIpc=>${toJmmIpc.remote.mmid} fromMM:${fromMM.mmid}")
-            fromMMIDOriginIpcWM.remove(fromMM.mmid)
-          }
-          toJmmIpc
-        }
-      }.await()
-
+    internal suspend fun ipcBridge(fromMM: MicroModule) = getJsProcess().createIpc(fromMM.manifest)
 
     override suspend fun _shutdown() {
-      debugJsMM("shutdown") {
-        "ipc-count=>${fromMMIDOriginIpcWM.size}"
+      debugJsMM("shutdown $mmid") {
       }
       val jsProcess = getJsProcess()
       jsProcess.codeIpc.close()
-      fromMMIDOriginIpcWM.clear()
     }
   }
 

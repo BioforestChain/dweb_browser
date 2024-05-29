@@ -109,8 +109,10 @@ public extension DwebWebView {
     
     @objc func browserActive(on: Bool) {
         if on == false {
-            isTransitionEffect = true
-            snap = hostVC.view.snapshotView(afterScreenUpdates: false)
+            DispatchQueue.main.async { [weak self] in
+                self?.isTransitionEffect = true
+                self?.snap = self?.hostVC.view.snapshotView(afterScreenUpdates: false)
+            }
         }
     }
     

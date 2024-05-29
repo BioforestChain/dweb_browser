@@ -133,7 +133,8 @@ function outsideCloseMenu(e: PointerEvent) {
               'animate-app-pulse': closing,
             }"
             @animationiteration="animationiteration = true"
-            size="58px"
+            size="54px"
+            bg-color="transparent"
             :icon="appicon"
           ></AppIcon>
           <AppName :style="isShowMenu ? { opacity: 0 } : {}">

@@ -13,19 +13,19 @@ class JmmHistoryController(
 ) {
   fun getHistoryMetadataMap() = jmmController.historyMetadataMaps
 
-  suspend fun close() {
+  suspend fun hideView() {
     jmmNMM.getMainWindow().hide()
   }
 
   /**打开jmm下载历史视图*/
-  suspend fun openHistoryView(win: WindowController) {
+  suspend fun showHistoryView(win: WindowController) {
     windowAdapterManager.provideRender(win.id) { modifier ->
       ManagerViewRender(modifier = modifier, windowRenderScope = this)
     }
     win.show()
   }
 
-  suspend fun buttonClick(historyMetadata: JmmHistoryMetadata) {
+  suspend fun buttonClick(historyMetadata: JmmMetadata) {
     when (historyMetadata.state.state) {
       JmmStatus.INSTALLED -> {
         jmmNMM.bootstrapContext.dns.open(historyMetadata.metadata.id)
@@ -41,23 +41,24 @@ class JmmHistoryController(
 
       JmmStatus.Completed -> {}
       else -> {
-        jmmController.startDownloadTask(historyMetadata)
+        jmmController.startDownloadTaskByUrl(historyMetadata.originUrl)
       }
     }
   }
 
-  fun openInstallerView(historyMetadata: JmmHistoryMetadata) = jmmNMM.scopeLaunch(cancelable = false) {
-    jmmController.openOrUpsetInstallerView(historyMetadata.originUrl, historyMetadata, true)
+  /** 打开详情界面*/
+  fun openDetail(historyMetadata: JmmMetadata) = jmmNMM.scopeLaunch(cancelable = false) {
+    jmmController.openBottomSheet(historyMetadata)
   }
 
   /// 卸载app
-  fun unInstall(historyMetadata: JmmHistoryMetadata) {
+  fun unInstall(historyMetadata: JmmMetadata) {
     jmmNMM.scopeLaunch(cancelable = false) {
       jmmController.uninstall(historyMetadata.metadata.id)
     }
   }
 
-  fun removeHistoryMetadata(historyMetadata: JmmHistoryMetadata) {
+  fun removeHistoryMetadata(historyMetadata: JmmMetadata) {
     jmmNMM.scopeLaunch(cancelable = false) {
       jmmController.removeHistoryMetadata(historyMetadata)
     }

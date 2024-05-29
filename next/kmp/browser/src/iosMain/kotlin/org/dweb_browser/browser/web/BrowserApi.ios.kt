@@ -143,7 +143,7 @@ actual fun CommonBrowserView(
   }
 
   // 窗口返回按钮
-  win.GoBackHandler { backHandler() }
+  win.navigation.GoBackHandler { backHandler() }
 
   LaunchedEffect(win.state.colorScheme) {
     iOSView.colorSchemeChangedWithColor(win.state.colorScheme.ordinal)

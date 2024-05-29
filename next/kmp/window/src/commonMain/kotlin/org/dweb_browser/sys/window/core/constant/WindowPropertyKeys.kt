@@ -11,6 +11,7 @@ enum class WindowPropertyKeys(val fieldName: String) {
   IconMonochrome("iconMonochrome"),
   Mode("mode"),
   Visible("visible"),
+  Closed("closed"),
   CanGoBack("canGoBack"),
   CanGoForward("canGoForward"),
   Resizable("resizable"),

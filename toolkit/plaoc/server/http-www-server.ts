@@ -68,7 +68,9 @@ export class Server_www extends HttpServer {
         });
         if (sourceResponse.headers.get("Content-Type")?.includes("text/html") && !plaocShims.has("raw")) {
           const rawText = await sourceResponse.toResponse().text();
-          const text = `<script>(${setupDB.toString()})("${(await this.sessionInfo).installTime}");</script>${rawText}`;
+          const installTime = (await this.sessionInfo).installTime;
+          console.log("installTime=>", installTime);
+          const text = `<script>(${setupDB.toString()})("${installTime}");</script>${rawText}`;
           const binary = this.encoder.encode(text);
           // fromBinary 会自动添加正确的 ContentLength, 否则在Safari上会异常
           remoteIpcResponse = IpcResponse.fromBinary(

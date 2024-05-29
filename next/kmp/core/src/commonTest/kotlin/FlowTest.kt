@@ -27,21 +27,21 @@ class FlowTest {
   fun testAwaitEmit() = runCommonTest {
     val flow = MutableSharedFlow<Int?>()
     flow.filterNotNull().collectIn(this) {
-      println("QAQ ${now()} collect1 got-start $it")
+      println("QWQ ${now()} collect1 got-start $it")
       delay(1000)
-      println("QAQ ${now()} collect1 got-end $it")
+      println("QWQ ${now()} collect1 got-end $it")
     }
 //    flow.collectIn(this) {
-//      println("QAQ ${now()} collect2 got-start $it")
+//      println("QWQ ${now()} collect2 got-start $it")
 //      delay(1000)
-//      println("QAQ ${now()} collect2 got-end $it")
+//      println("QWQ ${now()} collect2 got-end $it")
 //    }
 
     for (i in 0..10) {
-      println("QAQ ${now()} emit-start $i")
+      println("QWQ ${now()} emit-start $i")
       flow.emit(i)
       flow.emit(null)
-      println("QAQ ${now()} emit-end $i")
+      println("QWQ ${now()} emit-end $i")
     }
 
   }
@@ -143,14 +143,14 @@ class FlowTest {
       var frameAcc = 0
       // 同时处理 stateFlow 和 commandChannel
       stateFlow.combine(clientToServerChannel.receiveAsFlow().map {
-        println("QAQ canSend=${it}")
+        println("QWQ canSend=${it}")
         canSend = true
         frameAcc++
       }) { stateValue, frame ->
         Pair(stateValue, frame)
       }.collect { (stateValue) ->
         if (canSend && stateValue != lastSentValue) {
-          println("QAQ do Send=${stateValue}")
+          println("QWQ do Send=${stateValue}")
           canSend = false
           lastSentValue = stateValue
           serverToClientChannel.send(stateValue.toString())
@@ -162,11 +162,11 @@ class FlowTest {
     val result = channelFlow<String?> {
       clientToServerChannel.send("hi")
       for (msg in serverToClientChannel) {
-        println("QAQ get $msg")
+        println("QWQ get $msg")
         delay(100)
         send(msg)
         send(null)
-        println("QAQ do Get")
+        println("QWQ do Get")
         if (!clientToServerChannel.isClosedForSend) {
           clientToServerChannel.send("get")
         }
@@ -176,7 +176,7 @@ class FlowTest {
     }.filterNotNull()
 
     result.collect {
-      println("QAQ collect $it")
+      println("QWQ collect $it")
       delay(100)
     }
   }

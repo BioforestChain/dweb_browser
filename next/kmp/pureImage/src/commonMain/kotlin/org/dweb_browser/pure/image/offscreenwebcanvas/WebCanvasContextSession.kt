@@ -1,7 +1,6 @@
 package org.dweb_browser.pure.image.offscreenwebcanvas
 
 
-import androidx.compose.ui.graphics.ImageBitmap
 import org.dweb_browser.helper.OrderDeferred
 import org.dweb_browser.helper.platform.toImageBitmap
 import org.dweb_browser.pure.image.OffscreenWebCanvas
@@ -38,15 +37,19 @@ class WebCanvasContextSession private constructor(internal val core: OffscreenWe
     /// fetch 如果使用 mode:'no-cors'，那么blob始终为空，所以匿名模式没有意义
     "(await fetchImageBitmap(wrapUrlByProxy(`$imageUri`),$containerWidth,$containerHeight))"
 
-  suspend fun toDataURL(type: String = "image/png", quality: Float = 0.8f) = renderOrder.queueAndAwait(Unit) {
-    jsCode += "return canvasToDataURL(canvas,{type:`$type`,quality:$quality});"
-    core.evalJavaScriptReturnString(getExecCode())
-  }
+  suspend fun toDataURL(type: String = "image/png", quality: Float = 0.8f) =
+    renderOrder.queueAndAwait(Unit) {
+      jsCode += "return canvasToDataURL(canvas,{type:`$type`,quality:$quality});"
+      runCatching {
+        core.evalJavaScriptReturnString(getExecCode())
+      }.getOrElse { "data:$type;base64," }
+    }
 
-  suspend fun toImageBitmap(type: String = "image/png", quality: Float = 0.8f) = renderOrder.queueAndAwait(Unit) {
-    jsCode += "return canvasToBlob(canvas,{type:`$type`,quality:$quality});"
-    core.evalJavaScriptReturnByteArray(getExecCode()).toImageBitmap()
-  }
+  suspend fun toImageBitmap(type: String = "image/png", quality: Float = 0.8f) =
+    renderOrder.queueAndAwait(Unit) {
+      jsCode += "return canvasToBlob(canvas,{type:`$type`,quality:$quality});"
+      core.evalJavaScriptReturnByteArray(getExecCode()).toImageBitmap()
+    }
 
   fun clearRect(x: Int, y: Int, w: Int, h: Int) {
     jsCode += "ctx.clearRect($x,$y,$w,$h);"

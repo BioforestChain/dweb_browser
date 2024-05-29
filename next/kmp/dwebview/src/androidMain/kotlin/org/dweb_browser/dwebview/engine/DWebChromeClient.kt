@@ -22,8 +22,10 @@ import org.dweb_browser.dwebview.WebBeforeUnloadArgs
 import org.dweb_browser.dwebview.WebLoadSuccessState
 import org.dweb_browser.dwebview.create
 import org.dweb_browser.dwebview.debugDWebView
+import org.dweb_browser.helper.ENV_SWITCH_KEY
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
+import org.dweb_browser.helper.envSwitch
 import org.dweb_browser.helper.mapFindNoNull
 import org.dweb_browser.helper.one
 import org.dweb_browser.helper.some
@@ -71,16 +73,38 @@ class DWebChromeClient(val engine: DWebViewEngine) : WebChromeClient() {
     inners("onCloseWindow").one { it.onCloseWindow(window) } ?: super.onCloseWindow(window)
   }
 
-  override fun onConsoleMessage(consoleMessage: ConsoleMessage?): Boolean {
+  override fun onConsoleMessage(consoleMessage: ConsoleMessage): Boolean {
+
+    /// 默认的自定义处理
+    if (debugDWebView.isEnable && envSwitch.isEnabled(ENV_SWITCH_KEY.DWEBVIEW_JS_CONSOLE)) {
+      /// 如果启用默认日志
+      val message = consoleMessage.message()
+      val lineNumber = consoleMessage.lineNumber()
+      val source = consoleMessage.sourceId()
+      when (val level = consoleMessage.messageLevel()) {
+        ConsoleMessage.MessageLevel.ERROR -> debugDWebView(
+          "JsConsole/$level",
+          message,
+          "<$source:$lineNumber>",
+        )
+
+        ConsoleMessage.MessageLevel.WARNING -> debugDWebView(
+          "JsConsole/$level",
+          "$message  <$source:$lineNumber>"
+        )
+
+        else -> debugDWebView.verbose("JsConsole/$level", "$message  <$source:$lineNumber>")
+      }
+      return false
+    }
     return inners("onConsoleMessage", false).mapFindNoNull { it.onConsoleMessage(consoleMessage) }
-      ?: super.onConsoleMessage(
-        consoleMessage
-      )
+      ?: true
+    // 如果调用 super.onConsoleMessage( consoleMessage )，会有默认的打印机制
   }
 
 
   override fun onCreateWindow(
-    view: WebView?, isDialog: Boolean, isUserGesture: Boolean, resultMsg: Message
+    view: WebView?, isDialog: Boolean, isUserGesture: Boolean, resultMsg: Message,
   ): Boolean {
     val transport = resultMsg.obj;
     if (transport is WebView.WebViewTransport) {
@@ -127,7 +151,7 @@ class DWebChromeClient(val engine: DWebViewEngine) : WebChromeClient() {
   }
 
   override fun onGeolocationPermissionsShowPrompt(
-    origin: String?, callback: GeolocationPermissions.Callback?
+    origin: String?, callback: GeolocationPermissions.Callback?,
   ) {
     inners("onGeolocationPermissionsShowPrompt").one {
       it.onGeolocationPermissionsShowPrompt(
@@ -141,7 +165,7 @@ class DWebChromeClient(val engine: DWebViewEngine) : WebChromeClient() {
   }
 
   override fun onJsAlert(
-    view: WebView?, url: String?, message: String?, result: JsResult?
+    view: WebView?, url: String?, message: String?, result: JsResult?,
   ): Boolean {
     return inners("onJsAlert").mapFindNoNull { it.onJsAlert(view, url, message, result) }
       ?: super.onJsAlert(
@@ -152,7 +176,7 @@ class DWebChromeClient(val engine: DWebViewEngine) : WebChromeClient() {
   val beforeUnloadSignal = Signal<WebBeforeUnloadArgs>()
 
   override fun onJsBeforeUnload(
-    view: WebView?, url: String?, message: String?, result: JsResult?
+    view: WebView?, url: String?, message: String?, result: JsResult?,
   ): Boolean {
     if (message.isNullOrEmpty() && beforeUnloadSignal.isNotEmpty() && result != null) {
       val args = WebBeforeUnloadArgs(message!!)
@@ -180,7 +204,7 @@ class DWebChromeClient(val engine: DWebViewEngine) : WebChromeClient() {
   }
 
   override fun onJsConfirm(
-    view: WebView?, url: String?, message: String?, result: JsResult?
+    view: WebView?, url: String?, message: String?, result: JsResult?,
   ): Boolean {
     return inners("onJsConfirm").mapFindNoNull { it.onJsConfirm(view, url, message, result) }
       ?: super.onJsConfirm(
@@ -189,7 +213,7 @@ class DWebChromeClient(val engine: DWebViewEngine) : WebChromeClient() {
   }
 
   override fun onJsPrompt(
-    view: WebView?, url: String?, message: String?, defaultValue: String?, result: JsPromptResult?
+    view: WebView?, url: String?, message: String?, defaultValue: String?, result: JsPromptResult?,
   ): Boolean {
     return inners("onJsPrompt").mapFindNoNull {
       it.onJsPrompt(
@@ -250,7 +274,7 @@ class DWebChromeClient(val engine: DWebViewEngine) : WebChromeClient() {
   override fun onShowFileChooser(
     webView: WebView?,
     filePathCallback: ValueCallback<Array<Uri>>?,
-    fileChooserParams: FileChooserParams?
+    fileChooserParams: FileChooserParams?,
   ): Boolean {
     return inners("onShowFileChooser").mapFindNoNull {
       it.onShowFileChooser(
@@ -275,7 +299,7 @@ class DWebChromeClient(val engine: DWebViewEngine) : WebChromeClient() {
     quota: Long,
     estimatedDatabaseSize: Long,
     totalQuota: Long,
-    quotaUpdater: WebStorage.QuotaUpdater?
+    quotaUpdater: WebStorage.QuotaUpdater?,
   ) {
     inners("onExceededDatabaseQuota").one {
       it.onExceededDatabaseQuota(
@@ -293,7 +317,7 @@ class DWebChromeClient(val engine: DWebViewEngine) : WebChromeClient() {
 
   @Deprecated("Deprecated in Java")
   override fun onShowCustomView(
-    view: View?, requestedOrientation: Int, callback: CustomViewCallback?
+    view: View?, requestedOrientation: Int, callback: CustomViewCallback?,
   ) {
     inners("onShowCustomView").one {
       it.onShowCustomView(

@@ -4,7 +4,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.ImageBitmap
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 
@@ -32,19 +31,27 @@ class CaptureController {
    *
    * @param config ImageBitmap config
    */
-  fun captureAsync(config: CaptureConfig = CaptureConfig.default): Deferred<ImageBitmap> {
-    val deferredImageBitmap = CompletableDeferred<ImageBitmap>()
-    return deferredImageBitmap.also {
-      _captureRequests.tryEmit(CaptureRequest(imageBitmapDeferred = it, config = config))
-    }
+  private var _deferredImageBitmap = CompletableDeferred<ImageBitmap>().apply {
+    completeExceptionally(Throwable("no capture"))
   }
+
+  fun captureAsync(config: CaptureConfig = CaptureConfig.default) =
+    CompletableDeferred<ImageBitmap>().let {
+      if (_captureRequests.tryEmit(CaptureRequest(imageBitmapDeferred = it, config = config))) {
+        _deferredImageBitmap = it
+        it.invokeOnCompletion {}
+        it
+      } else {
+        _deferredImageBitmap
+      }
+    }
+
 
   /**
    * Holds information of capture request
    */
   internal class CaptureRequest(
-    val imageBitmapDeferred: CompletableDeferred<ImageBitmap>,
-    val config: CaptureConfig
+    val imageBitmapDeferred: CompletableDeferred<ImageBitmap>, val config: CaptureConfig
   )
 
   class CaptureConfig(internal val source: MutableMap<String, Any>) {

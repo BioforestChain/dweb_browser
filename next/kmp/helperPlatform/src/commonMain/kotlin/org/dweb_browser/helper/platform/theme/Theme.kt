@@ -5,10 +5,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 
 @Composable
 fun DwebBrowserAppTheme(
-  isDarkTheme: Boolean? = null, content: @Composable () -> Unit
+  isDarkTheme: Boolean? = null, content: @Composable () -> Unit,
 ) {
   val colors = when (isDarkTheme) {
     true -> DarkColors
@@ -89,3 +91,25 @@ private val DarkColors = darkColorScheme(
   outlineVariant = md_theme_dark_outlineVariant,
   scrim = md_theme_dark_scrim,
 )
+
+class Dimens(
+  /** 0dp */
+  val none: Dp = 0.dp,
+  /** 4dp */
+  val verySmall: Dp = 4.dp,
+  /** 8dp */
+  val small: Dp = 8.dp,
+  /** 16dp */
+  val medium: Dp = 16.dp,
+  /** 24dp */
+  val large: Dp = 24.dp,
+  /** 36dp */
+  val veryLarge: Dp = 36.dp,
+) {
+  companion object {
+    val default = Dimens()
+  }
+}
+
+val MaterialTheme.dimens: Dimens
+  get() = Dimens.default

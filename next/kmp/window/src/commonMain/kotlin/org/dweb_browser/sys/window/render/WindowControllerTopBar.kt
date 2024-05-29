@@ -62,7 +62,6 @@ fun WindowTopControllerBar(
         IconButton(modifier = Modifier.align(Alignment.Center),
           onClick = {
             scope.launch {
-              println("被点击了关闭")
               win.tryCloseOrHide()
             }
           }) {

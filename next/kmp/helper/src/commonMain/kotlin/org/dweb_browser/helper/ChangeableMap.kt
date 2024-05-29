@@ -6,12 +6,13 @@ import kotlin.coroutines.CoroutineContext
 @Serializable
 data class ChangeState<K>(val adds: Set<K>, val updates: Set<K>, val removes: Set<K>);
 
-/// TODO：LinkedHashMap 无法使用，会提示final type
-open class ChangeableHashMap<K, V> : MutableMap<K, V> by LinkedHashMap()
-class ChangeableMap<K, V>(context: CoroutineContext = ioAsyncExceptionHandler) :
-  ChangeableHashMap<K, V>() {
+class ChangeableMap<K, V>(
+  context: CoroutineContext = ioAsyncExceptionHandler,
+  private val origin: MutableMap<K, V> = mutableMapOf(),
+) :
+  MutableMap<K, V> by origin {
   data class Changes<K, V>(
-    val origin: ChangeableMap<K, V>, val adds: Set<K>, val updates: Set<K>, val removes: Set<K>
+    val origin: ChangeableMap<K, V>, val adds: Set<K>, val updates: Set<K>, val removes: Set<K>,
   )
 
   private val changeable = Changeable(Changes(this, setOf(), setOf(), setOf()), context)
@@ -24,7 +25,7 @@ class ChangeableMap<K, V>(context: CoroutineContext = ioAsyncExceptionHandler) :
   fun emitChangeBackground(
     adds: Set<K> = setOf(),
     updates: Set<K> = setOf(),
-    removes: Set<K> = setOf()
+    removes: Set<K> = setOf(),
   ) {
     changeable.emitChangeBackground(Changes(this, adds, updates, removes))
   }
@@ -32,11 +33,11 @@ class ChangeableMap<K, V>(context: CoroutineContext = ioAsyncExceptionHandler) :
   override fun clear() {
     if (keys.size > 0) {
       val removes = keys.toSet()
-      super.clear().also { emitChangeBackground(removes) }
+      origin.clear().also { emitChangeBackground(removes) }
     }
   }
 
-  override fun put(key: K, value: V) = super.put(key, value).also {
+  override fun put(key: K, value: V) = origin.put(key, value).also {
     if (it != null) {// 有前置的值，那么就触发 update
       emitChangeBackground(updates = setOf(key))
     } else {// 没有前置的值，那么就触发 add
@@ -58,11 +59,11 @@ class ChangeableMap<K, V>(context: CoroutineContext = ioAsyncExceptionHandler) :
         adds.add(key)
       }
     }
-    super.putAll(from).also { emitChangeBackground(updates, adds) }
+    origin.putAll(from).also { emitChangeBackground(updates, adds) }
   }
 
   override fun remove(key: K) =
-    super.remove(key)?.also { emitChangeBackground(removes = setOf(key)) }
+    origin.remove(key)?.also { emitChangeBackground(removes = setOf(key)) }
 
   fun remove(key: K, value: V) =
     (this as MutableMap<K, V>).remove(key, value)

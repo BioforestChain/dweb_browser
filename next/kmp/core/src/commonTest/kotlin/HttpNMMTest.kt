@@ -82,12 +82,12 @@ class HttpNMMTest {
             val serverIpc = server.listen()
             serverIpc.onRequest("listen").collectIn(mmScope) { event ->
               val ipcServerRequest = event.consume()
-              println("QAQ GG onRequest=$ipcServerRequest")
+              println("QWQ GG onRequest=$ipcServerRequest")
               val pureClientRequest = ipcServerRequest.toPure().toClient()
                 .run { copy(href = href.replace(Regex("https://[^/]+"), "file://$mmid")) }
-              println("QAQ GG pureClientRequest=$pureClientRequest")
+              println("QWQ GG pureClientRequest=$pureClientRequest")
               val response = nativeFetch(pureClientRequest)
-              println("QAQ GG response=$response")
+              println("QWQ GG response=$response")
               serverIpc.postResponse(ipcServerRequest.reqId, response)
             }
             println("http start at ${server.startResult.urlInfo}")
@@ -96,7 +96,7 @@ class HttpNMMTest {
               for (i in 1..MAX) {
                 ctx.sendText("hi~$i")
               }
-              println("QAQ server ctx.close")
+              println("QWQ server ctx.close")
               ctx.close()
             })
           }
@@ -135,7 +135,7 @@ class HttpNMMTest {
     var res = "hi~0"
     for (i in ctx.income) {
       res = i.text
-      println("QAQ client $i")
+      println("QWQ client $i")
     }
     println("TEST DONE")
     assertEquals("hi~$MAX", res)

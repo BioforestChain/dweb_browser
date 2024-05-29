@@ -1,5 +1,6 @@
 package org.dweb_browser.helper
 
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
@@ -9,6 +10,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlin.coroutines.CoroutineContext
 
 /**
+ * TODO 废弃它，只使用flow
  * 策略：
  * 1. *默认* 放弃排队
  * 2. 与之前排队的合并成一个
@@ -38,7 +40,7 @@ class Queue<R>(
             block()
           }
         },
-        _all.first(),
+        _all.firstOrNull() ?: CompletableDeferred(),
         _all.slice(1 until _all.size),
       ).strategy()
 

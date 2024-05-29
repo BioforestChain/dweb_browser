@@ -1,27 +1,12 @@
 package org.dweb_browser.sys.notification
 
 import org.dweb_browser.core.module.MicroModule
-import org.dweb_browser.core.std.permission.AuthorizationStatus
-import org.dweb_browser.sys.permission.SystemPermissionAdapterManager
-import org.dweb_browser.sys.permission.SystemPermissionName
 import org.dweb_browser.sys.window.render.awtIconImage
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import java.awt.SystemTray
 import java.awt.TrayIcon
 
 actual class NotificationManager actual constructor() {
-  init {
-    SystemPermissionAdapterManager.append {
-      when (task.name) {
-        SystemPermissionName.Notification -> {
-          AuthorizationStatus.GRANTED
-        }
-
-        else -> null
-      }
-    }
-  }
-
   val isSupport = SystemTray.isSupported()
 //  private val tray = SystemTray.getSystemTray();
 

@@ -40,7 +40,7 @@ import org.dweb_browser.sys.window.render.LocalWindowController
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BrowserHistoryPageRender(historyPage: BrowserHistoryPage, modifier: Modifier) {
-  LocalWindowController.current.GoBackHandler(historyPage.isInEditMode) {
+  LocalWindowController.current.navigation.GoBackHandler(historyPage.isInEditMode) {
     historyPage.isInEditMode = false
   }
   val uiScope = rememberCoroutineScope()

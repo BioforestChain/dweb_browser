@@ -81,7 +81,9 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
     buildSearch(init?.search, (key, value) => {
       input.searchParams.append(key, value);
     });
-    input.searchParams.append("activate", String(!!init?.activate));
+    if(![...input.searchParams.keys()].includes("activate")) {
+      input.searchParams.append("activate", String(!!init?.activate));
+    }
     const ipcResponse = await ipc.request(input.href, init);
     return ipcResponse.toResponse();
   }

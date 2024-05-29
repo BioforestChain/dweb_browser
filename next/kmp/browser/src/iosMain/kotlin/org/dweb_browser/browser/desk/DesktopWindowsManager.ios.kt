@@ -16,6 +16,3 @@ actual fun DesktopWindowsManager.Companion.getOrPutInstance(
     }
   }
 }
-
-actual fun DesktopWindowsManager.focusPlatformDesktop() {
-}

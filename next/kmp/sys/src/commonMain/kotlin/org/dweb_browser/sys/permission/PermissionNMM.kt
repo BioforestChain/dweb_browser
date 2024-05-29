@@ -75,6 +75,7 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Manag
     icons = listOf(
       ImageResource(src = "file:///sys/browser-icons/$mmid.svg", type = "image/svg+xml")
     )
+    BuildinPermission.start()
   }
 
   inner class PermissionRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {

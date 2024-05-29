@@ -26,19 +26,18 @@ internal val LocalJmmInstallerController =
  * JS 模块安装 的 控制器
  */
 class JmmInstallerController(
+  metadata: JmmMetadata,
   internal val jmmNMM: JmmNMM.JmmRuntime,
-  private val jmmHistoryMetadata: JmmHistoryMetadata,
   private val jmmController: JmmController,
-  private val openFromHistory: Boolean,
 ) {
-  var installMetadata by ObservableMutableState(jmmHistoryMetadata) {}
+  var installMetadata by ObservableMutableState(metadata) {}
     internal set
 
   private var viewDeferred = CompletableDeferred<WindowBottomSheetsController>()
   private val getViewLock = Mutex()
 
   @OptIn(ExperimentalCoroutinesApi::class)
-  suspend fun getView() = getViewLock.withLock {
+  suspend fun getBottomSheetView() = getViewLock.withLock {
     if (viewDeferred.isCompleted) {
       val bottomSheetsModal = viewDeferred.getCompleted()
       /// TODO 这里 onDestroy 回调可能不触发，因此需要手动进行一次判断
@@ -56,18 +55,12 @@ class JmmInstallerController(
         viewDeferred = CompletableDeferred()
       }
     }
-  } // viewDeferred.await()
+  }
 
   suspend fun openRender() {
-    /// 隐藏主窗口
-    if (!openFromHistory) {
-      jmmNMM.getOrOpenMainWindow().hide()
-    }
     /// 显示抽屉
-    val bottomSheets = getView()
+    val bottomSheets = getBottomSheetView()
     bottomSheets.open()
-    bottomSheets.onClose {
-    }
   }
 
   /**安装完成后打开app*/

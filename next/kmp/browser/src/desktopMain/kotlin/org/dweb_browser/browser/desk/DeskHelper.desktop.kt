@@ -8,7 +8,6 @@ import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.platform.PureViewController
 import org.dweb_browser.helper.platform.PureViewCreateParams
 import org.dweb_browser.helper.platform.asDesktop
-import org.dweb_browser.sys.tray.TrayNMM
 
 private val DeskNMM.DeskRuntime.vcCore by lazy {
   val pvc = PureViewController()

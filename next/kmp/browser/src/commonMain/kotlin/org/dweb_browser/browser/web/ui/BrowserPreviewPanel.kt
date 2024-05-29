@@ -89,7 +89,7 @@ internal fun BrowserPreviewPanel(modifier: Modifier = Modifier): Boolean {
     return false
   }
   val uiScope = rememberCoroutineScope()
-  LocalWindowController.current.GoBackHandler {
+  LocalWindowController.current.navigation.GoBackHandler {
     viewModel.toggleShowPreviewUI(false)
   }
 

@@ -149,7 +149,7 @@ const setBounds = () => {
         <button class="inline-block rounded-full btn btn-accent" @click="focus">聚焦</button>
         <button class="inline-block rounded-full btn btn-accent" @click="blur">模糊</button>
         <button class="inline-block rounded-full btn btn-accent" @click="maximize">最大化</button>
-        <button class="inline-block rounded-full btn btn-accent" @click="unMaximize">最小化</button>
+        <button class="inline-block rounded-full btn btn-accent" @click="unMaximize">浮动</button>
         <button class="inline-block rounded-full btn btn-accent" @click="visible">隐藏</button>
         <button class="inline-block rounded-full btn btn-accent" @click="close">关闭窗口</button>
         <button class="inline-block rounded-full btn btn-accent" @click="getDisplayInfo">获取当前窗口信息</button>

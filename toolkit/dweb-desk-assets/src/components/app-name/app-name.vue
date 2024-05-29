@@ -13,7 +13,7 @@ defineOptions({
   width: 76px;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: 12px;
+  font-size: 10px;
   margin-top: 6px;
   margin-bottom: 4px;
   display: -webkit-box;
@@ -22,14 +22,14 @@ defineOptions({
   word-break: break-word;
 
   color: #fff;
-  text-shadow: 0 0 2px rgba(0, 0, 0, 0.678);
+  text-shadow:
+    0 0 4px rgb(0 0 0 / 60%),
+    0 0 1px rgb(0 0 0);
 
   text-align: center;
   text-wrap: balance;
   border-radius: 0.5em; // 高斯模糊的圆角
   padding: 0.1em 0.25em;
   box-sizing: content-box;
-
-  opacity: 0.85;
 }
 </style>

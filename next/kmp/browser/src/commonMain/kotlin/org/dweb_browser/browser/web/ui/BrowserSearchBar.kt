@@ -119,34 +119,28 @@ fun BrowserSearchBar(modifier: Modifier) {
       }
     }
 
-    Row(modifier = Modifier.width(onceItemSize * 2)) {
-      // 多窗口预览界面
-      IconButton(onClick = {
-        viewModel.focusedPage?.captureViewInBackground()
+    // 多窗口预览界面
+    IconButton(modifier = Modifier.size(onceItemSize), onClick = {
+      uiScope.launch {
+        viewModel.focusedPage?.captureView()
         viewModel.toggleShowPreviewUI(true)
-      }) {
-        Icon(
-          imageVector = getMultiImageVector(viewModel.pageSize),
-          contentDescription = "Open Preview Panel",
-          modifier = Modifier.size(onceItemSize).padding(6.dp)
-        )
       }
+    }) {
+      Icon(
+        imageVector = getMultiImageVector(viewModel.pageSize),
+        contentDescription = "Open Preview Panel",
+        modifier = Modifier.size(onceItemSize).padding(6.dp)
+      )
+    }
 
-      AnimatedVisibility(
-        visible = viewModel.focusedPage is BrowserWebPage,
-        enter = fadeIn() + slideInHorizontally { fullWidth -> fullWidth },
-        exit = fadeOut() + slideOutHorizontally { fullWidth -> fullWidth }
-      ) {
-        // 功能列表
-        IconButton(onClick = { viewModel.showMore = true }) {
-          BrowserMenuPanel()
-          Icon(
-            imageVector = Icons.Rounded.MoreVert,
-            contentDescription = "Open Menu Panel",
-            modifier = Modifier.size(onceItemSize).padding(4.dp)
-          )
-        }
-      }
+    // 功能列表
+    IconButton(modifier = Modifier.size(onceItemSize), onClick = { viewModel.showMore = true }) {
+      BrowserMenuPanel()
+      Icon(
+        imageVector = Icons.Rounded.MoreVert,
+        contentDescription = "Open Menu Panel",
+        modifier = Modifier.size(onceItemSize).padding(4.dp)
+      )
     }
   }
 }
@@ -213,7 +207,7 @@ private fun SearchBox(page: BrowserPage) {
         // 增加判断，如果当前点击的是当前界面，那么就显示搜索框；如果不是，那么进行focus操作
         scope.launch {
           if (page == viewModel.focusedPage) {
-            viewModel.showSearch = page
+            viewModel.showSearchPage = page
           } else {
             viewModel.focusPageUI(page)
           }

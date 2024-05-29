@@ -63,7 +63,7 @@ class PureViewController(
       // 初始化退出事件
       exitDesktop = {
         exitApplication()
-        exitProcess(0)
+//        exitProcess(0)
       }
       // 目前除了windows，其它平台（android、ios、macos）都能让背景透明地进行渲染
       envSwitch.init(ENV_SWITCH_KEY.DWEBVIEW_ENABLE_TRANSPARENT_BACKGROUND) { "${!isWindows}" }
@@ -99,7 +99,7 @@ class PureViewController(
             state = state,
             visible = winRender.visible,
             title = winRender.title,
-            icon = winRender.icon,
+            icon = winRender.icon ?: winRender.defaultIcon,
             undecorated = winRender.undecorated,
             transparent = winRender.transparent,
             resizable = winRender.resizable,

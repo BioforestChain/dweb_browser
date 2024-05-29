@@ -103,7 +103,7 @@ class MicroModuleStore(
     val data = mutableMapOf<String, T>()
     for (item in getStore()) {
       try { // 使用try的目的是为了保证后面对象字段变更后，存储了新的内容。但由于存在旧数据解析失败导致的所有数据无法获取问题
-        data[item.key] = Cbor.decodeFromByteArray<T>(item.value)
+        data[item.key] = Cbor { ignoreUnknownKeys = true }.decodeFromByteArray<T>(item.value) // 忽略未知的字段
       } catch (e: Throwable) {
         mm.debugMM("store/getAll", "${item.key}->${e.message}")
       }
@@ -146,7 +146,7 @@ class MicroModuleStore(
   @OptIn(ExperimentalSerializationApi::class)
   suspend fun save() = exec {
     val map = getStore()
-    mm.debugMM("store-save", queryPath)
+//    mm.debugMM("store-save", queryPath)
     mm.writeFile(path = queryPath, body = IPureBody.from(Cbor.encodeToByteArray(map).let {
       cipherKey?.let { key -> cipher_aes_256_gcm(key, it) } ?: it
     }))

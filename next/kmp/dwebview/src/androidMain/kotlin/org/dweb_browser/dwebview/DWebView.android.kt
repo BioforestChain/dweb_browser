@@ -38,7 +38,7 @@ import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.withMainContext
 
 actual suspend fun IDWebView.Companion.create(
-  mm: MicroModule.Runtime, options: DWebViewOptions, viewBox: IPureViewBox?
+  mm: MicroModule.Runtime, options: DWebViewOptions, viewBox: IPureViewBox?,
 ): IDWebView = create(getAppContextUnsafe(), mm, options, viewBox?.asAndroid()?.activity)
 
 suspend fun IDWebView.Companion.create(
@@ -56,7 +56,7 @@ suspend fun IDWebView.Companion.create(
    * 该参数的存在，是用来做一些跟交互式界面相关的行为的，交互式界面需要有一个上下文，比如文件选择、权限申请等行为。
    * 我们将这些功能都写到了BaseActivity上，如果没有提供该对象，则相关的功能将会被禁用
    */
-  activity: org.dweb_browser.helper.android.BaseActivity? = null
+  activity: org.dweb_browser.helper.android.BaseActivity? = null,
 ): IDWebView = withMainContext {
   DWebView.prepare()
   create(DWebViewEngine(context, remoteMM, options, activity), options.url)
@@ -93,7 +93,7 @@ class DWebView private constructor(internal val engine: DWebViewEngine, initUrl:
       }
   }
 
-
+  override val remoteMM get() = engine.remoteMM
   override val ioScope get() = engine.ioScope
   override suspend fun startLoadUrl(url: String) = withMainContext {
     engine.loadUrl(url)
@@ -160,14 +160,25 @@ class DWebView private constructor(internal val engine: DWebViewEngine, initUrl:
   val contentScale = mutableFloatStateOf(1f)
   override suspend fun setContentScale(scale: Float, width: Float, height: Float, density: Float) =
     withMainContext {
+      setContentScaleUnsafe(scale, width, height, density)
+    }
+
+  override fun setContentScaleUnsafe(
+    scale: Float,
+    width: Float,
+    height: Float,
+    density: Float,
+  ) {
+    if (this.contentScale.floatValue != scale) {
       this.contentScale.floatValue = scale
       engine.scaleX = scale
       engine.scaleY = scale
-//      engine.setInitialScale((scale * density * 100).toInt())
-//      engine.layoutParams = ViewGroup.LayoutParams(
-//        (width / scale * density).toInt(), (height / scale * density).toInt()
-//      )
     }
+    //  engine.setInitialScale((scale * density * 100).toInt())
+    //  engine.layoutParams = ViewGroup.LayoutParams(
+    //    (width / scale * density).toInt(), (height / scale * density).toInt()
+    //  )
+  }
 
   override suspend fun setPrefersColorScheme(colorScheme: WebColorScheme) {
     if (!WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) {
@@ -212,7 +223,7 @@ class DWebView private constructor(internal val engine: DWebViewEngine, initUrl:
   }
 
   override suspend fun evaluateAsyncJavascriptCode(
-    script: String, afterEval: suspend () -> Unit
+    script: String, afterEval: suspend () -> Unit,
   ): String = engine.evaluateAsyncJavascriptCode(script, afterEval)
 
   override val onDestroy by lazy { engine.destroyStateSignal.onDestroy }

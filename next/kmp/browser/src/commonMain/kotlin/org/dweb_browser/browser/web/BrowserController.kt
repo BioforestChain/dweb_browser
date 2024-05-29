@@ -84,6 +84,7 @@ class BrowserController(
         windowVisibleSignal.emit(true)
       }
       newWin.onHidden {
+        viewModel.hideAllPanel()
         windowVisibleSignal.emit(false)
       }
       newWin.onClose {
@@ -115,11 +116,16 @@ class BrowserController(
     val webLinkManifest =
       WebLinkManifest(id = linkId, title = title, url = url, icons = listOf(ImageResource(icon)))
     // 先判断是否存在，如果存在就不重复执行
-    if (webLinkStore.get(linkId) == null) {
+    val manifest = webLinkStore.get(linkId)
+    return manifest?.let {
+      if (it.icons.isEmpty() || it.icons.first().src != icon) { // 如果图标有不一致，使用新图标
+        addWebLinkSignal.emit(webLinkManifest)
+      }
+      false
+    } ?: run {
       addWebLinkSignal.emit(webLinkManifest)
-      return true
+      true
     }
-    return false
   }
 
   suspend fun saveStringToStore(key: String, data: String) = browserStore.saveString(key, data)

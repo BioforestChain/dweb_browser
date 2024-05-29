@@ -10,7 +10,7 @@ import org.dweb_browser.core.module.NativeMicroModule
  */
 class WebLinkMicroModule(webLink: WebLinkManifest) : NativeMicroModule(webLink.id, webLink.url) {
   init {
-    short_name = webLink.title.substring(0, minOf(5, webLink.title.length))
+    short_name = webLink.title
     categories = listOf(MICRO_MODULE_CATEGORY.Application, MICRO_MODULE_CATEGORY.Web_Browser)
     icons = webLink.icons
   }

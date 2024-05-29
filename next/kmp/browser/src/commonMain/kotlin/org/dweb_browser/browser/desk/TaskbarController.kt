@@ -7,6 +7,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import io.ktor.http.Url
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.serialization.Serializable
 import org.dweb_browser.browser.desk.types.DeskAppMetaData
 import org.dweb_browser.core.help.types.MMID
@@ -15,9 +22,10 @@ import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.ENV_SWITCH_KEY
 import org.dweb_browser.helper.PromiseOut
+import org.dweb_browser.helper.SafeHashSet
 import org.dweb_browser.helper.Signal
-import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.build
+import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.envSwitch
 import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.helper.resolvePath
@@ -40,18 +48,20 @@ class TaskbarController private constructor(
       desktopController: DesktopController,
       taskbarServer: HttpDwebServer,
       runningApps: ChangeableMap<MMID, RunningApp>,
-    ) =
-      TaskbarController(
-        deskNMM,
-        deskSessionId,
-        desktopController,
-        taskbarServer,
-        runningApps
-      )
+    ) = TaskbarController(
+      deskNMM, deskSessionId, desktopController, taskbarServer, runningApps
+    )
   }
 
-  private val _taskbarView =
-    deskNMM.scopeAsync(cancelable = true) { ITaskbarView.create(this@TaskbarController) }
+  private val _taskbarView = deskNMM.scopeAsync(cancelable = true) {
+    ITaskbarView.create(this@TaskbarController).also { taskbarView ->
+      deskNMM.onBeforeShutdown {
+        deskNMM.scopeLaunch(cancelable = false) {
+          taskbarView.taskbarDWebView.destroy()
+        }
+      }
+    }
+  }
 
   private suspend fun taskbarView() = _taskbarView.await()
 
@@ -69,8 +79,24 @@ class TaskbarController private constructor(
   /** 展示在taskbar中的应用列表 */
   private suspend fun getTaskbarShowAppList() = taskbarStore.getApps()
   private suspend fun getFocusApp() = getTaskbarShowAppList().firstOrNull()
-  internal val updateSignal = SimpleSignal()
-  val onUpdate = updateSignal.toListener()
+  internal val updateFlow = MutableSharedFlow<String>()
+  val onUpdate = channelFlow {
+    val reasons = SafeHashSet<String>()
+    updateFlow.onEach {
+      reasons.addAll(it.split("|"))
+    }.conflate().collect {
+      delay(100)
+      val result = reasons.sync {
+        val result = joinToString("|")
+        clear()
+        result
+      }
+      if (result.isNotEmpty()) {
+        send(result)
+      }
+    }
+    close()
+  }.shareIn(deskNMM.getRuntimeScope(), started = SharingStarted.Eagerly)
 
   // 触发状态更新
   private val stateSignal = Signal<TaskBarState>()
@@ -98,12 +124,12 @@ class TaskbarController private constructor(
         /// 保存到数据库
         taskbarStore.setApps(apps)
         // 窗口打开时触发
-        updateSignal.emit()
+        updateFlow.emit("apps")
       }
     }
     // 监听窗口状态改变
-    desktopController.onUpdate {
-      updateSignal.emit()
+    desktopController.onUpdate.collectIn(deskNMM.getRuntimeScope()) {
+      updateFlow.emit(it)
     }
   }
 
@@ -151,15 +177,15 @@ class TaskbarController private constructor(
    */
   suspend fun toggleDesktopView() {
     val windowsManager = desktopController.getDesktopWindowsManager()
-    val allWindows = windowsManager.allWindows.keys.toList()
-    if (allWindows.isEmpty() || allWindows.find { it.isVisible() } != null) {
-      allWindows.forEach { win ->
-        win.toggleVisible(false)
+    val allWindows = windowsManager.allWindowsFlow.value.keys.toList()
+    if (allWindows.isEmpty() || allWindows.find { it.isVisible } != null) {
+      allWindows.map { win ->
+        win.hide()
       }
       windowsManager.focusDesktop()
     } else {
-      allWindows.forEach { win ->
-        win.toggleVisible(true)
+      allWindows.map { win ->
+        win.show()
       }
     }
   }

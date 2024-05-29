@@ -12,6 +12,8 @@ import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.cancel
 import io.ktor.utils.io.close
 import io.ktor.utils.io.core.ByteReadPacket
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Serializable
@@ -29,8 +31,6 @@ import org.dweb_browser.core.std.file.ext.appendFile
 import org.dweb_browser.core.std.file.ext.existFile
 import org.dweb_browser.core.std.file.ext.infoFile
 import org.dweb_browser.core.std.file.ext.removeFile
-import org.dweb_browser.helper.Queue
-import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.consumeEachArrayRange
 import org.dweb_browser.helper.createByteChannel
@@ -67,35 +67,26 @@ data class DownloadTask(
   var filepath: String,
   /** 标记当前下载状态 */
   val status: DownloadStateEvent,
-/// DBEUG
-  var frame: Int = 0,
+///// DBEUG
+//  var frame: Int = 0,
 ) {
 
   @Transient
   var readChannel: ByteReadChannel? = null
 
-  // 监听下载进度 不存储到内存
+  // 监听下载进度 不存储到数据库
   @Transient
-  private val changeSignal: Signal<DownloadTask> = Signal()
+  private val changeFlow = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
 
-  @Transient
-  val emitChanged = Queue.merge {
-    changeSignal.emit(this)
-    frame++
+  fun emitChanged() {
+    changeFlow.tryEmit(Unit)
   }
 
   @Transient
-  val onChange = changeSignal.toListener()
-
-  //  // 帮助实现下载暂停
-//  @Transient
-//  var paused = PromiseOut<Unit>()
-//
-  @Transient
-  var pauseFlag = false
+  val onChange = changeFlow.asSharedFlow()
 
   @Transient
-  var paused = Mutex()
+  internal val paused = Mutex()
 
   fun cancel() {
     status.state = DownloadState.Canceled
@@ -262,7 +253,8 @@ class DownloadController(private val downloadNMM: DownloadNMM.DownloadRuntime) {
     }
 
     task.mime = mimeFactory(response.headers, task.url)
-    task.filepath = fileCreateByHeadersAndPath(response.headers, task.url, task.mime, task.external)
+    // TODO 这个本来是考虑如果地址获取的文件名有误，所以才增加的，但是由于改造，创建的时候返回来downloadTask，导致这边修改并没有被捕获，所以暂时移除，待优化
+    // task.filepath = fileCreateByHeadersAndPath(response.headers, task.url, task.mime, task.external)
 
     // 判断地址是否支持断点
     val supportRange =
@@ -316,7 +308,7 @@ class DownloadController(private val downloadNMM: DownloadNMM.DownloadRuntime) {
           task.emitChanged()
           // debugDownload("middleware", "progress id:$taskId current:${downloadTask.status.current}")
         }
-        debugDownload("middleware", "end id:$taskId, ${task.status}")
+        debugDownload("middleware") { "end id:$taskId, ${task.status}" }
       } catch (e: Throwable) {
         // 这里捕获的一般是 connection reset by peer 当前没有重试机制，用户再次点击即为重新下载
         debugDownload("middleware", "${e.message}")

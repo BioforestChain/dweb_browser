@@ -64,7 +64,7 @@ const sayHi = (message = "今晚吃螃🦀️蟹吗？") => {
     message = data;
   }
   dwebServiceWorker
-    .fetch(`https://game.dweb.waterbang.top.dweb/say/hi?message=${message}`)
+    .fetch(`https://game.dweb.waterbang.top.dweb/say/hi?message=${message}&activate=true`)
     .then(async (res) => {
       const message = await res.text();
       console.log("收到回应消息=> ", message);

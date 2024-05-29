@@ -9,14 +9,6 @@ import org.dweb_browser.sys.permission.SystemPermissionAdapterManager
 import org.dweb_browser.sys.permission.SystemPermissionName
 
 actual object DeviceManage {
-  init {
-    SystemPermissionAdapterManager.append {
-      if(task.name == SystemPermissionName.STORAGE) {
-        AuthorizationStatus.GRANTED
-      } else null
-    }
-  }
-
   private val runtime by lazy { Runtime.getRuntime() }
   private val deviceUUID by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
     runCatching {

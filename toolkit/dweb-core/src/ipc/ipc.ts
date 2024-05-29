@@ -346,8 +346,8 @@ export class Ipc {
   /** 发起请求并等待响应 */
   request(url: IpcClientRequest): Promise<IpcResponse>;
   request(url: string, init?: $IpcRequestInit): Promise<IpcResponse>;
-  request(input: string | IpcClientRequest, init?: $IpcRequestInit) {
-    const ipcRequest = input instanceof IpcClientRequest ? input : this.#buildIpcRequest(input, init);
+  async request(input: string | IpcClientRequest, init?: $IpcRequestInit) {
+    const ipcRequest = input instanceof IpcClientRequest ? input : await this.#buildIpcRequest(input, init);
     const result = this.#registerReqId(ipcRequest.reqId);
     this.postMessage(ipcRequest);
     return result.promise;

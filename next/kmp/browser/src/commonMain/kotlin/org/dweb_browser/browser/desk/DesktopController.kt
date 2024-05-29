@@ -18,6 +18,13 @@ import io.ktor.http.Url
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -34,13 +41,17 @@ import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.ENV_SWITCH_KEY
+import org.dweb_browser.helper.OffListener
+import org.dweb_browser.helper.SafeHashSet
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.build
+import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.envSwitch
 import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.helper.platform.IPureViewController
 import org.dweb_browser.helper.platform.from
 import org.dweb_browser.helper.resolvePath
+import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.render.NativeBackHandler
 
 @Stable
@@ -92,6 +103,12 @@ open class DesktopController private constructor(
     // 隐藏滚动条
     webView.setVerticalScrollBarVisible(false)
     webView.setHorizontalScrollBarVisible(false)
+
+    deskNMM.onBeforeShutdown {
+      deskNMM.scopeLaunch(cancelable = false) {
+        webView.destroy()
+      }
+    }
     return webView
   }
 
@@ -136,12 +153,28 @@ open class DesktopController private constructor(
   }
 
   // 状态更新信号
-  internal val updateSignal = SimpleSignal()
-  val onUpdate = updateSignal.toListener()
+  internal val updateFlow = MutableSharedFlow<String>()
+  val onUpdate = channelFlow {
+    val reasons = SafeHashSet<String>()
+    updateFlow.onEach {
+      reasons.addAll(it.split("|"))
+    }.conflate().collect {
+      delay(100)
+      val result = reasons.sync {
+        val result = joinToString("|")
+        clear()
+        result
+      }
+      if (result.isNotEmpty()) {
+        send(result)
+      }
+    }
+    close()
+  }.shareIn(deskNMM.getRuntimeScope(), started = SharingStarted.Eagerly)
 
   init {
     runningApps.onChange { map ->
-      updateSignal.emit()
+      updateFlow.emit("apps")
     }
   }
 
@@ -182,11 +215,7 @@ open class DesktopController private constructor(
       return@map DeskAppMetaData().apply {
         running = runningApps.containsKey(metaData.mmid)
         winStates = getDesktopWindowsManager().getWindowStates(metaData.mmid)
-        winStates.firstOrNull()?.let { state ->
-          debugDesk(
-            "getDesktopApps", "winStates -> ${winStates.size}, ${state.mode}, ${state.focus}"
-          )
-        }
+        //...复制metaData属性
         assign(metaData.manifest)
       }
     }
@@ -203,18 +232,33 @@ open class DesktopController private constructor(
   suspend fun getDesktopWindowsManager() = wmLock.withLock {
     val vc = this.activity!!
     DesktopWindowsManager.getOrPutInstance(vc, IPureViewBox.from(vc)) { dwm ->
-      dwm.hasMaximizedWins.onChange { updateSignal.emit() }
+      val watchWindows = mutableMapOf<WindowController, OffListener<*>>()
+      fun watchAllWindows() {
+        watchWindows.keys.subtract(dwm.allWindows).forEach { win ->
+          watchWindows.remove(win)?.invoke()
+        }
+        for (win in dwm.allWindows) {
+          if (watchWindows.contains(win)) {
+            continue
+          }
+          watchWindows[win] = win.state.observable.onChange {
+            updateFlow.emit(it.key.fieldName)
+          }
+        }
+      }
 
       /// 但有窗口信号变动的时候，确保 MicroModule.IpcEvent<Activity> 事件被激活
-      dwm.allWindows.onChange {
-        updateSignal.emit()
+      dwm.allWindowsFlow.collectIn(dwm.viewController.lifecycleScope) {
+        watchAllWindows()
+        updateFlow.emit("windows")
         _activitySignal.emit()
-      }.removeWhen(dwm.viewController.lifecycleScope)
+      }
+      watchAllWindows()
 
       preDesktopWindowsManager?.also { preDwm ->
         deskNMM.scopeLaunch(Dispatchers.Main, cancelable = true) {
           /// 窗口迁移
-          preDwm.moveWindows(dwm)
+          preDwm.moveWindowsTo(dwm)
         }
       }
       preDesktopWindowsManager = dwm
