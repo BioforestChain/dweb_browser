@@ -91,6 +91,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
@@ -100,6 +101,7 @@ import kotlinx.datetime.toLocalDateTime
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.helper.UUID
+import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.compose.hex
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.pure.image.compose.PureImageLoader
@@ -169,11 +171,14 @@ fun NewDesktopView(
   }
 
   DisposableEffect(Unit) {
-    val off = taskbarController.desktopController.onUpdate {
+    val job = taskbarController.desktopController.onUpdate.run {
+      filter { it != "bounds" }
+    }.collectIn(scope) {
       doGetApps()
     }
+
     onDispose {
-      off()
+      job.cancel()
     }
   }
 
@@ -307,8 +312,8 @@ fun NewDesktopView(
         var popSize by remember { mutableStateOf(IntSize.Zero) }
         var popAlpha by remember { mutableStateOf(0f) }
         val density = LocalDensity.current.density
-        val box_width = constraints.maxWidth
-        val box_height = constraints.maxHeight
+        val boxWidth = constraints.maxWidth
+        val boxHeight = constraints.maxHeight
 
         val scale = 1.05
         val offX = popUpApp!!.offSet!!.x / density
@@ -330,9 +335,9 @@ fun NewDesktopView(
           Image(popUpApp!!.image!!, contentDescription = null)
         }
 
-        var popOffX = min((offX * density), (box_width - popSize.width).toFloat()).toInt()
+        val popOffX = min((offX * density), (boxWidth - popSize.width).toFloat()).toInt()
         var popOffY = ((offY + height + 15) * density).toInt()
-        if (popOffY + popSize.height + 15 > box_height) {
+        if (popOffY + popSize.height + 15 > boxHeight) {
           popOffY = ((offY - popSize.height - 15) * density).toInt()
         }
 
@@ -553,14 +558,14 @@ fun moreAppDisplay(
 @Composable
 fun desktopSearchBar(modifier: Modifier, search: (String) -> Unit, hideKeyBoad: () -> Unit) {
 
-  var searchWord = remember {
+  val searchWord = remember {
     mutableStateOf(TextFieldValue(""))
   }
 
   val searchBarWR = 0.9F
   var expand by remember { mutableStateOf(0F) }
-  var transition = updateTransition(expand, "search bar expand")
-  var searchIconOffset = transition.animateIntOffset {
+  val transition = updateTransition(expand, "search bar expand")
+  val searchIconOffset = transition.animateIntOffset {
     if (it > 0) {
       val density = LocalDensity.current.density
       //30指的是size = 30.dp, 这边需要重新将dp转为px
@@ -569,7 +574,7 @@ fun desktopSearchBar(modifier: Modifier, search: (String) -> Unit, hideKeyBoad: 
       IntOffset.Zero
     }
   }
-  var searchBarWidthRadio = transition.animateFloat {
+  val searchBarWidthRadio = transition.animateFloat {
     if (it > 0) {
       searchBarWR
     } else {
@@ -637,7 +642,7 @@ fun desktopSearchBar(modifier: Modifier, search: (String) -> Unit, hideKeyBoad: 
 @Composable
 fun desktopBackgroundView(modifier: Modifier) {
 
-  var circles = remember {
+  val circles = remember {
     val result = mutableStateListOf<DesktopBgCircleModel>()
     result.addAll(DesktopBgCircleModel.randomCircle())
     result
@@ -836,15 +841,15 @@ private typealias ColorString = String
 
 private fun desktopBgPrimaryColors(hour: Int? = null): List<ColorString> {
 
-  val hour = if (hour != null) hour else {
+  val toHour = if (hour != null) hour else {
     val clock = Clock.System.now()
     val timeZone = clock.toLocalDateTime(TimeZone.currentSystemDefault())
     timeZone.hour
   }
 
-  return when (hour) {
+  return when (toHour) {
     1, 2, 3, 4 -> listOf("#18A0FB", "#1BC47D")
-    5, 6 -> listOf("#18A0FB", "#18A0FB", "#1BC47D", "#1BC47D", "#adff2f")
+    5, 6 -> listOf("#3a1c71", "#d76d77", "#ffaf7b")
     7, 8, 9 -> listOf("#18A0FB", "#907CFF")
     10, 11, 12, 13 -> listOf("#EE46D3", "#907CFF")
     14, 15, 16 -> listOf("#FFC700", "#EE46D3")
@@ -904,19 +909,18 @@ data class DesktopBgCircleModel(
     fun randomColor(hour: Int): Color {
       val colors = desktopBgPrimaryColors(hour)
       val colorStart = colors.first()
-      var colorEnd = colors.last()
+      val colorEnd = colors.last()
 
       fun getColor(range: IntRange): Int {
         val c0 = colorStart.substring(range).toInt(16)
         val c1 = colorEnd.substring(range).toInt(16)
-        var c3 = if (c0 == c1) {
+        return if (c0 == c1) {
           255
         } else if (c0 < c1) {
           (c0..c1).random()
         } else {
           (c1..c0).random()
         }
-        return c3
       }
 
       val color = Color(getColor(1..2), getColor(3..4), getColor(5..6))
