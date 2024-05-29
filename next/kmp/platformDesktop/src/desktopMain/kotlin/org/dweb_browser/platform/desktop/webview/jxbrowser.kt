@@ -17,6 +17,17 @@ object WebviewEngine {
   val licenseKey = (System.getenv(KEY) ?: System.getProperty(KEY) ?: LICENSE)
   private val engineLock = SynchronizedObject()
   private val engineMaps = mutableMapOf<String, Engine>()
+
+  init {
+    /// 监听进程死亡，那么就关闭所有的 engine
+    Runtime.getRuntime().addShutdownHook(Thread {
+      synchronized(engineLock) {
+        engineMaps.values.forEach { it.close() }
+        engineMaps.clear()
+      }
+    })
+  }
+
   private fun getOrCreateByDir(dir: NioPath, createEngine: () -> Engine) =
     synchronized(engineLock) {
       val key = dir.toAbsolutePath().toString()

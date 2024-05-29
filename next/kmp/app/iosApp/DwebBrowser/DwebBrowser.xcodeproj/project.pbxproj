@@ -723,7 +723,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.240528.0;
+				MARKETING_VERSION = 2.240529.0;
 				ORDER_FILE = $SRCROOT/DwebBrowser/Config/LinkSort.order;
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = (
@@ -771,7 +771,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.240528.0;
+				MARKETING_VERSION = 2.240529.0;
 				ORDER_FILE = $SRCROOT/DwebBrowser/Config/LinkSort.order;
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = (
