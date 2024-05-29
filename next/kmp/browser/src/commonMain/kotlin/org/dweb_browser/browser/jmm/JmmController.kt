@@ -227,17 +227,6 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
     return true
   }
 
-  private suspend fun watchProcess(taskId: String, metadata: JmmMetadata): Boolean {
-    var success = false;
-    jmmNMM.downloadProgressFlow(taskId).collect { status ->
-      if (status.state == DownloadState.Completed) {
-        success = true
-      }
-      metadata.updateDownloadStatus(status, jmmStore)
-    }
-    return success
-  }
-
   private val downloadLock = Mutex()
 
   suspend fun startDownloadTaskByUrl(originUrl: String) = try {
