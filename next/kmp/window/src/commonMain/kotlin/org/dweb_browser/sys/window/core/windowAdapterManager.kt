@@ -38,21 +38,25 @@ data class WindowContentRenderScope internal constructor(
   val scale: Float,
   val widthDp: Dp,
   val heightDp: Dp,
-  val inResizeAnimation: Boolean,
+  val isResizing: Boolean,
 ) {
+  override fun toString(): String {
+    return "WindowContentRenderScope(width=$width, height=$height, scale=$scale, isResizing=$isResizing)"
+  }
+
   companion object {
     fun fromDp(
       widthDp: Dp,
       heightDp: Dp,
       scale: Float,
-      inResizeAnimation: Boolean,
+      isResizing: Boolean = false,
     ) = WindowContentRenderScope(
       widthDp.value,
       heightDp.value,
       scale,
       widthDp,
       heightDp,
-      inResizeAnimation
+      isResizing
     )
   }
 
@@ -60,8 +64,8 @@ data class WindowContentRenderScope internal constructor(
     width: Float,
     height: Float,
     scale: Float,
-    inResizeAnimation: Boolean,
-  ) : this(width, height, scale, width.dp, height.dp, inResizeAnimation)
+    isResizing: Boolean = false,
+  ) : this(width, height, scale, width.dp, height.dp, isResizing)
 }
 typealias WindowRenderProvider = @Composable WindowContentRenderScope.(modifier: Modifier) -> Unit
 

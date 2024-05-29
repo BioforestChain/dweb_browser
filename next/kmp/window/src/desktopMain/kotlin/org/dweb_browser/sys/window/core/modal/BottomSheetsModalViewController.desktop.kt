@@ -76,7 +76,7 @@ internal class BottomSheetsModalViewController(modal: BottomSheetsModalState) :
         )
       ) {
         val windowRenderScope = remember(winPadding, maxWidth, maxHeight) {
-          WindowContentRenderScope.fromDp(maxWidth, maxHeight, 1f, false)
+          WindowContentRenderScope.fromDp(maxWidth, maxHeight, 1f)
         }
         windowAdapterManager.Renderer(
           renderId, windowRenderScope, Modifier.clip(winPadding.contentRounded.roundedCornerShape)

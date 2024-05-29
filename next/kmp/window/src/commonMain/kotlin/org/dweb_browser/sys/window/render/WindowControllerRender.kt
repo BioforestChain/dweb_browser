@@ -271,20 +271,20 @@ fun WindowController.WindowRender(modifier: Modifier) {
           val paddingBottom = if (!keyboardOverlaysContent) keyboardInsetBottom else 0f
 
           val limits = LocalWindowLimits.current
-          val inResize = inResizeAnimation || inResizeFrame
+          val isResizing = inResizeAnimation || inResizeFrame
           val windowRenderScope = remember(
             limits,
             maxWidth,
             maxHeight,
             winBounds,
-            inResize,
+            isResizing,
             paddingBottom,
             topBarHeight,
             bottomBarHeight
           ) {
             val targetHeight: Dp
             val targetWidth: Dp
-            if (!inResize || topBarHeight.isNaN() || bottomBarHeight.isNaN()) {
+            if (!isResizing || topBarHeight.isNaN() || bottomBarHeight.isNaN()) {
               targetWidth = maxWidth
               targetHeight = maxHeight - paddingBottom.dp
             } else {
@@ -293,21 +293,23 @@ fun WindowController.WindowRender(modifier: Modifier) {
                 safeDp((winBounds.height - topBarHeight - paddingBottom - bottomBarHeight).dp)
             }
             WindowContentRenderScope(
-              targetWidth.value,
-              targetHeight.value,
-              win.calcContentScale(limits, targetWidth.value, targetHeight.value),
-              targetWidth,
-              targetHeight,
-              inResizeAnimation
+              width = targetWidth.value,
+              height = targetHeight.value,
+              scale = win.calcContentScale(limits, targetWidth.value, targetHeight.value),
+              widthDp = targetWidth,
+              heightDp = targetHeight,
+              isResizing = isResizing
             )
           }
+          println("QAQ windowRenderScope=$windowRenderScope")
           /// 显示内容
           windowAdapterManager.Renderer(
             win.state.constants.wid, windowRenderScope, Modifier.fillMaxSize()
           )
         }
         /// 显示底部控制条
-        WindowBottomBar(win,
+        WindowBottomBar(
+          win,
           Modifier.height(winPadding.bottom.dp).fillMaxWidth().onGloballyPositioned {
             bottomBarHeight = it.size.height / density
           })

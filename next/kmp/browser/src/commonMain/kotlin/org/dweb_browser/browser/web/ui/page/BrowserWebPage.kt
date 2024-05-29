@@ -8,7 +8,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
@@ -114,6 +113,7 @@ internal fun BrowserWebPage.BrowserWebPageRender(
     val density = LocalDensity.current.density
     /// 同步缩放量
     webView.setContentScaleUnsafe(scale, maxWidth.value, maxHeight.value, density)
+    println("QAQ width=$maxWidth height=$maxHeight")
     webView.Render(Modifier.fillMaxSize())
   }
   LoadingView(webPage.isLoading) { webPage.isLoading = false } // 先不显示加载框。
