@@ -144,6 +144,7 @@ class SuspendOnceWithKey(private val coroutineScope: CoroutineScope) {
       executedKeys.add(key)
       coroutineScope.launch(ioAsyncExceptionHandler) {
         action()
+        executedKeys.remove(key) // 增加移除操作
       }
     }
   }
