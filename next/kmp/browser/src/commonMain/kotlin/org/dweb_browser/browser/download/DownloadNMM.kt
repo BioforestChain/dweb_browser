@@ -1,14 +1,12 @@
 package org.dweb_browser.browser.download
 
+import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.conflate
 import kotlinx.serialization.Serializable
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
+import org.dweb_browser.core.http.router.ResponseException
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.byChannel
 import org.dweb_browser.core.module.BootstrapContext
@@ -17,18 +15,15 @@ import org.dweb_browser.core.std.file.ext.pickFile
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.DisplayMode
 import org.dweb_browser.helper.ImageResource
-import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.fromBase64
 import org.dweb_browser.helper.toJsonElement
-import org.dweb_browser.helper.valueNotIn
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.queryAs
 import org.dweb_browser.pure.http.queryAsOrNull
 import org.dweb_browser.sys.window.core.helper.setStateFromManifest
 import org.dweb_browser.sys.window.ext.getMainWindow
 import org.dweb_browser.sys.window.ext.onRenderer
-import kotlin.time.Duration.Companion.microseconds
 
 internal val debugDownload = Debugger("Download")
 
@@ -79,14 +74,23 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
           val params = request.queryAs<DownloadTaskParams>()
           val externalDownload = request.queryAsOrNull<Boolean>("external") ?: false
           debugDownload("/create", "mmid=$mmid, params=$params, external=$externalDownload")
-          val downloadTask = controller.createTaskFactory(params, mmid, externalDownload)
+          // 由于下面会修改downloadTask的filepath，但是在下载时，需要保持真实路径，所以这边做了copy操作
+          val downloadTask = controller.createTaskFactory(params, mmid, externalDownload).copy()
           debugDownload("/create", "task=$downloadTask")
           if (params.start) {
             controller.downloadFactory(downloadTask)
           }
           /// TODO 使用新版的 模块文件系统替代 realPath，比如 file:///$mmid/{$downloadTask.filepath}
-          downloadTask.filepath = pickFile(downloadTask.filepath).toString()
+          downloadTask.filepath = pickFile(downloadTask.filepath)
           downloadTask.toJsonElement()
+        },
+        // 获取当前的task
+        "/getTask" bind PureMethod.GET by defineJsonResponse {
+          val taskId = request.queryOrNull("taskId")
+            ?: throw ResponseException(HttpStatusCode.BadRequest, "taskId is null")
+          debugDownload("exists", "taskId = $taskId")
+          controller.downloadTaskMaps[taskId]?.toJsonElement()
+            ?: throw ResponseException(HttpStatusCode.NotFound, "not found task by $taskId")
         },
         // 开始/恢复 下载
         "/start" bind PureMethod.GET by defineBooleanResponse {
@@ -97,44 +101,6 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
           controller.startDownload(task)
         },
         // 监控下载进度
-        "/watch/progress" byChannel { ctx ->
-          val taskId = request.query("taskId")
-          val fps = request.queryAsOrNull<Double>("fps") ?: 10.0
-          val throttleMs = (1000.0 / fps).microseconds
-          val downloadTask = controller.downloadTaskMaps[taskId]
-            ?: return@byChannel close(Throwable("not Found download task!"))
-          debugDownload("/watch/progress", "taskId=$taskId")
-          callbackFlow {
-            ctx.onClose {
-              this@callbackFlow.close()
-            }
-            val job = downloadTask.onChange.collectIn(mmScope) {
-              this@callbackFlow.send(it)
-              val status = downloadTask.status.copy()
-              when (status.state) {
-                DownloadState.Canceled, DownloadState.Failed, DownloadState.Completed -> {
-                  ctx.sendJsonLine(status)// 强行发送一帧
-                  this@callbackFlow.close()
-                }
-
-                else -> {}
-              }
-            }
-            onClose {
-              job.cancel()
-            }
-            downloadTask.emitChanged()
-            awaitClose {
-              job.cancel()
-              ctx.close()
-            }
-          }.conflate().collectIn(mmScope) {
-            ctx.sendJsonLine(downloadTask.status).onFailure {
-              WARNING("ctx.isClosed")
-            }
-            delay(throttleMs)
-          }
-        },
         "/flow/progress" byChannel { ctx ->
           val taskId = request.query("taskId")
           val downloadTask = controller.downloadTaskMaps[taskId]
@@ -193,24 +159,6 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
         "/remove" bind PureMethod.DELETE by defineEmptyResponse {
           val taskId = request.query("taskId")
           controller.removeDownload(taskId)
-        },
-        // taskId是否存在, -1 是不存在，其他返回值是下载的进度
-        "/exists" bind PureMethod.GET by defineBooleanResponse {
-          val taskId = request.query("taskId")
-          debugDownload("exists", "$taskId=>${controller.downloadTaskMaps[taskId]}")
-          controller.downloadTaskMaps[taskId]?.status?.state?.valueNotIn(
-            DownloadState.Completed, DownloadState.Canceled
-          ) ?: false
-        },
-        // taskId是否存在, -1 是不存在，其他返回值是下载的进度
-        "/current" bind PureMethod.GET by defineNumberResponse {
-          val taskId = request.query("taskId")
-          debugDownload("exists", "$taskId=>${controller.downloadTaskMaps[taskId]}")
-          controller.downloadTaskMaps[taskId]?.status?.let { status ->
-            if (status.state.valueNotIn(DownloadState.Completed, DownloadState.Canceled)) {
-              status.current
-            } else -1L
-          } ?: -1L
         })
       onRenderer {
         controller.renderDownloadWindow(wid)

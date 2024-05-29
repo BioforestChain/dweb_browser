@@ -1,8 +1,6 @@
 package org.dweb_browser.browser.jmm
 
 import androidx.compose.runtime.mutableStateMapOf
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.plus
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Serializable
@@ -15,9 +13,9 @@ import org.dweb_browser.browser.download.DownloadState
 import org.dweb_browser.browser.download.DownloadTask
 import org.dweb_browser.browser.download.ext.cancelDownload
 import org.dweb_browser.browser.download.ext.createDownloadTask
-import org.dweb_browser.browser.download.ext.currentDownload
 import org.dweb_browser.browser.download.ext.downloadProgressFlow
-import org.dweb_browser.browser.download.ext.existsDownload
+import org.dweb_browser.browser.download.ext.existDownloadTask
+import org.dweb_browser.browser.download.ext.getDownloadTask
 import org.dweb_browser.browser.download.ext.pauseDownload
 import org.dweb_browser.browser.download.ext.removeDownload
 import org.dweb_browser.browser.download.ext.startDownload
@@ -33,7 +31,6 @@ import org.dweb_browser.helper.SafeHashMap
 import org.dweb_browser.helper.buildUrlString
 import org.dweb_browser.helper.datetimeNow
 import org.dweb_browser.helper.falseAlso
-import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.isGreaterThan
 import org.dweb_browser.helper.isWebUrl
 import org.dweb_browser.helper.resolvePath
@@ -44,7 +41,6 @@ import org.dweb_browser.sys.toast.ext.showToast
 import org.dweb_browser.sys.window.core.WindowController
 
 class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore: JmmStore) {
-  val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
 
   // 构建jmm历史记录
   val historyMetadataMaps: MutableMap<String, JmmMetadata> = mutableStateMapOf()
@@ -76,13 +72,17 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
     historyMetadataMaps.forEach { (key, historyMetadata) ->
       if (historyMetadata.state.state.valueIn(JmmStatus.Downloading, JmmStatus.Paused)) {
         // 获取下载的进度，如果进度 >= 0 表示有下载
-        val current = historyMetadata.taskId?.let { jmmNMM.currentDownload(it) } ?: -1L
-        historyMetadata.state = if (current >= 0L) {
-          historyMetadata.state.copy(state = JmmStatus.Paused, current = current)
-        } else {
-          historyMetadata.state.copy(state = JmmStatus.Init)
+        historyMetadata.taskId?.let { jmmNMM.getDownloadTask(it) }?.let { downloadTask ->
+          historyMetadata.initDownloadTask(downloadTask, jmmStore)
+          if (downloadTask.status.state == DownloadState.Completed) { // 如果是完成了，那么考虑直接做解压
+            jmmNMM.scopeLaunch(cancelable = true) {
+              decompress(downloadTask, historyMetadata)
+            }
+          }
+        } ?: run {
+          historyMetadata.state = historyMetadata.state.copy(state = JmmStatus.Init, current = 0L)
+          jmmStore.saveMetadata(key, historyMetadata)
         }
-        jmmStore.saveMetadata(key, historyMetadata)
       } else if (jmmNMM.bootstrapContext.dns.query(historyMetadata.metadata.id) == null) {
         historyMetadata.state = historyMetadata.state.copy(state = JmmStatus.Init) // 如果没有找到，说明被卸载了
         jmmStore.saveMetadata(key, historyMetadata)
@@ -254,7 +254,7 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
    */
   suspend fun startDownloadTask(metadata: JmmMetadata): Unit = downloadLock.withLock {
     var taskId = metadata.taskId
-    if (taskId == null || !jmmNMM.existsDownload(taskId)) {
+    if (taskId == null || !jmmNMM.existDownloadTask(taskId)) {
       val downloadTask = with(metadata.metadata) {
         jmmNMM.createDownloadTask(url = bundle_url, total = bundle_size)
       }
@@ -319,14 +319,14 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
       parameters.append("sourcePath", sourcePath)
       parameters.append("targetPath", targetPath)
     })
-    debugJMM("decompress") { "$jmm ok:${decompressRes.isOk}"}
+    debugJMM("decompress") { "$jmm ok:${decompressRes.isOk}" }
     return decompressRes.isOk.trueAlso {
       // 保存 session（记录安装时间） 和 metadata （app数据源）
       jmmNMM.writeFile(
         path = "/data/apps/$jmm/usr/sys/metadata.json",
         body = IPureBody.from(Json.encodeToString(jmmMetadata.metadata))
       )
-      debugJMM("decompress") { "installTime=${jmmMetadata.installTime} installUrl:${jmmMetadata.originUrl}"}
+      debugJMM("decompress") { "installTime=${jmmMetadata.installTime} installUrl:${jmmMetadata.originUrl}" }
       jmmNMM.writeFile(
         path = "/data/apps/$jmm/usr/sys/session.json",
         body = IPureBody.from(Json.encodeToString(buildJsonObject {

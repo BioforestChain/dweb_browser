@@ -10,9 +10,9 @@ import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.browser.download.DownloadState
 import org.dweb_browser.browser.download.DownloadStateEvent
 import org.dweb_browser.browser.download.ext.createDownloadTask
-import org.dweb_browser.browser.download.ext.currentDownload
 import org.dweb_browser.browser.download.ext.downloadProgressFlow
-import org.dweb_browser.browser.download.ext.existsDownload
+import org.dweb_browser.browser.download.ext.existDownloadTask
+import org.dweb_browser.browser.download.ext.getDownloadTask
 import org.dweb_browser.browser.download.ext.pauseDownload
 import org.dweb_browser.browser.download.ext.removeDownload
 import org.dweb_browser.browser.download.ext.startDownload
@@ -24,6 +24,7 @@ import org.dweb_browser.dwebview.WebDownloadArgs
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.trueAlso
+import org.dweb_browser.helper.valueIn
 
 class BrowserDownloadController(
   private val browserNMM: BrowserNMM.BrowserRuntime,
@@ -44,13 +45,15 @@ class BrowserDownloadController(
       downloadList.addAll(downloadStore.getDownloadAll())
       var save = false
       downloadList.forEach { item ->
-        if (item.state.state == DownloadState.Downloading) {
+        if (item.state.state.valueIn(DownloadState.Downloading, DownloadState.Paused)) {
           save = true
-          val current = item.taskId?.let { taskId -> browserNMM.currentDownload(taskId) } ?: 0L
-          if (current >= 0L) {
-            item.state = item.state.copy(current = current, state = DownloadState.Paused)
-          } else { // 如果是 -1L 表示在下载列表中没有找到该记录，直接初始化
-            item.state = item.state.copy(current = 0L, state = DownloadState.Init)
+          item.state = item.taskId?.let { browserNMM.getDownloadTask(it)?.status }?.let { status ->
+            if (status.state != DownloadState.Completed && status.current >= 0L) {
+              item.state.copy(current = status.current, total = status.total, state = status.state)
+            } else null // 如果下载状态已完成了，但是当前记录是下载中，目前考虑直接移除重下，TODO 另一中处理方案就是直接打开安装界面？？
+          } ?: run {
+            item.taskId?.let { taskId -> browserNMM.removeDownload(taskId) }
+            item.state.copy(current = 0L, state = DownloadState.Init)
           }
         }
       }
@@ -80,7 +83,7 @@ class BrowserDownloadController(
    */
   suspend fun startDownload(item: BrowserDownloadItem) = downloadLock.withLock {
     var taskId = item.taskId
-    if (taskId == null || browserNMM.existsDownload(taskId)) {
+    if (taskId == null || browserNMM.existDownloadTask(taskId)) {
       val downloadTask = browserNMM.createDownloadTask(
         item.downloadArgs.url, item.downloadArgs.contentLength, external = true
       )

@@ -253,7 +253,8 @@ class DownloadController(private val downloadNMM: DownloadNMM.DownloadRuntime) {
     }
 
     task.mime = mimeFactory(response.headers, task.url)
-    task.filepath = fileCreateByHeadersAndPath(response.headers, task.url, task.mime, task.external)
+    // TODO 这个本来是考虑如果地址获取的文件名有误，所以才增加的，但是由于改造，创建的时候返回来downloadTask，导致这边修改并没有被捕获，所以暂时移除，待优化
+    // task.filepath = fileCreateByHeadersAndPath(response.headers, task.url, task.mime, task.external)
 
     // 判断地址是否支持断点
     val supportRange =
