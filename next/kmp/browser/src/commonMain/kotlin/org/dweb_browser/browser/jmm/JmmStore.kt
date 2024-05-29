@@ -122,9 +122,7 @@ data class JmmMetadata(
     debugJMM("installComplete")
     state = state.copy(state = JmmStatus.INSTALLED)
     store.saveMetadata(this.metadata.id, this)
-    store.setApp(
-      metadata.id, JsMicroModuleDBItem(metadata, originUrl)
-    )
+    store.setApp(metadata.id, JsMicroModuleDBItem(metadata, originUrl))
   }
 
   suspend fun installFail(store: JmmStore) {

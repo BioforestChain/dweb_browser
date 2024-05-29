@@ -154,10 +154,7 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
    * 对比本地已经存在的数据，从而更新这个 JmmMetadata 的一些相关状态。
    * 并按需触发数据库保存
    **/
-  private suspend fun compareLocalMetadata(
-    newMetadata: JmmMetadata,
-    save: Boolean = true
-  ) {
+  private suspend fun compareLocalMetadata(newMetadata: JmmMetadata, save: Boolean = true) {
     val mmid = newMetadata.metadata.id
     // 拿到已经安装过的准备对比
     val oldMM = jmmNMM.bootstrapContext.dns.query(mmid)
@@ -196,13 +193,13 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
     // 版本相同
     if (newManifest.version == oldManifest.version) {
       // 这里表示二者是一样的，此时new状态需要跟old保持一致，而不是直接置为 Installed
-      newMetadata.state = JmmStatusEvent(
+      newMetadata.state = newMetadata.state.copy(
         current = oldMetadata.state.current,
         total = oldMetadata.state.total,
         state = oldMetadata.state.state
       )
     } else { // 比安装的应用版本还低的，直接不能安装，提示版本过低，不存储
-      newMetadata.state = JmmStatusEvent(state = JmmStatus.VersionLow)
+      newMetadata.state = newMetadata.state.copy(state = JmmStatus.VersionLow, current = 0L)
     }
   }
 
