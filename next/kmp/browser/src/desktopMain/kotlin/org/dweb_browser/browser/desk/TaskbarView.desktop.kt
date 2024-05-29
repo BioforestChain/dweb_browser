@@ -350,6 +350,12 @@ class TaskbarView private constructor(
 
   private val dialog = TaskbarDialog(taskbarController, taskbarDWebView.asDesktop())
 
+  init {
+    taskbarController.deskNMM.onBeforeShutdown{
+      dialog.dispose()
+    }
+  }
+
   @Composable
   override fun TaskbarViewRender(draggableHelper: DraggableHelper, modifier: Modifier) {
     // TODO 将拖动反应到窗口位置上

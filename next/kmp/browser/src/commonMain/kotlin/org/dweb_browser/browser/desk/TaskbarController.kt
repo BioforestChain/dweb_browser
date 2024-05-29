@@ -48,18 +48,20 @@ class TaskbarController private constructor(
       desktopController: DesktopController,
       taskbarServer: HttpDwebServer,
       runningApps: ChangeableMap<MMID, RunningApp>,
-    ) =
-      TaskbarController(
-        deskNMM,
-        deskSessionId,
-        desktopController,
-        taskbarServer,
-        runningApps
-      )
+    ) = TaskbarController(
+      deskNMM, deskSessionId, desktopController, taskbarServer, runningApps
+    )
   }
 
-  private val _taskbarView =
-    deskNMM.scopeAsync(cancelable = true) { ITaskbarView.create(this@TaskbarController) }
+  private val _taskbarView = deskNMM.scopeAsync(cancelable = true) {
+    ITaskbarView.create(this@TaskbarController).also { taskbarView ->
+      deskNMM.onBeforeShutdown {
+        deskNMM.scopeLaunch(cancelable = false) {
+          taskbarView.taskbarDWebView.destroy()
+        }
+      }
+    }
+  }
 
   private suspend fun taskbarView() = _taskbarView.await()
 

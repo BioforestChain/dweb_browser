@@ -100,6 +100,12 @@ open class DesktopController private constructor(
     // 隐藏滚动条
     webView.setVerticalScrollBarVisible(false)
     webView.setHorizontalScrollBarVisible(false)
+
+    deskNMM.onBeforeShutdown {
+      deskNMM.scopeLaunch(cancelable = false) {
+        webView.destroy()
+      }
+    }
     return webView
   }
 

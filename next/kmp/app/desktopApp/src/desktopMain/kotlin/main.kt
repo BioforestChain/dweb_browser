@@ -1,4 +1,5 @@
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.dweb_browser.helper.ioAsyncExceptionHandler
@@ -25,7 +26,7 @@ fun main(vararg args: String): Unit = runBlocking {
     return@runBlocking
   }
 
-  CoroutineScope(ioAsyncExceptionHandler).launch {
+  val dnsNMMDeferred = CoroutineScope(ioAsyncExceptionHandler).async {
     // 等待“应用”准备完毕
     PureViewController.awaitPrepared()
     // 启动内核
@@ -36,4 +37,6 @@ fun main(vararg args: String): Unit = runBlocking {
   }
   // 启动“应用”
   PureViewController.startApplication()
+
+  dnsNMMDeferred.await().runtimeOrNull?.shutdown()
 }
