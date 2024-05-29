@@ -12,7 +12,6 @@ import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.download.DownloadState
 import org.dweb_browser.browser.download.DownloadStateEvent
 import org.dweb_browser.browser.download.DownloadTask
-import org.dweb_browser.browser.download.TaskId
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.module.MicroModule
@@ -82,7 +81,7 @@ data class JmmMetadata(
   val originUrl: String,
   @SerialName("metadata")
   private var _metadata: JmmAppInstallManifest,
-  var taskId: TaskId? = null, // 用于保存下载任务，下载完成置空
+  var downloadTask: DownloadTask? = null, // 用于保存下载任务，下载完成置空
   @SerialName("state")
   private var _state: JmmStatusEvent = JmmStatusEvent(), // 用于显示下载状态
   var installTime: Long = datetimeNow(), // 表示安装应用的时间
@@ -91,7 +90,7 @@ data class JmmMetadata(
   var state by ObservableMutableState(_state) { _state = it }
   var metadata by ObservableMutableState(_metadata) { _metadata = it }
   suspend fun initDownloadTask(downloadTask: DownloadTask, store: JmmStore) {
-    this.taskId = downloadTask.id
+    this.downloadTask = downloadTask
     updateDownloadStatus(downloadTask.status, store)
   }
 

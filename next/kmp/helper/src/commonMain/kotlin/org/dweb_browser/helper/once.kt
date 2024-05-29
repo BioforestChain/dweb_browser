@@ -12,6 +12,9 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 
 sealed class SuspendOnceBase<R> {
@@ -129,5 +132,19 @@ class Once1<A1, R>(
   operator fun invoke(arg1: A1): R {
     before?.invoke(this, arg1)
     return doInvoke { runnable(arg1) }
+  }
+}
+
+class SuspendOnceWithKey(private val coroutineScope: CoroutineScope) {
+  private val executedKeys = mutableSetOf<String>()
+  private val mutex = Mutex()
+
+  suspend fun executeOnce(key: String, action: suspend () -> Unit) = mutex.withLock {
+    if (key !in executedKeys) {
+      executedKeys.add(key)
+      coroutineScope.launch(ioAsyncExceptionHandler) {
+        action()
+      }
+    }
   }
 }
