@@ -45,7 +45,6 @@ fun MultiWebViewController.Render(
     }
   }
 
-  val win = LocalWindowController.current
   Box(modifier) {
     list.forEach { viewItem ->
       key(viewItem.webviewId) {
