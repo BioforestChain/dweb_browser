@@ -89,8 +89,10 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
           val taskId = request.queryOrNull("taskId")
             ?: throw ResponseException(HttpStatusCode.BadRequest, "taskId is null")
           debugDownload("exists", "taskId = $taskId")
-          controller.downloadTaskMaps[taskId]?.toJsonElement()
-            ?: throw ResponseException(HttpStatusCode.NotFound, "not found task by $taskId")
+          controller.downloadTaskMaps[taskId]?.copy()?.let { downloadTask ->
+            downloadTask.filepath = pickFile(downloadTask.filepath)
+            downloadTask.toJsonElement()
+          } ?: throw ResponseException(HttpStatusCode.NotFound, "not found task by $taskId")
         },
         // 开始/恢复 下载
         "/start" bind PureMethod.GET by defineBooleanResponse {
