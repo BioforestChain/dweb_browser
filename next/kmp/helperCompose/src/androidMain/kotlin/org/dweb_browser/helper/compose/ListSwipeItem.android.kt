@@ -40,21 +40,21 @@ actual fun CommonSwipeDismiss(
     modifier = modifier,
     draggableSize = 72.dp,
     background = { progress, current, target ->
-      val newProgress = if (progress == 1f && current == target) {
-        0f
+      val newProgress = if (progress == 1.0f && current == target) {
+        if (current == AnchoredDragValue.Start) 1f else 0f
       } else if (current == AnchoredDragValue.Start) {
         1f - progress
       } else {
         progress
       }
+
       Box(
-        modifier = Modifier.size(72.dp).background(Color.Red).clickable { onRemove() },
+        modifier = Modifier.size(72.dp).offset {
+          IntOffset(x = (72.dp.toPx() * newProgress).toInt(), y = 0)
+        }.background(Color.Red).clickable { onRemove() },
         contentAlignment = Alignment.Center
       ) {
         Text(
-          modifier = Modifier.offset {
-            IntOffset(x = (72.dp.toPx() * newProgress).toInt(), y = 0)
-          },
           text = SwipeI18nResource.delete(),
           color = MaterialTheme.colorScheme.background,
           textAlign = TextAlign.Center
@@ -63,29 +63,6 @@ actual fun CommonSwipeDismiss(
     },
     content = content
   )
-
-  /*val dismissState = SwipeToDismissBoxState(
-    initialValue = SwipeToDismissBoxValue.Settled,
-    density = LocalDensity.current,
-    confirmValueChange = { true },
-    positionalThreshold = with(LocalDensity.current) { { 56.dp.toPx() } }
-  )
-  LaunchedEffect(dismissState) {
-    snapshotFlow { dismissState.currentValue }.collect {
-      if (it != SwipeToDismissBoxValue.Settled) {
-        onRemove()
-      }
-    }
-  }
-
-  SwipeToDismissBox(
-    state = dismissState,
-    backgroundContent = background,
-    modifier = modifier,
-    enableDismissFromStartToEnd = true,
-    enableDismissFromEndToStart = true,
-    content = dismissContent
-  )*/
 }
 
 enum class AnchoredDragValue {
