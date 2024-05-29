@@ -56,3 +56,5 @@ actual suspend fun loadApplicationNewVersion(): NewVersionItem? {
 actual fun desktopGridLayout(): GridCells = GridCells.Fixed(4)
 
 actual fun desktopTap(): Dp = 0.dp
+
+actual fun desktopBgCircleCount(): Int = 8
