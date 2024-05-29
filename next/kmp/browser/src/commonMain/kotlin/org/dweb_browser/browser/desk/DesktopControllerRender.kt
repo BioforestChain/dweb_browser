@@ -2,6 +2,7 @@ package org.dweb_browser.browser.desk
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Error
@@ -16,7 +17,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import org.dweb_browser.browser.desk.upgrade.NewVersionView
 import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.dwebview.Render
+import org.dweb_browser.helper.ENV_SWITCH_KEY
 import org.dweb_browser.helper.compose.LocalCompositionChain
+import org.dweb_browser.helper.envSwitch
 import org.dweb_browser.helper.platform.SetSystemBarsColor
 import org.dweb_browser.sys.window.core.constant.LocalWindowMM
 import org.dweb_browser.sys.window.render.SceneRender
@@ -32,11 +36,13 @@ fun DesktopController.Render(
     LocalWindowMM provides microModule,
   ) {
     Box(modifier = Modifier.fillMaxWidth()) {
-      //DesktopView {
-      //    Render(Modifier.fillMaxSize(fraction = 1F))
-      //}
-
-      NewDesktopView(taskbarController, microModule)
+      if (envSwitch.isEnabled(ENV_SWITCH_KEY.DESKTOP_STYLE_COMPOSE)) {
+        DesktopView {
+          Render(Modifier.fillMaxSize())
+        }
+      } else {
+        NewDesktopView(taskbarController, microModule)
+      }
 
       /// 窗口视图
       DesktopWindowsManager {
