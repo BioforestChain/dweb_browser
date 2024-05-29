@@ -235,9 +235,7 @@ class BrowserViewModel(
     BrowserWebPage(dWebView, browserController).also {
       dWebView.onCreateWindow { itemDwebView ->
         val url =itemDwebView.getUrl()
-        if (url.startsWith("dweb://")) {
-          browserNMM.nativeFetch(url)
-        } else {
+        if (!url.startsWith("dweb://")) {
           val newWebPage = createWebPage(itemDwebView)
           addNewPageUI(newWebPage)
         }
