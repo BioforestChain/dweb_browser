@@ -234,10 +234,12 @@ class BrowserViewModel(
   private suspend fun createWebPage(dWebView: IDWebView): BrowserWebPage =
     BrowserWebPage(dWebView, browserController).also {
       dWebView.onCreateWindow { itemDwebView ->
-        val url =itemDwebView.getUrl()
+        val url = itemDwebView.getUrl()
         if (!url.startsWith("dweb://")) {
           val newWebPage = createWebPage(itemDwebView)
           addNewPageUI(newWebPage)
+        } else {
+          itemDwebView.destroy()
         }
       }
       addDownloadListener(dWebView.onDownloadListener)
