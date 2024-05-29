@@ -1,6 +1,7 @@
 package org.dweb_browser.browser.desk
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -79,7 +80,7 @@ class TaskbarView private constructor(
       }
     }
 
-    private fun playMagnetEffect() {
+    internal fun playMagnetEffect() {
       taskbarMagnetEffect.start()
     }
 
@@ -359,7 +360,12 @@ class TaskbarView private constructor(
       val layoutWidth by stateOf { layoutWidth.toInt() }
       val layoutHeight by stateOf { layoutHeight.toInt() }
       val taskbarDragging by stateOf { taskbarDragging }
-      dialog.setSize(layoutWidth, layoutHeight)
+      LaunchedEffect(layoutWidth, layoutHeight) {
+        dialog.setSize(layoutWidth, layoutHeight)
+        if (!dialog.dragging) {
+          dialog.playMagnetEffect()
+        }
+      }
       dialog.dragging = taskbarDragging
     }
   }

@@ -103,13 +103,18 @@ abstract class ITaskbarView(private val taskbarController: TaskbarController) {
         Offset(boxX, boxY)
       }.value
 
-      LaunchedEffect(safeBounds) {
-        /// safeBounds 发生改变，做防止溢出处理
-        setBoxX(boxX)
+      /**
+       * 监听 safeBounds,boxWidth, boxHeight 发生改变，重新进行贴遍处理
+       * 这里不需要监听 boxX，boxY
+       */
+      LaunchedEffect(safeBounds, boxWidth, boxHeight) {
+        // Y做防止溢出处理
         setBoxY(boxY)
-        /// safeBounds 发生改变，做再贴边处理
-        if (!inDrag) {
-          setBoxX(if (boxX > safeBounds.hCenter) safeBounds.right else safeBounds.left)
+        when {
+          // 如果在拖动中，X做防止溢出处理
+          inDrag -> setBoxX(boxX)
+          // 如果不是拖动中，X只需要做贴边处理
+          else -> setBoxX(if (boxX > safeBounds.hCenter) safeBounds.right else safeBounds.left)
         }
       }
 
@@ -138,7 +143,7 @@ abstract class ITaskbarView(private val taskbarController: TaskbarController) {
   class DraggableHelper(
     val onDragStart: (startPos: Offset) -> Unit,
     val onDrag: (dragAmount: Offset) -> Unit,
-    val onDragEnd: () -> Unit
+    val onDragEnd: () -> Unit,
   )
 
   @Composable
