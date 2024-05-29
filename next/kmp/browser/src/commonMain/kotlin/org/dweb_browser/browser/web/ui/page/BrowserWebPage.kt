@@ -113,7 +113,6 @@ internal fun BrowserWebPage.BrowserWebPageRender(
     val density = LocalDensity.current.density
     /// 同步缩放量
     webView.setContentScaleUnsafe(scale, maxWidth.value, maxHeight.value, density)
-    println("QAQ width=$maxWidth height=$maxHeight")
     webView.Render(Modifier.fillMaxSize())
   }
   LoadingView(webPage.isLoading) { webPage.isLoading = false } // 先不显示加载框。

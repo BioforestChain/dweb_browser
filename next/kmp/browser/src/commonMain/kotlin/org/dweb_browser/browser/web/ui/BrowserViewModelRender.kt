@@ -53,7 +53,6 @@ fun BrowserViewModalRender(
     viewModel.ViewModelEffect()
     Box(modifier = remember(windowRenderScope) {
       with(windowRenderScope) {
-        println("QAQ requiredSize $widthDp $heightDp $scale")
         modifier.requiredSize(widthDp / scale, heightDp / scale).scale(scale)
       }
     }.background(MaterialTheme.colorScheme.background)) {

@@ -301,7 +301,6 @@ fun WindowController.WindowRender(modifier: Modifier) {
               isResizing = isResizing
             )
           }
-          println("QAQ windowRenderScope=$windowRenderScope")
           /// 显示内容
           windowAdapterManager.Renderer(
             win.state.constants.wid, windowRenderScope, Modifier.fillMaxSize()
