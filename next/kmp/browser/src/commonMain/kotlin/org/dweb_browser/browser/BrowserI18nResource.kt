@@ -147,31 +147,36 @@ object BrowserI18nResource {
   val toast_message_download_downloading =
     SimpleI18nResource(Language.ZH to "正在下载中...", Language.EN to "Downloading...")
 
-
-  val jmm_short_name =
-    SimpleI18nResource(Language.ZH to "模块管理", Language.EN to "Module Manager")
-  val jmm_history_tab_installed =
-    SimpleI18nResource(Language.ZH to "已安装", Language.EN to "Installed")
-  val jmm_history_tab_uninstalled =
-    SimpleI18nResource(Language.ZH to "未安装", Language.EN to "No Install")
-  val jmm_install_version = SimpleI18nResource(Language.ZH to "版本", Language.EN to "version")
-  val jmm_install_introduction =
-    SimpleI18nResource(Language.ZH to "应用介绍", Language.EN to "Introduction")
-  val jmm_install_update_log =
-    SimpleI18nResource(Language.ZH to "更新日志", Language.EN to "Update Log")
-  val jmm_install_info = SimpleI18nResource(Language.ZH to "信息", Language.EN to "Info")
-  val jmm_install_info_dev =
-    SimpleI18nResource(Language.ZH to "开发者", Language.EN to "Developer")
-  val jmm_install_info_size = SimpleI18nResource(Language.ZH to "大小", Language.EN to "Size")
-  val jmm_install_info_type = SimpleI18nResource(Language.ZH to "类别", Language.EN to "Type")
-  val jmm_install_info_language =
-    SimpleI18nResource(Language.ZH to "语言", Language.EN to "Language")
-  val jmm_install_info_age = SimpleI18nResource(Language.ZH to "年龄", Language.EN to "Age")
-  val jmm_install_info_copyright =
-    SimpleI18nResource(Language.ZH to "版权", Language.EN to "CopyRight")
-  val jmm_history_details = SimpleI18nResource(Language.ZH to "详情", Language.EN to "Details")
-  val jmm_history_uninstall =
-    SimpleI18nResource(Language.ZH to "卸载", Language.EN to "Uninstall")
+  object JMM {
+    val short_name = SimpleI18nResource(Language.ZH to "模块管理", Language.EN to "Module Manager")
+    val history_tab_installed =
+      SimpleI18nResource(Language.ZH to "已安装", Language.EN to "Installed")
+    val history_tab_uninstalled =
+      SimpleI18nResource(Language.ZH to "未安装", Language.EN to "No Install")
+    val install_version = SimpleI18nResource(Language.ZH to "版本", Language.EN to "version")
+    val install_introduction =
+      SimpleI18nResource(Language.ZH to "应用介绍", Language.EN to "Introduction")
+    val install_update_log =
+      SimpleI18nResource(Language.ZH to "更新日志", Language.EN to "Update Log")
+    val install_info = SimpleI18nResource(Language.ZH to "信息", Language.EN to "Info")
+    val install_info_dev =
+      SimpleI18nResource(Language.ZH to "开发者", Language.EN to "Developer")
+    val install_info_size = SimpleI18nResource(Language.ZH to "大小", Language.EN to "Size")
+    val install_info_type = SimpleI18nResource(Language.ZH to "类别", Language.EN to "Type")
+    val install_info_language =
+      SimpleI18nResource(Language.ZH to "语言", Language.EN to "Language")
+    val install_info_age = SimpleI18nResource(Language.ZH to "年龄", Language.EN to "Age")
+    val install_info_copyright =
+      SimpleI18nResource(Language.ZH to "版权", Language.EN to "CopyRight")
+    val history_details = SimpleI18nResource(Language.ZH to "详情", Language.EN to "Details")
+    val history_uninstall =
+      SimpleI18nResource(Language.ZH to "卸载", Language.EN to "Uninstall")
+    val url_invalid =
+      SimpleI18nResource(
+        Language.ZH to "网址已失效，请前往官网进行安装！",
+        Language.EN to "The website is no longer valid, please go to the official website to install!"
+      )
+  }
 
   val download_shore_name =
     SimpleI18nResource(Language.ZH to "下载管理", Language.EN to "Download Manager")

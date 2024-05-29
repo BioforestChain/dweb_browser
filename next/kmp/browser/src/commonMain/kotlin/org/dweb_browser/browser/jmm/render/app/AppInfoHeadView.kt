@@ -101,7 +101,7 @@ internal fun AppInfoHeadView(jmmAppInstallManifest: JmmAppInstallManifest) {
       Spacer(modifier = Modifier.width(16.dp))
 
       Text(
-        text = BrowserI18nResource.jmm_install_version() + " ${jmmAppInstallManifest.version}",
+        text = BrowserI18nResource.JMM.install_version() + " ${jmmAppInstallManifest.version}",
         fontSize = 12.sp,
         style = TextStyle.Default.copy(
           lineHeightStyle = LineHeightStyle(

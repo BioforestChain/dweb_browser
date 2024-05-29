@@ -271,12 +271,12 @@ fun JmmViewItem(
       Row(modifier = Modifier.fillMaxWidth().padding(start = 72.dp)) {
         if (jmmMetadata.state.state == JmmStatus.INSTALLED) {
           TextButton(onClick = uninstall) {
-            Text(text = BrowserI18nResource.jmm_history_uninstall())
+            Text(text = BrowserI18nResource.JMM.history_uninstall())
           }
         }
 
         TextButton(onClick = detail) {
-          Text(text = BrowserI18nResource.jmm_history_details())
+          Text(text = BrowserI18nResource.JMM.history_details())
         }
       }
     }

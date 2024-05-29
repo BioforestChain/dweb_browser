@@ -187,7 +187,7 @@ enum class JmmStatus {
 }
 
 enum class JmmTabs(val index: Int, val title: SimpleI18nResource, val vector: ImageVector) {
-  NoInstall(0, BrowserI18nResource.jmm_history_tab_uninstalled, Icons.Default.DeleteForever),
-  Installed(1, BrowserI18nResource.jmm_history_tab_installed, Icons.Default.InstallMobile),
+  NoInstall(0, BrowserI18nResource.JMM.history_tab_uninstalled, Icons.Default.DeleteForever),
+  Installed(1, BrowserI18nResource.JMM.history_tab_installed, Icons.Default.InstallMobile),
   ;
 }

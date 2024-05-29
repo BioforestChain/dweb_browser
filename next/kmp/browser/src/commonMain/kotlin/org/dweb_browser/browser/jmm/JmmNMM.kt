@@ -36,7 +36,7 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Service") {
   }
 
   init {
-    short_name = BrowserI18nResource.jmm_short_name.text
+    short_name = BrowserI18nResource.JMM.short_name.text
     categories = listOf(
       MICRO_MODULE_CATEGORY.Application,
       MICRO_MODULE_CATEGORY.Service,

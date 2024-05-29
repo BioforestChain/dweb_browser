@@ -32,28 +32,28 @@ import org.dweb_browser.helper.toSpaceSize
 internal fun OtherInfoView(jmmAppInstallManifest: JmmAppInstallManifest) {
   Column(modifier = Modifier.padding(horizontal = HorizontalPadding, vertical = VerticalPadding)) {
     Text(
-      text = BrowserI18nResource.jmm_install_info(),
+      text = BrowserI18nResource.JMM.install_info(),
       fontSize = 18.sp,
       fontWeight = FontWeight.Bold,
       color = MaterialTheme.colorScheme.onSurface
     )
     Spacer(modifier = Modifier.height(HorizontalPadding))
     OtherItemView(
-      type = BrowserI18nResource.jmm_install_info_dev(),
+      type = BrowserI18nResource.JMM.install_info_dev(),
       content = jmmAppInstallManifest.author.toContent()
     )
     OtherItemView(
-      type = BrowserI18nResource.jmm_install_info_size(),
+      type = BrowserI18nResource.JMM.install_info_size(),
       content = jmmAppInstallManifest.bundle_size.toSpaceSize()
     )
     OtherItemView(
-      type = BrowserI18nResource.jmm_install_info_type(),
+      type = BrowserI18nResource.JMM.install_info_type(),
       content = jmmAppInstallManifest.categories.print()
     )
-    OtherItemView(type = BrowserI18nResource.jmm_install_info_language(), content = "中文")
-    OtherItemView(type = BrowserI18nResource.jmm_install_info_age(), content = "18+")
+    OtherItemView(type = BrowserI18nResource.JMM.install_info_language(), content = "中文")
+    OtherItemView(type = BrowserI18nResource.JMM.install_info_age(), content = "18+")
     OtherItemView(
-      type = BrowserI18nResource.jmm_install_info_copyright(),
+      type = BrowserI18nResource.JMM.install_info_copyright(),
       content = "@${jmmAppInstallManifest.author.firstOrNull() ?: jmmAppInstallManifest.name}"
     )
   }

@@ -28,13 +28,13 @@ internal fun NewVersionInfoView(jmmAppInstallManifest: JmmAppInstallManifest) {
   val expanded = remember { mutableStateOf(false) }
   Column(modifier = Modifier.padding(horizontal = HorizontalPadding, vertical = VerticalPadding)) {
     Text(
-      text = BrowserI18nResource.jmm_install_update_log(),
+      text = BrowserI18nResource.JMM.install_update_log(),
       fontSize = 18.sp,
       fontWeight = FontWeight.Bold,
       color = MaterialTheme.colorScheme.onSurface
     )
     Text(
-      text = BrowserI18nResource.jmm_install_version() + " ${jmmAppInstallManifest.version}",
+      text = BrowserI18nResource.JMM.install_version() + " ${jmmAppInstallManifest.version}",
       fontSize = 12.sp,
       fontWeight = FontWeight.Bold,
       color = MaterialTheme.colorScheme.outline,

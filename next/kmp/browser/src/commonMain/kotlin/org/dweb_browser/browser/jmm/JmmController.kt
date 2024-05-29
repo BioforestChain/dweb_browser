@@ -1,6 +1,7 @@
 package org.dweb_browser.browser.jmm
 
 import androidx.compose.runtime.mutableStateMapOf
+import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Serializable
@@ -234,7 +235,12 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
       else -> debugJMM("startDownloadTaskByUrl", "fail to start state=$state url=$originUrl")
     }
   } catch (e: ResponseException) {
-    jmmNMM.showToast(message = "${e.code.value} >> ${e.code.description}")
+    val message = if (e.code == HttpStatusCode.NotFound) {
+      BrowserI18nResource.JMM.url_invalid.text
+    } else {
+      "${e.code.value} >> ${e.code.description}"
+    }
+    jmmNMM.showToast(message = message)
   }
 
   private suspend fun decompressProcess(downloadTask: DownloadTask, metadata: JmmMetadata) {
