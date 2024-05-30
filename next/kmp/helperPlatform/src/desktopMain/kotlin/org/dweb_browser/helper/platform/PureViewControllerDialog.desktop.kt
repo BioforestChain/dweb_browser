@@ -73,6 +73,7 @@ fun PureViewController.ModalDialog(
   }
   val uiScope = rememberCoroutineScope()
   DisposableEffect(dialog) {
+    dialog.isTransparent = true // win10 系统下拉时，背景不透明。fixed #160
     dialog.setContent {
       state.chain.Provider {
         content(dialog)
