@@ -229,7 +229,13 @@ class BrowserViewModel(
       enabledOffScreenRender = false
     ),
     viewBox = browserController.viewBox
-  )
+  ).also { dwebview ->
+    browserNMM.onBeforeShutdown {
+      browserNMM.scopeLaunch(cancelable = false) {
+        dwebview.destroy()
+      }
+    }
+  }
 
   private suspend fun createWebPage(dWebView: IDWebView): BrowserWebPage =
     BrowserWebPage(dWebView, browserController).also {

@@ -4,6 +4,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.platform.PureViewController
+import kotlin.system.exitProcess
 
 fun main(vararg args: String): Unit = runBlocking {
   System.setProperty("apple.awt.application.name", "Dweb Browser");
@@ -39,4 +40,5 @@ fun main(vararg args: String): Unit = runBlocking {
   PureViewController.startApplication()
 
   dnsNMMDeferred.await().runtimeOrNull?.shutdown()
+  exitProcess(0)
 }
