@@ -80,7 +80,11 @@ sealed class BrowserPage(browserController: BrowserController) {
   }
 
   fun captureViewInBackground() = CoroutineScope(ioAsyncExceptionHandler).launch {
-    thumbnail = captureController.captureAsync().await()
+    val preThumbnail = thumbnail
+    onRequestCapture()
+    if (preThumbnail == thumbnail) {
+      thumbnail = captureController.captureAsync().await()
+    }
   }
 
   @Composable
