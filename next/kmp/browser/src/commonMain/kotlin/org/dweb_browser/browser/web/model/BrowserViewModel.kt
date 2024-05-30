@@ -84,8 +84,7 @@ class BrowserViewModel(
   var showMore by mutableStateOf(false)
 
   enum class PreviewPanelVisibleState(val isVisible: Boolean) {
-    DisplayGrid(true), Close(false),
-    ;
+    DisplayGrid(true), Close(false), FastClose(false);
   }
 
   var showQRCodePanel by mutableStateOf(false)
@@ -100,15 +99,14 @@ class BrowserViewModel(
   /**
    * 是否显示 Preview
    */
-  val showPreview get() = previewPanelVisibleState.targetState != PreviewPanelVisibleState.Close
+  val showPreview get() = previewPanelVisibleState.targetState == PreviewPanelVisibleState.DisplayGrid
 
   /**
    * Preview 是否不显示，同时 也不在 收起显示的动画中
    */
-  val isPreviewInvisible get() = !showPreview && previewPanelVisibleState.isIdle
-  fun toggleShowPreviewUI(show: Boolean) {
-    previewPanelVisibleState.targetState =
-      if (show) PreviewPanelVisibleState.DisplayGrid else PreviewPanelVisibleState.Close
+  val isPreviewInvisible get() = previewPanelVisibleState.targetState == PreviewPanelVisibleState.FastClose || (!showPreview && previewPanelVisibleState.isIdle)
+  fun toggleShowPreviewUI(state: PreviewPanelVisibleState) {
+    previewPanelVisibleState.targetState = state
   }
 
   var showSearchPage by mutableStateOf<BrowserPage?>(null)
@@ -386,10 +384,9 @@ class BrowserViewModel(
       return@launch
     }
     // 尝试
-    val webUrl = url.toWebUrl()
-      ?: checkAndEnableSearchEngine(url) // 检查是否有默认的搜索引擎
-      ?: url.toWebUrlOrWithoutProtocol() // 上面先判断标准的网址和搜索引擎后，仍然为空时，执行一次域名转化判断
-      ?: filterShowEngines.firstOrNull()?.searchLinks?.first()?.format(url)?.toWebUrl() // 转换成搜索链接
+    val webUrl = url.toWebUrl() ?: checkAndEnableSearchEngine(url) // 检查是否有默认的搜索引擎
+    ?: url.toWebUrlOrWithoutProtocol() // 上面先判断标准的网址和搜索引擎后，仍然为空时，执行一次域名转化判断
+    ?: filterShowEngines.firstOrNull()?.searchLinks?.first()?.format(url)?.toWebUrl() // 转换成搜索链接
     debugBrowser("doIOSearchUrl", "url=$url, webUrl=$webUrl, focusedPage=$focusedPage")
     // 当没有搜到需要的数据，给出提示
     if (webUrl == null) {
@@ -449,9 +446,7 @@ class BrowserViewModel(
       pages.getOrNull(index)?.also { pages.add(index, newPage) }
     } ?: focusedPage.also { pages.add(newPage) }
 
-    if ((options.replaceOldPage && oldPage != null) ||
-      (options.replaceOldHomePage && oldPage != focusedPage && oldPage is BrowserHomePage)
-    ) {
+    if ((options.replaceOldPage && oldPage != null) || (options.replaceOldHomePage && oldPage != focusedPage && oldPage is BrowserHomePage)) {
       closePageUI(oldPage)
     }
     if (options.focusPage) {
