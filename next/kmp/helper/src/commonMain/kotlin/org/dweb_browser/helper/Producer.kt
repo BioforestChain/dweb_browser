@@ -197,12 +197,13 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
   private val warn = Once { WARNING("$this buffers overflow maybe leak: $buffers") }
   private fun doSend(value: T, order: Int?) {
     val event = Event(value, order)
+    val consumers = this.consumers.toList()
     buffers.add(event)
     if (buffers.size > 10) {
       warn()
     }
     scope.launch(start = CoroutineStart.UNDISPATCHED) {
-      doEmit(event)
+      doEmit(event, consumers)
     }
   }
 
@@ -228,10 +229,10 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
   }
 
 
-  private suspend fun doEmit(event: Event) {
+  private suspend fun doEmit(event: Event, consumers: List<Consumer> = this.consumers.toList()) {
     event.orderInvoke("doEmit") {
       withScope(scope) {
-        for (consumer in consumers.toList()) {
+        for (consumer in consumers) {
           if (!consumer.started || consumer.startingBuffers?.contains(event) == true) {
             continue
           }
