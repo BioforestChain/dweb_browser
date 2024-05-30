@@ -245,7 +245,7 @@ class Producer<T>(val name: String, parentContext: CoroutineContext) {
   private suspend fun doEmit(event: Event, consumers: List<Consumer> = this.consumers.toList()) {
     event.orderInvoke("doEmit") {
       withContext(coroutineContext) {
-        for (consumer in consumers.toList()) {
+        for (consumer in consumers) {
           // 如果还没有start，则直接跳过
           if (!consumer.started) {
             continue

@@ -182,10 +182,11 @@ abstract class IpcEndpoint {
     debugEndpoint("start", lifecycle)
     doStart()
     val localeSubProtocols = getLocaleSubProtocols()
+    val localSessionId = randomUUID()
     // 当前状态必须是从init开始
     when (val state = lifecycle.state) {
       is EndpointLifecycleInit -> EndpointLifecycle(
-        EndpointLifecycleOpening(localeSubProtocols, listOf(randomUUID())),
+        EndpointLifecycleOpening(localeSubProtocols, listOf(localSessionId)),
       ).also {
         sendLifecycleToRemote(it)
         debugEndpoint.verbose("emit-locale-lifecycle", it)
@@ -206,14 +207,15 @@ abstract class IpcEndpoint {
               EndpointLifecycleOpened(
                 localeState.subProtocols,
                 localeState.sessionIds.joinToString("~")
-              )
+              ).also {
+                // 根据 sessionId 来定位 pid 的起点值
+                accPid.update { localeState.sessionIds.indexOf(localSessionId) }
+              }
             )
               .also {
                 sendLifecycleToRemote(it)
                 debugEndpoint.verbose("emit-locale-lifecycle", it)
                 lifecycleLocaleFlow.emit(it)
-                /// 后面被链接的ipc，pid从奇数开始
-                accPid.update { 1 }
               }
 
             else -> {}

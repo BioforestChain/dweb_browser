@@ -322,10 +322,7 @@ class Ipc internal constructor(
     messagePipeMap("request") { ipcMessage ->
       when (ipcMessage) {
         is IpcRequest -> when (ipcMessage) {
-          is IpcClientRequest -> {
-            ipcMessage.toServer(this)
-          }
-
+          is IpcClientRequest -> ipcMessage.toServer(this)
           is IpcServerRequest -> ipcMessage
         }
 

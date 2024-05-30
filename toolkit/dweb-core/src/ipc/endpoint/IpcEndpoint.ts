@@ -176,8 +176,8 @@ export abstract class IpcEndpoint {
             this.sendLifecycleToRemote(opend);
             this.console.verbose("emit-locale-lifecycle", opend);
             this.lifecycleLocaleFlow.emit(opend);
-            /// 后面被链接的ipc，pid从奇数开始
-            this.accPid++;
+            // 根据 sessionId 来定位 pid 的起点值
+            this.accPid = localState.sessionIds.indexOf(localSessionId);
           }
           break;
         }

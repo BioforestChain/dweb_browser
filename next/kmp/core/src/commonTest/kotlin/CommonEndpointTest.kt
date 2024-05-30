@@ -99,7 +99,7 @@ class CommonEndpointTest {
   fun testEvent() = runCommonTest {
 
     val endpointIpcMessage: EndpointMessage = EndpointIpcMessage(
-      11, IpcEvent.fromUtf8("hi", "QAQ")
+      11, IpcEvent.fromUtf8("hi", "QWQ")
     )
     assertEquals(
       """{"type":"ipc","pid":11,"ipcMessage":{"type":"event","name":"hi","data":"QAQ","encoding":2,"order":null}}""",
