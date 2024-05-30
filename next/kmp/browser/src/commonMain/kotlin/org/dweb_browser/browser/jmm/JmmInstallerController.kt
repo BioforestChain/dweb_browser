@@ -14,6 +14,7 @@ import org.dweb_browser.sys.window.core.modal.WindowBottomSheetsController
 import org.dweb_browser.sys.window.ext.createBottomSheets
 import org.dweb_browser.sys.window.ext.getMainWindowId
 import org.dweb_browser.sys.window.ext.getOrOpenMainWindow
+import org.dweb_browser.sys.window.ext.getWindow
 
 internal val LocalShowWebViewVersion = compositionChainOf("ShowWebViewVersion") {
   mutableStateOf(false)
@@ -51,6 +52,7 @@ class JmmInstallerController(
       Render(modifier, this)
     }.also {
       viewDeferred.complete(it)
+      jmmNMM.getWindow(it.wid).hide()
       it.onDestroy {
         viewDeferred = CompletableDeferred()
       }

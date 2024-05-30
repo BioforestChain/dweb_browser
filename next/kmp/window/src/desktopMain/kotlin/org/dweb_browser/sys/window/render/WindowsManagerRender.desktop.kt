@@ -88,6 +88,7 @@ private class DesktopWindowNativeView(
 ) {
   val pvc = PureViewController(params).also { pvc ->
     pvc.onCreate { params ->
+      // TODO 将Effect中的onChange绑定在这里做初始化
       @Suppress("UNCHECKED_CAST") pvc.addContent {
         val compositionChain by params["compositionChain"] as State<CompositionChain>
         compositionChain.Provider(LocalCompositionChain.current)

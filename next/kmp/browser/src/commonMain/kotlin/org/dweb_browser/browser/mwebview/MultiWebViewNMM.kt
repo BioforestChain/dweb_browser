@@ -118,7 +118,7 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.browser.dweb", "Multi Webvie
       }
     }
 
-    suspend fun openOrActivity(
+    private suspend fun openOrActivity(
       remoteMm: MicroModule.Runtime,
       wid: UUID,
       url: String,
