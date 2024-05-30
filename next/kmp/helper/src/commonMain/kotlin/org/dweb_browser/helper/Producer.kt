@@ -196,12 +196,23 @@ class Producer<T>(val name: String, parentContext: CoroutineContext) {
     doSend(value, order)
   }
 
-  private val warn = Once { WARNING("$this buffers overflow maybe leak: $buffers") }
+  private val warn = Once {
+    WARNING(
+      "$this buffers overflow maybe leak: (${buffers.size})/${
+        when {
+          buffers.size > 8 -> "${buffers.slice(0..<3)}...${buffers.slice((buffers.size - 3)..<buffers.size)}"
+          else -> buffers.toString()
+        }
+      }"
+    )
+  }
+
+  var warningThreshold = 10
   private fun doSend(value: T, order: Int?) {
     val event = Event(value, order)
     val consumers = this.consumers.toList()
     buffers.add(event)
-    if (buffers.size > 10) {
+    if (buffers.size > warningThreshold) {
       warn()
     }
     CoroutineScope(coroutineContext).launch(start = CoroutineStart.UNDISPATCHED) {
@@ -234,8 +245,13 @@ class Producer<T>(val name: String, parentContext: CoroutineContext) {
   private suspend fun doEmit(event: Event, consumers: List<Consumer> = this.consumers.toList()) {
     event.orderInvoke("doEmit") {
       withContext(coroutineContext) {
-        for (consumer in consumers) {
-          if (!consumer.started || consumer.startingBuffers?.contains(event) == true) {
+        for (consumer in consumers.toList()) {
+          // 如果还没有start，则直接跳过
+          if (!consumer.started) {
+            continue
+          }
+          // 如果已经正在start中，并且当前事件正好被start处理着，则跳过
+          if (consumer.startingBuffers?.contains(event) == true) {
             continue
           }
           event.emitBy(consumer)
@@ -276,8 +292,7 @@ class Producer<T>(val name: String, parentContext: CoroutineContext) {
       }
     }) { collector: FlowCollector<Event> ->
       val deferred = CoroutineScope(this@Producer.coroutineContext).async(
-        SupervisorJob(),
-        start = CoroutineStart.UNDISPATCHED
+        SupervisorJob(), start = CoroutineStart.UNDISPATCHED
       ) {
         debugProducer.verbose("startCollect") {
           Exception().stackTraceToString().split("\n").firstOrNull {
@@ -309,6 +324,7 @@ class Producer<T>(val name: String, parentContext: CoroutineContext) {
       actionQueue.queueAndAwait("add-consumer") {
         consumers.add(this@Consumer)
         started = true
+        println("QAQ consumer starting=${buffers.size}")
         val starting = buffers.toList()
         startingBuffers = starting
         /// 将之前没有被消费的逐个触发，这里不用担心 buffers 被中途追加，emit会同步触发
@@ -380,8 +396,7 @@ class Producer<T>(val name: String, parentContext: CoroutineContext) {
       }
 
 
-      debugProducer.timeout(
-        1000,
+      debugProducer.timeout(1000,
         "close",
         { "closing and joinAll events=[${buffers.toList().joinToString(", ")}]" }) {
         // 等待消费者全部完成
@@ -407,6 +422,5 @@ class Producer<T>(val name: String, parentContext: CoroutineContext) {
   }
 
   /**调用监听关闭*/
-  fun invokeOnClose(handler: CompletionHandler) =
-    job.invokeOnCompletion(handler)
+  fun invokeOnClose(handler: CompletionHandler) = job.invokeOnCompletion(handler)
 }

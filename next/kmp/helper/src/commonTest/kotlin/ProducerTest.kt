@@ -4,6 +4,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
@@ -11,16 +12,19 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.OrderBy
 import org.dweb_browser.helper.Producer
 import org.dweb_browser.helper.SafeFloat
+import org.dweb_browser.helper.SafeHashSet
 import org.dweb_browser.helper.SafeLinkList
 import org.dweb_browser.helper.addDebugTags
 import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.datetimeNow
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.now
+import org.dweb_browser.helper.rand
 import org.dweb_browser.test.runCommonTest
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
@@ -457,5 +461,62 @@ class ProducerTest {
     deferred.await()
     val endTime = datetimeNow()
     assertTrue(endTime - startTime < 4000)
+  }
+
+  @Test
+  fun testDoubleEmitBug() = runCommonTest(1000) { time ->
+    println("---test-$time")
+    val parentScope = CoroutineScope(SupervisorJob())
+
+    val producer = Producer<Int>("test", parentScope)
+    val size = 20;
+    producer.warningThreshold = size
+    val res = SafeHashSet<Int>()
+    val jobs = mutableListOf<Job>()
+    for (j in 1..rand(0, 10)) {
+      jobs += launch {
+        producer.consumer("test-before-$j").collectIn(this@runCommonTest) {
+          delay(rand(0, 10).toLong())
+        }
+      }
+    }
+
+    for (i in 1..size) {
+      jobs += launch {
+//        if (i > size / 2) {
+//          delay(10)
+//        }
+        producer.send(i)
+      }
+    }
+    val done = CompletableDeferred<Unit>()
+    jobs += launch {
+      producer.consumer("test").collectIn(this@runCommonTest) {
+        if (res.isEmpty()) {
+          println("${now()} | QWQ start first")
+        }
+        val data = it.consume()
+        if (res.contains(it.data)) {
+          assertTrue("QWQ double emit!!") { false }
+        }
+        res.add(data)
+        if (res.size == size) {
+          println("${now()} | QWQ got $size")
+          done.complete(Unit)
+        }
+      }
+    }
+    for (j in 1..rand(0, 10)) {
+      jobs += launch {
+        producer.consumer("test-after-$j").collectIn(this@runCommonTest) {
+          delay(rand(0, 10).toLong())
+        }
+      }
+    }
+    jobs.joinAll()
+    println("${now()} | QWQ send end")
+    done.await()
+    producer.closeAndJoin()
+    assertEquals(size, res.size)
   }
 }
