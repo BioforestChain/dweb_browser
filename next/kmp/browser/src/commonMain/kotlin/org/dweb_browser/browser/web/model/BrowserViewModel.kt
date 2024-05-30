@@ -10,6 +10,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import io.ktor.http.Url
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -74,8 +75,8 @@ class BrowserViewModel(
   internal val browserController: BrowserController,
   internal val browserNMM: BrowserNMM.BrowserRuntime,
 ) {
-  val browserOnVisible = browserController.onWindowVisible
-  val browserOnClose = browserController.onCloseWindow
+  val browserOnVisible = browserController.onWindowVisible // IOS 在用
+  val browserOnClose = browserController.onCloseWindow // IOS 在用
 
   val ioScope get() = browserNMM.getRuntimeScope()
   private val pages = mutableStateListOf<BrowserPage>() // 多浏览器列表
@@ -84,10 +85,11 @@ class BrowserViewModel(
   var showMore by mutableStateOf(false)
 
   enum class PreviewPanelVisibleState(val isVisible: Boolean) {
-    DisplayGrid(true), Close(false), FastClose(false);
+    DisplayGrid(true), Close(false), FastClose(false)/*不做动画，直接隐藏*/;
   }
 
   var showQRCodePanel by mutableStateOf(false)
+    private set
 
   val previewPanelVisibleState = MutableTransitionState(PreviewPanelVisibleState.Close)
 
@@ -110,6 +112,10 @@ class BrowserViewModel(
   }
 
   var showSearchPage by mutableStateOf<BrowserPage?>(null)
+
+  // 该字段是用来存储通过 deeplink 调用的 search 和 openinbrowser 关键字，关闭搜索界面需要直接置空
+  var searchKeyWord by mutableStateOf<String?>(null)
+    internal set
   var scale by mutableFloatStateOf(1f)
 
   // 无痕模式状态
@@ -158,8 +164,6 @@ class BrowserViewModel(
     private set
   val focusedPageIndex get() = pages.indexOf(focusedPage)
 
-  private val focusPageChangeSignal: Signal<Pair<BrowserPage?, BrowserPage?>> = Signal()
-  private val onFocusedPageChangeUI = focusPageChangeSignal.toListener()
   suspend fun focusPageUI(page: BrowserPage?) {
     val prePage = focusedPage
     if (prePage == page) {
@@ -168,9 +172,7 @@ class BrowserViewModel(
     debugBrowser("focusBrowserView", page)
     // 前一个页面要失去焦点了，所以进行截图
     prePage?.captureViewInBackground()
-    // delay(100) // focusedPage 赋值更新后，会触发 HorizontalPager 变化，但是如果界面没显示，会导致出发失败，这边做下延迟
     focusedPage = page
-    focusPageChangeSignal.emit(Pair(page, prePage))
   }
 
   suspend fun focusPageUI(pageIndex: Int) {
@@ -201,6 +203,22 @@ class BrowserViewModel(
     LaunchedEffect(Unit) {
       withScope(uiScope) {
         isIncognitoOn = browserController.getStringFromStore(KEY_NO_TRACE)?.isNotEmpty() ?: false
+      }
+    }
+
+    /// 判断是否需要显示SearchPanel
+    LaunchedEffect(Unit) {
+      snapshotFlow { searchKeyWord }.collect { keyWord ->
+        val searchWord = keyWord?.ifEmpty { null } ?: return@collect
+        val replaceHomePage = if (focusedPage is BrowserHomePage) focusedPage else null
+        tryOpenUrlUI(searchWord, replaceHomePage) {
+          // 如果searchWord不满足browserPage，那么就需要弹出搜索界面 BrowserSearchPanel
+          showSearchPage = focusedPage ?: run {
+            BrowserHomePage(browserController).apply {
+              addNewPageUI(this) { addIndex = focusedPageIndex + 1 } // 直接移动到最后
+            }
+          }
+        }
       }
     }
 
@@ -266,31 +284,8 @@ class BrowserViewModel(
     debugBrowser("openSearchPanelUI", "searchText=$searchText, target=$target")
     deepLinkDoSearch(DwebLinkSearchItem(link = searchText, target = target)) // TODO 调用Ios 接口，实现功能
     // android 实现仍然在 commonMain这边
-    when (target) {
-      AppBrowserTarget.SELF -> {
-        // 如果是搜索的话，直接在当前页显示搜索界面，并且显示待搜索的内容
-        if (searchText.isNotEmpty()) {
-          showSearchPage = focusedPage?.apply { searchKeyWord = searchText } // 显示当前界面
-        }
-      }
-
-      else -> {
-        // 打开新tab，并聚焦到新page，如果打开地址失败，说明不是标准网址，新增tab，并且打开搜索界面
-        val replacePage = focusedPage?.let { page -> if (page is BrowserHomePage) page else null }
-        tryOpenUrlUI(searchText, replacePage) {
-          debugBrowser("openSearchPanelUI", "tryOpenUrlUI fail, focusedPage=$focusedPage")
-          val page = replacePage?.let { // 如果当前界面就是homepage，就不需要再创建新的
-            replacePage.apply { searchKeyWord = searchText }
-          } ?: run {
-            BrowserHomePage(browserController).apply {
-              searchKeyWord = searchText
-              addNewPageUI(this) { addIndex = focusedPageIndex + 1 } // 直接移动到最后
-            }
-          }
-          showSearchPage = page
-        }
-      }
-    }
+    hideAllPanel() // 先将该内容置为空，然后修改 searchKeyWord 的值，出发 ViewModelEffect 监听，来确认是否需要再次显示
+    searchKeyWord = searchText // 上面 ViewModelEffect 监听 searchKeyWord 状态，
   }
 
   /**
@@ -313,6 +308,7 @@ class BrowserViewModel(
           // 否则走未知模式
           if (newPage == null) {
             unknownUrl?.invoke(url)
+            return // 直接返回，否则会影响到将 searchKeyWord 置空操作，也就是下面调用的 hideAllPanel()
           }
         }
 
@@ -335,9 +331,11 @@ class BrowserViewModel(
         // 否则走未知模式
         if (newPage == null) {
           unknownUrl?.invoke(url)
+          return // 直接返回，否则会影响到将 searchKeyWord 置空操作，也就是下面调用的 hideAllPanel()
         }
       }
     }
+    hideAllPanel() // 为了保证页面加载的时候，将前面的Panel关闭
   }
 
   suspend fun closePageUI(page: BrowserPage): Boolean {
@@ -606,12 +604,16 @@ class BrowserViewModel(
     browserNMM.updateEngineState(searchEngine, true)
   }
 
+  fun showQRCodePanelUI() {
+    showQRCodePanel = true
+  }
+
   /**
    * 隐藏所有的Panel
    */
   fun hideAllPanel() {
     previewPanelVisibleState.targetState = PreviewPanelVisibleState.Close
-    showSearchPage?.searchKeyWord = null
+    searchKeyWord = null
     showSearchPage = null
     showQRCodePanel = false
   }

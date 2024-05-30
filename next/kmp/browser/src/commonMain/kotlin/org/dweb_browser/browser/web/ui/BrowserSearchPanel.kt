@@ -66,7 +66,7 @@ import org.dweb_browser.sys.window.render.LocalWindowsImeVisible
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BrowserSearchPanel(modifier: Modifier = Modifier):Boolean {
+fun BrowserSearchPanel(modifier: Modifier = Modifier): Boolean {
   val viewModel = LocalBrowserViewModel.current
   val showSearchPage = viewModel.showSearchPage
 
@@ -81,15 +81,14 @@ fun BrowserSearchPanel(modifier: Modifier = Modifier):Boolean {
     val focusManager = LocalFocusManager.current
     val hide = {
       focusManager.clearFocus()
-      viewModel.showSearchPage?.searchKeyWord = null // 关闭之前，先把这个字段内容情况，避免下次显示关键字仍然为之前的
-      viewModel.showSearchPage = null
+      viewModel.hideAllPanel()
     }
     /// 返回关闭搜索
     LocalWindowController.current.navigation.GoBackHandler {
       hide()
     }
-    var searchTextField by remember(showSearchPage.searchKeyWord, showSearchPage.url) {
-      val text = showSearchPage.searchKeyWord ?: showSearchPage.url
+    var searchTextField by remember(viewModel.searchKeyWord, showSearchPage.url) {
+      val text = viewModel.searchKeyWord ?: showSearchPage.url
       mutableStateOf(
         TextFieldValue(text = text, selection = TextRange(0, text.length))
       )

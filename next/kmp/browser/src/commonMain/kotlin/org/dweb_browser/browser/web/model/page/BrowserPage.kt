@@ -46,10 +46,6 @@ sealed class BrowserPage(browserController: BrowserController) {
 
   open fun isWebViewCompose(): Boolean = false // 用于标识是否是webview需要缩放，还是原生的compose需要缩放
 
-  // 该字段是用来存储通过 deeplink 调用的 search 和 openinbrowser 关键字，关闭搜索界面需要直接置空
-  var searchKeyWord by mutableStateOf<String?>(null)
-    internal set
-
   /**
    * 截图器
    */
