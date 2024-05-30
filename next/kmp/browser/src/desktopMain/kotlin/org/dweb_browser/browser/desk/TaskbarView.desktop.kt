@@ -5,6 +5,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.window.WindowPlacement
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -122,17 +123,28 @@ class TaskbarView private constructor(
      * 桌面吸附在 taskbar 边缘
      */
     private val desktopMagnetEffect = parentWindow?.let { composeWindow ->
+      val paddingY = 20
+      val paddingX = 20
       MagnetEffect(
         from = composeWindow,
-        isDisabled = { taskbarMagnetEffect.isPlay },
+        isDisabled = {
+          taskbarMagnetEffect.isPlay || composeWindow.placement == WindowPlacement.Maximized || composeWindow.placement == WindowPlacement.Fullscreen
+        },
         getEnds = {
           val windowBounds = composeWindow.bounds
           val taskbarBounds = bounds
           val taskbarCenterX = taskbarBounds.x + taskbarBounds.width / 2
           val taskbarCenterY = taskbarBounds.y + taskbarBounds.height / 2
           val screenBounds = getScreenBounds()
-          val screenCenterX = (screenBounds.right - screenBounds.left) / 2 + screenBounds.left
+          if ((windowBounds.height + paddingY) > screenBounds.height) {
+            windowBounds.height = screenBounds.height - paddingY
+          }
+          if ((windowBounds.width + paddingX + taskbarBounds.width) > screenBounds.width) {
+            windowBounds.width = screenBounds.width - paddingX - taskbarBounds.width
+          }
+          composeWindow.bounds = windowBounds
 
+          val screenCenterX = (screenBounds.right - screenBounds.left) / 2 + screenBounds.left
           val endX = when {
             // 屏幕左边空间更多, 如果windowBounds.width > taskbar.x - padding，例如全屏，则 endX = 0 不该左移，否则会溢出屏幕
             taskbarCenterX > screenCenterX -> (taskbarBounds.x - padding - windowBounds.width).let { if (it > 0) it else 0 }
@@ -351,7 +363,7 @@ class TaskbarView private constructor(
   private val dialog = TaskbarDialog(taskbarController, taskbarDWebView.asDesktop())
 
   init {
-    taskbarController.deskNMM.onBeforeShutdown{
+    taskbarController.deskNMM.onBeforeShutdown {
       dialog.dispose()
     }
   }
