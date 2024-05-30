@@ -162,7 +162,7 @@ class Producer<T>(val name: String, parentContext: CoroutineContext) {
         }
         val beforeConsumeTimes = consumeTimes.value
 
-        debugProducer.timeout(2000, "emitBy", { "consumer=$consumer data=$data" }) {
+        debugProducer.timeout(2000, "emitBy timeout", { "consumer=$consumer data=$data" }) {
 
           /// 这里使用channel将event和lock发送过去，但是 emit 返回只代表了对面接收到，不代表对面处理完
           /// 所以这里我们还需要等待对面处理完成，这里 emit(null) 就是这样一个等待作用，它可以确保上一个event被接受处理

@@ -7,6 +7,7 @@ import androidx.webkit.WebViewFeature
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.getOrElse
@@ -15,6 +16,7 @@ import kotlinx.coroutines.plus
 import org.dweb_browser.core.ipc.helper.DWebMessage
 import org.dweb_browser.core.ipc.helper.IWebMessagePort
 import org.dweb_browser.dwebview.engine.DWebViewEngine
+import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 
@@ -39,7 +41,7 @@ class DWebMessagePort private constructor(
   @SuppressLint("RequiresFeature")
   private val _started = lazy {
     val messageChannel = Channel<DWebMessage>(Channel.UNLIMITED)
-    CoroutineScope(mainAsyncExceptionHandler).launch(start = CoroutineStart.UNDISPATCHED) {
+    CoroutineScope(mainAsyncExceptionHandler).launch {
       port.setWebMessageCallback(object : WebMessagePortCompat.WebMessageCallbackCompat() {
         override fun onMessage(port: WebMessagePortCompat, message: WebMessageCompat?) {
           message ?: return
@@ -95,6 +97,12 @@ class DWebMessagePort private constructor(
         WebMessageCompat(event.text, ports)
       }
     }
-    port.postMessage(msgCompat)
+    CoroutineScope(mainAsyncExceptionHandler).launch {
+      try {
+        port.postMessage(msgCompat)
+      } catch (e: java.lang.Exception) {
+        WARNING("post-close: ${e.message}")
+      }
+    }
   }
 }
