@@ -130,11 +130,11 @@ class Debugger(val scope: String) {
     println("Debugger scope: $scope")
   }
 
-  private inline fun print(tag: String, msg: Any? = "", err: Any?, symbol: String) {
+  inline fun print(tag: String, msg: Any? = "", err: Any?, symbol: String) {
     printDebug(scope, tag, msg, err, symbol)
   }
 
-  private inline fun print2(
+  inline fun print2(
     tag: String,
     err: Throwable,
     msgGetter: () -> Any?,
@@ -148,7 +148,7 @@ class Debugger(val scope: String) {
     print(tag, msg, err, symbol)
   }
 
-  private inline fun print3(tag: String, msgGetter: () -> Any?, symbol: String) {
+  inline fun print3(tag: String, msgGetter: () -> Any?, symbol: String) {
     var err: Throwable? = null
     val msg = try {
       msgGetter()
@@ -159,21 +159,27 @@ class Debugger(val scope: String) {
     print(tag, msg, err, symbol)
   }
 
-  operator fun invoke(tag: String, msg: Any? = "", err: Any? = null) {
+  inline operator fun invoke(tag: String, msg: Any? = "", err: Any? = null) {
     if (err != null || isEnable) {
       print(tag, msg, err, "│")
     }
   }
 
-  operator fun invoke(tag: String, err: Throwable, msgGetter: () -> Any?) {
+  inline operator fun invoke(tag: String, err: Throwable, msgGetter: () -> Any?) {
     print2(tag, err, msgGetter, "│")
   }
 
-  operator fun invoke(tag: String, msgGetter: () -> Any?) {
+  inline operator fun invoke(tag: String, msgGetter: () -> Any?) {
     if (isEnable) {
       print3(tag, msgGetter, "│")
     }
   }
+
+//  operator suspend fun invoke(tag: String, msgGetter: () -> Any?) {
+//    if (isEnable) {
+//      print3(tag, msgGetter, "│")
+//    }
+//  }
 
   fun forceEnable(enable: Boolean = true) {
     if (enable) {
@@ -184,13 +190,13 @@ class Debugger(val scope: String) {
   }
 
 
-  fun verbose(tag: String, msgGetter: () -> Any?) {
+  inline fun verbose(tag: String, msgGetter: () -> Any?) {
     if (isEnableVerbose) {
       print3(tag, msgGetter, "░")
     }
   }
 
-  fun verbose(tag: String, msg: Any? = "") {
+  inline fun verbose(tag: String, msg: Any? = "") {
     if (isEnableVerbose) {
       print(tag, msg, null, "░")
     }
