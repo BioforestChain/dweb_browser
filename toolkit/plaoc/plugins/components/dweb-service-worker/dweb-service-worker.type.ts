@@ -3,14 +3,15 @@ import type { ServiceWorkerFetchEvent } from "./FetchEvent.ts";
 import type { PlaocEvent } from "./IpcEvent.ts";
 
 export interface DwebWorkerEventMap {
-  pause: Event; // 监听应用暂停
-  resume: Event; // 监听应用恢复
+  close: PlaocEvent;
   fetch: ServiceWorkerFetchEvent;
   shortcut: PlaocEvent;
 }
 
 export enum eventHandle {
+  fetch = "fetch",
   shortcut = "shortcut",
+  close = "close",
 }
 
 export interface BFSMetaData {

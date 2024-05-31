@@ -1,5 +1,4 @@
-import type { Ipc } from "@dweb-browser/core/ipc/index.ts";
-import { createMockModuleServerIpc } from "../../common/websocketIpc.ts";
+import { WebSocketIpcBuilder } from "../../common/websocketIpc.ts";
 import { bindThis } from "../../helper/bindThis.ts";
 import { buildSearch } from "../../helper/request.ts";
 import { BasePlugin } from "../base/base.plugin.ts";
@@ -14,14 +13,15 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
     super("dns.std.dweb");
   }
 
-  readonly ipcPromise: Promise<Ipc> = this.createIpc();
-  private async createIpc() {
+  readonly ipc = this.createIpc();
+
+  private createIpc() {
     const api_url = BasePlugin.api_url.replace("://api", "://external");
     const url = new URL(api_url.replace(/^http/, "ws"));
     const mmid = location.host.slice(9) as $MMID;
     const hash = BasePlugin.external_url;
     url.pathname = `/${hash}`;
-    const ipc = await createMockModuleServerIpc(url, {
+    const wsIpcBuilder = new WebSocketIpcBuilder(url, {
       mmid: mmid,
       ipc_support_protocols: {
         cbor: false,
@@ -32,7 +32,7 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
       categories: [],
       name: mmid,
     });
-    return ipc;
+    return wsIpcBuilder.ipc;
   }
 
   /**
@@ -76,15 +76,14 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
    */
   @bindThis
   async fetch(url: string, init?: $DwebRquestInit | undefined): Promise<Response> {
-    const ipc = await this.ipcPromise;
     const input = new URL(url);
     buildSearch(init?.search, (key, value) => {
       input.searchParams.append(key, value);
     });
-    if(![...input.searchParams.keys()].includes("activate")) {
+    if (![...input.searchParams.keys()].includes("activate")) {
       input.searchParams.append("activate", String(!!init?.activate));
     }
-    const ipcResponse = await ipc.request(input.href, init);
+    const ipcResponse = await this.ipc.request(input.href, init);
     return ipcResponse.toResponse();
   }
 }
