@@ -1,14 +1,14 @@
 {
-    "name": "@dweb-browser/js-process",
-    "version": "0.3.5",
-    "types": "./esm/index.d.ts",
-    "scripts": {
-        "build:js-process.worker2": "bun build ./worker/index.ts --outfile=../next/kmp/browser/src/commonMain/composeResources/files/browser/js-process.worker/index.js",
-        "build:js-process.worker": "esbuild ./worker/index.ts --bundle --format=esm --outfile=../../next/kmp/browser/src/commonMain/composeResources/files/browser/js-process.worker/index.js",
-        "build:js-process.main": "vite build ./main --outDir=../../../next/kmp/browser/src/commonMain/composeResources/files/browser/js-process.main/"
-    },
-    "dependencies": {
-        "@dweb-browser/core": "workspace:~",
-        "@dweb-browser/helper": "workspace:~"
-    }
+  "name": "@dweb-browser/js-process",
+  "version": "0.4.3",
+  "types": "./esm/index.d.ts",
+  "scripts": {
+    "build:js-process.worker2": "bun build ./worker/index.ts --outfile=../next/kmp/browser/src/commonMain/composeResources/files/browser/js-process.worker/index.js",
+    "build:js-process.worker": "esbuild ./worker/index.ts --bundle --format=esm --outfile=../../next/kmp/browser/src/commonMain/composeResources/files/browser/js-process.worker/index.js",
+    "build:js-process.main": "vite build ./main --outDir=../../../next/kmp/browser/src/commonMain/composeResources/files/browser/js-process.main/"
+  },
+  "dependencies": {
+    "@dweb-browser/core": "workspace:~",
+    "@dweb-browser/helper": "workspace:~"
+  }
 }

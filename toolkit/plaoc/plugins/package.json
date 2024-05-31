@@ -1,6 +1,6 @@
 {
   "name": "@plaoc/plugins",
-  "version": "0.8.0",
+  "version": "0.9.7",
   "description": "",
   "main": "index.js",
   "types": "./esm/index.d.ts",

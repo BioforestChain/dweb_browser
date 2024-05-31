@@ -2,7 +2,7 @@
   "module": "./src/index.js",
   "types": "./esm/index.d.ts",
   "name": "@plaoc/server",
-  "version": "0.1.5",
+  "version": "0.3.0",
   "description": "WebApp-Framework In DwebBrowser",
   "license": "MIT",
   "repository": {

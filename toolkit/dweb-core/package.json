@@ -1,6 +1,6 @@
 {
   "name": "@dweb-browser/core",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "description": "dweb core",
   "types": "./esm/index.d.ts",
   "scripts": {

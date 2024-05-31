@@ -1,6 +1,6 @@
 {
   "name": "@plaoc/is-dweb",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "dweb 环境 辅助工具函数",
   "main": "index.js",
   "types": "./esm/index.d.ts",
