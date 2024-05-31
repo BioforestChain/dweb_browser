@@ -388,7 +388,7 @@ private fun PagePreviewCell(
             .clickableWithNoEffect {
               uiScope.launch {
                 viewModel.focusPageUI(page)
-                viewModel.toggleShowPreviewUI(BrowserViewModel.PreviewPanelVisibleState.Close)
+                viewModel.hideBrowserPreviewWithoutAnimation()
               }
             },
           contentAlignment = if (pagePreview != null) Alignment.TopCenter else Alignment.Center,

@@ -50,7 +50,7 @@ fun BrowserViewModalRender(
   viewModel: BrowserViewModel, modifier: Modifier, windowRenderScope: WindowContentRenderScope,
 ) {
   LocalCompositionChain.current.Provider(LocalBrowserViewModel provides viewModel) {
-    viewModel.ViewModelEffect()
+    viewModel.ViewModelEffect(windowRenderScope)
     Box(modifier = remember(windowRenderScope) {
       with(windowRenderScope) {
         modifier.requiredSize(widthDp / scale, heightDp / scale).scale(scale)
@@ -68,9 +68,6 @@ fun BrowserViewModalRender(
 
 @Composable
 fun BrowserPagePanel(modifier: Modifier, contentScaled: Float) {
-  val viewModel = LocalBrowserViewModel.current
-  viewModel.pagerStates.BindingEffect()
-  // 移除 viewModel.isPreviewInvisible, 避免显示的时候 WebView 重新加载。
   Column(modifier) {
     // 网页主体
     Box(modifier = Modifier.weight(1f)) {

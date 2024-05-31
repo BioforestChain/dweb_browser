@@ -55,6 +55,9 @@ import org.dweb_browser.sys.permission.ext.requestSystemPermission
 import org.dweb_browser.sys.share.ext.postSystemShare
 import org.dweb_browser.sys.toast.ToastPositionType
 import org.dweb_browser.sys.toast.ext.showToast
+import org.dweb_browser.sys.window.core.WindowContentRenderScope
+import org.dweb_browser.sys.window.render.LocalWindowController
+import org.dweb_browser.sys.window.render.inResize
 
 val LocalBrowserViewModel = compositionChainOf<BrowserViewModel>("BrowserModel")
 
@@ -109,6 +112,15 @@ class BrowserViewModel(
   val isPreviewInvisible get() = previewPanelVisibleState.targetState == PreviewPanelVisibleState.FastClose || (!showPreview && previewPanelVisibleState.isIdle)
   fun toggleShowPreviewUI(state: PreviewPanelVisibleState) {
     previewPanelVisibleState.targetState = state
+  }
+
+  var withoutAnimationOnFocus by mutableStateOf(false)
+  /**
+   * 隐藏BrowserPreview，并且将PageState滚动时不适用动画效果
+   */
+  fun hideBrowserPreviewWithoutAnimation() {
+    withoutAnimationOnFocus = true
+    toggleShowPreviewUI(PreviewPanelVisibleState.Close)
   }
 
   var showSearchPage by mutableStateOf<BrowserPage?>(null)
@@ -196,7 +208,7 @@ class BrowserViewModel(
   val pagerStates = BrowserPagerStates(this)
 
   @Composable
-  fun ViewModelEffect() {
+  fun ViewModelEffect(windowRenderScope: WindowContentRenderScope) {
     val uiScope = rememberCoroutineScope()
 
     /// 初始化 isNoTrace
@@ -222,7 +234,7 @@ class BrowserViewModel(
       }
     }
 
-    pagerStates.PagerToFocusEffect() // 监听ContentPage页面，进行focusedUI操作
+    pagerStates.BindingEffect(windowRenderScope) // 监听ContentPage页面，进行focusedUI操作
 
     /// 监听窗口关闭，进行资源释放
     DisposableEffect(Unit) {
