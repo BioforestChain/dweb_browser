@@ -1,9 +1,13 @@
 package org.dweb_browser.browser.desk
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Error
 import androidx.compose.material3.AlertDialog
@@ -15,6 +19,7 @@ import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import org.dweb_browser.browser.desk.upgrade.NewVersionView
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.dwebview.Render
@@ -27,6 +32,7 @@ import org.dweb_browser.sys.window.render.SceneRender
 
 @Composable
 fun DesktopController.Render(
+  desktopController: DesktopController,
   taskbarController: TaskbarController,
   microModule: NativeMicroModule.NativeRuntime,
 ) {
@@ -41,7 +47,7 @@ fun DesktopController.Render(
           Render(Modifier.fillMaxSize())
         }
       } else {
-        NewDesktopView(taskbarController, microModule)
+        NewDesktopView(desktopController, microModule)
       }
 
       /// 窗口视图
@@ -50,7 +56,7 @@ fun DesktopController.Render(
       }
     }
     /// 悬浮框
-    Box(contentAlignment = Alignment.TopStart) {
+    Box(contentAlignment = Alignment.TopStart, modifier = Modifier.border(1.dp, Color.Red)) {
       taskbarController.TaskbarView { FloatWindow() }
     }
 

@@ -54,12 +54,28 @@ import org.dweb_browser.helper.resolvePath
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.render.NativeBackHandler
 
+open class DesktopAppController constructor(open val deskNMM: DeskNMM.DeskRuntime) {
+
+  suspend fun open(mmid: String) {
+    deskNMM.nativeFetch("file://desk.browser.dweb/openAppOrActivate?app_id=$mmid")
+  }
+
+  suspend fun quit(mmid: String) {
+    deskNMM.nativeFetch("file://desk.browser.dweb/closeApp?app_id=$mmid")
+  }
+
+  suspend fun search(words: String) {
+    deskNMM.nativeFetch("file://web.browser.dweb/search?q=$words")
+  }
+}
+
+
 @Stable
 open class DesktopController private constructor(
-  private val deskNMM: DeskNMM.DeskRuntime,
+  override val deskNMM: DeskNMM.DeskRuntime,
   private val desktopServer: HttpDwebServer,
   private val runningApps: ChangeableMap<MMID, RunningApp>,
-) {
+): DesktopAppController(deskNMM) {
   val newVersionController = NewVersionController(deskNMM, this)
 
   @OptIn(ExperimentalCoroutinesApi::class)
@@ -176,18 +192,6 @@ open class DesktopController private constructor(
     runningApps.onChange { map ->
       updateFlow.emit("apps")
     }
-  }
-
-  suspend fun search(words: String) {
-    deskNMM.nativeFetch("file://web.browser.dweb/search?q=$words")
-  }
-
-  suspend fun open(mmid: String) {
-    deskNMM.nativeFetch("file://desk.browser.dweb/openAppOrActivate?app_id=$mmid")
-  }
-
-  suspend fun quit(mmid: String) {
-    deskNMM.nativeFetch("file://desk.browser.dweb/closeApp?app_id=$mmid")
   }
 
   suspend fun detail(mmid: String) {

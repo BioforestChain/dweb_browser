@@ -56,7 +56,7 @@ class DesktopViewControllerCore(val viewController: IPureViewController) {
             }
           }
           // 渲染app
-          desktopController.Render(taskbarController, microModule)
+          desktopController.Render(desktopController, taskbarController, microModule)
         }
       }
     }

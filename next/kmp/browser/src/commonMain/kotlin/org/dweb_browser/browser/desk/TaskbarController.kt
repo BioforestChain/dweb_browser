@@ -32,12 +32,12 @@ import org.dweb_browser.helper.resolvePath
 
 
 class TaskbarController private constructor(
-  val deskNMM: DeskNMM.DeskRuntime,
+  override val deskNMM: DeskNMM.DeskRuntime,
   val deskSessionId: String,
   val desktopController: DesktopController,
   val taskbarServer: HttpDwebServer,
   private val runningApps: ChangeableMap<MMID, RunningApp>,
-) {
+): DesktopAppController(deskNMM) {
   internal val state = TaskbarState();
 
   companion object {
@@ -163,8 +163,9 @@ class TaskbarController private constructor(
    * @returns 如果视图发生了真实的改变（不论是否变成说要的结果），则返回 true
    */
   fun resize(reSize: ReSize) {
-    state.layoutWidth = reSize.width
-    state.layoutHeight = reSize.height
+    // TODO: Mike 需要处理掉，防止web影响正常的taskbar大小。
+//    state.layoutWidth = reSize.width
+//    state.layoutHeight = reSize.height
   }
 
   fun toggleDragging(dragging: Boolean): Boolean {

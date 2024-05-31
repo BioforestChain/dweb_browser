@@ -53,3 +53,5 @@ actual fun desktopGridLayout(): GridCells = GridCells.FixedSize(100.dp)
 actual fun desktopTap(): Dp = 20.dp
 
 actual fun desktopBgCircleCount(): Int = 12
+
+actual fun taskbarUsingWebView(): Boolean = true

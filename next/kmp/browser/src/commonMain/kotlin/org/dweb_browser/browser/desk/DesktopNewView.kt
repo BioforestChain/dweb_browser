@@ -1,5 +1,6 @@
 package org.dweb_browser.browser.desk
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
@@ -11,6 +12,10 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.updateTransition
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -117,7 +122,7 @@ import kotlin.random.Random
 
 @Composable
 fun NewDesktopView(
-  taskbarController: TaskbarController,
+  desktopController: DesktopController,
   microModule: NativeMicroModule.NativeRuntime,
 ) {
   val apps = remember { mutableStateListOf<DesktopAppModel>() }
@@ -140,9 +145,9 @@ fun NewDesktopView(
 
   fun doGetApps() {
     scope.launch {
-      val installApps = taskbarController.desktopController.getDesktopApps().map {
+      val installApps = desktopController.getDesktopApps().map {
         val icon = it.icons.firstOrNull()?.src ?: ""
-        val isSystermApp = taskbarController.desktopController.isSystermApp(it.mmid)
+        val isSystermApp = desktopController.isSystermApp(it.mmid)
         val runStatus = if (it.running) {
           toRunningApps.remove(it.mmid)
           DesktopAppModel.DesktopAppRunStatus.RUNNING
@@ -171,7 +176,7 @@ fun NewDesktopView(
   }
 
   DisposableEffect(Unit) {
-    val job = taskbarController.desktopController.onUpdate.run {
+    val job = desktopController.onUpdate.run {
       filter { it != "bounds" }
     }.collectIn(scope) {
       doGetApps()
@@ -189,39 +194,39 @@ fun NewDesktopView(
 
   fun doSearch(words: String) {
     scope.launch {
-      taskbarController.desktopController.search(words)
+      desktopController.search(words)
     }
   }
 
   fun doOpen(mmid: String) {
     toRunningApps.add(mmid)
     scope.launch {
-      taskbarController.desktopController.open(mmid)
+      desktopController.open(mmid)
     }
   }
 
   fun doQuit(mmid: String) {
     toRunningApps.remove(mmid)
     scope.launch {
-      taskbarController.desktopController.quit(mmid)
+      desktopController.quit(mmid)
     }
   }
 
   fun doDetail(mmid: String) {
     scope.launch {
-      taskbarController.desktopController.detail(mmid)
+      desktopController.detail(mmid)
     }
   }
 
   fun doUninstall(mmid: String) {
     scope.launch {
-      taskbarController.desktopController.uninstall(mmid)
+      desktopController.uninstall(mmid)
     }
   }
 
   fun doShare(mmid: String) {
     scope.launch {
-      taskbarController.desktopController.share(mmid)
+      desktopController.share(mmid)
     }
   }
 
@@ -685,8 +690,8 @@ fun desktopBackgroundView(modifier: Modifier) {
     RotatingLinearGradientBox(hour, modifier = Modifier.zIndex(-1f))
 
     circles.forEach {
-      val randomX = random(120f)
-      val randomY = random(120f)
+      val randomX = random(constraints.maxWidth * 0.2f)
+      val randomY = random(constraints.maxWidth * 0.2f)
       DesktopBgCircle(it, randomX, randomY)
     }
   }
@@ -696,7 +701,6 @@ fun desktopBackgroundView(modifier: Modifier) {
 fun RotatingLinearGradientBox(hour: Int, modifier: Modifier) {
   // 当前时间的角度 + 90f， 默认是从270度开始的，所以添加90度的偏移
   val angle = hour.toFloat() / 24f * 360f + 90f
-  println("Mike hour: $hour, angle: $angle")
   // 将角度转换为弧度, 逆时针旋转
   val angleRad = angle * PI / 180
   // 计算起点和终点
@@ -924,7 +928,6 @@ data class DesktopBgCircleModel(
       }
 
       val color = Color(getColor(1..2), getColor(3..4), getColor(5..6))
-      println("Mike randomColor: $hour ${color.toString()}")
       return color
     }
   }

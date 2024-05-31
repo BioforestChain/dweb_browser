@@ -3,13 +3,21 @@ package org.dweb_browser.browser.desk
 import androidx.compose.animation.core.animateOffset
 import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -20,13 +28,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import org.dweb_browser.dwebview.IDWebView
+import org.dweb_browser.helper.ENV_SWITCH_KEY
 import org.dweb_browser.helper.clamp
+import org.dweb_browser.helper.envSwitch
 
 expect suspend fun ITaskbarView.Companion.create(taskbarController: TaskbarController): ITaskbarView
 
@@ -61,7 +72,6 @@ abstract class ITaskbarView(private val taskbarController: TaskbarController) {
     BoxWithConstraints(Modifier.background(Color.Transparent)) {
       val screenWidth = maxWidth.value
       val screenHeight = maxHeight.value
-      val density = LocalDensity.current.density
       val safePadding = WindowInsets.safeDrawing.asPaddingValues();
       val layoutDirection = LocalLayoutDirection.current
       val safeBounds = remember(screenWidth, screenHeight, layoutDirection, safePadding) {
@@ -133,12 +143,31 @@ abstract class ITaskbarView(private val taskbarController: TaskbarController) {
         })
       }
 
-      TaskbarViewRender(
-        draggableHelper,
-        Modifier.zIndex(1000f).size(boxWidth.dp, boxHeight.dp)
-          .offset(x = boxOffset.x.dp, y = boxOffset.y.dp).clip(RoundedCornerShape(16.dp))
+      val showOldVersion = false
+      var showNewVersion = true
+
+      if (showOldVersion) {
+        TaskbarViewRender(draggableHelper,
+          Modifier
+          .zIndex(1000f)
+          .size(boxWidth.dp, boxHeight.dp)
+          .offset(x = boxOffset.x.dp, y = boxOffset.y.dp)
+          .clip(RoundedCornerShape(16.dp))
           .background(Color.Black.copy(alpha = 0.2f))
-      )
+        )
+      }
+
+      if (showNewVersion) {
+        NewTaskbarView(taskbarController,
+          draggableHelper,
+          Modifier
+          .zIndex(1000f)
+          .size(boxWidth.dp, boxHeight.dp)
+          .offset(x = boxOffset.x.dp, y = boxOffset.y.dp)
+          .clip(RoundedCornerShape(16.dp))
+          .background(Color.Black.copy(alpha = 0.2f))
+        )
+      }
     }
   }
 
@@ -154,3 +183,5 @@ abstract class ITaskbarView(private val taskbarController: TaskbarController) {
 
 
 fun Offset.toIntOffset(density: Float) = IntOffset((density * x).toInt(), (density * y).toInt())
+
+expect fun taskbarUsingWebView(): Boolean
