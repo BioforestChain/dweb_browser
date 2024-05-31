@@ -35,7 +35,7 @@ class DwebVCData {
         #else
             let debugMode = false
         #endif
-        Main_iosKt.startDwebBrowser(app: app, debugMode: debugMode) { Log("Main_iosKt.startDwebBrowser launch: \($1?.localizedDescription ?? "Success")") }
+        Main_iosKt.startDwebBrowser(app: app, debugMode: debugMode, debugTags: ["/.+/"]) { Log("Main_iosKt.startDwebBrowser launch: \($1?.localizedDescription ?? "Success")") }
     }
 
     private func regiserDeskEvent() {

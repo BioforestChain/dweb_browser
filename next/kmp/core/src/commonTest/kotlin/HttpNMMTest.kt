@@ -146,7 +146,7 @@ class HttpNMMTest {
   }
 
   @Test
-  fun testWebSocket() = runCommonTest(1, timeout = 600.seconds, block = webSocketTester)
+  fun testWebSocket() = runCommonTest(100, timeout = 600.seconds, block = webSocketTester)
 
   @Test
   fun testFileFetch() = runCommonTest {

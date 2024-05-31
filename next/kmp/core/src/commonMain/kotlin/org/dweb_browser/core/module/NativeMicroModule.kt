@@ -2,7 +2,6 @@ package org.dweb_browser.core.module
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.utils.io.core.toByteArray
-import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.launch
@@ -54,18 +53,16 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
   })
 
   companion object {
-    private val reqIdAcc = atomic(0)
 
     init {
       connectAdapterManager.append { fromMM, toMM, reason ->
         if (toMM is NativeMicroModule.NativeRuntime) {
           fromMM.debugMM("NMM/connectAdapter", "fromMM: ${fromMM.mmid} => toMM: ${toMM.mmid}")
           val channel = NativeMessageChannel(kotlinIpcPool.scope, fromMM.id, toMM.id)
-          val pid = reqIdAcc.addAndGet(1) // 创建新连接，pid自增
           val fromNativeIpc =
-            kotlinIpcPool.createIpc(channel.port1, pid, fromMM.manifest, toMM.microModule.manifest)
+            kotlinIpcPool.createIpc(channel.port1, 0, fromMM.manifest, toMM.microModule.manifest)
           val toNativeIpc =
-            kotlinIpcPool.createIpc(channel.port2, pid, toMM.microModule.manifest, fromMM.manifest)
+            kotlinIpcPool.createIpc(channel.port2, 0, toMM.microModule.manifest, fromMM.manifest)
           // fromMM.beConnect(fromNativeIpc, reason) // 通知发起连接者作为Client
           toMM.beConnect(toNativeIpc, reason) // 通知接收者作为Server
           fromNativeIpc

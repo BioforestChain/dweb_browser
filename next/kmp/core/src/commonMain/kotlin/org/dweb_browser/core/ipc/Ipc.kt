@@ -265,11 +265,14 @@ class Ipc internal constructor(
     remote: MicroModuleManifest = this.remote,
     autoStart: Boolean = false,
     startReason: String? = null,
-    pid: Int = endpoint.generatePid(),
+    pid: Int? = null,
   ): Ipc {
     awaitOpen("then-fork")
+    // 这里确保 endpoint opened 了再 generatePid
+    val ipcId = pid ?: endpoint.generatePid()
+    println("QAQ fork endpoint=[${endpoint.hashCode()}]$endpoint pid=$pid")
     val forkedIpc = pool.createIpc(
-      pid = pid,
+      pid = ipcId,
       endpoint = endpoint,
       locale = locale,
       remote = remote,
