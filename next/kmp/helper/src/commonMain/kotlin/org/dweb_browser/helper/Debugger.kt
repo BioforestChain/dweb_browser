@@ -108,12 +108,12 @@ data class DebugTags private constructor(
     }
   }
 
-  private val debugResult = mutableMapOf<String, Boolean>()
+  private val debugResult = SafeHashMap<String, Boolean>()
   fun canDebug(scope: String) = debugResult.getOrPut(scope) {
     debugNames.contains(scope) || debugRegexes.firstOrNull { regex -> regex.matches(scope) } != null
   }
 
-  private val verboseResult = mutableMapOf<String, Boolean>()
+  private val verboseResult = SafeHashMap<String, Boolean>()
   fun canVerbose(scope: String) = verboseResult.getOrPut(scope) {
     verboseNames.contains(scope) || verboseRegexes.firstOrNull { regex -> regex.matches(scope) } != null
   }

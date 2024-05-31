@@ -307,7 +307,7 @@ class Ipc internal constructor(
   private inline fun <T : Any> messagePipeMap(
     name: String,
     crossinline mapNotNull: suspend (value: IpcMessage) -> T?,
-  ) = Producer<T>(name, scope).also { producer ->
+  ) = Producer<T>("$debugId/$name", scope).also { producer ->
     onClosed { cause ->
       producer.close(cause.exceptionOrNull())
     }
