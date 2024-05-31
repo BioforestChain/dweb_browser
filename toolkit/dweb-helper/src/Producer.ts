@@ -321,7 +321,7 @@ export class Producer<T> {
     }
     this.consumers.clear();
     this.buffers.clear();
-    cause && this.console.log("producer-close", cause);
+    cause && this.console.verbose("producer-close", cause);
   }
 
   #closeSignal = createSignal<() => unknown>(false);

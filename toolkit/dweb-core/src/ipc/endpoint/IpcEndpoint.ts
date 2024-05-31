@@ -161,7 +161,7 @@ export abstract class IpcEndpoint {
         // 收到 opened 了，自己也设置成 opened，代表正式握手成功
         case ENDPOINT_LIFECYCLE_STATE.OPENED: {
           const localState = this.lifecycle.state;
-          // this.console.log("remote-opend-&-locale-lifecycle", lifecycleLocale);
+          this.console.verbose("remote-opend-&-locale-lifecycle", localState);
           if (localState.name === ENDPOINT_LIFECYCLE_STATE.OPENING) {
             const opend = EndpointLifecycle(
               endpointLifecycleOpend(localState.subProtocols, localState.sessionIds.join("~"))

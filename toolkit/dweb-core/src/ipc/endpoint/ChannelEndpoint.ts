@@ -8,12 +8,11 @@ import type { $EndpointRawMessage } from "./EndpointMessage.ts";
 
 export class ChannelEndpoint extends CommonEndpoint {
   override toString() {
-    return `ReadableStreamEndpoint#${this.debugId}`;
+    return `ChannelEndpoint#${this.debugId}`;
   }
 
   constructor(debugId: string, incomne?: ReadableStream<Uint8Array>) {
     super(debugId);
-    console.log("ReadableStreamEndpoint", incomne);
     this.#bindIncomeStream(incomne);
   }
   /**输出流 */

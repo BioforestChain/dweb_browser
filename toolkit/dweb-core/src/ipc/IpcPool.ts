@@ -42,12 +42,12 @@ export class IpcPool {
     this.#ipcSet.add(ipc);
     // 自动启动
     if (autoStart) {
-      console.log("do stat", startReason);
+      this.console.verbose("do stat", startReason);
       void ipc.start(true, startReason ?? "autoStart");
     }
     ipc.onClosed(() => {
       this.#ipcSet.delete(ipc);
-      this.console.log("ipcpool-remote-ipc", ipc);
+      this.console.verbose("ipcpool-remote-ipc", ipc);
     });
   }
 
