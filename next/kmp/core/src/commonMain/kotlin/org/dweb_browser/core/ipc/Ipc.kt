@@ -213,12 +213,11 @@ class Ipc internal constructor(
         }
       }
       when (lifecycleRemote.state) {
-        is IpcLifecycleClosing, is IpcLifecycleClosed -> scope.launch(start = CoroutineStart.UNDISPATCHED) { close() }
+        is IpcLifecycleClosing, is IpcLifecycleClosed -> tryClose()
         // 收到 opened 了，自己也设置成 opened，代表正式握手成功
         is IpcLifecycleOpened -> {
           when (lifecycle.state) {
             is IpcLifecycleOpening -> doIpcOpened()
-
             else -> {}
           }
         }

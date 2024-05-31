@@ -1,7 +1,6 @@
 package org.dweb_browser.core.ipc
 
 import kotlinx.atomicfu.atomic
-import kotlinx.atomicfu.getAndUpdate
 import kotlinx.atomicfu.update
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
@@ -26,7 +25,6 @@ import org.dweb_browser.core.ipc.helper.EndpointLifecycleInit
 import org.dweb_browser.core.ipc.helper.EndpointLifecycleOpened
 import org.dweb_browser.core.ipc.helper.EndpointLifecycleOpening
 import org.dweb_browser.core.ipc.helper.EndpointProtocol
-import org.dweb_browser.core.ipc.helper.IpcFork
 import org.dweb_browser.core.ipc.helper.IpcMessage
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.Producer
@@ -38,7 +36,6 @@ import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.helper.withScope
-import kotlin.math.max
 
 
 /**
@@ -89,15 +86,6 @@ abstract class IpcEndpoint {
     internal val ipcCompletableDeferred = CompletableDeferred<Ipc>()
     val ipcDeferred: Deferred<Ipc> get() = ipcCompletableDeferred
     val producer = Producer<IpcMessage>("ipc-msg/$debugId/${pid}", scope).apply {
-      consumer("watch-fork").collectIn(coroutineContext) { event ->
-        when (val ipcFork = event.data) {
-          is IpcFork -> accPid.getAndUpdate {
-            max(it, ipcFork.pid - 1)
-          }
-
-          else -> {}
-        }
-      }
       invokeOnClose { ipcMessageProducers.remove(pid) }
     }
   }
@@ -240,7 +228,10 @@ abstract class IpcEndpoint {
                   EndpointLifecycleOpened(
                     localeState.subProtocols,
                     localeState.sessionIds.joinToString("~")
-                  )
+                  ).also {
+                    // 根据 sessionId 来定位 pid 的起点值
+                    accPid.update { localeState.sessionIds.indexOf(localSessionId) }
+                  }
                 )
               }
               sendLifecycleToRemote(nextState)

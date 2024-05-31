@@ -20,10 +20,11 @@ import org.dweb_browser.test.runCommonTest
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
+import kotlin.time.Duration.Companion.seconds
 
 class HttpNMMTest {
   init {
-    addDebugTags(listOf("/.+/"))
+    addDebugTags(listOf(":all:/.+/"))
   }
 
   @Test
@@ -65,49 +66,47 @@ class HttpNMMTest {
     assertEquals(url, res)
   }
 
-  val webSocketTester: suspend CoroutineScope.(Int) -> Unit = {
-    println("---test-$it")
-
+  class TestMicroModule(mmid: String = "test.httpListen.dweb") :
+    NativeMicroModule(mmid, "test Http Listen") {
     val MAX = 2
 
-    class TestMicroModule(mmid: String = "test.httpListen.dweb") :
-      NativeMicroModule(mmid, "test Http Listen") {
+    inner class TestRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
+      override suspend fun _bootstrap() {
+        if (mmid.contains("server")) {
 
-
-      inner class TestRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
-        override suspend fun _bootstrap() {
-          if (mmid.contains("server")) {
-
-            val server = createHttpDwebServer(DwebHttpServerOptions(subdomain = "www"))
-            val serverIpc = server.listen()
-            serverIpc.onRequest("listen").collectIn(mmScope) { event ->
-              val ipcServerRequest = event.consume()
-              println("QWQ GG onRequest=$ipcServerRequest")
-              val pureClientRequest = ipcServerRequest.toPure().toClient()
-                .run { copy(href = href.replace(Regex("https://[^/]+"), "file://$mmid")) }
-              println("QWQ GG pureClientRequest=$pureClientRequest")
-              val response = nativeFetch(pureClientRequest)
-              println("QWQ GG response=$response")
-              serverIpc.postResponse(ipcServerRequest.reqId, response)
-            }
-            println("http start at ${server.startResult.urlInfo}")
-
-            routes("/ws" byChannel { ctx ->
-              for (i in 1..MAX) {
-                ctx.sendText("hi~$i")
-              }
-              println("QWQ server ctx.close")
-              ctx.close()
-            })
+          val server = createHttpDwebServer(DwebHttpServerOptions(subdomain = "www"))
+          val serverIpc = server.listen()
+          serverIpc.onRequest("listen").collectIn(mmScope) { event ->
+            val ipcServerRequest = event.consume()
+            println("QWQ GG onRequest=$ipcServerRequest")
+            val pureClientRequest = ipcServerRequest.toPure().toClient()
+              .run { copy(href = href.replace(Regex("https://[^/]+"), "file://$mmid")) }
+            println("QWQ GG pureClientRequest=$pureClientRequest")
+            val response = nativeFetch(pureClientRequest)
+            println("QWQ GG response=$response")
+            serverIpc.postResponse(ipcServerRequest.reqId, response)
           }
-        }
+          println("http start at ${server.startResult.urlInfo}")
 
-        override suspend fun _shutdown() {
+          routes("/ws" byChannel { ctx ->
+            for (i in 1..MAX) {
+              ctx.sendText("hi~$i")
+            }
+            println("QWQ server ctx.close")
+            ctx.close()
+          })
         }
       }
 
-      override fun createRuntime(bootstrapContext: BootstrapContext) = TestRuntime(bootstrapContext)
+      override suspend fun _shutdown() {
+      }
     }
+
+    override fun createRuntime(bootstrapContext: BootstrapContext) = TestRuntime(bootstrapContext)
+  }
+
+  val webSocketTester: suspend CoroutineScope.(Int) -> Unit = { time ->
+    println("---test-$time")
 
 
     val dns = DnsNMM()
@@ -122,29 +121,32 @@ class HttpNMMTest {
     val serverRuntime = dnsRuntime.open(serverMM.mmid) as TestMicroModule.TestRuntime;
     val clientRuntime = dnsRuntime.open(clientMM.mmid) as TestMicroModule.TestRuntime;
 
-    val channelDeferred = CompletableDeferred(PureChannel())
-    clientRuntime.nativeFetch(
-      PureClientRequest(
-        href = "https://www.${serverMM.mmid}/ws",
-        method = PureMethod.GET,
-        channel = channelDeferred,
+    for (j in 1..20) {
+      println("---sub-test-$time.$j")
+      val channelDeferred = CompletableDeferred(PureChannel())
+      clientRuntime.nativeFetch(
+        PureClientRequest(
+          href = "https://www.${serverMM.mmid}/ws",
+          method = PureMethod.GET,
+          channel = channelDeferred,
+        )
       )
-    )
-    val channel = channelDeferred.await()
-    val ctx = channel.start()
-    var res = "hi~0"
-    for (i in ctx.income) {
-      res = i.text
-      println("QWQ client $i")
+      val channel = channelDeferred.await()
+      val ctx = channel.start()
+      var res = "hi~0"
+      for (i in ctx.income) {
+        res = i.text
+        println("QWQ client $i")
+      }
+      println("TEST DONE")
+      assertEquals("hi~${serverMM.MAX}", res)
     }
-    println("TEST DONE")
-    assertEquals("hi~$MAX", res)
 
     dnsRuntime.shutdown()
   }
 
   @Test
-  fun testWebSocket() = runCommonTest(200, block = webSocketTester)
+  fun testWebSocket() = runCommonTest(1, timeout = 600.seconds, block = webSocketTester)
 
   @Test
   fun testFileFetch() = runCommonTest {

@@ -10,7 +10,6 @@ import { mapHelper } from "@dweb-browser/helper/fun/mapHelper.ts";
 import { setHelper } from "@dweb-browser/helper/fun/setHelper.ts";
 import { CUSTOM_INSPECT, logger } from "@dweb-browser/helper/logger.ts";
 import type { $IpcMessage } from "../ipc-message/IpcMessage.ts";
-import { IPC_MESSAGE_TYPE } from "../ipc-message/internal/IpcMessage.ts";
 import type { Ipc } from "../ipc.ts";
 import type { $EndpointIpcMessage } from "./EndpointIpcMessage.ts";
 import {
@@ -55,12 +54,6 @@ export abstract class IpcEndpoint {
   private ipcMessageProducer(pid: number) {
     const ipcPo = new PromiseOut<Ipc>();
     const producer = new Producer<$IpcMessage>(`ipc-msg/${this.debugId}/${pid}`);
-    const consumer = producer.consumer("watch-fork");
-    consumer.collect((event) => {
-      if (event.data.type === IPC_MESSAGE_TYPE.FORK) {
-        this.accPid = Math.max(event.data.pid - 1, this.accPid);
-      }
-    });
     producer.onClosed(() => {
       this.ipcMessageProducers.delete(pid);
     });
@@ -173,11 +166,12 @@ export abstract class IpcEndpoint {
             const opend = EndpointLifecycle(
               endpointLifecycleOpend(localState.subProtocols, localState.sessionIds.join("~"))
             );
+            // 根据 sessionId 来定位 pid 的起点值
+            this.accPid = localState.sessionIds.indexOf(localSessionId);
+
             this.sendLifecycleToRemote(opend);
             this.console.verbose("emit-locale-lifecycle", opend);
             this.lifecycleLocaleFlow.emit(opend);
-            // 根据 sessionId 来定位 pid 的起点值
-            this.accPid = localState.sessionIds.indexOf(localSessionId);
           }
           break;
         }
@@ -205,6 +199,8 @@ export abstract class IpcEndpoint {
               nextState = EndpointLifecycle(
                 endpointLifecycleOpend(localState.subProtocols, localState.sessionIds.join("~"))
               );
+              // 根据 sessionId 来定位 pid 的起点值
+              this.accPid = localState.sessionIds.indexOf(localSessionId);
             }
             this.sendLifecycleToRemote(nextState);
           }
