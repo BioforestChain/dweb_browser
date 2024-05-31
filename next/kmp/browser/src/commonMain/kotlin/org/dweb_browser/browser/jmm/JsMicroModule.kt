@@ -30,7 +30,6 @@ import org.dweb_browser.helper.printError
 import org.dweb_browser.pure.http.PureClientRequest
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureRequest
-import org.dweb_browser.sys.toast.ext.showToast
 
 val debugJsMM = Debugger("JsMM")
 
@@ -125,9 +124,9 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
 
 
       if (errorMessage !== null) {
-        scopeLaunch(cancelable = true) {
-          showToast(errorMessage)
-        }
+//        scopeLaunch(cancelable = true) {
+//          showToast(errorMessage)
+//        }
         // throw RuntimeException(errorMessage, Exception("$short_name 无法启动"))
       }
 

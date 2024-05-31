@@ -42,7 +42,7 @@ class DesktopViewControllerCore(val viewController: IPureViewController) {
       viewController.addContent {
         val pureViewController = LocalPureViewController.current
         DisposableEffect(pureViewController) {
-          microModule.bindPureViewController(pureViewController)
+          microModule.bindPureViewController(pureViewController, true)
           onDispose {
             microModule.unbindPureViewController()
           }
