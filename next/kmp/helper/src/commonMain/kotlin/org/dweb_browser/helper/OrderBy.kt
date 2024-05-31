@@ -19,7 +19,7 @@ class OrderDeferred(var current: Job? = null) {
     val preJob = current;
     keys.add(key)
     val clearTimeout =
-      debugOrder.timeout(scope, 1000, "queue@${hashCode()}") { "key=$key keys.size=${keys}" }
+      debugOrder.timeout(scope, 1000, "queue@${hashCode()}") { "key=$key keys=${keys}" }
     scope.async(start = CoroutineStart.UNDISPATCHED) {
       preJob?.join();
       clearTimeout()
