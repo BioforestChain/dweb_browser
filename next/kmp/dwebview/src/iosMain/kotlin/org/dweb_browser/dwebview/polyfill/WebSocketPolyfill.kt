@@ -63,6 +63,7 @@ class DWebViewWebSocketMessageHandler(val engine: DWebViewEngine) : NSObject(),
               try {
                 val url = (message.objectAtIndex(2u) as NSString).toKString()
                 val pureChannel = httpFetch.client.websocket(url)
+                debugIosWebSocket("connect", url)
                 pureChannel.start().apply {
                   wsMap[wsId] = this
                   sendOpen(wsId)
@@ -84,10 +85,7 @@ class DWebViewWebSocketMessageHandler(val engine: DWebViewEngine) : NSObject(),
                     ?.let { code -> CloseReason.Codes.byCode(code) } ?: CloseReason.Codes.NORMAL
                 val foundReason =
                   e.message?.let { msg -> Regex("\"(.+)\"").find(msg)?.groupValues?.last() }
-                debugIosWebSocket(
-                  "connect-catch",
-                  e
-                ) {
+                debugIosWebSocket("connect-catch", e) {
                   "wsId=$wsId foundCode=${foundCode} foundReason=${foundReason})"
                 }
                 sendClose(wsId, foundCode.code, foundReason ?: foundCode.name)
@@ -150,22 +148,21 @@ class DWebViewWebSocketMessageHandler(val engine: DWebViewEngine) : NSObject(),
     cmd: String,
     arg1: String? = null,
     arg2: String? = null,
-  ) =
-    engine.mainScope.launch {
-      val arguments: Map<Any?, *> = mapOf(
-        "arg1".toNSString() to arg1?.toNSString(),
-        "arg2".toNSString() to arg2?.toNSString(),
+  ) = engine.mainScope.launch {
+    val arguments: Map<Any?, *> = mapOf(
+      "arg1".toNSString() to arg1?.toNSString(),
+      "arg2".toNSString() to arg2?.toNSString(),
+    )
+    debugIosWebSocket.verbose("sendMessage", "wsId=$wsId cmd=$cmd arg1=$arg1 arg2=$arg2")
+    runCatching {
+      engine.awaitAsyncJavaScript<Unit>(
+        functionBody = "void webkit.messageHandlers.websocket.event.dispatchEvent(new MessageEvent('message',{data:[$wsId,'$cmd',arg1,arg2]}))",
+        arguments = arguments,
       )
-      debugIosWebSocket("sendMessage", "wsId=$wsId cmd=$cmd")
-      runCatching {
-        engine.awaitAsyncJavaScript<Unit>(
-          functionBody = "void webkit.messageHandlers.websocket.event.dispatchEvent(new MessageEvent('message',{data:[$wsId,'$cmd',arg1,arg2]}))",
-          arguments = arguments,
-        )
-      }.onFailure {
-        debugIosWebSocket("dispatchEvent", "wsId=$wsId cmd=$cmd arg1=$arg1 arg2=$arg2", it)
-      }
+    }.onFailure {
+      debugIosWebSocket("dispatchEvent", "wsId=$wsId cmd=$cmd arg1=$arg1 arg2=$arg2", it)
     }
+  }
 
   private suspend fun sendOpen(wsId: Int) = sendMessage(wsId, "open")
   private suspend fun sendError(wsId: Int, e: Throwable) = sendMessage(wsId, "error", e.message)

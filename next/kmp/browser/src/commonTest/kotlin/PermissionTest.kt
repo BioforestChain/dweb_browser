@@ -30,7 +30,7 @@ class PermissionTest {
             permissions: List<PermissionProvider>,
           ): Map<PermissionProvider, AuthorizationRecord> {
             println(
-              "QAQ onRequestPermissions applicantIpc=$applicantIpc permissions=${
+              "QWQ onRequestPermissions applicantIpc=$applicantIpc permissions=${
                 permissions.joinToString(",")
               }"
             )

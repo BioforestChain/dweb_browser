@@ -324,7 +324,6 @@ class Producer<T>(val name: String, parentContext: CoroutineContext) {
       actionQueue.queueAndAwait("add-consumer") {
         consumers.add(this@Consumer)
         started = true
-        println("QAQ consumer starting=${buffers.size}")
         val starting = buffers.toList()
         startingBuffers = starting
         /// 将之前没有被消费的逐个触发，这里不用担心 buffers 被中途追加，emit会同步触发
