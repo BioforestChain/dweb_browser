@@ -163,14 +163,24 @@ function outsideCloseMenu(e: PointerEvent) {
       </template>
 
       <div class="menu ios-ani" v-on-click-outside="outsideCloseMenu">
-        <button v-ripple class="item quit" @click="doQuit" :disabled="!appMetaData.running">
+        <button
+          v-ripple
+          v-if="!['jmm.browser.dweb'].includes(appMetaData.mmid)"
+          class="item quit"
+          @click="doQuit"
+          :disabled="!appMetaData.running"
+        >
           <SvgIcon class="icon" :src="quit_svg" alt="退出" />
           <p class="title">退出</p>
         </button>
 
         <button
           v-ripple
-          v-if="!['web.browser.dweb', 'gui.jmm.browser.dweb'].includes(appMetaData.mmid)"
+          v-if="
+            !['web.browser.dweb', 'jmm.browser.dweb', 'shortcut.sys.dweb', 'permission.sys.dweb'].includes(
+              appMetaData.mmid,
+            )
+          "
           class="item details"
           @click="showAppDetailApp"
         >
@@ -179,7 +189,11 @@ function outsideCloseMenu(e: PointerEvent) {
         </button>
         <button
           v-ripple
-          v-if="!['web.browser.dweb', 'gui.jmm.browser.dweb'].includes(appMetaData.mmid)"
+          v-if="
+            !['web.browser.dweb', 'jmm.browser.dweb', 'shortcut.sys.dweb', 'permission.sys.dweb'].includes(
+              appMetaData.mmid,
+            )
+          "
           class="item delete"
           @click="showUninstall"
         >
