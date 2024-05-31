@@ -45,6 +45,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
     ipc_support_protocols = IpcSupportProtocols(
       cbor = true, protobuf = false, json = true
     )
+    targetType = "jmm"
   }) {
   override fun toString(): String {
     return "JMM($mmid)"
@@ -116,9 +117,9 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
         "bootstrap...", "$mmid/ minTarget:${metadata.minTarget} maxTarget:${metadata.maxTarget}"
       )
       val errorMessage = metadata.canSupportTarget(VERSION, disMatchMinTarget = {
-        return@canSupportTarget "应用($mmid)与容器版本不匹配，当前版本:${VERSION}，应用最低要求:${metadata.minTarget}"
+        "应用($mmid)与容器版本不匹配，当前版本:${VERSION}，应用最低要求:${metadata.minTarget}"
       }, disMatchMaxTarget = {
-        return@canSupportTarget "应用($mmid)与容器版本不匹配，当前版本:${VERSION}，应用最高兼容到:${metadata.maxTarget}"
+        "应用($mmid)与容器版本不匹配，当前版本:${VERSION}，应用最高兼容到:${metadata.maxTarget}"
       })
 
       if (errorMessage !== null) {

@@ -144,7 +144,7 @@ export class Producer<T> {
     this.#doSend(value);
   }
 
-  #waring_ti?: number;
+  #waring_ti?: any;
   #doSend(value: T) {
     const event = this.event(value);
     this.buffers.add(event);

@@ -6,6 +6,9 @@ export interface $WidgetAppData extends $MicroModuleManifest {
    * 当前进程所拥有的窗口的状态
    */
   winStates: $WindowState[];
+  targetType?: string;
+  minTarget?: Int;
+  maxTarget?: Int;
 }
 
 type Int = number;
@@ -117,6 +120,14 @@ export interface $WindowState {
    * > 屏幕与桌面是两个独立的概念
    */
   screenId: Int;
+  /**
+   * 所支持运行时最小版本号
+   */
+  minTarget?: Int;
+  /**
+   * 所支持运行时最大版本号
+   */
+  maxTarget?: Int;
 }
 
 /**

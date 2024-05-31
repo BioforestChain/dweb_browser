@@ -39,6 +39,19 @@ const props = defineProps({
 });
 const appid = computed(() => props.appMetaData.mmid);
 const appname = computed(() => props.appMetaData.short_name ?? props.appMetaData.name);
+
+// @ts-ignore
+const jmmVersion = +navigator.userAgentData.brands.find((item) => item.brand === "jmm.browser.dweb").version;
+const lowMaxTarget = computed(() => {
+  const targetType = props.appMetaData.targetType;
+  if (targetType !== "jmm") {
+    return false;
+  }
+  const minTarget = props.appMetaData.minTarget;
+  const maxTarget = props.appMetaData.maxTarget || minTarget;
+  return maxTarget === undefined || maxTarget < jmmVersion;
+});
+
 const appicon = shallowRef<$AppIconInfo>({ src: "", monochrome: false, maskable: false });
 watch(
   () => props.appMetaData.icons,
@@ -88,8 +101,15 @@ const $menu = {
   },
 };
 
-const doOpen = () =>
+const doOpen = (force: boolean) =>
   useThrottleFn(async () => {
+    if (force === false && lowMaxTarget.value) {
+      if (confirm("应用版本过低，可能无法运行，请先进行升级")) {
+        showAppDetailApp();
+        return;
+      }
+      return;
+    }
     opening.value = true;
     const res = await openApp(appid.value);
     if (!res.ok) {
@@ -144,7 +164,7 @@ function outsideCloseMenu(e: PointerEvent) {
           v-bind="props"
           class="app-wrap ios-ani"
           :class="{ overlayed: isShowOverlay, focused: isShowMenu }"
-          @click="doOpen"
+          @click="doOpen(false)"
           @click.capture="widgetInputBlur"
           @menu="$menu.show"
         >
@@ -163,6 +183,11 @@ function outsideCloseMenu(e: PointerEvent) {
       </template>
 
       <div class="menu ios-ani" v-on-click-outside="outsideCloseMenu">
+        <button v-if="lowMaxTarget" v-ripple class="item quit" @click="doOpen(true)" :disabled="appMetaData.running">
+          <SvgIcon class="icon" :src="quit_svg" alt="强制启动" />
+          <p class="title">强制启动</p>
+        </button>
+
         <button
           v-ripple
           v-if="!['jmm.browser.dweb'].includes(appMetaData.mmid)"
