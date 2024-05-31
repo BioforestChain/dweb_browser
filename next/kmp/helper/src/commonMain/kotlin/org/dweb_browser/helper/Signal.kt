@@ -139,7 +139,6 @@ open class Signal<Args>(autoStart: Boolean = true) : SynchronizedObject() {
   open suspend fun emit(args: Args) {
     if (emitCached != null) {
       synchronized(this) {
-        printDebug("Signal", "cache args", args)
         emitCached!!.add(args)
         if (emitCached!!.size > 20) {
           printError("Signal", "too many emit cache args: ${emitCached!!.size}")
