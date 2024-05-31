@@ -35,7 +35,7 @@ fun BrowserQRCodePanel(modifier: Modifier): Boolean {
         qrCodeScanModel.updateQRCodeStateUI(QRCodeState.Scanning)
       } else {
         viewModel.showToastMessage(BrowserI18nResource.QRCode.permission_denied.text)
-        viewModel.showQRCodePanel = false
+        viewModel.hideAllPanel()
       }
     }
     LocalWindowController.current.navigation.GoBackHandler {
@@ -45,7 +45,7 @@ fun BrowserQRCodePanel(modifier: Modifier): Boolean {
         }
 
         else -> {
-          viewModel.showQRCodePanel = false
+          viewModel.hideAllPanel()
         }
       }
     }
@@ -58,11 +58,11 @@ fun BrowserQRCodePanel(modifier: Modifier): Boolean {
           permissionName = SystemPermissionName.CAMERA
         ).falseAlso {
           viewModel.showToastMessage(BrowserI18nResource.QRCode.permission_denied.text)
-          viewModel.showQRCodePanel = false
+          viewModel.hideAllPanel()
         }
       },
-      onSuccess = { openDeepLink(it); viewModel.showQRCodePanel = false },
-      onCancel = { viewModel.showQRCodePanel = false })
+      onSuccess = { openDeepLink(it); viewModel.hideAllPanel() },
+      onCancel = { viewModel.hideAllPanel() })
   }
   return viewModel.showQRCodePanel
 }

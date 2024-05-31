@@ -1,7 +1,5 @@
 package org.dweb_browser.browser.web.ui
 
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.AddToHomeScreen
@@ -24,25 +22,17 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.PopupProperties
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserDrawResource
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.web.model.LocalBrowserViewModel
 import org.dweb_browser.browser.web.model.page.BrowserWebPage
 import org.dweb_browser.helper.PrivacyUrl
-import org.dweb_browser.helper.platform.LocalPureViewController
-import org.dweb_browser.sys.window.render.LocalWindowController
-import org.dweb_browser.sys.window.render.watchedState
 
 @Composable
 internal fun BrowserMenuPanel(modifier: Modifier = Modifier) {
@@ -140,7 +130,7 @@ internal fun BrowserMenuPanel(modifier: Modifier = Modifier) {
           modifier = Modifier.size(24.dp),
         )
       }, onClick = {
-        viewModel.showQRCodePanel = true
+        viewModel.showQRCodePanelUI()
         hide()
       })
 

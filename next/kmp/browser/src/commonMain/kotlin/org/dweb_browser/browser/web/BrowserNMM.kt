@@ -1,5 +1,6 @@
 package org.dweb_browser.browser.web
 
+import kotlinx.coroutines.delay
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.web.data.AppBrowserTarget
 import org.dweb_browser.browser.web.data.WebLinkStore
@@ -25,10 +26,12 @@ val debugBrowser = Debugger("browser")
  */
 class BrowserNMM : NativeMicroModule("web.browser.dweb", "Web Browser") {
   init {
-    short_name = BrowserI18nResource.browser_short_name.text;
+    short_name = BrowserI18nResource.browser_short_name.text
     dweb_deeplinks = listOf("dweb://search", "dweb://openinbrowser")
     categories = listOf(MICRO_MODULE_CATEGORY.Application, MICRO_MODULE_CATEGORY.Web_Browser)
-    icons = listOf(ImageResource(src = "file:///sys/browser-icons/$mmid.svg", type = "image/svg+xml"))
+    icons = listOf(
+      ImageResource(src = "file:///sys/browser-icons/$mmid.svg", type = "image/svg+xml")
+    )
     display = DisplayMode.Fullscreen
 
     /// 提供图标文件的适配器。注意，这里不需要随着 BrowserNMM bootstrap 来安装，而是始终有效。
@@ -58,23 +61,22 @@ class BrowserNMM : NativeMicroModule("web.browser.dweb", "Web Browser") {
       }
       val openBrowser = defineBooleanResponse {
         debugBrowser("do openinbrowser", request.href)
-        request.queryOrNull("url")?.let { url ->
-          openMainWindow()
-          browserController.tryOpenBrowserPage(url = url,
-            target = request.queryOrNull("target")?.let { AppBrowserTarget.valueOf(it) }
-              ?: AppBrowserTarget.BLANK)
-          true
-        } ?: false
+        val url = request.queryOrNull("url") ?: return@defineBooleanResponse false
+        openMainWindow()
+        val target = request.queryOrNull("target")?.let { AppBrowserTarget.valueOf(it) }
+          ?: AppBrowserTarget.BLANK
+        browserController.tryOpenBrowserPage(url = url, target = target)
+        true
       }
 
-      routes("search" bindDwebDeeplink defineBooleanResponse {
-        debugBrowser("do search", request.href)
-        request.queryOrNull("q")?.let { url ->
+      routes(
+        "search" bindDwebDeeplink defineBooleanResponse {
+          debugBrowser("do search", request.href)
+          val url = request.queryOrNull("q") ?: return@defineBooleanResponse false
           openMainWindow()
           browserController.tryOpenBrowserPage(url = url, target = AppBrowserTarget.SELF)
           true
-        } ?: false
-      },
+        },
         "openinbrowser" bindDwebDeeplink openBrowser,
         "/openinbrowser" bind PureMethod.GET by openBrowser,
         "/uninstall" bind PureMethod.GET by defineBooleanResponse {

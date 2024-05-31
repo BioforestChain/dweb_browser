@@ -158,7 +158,7 @@ class DWebViewEngine internal constructor(
         // 同步销毁
         browser.on(BrowserClosed::class.java) {
           userDataDirectoryInUseMicroModuleSet.remove(remoteMM.mmid)
-          engine.close()
+          engine.browsers().isEmpty().trueAlso { engine.close() }
         }
 //        remoteMM.scopeLaunch(cancelable = true) {
 //          remoteMM.nativeFetch(URLBuilder("file://tray.sys.dweb/registry").apply {
