@@ -116,15 +116,19 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
       debugJsMM(
         "bootstrap...", "$mmid/ minTarget:${metadata.minTarget} maxTarget:${metadata.maxTarget}"
       )
+
       val errorMessage = metadata.canSupportTarget(VERSION, disMatchMinTarget = {
         "应用($mmid)与容器版本不匹配，当前版本:${VERSION}，应用最低要求:${metadata.minTarget}"
       }, disMatchMaxTarget = {
         "应用($mmid)与容器版本不匹配，当前版本:${VERSION}，应用最高兼容到:${metadata.maxTarget}"
       })
 
+
       if (errorMessage !== null) {
-        showToast(errorMessage)
-        throw RuntimeException(errorMessage, Exception("$short_name 无法启动"))
+        scopeLaunch(cancelable = true) {
+          showToast(errorMessage)
+        }
+        // throw RuntimeException(errorMessage, Exception("$short_name 无法启动"))
       }
 
       val jsProcess = createJsProcess(metadata.server.entry, "$mmid-$short_name")

@@ -222,7 +222,13 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
           debugMM("doConnect-start", remoteMM.mmid)
           CompletableDeferred<Ipc>().also { ipcDeferred ->
             scopeLaunch(cancelable = false, start = CoroutineStart.DEFAULT) {
-              val ipc = bootstrapContext.dns.connect(remoteMM.mmid, reason)
+              val ipc = runCatching {
+                bootstrapContext.dns.connect(remoteMM.mmid, reason)
+              }.getOrElse {
+                connectionMap.remove(remoteMM.mmid, ipcDeferred)
+                ipcDeferred.completeExceptionally(it)
+                return@scopeLaunch
+              }
               ipcDeferred.complete(ipc)
               beConnect(ipc, reason)
               ipc.onClosed {
@@ -287,7 +293,12 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
       it.onShutdown {
         runtimeOrNull = null
       }
-      it.bootstrap()
+      runCatching {
+        it.bootstrap()
+      }.getOrElse { err ->
+        runtimeOrNull = null
+        throw err// 继续抛出异常
+      }
     }
   }
 
