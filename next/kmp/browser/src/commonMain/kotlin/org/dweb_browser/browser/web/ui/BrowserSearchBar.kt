@@ -157,7 +157,8 @@ internal fun getMultiImageVector(size: Int) = when (size) {
 }
 
 enum class SearchBoxTheme {
-  Shadow, Border, Focused, Unfocused, ;
+  Shadow, Border, Focused, Unfocused,
+  ;
 }
 
 /// 用于搜索框的外部风格化，提供了阴影风格和边框风格

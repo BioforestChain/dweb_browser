@@ -4,11 +4,11 @@ import io.ktor.utils.io.ByteReadChannel
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.plus
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.permission.AuthorizationStatus
 import org.dweb_browser.helper.NSInputStreamToByteReadChannel
-import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.globalDefaultScope
 import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.platform.ios.SoundRecordManager
 import org.dweb_browser.pure.http.PureStream
@@ -88,8 +88,7 @@ actual class MediaCaptureManage actual constructor() {
     withMainContext {
       val rootController = UIApplication.sharedApplication.keyWindow?.rootViewController
       val videoController = MediaVideoViewController()
-      val coroutineScope =
-        CoroutineScope(CoroutineName("video-stream") + ioAsyncExceptionHandler)
+      val coroutineScope = globalDefaultScope + CoroutineName("video-stream")
       videoController.videoPathBlock = {
         if (it.isNotEmpty()) {
           val url = NSURL.fileURLWithPath(it)
@@ -109,8 +108,7 @@ actual class MediaCaptureManage actual constructor() {
   actual suspend fun recordSound(microModule: MicroModule.Runtime): PureStream? {
     val result = CompletableDeferred<ByteReadChannel>()
     val manager = SoundRecordManager()
-    val coroutineScope =
-      CoroutineScope(CoroutineName("record-stream") + ioAsyncExceptionHandler)
+    val coroutineScope = globalDefaultScope + CoroutineName("record-stream")
     withMainContext {
       val rootController = UIApplication.sharedApplication.keyWindow?.rootViewController
       val recordController = manager.createRecordController()//manager.create()

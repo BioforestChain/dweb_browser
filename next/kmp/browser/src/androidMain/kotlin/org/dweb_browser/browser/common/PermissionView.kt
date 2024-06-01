@@ -36,7 +36,7 @@ fun PermissionSingleView(
   permissionNotAvailableContent: @Composable (String) -> Unit = { p ->
     DeniedView(permission = p) { onPermissionDenied(); }
   },
-  content: @Composable BoxScope.() -> Unit
+  content: @Composable BoxScope.() -> Unit,
 ) {
 
   Box(modifier = modifier ?: Modifier.fillMaxSize()) {
@@ -65,7 +65,7 @@ fun PermissionMultiView(
   permissionNotAvailableContent: @Composable (String) -> Unit = { p ->
     DeniedView(permission = p) { onPermissionDenied() }
   },
-  content: @Composable () -> Unit
+  content: @Composable () -> Unit,
 ) {
   Box(modifier = modifier ?: Modifier.fillMaxSize()) {
     when (multiplePermissionsState.allPermissionsGranted) {

@@ -174,7 +174,7 @@ private fun SettingListItem(
   title: String,
   leadingIcon: @Composable () -> Unit,
   onClick: () -> Unit = {},
-  trailingIcon: (@Composable (() -> Unit))? = null
+  trailingIcon: (@Composable (() -> Unit))? = null,
 ) {
   DropdownMenuItem(
     text = { Text(title) },
@@ -189,7 +189,7 @@ private fun SettingListItem(
   title: String,
   icon: ImageVector,
   onClick: () -> Unit = {},
-  trailingContent: (@Composable (() -> Unit))? = null
+  trailingContent: (@Composable (() -> Unit))? = null,
 ) {
   SettingListItem(
     title = title,
@@ -201,7 +201,7 @@ private fun SettingListItem(
 
 @Composable
 private fun SettingListItem(
-  title: String, icon: ImageVector, onClick: () -> Unit = {}, trailingIcon: ImageVector
+  title: String, icon: ImageVector, onClick: () -> Unit = {}, trailingIcon: ImageVector,
 ) {
   SettingListItem(title, icon, onClick) {
     Icon(trailingIcon, contentDescription = title)

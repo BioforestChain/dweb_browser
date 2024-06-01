@@ -10,7 +10,8 @@ import org.dweb_browser.browser.web.ui.page.BrowserEnginePageRender
 
 class BrowserEnginePage(browserController: BrowserController) : BrowserPage(browserController) {
   companion object {
-    fun isEngineUrl(url: String) = BrowserPageType.Engine.isMatchUrl(url) // isAboutPage(url, "engines")
+    fun isEngineUrl(url: String) =
+      BrowserPageType.Engine.isMatchUrl(url) // isAboutPage(url, "engines")
   }
 
   override val icon

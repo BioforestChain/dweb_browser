@@ -19,7 +19,7 @@ import org.dweb_browser.core.help.types.JmmAppInstallManifest
 
 @Composable
 internal fun JmmAppInstallManifest.Render(
-  onSelectPic: (Int, LazyListState) -> Unit
+  onSelectPic: (Int, LazyListState) -> Unit,
 ) {
   val jmmAppInstallManifest = this
   LazyColumn(

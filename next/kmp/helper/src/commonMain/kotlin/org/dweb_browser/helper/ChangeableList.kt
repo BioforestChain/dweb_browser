@@ -5,8 +5,7 @@ import kotlin.coroutines.CoroutineContext
 
 open class ChangeableListBase<T> : MutableList<T> by ArrayList()
 
-@OptIn(DelicateCoroutinesApi::class)
-class ChangeableList<T>(context: CoroutineContext = ioAsyncExceptionHandler) :
+class ChangeableList<T>(context: CoroutineContext = defaultAsyncExceptionHandler) :
   ChangeableListBase<T>() {
   private val changeable = Changeable(this, context)
   fun setContext(context: CoroutineContext) {

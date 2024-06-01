@@ -4,18 +4,17 @@ import androidx.compose.runtime.mutableStateMapOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.Signal
+import org.dweb_browser.helper.defaultAsyncExceptionHandler
 import org.dweb_browser.helper.getOrDefault
-import org.dweb_browser.helper.ioAsyncExceptionHandler
 import kotlin.coroutines.CoroutineContext
 
 enum class ChangeableType {
-  Add, Remove, Clear, PutAll
-  ;
+  Add, Remove, Clear, PutAll;
 }
 
 class ChangeableMutableMap<K, V>(
   val cMaps: MutableMap<K, V> = mutableStateMapOf(),
-  private val context: CoroutineContext = ioAsyncExceptionHandler
+  private val context: CoroutineContext = defaultAsyncExceptionHandler,
 ) {
   fun putAll(maps: MutableMap<K, V>) {
     cMaps.putAll(maps)

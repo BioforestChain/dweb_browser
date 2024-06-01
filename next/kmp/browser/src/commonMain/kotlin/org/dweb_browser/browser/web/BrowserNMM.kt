@@ -1,6 +1,5 @@
 package org.dweb_browser.browser.web
 
-import kotlinx.coroutines.delay
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.web.data.AppBrowserTarget
 import org.dweb_browser.browser.web.data.WebLinkStore
@@ -90,7 +89,7 @@ class BrowserNMM : NativeMicroModule("web.browser.dweb", "Web Browser") {
      * 用来加载WebLink数据的，并且监听是否添加到桌面操作
      */
     private suspend fun loadWebLinkApps(
-      browserController: BrowserController, webLinkStore: WebLinkStore
+      browserController: BrowserController, webLinkStore: WebLinkStore,
     ) {
       webLinkStore.getAll().map { (_, webLinkManifest) ->
         bootstrapContext.dns.install(WebLinkMicroModule(webLinkManifest))

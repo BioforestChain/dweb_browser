@@ -35,7 +35,7 @@ enum class SearchEngine(
   val displayName: String,
   val searchLinks: List<String>,
   val homeLink: String,
-  private val iconRes: DrawableResource
+  private val iconRes: DrawableResource,
 ) {
   BaiDu(
     host = "baidu.com",

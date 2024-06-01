@@ -36,14 +36,16 @@ expect fun beepAudio()
  * 解析图片中的二维码
  */
 expect fun decoderImage(
-  imageBitmap: ImageBitmap, onSuccess: (QRCodeDecoderResult) -> Unit, onFailure: (Exception) -> Unit
+  imageBitmap: ImageBitmap,
+  onSuccess: (QRCodeDecoderResult) -> Unit,
+  onFailure: (Exception) -> Unit,
 )
 
 /**
  * 计算二维码的位置
  */
 expect fun transformPoint(
-  x: Int, y: Int, srcWidth: Int, srcHeight: Int, destWidth: Int, destHeight: Int, isAlarm: Boolean
+  x: Int, y: Int, srcWidth: Int, srcHeight: Int, destWidth: Int, destHeight: Int, isAlarm: Boolean,
 ): QRCodeDecoderResult.Point
 
 /**

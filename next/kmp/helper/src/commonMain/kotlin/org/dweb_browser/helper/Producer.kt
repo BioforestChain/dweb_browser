@@ -31,6 +31,7 @@ class Producer<T>(val name: String, parentContext: CoroutineContext) {
 
   private val job = SupervisorJob()
   val coroutineContext = parentContext + job
+  val scope by lazy { CoroutineScope(coroutineContext) }
   val debugProducer by lazy { Debugger(this.toString()) }
   val join = job::join
 
@@ -215,7 +216,7 @@ class Producer<T>(val name: String, parentContext: CoroutineContext) {
     if (buffers.size > warningThreshold) {
       warn()
     }
-    CoroutineScope(coroutineContext).launch(start = CoroutineStart.UNDISPATCHED) {
+    scope.launch(start = CoroutineStart.UNDISPATCHED) {
       doEmit(event, consumers)
     }
   }
@@ -291,7 +292,7 @@ class Producer<T>(val name: String, parentContext: CoroutineContext) {
         throw Exception("$this was collected")
       }
     }) { collector: FlowCollector<Event> ->
-      val deferred = CoroutineScope(this@Producer.coroutineContext).async(
+      val deferred = scope.async(
         SupervisorJob(), start = CoroutineStart.UNDISPATCHED
       ) {
         debugProducer.verbose("startCollect") {
@@ -302,7 +303,7 @@ class Producer<T>(val name: String, parentContext: CoroutineContext) {
           }
         }
 
-        val job = input.filterNotNull().collectIn(this@Producer.coroutineContext) { event ->
+        val job = input.filterNotNull().collectIn(scope) { event ->
           // 同一个事件的处理，不做任何阻塞，直接发出
           // 这里包一层launch，目的是确保不阻塞input的循环，从而确保上游event能快速涌入
           event.emitJobs += launch(start = CoroutineStart.UNDISPATCHED) {
@@ -372,7 +373,7 @@ class Producer<T>(val name: String, parentContext: CoroutineContext) {
    * 如果有需要，请使用 closeAndAwait
    */
   private val doClose = Once1 { cause: Throwable? ->
-    actionQueue.queue(coroutineContext, "close") {
+    actionQueue.queue(scope, "close") {
       if (isClosedForSend) {
         return@queue
       }

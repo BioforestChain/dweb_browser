@@ -6,15 +6,12 @@ import org.dweb_browser.helper.SuspendOnce
 import org.jetbrains.compose.resources.InternalResourceApi
 
 object DwebViewIosPolyfill : DwebViewCommonPolyfill() {
-  @OptIn(InternalResourceApi::class)
   internal val prepare = SuspendOnce {
     coroutineScope {
-      launch {
-        WebSocket = readDwebviewPolyfill("websocket.ios.js")
-        Favicon = readDwebviewPolyfill("favicon.ios.js")
-        CloseWatcher = readDwebviewPolyfill("close-watcher.common.js")
-        UserAgentData = readDwebviewPolyfill("user-agent-data.common.js")
-      }
+      launch { WebSocket = readDwebviewPolyfill("websocket.ios.js") }
+      launch { Favicon = readDwebviewPolyfill("favicon.ios.js") }
+      launch { CloseWatcher = readDwebviewPolyfill("close-watcher.common.js") }
+      launch { UserAgentData = readDwebviewPolyfill("user-agent-data.common.js") }
     }
   }
 

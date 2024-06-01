@@ -2,16 +2,15 @@ package org.dweb_browser.core.ipc
 
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.plus
 import org.dweb_browser.core.help.types.MicroModuleManifest
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.SuspendOnce1
 import org.dweb_browser.helper.UUID
-import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.globalDefaultScope
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.pure.http.PureStream
 
@@ -28,8 +27,7 @@ open class IpcPool {
     private fun randomPoolId() = "kotlin-${randomUUID()}"
   }
 
-  val scope =
-    CoroutineScope(CoroutineName("ipc-pool-kotlin") + ioAsyncExceptionHandler + SupervisorJob())
+  val scope = globalDefaultScope + CoroutineName("ipc-pool-kotlin")
 
   /**每一个ipcPool都会绑定一个body流池,只有当不在同一个IpcPool的时候才需要互相拉取*/
   val poolId: UUID = randomPoolId()

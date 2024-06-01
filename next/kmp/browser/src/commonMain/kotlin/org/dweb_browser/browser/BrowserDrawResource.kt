@@ -21,7 +21,7 @@ import org.jetbrains.compose.resources.painterResource
 enum class BrowserDrawResource(
   val urls: List<String>,
   val res: DrawableResource,
-  val monochrome: Boolean = false
+  val monochrome: Boolean = false,
 ) {
   Web("content://drawable/web", Res.drawable.ic_web, true),//
   Star("content://drawable/star", Res.drawable.ic_main_star, true),//

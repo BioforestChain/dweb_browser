@@ -26,7 +26,7 @@ import org.dweb_browser.browser.web.BrowserController
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.capturable.CaptureController
 import org.dweb_browser.helper.compose.SimpleI18nResource
-import org.dweb_browser.helper.globalIoScope
+import org.dweb_browser.helper.globalDefaultScope
 
 sealed class BrowserPage(browserController: BrowserController) {
   abstract fun isUrlMatch(url: String): Boolean
@@ -74,7 +74,7 @@ sealed class BrowserPage(browserController: BrowserController) {
     return true
   }
 
-  fun captureViewInBackground() = globalIoScope.launch {
+  fun captureViewInBackground() = globalDefaultScope.launch {
     val preThumbnail = thumbnail
     onRequestCapture()
     if (preThumbnail == thumbnail) {
@@ -122,29 +122,19 @@ enum class BrowserPageType(
   val url: String, val icon: ImageVector, val title: SimpleI18nResource,
 ) {
   Home(
-    "about:newtab",
-    Icons.TwoTone.Star,
-    BrowserI18nResource.Home.page_title
+    "about:newtab", Icons.TwoTone.Star, BrowserI18nResource.Home.page_title
   ),
   Bookmark(
-    "about:bookmarks",
-    Icons.TwoTone.Bookmarks,
-    BrowserI18nResource.Bookmark.page_title
+    "about:bookmarks", Icons.TwoTone.Bookmarks, BrowserI18nResource.Bookmark.page_title
   ),
   Download(
-    "about:downloads",
-    Icons.TwoTone.Download,
-    BrowserI18nResource.Download.page_title
+    "about:downloads", Icons.TwoTone.Download, BrowserI18nResource.Download.page_title
   ),
   History(
-    "about:history",
-    Icons.TwoTone.History,
-    BrowserI18nResource.History.page_title
+    "about:history", Icons.TwoTone.History, BrowserI18nResource.History.page_title
   ),
   Engine(
-    "about:engines",
-    Icons.TwoTone.PersonSearch,
-    BrowserI18nResource.Engine.page_title
+    "about:engines", Icons.TwoTone.PersonSearch, BrowserI18nResource.Engine.page_title
   ),
   Setting("about:settings", Icons.TwoTone.Settings, BrowserI18nResource.Setting.page_title);
 

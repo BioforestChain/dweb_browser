@@ -59,7 +59,10 @@ fun BrowserViewModalRender(
       // 搜索界面考虑到窗口和全屏问题，显示的问题，需要控制modifier
       if (BrowserPreviewPanel(Modifier.fillMaxSize().zIndex(2f))) return@Box
       if (BrowserSearchPanel(Modifier.fillMaxSize().zIndex(2f))) return@Box
-      if (BrowserQRCodePanel(Modifier.fillMaxSize().zIndex(2f))) return@Box // 扫码隐藏时，动画导致BrowserPagePanel优先显示，盖在了BrowserQRCodePanel上
+      if (BrowserQRCodePanel(
+          Modifier.fillMaxSize().zIndex(2f)
+        )
+      ) return@Box // 扫码隐藏时，动画导致BrowserPagePanel优先显示，盖在了BrowserQRCodePanel上
 
       BrowserPagePanel(Modifier.fillMaxSize(), windowRenderScope.scale)
     }

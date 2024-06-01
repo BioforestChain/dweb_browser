@@ -139,7 +139,7 @@ fun QRCodeScanRender(
 
 @Composable
 private fun DefaultScanningView(
-  flashLightSwitch: FlashLightSwitch, openAlbum: OpenAlbum, onClose: () -> Unit
+  flashLightSwitch: FlashLightSwitch, openAlbum: OpenAlbum, onClose: () -> Unit,
 ) {
   Box(modifier = Modifier.fillMaxSize()) {
     ScannerLine() // 添加扫描线
@@ -252,7 +252,7 @@ private fun BoxScope.CloseIcon(onClick: () -> Unit) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AnalyzeImageView(
-  onBackHandler: () -> Unit, onBarcodeDetected: (QRCodeDecoderResult) -> Unit
+  onBackHandler: () -> Unit, onBarcodeDetected: (QRCodeDecoderResult) -> Unit,
 ) {
   val qrCodeScanModel = LocalQRCodeModel.current
   val imageBitmap = qrCodeScanModel.imageBitmap ?: run {  // 如果为空，直接返回
@@ -309,7 +309,7 @@ fun AnalyzeImageView(
 
 @Composable
 private fun DefaultScanResultView(
-  isAlarm: Boolean, onClose: () -> Unit, onDataCallback: (String) -> Unit
+  isAlarm: Boolean, onClose: () -> Unit, onDataCallback: (String) -> Unit,
 ) {
   val qrCodeScanModel = LocalQRCodeModel.current
   val pointScale = remember { mutableFloatStateOf(1f) }
@@ -405,7 +405,7 @@ private fun DefaultScanResultView(
 }
 
 private fun DrawScope.drawerPoint(
-  point: QRCodeDecoderResult.Point, scale: MutableState<Float>, showPic: Boolean
+  point: QRCodeDecoderResult.Point, scale: MutableState<Float>, showPic: Boolean,
 ) {
   val center = Offset(point.x, point.y)
   val radius = 56f * scale.value

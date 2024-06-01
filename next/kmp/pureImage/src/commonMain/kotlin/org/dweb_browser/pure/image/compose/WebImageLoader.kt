@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.SafeHashMap
 import org.dweb_browser.helper.compose.compositionChainOf
-import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.globalDefaultScope
 import org.dweb_browser.pure.image.OffscreenWebCanvas
 import org.dweb_browser.pure.image.offscreenwebcanvas.FetchHook
 import org.dweb_browser.pure.image.offscreenwebcanvas.WebCanvasContextSession.Companion.buildTask
@@ -30,7 +30,7 @@ class WebImageLoader : PureImageLoader {
     val defaultInstance by lazy { WebImageLoader() }
   }
 
-  private val scope = CoroutineScope(ioAsyncExceptionHandler)
+  private val scope = globalDefaultScope
 
   @Composable
   override fun Load(

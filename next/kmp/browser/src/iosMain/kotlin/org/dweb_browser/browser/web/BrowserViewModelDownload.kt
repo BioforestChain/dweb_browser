@@ -1,14 +1,17 @@
 package org.dweb_browser.browser.web
+
 import org.dweb_browser.browser.download.DownloadStateEvent
 import org.dweb_browser.browser.web.data.BrowserDownloadItem
 import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.helper.OffListener
 import org.dweb_browser.helper.UUID
 
-private var downloadProgressListener = mutableMapOf<UUID, OffListener<DownloadStateEvent>> ()
-class BrowserViewModelDownloadImplementor(browserViewModel: BrowserViewModel) : BrowserViewModelIosImplementor(
-  browserViewModel
-) {
+private var downloadProgressListener = mutableMapOf<UUID, OffListener<DownloadStateEvent>>()
+
+class BrowserViewModelDownloadImplementor(browserViewModel: BrowserViewModel) :
+  BrowserViewModelIosImplementor(
+    browserViewModel
+  ) {
 
   val allDownloadList: List<BrowserDownloadItem>
     get() = downloadCompletedList + downloadingList
@@ -35,7 +38,7 @@ class BrowserViewModelDownloadImplementor(browserViewModel: BrowserViewModel) : 
     }
   }
 
-  fun addDownloadProgressListenerIfNeed(id: UUID, action:(BrowserDownloadItem)->Unit) {
+  fun addDownloadProgressListenerIfNeed(id: UUID, action: (BrowserDownloadItem) -> Unit) {
     downloadingList.firstOrNull {
       it.id == id && !downloadProgressListener.containsKey(id)
     }?.let { downloadItem ->

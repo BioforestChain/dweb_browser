@@ -77,7 +77,7 @@ object BitmapUtils {
   }
 
   private fun rotateBitmap(
-    bitmap: Bitmap, rotationDegrees: Int, flipX: Boolean, flipY: Boolean
+    bitmap: Bitmap, rotationDegrees: Int, flipX: Boolean, flipY: Boolean,
   ): Bitmap? {
     val matrix = Matrix()
 
@@ -96,7 +96,7 @@ object BitmapUtils {
   }
 
   private fun yuv420ThreePlanesToNV21(
-    yuv420888planes: Array<Plane>, width: Int, height: Int
+    yuv420888planes: Array<Plane>, width: Int, height: Int,
   ): ByteBuffer {
     val imageSize = width * height
     val out = ByteArray(imageSize + 2 * (imageSize / 4))
@@ -145,7 +145,7 @@ object BitmapUtils {
   }
 
   private fun unpackPlane(
-    plane: Plane, width: Int, height: Int, out: ByteArray, offset: Int, pixelStride: Int
+    plane: Plane, width: Int, height: Int, out: ByteArray, offset: Int, pixelStride: Int,
   ) {
     val buffer = plane.buffer
     buffer.rewind()
@@ -186,7 +186,7 @@ internal object PointUtils {
     srcHeight: Int,
     destWidth: Int,
     destHeight: Int,
-    isFit: Boolean = false
+    isFit: Boolean = false,
   ): Point {
     return transform(point.x, point.y, srcWidth, srcHeight, destWidth, destHeight, isFit)
   }
@@ -203,7 +203,7 @@ internal object PointUtils {
     srcHeight: Int,
     destWidth: Int,
     destHeight: Int,
-    isFit: Boolean = false
+    isFit: Boolean = false,
   ): Point {
     val widthRatio = destWidth * 1.0f / srcWidth
     val heightRatio = destHeight * 1.0f / srcHeight

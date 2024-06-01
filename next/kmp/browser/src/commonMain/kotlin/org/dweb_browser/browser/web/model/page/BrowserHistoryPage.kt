@@ -15,7 +15,8 @@ import org.dweb_browser.browser.web.ui.page.BrowserHistoryPageRender
 
 class BrowserHistoryPage(browserController: BrowserController) : BrowserPage(browserController) {
   companion object {
-    fun isHistoryUrl(url: String) = BrowserPageType.History.isMatchUrl(url) // isAboutPage(url, "history")
+    fun isHistoryUrl(url: String) =
+      BrowserPageType.History.isMatchUrl(url) // isAboutPage(url, "history")
   }
 
   override val icon

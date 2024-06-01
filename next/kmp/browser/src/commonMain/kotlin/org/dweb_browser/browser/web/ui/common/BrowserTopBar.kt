@@ -24,7 +24,7 @@ fun BrowserTopBar(
   title: String,
   navigationIcon: @Composable () -> Unit = {},
   actions: (@Composable RowScope.() -> Unit) = {},
-  scrollBehavior: TopAppBarScrollBehavior? = null
+  scrollBehavior: TopAppBarScrollBehavior? = null,
 ) {
   CenterAlignedTopAppBar(
     windowInsets = WindowInsets(0, 0, 0, 0), // 顶部
@@ -49,7 +49,7 @@ fun BrowserTopBar(
   enableNavigation: Boolean = true,
   onNavigationBack: () -> Unit = {},
   actions: (@Composable RowScope.() -> Unit) = {},
-  scrollBehavior: TopAppBarScrollBehavior? = null
+  scrollBehavior: TopAppBarScrollBehavior? = null,
 ) {
   CenterAlignedTopAppBar(
     windowInsets = WindowInsets(0, 0, 0, 0), // 顶部

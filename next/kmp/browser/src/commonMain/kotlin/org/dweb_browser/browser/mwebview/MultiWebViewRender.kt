@@ -17,7 +17,6 @@ import org.dweb_browser.browser.common.toWebColorScheme
 import org.dweb_browser.dwebview.Render
 import org.dweb_browser.dwebview.rememberCanGoBack
 import org.dweb_browser.dwebview.rememberCanGoForward
-import org.dweb_browser.sys.window.render.LocalWindowController
 import org.dweb_browser.sys.window.render.watchedIsMaximized
 import org.dweb_browser.sys.window.render.watchedState
 

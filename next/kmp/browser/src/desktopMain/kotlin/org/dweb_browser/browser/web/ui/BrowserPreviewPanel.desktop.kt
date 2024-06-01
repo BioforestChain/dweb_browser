@@ -4,10 +4,10 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 actual fun calculateGridsCell(
-  pageSize: Int, maxWidth: Dp, maxHeight: Dp
+  pageSize: Int, maxWidth: Dp, maxHeight: Dp,
 ): Triple<Int, Dp, Dp> {
   val count = maxWidth * 0.8f / 320.dp
-  val cellCount = if(count < 1) 1 else count.toInt()
+  val cellCount = if (count < 1) 1 else count.toInt()
 
   if (count < 2) {
     val cellWidth = if (pageSize <= 1) {

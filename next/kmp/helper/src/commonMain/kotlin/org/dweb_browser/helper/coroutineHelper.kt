@@ -18,6 +18,9 @@ val globalEmptyScope = CoroutineScope(EmptyCoroutineContext + commonAsyncExcepti
 val defaultAsyncExceptionHandler = Dispatchers.Default + commonAsyncExceptionHandler
 val globalDefaultScope = CoroutineScope(defaultAsyncExceptionHandler)
 
+val defaultUnconfinedExceptionHandler = Dispatchers.Unconfined + commonAsyncExceptionHandler
+val globalUnconfinedScope = CoroutineScope(defaultUnconfinedExceptionHandler)
+
 //val ioAsyncExceptionHandler = Dispatchers.IO + commonAsyncExceptionHandler
 val mainAsyncExceptionHandler = SupervisorJob() + Dispatchers.Main + commonAsyncExceptionHandler
 val globalMainScope = CoroutineScope(mainAsyncExceptionHandler)
@@ -34,9 +37,9 @@ suspend inline fun <T> withMainContextCommon(crossinline block: suspend () -> T)
   }
 }
 
-suspend fun <T> withScope(
+suspend inline fun <T> withScope(
   scope: CoroutineScope,
-  block: suspend CoroutineScope.() -> T,
+  noinline block: suspend CoroutineScope.() -> T,
 ) = withContext(scope.coroutineContext, block)
 
 inline fun CoroutineScope.launchWithMain(

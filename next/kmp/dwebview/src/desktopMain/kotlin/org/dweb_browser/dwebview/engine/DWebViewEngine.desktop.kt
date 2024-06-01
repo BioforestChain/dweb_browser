@@ -57,7 +57,6 @@ import org.dweb_browser.helper.ReasonLock
 import org.dweb_browser.helper.encodeURIComponent
 import org.dweb_browser.helper.envSwitch
 import org.dweb_browser.helper.getOrNull
-import org.dweb_browser.helper.globalDefaultScope
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.platform.toImageBitmap
 import org.dweb_browser.helper.trueAlso
@@ -78,8 +77,6 @@ class DWebViewEngine internal constructor(
   ),
 ) {
   companion object {
-    val sharedEngineScope = globalDefaultScope
-
     // userDataDir同一个engine不能多次调用，jxbrowser会弹出异常无法捕获
     private val userDataDirectoryInUseMicroModuleSet = mutableMapOf<String, okio.Path>()
     private val userDataDirectoryLocks = ReasonLock()

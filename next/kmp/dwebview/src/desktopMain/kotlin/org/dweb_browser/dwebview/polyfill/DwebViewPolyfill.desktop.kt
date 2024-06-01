@@ -7,12 +7,10 @@ import org.dweb_browser.helper.SuspendOnce
 object DwebViewDesktopPolyfill : DwebViewCommonPolyfill() {
   internal val prepare = SuspendOnce {
     coroutineScope {
-      launch {
-        Favicon = readDwebviewPolyfill("favicon.common.js")
-        CloseWatcher = readDwebviewPolyfill("close-watcher.common.js")
-        UserAgentData = readDwebviewPolyfill("user-agent-data.common.js")
-        WebMessagePort = readDwebviewPolyfill("web-message-port.desktop.js")
-      }
+      launch { Favicon = readDwebviewPolyfill("favicon.common.js") }
+      launch { CloseWatcher = readDwebviewPolyfill("close-watcher.common.js") }
+      launch { UserAgentData = readDwebviewPolyfill("user-agent-data.common.js") }
+      launch { WebMessagePort = readDwebviewPolyfill("web-message-port.desktop.js") }
     }
   }
 

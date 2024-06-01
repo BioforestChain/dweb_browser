@@ -142,7 +142,7 @@ class SuspendOnceWithKey(private val coroutineScope: CoroutineScope) {
   suspend fun executeOnce(key: String, action: suspend () -> Unit) = mutex.withLock {
     if (key !in executedKeys) {
       executedKeys.add(key)
-      coroutineScope.launch(ioAsyncExceptionHandler) {
+      coroutineScope.launch {
         action()
         executedKeys.remove(key) // 增加移除操作
       }

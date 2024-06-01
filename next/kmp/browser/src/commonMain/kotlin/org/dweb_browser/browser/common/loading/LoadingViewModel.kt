@@ -3,16 +3,13 @@ package org.dweb_browser.browser.common.loading
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
 import kotlinx.atomicfu.atomic
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.plus
-import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.globalDefaultScope
 import kotlin.native.concurrent.ThreadLocal
 
 @ThreadLocal
 object LoadingViewModel {
-  private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
   private var isRunning: Boolean = false
 
   private val white1 = Color(0xFFCCCCCC)
@@ -75,7 +72,7 @@ object LoadingViewModel {
    */
   fun startTimer() {
     isRunning = true
-    ioAsyncScope.launch {
+    globalDefaultScope.launch {
       while (isRunning) {
         delay(100)
         mCount.value = atomicIndex.addAndGet(1)

@@ -9,7 +9,7 @@ import org.dweb_browser.sys.window.ext.getMainWindow
  * JS 模块安装 的 控制器
  */
 class JmmHistoryController(
-  internal val jmmNMM: JmmNMM.JmmRuntime, private val jmmController: JmmController
+  internal val jmmNMM: JmmNMM.JmmRuntime, private val jmmController: JmmController,
 ) {
   fun getHistoryMetadataMap() = jmmController.historyMetadataMaps
 

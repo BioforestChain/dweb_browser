@@ -22,7 +22,9 @@ actual fun beepAudio() {
 }
 
 actual fun decoderImage(
-  imageBitmap: ImageBitmap, onSuccess: (QRCodeDecoderResult) -> Unit, onFailure: (Exception) -> Unit
+  imageBitmap: ImageBitmap,
+  onSuccess: (QRCodeDecoderResult) -> Unit,
+  onFailure: (Exception) -> Unit,
 ) {
   val inputImage =
     InputImage.fromBitmap(imageBitmap.asAndroidBitmap(), android.view.Surface.ROTATION_0)
@@ -52,7 +54,7 @@ actual fun decoderImage(
 
 
 actual fun transformPoint(
-  x: Int, y: Int, srcWidth: Int, srcHeight: Int, destWidth: Int, destHeight: Int, isAlarm: Boolean
+  x: Int, y: Int, srcWidth: Int, srcHeight: Int, destWidth: Int, destHeight: Int, isAlarm: Boolean,
 ): QRCodeDecoderResult.Point {
   val widthRatio = destWidth * 1.0f / srcWidth
   val heightRatio = destHeight * 1.0f / srcHeight

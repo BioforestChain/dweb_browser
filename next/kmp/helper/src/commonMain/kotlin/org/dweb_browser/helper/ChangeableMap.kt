@@ -7,7 +7,7 @@ import kotlin.coroutines.CoroutineContext
 data class ChangeState<K>(val adds: Set<K>, val updates: Set<K>, val removes: Set<K>);
 
 class ChangeableMap<K, V>(
-  context: CoroutineContext = ioAsyncExceptionHandler,
+  context: CoroutineContext = defaultAsyncExceptionHandler,
   private val origin: MutableMap<K, V> = mutableMapOf(),
 ) :
   MutableMap<K, V> by origin {

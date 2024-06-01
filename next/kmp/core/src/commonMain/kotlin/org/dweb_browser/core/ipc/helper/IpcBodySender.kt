@@ -6,10 +6,10 @@ import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.plus
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.core.ipc.Ipc
@@ -21,7 +21,7 @@ import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.consumeEachArrayRange
 import org.dweb_browser.helper.getOrPut
-import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.globalDefaultScope
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.toBase64ByteArray
 import org.dweb_browser.pure.http.IPureBody
@@ -186,8 +186,7 @@ class IpcBodySender private constructor(
     // 注册数据拉取
     onPulling(streamId)
     debugIpcBodySender("streamAsMeta") { "sender INIT => $streamId => $stream" }
-    val streamAsMetaScope =
-      CoroutineScope(CoroutineName("sender/$stream/$streamId") + ioAsyncExceptionHandler)
+    val streamAsMetaScope = globalDefaultScope + CoroutineName("sender/$stream/$streamId")
     val reader by lazy { stream.getReader("ipcBodySender StreamAsMeta") }
     streamAsMetaScope.launch {
       /**

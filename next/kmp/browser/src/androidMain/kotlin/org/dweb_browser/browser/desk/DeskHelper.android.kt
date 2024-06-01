@@ -29,7 +29,7 @@ const val NewVersionUrl =
 data class LastVersionItem(
   val android: String,
   val version: String,
-  val market: Map<String, Version>
+  val market: Map<String, Version>,
 ) {
   @Serializable
   data class Version(val version: String)

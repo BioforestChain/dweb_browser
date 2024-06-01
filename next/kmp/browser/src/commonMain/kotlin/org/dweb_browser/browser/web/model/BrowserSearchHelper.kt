@@ -17,7 +17,7 @@ suspend fun BrowserNMM.BrowserRuntime.getEngineHomeLink(key: String) =
   nativeFetch("file://search.browser.dweb/homeLink?key=$key").text()
 
 suspend fun BrowserNMM.BrowserRuntime.updateEngineState(
-  searchEngine: SearchEngine, enabled: Boolean
+  searchEngine: SearchEngine, enabled: Boolean,
 ) = nativeFetch(
   PureClientRequest(
     "file://search.browser.dweb/updateEngineState?state=$enabled",

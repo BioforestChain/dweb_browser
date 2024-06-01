@@ -9,7 +9,8 @@ import org.dweb_browser.browser.web.BrowserController
 
 class BrowserSettingPage(browserController: BrowserController) : BrowserPage(browserController) {
   companion object {
-    fun isSettingUrl(url: String) = BrowserPageType.Setting.isMatchUrl(url) // isAboutPage(url, "settings")
+    fun isSettingUrl(url: String) =
+      BrowserPageType.Setting.isMatchUrl(url) // isAboutPage(url, "settings")
   }
 
   override val icon

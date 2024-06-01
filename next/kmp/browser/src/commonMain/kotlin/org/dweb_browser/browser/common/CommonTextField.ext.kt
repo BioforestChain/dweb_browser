@@ -19,5 +19,5 @@ expect fun CommonTextField(
   minLines: Int = 1,
   onKeyboardSearch: KeyboardActionScope.() -> Unit,
   decorationBox: @Composable (innerTextField: @Composable () -> Unit) -> Unit =
-    @Composable { innerTextField -> innerTextField() }
+    @Composable { innerTextField -> innerTextField() },
 )

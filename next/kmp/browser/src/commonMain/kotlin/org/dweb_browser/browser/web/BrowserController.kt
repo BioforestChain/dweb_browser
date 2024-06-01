@@ -23,7 +23,7 @@ import org.dweb_browser.sys.window.core.windowAdapterManager
 import org.dweb_browser.sys.window.ext.getWindow
 
 class BrowserController(
-  private val browserNMM: BrowserNMM.BrowserRuntime, private val webLinkStore: WebLinkStore
+  private val browserNMM: BrowserNMM.BrowserRuntime, private val webLinkStore: WebLinkStore,
 ) {
   private val windowVisibleSignal = Signal<Boolean>()
   val onWindowVisible = windowVisibleSignal.toListener()
@@ -134,7 +134,8 @@ class BrowserController(
   /**
    * 打开BottomSheetModal
    */
-  suspend fun openDownloadDialog(args: WebDownloadArgs) = downloadController.openDownloadDialog(args)
+  suspend fun openDownloadDialog(args: WebDownloadArgs) =
+    downloadController.openDownloadDialog(args)
 
   fun showToastMessage(message: String, position: ToastPositionType? = null) = ioScope.launch {
     browserNMM.showToast(message = message, position = position)

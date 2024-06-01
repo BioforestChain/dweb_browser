@@ -30,8 +30,7 @@ import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.RememberLazy
 import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.getAppContextUnsafe
-import org.dweb_browser.helper.globalIoScope
-import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.globalDefaultScope
 import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.helper.platform.asAndroid
 import org.dweb_browser.helper.randomUUID
@@ -70,17 +69,13 @@ class DWebView private constructor(internal val engine: DWebViewEngine, initUrl:
   companion object {
     val prepare = SuspendOnce {
       coroutineScope {
-        launch(ioAsyncExceptionHandler) {
-          DwebViewAndroidPolyfill.prepare();
-        }
-        launch {
-          DwebViewProxyOverride.prepare()
-        }
+        launch { DwebViewAndroidPolyfill.prepare() }
+        DwebViewProxyOverride.prepare()
       }
     }
 
     init {
-      globalIoScope.launch {
+      globalDefaultScope.launch {
         prepare()
       }
     }

@@ -166,7 +166,7 @@ private fun BrowserDownloadController.DownloadTopToastBar(downloadItem: BrowserD
  */
 @Composable
 private fun DownloadButton(
-  downloadItem: BrowserDownloadItem, showProgress: Boolean = true, onClick: () -> Unit
+  downloadItem: BrowserDownloadItem, showProgress: Boolean = true, onClick: () -> Unit,
 ) {
   val showText = when (downloadItem.state.state) {
     DownloadState.Init, DownloadState.Canceled, DownloadState.Failed -> {

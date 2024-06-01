@@ -17,7 +17,7 @@ object ZipUtil {
 
 
   fun ergodicDecompress(
-    filePath: String, outputDir: String, isDeleted: Boolean = true, mmid: String? = null
+    filePath: String, outputDir: String, isDeleted: Boolean = true, mmid: String? = null,
   ): Boolean {
     debugZip(TAG, "ergodicDecompress->$filePath, $outputDir, $isDeleted, $mmid")
     val file = File(filePath)
@@ -64,7 +64,7 @@ object ZipUtil {
   private fun getEntryName(
     entryName: String,
     mmid: String?,
-    dirName: ((String) -> String)
+    dirName: ((String) -> String),
   ): String {
     return when (entryName) {
       ".", "..", "__MACOSX" -> entryName

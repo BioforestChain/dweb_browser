@@ -56,8 +56,6 @@ import org.dweb_browser.sys.share.ext.postSystemShare
 import org.dweb_browser.sys.toast.ToastPositionType
 import org.dweb_browser.sys.toast.ext.showToast
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
-import org.dweb_browser.sys.window.render.LocalWindowController
-import org.dweb_browser.sys.window.render.inResize
 
 val LocalBrowserViewModel = compositionChainOf<BrowserViewModel>("BrowserModel")
 
@@ -115,6 +113,7 @@ class BrowserViewModel(
   }
 
   var withoutAnimationOnFocus by mutableStateOf(false)
+
   /**
    * 隐藏BrowserPreview，并且将PageState滚动时不适用动画效果
    */

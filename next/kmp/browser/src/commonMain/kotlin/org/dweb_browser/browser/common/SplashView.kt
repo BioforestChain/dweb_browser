@@ -43,7 +43,7 @@ import org.dweb_browser.helper.PrivacyUrl
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun SplashPrivacyDialog(
-  openHome: () -> Unit, openWebView: (String) -> Unit, closeApp: () -> Unit
+  openHome: () -> Unit, openWebView: (String) -> Unit, closeApp: () -> Unit,
 ) {
   val showPrivacyDeny = remember { mutableStateOf(false) }
 
@@ -84,7 +84,7 @@ fun SplashPrivacyDialog(
 
 @Composable
 private fun SplashPrivacyView(
-  openWebView: (String) -> Unit, onConfirm: () -> Unit, onDismiss: () -> Unit
+  openWebView: (String) -> Unit, onConfirm: () -> Unit, onDismiss: () -> Unit,
 ) {
   val privacyContent1 = BrowserI18nResource.privacy_content_1()
   val privacyContent2 = BrowserI18nResource.privacy_content_2()
@@ -135,7 +135,7 @@ private fun SplashPrivacyView(
 
 @Composable
 private fun BottomButton(
-  dismissStr: String, confirmStr: String, onDismiss: () -> Unit, onConfirm: () -> Unit
+  dismissStr: String, confirmStr: String, onDismiss: () -> Unit, onConfirm: () -> Unit,
 ) {
   Row(modifier = Modifier.fillMaxWidth()) {
     Text(text = dismissStr,

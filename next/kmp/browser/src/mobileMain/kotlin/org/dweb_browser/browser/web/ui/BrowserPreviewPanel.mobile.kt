@@ -3,7 +3,7 @@ package org.dweb_browser.browser.web.ui
 import androidx.compose.ui.unit.Dp
 
 actual fun calculateGridsCell(
-  pageSize: Int, maxWidth: Dp, maxHeight: Dp
+  pageSize: Int, maxWidth: Dp, maxHeight: Dp,
 ): Triple<Int, Dp, Dp> {
   val count = if (pageSize <= 1) 1 else 2
 

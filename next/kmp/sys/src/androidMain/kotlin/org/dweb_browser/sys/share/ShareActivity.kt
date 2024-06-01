@@ -4,17 +4,13 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.cancel
+import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.plus
-import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.sys.share.ShareController.Companion.controller
 
 class ShareActivity : ComponentActivity() {
 
   private var isFirstOpen = true
-  private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -28,7 +24,7 @@ class ShareActivity : ComponentActivity() {
           "RESULT_SHARE_CODE",
           "data:${result.data} resultCode:${result.resultCode} code:$code"
         )
-        ioAsyncScope.launch {
+        lifecycleScope.launch {
           controller.getShareSignal.emit(data?.dataString ?: "OK")
         }
       }

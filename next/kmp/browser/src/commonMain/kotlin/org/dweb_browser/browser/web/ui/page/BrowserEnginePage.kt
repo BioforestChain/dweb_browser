@@ -46,7 +46,7 @@ fun BrowserEnginePageRender(enginePage: BrowserEnginePage, modifier: Modifier) {
 @Composable
 private fun BrowserSearchEngineListPage(
   modifier: Modifier = Modifier,
-  enginePage: BrowserEnginePage
+  enginePage: BrowserEnginePage,
 ) {
   val viewModel = LocalBrowserViewModel.current
   val list = viewModel.filterAllEngines

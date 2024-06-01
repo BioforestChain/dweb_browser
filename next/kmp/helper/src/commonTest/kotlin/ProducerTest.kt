@@ -22,7 +22,7 @@ import org.dweb_browser.helper.SafeLinkList
 import org.dweb_browser.helper.addDebugTags
 import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.datetimeNow
-import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.globalDefaultScope
 import org.dweb_browser.helper.now
 import org.dweb_browser.helper.rand
 import org.dweb_browser.test.runCommonTest
@@ -374,7 +374,7 @@ class ProducerTest {
 
   @Test
   fun testCancel() = runCommonTest {
-    val parentScope = CoroutineScope(ioAsyncExceptionHandler)
+    val parentScope = globalDefaultScope
     val producer = Producer<Unit>("test", parentScope)
     val DEALY = 100L
     launch {

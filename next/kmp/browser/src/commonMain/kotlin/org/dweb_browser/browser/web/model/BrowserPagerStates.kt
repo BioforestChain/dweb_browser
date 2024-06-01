@@ -93,7 +93,8 @@ class BrowserPagerStates(val viewModel: BrowserViewModel) {
     } else {
       // 为了确认下当前窗口是否有改变大小
       if (lastWindowRenderScope.width != windowRenderScope.width ||
-        lastWindowRenderScope.height != windowRenderScope.height) {
+        lastWindowRenderScope.height != windowRenderScope.height
+      ) {
         isResizeWin = true
         lastWindowRenderScope = windowRenderScope
       }
