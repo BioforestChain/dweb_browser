@@ -5,10 +5,10 @@ import org.dweb_browser.pure.http.PureResponse
 import java.io.File
 import java.io.InputStream
 
-fun RespondLocalFileContext.returnFile(inputStream: InputStream, size: Long) =
+fun ResponseLocalFileBase.returnFile(inputStream: InputStream, size: Long) =
   returnFile(inputStream.toByteReadChannel(), size)
 
-fun RespondLocalFileContext.returnFile(file: File) =
+fun ResponseLocalFileBase.returnFile(file: File) =
   if (preferenceStream) returnFile(
     file.inputStream(),
     file.length()
@@ -16,7 +16,7 @@ fun RespondLocalFileContext.returnFile(file: File) =
 
 
 fun jvmLoadByteChannelByPath(
-  context: RespondLocalFileContext, root: String, filePath: String
+  context: ResponseLocalFileBase, root: String, filePath: String
 ): PureResponse {
   val fullFilePath = root + File.separator + filePath.trimStart('/')
   return try {

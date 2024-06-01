@@ -7,7 +7,7 @@ import org.dweb_browser.pure.io.SystemFileSystem
 import org.dweb_browser.pure.io.toByteReadChannel
 
 actual fun loadByteChannelByPath(
-  context: RespondLocalFileContext, root: String, filePath: String
+  context: ResponseLocalFileBase, root: String, filePath: String
 ): PureResponse {
   val fullFilePath = root + "/" + filePath.trimStart('/')
   return try {
