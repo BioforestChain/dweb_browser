@@ -93,7 +93,7 @@ open class DesktopController private constructor(
       openDevTools = envSwitch.isEnabled(ENV_SWITCH_KEY.DESKTOP_DEVTOOLS),
       detachedStrategy = DWebViewOptions.DetachedStrategy.Ignore,
       displayCutoutStrategy = DWebViewOptions.DisplayCutoutStrategy.Default,
-      tag = 1,
+      viewId = 1,
       subDataDirName = "desktop"
     );
     val webView = activity.createDwebView(deskNMM, options)

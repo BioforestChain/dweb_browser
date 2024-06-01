@@ -7,6 +7,7 @@ plugins {
   id("target-compose")
   id("target-common")
   id(libs.plugins.androidApplication.get().pluginId)
+  alias(libs.plugins.androidxBaselineprofile)
 }
 
 kotlin {
@@ -56,6 +57,11 @@ android {
     versionName = libs.versions.versionName.get()
 
     ndk.abiFilters.addAll(listOf("arm64-v8a"))
+  }
+  baselineProfile {
+    mergeIntoMain = true
+    saveInSrc = true
+    baselineProfileOutputDir = "."
   }
 
   packaging {
@@ -117,7 +123,7 @@ android {
           }
 
           // 修改apk名
-          if(this is ApkVariantOutputImpl) {
+          if (this is ApkVariantOutputImpl) {
             outputFileName = "$archivesName.apk"
           }
         }
@@ -137,4 +143,8 @@ android {
       isDebuggable = false
     }
   }
+}
+
+dependencies {
+  baselineProfile(projects.androidBenchmark)
 }

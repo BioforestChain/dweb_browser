@@ -272,7 +272,7 @@ class DWebViewEngine internal constructor(
       debugDWebView("loadInitUrl", options.url)
       loadUrl(options.url)
     }
-    options.tag?.also {
+    options.viewId?.also {
       this.id = it
     }
   }
@@ -288,7 +288,6 @@ class DWebViewEngine internal constructor(
   override fun loadUrl(url: String, additionalHttpHeaders: MutableMap<String, String>) {
     val safeUrl = resolveUrl(url)
     super.loadUrl(safeUrl, additionalHttpHeaders)
-    true
   }
 
   fun resolveUrl(url: String): String {

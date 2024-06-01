@@ -262,7 +262,7 @@ class DWebViewEngine(
     scrollView.insetsLayoutMarginsFromSafeArea = true
     scrollView.bounces = false
 
-    options.tag?.toLong()?.also {
+    options.viewId?.toLong()?.also {
       this.tag = it
     }
   }

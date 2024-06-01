@@ -10,6 +10,7 @@ jvmTarget = "17"
 javaVersion = "VERSION_17" # JavaVersion.VERSION_17
 
 agp = "8.3.2"
+androidx-baselineprofile-version = "1.2.4"
 kotlin-version = "1.9.24"
 kotlin-serialization-gradle = "1.9.24"
 androidx-test = "1.5.2"
@@ -235,6 +236,7 @@ qiniu-upload = { group = "com.qiniu", name = "qiniu-android-sdk", version.ref = 
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "roomKtx" }
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
+androidxBaselineprofile = { id = "androidx.baselineprofile", version.ref = "androidx-baselineprofile-version" }
 kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin-version" }
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
 kotlinxMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin-version" }
