@@ -2,15 +2,12 @@ package org.dweb_browser.sys.device
 
 import org.dweb_browser.core.std.file.FileNMM
 import org.dweb_browser.core.std.file.getApplicationRootDir
-import org.dweb_browser.core.std.permission.AuthorizationStatus
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.platform.desktop.os.OsType
-import org.dweb_browser.sys.permission.SystemPermissionAdapterManager
-import org.dweb_browser.sys.permission.SystemPermissionName
 
 actual object DeviceManage {
   private val runtime by lazy { Runtime.getRuntime() }
-  private val deviceUUID by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+  private val initDeviceUUID by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
     runCatching {
       when (OsType.current) {
         OsType.MacOS-> {
@@ -34,8 +31,8 @@ actual object DeviceManage {
     }
   }
 
-  actual fun deviceUUID(uuid: String?): String {
-    return uuid ?: deviceUUID // 由于安卓的改造，这边如果有传入uuid，直接返回即可
+  actual suspend fun deviceUUID(uuid: String?): String {
+    return uuid ?: initDeviceUUID // 由于安卓的改造，这边如果有传入uuid，直接返回即可
   }
 
   actual fun deviceAppVersion(): String {

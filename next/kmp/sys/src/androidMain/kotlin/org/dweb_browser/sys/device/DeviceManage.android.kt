@@ -2,7 +2,7 @@ package org.dweb_browser.sys.device
 
 import android.content.pm.PackageManager
 import android.os.Environment
-import kotlinx.coroutines.runBlocking
+import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.getAppContextUnsafe
 import org.dweb_browser.helper.randomUUID
 import java.io.File
@@ -17,20 +17,18 @@ actual object DeviceManage {
    * 由于使用 MediaStore 存储，卸载apk后分区存储信息会被清空，导致重新安装无法后台直接获取文件内容（权限异常）
    *
    */
-  private val deviceUUID by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-    runBlocking {
-      val uuid = rootFile.list()?.find { file ->
-        file.startsWith(PREFIX)
-      }?.substringAfter(PREFIX)
-      debugDevice("deviceUUID", "uuid=$uuid")
-      uuid ?: randomUUID().also { newUUID ->
-        val mkdirs = File(rootFile, "$PREFIX$newUUID").mkdirs()
-        debugDevice("deviceUUID", "randomUUID=$newUUID, create directory => $mkdirs")
-      }
+  private val initDeviceUUID = SuspendOnce {
+    val uuid = rootFile.list()?.find { file ->
+      file.startsWith(PREFIX)
+    }?.substringAfter(PREFIX)
+    debugDevice("deviceUUID", "uuid=$uuid")
+    uuid ?: randomUUID().also { newUUID ->
+      val mkdirs = File(rootFile, "$PREFIX$newUUID").mkdirs()
+      debugDevice("deviceUUID", "randomUUID=$newUUID, create directory => $mkdirs")
     }
   }
 
-  actual fun deviceUUID(uuid: String?): String {
+  actual suspend fun deviceUUID(uuid: String?): String {
     // 如果传入的uuid不为空，理论上需要创建一个和uuid一样的文件夹。如果uuid为空的话，同样是直接返回 deviceUUID
     return uuid?.also { saveUUID ->
       // 创建之前，把目录下面所有前缀符合的文件夹删除
@@ -41,7 +39,7 @@ actual object DeviceManage {
       }
       val mkdirs = File(rootFile, "$PREFIX$saveUUID").mkdirs()
       debugDevice("deviceUUID", "uuid=$saveUUID, create directory => $mkdirs")
-    } ?: deviceUUID
+    } ?: initDeviceUUID()
   }
 
   actual fun deviceAppVersion(): String {
