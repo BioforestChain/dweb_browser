@@ -5,20 +5,16 @@ import androidx.webkit.WebMessageCompat
 import androidx.webkit.WebMessagePortCompat
 import androidx.webkit.WebViewFeature
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.getOrElse
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.plus
 import org.dweb_browser.core.ipc.helper.DWebMessage
 import org.dweb_browser.core.ipc.helper.IWebMessagePort
 import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.WeakHashMap
-import org.dweb_browser.helper.mainAsyncExceptionHandler
+import org.dweb_browser.helper.globalMainScope
+import org.dweb_browser.helper.withMainContext
 
 @SuppressLint("RestrictedApi")
 class DWebMessagePort private constructor(
@@ -36,12 +32,10 @@ class DWebMessagePort private constructor(
     }
   }
 
-  val scope = engine.ioScope + SupervisorJob()
-
   @SuppressLint("RequiresFeature")
   private val _started = lazy {
     val messageChannel = Channel<DWebMessage>(Channel.UNLIMITED)
-    CoroutineScope(mainAsyncExceptionHandler).launch {
+    globalMainScope.launch {
       port.setWebMessageCallback(object : WebMessagePortCompat.WebMessageCallbackCompat() {
         override fun onMessage(port: WebMessagePortCompat, message: WebMessageCompat?) {
           message ?: return
@@ -97,7 +91,7 @@ class DWebMessagePort private constructor(
         WebMessageCompat(event.text, ports)
       }
     }
-    CoroutineScope(mainAsyncExceptionHandler).launch {
+    withMainContext {
       try {
         port.postMessage(msgCompat)
       } catch (e: java.lang.Exception) {

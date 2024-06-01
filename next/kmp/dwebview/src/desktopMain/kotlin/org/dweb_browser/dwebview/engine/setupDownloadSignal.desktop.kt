@@ -8,7 +8,7 @@ import org.dweb_browser.helper.Signal
 fun setupDownloadSignal(engine: DWebViewEngine) = Signal<WebDownloadArgs>().also { signal ->
   engine.browser.set(StartDownloadCallback::class.java, StartDownloadCallback { params, tell ->
     if (signal.isNotEmpty()) {
-      engine.ioScope.launch {
+      engine.lifecycleScope.launch {
         val downloadTarget = params.download().target()
         signal.emit(
           WebDownloadArgs(

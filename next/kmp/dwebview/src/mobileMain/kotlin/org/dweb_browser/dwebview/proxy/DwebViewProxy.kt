@@ -6,13 +6,14 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.core.http.dwebHttpGatewayServer
 import org.dweb_browser.dwebview.debugDWebView
 import org.dweb_browser.helper.SuspendOnce
+import org.dweb_browser.helper.globalIoScope
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import reverse_proxy.VoidCallback
 
 object DwebViewProxy {
   val prepare = SuspendOnce {
     val proxyAddress = CompletableDeferred<String>()
-    CoroutineScope(ioAsyncExceptionHandler).launch {
+    globalIoScope.launch {
       debugDWebView("reverse_proxy", "starting")
       val backendServerPort = dwebHttpGatewayServer.startServer().toUShort()
 

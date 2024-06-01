@@ -26,6 +26,7 @@ import org.dweb_browser.helper.ENV_SWITCH_KEY
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.envSwitch
+import org.dweb_browser.helper.globalMainScope
 import org.dweb_browser.helper.mapFindNoNull
 import org.dweb_browser.helper.one
 import org.dweb_browser.helper.some
@@ -33,7 +34,7 @@ import org.dweb_browser.helper.someOrNull
 
 @Suppress("DEPRECATION")
 class DWebChromeClient(val engine: DWebViewEngine) : WebChromeClient() {
-  private val scope get() = engine.ioScope
+  private val scope get() = engine.lifecycleScope
   private val extends = Extends<WebChromeClient>()
   fun addWebChromeClient(client: WebChromeClient, config: Extends.Config = Extends.Config()) =
     extends.add(client, config)
@@ -108,7 +109,7 @@ class DWebChromeClient(val engine: DWebViewEngine) : WebChromeClient() {
   ): Boolean {
     val transport = resultMsg.obj;
     if (transport is WebView.WebViewTransport) {
-      engine.mainScope.launch {
+      globalMainScope.launch {
         val dwebView =
           DWebViewEngine(engine.context, engine.remoteMM, DWebViewOptions(), engine.activity)
         transport.webView = dwebView

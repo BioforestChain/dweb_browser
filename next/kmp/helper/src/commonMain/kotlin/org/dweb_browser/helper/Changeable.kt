@@ -7,6 +7,7 @@ import kotlin.coroutines.CoroutineContext
 class Changeable<T>(
   private val self: T, var context: CoroutineContext
 ) {
+  private val scope by lazy { CoroutineScope(context) }
   private val signal = lazy { Signal<T>() }
   private inline fun ifSignal(block: (Signal<T>) -> Unit) {
     if (signal.isInitialized()) {
@@ -21,7 +22,7 @@ class Changeable<T>(
    * 否则如果listener的size不为空，导致执行了runBlockingCatching带来异常，就说明代码有生命周期问题
    */
   fun emitChangeBackground(changes: T = self) = ifSignal { signal ->
-    if (signal.size > 0) CoroutineScope(context).launch {
+    if (signal.size > 0) scope.launch {
       signal.emit(changes)
     }
   }

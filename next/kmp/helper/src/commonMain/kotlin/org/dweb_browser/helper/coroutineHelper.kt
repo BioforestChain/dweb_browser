@@ -13,12 +13,18 @@ val commonAsyncExceptionHandler = CoroutineExceptionHandler { ctx, e ->
   printError(ctx.toString(), e.message, e)
   debugger(ctx, e)
 }
+val globalEmptyScope = CoroutineScope(EmptyCoroutineContext + commonAsyncExceptionHandler)
+
 val defaultAsyncExceptionHandler = Dispatchers.Default + commonAsyncExceptionHandler
+val globalDefaultScope = CoroutineScope(defaultAsyncExceptionHandler)
 
 //val ioAsyncExceptionHandler = Dispatchers.IO + commonAsyncExceptionHandler
 val mainAsyncExceptionHandler = SupervisorJob() + Dispatchers.Main + commonAsyncExceptionHandler
+val globalMainScope = CoroutineScope(mainAsyncExceptionHandler)
+
 expect val ioAsyncExceptionHandler: CoroutineContext
-val emptyScope = CoroutineScope(EmptyCoroutineContext + commonAsyncExceptionHandler)
+private var _ioScope: CoroutineScope? = null
+val globalIoScope get() = _ioScope ?: CoroutineScope(ioAsyncExceptionHandler).also { _ioScope = it }
 expect suspend inline fun <T> withMainContext(crossinline block: suspend () -> T): T
 suspend inline fun <T> withMainContextCommon(crossinline block: suspend () -> T): T {
   return if (Dispatchers.Main.isDispatchNeeded(EmptyCoroutineContext)) {

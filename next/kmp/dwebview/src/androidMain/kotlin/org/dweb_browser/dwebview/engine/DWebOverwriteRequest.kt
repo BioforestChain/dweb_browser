@@ -24,7 +24,7 @@ class DWebOverwriteRequest(val engine: DWebViewEngine) : WebViewClient() {
   override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
     if (!isWebUrlScheme(request.url.scheme ?: "http")) {
       if (request.url.scheme == "dweb") {
-        engine.ioScope.launch {
+        engine.lifecycleScope.launch {
           engine.remoteMM.nativeFetch(request.url.toString())
         }
         return true

@@ -4,7 +4,7 @@ import com.teamdev.jxbrowser.browser.event.BrowserClosed
 import org.dweb_browser.dwebview.DestroyStateSignal
 
 fun setupDestroyStateSignal(engine: DWebViewEngine) =
-  DestroyStateSignal(engine.ioScope).also { stateSignal ->
+  DestroyStateSignal(engine.lifecycleScope).also { stateSignal ->
     engine.browser.on(BrowserClosed::class.java) {
       stateSignal.doDestroy()
     }

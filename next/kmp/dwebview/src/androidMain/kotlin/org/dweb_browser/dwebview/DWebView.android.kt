@@ -16,7 +16,6 @@ import androidx.webkit.WebSettingsCompat.FORCE_DARK_OFF
 import androidx.webkit.WebSettingsCompat.FORCE_DARK_ON
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
@@ -31,6 +30,7 @@ import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.RememberLazy
 import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.getAppContextUnsafe
+import org.dweb_browser.helper.globalIoScope
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.helper.platform.asAndroid
@@ -80,7 +80,7 @@ class DWebView private constructor(internal val engine: DWebViewEngine, initUrl:
     }
 
     init {
-      CoroutineScope(ioAsyncExceptionHandler).launch {
+      globalIoScope.launch {
         prepare()
       }
     }
@@ -94,7 +94,7 @@ class DWebView private constructor(internal val engine: DWebViewEngine, initUrl:
   }
 
   override val remoteMM get() = engine.remoteMM
-  override val ioScope get() = engine.ioScope
+  override val ioScope get() = engine.lifecycleScope
   override suspend fun startLoadUrl(url: String) = withMainContext {
     engine.loadUrl(url)
     url

@@ -166,7 +166,7 @@ class CloseWatcher(val engine: DWebViewEngine) : ICloseWatcher {
 
   private val canCloseMutableFlow = MutableStateFlow(canClose)
   private fun tryEmitCanCloseMutableFlow() {
-    engine.ioScope.launch {
+    engine.lifecycleScope.launch {
       canCloseMutableFlow.emit(canClose)
     }
   }

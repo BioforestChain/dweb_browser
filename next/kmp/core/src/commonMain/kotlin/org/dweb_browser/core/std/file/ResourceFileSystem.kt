@@ -1,7 +1,6 @@
 package org.dweb_browser.core.std.file
 
 import dweb_browser_kmp.core.generated.resources.Res
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -18,13 +17,13 @@ import okio.buffer
 import okio.fakefilesystem.FakeFileSystem
 import org.dweb_browser.helper.SafeHashMap
 import org.dweb_browser.helper.WARNING
-import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.globalIoScope
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 
 @OptIn(ExperimentalResourceApi::class)
 object ResourceFileSystem {
   private val fakeFileSystem = FakeFileSystem()
-  private val fsScope = CoroutineScope(ioAsyncExceptionHandler)
+  private val fsScope = globalIoScope
   private val sinkMap = SafeHashMap<String, Deferred<Boolean>>()
   fun prepare(path: Path) = sinkMap.getOrPut(path.toString()) {
     fsScope.async(start = CoroutineStart.UNDISPATCHED) {

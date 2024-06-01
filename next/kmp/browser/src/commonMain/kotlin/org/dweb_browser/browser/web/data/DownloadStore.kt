@@ -26,6 +26,7 @@ import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.compose.ObservableMutableState
 import org.dweb_browser.helper.compose.SimpleI18nResource
 import org.dweb_browser.helper.datetimeNow
+import org.dweb_browser.helper.globalIoScope
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.randomUUID
 import org.jetbrains.compose.resources.DrawableResource
@@ -86,7 +87,7 @@ data class BrowserDownloadItem(
 ) {
   var state by ObservableMutableState(_state) {
     _state = it
-    CoroutineScope(ioAsyncExceptionHandler).launch {
+    globalIoScope.launch {
       // [iOS] ObservableMutableState: ${it.total} ${it.current}
       stateSignal.emit(it)
     }

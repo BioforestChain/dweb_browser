@@ -31,11 +31,11 @@ import com.teamdev.jxbrowser.ui.Point
 import com.teamdev.jxbrowser.view.swing.BrowserView
 import com.teamdev.jxbrowser.zoom.ZoomLevel
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.plus
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import okio.Path
@@ -57,8 +57,8 @@ import org.dweb_browser.helper.ReasonLock
 import org.dweb_browser.helper.encodeURIComponent
 import org.dweb_browser.helper.envSwitch
 import org.dweb_browser.helper.getOrNull
+import org.dweb_browser.helper.globalDefaultScope
 import org.dweb_browser.helper.ioAsyncExceptionHandler
-import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.platform.toImageBitmap
 import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.platform.desktop.webview.WebviewEngine
@@ -78,6 +78,8 @@ class DWebViewEngine internal constructor(
   ),
 ) {
   companion object {
+    val sharedEngineScope = globalDefaultScope
+
     // userDataDir同一个engine不能多次调用，jxbrowser会弹出异常无法捕获
     private val userDataDirectoryInUseMicroModuleSet = mutableMapOf<String, okio.Path>()
     private val userDataDirectoryLocks = ReasonLock()
@@ -176,10 +178,8 @@ class DWebViewEngine internal constructor(
   val mainFrame get() = browser.mainFrame().get()
   val mainFrameOrNull get() = browser.mainFrame().getOrNull()
   val document get() = mainFrame.document().get()
-  internal val mainScope = CoroutineScope(mainAsyncExceptionHandler + SupervisorJob())
-  internal val ioScope =
-    CoroutineScope(remoteMM.getRuntimeScope().coroutineContext + SupervisorJob())
 
+  internal val lifecycleScope = remoteMM.getRuntimeScope() + SupervisorJob()
 
   /**
    * 执行同步JS代码
@@ -468,18 +468,19 @@ class DWebViewEngine internal constructor(
             "JsConsole/$level",
             "$message <$source:$lineNumber>"
           )
+
           else -> debugDWebView.verbose("JsConsole/$level", "$message <$source:$lineNumber>")
         }
       }
     }
     // 创建menu,初始化就创建，而不是监听的时候
-    val (popupMenu, clickEffect) = browser.createRightClickMenu(ioScope)
+    val (popupMenu, clickEffect) = browser.createRightClickMenu(lifecycleScope)
     // 监听右击事件
     browser.set(ShowContextMenuCallback::class.java, ShowContextMenuCallback { params, tell ->
       // 监听回调的点击事件
       clickEffect.onEach {
         if (!tell.isClosed) tell.close()
-      }.launchIn(ioScope)
+      }.launchIn(lifecycleScope)
       // 创建事件调度线程，所有跟用户界面有关的代码都应当在这个线程上运行
       SwingUtilities.invokeLater {
         // 在指定位置显示上下文菜单。
@@ -489,7 +490,7 @@ class DWebViewEngine internal constructor(
     })
 
     if (options.url.isNotEmpty()) {
-      ioScope.launch {
+      lifecycleScope.launch {
         loadUrl(options.url)
       }
     }

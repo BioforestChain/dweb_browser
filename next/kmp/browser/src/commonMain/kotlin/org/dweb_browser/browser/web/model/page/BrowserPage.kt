@@ -20,14 +20,13 @@ import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.web.BrowserController
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.capturable.CaptureController
 import org.dweb_browser.helper.compose.SimpleI18nResource
-import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.globalIoScope
 
 sealed class BrowserPage(browserController: BrowserController) {
   abstract fun isUrlMatch(url: String): Boolean
@@ -75,7 +74,7 @@ sealed class BrowserPage(browserController: BrowserController) {
     return true
   }
 
-  fun captureViewInBackground() = CoroutineScope(ioAsyncExceptionHandler).launch {
+  fun captureViewInBackground() = globalIoScope.launch {
     val preThumbnail = thumbnail
     onRequestCapture()
     if (preThumbnail == thumbnail) {

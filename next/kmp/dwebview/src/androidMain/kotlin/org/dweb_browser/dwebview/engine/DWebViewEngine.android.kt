@@ -18,10 +18,10 @@ import androidx.webkit.UserAgentMetadata.BrandVersion
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.plus
 import kotlinx.serialization.encodeToString
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.dwebview.DWebViewOptions
@@ -38,7 +38,6 @@ import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.JsonLoose
 import org.dweb_browser.helper.Remover
 import org.dweb_browser.helper.Signal
-import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.toAndroidRect
 import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.sys.device.DeviceManage
@@ -96,7 +95,7 @@ class DWebViewEngine internal constructor(
    * 该参数的存在，是用来做一些跟交互式界面相关的行为的，交互式界面需要有一个上下文，比如文件选择、权限申请等行为。
    * 我们将这些功能都写到了BaseActivity上，如果没有提供该对象，则相关的功能将会被禁用
    */
-  var activity: org.dweb_browser.helper.android.BaseActivity? = null
+  var activity: org.dweb_browser.helper.android.BaseActivity? = null,
 ) : WebView(context) {
 
 
@@ -106,15 +105,13 @@ class DWebViewEngine internal constructor(
     }
   }
 
-  internal val mainScope = CoroutineScope(mainAsyncExceptionHandler + SupervisorJob())
-  internal val ioScope =
-    CoroutineScope(remoteMM.getRuntimeScope().coroutineContext + SupervisorJob())
+  internal val lifecycleScope = remoteMM.getRuntimeScope() + SupervisorJob()
 
   suspend fun waitReady() {
     dWebViewClient.onReady.awaitOnce()
   }
 
-  private val evaluator = WebViewEvaluator(this, ioScope)
+  private val evaluator = WebViewEvaluator(this, lifecycleScope)
   suspend fun getUrlInMain() = withMainContext { url }
 
 
@@ -215,8 +212,8 @@ class DWebViewEngine internal constructor(
   }
 
   internal val dWebChromeClient = DWebChromeClient(this).also {
-    it.addWebChromeClient(DWebFileChooser(remoteMM, ioScope, activity))
-    it.addWebChromeClient(DWebPermissionRequest(remoteMM, ioScope))
+    it.addWebChromeClient(DWebFileChooser(remoteMM, lifecycleScope, activity))
+    it.addWebChromeClient(DWebPermissionRequest(remoteMM, lifecycleScope))
     it.addWebChromeClient(DWebCustomView(activity))
   }
 
@@ -319,7 +316,7 @@ class DWebViewEngine internal constructor(
       )
     }
 
-  val destroyStateSignal = DestroyStateSignal(ioScope)
+  val destroyStateSignal = DestroyStateSignal(lifecycleScope)
   override fun destroy() {
     if (destroyStateSignal.doDestroy()) {
       if (!isAttachedToWindow) {
@@ -339,7 +336,7 @@ class DWebViewEngine internal constructor(
   }
 
   override fun onAttachedToWindow() {
-    ioScope.launch {
+    lifecycleScope.launch {
       attachedStateFlow.emit(true)
     }
     super.onAttachedToWindow()

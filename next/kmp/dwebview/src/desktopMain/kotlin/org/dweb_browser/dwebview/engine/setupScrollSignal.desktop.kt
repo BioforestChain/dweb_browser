@@ -15,7 +15,7 @@ fun setupScrollSignal(engine: DWebViewEngine) = Signal<ScrollChangeEvent>().also
         executeJavaScript("((document.scrollingElement?.scrollLeft||0)*devicePixelRatio)+','+((document.scrollingElement?.scrollTop||0)*devicePixelRatio)",
           Consumer<String> { result ->
             val (scrollX, scrollY) = result.split(',').map { it.toInt() }
-            engine.ioScope.launch {
+            engine.lifecycleScope.launch {
               signal.emit(ScrollChangeEvent(scrollX, scrollY))
             }
           })
