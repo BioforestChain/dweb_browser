@@ -36,6 +36,11 @@
 
 
 # Retain generic signatures of TypeToken and its subclasses with R8 version 3.0 and higher.
+# 一定要保持 values 函数，否则编译出来代码是异常的，目前第三方代码还没有完全改成 Enum.entries，还是有在用 Enum.values
+-keepclassmembers enum * {
+    public static **[] values();
+    public static ** valueOf(java.lang.String);
+}
 
 -dontwarn java.lang.management.ManagementFactory
 -dontwarn java.lang.management.RuntimeMXBean

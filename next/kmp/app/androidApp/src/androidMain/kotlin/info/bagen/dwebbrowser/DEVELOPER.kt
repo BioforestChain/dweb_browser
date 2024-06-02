@@ -17,7 +17,7 @@ enum class DEVELOPER(val deviceName: String) {
 
 
   companion object {
-    fun find(deviceName: String) = values().find { it.deviceName == deviceName } ?: ANONYMOUS
+    fun find(deviceName: String) = entries.find { it.deviceName == deviceName } ?: ANONYMOUS
     val CURRENT = find(Build.MANUFACTURER + "/" + Build.MODEL)
 
     init {
