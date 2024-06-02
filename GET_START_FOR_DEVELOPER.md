@@ -60,6 +60,9 @@
 
 1. 打包应用：
    - 如果是 Desktop 用户，和编译运行时一样，需要在 Configurations 中的打包命令中配置 -Djxbrowser.license.key
+   - 如果是 Android 开发者，请先运行 `./gradlew androidApp:generateBaselineProfile`，它会在 `next/kmp/app/androidApp/src/androidMain/generated/baselineProfiles` 文件夹下生成一些 txt 文件，这些文件可以在之后打包的时候，辅助应用打包出启动更快，运行性能更接近 JIT 优化完成的版本
+     > 不过因为目前使用了一些 WebView 的技术，这对于自动化测试时选择元素是有一些阻碍，所以只能用了固定的坐标来做测试。
+     > 目前这个测试使用了 Pixel4 设备的屏幕大小。
 
 ## 小提示 Tips
 

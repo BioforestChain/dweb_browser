@@ -62,7 +62,9 @@ android {
     mergeIntoMain = true
     dexLayoutOptimization = true
     saveInSrc = true
-    baselineProfileOutputDir = "."
+    baselineProfileOutputDir = "generated/baselineProfiles"
+    // ./gradlew androidApp:generateBaselineProfile
+    automaticGenerationDuringBuild = false
   }
 
   packaging {

@@ -49,6 +49,7 @@ plaoc/cli/bin
 # rust
 next/kmp/ziplib/uniffi/target
 next/kmp/app/androidApp/key.properties
+next/kmp/app/androidApp/src/androidMain/generated/baselineProfiles
 
 # deno task build 的编译输出 (dnt)
 /npm
