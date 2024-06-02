@@ -60,6 +60,7 @@ android {
   }
   baselineProfile {
     mergeIntoMain = true
+    dexLayoutOptimization = true
     saveInSrc = true
     baselineProfileOutputDir = "."
   }
@@ -146,5 +147,7 @@ android {
 }
 
 dependencies {
-  baselineProfile(projects.androidBenchmark)
+  implementation(libs.androidx.profile.installer)
+//  baselineProfile(projects.androidBenchmark)
+  baselineProfile(projects.androidBaselineprofile)
 }

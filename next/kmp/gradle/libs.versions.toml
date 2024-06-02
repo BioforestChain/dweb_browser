@@ -43,7 +43,6 @@ cryptography-version = "0.3.0"
 
 accompanist = "0.34.0"
 google-material = "1.12.0"
-data-gson = "2.10.1"
 coil-version = "3.0.0-alpha06"
 camera-version = "1.4.0-beta01"
 camera-barcode = "17.2.0"
