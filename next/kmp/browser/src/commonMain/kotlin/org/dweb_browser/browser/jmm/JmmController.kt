@@ -131,8 +131,7 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
     }
     // 如果bundle_url没有host
     if (!manifest.bundle_url.isWebUrl()) {
-      manifest.bundle_url =
-        baseURI.replace("metadata.json", manifest.bundle_url.substring(2))
+      manifest.bundle_url = baseURI.replace("metadata.json", manifest.bundle_url.substring(2))
     }
     return manifest.createJmmMetadata(metadataUrl)
   }
@@ -174,7 +173,12 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
     val oldManifest = oldMetadata.metadata
     val newManifest = newMetadata.metadata
     // 比安装高，直接进行替换
-    if (newManifest.version.isGreaterThan(oldManifest.version)) {
+    if (newManifest.version.isGreaterThan(oldManifest.version) ||
+      // 如果老版本处于内核非兼容的状态，
+      (!oldManifest.canSupportTarget(JsMicroModule.VERSION)
+          // 而新版本有做了兼容内核的升级，那么也属于版本升级
+          && newManifest.canSupportTarget(JsMicroModule.VERSION))
+    ) {
       oldVersion = oldMetadata.metadata.version
       // session 处理
       val session = getAppSessionInfo(newManifest.id, oldMetadata.metadata.version)
