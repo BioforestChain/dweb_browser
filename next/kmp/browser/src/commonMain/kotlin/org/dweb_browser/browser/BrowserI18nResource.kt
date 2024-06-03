@@ -168,6 +168,8 @@ object BrowserI18nResource {
     val install_info_age = SimpleI18nResource(Language.ZH to "年龄", Language.EN to "Age")
     val install_info_copyright =
       SimpleI18nResource(Language.ZH to "版权", Language.EN to "CopyRight")
+    val install_info_homepage =
+      SimpleI18nResource(Language.ZH to "主页", Language.EN to "Home Page")
     val history_details = SimpleI18nResource(Language.ZH to "详情", Language.EN to "Details")
     val history_uninstall =
       SimpleI18nResource(Language.ZH to "卸载", Language.EN to "Uninstall")
