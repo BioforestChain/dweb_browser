@@ -28,7 +28,8 @@ class JmmHistoryController(
   suspend fun buttonClick(historyMetadata: JmmMetadata) {
     when (historyMetadata.state.state) {
       JmmStatus.INSTALLED -> {
-        jmmNMM.bootstrapContext.dns.open(historyMetadata.metadata.id)
+        // jmmNMM.bootstrapContext.dns.open(historyMetadata.metadata.id)
+        jmmController.openApp(historyMetadata.metadata.id)
       }
 
       JmmStatus.Paused -> {

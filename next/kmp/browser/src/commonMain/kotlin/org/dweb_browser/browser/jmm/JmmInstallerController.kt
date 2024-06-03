@@ -68,7 +68,8 @@ class JmmInstallerController(
   /**安装完成后打开app*/
   suspend fun openApp() {
     closeSelf() // 打开应用之前，需要关闭当前安装界面，否则在原生窗口的层级切换会出现问题
-    jmmNMM.bootstrapContext.dns.open(installMetadata.metadata.id)
+    // jmmNMM.bootstrapContext.dns.open(installMetadata.metadata.id)
+    jmmController.openApp(installMetadata.metadata.id)
   }
 
   // 关闭原来的app

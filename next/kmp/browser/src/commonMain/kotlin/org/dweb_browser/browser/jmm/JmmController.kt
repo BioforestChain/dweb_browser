@@ -378,6 +378,10 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
     historyMetadata.downloadTask?.id?.let { taskId -> jmmNMM.removeDownload(taskId) }
     jmmStore.deleteMetadata(historyMetadata.metadata.id)
   }
+
+  suspend fun openApp(mmid: MMID) {
+    jmmNMM.nativeFetch("file://desk.browser.dweb/openAppOrActivate?app_id=$mmid")
+  }
 }
 
 @Serializable
