@@ -8,5 +8,5 @@ object WindowsSystemInfo {
   val isWin11 = osName == "Windows 11"
 
   // win10 和 win11 的 os.version 都是 10.0
-  val isWindows10OrGreater = osVersion.toFloat() >= 10
+//  val isWindows10OrGreater = osVersion.toFloat() >= 10 java.lang.NumberFormatException: multiple points
 }
