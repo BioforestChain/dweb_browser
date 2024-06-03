@@ -55,8 +55,7 @@ export class Server_api extends HttpServer {
       if (pathname === "/query") {
         const mmid = event.searchParams.get("mmid") as $MMID;
         const data = await this.jsRuntime.dns.query(mmid);
-        const res = data ? true : null;
-        return Response.json(res);
+        return Response.json(data);
       }
       return Response.json(false);
     };
