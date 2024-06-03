@@ -10,15 +10,11 @@
     "http://qiniu-waterbang.waterbang.top/bfm/defi.png",
     "http://qiniu-waterbang.waterbang.top/bfm/nft.png"
   ],
-  "author": [
-    "bfs",
-    "bfs@bfs.com"
-  ],
+  "minTarget": 3,
+  "maxTarget": 3,
+  "author": ["bfs", "bfs@bfs.com"],
   "version": "1.3.0",
-  "categories": [
-    "application",
-    "kids-games"
-  ],
+  "categories": ["application", "kids-games"],
   "change_log": "这是更新日志",
   "homepage_url": "https://dweb.waterbang.top",
   "display": "standalone"

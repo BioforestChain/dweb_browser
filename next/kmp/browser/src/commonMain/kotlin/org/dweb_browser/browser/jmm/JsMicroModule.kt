@@ -123,13 +123,6 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
       })
 
 
-      if (errorMessage !== null) {
-//        scopeLaunch(cancelable = true) {
-//          showToast(errorMessage)
-//        }
-        // throw RuntimeException(errorMessage, Exception("$short_name 无法启动"))
-      }
-
       val jsProcess = createJsProcess(metadata.server.entry, "$mmid-$short_name")
       jsProcessDeferred.complete(jsProcess)
       jsProcess.defineEsm(esmLoader)

@@ -259,7 +259,7 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
     // 删除缓存的zip文件
     jmmNMM.removeFile(downloadTask.filepath)
     // 更新完需要删除旧的app版本，这里如果有保存用户数据需要一起移动过去，但是现在这里是单纯的删除
-    if (oldVersion != null) {
+    if (oldVersion != null && oldVersion != metadata.metadata.version) {
       jmmNMM.removeFile("/data/apps/${metadata.metadata.id}-${oldVersion}")
       oldVersion = null
     }
