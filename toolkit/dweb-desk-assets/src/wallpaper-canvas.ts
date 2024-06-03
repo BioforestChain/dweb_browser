@@ -321,7 +321,7 @@ export class DwebWallpaperElement extends HTMLElement {
 
         @media (prefers-color-scheme: dark) {
           :host {
-            background-color: #999;
+            background-color: #ccc;
           }
         }
       </style>
