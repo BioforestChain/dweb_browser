@@ -74,7 +74,7 @@ class BaselineProfileGenerator {
       Thread.sleep(100)
       device.pressKeyCodes("dwebdapp.com".map { it.toKeyCode() }.toIntArray())
       device.pressEnter()
-      Thread.sleep(5000)
+      Thread.sleep(8000)
 
       /// install app
       device.click(700, 970)
@@ -84,7 +84,7 @@ class BaselineProfileGenerator {
       device.waitForIdle()
       Thread.sleep(800)
       device.click(560, 2170)
-      Thread.sleep(8000)
+      Thread.sleep(12000)
       device.waitForIdle()
 
       /// open app

@@ -56,7 +56,15 @@ android {
     versionCode = libs.versions.versionCode.get().toInt()
     versionName = libs.versions.versionName.get()
 
-    ndk.abiFilters.addAll(listOf("arm64-v8a"))
+    val needarmeabiv7a = false
+    val needx86 = false
+
+    ndk.abiFilters.addAll(
+      listOf("arm64-v8a").let {
+        if (needarmeabiv7a) it + "armeabi-v7a" else it
+      }.let {
+        if (needx86) it + "x86_64" else it
+      })
   }
   baselineProfile {
     mergeIntoMain = true
