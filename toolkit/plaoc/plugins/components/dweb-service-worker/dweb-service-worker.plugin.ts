@@ -4,6 +4,7 @@ import { buildSearch } from "../../helper/request.ts";
 import { BasePlugin } from "../base/base.plugin.ts";
 import type { $BuildRequestWithBaseInit } from "../base/base.type.ts";
 import type { $DwebRquestInit } from "./dweb-service-worker.type.ts";
+import type { $CommonAppManifest } from "@dweb-browser/core/types.ts";
 
 /**这是app之间通信的组件 */
 export class DwebServiceWorkerPlugin extends BasePlugin {
@@ -59,12 +60,14 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
    * @returns boolean
    */
   @bindThis
-  has(mmid: $MMID) {
-    return this.fetchApi(`/query`, {
+  async has(mmid: $MMID) {
+    const res = await this.fetchApi(`/query`, {
       search: {
         mmid: mmid,
       },
-    }).boolean();
+    });
+    
+    return res.status === 200;
   }
 
   /**
