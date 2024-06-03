@@ -76,6 +76,16 @@ android {
       excludes += "/META-INF/DEPENDENCIES"
     }
   }
+
+  // 获取本地配置文件
+  val props = Properties().also { properties ->
+    rootDir.resolve("local.properties").apply {
+      if (exists()) {
+        inputStream().use { properties.load(it) }
+      }
+    }
+  }
+
   signingConfigs {
     create("release") {
 // 使用 keytool -printcert -jarfile app_release.apk 直接打印 jar 签名信息
@@ -95,6 +105,13 @@ android {
       storeFile = keystoreProperties["storeFile"]?.let { file(it.toString()) }
       storePassword = keystoreProperties["storePassword"]?.toString()
     }
+    getByName("debug") {
+      // 获取本地配置的 key 信息，storeFile 是将jks文件放在当前 build.gradle.kts 同级目录
+      props.getProperty("keyAlias", null)?.let { keyAlias = it }
+      props.getProperty("keyPassword", null)?.let { keyPassword = it }
+      props.getProperty("storeFile", null)?.let { storeFile = file(it) }
+      props.getProperty("storePassword", null)?.let { storePassword = it }
+    }
   }
 
   android.buildFeatures.buildConfig = true
@@ -108,34 +125,11 @@ android {
       resValue("string", "appName", "Dweb Browser")
       applicationIdSuffix = null
       versionNameSuffix = null
-
-      // 修改release打包应用名
-      val archivesName = "DwebBrowser_v${libs.versions.versionName.get()}"
-      applicationVariants.all {
-        outputs.all {
-          // 修改bundle名
-          val bundleFinalizeTaskName = StringBuilder("sign").run {
-            append(flavorName.capitalizeAsciiOnly())
-            append(buildType.name.capitalizeAsciiOnly())
-            append("Bundle")
-            toString()
-          }
-          tasks.named(bundleFinalizeTaskName, FinalizeBundleTask::class) {
-            val file = finalBundleFile.asFile.get()
-            finalBundleFile.set(File(file.parentFile, "$archivesName.aab"))
-          }
-
-          // 修改apk名
-          if (this is ApkVariantOutputImpl) {
-            outputFileName = "$archivesName.apk"
-          }
-        }
-      }
     }
-    debug {
+    getByName("debug") {
       signingConfig = signingConfigs.getByName("debug")
-      val userName = System.getProperty("user.name")
-        .replace("[^a-zA-Z0-9]".toRegex(), "").lowercase()
+      val userName = props.getProperty("user.name", null)
+        ?: System.getProperty("user.name").replace("[^a-zA-Z0-9]".toRegex(), "").lowercase()
       resValue("string", "appName", "Kmp-$userName")
       applicationIdSuffix = ".kmp.$userName"
       versionNameSuffix = null // ".kmp.$userName"
@@ -144,6 +138,35 @@ android {
       initWith(buildTypes.getByName("release"))
       matchingFallbacks += listOf("release")
       isDebuggable = false
+    }
+  }
+
+  applicationVariants.all {
+    outputs.all {
+      val archivesName = "DwebBrowser_v${libs.versions.versionName.get()}"
+      if (buildType.name == "release") {
+        // 修改bundle名
+        val bundleFinalizeTaskName = StringBuilder("sign").run {
+          append(flavorName.capitalizeAsciiOnly())
+          append(buildType.name.capitalizeAsciiOnly())
+          append("Bundle")
+          toString()
+        }
+        tasks.named(bundleFinalizeTaskName, FinalizeBundleTask::class) {
+          val file = finalBundleFile.asFile.get()
+          finalBundleFile.set(File(file.parentFile, "$archivesName.aab"))
+        }
+
+        // 修改apk名
+        if (this is ApkVariantOutputImpl) {
+          outputFileName = "$archivesName.apk"
+        }
+      } else {
+        // 修改apk名
+        if (this is ApkVariantOutputImpl) {
+          outputFileName = "${archivesName}_debug.apk"
+        }
+      }
     }
   }
 }
