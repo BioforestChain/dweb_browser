@@ -16,7 +16,7 @@ export const searchWidget = {
   scopedStyle: css`
     form {
       display: flex;
-      justify-content: center;
+      justify-content: flex-end;
     }
     input {
       margin-inline-end: 0.5em;
