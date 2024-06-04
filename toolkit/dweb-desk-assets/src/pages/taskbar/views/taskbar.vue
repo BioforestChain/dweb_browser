@@ -13,14 +13,15 @@ import {
   quitApp,
   resizeTaskbar,
   toggleDesktopView,
+  toggleDragging,
   toggleMaximize,
   vibrateHeavyClick,
   watchTaskbarAppInfo,
   watchTaskBarStatus,
-  toggleDragging,
 } from "@/provider/api.ts";
 import { $TaskBarState, $WidgetAppData } from "@/types/app.type.ts";
 import { computed, onMounted, onUnmounted, ref, ShallowRef, shallowRef, triggerRef } from "vue";
+import { DwebWallpaperElement } from "../../../wallpaper-canvas.ts";
 import x_circle_svg from "/taskbar/x-circle.svg";
 
 /** 打开桌面面板 */
@@ -105,6 +106,10 @@ const doExit = async (metaData: $WidgetAppData) => {
 };
 
 const showMenuOverlayRef = ref<$WidgetAppData["mmid"] | undefined>();
+const showClose = (mmid: string) => {
+  // jmm 不给关闭，因为它是keepBackground 的
+  return showMenuOverlayRef.value === mmid;
+};
 // 响应右键点击事件
 const tryOpenMenuOverlay = (metaData: $WidgetAppData) => {
   vibrateHeavyClick();
@@ -159,7 +164,6 @@ const showAppIcons = computed(() => {
   }
   return appRefList.value;
 });
-import { DwebWallpaperElement } from "../../../wallpaper-canvas.ts";
 
 const wallpaperEle = ref<DwebWallpaperElement>();
 
@@ -272,7 +276,7 @@ const gapSize = "8px";
               @dblclick="doToggleMaximize(appIcon.metaData)"
             >
               <button
-                v-if="showMenuOverlayRef === appIcon.metaData.mmid"
+                v-if="showClose(appIcon.metaData.mmid)"
                 class="exit-button"
                 @blur="tryCloseMenuOverlay(appIcon.metaData)"
                 @click="doExit(appIcon.metaData)"
@@ -358,9 +362,7 @@ const gapSize = "8px";
     pointer-events: none;
   }
 }
-.taskbar.drag-end {
-  // transition-duration: 0.8s;
-}
+
 @media (prefers-color-scheme: dark) {
   .taskbar.frame {
     background-color: rgb(0 0 0 / 40%);
@@ -376,8 +378,7 @@ const gapSize = "8px";
   padding: v-bind(gapSize);
   padding-bottom: calc(v-bind(gapSize) * 0.62);
 }
-.app-icon-list-empty {
-}
+
 .my-divider {
   width: 90%;
   height: 1px;

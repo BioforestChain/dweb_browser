@@ -393,13 +393,6 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
           val resBinary = Res.readBytes("files/browser-desk${filePath}")
           ResponseLocalFileBase(filePath, false).returnFile(resBinary)
         }
-//        val url = if (pathName.startsWith(API_PREFIX)) {
-//          val internalUri = pathName.substring(API_PREFIX.length)
-//          "file://$internalUri"
-//        } else {
-//          "file:///sys/browser-desk${pathName}"
-//        }
-//        val pureResponse = nativeFetch(ipcServerRequest.toPure().toClient().copy(href = url))
         serverIpc.postResponse(ipcServerRequest.reqId, pureResponse)
       }
   }

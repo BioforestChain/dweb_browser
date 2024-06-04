@@ -39,6 +39,7 @@ const props = defineProps({
 });
 const appid = computed(() => props.appMetaData.mmid);
 const appname = computed(() => props.appMetaData.short_name ?? props.appMetaData.name);
+const isJmm = computed(() => props.appMetaData.targetType === "jmm");
 
 // @ts-ignore
 const jmmVersion = +navigator.userAgentData.brands.find((item) => item.brand === "jmm.browser.dweb").version;
@@ -188,40 +189,16 @@ function outsideCloseMenu(e: PointerEvent) {
           <p class="title">强制启动</p>
         </button>
 
-        <button
-          v-ripple
-          v-if="!['jmm.browser.dweb'].includes(appMetaData.mmid)"
-          class="item quit"
-          @click="doQuit"
-          :disabled="!appMetaData.running"
-        >
+        <button v-ripple class="item quit" @click="doQuit" :disabled="!appMetaData.running">
           <SvgIcon class="icon" :src="quit_svg" alt="退出" />
           <p class="title">退出</p>
         </button>
 
-        <button
-          v-ripple
-          v-if="
-            !['web.browser.dweb', 'jmm.browser.dweb', 'shortcut.sys.dweb', 'permission.sys.dweb'].includes(
-              appMetaData.mmid,
-            )
-          "
-          class="item details"
-          @click="showAppDetailApp"
-        >
+        <button v-ripple v-if="isJmm" class="item details" @click="showAppDetailApp">
           <SvgIcon class="icon" :src="details_svg" alt="详情" />
           <p class="title">详情</p>
         </button>
-        <button
-          v-ripple
-          v-if="
-            !['web.browser.dweb', 'jmm.browser.dweb', 'shortcut.sys.dweb', 'permission.sys.dweb'].includes(
-              appMetaData.mmid,
-            )
-          "
-          class="item delete"
-          @click="showUninstall"
-        >
+        <button v-ripple v-if="isJmm" class="item delete" @click="showUninstall">
           <SvgIcon class="icon" :src="delete_svg" alt="卸载" />
           <p class="title">卸载</p>
         </button>

@@ -57,7 +57,7 @@ const updateApps = async () => {
       appInfoWatcher.return();
     });
     for await (const list of appInfoWatcher) {
-      // console.log("desktop app=>", list);
+      console.log("desktop app=>", list);
       appList = list;
       updateLayoutInfoList(widgetList, appList);
     }
@@ -157,19 +157,19 @@ onUnmounted(() => {
 const getGridStyle = (item: $LayoutInfo) => {
   let style = {
     gridColumn: "",
-    gridRow: ""
+    gridRow: "",
   };
 
   // 根据 item 的宽度和高度处理布局
-  if(item.xywh.w === "100%") {
+  if (item.xywh.w === "100%") {
     style.gridColumn = "1 / -1"; // 占据所有列，实现独占一行
   } else {
     style.gridColumn = `span ${item.xywh.w}`;
     style.gridRow = `span ${item.xywh.h}`;
   }
-  
+
   return style;
-}
+};
 
 const rowTemplateSize = (height: number) => {
   if (layoutInfoListRef.value.length == 1) return 119;

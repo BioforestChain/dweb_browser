@@ -113,6 +113,6 @@ class RunningApp(
 
 
   suspend fun closeMainWindow(force: Boolean = false) {
-    tryOpenMainWindow().closeRoot(force)
+    mainWin?.closeRoot(force)
   }
 }
