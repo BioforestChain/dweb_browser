@@ -129,6 +129,7 @@ class MultiWebViewController(
       viewItem.webView.destroy()
     }
     webViewList.clear()
+    win.closeRoot()
     return true
   }
 

@@ -4,7 +4,6 @@ import { buildSearch } from "../../helper/request.ts";
 import { BasePlugin } from "../base/base.plugin.ts";
 import type { $BuildRequestWithBaseInit } from "../base/base.type.ts";
 import type { $DwebRquestInit } from "./dweb-service-worker.type.ts";
-import type { $CommonAppManifest } from "@dweb-browser/core/types.ts";
 
 /**这是app之间通信的组件 */
 export class DwebServiceWorkerPlugin extends BasePlugin {
@@ -37,7 +36,7 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
   }
 
   /**
-   * 关闭自己的前端
+   * 关闭app
    * @returns boolean
    */
   @bindThis
@@ -46,7 +45,7 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
   }
 
   /**
-   * 重启自己的后前端
+   * 重启app
    * @returns boolean
    */
   @bindThis
@@ -66,7 +65,7 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
         mmid: mmid,
       },
     });
-    
+
     return res.status === 200;
   }
 
