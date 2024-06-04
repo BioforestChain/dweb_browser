@@ -116,7 +116,7 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
   suspend fun fetchJmmMetadata(metadataUrl: String): JmmMetadata {
     val response = jmmNMM.nativeFetch(metadataUrl)
     if (!response.isOk) {
-      throw ResponseException(code = response.status)
+      throw ResponseException(code = response.status, "fail to fetch metadataUrl: $metadataUrl")
     }
     val manifest = response.json<JmmAppInstallManifest>()
 

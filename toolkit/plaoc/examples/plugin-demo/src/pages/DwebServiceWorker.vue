@@ -52,8 +52,9 @@ dwebServiceWorker.addEventListener("fetch", async (event) => {
   return event.respondWith(`Not match any routes:${url.pathname}`);
 });
 
-const updateApp = () => {
-  window.open("dweb://install?url=http://172.30.95.93:8000/metadata.json");
+const loading = ref(false);
+const updateApp = async () => {
+  window.open(`dweb://install?url=http://172.30.95.93:8000/metadata.json`);
 };
 
 const title = "Dweb Service Worker";
@@ -77,7 +78,7 @@ const title = "Dweb Service Worker";
       <div class="justify-end card-actions btn-group">
         <button class="inline-block rounded-full btn btn-accent" @click="close">close</button>
         <button class="inline-block rounded-full btn btn-accent" @click="restart">restart</button>
-        <button class="inline-block rounded-full btn btn-accent" @click="updateApp">查看升级</button>
+        <v-btn class="inline-block rounded-full btn btn-accent" :loading="loading" @click="updateApp">查看升级</v-btn>
       </div>
     </article>
   </div>

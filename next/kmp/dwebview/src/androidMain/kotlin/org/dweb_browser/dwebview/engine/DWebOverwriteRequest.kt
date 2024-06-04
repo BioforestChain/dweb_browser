@@ -52,6 +52,7 @@ class DWebOverwriteRequest(val engine: DWebViewEngine) : WebViewClient() {
     view: WebView, request: WebResourceRequest,
   ): WebResourceResponse? {
     // 转发请求
+    // TODO 可以使用开关来进行拦截
     if (request.method == "GET" && ((request.url.host?.endsWith(".dweb") == true) || (request.url.scheme == "dweb"))) {
       val response = runBlocking(ioAsyncExceptionHandler) {
         engine.remoteMM.nativeFetch(

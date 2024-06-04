@@ -2,6 +2,8 @@ package org.dweb_browser.core.http.router
 
 import io.ktor.http.HttpStatusCode
 import org.dweb_browser.core.ipc.Ipc
+import org.dweb_browser.helper.WARNING
+import org.dweb_browser.pure.http.IPureBody
 import org.dweb_browser.pure.http.IPureChannel
 import org.dweb_browser.pure.http.PureChannelContext
 import org.dweb_browser.pure.http.PureResponse
@@ -61,9 +63,12 @@ class HttpHandlerChain(val handler: HttpHandler) {
           ms.toList().iterator(), handler
         )
       }
+    } catch (e: ResponseException) {
+      WARNING("HttpHandlerChain=> $e")
+     return PureResponse(e.code, body = IPureBody.from(e.message))
     } catch (ex: Exception) {
-      debugRoute("Error", ctx.request.href, ex)
-      PureResponse(
+      debugRoute("HttpHandlerChain-Error", ctx.request.href, ex)
+      return PureResponse(
         HttpStatusCode.InternalServerError, body = PureStringBody(
           """
             <p>${ctx.request.href}</p>

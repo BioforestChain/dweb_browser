@@ -36,7 +36,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import okio.Path
 import org.dweb_browser.core.module.MicroModule
@@ -57,7 +56,6 @@ import org.dweb_browser.helper.ReasonLock
 import org.dweb_browser.helper.encodeURIComponent
 import org.dweb_browser.helper.envSwitch
 import org.dweb_browser.helper.getOrNull
-import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.platform.toImageBitmap
 import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.platform.desktop.webview.WebviewEngine
@@ -71,9 +69,7 @@ class DWebViewEngine internal constructor(
   val dataDir: Path,
   val options: DWebViewOptions,
   internal val browser: Browser = createMainBrowser(
-    remoteMM,
-    dataDir,
-    options.enabledOffScreenRender
+    remoteMM, dataDir, options.enabledOffScreenRender
   ),
 ) {
   companion object {
@@ -104,17 +100,18 @@ class DWebViewEngine internal constructor(
       val optionsBuilder: EngineOptions.Builder.() -> Unit = {
         // 拦截dweb deeplink
         addScheme(Scheme.of("dweb")) { params ->
-          val pureResponse = runBlocking(ioAsyncExceptionHandler) {
-            remoteMM.nativeFetch(params.urlRequest().url())
+          remoteMM.scopeLaunch(cancelable = true) {
+            val res = remoteMM.nativeFetch(params.urlRequest().url())
+            // TODO eval navigator.dweb.dispatchEvent(new CustomEvent("dweb-deeplink"))
           }
-          val jobBuilder =
-            UrlRequestJob.Options.newBuilder(HttpStatus.of(pureResponse.status.value))
-          pureResponse.headers.forEach { (key, value) ->
-            jobBuilder.addHttpHeader(HttpHeader.of(key, value))
-          }
-          jobBuilder.addHttpHeader(HttpHeader.of("Access-Control-Allow-Origin", "*"))
-          val job = params.newUrlRequestJob(jobBuilder.build())
-          job.write(pureResponse.status.description.toByteArray())
+
+          val job = params.newUrlRequestJob(
+            UrlRequestJob.Options //
+              .newBuilder(HttpStatus.OK) //
+              .addHttpHeader(HttpHeader.of("Access-Control-Allow-Origin", "*")) //
+              .build() //
+          )
+          job.write(byteArrayOf())
           job.complete()
           Response.intercept(job)
         }
@@ -200,25 +197,24 @@ class DWebViewEngine internal constructor(
             return "0" + String(e);
           }
         })();
-      """.trimIndent(),
-        Consumer<JsPromise> { jsObject ->
-          if (jsObject == null) {
-            deferred.completeExceptionally(JsException("maybe SyntaxError"))
-            return@Consumer
+      """.trimIndent(), Consumer<JsPromise> { jsObject ->
+        if (jsObject == null) {
+          deferred.completeExceptionally(JsException("maybe SyntaxError"))
+          return@Consumer
+        }
+        runCatching {
+          jsObject.then {
+            runCatching {
+              val result = it[0] as String
+              if (result.first() == '1') {
+                deferred.complete(result.substring(1))
+              } else {
+                deferred.completeExceptionally(JsException(result.substring(1)))
+              }
+            }.getOrElse { deferred.completeExceptionally(it) }
           }
-          runCatching {
-            jsObject.then {
-              runCatching {
-                val result = it[0] as String
-                if (result.first() == '1') {
-                  deferred.complete(result.substring(1))
-                } else {
-                  deferred.completeExceptionally(JsException(result.substring(1)))
-                }
-              }.getOrElse { deferred.completeExceptionally(it) }
-            }
-          }.getOrElse { deferred.completeExceptionally(it) }
-        })
+        }.getOrElse { deferred.completeExceptionally(it) }
+      })
     }.getOrElse {
       deferred.completeExceptionally(it)
     }
@@ -462,8 +458,7 @@ class DWebViewEngine internal constructor(
           )
 
           ConsoleMessageLevel.WARNING -> debugDWebView(
-            "JsConsole/$level",
-            "$message <$source:$lineNumber>"
+            "JsConsole/$level", "$message <$source:$lineNumber>"
           )
 
           else -> debugDWebView.verbose("JsConsole/$level", "$message <$source:$lineNumber>")

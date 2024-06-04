@@ -240,9 +240,13 @@ export class JsProcessMicroModuleRuntime extends MicroModuleRuntime {
       const request = reqEvent.consumeFilter((request) => {
         const req_url = request.parsed_url;
         return (
-          req_url.protocol === "file:" &&
-          req_url.hostname.endsWith(".dweb") &&
-          req_url.hostname !== this.fetchIpc.locale.mmid
+          (req_url.protocol === "file:" &&
+            req_url.hostname.endsWith(".dweb") &&
+            // 这里不消费自己的 request，只做代理
+            req_url.hostname !== this.fetchIpc.locale.mmid) ||
+          (req_url.protocol === "dweb:" &&
+            // 这里不消费自己的 deeplink，只做代理
+            this.dweb_deeplinks.some((dp) => request.url.startsWith(dp)) === false)
         );
       });
       if (request) {
@@ -385,7 +389,8 @@ export class JsProcessMicroModuleRuntime extends MicroModuleRuntime {
   }
 
   protected override async _getIpcForFetch(url: URL) {
-    if (url.hostname === "") {
+    // 支持 file:///
+    if (url.protocol === "file:" && url.hostname === "") {
       return await this.fileIpcPo;
     }
     return await super._getIpcForFetch(url);

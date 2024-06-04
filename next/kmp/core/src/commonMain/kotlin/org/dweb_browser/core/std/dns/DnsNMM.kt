@@ -27,6 +27,7 @@ import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.connectMicroModules
 import org.dweb_browser.core.std.boot.BootNMM
 import org.dweb_browser.core.std.dns.ext.createActivity
+import org.dweb_browser.core.std.permission.ext.doRequestWithPermissions
 import org.dweb_browser.core.std.permission.permissionAdapterManager
 import org.dweb_browser.helper.ChangeState
 import org.dweb_browser.helper.ChangeableMap
@@ -284,7 +285,9 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
             fromMM.bootstrapContext.dns.queryDeeplink(request.href) ?: return@append PureResponse(
               HttpStatusCode.BadGateway, body = PureStringBody(request.href)
             )
-          return@append fromMM.connect(toMM.mmid, request).request(request)
+          return@append fromMM.connect(toMM.mmid, request).let { ipc ->
+            fromMM.doRequestWithPermissions { ipc.request(request) }
+          }
         } else null
       }.removeWhen(this.mmScope)
 

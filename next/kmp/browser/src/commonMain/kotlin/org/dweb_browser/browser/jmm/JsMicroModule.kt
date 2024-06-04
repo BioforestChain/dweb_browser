@@ -1,5 +1,6 @@
 package org.dweb_browser.browser.jmm
 
+import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.serialization.Serializable
@@ -33,6 +34,8 @@ import org.dweb_browser.helper.printError
 import org.dweb_browser.pure.http.PureClientRequest
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureRequest
+import org.dweb_browser.pure.http.PureResponse
+import org.dweb_browser.pure.http.PureStringBody
 import org.dweb_browser.sys.toast.ext.showToast
 
 val debugJsMM = Debugger("JsMM")
@@ -96,6 +99,20 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
         }
       }
 
+      nativeFetchAdaptersManager.append(order = 1) { fromMM, request ->
+        if (fromMM is JmmRuntime && request.href.startsWith("dweb:")) {
+          val toMM =
+            fromMM.bootstrapContext.dns.queryDeeplink(request.href) ?: return@append PureResponse(
+              HttpStatusCode.BadGateway, body = PureStringBody(request.href)
+            )
+
+          if (!nativeToWhiteList.contains(toMM.mmid)) {
+            val fromIpc = fromMM.getJsProcess().fetchIpc
+            fromMM.debugMM("proxy-deeplink") { "${fromMM.mmid} => ${request.href}" }
+            fromMM.doRequestWithPermissions { fromIpc.request(request) }
+          } else null
+        } else null
+      }
       nativeFetchAdaptersManager.append(order = 2) { fromMM, request ->
         if (fromMM is JmmRuntime && request.url.protocol.name == "file" && request.url.host.endsWith(
             ".dweb"
@@ -105,7 +122,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
           val mmid = fromMM.bootstrapContext.dns.query(mpid)?.mmid ?: return@append null
           if (!nativeToWhiteList.contains(mmid)) {
             val fromIpc = fromMM.getJsProcess().fetchIpc
-            fromMM.debugMM("jmm-fetchIpc-proxy") { "${fromMM.mmid} => ${request.href}" }
+            fromMM.debugMM("roxy-request") { "${fromMM.mmid} => ${request.href}" }
             fromMM.doRequestWithPermissions { fromIpc.request(request) }
             null
           } else null
@@ -304,8 +321,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
     internal suspend fun ipcBridge(fromMM: MicroModule) = getJsProcess().createIpc(fromMM.manifest)
 
     override suspend fun _shutdown() {
-      debugJsMM("shutdown $mmid") {
-      }
+      debugJsMM("shutdown $mmid") {}
       val jsProcess = getJsProcess()
       jsProcess.codeIpc.close()
     }
