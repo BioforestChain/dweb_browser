@@ -56,8 +56,10 @@ android {
     versionCode = libs.versions.versionCode.get().toInt()
     versionName = libs.versions.versionName.get()
 
-    val needarmeabiv7a = false
-    val needx86 = false
+    val localProperties = localProperties()
+
+    val needarmeabiv7a = localProperties.getProperty("android.build.ndk.armeabi-v7a")?.toBoolean() ?: false
+    val needx86 = localProperties.getProperty("android.build.ndk.x86_64")?.toBoolean() ?: false
 
     ndk.abiFilters.addAll(
       listOf("arm64-v8a").let {

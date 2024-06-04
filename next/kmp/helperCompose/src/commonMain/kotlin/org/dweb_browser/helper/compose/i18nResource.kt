@@ -88,4 +88,16 @@ class OneParamI18nResource<T>(
 
   @Composable
   operator fun invoke(param: T) = i18nResource(this, param)
+
+
+  /**
+   * 这个值不能用于Compose界面显示，目前仅用于实时获取的文本。
+   */
+  fun text(param: T) =
+    (valuesMap[Language.current] ?: i18nValues.firstOrNull()?.second)?.invoke(param) ?: "Undefined"
+
+  fun text(buildParam: T.() -> Unit) = paramBuilder().let {
+    it.buildParam()
+    text(it)
+  }
 }
