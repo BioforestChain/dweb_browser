@@ -57,7 +57,7 @@ const updateApps = async () => {
       appInfoWatcher.return();
     });
     for await (const list of appInfoWatcher) {
-      console.log("desktop app=>", list);
+      // console.log("desktop app=>", list);
       appList = list;
       updateLayoutInfoList(widgetList, appList);
     }

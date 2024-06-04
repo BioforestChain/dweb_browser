@@ -107,7 +107,6 @@ const doExit = async (metaData: $WidgetAppData) => {
 
 const showMenuOverlayRef = ref<$WidgetAppData["mmid"] | undefined>();
 const showClose = (mmid: string) => {
-  // jmm 不给关闭，因为它是keepBackground 的
   return showMenuOverlayRef.value === mmid;
 };
 // 响应右键点击事件
@@ -176,7 +175,7 @@ onMounted(() => {
         const { blockSize: _height, inlineSize: _width } = entry.borderBoxSize[0];
         const height = Math.ceil(_height);
         const width = Math.ceil(_width);
-        console.log("ResizeObserver", height, width);
+        // console.log("ResizeObserver", height, width);
         await resizeTaskbar(width, height);
       }
     });
