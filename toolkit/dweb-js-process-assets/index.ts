@@ -188,6 +188,9 @@ export class JsProcessMicroModule extends MicroModule {
         async search(category: MICRO_MODULE_CATEGORY): Promise<core.$MicroModuleManifest[]> {
           const response = await dnsRequest(`/search?category=${category}`);
           const manifest = await response.body.text();
+          if (manifest === "") {
+            return [];
+          }
           return JSON.parse(manifest);
         },
         async open(mmid: `${string}.dweb`): Promise<boolean> {
@@ -232,6 +235,22 @@ export class JsProcessMicroModuleRuntime extends MicroModuleRuntime {
     return await super.connect(mmid, auto_start);
   }
   protected override _bootstrap() {
+    // 自动转发来自 fetch-ipc 的请求
+    this.fetchIpc.onRequest("proxy-request").collect(async (reqEvent) => {
+      const request = reqEvent.consumeFilter((request) => {
+        const req_url = request.parsed_url;
+        return (
+          req_url.protocol === "file:" &&
+          req_url.hostname.endsWith(".dweb") &&
+          req_url.hostname !== this.fetchIpc.locale.mmid
+        );
+      });
+      if (request) {
+        console.log("proxy-request", request);
+        const response = await this.nativeFetch(request.toPureClientRequest());
+        return request.ipc.postMessage(await core.IpcResponse.fromResponse(request.reqId, response, request.ipc));
+      }
+    });
     const _beConnect = async (event: MessageEvent) => {
       const data = event.data;
       if (Array.isArray(data) === false) {

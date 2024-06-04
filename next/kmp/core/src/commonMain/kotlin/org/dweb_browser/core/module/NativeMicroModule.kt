@@ -25,9 +25,8 @@ import org.dweb_browser.core.ipc.helper.ReadableStreamOut
 import org.dweb_browser.core.ipc.kotlinIpcPool
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.dns.nativeFetchAdaptersManager
-import org.dweb_browser.core.std.permission.AuthorizationStatus
 import org.dweb_browser.core.std.permission.PermissionProvider
-import org.dweb_browser.core.std.permission.ext.requestPermissions
+import org.dweb_browser.core.std.permission.ext.doRequestWithPermissions
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.listen
@@ -85,18 +84,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
           }.getOrElse {
             return@append PureResponse(HttpStatusCode.BadGateway, body = PureStringBody(url))
           }
-          var response = fromIpc.request(request)
-          if (response.status == HttpStatusCode.Unauthorized) {
-            val permissions = response.body.toPureString()
-            /// 尝试进行授权请求
-            if (fromMM.requestPermissions(permissions.split(",").toList()).all {
-                it.value == AuthorizationStatus.GRANTED
-              }) {
-              /// 如果授权完全成功，那么重新进行请求
-              response = fromIpc.request(request)
-            }
-          }
-          response
+          fromMM.doRequestWithPermissions { fromIpc.request(request) }
         } else null
       }
     }

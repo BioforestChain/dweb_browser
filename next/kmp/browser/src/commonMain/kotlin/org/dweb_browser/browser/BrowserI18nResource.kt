@@ -1,5 +1,6 @@
 package org.dweb_browser.browser
 
+import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.helper.compose.Language
 import org.dweb_browser.helper.compose.OneParamI18nResource
 import org.dweb_browser.helper.compose.SimpleI18nResource
@@ -178,6 +179,24 @@ object BrowserI18nResource {
         Language.ZH to "网址已失效，请前往官网进行安装！",
         Language.EN to "The website is no longer valid, please go to the official website to install!"
       )
+  }
+
+  object JsMM {
+    class CanNotSupportTargetParams(
+      var appName: String= "",
+      var appId: MMID = "",
+      var currentVersion: Int = -1,
+      var minTarget: Int = -1,
+      var maxTarget: Int = -1,
+    )
+
+    val canNotSupportMinTarget = OneParamI18nResource({ CanNotSupportTargetParams() },
+      Language.ZH to { "应用：$appName($appId) 与容器版本不匹配，当前版本：${currentVersion}，应用最低要求：${minTarget}" },
+      Language.EN to { "App: $appName($appId) is incompatible with the container version. Current version: ${currentVersion}, app minimum requirement: ${minTarget}." })
+    val canNotSupportMaxTarget = OneParamI18nResource({ CanNotSupportTargetParams() },
+      Language.ZH to { "应用：$appName($appId) 与容器版本不匹配，当前版本：${currentVersion}，应用最高兼容到：${maxTarget}" },
+      Language.EN to { "App: $appName($appId) is incompatible with the container version. Current version: ${currentVersion}, app maximum compatibility: ${maxTarget}." })
+
   }
 
   val download_shore_name =

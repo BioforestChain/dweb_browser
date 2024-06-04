@@ -34,11 +34,11 @@ class JmmAppManifest private constructor(
 
   override fun toCommonAppManifest() = data
 
-  override fun canSupportTarget(
+  override fun <R> canSupportTarget(
     currentVersion: Int,
-    disMatchMinTarget: (minTarget: Int) -> String?,
-    disMatchMaxTarget: (maxTarget: Int) -> String?,
-  ): String? {
+    disMatchMinTarget: (minTarget: Int) -> R?,
+    disMatchMaxTarget: (maxTarget: Int) -> R?,
+  ): R? {
     val min = minTarget
     val max = maxTarget ?: min
     if (currentVersion in min..max) {
@@ -62,11 +62,11 @@ internal interface IJmmAppManifest : ICommonAppManifest {
   var minTarget: Int
   var maxTarget: Int?
   fun toCommonAppManifest(): CommonAppManifest
-  fun canSupportTarget(
+  fun <R> canSupportTarget(
     currentVersion: Int,
-    disMatchMinTarget: (minTarget: Int) -> String?,
-    disMatchMaxTarget: (maxTarget: Int) -> String?,
-  ): String?
+    disMatchMinTarget: (minTarget: Int) -> R?,
+    disMatchMaxTarget: (maxTarget: Int) -> R?,
+  ): R?
 
-  fun canSupportTarget(version: Int) = canSupportTarget(version, { "" }, { "" }) == null
+  fun canSupportTarget(version: Int) = canSupportTarget(version, { false }, { false }) != false
 }

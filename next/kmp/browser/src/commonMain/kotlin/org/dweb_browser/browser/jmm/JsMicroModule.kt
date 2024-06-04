@@ -5,6 +5,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.jsProcess.ext.JsProcess
 import org.dweb_browser.browser.jsProcess.ext.createJsProcess
 import org.dweb_browser.browser.kit.GlobalWebMessageEndpoint
@@ -22,7 +23,9 @@ import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.module.connectAdapterManager
 import org.dweb_browser.core.std.dns.nativeFetch
+import org.dweb_browser.core.std.dns.nativeFetchAdaptersManager
 import org.dweb_browser.core.std.permission.PermissionProvider
+import org.dweb_browser.core.std.permission.ext.doRequestWithPermissions
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.collectIn
@@ -30,6 +33,7 @@ import org.dweb_browser.helper.printError
 import org.dweb_browser.pure.http.PureClientRequest
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureRequest
+import org.dweb_browser.sys.toast.ext.showToast
 
 val debugJsMM = Debugger("JsMM")
 
@@ -91,6 +95,22 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
           toJmmIpc
         }
       }
+
+      nativeFetchAdaptersManager.append(order = 2) { fromMM, request ->
+        if (fromMM is JmmRuntime && request.url.protocol.name == "file" && request.url.host.endsWith(
+            ".dweb"
+          )
+        ) {
+          val mpid = request.url.host
+          val mmid = fromMM.bootstrapContext.dns.query(mpid)?.mmid ?: return@append null
+          if (!nativeToWhiteList.contains(mmid)) {
+            val fromIpc = fromMM.getJsProcess().fetchIpc
+            fromMM.debugMM("jmm-fetchIpc-proxy") { "${fromMM.mmid} => ${request.href}" }
+            fromMM.doRequestWithPermissions { fromIpc.request(request) }
+            null
+          } else null
+        } else null
+      }
     }
   }
 
@@ -112,15 +132,25 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
     }
 
     override suspend fun _bootstrap() {
-      debugJsMM(
-        "bootstrap...", "$mmid/ minTarget:${metadata.minTarget} maxTarget:${metadata.maxTarget}"
-      )
+      debugJsMM("bootstrap...") {
+        "$mmid/ minTarget:${metadata.minTarget} maxTarget:${metadata.maxTarget}"
+      }
 
       val errorMessage = metadata.canSupportTarget(VERSION, disMatchMinTarget = {
-        "应用($mmid)与容器版本不匹配，当前版本:${VERSION}，应用最低要求:${metadata.minTarget}"
+        BrowserI18nResource.JsMM.canNotSupportMinTarget
       }, disMatchMaxTarget = {
-        "应用($mmid)与容器版本不匹配，当前版本:${VERSION}，应用最高兼容到:${metadata.maxTarget}"
+        BrowserI18nResource.JsMM.canNotSupportMaxTarget
       })
+      errorMessage?.also { i18nMsg ->
+        scopeLaunch(cancelable = true) {
+          showToast(i18nMsg.text {
+            appId = mmid
+            currentVersion = VERSION
+            minTarget = metadata.minTarget
+            maxTarget = metadata.maxTarget ?: metadata.minTarget
+          })
+        }
+      }
 
 
       val jsProcess = createJsProcess(metadata.server.entry, "$mmid-$short_name")
