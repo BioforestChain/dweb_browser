@@ -1,4 +1,4 @@
-import { cacheGetter } from "../../helper/cacheGetter.ts";
+import { cacheGetter } from "@dweb-browser/helper/cacheGetter.ts";
 import { configPlugin } from "./config.plugin.ts";
 
 export class HTMLDwebConfigElement extends HTMLElement {

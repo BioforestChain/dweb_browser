@@ -1,7 +1,14 @@
-const $makeFetchExtends = <M extends unknown = unknown>(exts: $FetchExtends<M>) => {
+export const $makeFetchExtends = <M extends unknown = unknown>(exts: $FetchExtends<M>) => {
   return exts;
 };
-type $FetchExtends<E> = E & ThisType<Promise<Response> & E>; // Type of 'this' in methods is D & M
+
+export const $makeExtends = <T>() => {
+  return <M extends unknown = unknown>(exts: M & ThisType<T & M>) => {
+    return exts;
+  };
+};
+
+export type $FetchExtends<E> = E & ThisType<Promise<Response> & E>; // Type of 'this' in methods is D & M
 
 export const fetchBaseExtends = $makeFetchExtends({
   async number() {
@@ -33,6 +40,7 @@ export const fetchBaseExtends = $makeFetchExtends({
     try {
       return (await ok.json()) as T;
     } catch (err) {
+      // deno-lint-ignore no-debugger
       debugger;
       throw err;
     }

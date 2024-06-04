@@ -1,12 +1,11 @@
-import { ChannelEndpoint, IpcResponse } from "@dweb-browser/core/ipc/index.ts";
+import { IpcResponse } from "@dweb-browser/core/ipc/index.ts";
 import { PromiseOut } from "@dweb-browser/helper/PromiseOut.ts";
+import { cacheGetter } from "@dweb-browser/helper/cacheGetter.ts";
+import { Signal, type $Callback } from "@dweb-browser/helper/createSignal.ts";
+import { WebSocketIpcBuilder } from "../../common/websocketIpc.ts";
 import { bindThis } from "../../helper/bindThis.ts";
-import { cacheGetter } from "../../helper/cacheGetter.ts";
-import { Signal, type $Callback } from "../../helper/createSignal.ts";
-import { streamRead } from "../../helper/readableStreamHelper.ts";
 import { StateObserver, type $Coder } from "../../util/StateObserver.ts";
 import { BasePlugin } from "../base/base.plugin.ts";
-import { webIpcPool } from "../index.ts";
 import { WindowAlertController } from "./WindowAlertController.ts";
 import { WindowBottomSheetsController } from "./WindowBottomSheetsController.ts";
 import type {
@@ -102,7 +101,7 @@ export class WindowPlugin extends BasePlugin {
     themeColor?: string;
     themeDarkColor?: string;
   }) {
-    return this.fetchApi("/setStyle", { search: { ...options, ...(await this.windowInfo) } }).void();
+    return this.fetchApi("/setStyle", { search: { ...options, ...(await this.windowInfo) } });
   }
 
   /**
@@ -110,68 +109,38 @@ export class WindowPlugin extends BasePlugin {
    */
   @bindThis
   async focusWindow() {
-    return this.fetchApi("/focus", { search: await this.windowInfo }).void();
+    return this.fetchApi("/focus", { search: await this.windowInfo });
   }
   /**窗口失焦 */
   @bindThis
   async blurWindow() {
-    return this.fetchApi("/blur", { search: await this.windowInfo }).void();
+    return this.fetchApi("/blur", { search: await this.windowInfo });
   }
   /**最大化窗口 */
   @bindThis
   async maximize() {
-    return this.fetchApi("/maximize", { search: await this.windowInfo }).void();
+    return this.fetchApi("/maximize", { search: await this.windowInfo });
   }
   /**取消最大化窗口 */
   @bindThis
   async unMaximize() {
-    return this.fetchApi("/unMaximize", { search: await this.windowInfo }).void();
+    return this.fetchApi("/unMaximize", { search: await this.windowInfo });
   }
   /**隐藏或显示窗口 */
   @bindThis
   async visible() {
-    return this.fetchApi("/visible", { search: await this.windowInfo }).void();
+    return this.fetchApi("/visible", { search: await this.windowInfo });
   }
   /**关闭窗口 */
   @bindThis
   async close() {
-    return this.fetchApi("/close", { search: await this.windowInfo }).void();
+    return this.fetchApi("/close", { search: await this.windowInfo });
   }
 
-  #remote = {
-    mmid: "localhost.dweb" as `${string}.dweb`,
-    ipc_support_protocols: { cbor: false, protobuf: false, json: false },
-    dweb_deeplinks: [],
-    categories: [],
-    name: "",
-  };
-
   /**创建window的ipc连接 */
-  private async wsToIpc(url: string) {
-    const afterOpen = new PromiseOut<void>();
-    const endpoint = new ChannelEndpoint("plaoc-window");
-    const ipc = webIpcPool.createIpc(endpoint, 0, this.#remote, this.#remote, true);
-    const ws = new WebSocket(url);
-    ws.binaryType = "arraybuffer";
-    ws.onmessage = (event) => {
-      const data = event.data;
-      endpoint.send(data);
-    };
-    ws.onclose = () => {
-      endpoint.close();
-    };
-    ws.onerror = (event) => {
-      endpoint.close();
-      ipc.close(String(event));
-    };
-    ws.onopen = async () => {
-      afterOpen.resolve();
-      for await (const data of streamRead(endpoint.stream)) {
-        ws.send(data);
-      }
-    };
-    await afterOpen.promise;
-    return ipc;
+  private getWindowIpc(url: URL) {
+    const wsIpcBuilder = new WebSocketIpcBuilder(url, this.self);
+    return wsIpcBuilder.ipc;
   }
   private async createModalArgs<I extends $AlertOptions | $BottomSheetsOptions, O extends $Modal>(
     type: O["type"],
@@ -183,16 +152,16 @@ export class WindowPlugin extends BasePlugin {
     const callbackUrl = new URL(`/internal/callback?id=${callbackId}`, BasePlugin.api_url);
     // 注册回调地址
     const registryUrl = new URL("/internal/registry-callback", BasePlugin.api_url);
-    registryUrl.protocol = "ws";
+    registryUrl.protocol = "wss";
     registryUrl.searchParams.set("id", callbackId);
     console.log("window#createModalArgs=>", registryUrl.href);
-    const callbackIpc = await this.wsToIpc(registryUrl.href);
+    const ipc = this.getWindowIpc(registryUrl);
     const onCallback = new Signal<$Callback<[$ModalCallback]>>();
-    callbackIpc.onRequest("registry-callback").collect(async (event) => {
+    ipc.onRequest("registry-callback").collect(async (event) => {
       const request = event.consume();
       const callbackData = JSON.parse(await request.body.text());
       onCallback.emit(callbackData);
-      callbackIpc.postMessage(IpcResponse.fromText(request.reqId, 200, undefined, "", callbackIpc));
+      ipc.postMessage(IpcResponse.fromText(request.reqId, 200, undefined, "", ipc));
     });
     const modal = await this.fetchApi(`/createModal`, {
       search: { type, ...input, callbackUrl, open, once },
@@ -224,7 +193,7 @@ export class WindowPlugin extends BasePlugin {
     await this.fetchApi("/open", {
       pathPrefix: "webview.sys.dweb",
       search: { url: contentUrl, rid: bottomSheets.modal.renderId },
-    }).void();
+    });
     return bottomSheets;
   }
 }

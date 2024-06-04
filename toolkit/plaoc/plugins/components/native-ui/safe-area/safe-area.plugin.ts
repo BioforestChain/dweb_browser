@@ -16,8 +16,8 @@ export class SafeAreaPlugin extends BasePlugin {
   //  setOverlay(overlay: boolean) {
   // }
   @bindThis
-   async getOverlay() {
-    return false
+  getOverlay() {
+    return false;
   }
 }
 

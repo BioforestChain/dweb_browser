@@ -1,4 +1,4 @@
-import { cacheGetter } from "../../helper/cacheGetter.ts";
+import { cacheGetter } from "@dweb-browser/helper/cacheGetter.ts";
 import { mediaPlugin } from "./media.plugin.ts";
 
 export class HTMLDwebMediaElement extends HTMLElement {

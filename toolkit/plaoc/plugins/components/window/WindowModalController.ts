@@ -1,6 +1,6 @@
 import { PromiseOut } from "@dweb-browser/helper/PromiseOut.ts";
+import type { $Callback, Signal } from "@dweb-browser/helper/createSignal.ts";
 import { SafeEvent, SafeEventTarget, SafeStateEvent } from "../../helper/SafeEventTarget.ts";
-import type { $Callback, Signal } from "../../helper/createSignal.ts";
 import type { BasePlugin } from "../base/base.plugin.ts";
 import type { $Modal, $ModalCallback } from "./window.type.ts";
 

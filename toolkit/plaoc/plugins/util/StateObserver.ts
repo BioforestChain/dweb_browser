@@ -1,14 +1,17 @@
+import type { Ipc } from "@dweb-browser/core/ipc/ipc.ts";
+import { createSignal, type $Callback } from "@dweb-browser/helper/createSignal.ts";
+import { WebSocketIpcBuilder } from "../common/websocketIpc.ts";
 import { BasePlugin } from "../components/base/base.plugin.ts";
-import { $Transform, JsonlinesStream } from "../helper/JsonlinesStream.ts";
+
 import { bindThis } from "../helper/bindThis.ts";
-import { $Callback, createSignal } from "../helper/createSignal.ts";
-import { ReadableStreamOut, streamRead } from "../helper/readableStreamHelper.ts";
+
+type $Transform<T, R> = (value: T) => R;
 
 /**
  * 提供了一个状态的读取与更新的功能
  */
 export class StateObserver<RAW, STATE> {
-  private _ws: WebSocket | undefined;
+  private _ipc: Ipc | undefined;
   constructor(
     private plugin: BasePlugin,
     private fetcher: () => Promise<RAW>,
@@ -16,41 +19,27 @@ export class StateObserver<RAW, STATE> {
       decode: $Transform<RAW, STATE>;
       encode: $Transform<STATE, RAW>;
     },
+    // deno-lint-ignore require-await
     private buildWsUrl: (ws_url: URL) => Promise<URL | void> = async (ws_url) => ws_url
   ) {}
-
-  async *jsonlines(options?: { signal?: AbortSignal }) {
+  /**监听状态变化 */
+  async startObserveState() {
     const api_url = BasePlugin.api_url;
     const url = new URL(api_url.replace(/^http/, "ws"));
     // 内部的监听
     url.pathname = `/${this.plugin.mmid}/observe`;
-    const ws = new WebSocket((await this.buildWsUrl(url)) ?? url);
-    this._ws = ws;
-    ws.binaryType = "arraybuffer";
-    const streamout = new ReadableStreamOut();
-
-    ws.onmessage = (event) => {
-      const data = event.data;
-      streamout.controller.enqueue(data);
-    };
-    ws.onclose = () => {
-      streamout.controller?.close();
-    };
-    ws.onerror = (event) => {
-      streamout.controller.error(event);
-    };
-
-    for await (const state of streamRead(
-      streamout.stream.pipeThrough(new TextDecoderStream()).pipeThrough(new JsonlinesStream(this.coder.decode)),
-      options
-    )) {
-      this.currentState = state;
-      yield state;
-    }
+    const wsIpcBuilder = new WebSocketIpcBuilder((await this.buildWsUrl(url)) ?? url, this.plugin.self);
+    this._ipc = wsIpcBuilder.ipc;
+    console.log("connect=>", this._ipc.remote.mmid, url);
+    this._ipc.onMessage("state-observer").collect((event) => {
+      const data = event.consume();
+      console.log(`/${this.plugin.mmid}/observe=>`, data);
+      // this.currentState = state;
+    });
   }
 
   stopObserve() {
-    this._ws?.close();
+    this._ipc?.close();
   }
 
   private _currentState?: STATE;

@@ -3,7 +3,7 @@ import { binaryToJsonlinesStream } from "../stream/jsonlinesStreamHelper.ts";
 const $makeFetchExtends = <M extends unknown = unknown>(exts: $FetchExtends<M>) => {
   return exts;
 };
-type $FetchExtends<E> = E & ThisType<Promise<Response> & E>; // Type of 'this' in methods is D & M
+export type $FetchExtends<E> = E & ThisType<Promise<Response> & E>; // Type of 'this' in methods is D & M
 
 export const fetchStreamExtends = $makeFetchExtends({
   /** 将响应的内容解码成 jsonlines 格式 */

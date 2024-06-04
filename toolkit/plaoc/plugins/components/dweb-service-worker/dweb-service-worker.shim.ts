@@ -1,5 +1,5 @@
 import { IpcFetchEvent } from "@dweb-browser/core/ipc/helper/ipcFetchHelper.ts";
-import { cacheGetter } from "../../helper/cacheGetter.ts";
+import { cacheGetter } from "@dweb-browser/helper/cacheGetter.ts";
 import type { ListenerCallback } from "../base/base-event.ts";
 import { ServiceWorkerFetchEvent } from "./FetchEvent.ts";
 import { PlaocEvent } from "./IpcEvent.ts";

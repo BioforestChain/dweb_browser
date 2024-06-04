@@ -1,6 +1,6 @@
 import { PromiseOut } from "@dweb-browser/helper/PromiseOut.ts";
+import { cacheGetter } from "@dweb-browser/helper/cacheGetter.ts";
 import "@dweb-browser/polyfill";
-import { cacheGetter } from "../../helper/cacheGetter.ts";
 import { barcodeScannerPlugin } from "./barcode-scanning.plugin.ts";
 import {
   BarcodeScannerPermission,

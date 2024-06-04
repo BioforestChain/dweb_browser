@@ -3,7 +3,7 @@ import { DOMInsets } from "../../../util/insets.ts";
 import { BAR_STYLE } from "../../base/bar.plugin.ts";
 import { BasePlugin } from "../../base/base.plugin.ts";
 import { windowPlugin } from "../../index.ts";
-import { $NavigationBarWritableState, type $NavigationBarState } from "./navigation-bar.type.ts";
+import type { $NavigationBarState, $NavigationBarWritableState } from "./navigation-bar.type.ts";
 /**
  * 访问 navigation-bar 能力的插件
  */
@@ -13,6 +13,7 @@ export class NavigationBarPlugin extends BasePlugin {
   }
 
   @bindThis
+  // deno-lint-ignore require-await
   async setState(state: Partial<$NavigationBarWritableState>) {
     let bottomBarContentColor: string | undefined = undefined;
     switch (state.style) {

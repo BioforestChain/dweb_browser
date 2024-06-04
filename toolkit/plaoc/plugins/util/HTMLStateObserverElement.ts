@@ -1,14 +1,10 @@
-import { $OffListener } from "../helper/createSignal.ts";
+import type { $OffListener } from "@dweb-browser/helper/createSignal.ts";
 import { StateObserver } from "./StateObserver.ts";
 
 export class HTMLStateObserverElement<RAW, STATE> extends HTMLElement {
   constructor(readonly state: StateObserver<RAW, STATE>) {
     super();
-    (async () => {
-      for await (const _info of state.jsonlines()) {
-        // console.log("stateChange", _info);
-      }
-    })();
+    state.startObserveState();
   }
   #onStateChange?: $OffListener;
   async connectedCallback() {

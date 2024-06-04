@@ -1,4 +1,4 @@
-import { cacheGetter } from "../../helper/cacheGetter.ts";
+import { cacheGetter } from "@dweb-browser/helper/cacheGetter.ts";
 import { sharePlugin } from "./share.plugin.ts";
 
 export class HTMLDwebShareElement extends HTMLElement {

@@ -1,6 +1,5 @@
-import { cacheGetter } from "../../helper/cacheGetter.ts";
+import { cacheGetter } from "@dweb-browser/helper/cacheGetter.ts";
 import { shortcutPlugin } from "./shortcut.plugin.ts";
-
 
 export class HTMLDwebShortcutElement extends HTMLElement {
   static readonly tagName = "dweb-shortcut";
