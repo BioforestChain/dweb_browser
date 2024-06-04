@@ -49,6 +49,7 @@ if (keystorePropertiesFile.exists()) {
 android {
   namespace = "info.bagen.dwebbrowser"
   compileSdk = libs.versions.compileSdkVersion.get().toInt()
+  val localProperties = localProperties()
   defaultConfig {
     applicationId = "info.bagen.dwebbrowser"
     minSdk = libs.versions.minSdkVersion.get().toInt()
@@ -56,16 +57,15 @@ android {
     versionCode = libs.versions.versionCode.get().toInt()
     versionName = libs.versions.versionName.get()
 
-    val localProperties = localProperties()
 
-    val needarmeabiv7a = localProperties.getProperty("android.build.ndk.armeabi-v7a")?.toBoolean() ?: false
-    val needx86 = localProperties.getProperty("android.build.ndk.x86_64")?.toBoolean() ?: false
+    val needarmeabiv7a = localProperties.getBoolean("android.build.ndk.armeabi-v7a")
+    val needx86 = localProperties.getBoolean("android.build.ndk.x86")
 
     ndk.abiFilters.addAll(
       listOf("arm64-v8a").let {
         if (needarmeabiv7a) it + "armeabi-v7a" else it
       }.let {
-        if (needx86) it + "x86_64" else it
+        if (needx86) it + "x86" else it
       })
   }
   baselineProfile {
@@ -151,9 +151,37 @@ android {
     }
   }
 
+  flavorDimensions += listOf("abi")
+  productFlavors {
+//    create("debug") {
+//      signingConfig = signingConfigs.getByName("debug")
+//      resValue("string", "appName", "🧪DwebBrowser")
+//      applicationIdSuffix = ".debug"
+//    }
+
+//    if (localProperties.getBoolean("android.build.ndk.armeabi-v7a")) {
+    create("withArm32") {
+      dimension = "abi"
+      matchingFallbacks += listOf("release")
+      ndk.abiFilters.addAll(listOf("arm64-v8a", "armeabi-v7a"))
+    }
+//    }
+//    if (localProperties.getBoolean("android.build.ndk.x86")) {
+    create("withX86") {
+      dimension = "abi"
+      matchingFallbacks += listOf("release")
+      ndk.abiFilters.addAll(listOf("arm64-v8a", "x86"))
+    }
+//    }
+  }
   applicationVariants.all {
     outputs.all {
-      val archivesName = "DwebBrowser_v${libs.versions.versionName.get()}"
+      val midName = when {
+        name.startsWith("with") -> "_" + name.substring(4).split("-").first().lowercase()
+        else -> ""
+      }
+      val archivesName = "DwebBrowser${midName}_v${libs.versions.versionName.get()}"
+
       if (buildType.name == "release") {
         // 修改bundle名
         val bundleFinalizeTaskName = StringBuilder("sign").run {

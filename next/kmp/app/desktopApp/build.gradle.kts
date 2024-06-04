@@ -33,9 +33,11 @@ kotlin {
   }
 }
 
-val appVersion = "3.5.2401"
+val appVersion = "3.6.0400"
 
 compose.desktop {
+  val properties = localProperties()
+  val isAppStoreRelease = properties.getBoolean("compose.desktop.mac.release")
   application {
     mainClass = "MainKt"
 
@@ -46,7 +48,13 @@ compose.desktop {
     )
 
     nativeDistributions {
-      targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb, TargetFormat.Exe)
+      targetFormats(
+        TargetFormat.Dmg,
+        TargetFormat.Pkg,
+        TargetFormat.Msi,
+        TargetFormat.Deb,
+        TargetFormat.Exe
+      )
       packageName = "DwebBrowser"
       packageVersion = appVersion
       includeAllModules = true
@@ -78,14 +86,36 @@ compose.desktop {
 
       macOS {
         iconFile.set(iconsRoot.resolve("mac/icon.icns"))
-        bundleID = "info.bagen.dwebbrowser"
+        bundleID = "com.instinct.bfexplorer"
         setDockNameSameAsPackageName = true
 
         infoPlist {
           extraKeysRawXml = macExtraPlistKeys
         }
-//        entitlementsFile.set(project.file("default-entitlements.plist"))
-//        runtimeEntitlementsFile.set(project.file("runtime-entitlements.plist"))
+        signing {
+          if (properties.getBoolean("compose.desktop.mac.sign")) {
+            sign.set(true)
+            identity.set(properties.getString("compose.desktop.mac.identity"))
+            keychain.set(properties.getString("compose.desktop.mac.keychain"))
+          }
+        }
+        notarization {
+          appleID.set("kezhaofeng@bnqkl.cn")
+        }
+        buildTypes.release.proguard {
+          isEnabled.set(false)
+          obfuscate.set(false)
+          configurationFiles.from(project.file("../androidApp/proguard-rules.pro"))
+        }
+        if (isAppStoreRelease) {
+          provisioningProfile.set(project.file("DwebBrowser.provisionprofile"))
+          runtimeProvisioningProfile.set(project.file("DwebBrowser.provisionprofile"))
+          entitlementsFile.set(project.file("default-entitlements.plist"))
+          runtimeEntitlementsFile.set(project.file("runtime-entitlements.plist"))
+//          appStore = true
+        } else {
+          entitlementsFile.set(project.file("default-entitlements.plist"))
+        }
       }
     }
   }
