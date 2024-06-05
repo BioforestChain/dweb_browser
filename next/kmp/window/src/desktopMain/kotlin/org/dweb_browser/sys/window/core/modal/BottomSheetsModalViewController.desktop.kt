@@ -33,16 +33,18 @@ internal class BottomSheetsModalViewController(modal: BottomSheetsModalState) :
      * 桌面版必须完全展开，从而符合桌面用户的使用自觉
      */
     val sheetState =
-      rememberModalBottomSheetState(true, confirmValueChange = remember(emitModalVisibilityChange) {
-        {
-          debugModal("confirmValueChange", " $it")
-          when (it) {
-            SheetValue.Hidden -> modal.isClose
-            SheetValue.Expanded -> emitModalVisibilityChange(EmitModalVisibilityState.Open)
-            SheetValue.PartiallyExpanded -> emitModalVisibilityChange(EmitModalVisibilityState.Open)
+      rememberModalBottomSheetState(
+        skipPartiallyExpanded = true,
+        confirmValueChange = remember(emitModalVisibilityChange) {
+          {
+            debugModal("confirmValueChange", " $it")
+            when (it) {
+              SheetValue.Hidden -> modal.isClose
+              SheetValue.Expanded -> emitModalVisibilityChange(EmitModalVisibilityState.Open)
+              SheetValue.PartiallyExpanded -> emitModalVisibilityChange(EmitModalVisibilityState.Open)
+            }
           }
-        }
-      })
+        })
 
     val winPadding = LocalWindowPadding.current
 

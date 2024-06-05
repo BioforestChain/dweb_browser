@@ -9,8 +9,11 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -29,9 +32,18 @@ internal actual fun ModalState.RenderCloseTipImpl(onConfirmToClose: () -> Unit) 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal actual fun BottomSheetsModalState.RenderImpl(emitModalVisibilityChange: (state: EmitModalVisibilityState) -> Boolean) {
-  val sheetState =
-    rememberModalBottomSheetState(confirmValueChange = remember(emitModalVisibilityChange) {
+  var isFirstView by remember { mutableStateOf(true) }
+  var firstViewAction by remember { mutableStateOf({ }) }
+  val uiScope = rememberCoroutineScope()
+  val sheetState = rememberModalBottomSheetState(
+    skipPartiallyExpanded = false,
+    confirmValueChange = remember(emitModalVisibilityChange) {
       {
+        /// 默认展开
+        if (isFirstView) {
+          firstViewAction()
+        }
+
         debugModal("confirmValueChange", " $it")
         when (it) {
           SheetValue.Hidden -> isClose
@@ -40,7 +52,14 @@ internal actual fun BottomSheetsModalState.RenderImpl(emitModalVisibilityChange:
         }
       }
     });
-  val scope = rememberCoroutineScope()
+  if (isFirstView) {
+    firstViewAction = {
+      isFirstView = false
+      uiScope.launch {
+        sheetState.expand()
+      }
+    }
+  }
 
   val density = LocalDensity.current
   val defaultWindowInsets = BottomSheetDefaults.windowInsets
@@ -65,7 +84,7 @@ internal actual fun BottomSheetsModalState.RenderImpl(emitModalVisibilityChange:
     dragHandle = {
       TitleBarWithOnClose({
         if (emitModalVisibilityChange(EmitModalVisibilityState.TryClose)) {
-          scope.launch {
+          uiScope.launch {
             sheetState.hide()
           }
         }

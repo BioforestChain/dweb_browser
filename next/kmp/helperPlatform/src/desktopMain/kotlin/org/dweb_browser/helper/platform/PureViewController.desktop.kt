@@ -26,7 +26,6 @@ import org.dweb_browser.helper.compose.LocalCompositionChain
 import org.dweb_browser.helper.envSwitch
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.platform.desktop.os.WindowsRegistry
-import kotlin.system.exitProcess
 
 
 class PureViewController(
@@ -197,3 +196,6 @@ fun IPureViewController.asDesktop(): PureViewController {
   require(this is PureViewController)
   return this
 }
+
+actual val IPureViewController.Companion.platform
+  get() = PureViewControllerPlatform.Desktop

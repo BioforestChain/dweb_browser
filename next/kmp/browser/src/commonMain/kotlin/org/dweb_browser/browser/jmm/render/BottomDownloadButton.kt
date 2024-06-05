@@ -44,7 +44,6 @@ import org.dweb_browser.helper.withScope
 internal fun BoxScope.BottomDownloadButton() {
   val background = MaterialTheme.colorScheme.surface
   val jmmInstallerController = LocalJmmInstallerController.current
-  val jmmMetadata = jmmInstallerController.installMetadata
   val uiScope = rememberCoroutineScope()
   val jmmUiKit = rememberJmmUiKit(jmmInstallerController);
 

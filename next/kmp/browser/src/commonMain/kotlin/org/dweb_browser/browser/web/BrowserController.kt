@@ -15,6 +15,10 @@ import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.UUID
+import org.dweb_browser.helper.compose.ScreenSize
+import org.dweb_browser.helper.platform.IPureViewController
+import org.dweb_browser.helper.platform.PureViewControllerPlatform
+import org.dweb_browser.helper.platform.platform
 import org.dweb_browser.sys.toast.ToastPositionType
 import org.dweb_browser.sys.toast.ext.showToast
 import org.dweb_browser.sys.window.core.WindowController
@@ -75,6 +79,18 @@ class BrowserController(
       viewModel.addNewPageUI() // 第一次渲染需要添加一个HomePage
       win = newWin
       newWin.setStateFromManifest(browserNMM)
+
+      /// 移动端默认最大化
+      // TODO 这里应使用屏幕尺寸来判定
+      when (IPureViewController.platform) {
+        PureViewControllerPlatform.Android,
+
+        PureViewControllerPlatform.Apple -> {
+          newWin.maximize()
+        }
+
+        else -> {}
+      }
 
       /// 提供渲染适配
       windowAdapterManager.provideRender(wid) { modifier ->
