@@ -49,7 +49,6 @@ if (keystorePropertiesFile.exists()) {
 android {
   namespace = "info.bagen.dwebbrowser"
   compileSdk = libs.versions.compileSdkVersion.get().toInt()
-  val localProperties = localProperties()
   defaultConfig {
     applicationId = "info.bagen.dwebbrowser"
     minSdk = libs.versions.minSdkVersion.get().toInt()
@@ -57,16 +56,7 @@ android {
     versionCode = libs.versions.versionCode.get().toInt()
     versionName = libs.versions.versionName.get()
 
-
-    val needarmeabiv7a = localProperties.getBoolean("android.build.ndk.armeabi-v7a")
-    val needx86 = localProperties.getBoolean("android.build.ndk.x86")
-
-    ndk.abiFilters.addAll(
-      listOf("arm64-v8a").let {
-        if (needarmeabiv7a) it + "armeabi-v7a" else it
-      }.let {
-        if (needx86) it + "x86" else it
-      })
+    ndk.abiFilters.addAll(listOf("arm64-v8a"))
   }
   baselineProfile {
     mergeIntoMain = true
@@ -81,7 +71,7 @@ android {
     resources {
       excludes += "/META-INF/versions/9/previous-compilation-data.bin"
       excludes += "/META-INF/{AL2.0,LGPL2.1}"
-// 添加 http4k 框架后，会有异常报错，需要添加如下内容
+      // 添加 http4k 框架后，会有异常报错，需要添加如下内容
       excludes += "/META-INF/INDEX.LIST"
       excludes += "/META-INF/DEPENDENCIES"
     }
@@ -144,26 +134,17 @@ android {
 
   flavorDimensions += listOf("abi")
   productFlavors {
-//    create("debug") {
-//      signingConfig = signingConfigs.getByName("debug")
-//      resValue("string", "appName", "🧪DwebBrowser")
-//      applicationIdSuffix = ".debug"
-//    }
-
-//    if (localProperties.getBoolean("android.build.ndk.armeabi-v7a")) {
     create("withArm32") {
       dimension = "abi"
       matchingFallbacks += listOf("release")
       ndk.abiFilters.addAll(listOf("arm64-v8a", "armeabi-v7a"))
     }
-//    }
-//    if (localProperties.getBoolean("android.build.ndk.x86")) {
+
     create("withX86") {
       dimension = "abi"
       matchingFallbacks += listOf("release")
       ndk.abiFilters.addAll(listOf("arm64-v8a", "x86"))
     }
-//    }
   }
   applicationVariants.all {
     outputs.all {

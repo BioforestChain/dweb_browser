@@ -68,7 +68,7 @@ for await (const dirEntry of Deno.readDir(BUILD_OUTPUT_DIR_BUNDLE)) {
         if (fileEntry.entryname.endsWith(".aab")) {
           const version = fileEntry.entryname.match(/v\d+\.\d+\.\d+/);
           console.log(`  Copying ${fileEntry.relativepath}`);
-          const outputDir = `${OUTPUT_DIR}/${version}`;
+          const outputDir = `${OUTPUT_DIR}/android_${version}`;
           // 创建、清空目标目录
           Deno.mkdirSync(outputDir, { recursive: true });
           Deno.mkdirSync(outputDir, { recursive: true });
