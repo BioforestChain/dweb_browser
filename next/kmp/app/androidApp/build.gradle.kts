@@ -87,15 +87,6 @@ android {
     }
   }
 
-  // 获取本地配置文件
-  val props = Properties().also { properties ->
-    rootDir.resolve("local.properties").apply {
-      if (exists()) {
-        inputStream().use { properties.load(it) }
-      }
-    }
-  }
-
   signingConfigs {
     create("release") {
 // 使用 keytool -printcert -jarfile app_release.apk 直接打印 jar 签名信息
@@ -114,14 +105,13 @@ android {
       keyPassword = keystoreProperties["keyPassword"]?.toString()
       storeFile = keystoreProperties["storeFile"]?.let { file(it.toString()) }
       storePassword = keystoreProperties["storePassword"]?.toString()
-      println("qqqq storeFile=${storeFile}")
     }
     getByName("debug") {
       // 获取本地配置的 key 信息，storeFile 是将jks文件放在当前 build.gradle.kts 同级目录
-      props.getProperty("keyAlias", null)?.let { keyAlias = it }
-      props.getProperty("keyPassword", null)?.let { keyPassword = it }
-      props.getProperty("storeFile", null)?.let { storeFile = file(it) }
-      props.getProperty("storePassword", null)?.let { storePassword = it }
+      keystoreProperties.getProperty("keyAlias", null)?.let { keyAlias = it }
+      keystoreProperties.getProperty("keyPassword", null)?.let { keyPassword = it }
+      keystoreProperties.getProperty("storeFile", null)?.let { storeFile = file(it) }
+      keystoreProperties.getProperty("storePassword", null)?.let { storePassword = it }
     }
   }
 
@@ -139,7 +129,7 @@ android {
     }
     getByName("debug") {
       signingConfig = signingConfigs.getByName("debug")
-      val userName = props.getProperty("user.name", null)
+      val userName = keystoreProperties.getProperty("debugApk", null)
         ?: System.getProperty("user.name").replace("[^a-zA-Z0-9]".toRegex(), "").lowercase()
       resValue("string", "appName", "Kmp-$userName")
       applicationIdSuffix = ".kmp.$userName"
