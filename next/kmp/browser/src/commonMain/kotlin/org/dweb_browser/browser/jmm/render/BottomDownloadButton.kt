@@ -23,7 +23,6 @@ import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,12 +34,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
-import org.dweb_browser.browser.jmm.JmmInstallerController
 import org.dweb_browser.browser.jmm.JmmStatus
-import org.dweb_browser.browser.jmm.JmmStatusEvent
 import org.dweb_browser.browser.jmm.LocalJmmInstallerController
 import org.dweb_browser.helper.compose.AutoResizeTextContainer
-import org.dweb_browser.helper.toSpaceSize
 import org.dweb_browser.helper.withScope
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -49,7 +45,6 @@ internal fun BoxScope.BottomDownloadButton() {
   val background = MaterialTheme.colorScheme.surface
   val jmmInstallerController = LocalJmmInstallerController.current
   val jmmMetadata = jmmInstallerController.installMetadata
-  val jmmState = jmmMetadata.state
   val uiScope = rememberCoroutineScope()
   val jmmUiKit = rememberJmmUiKit(jmmInstallerController);
 
@@ -61,7 +56,7 @@ internal fun BoxScope.BottomDownloadButton() {
     val tooltipState = rememberTooltipState(isPersistent = true)
     TooltipBox(
       positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(), tooltip = {
-        when (jmmState.state) {
+        when (jmmUiKit.jmmStatus) {
           /// 版本偏低时，提示用户，是否要进行降级安装
           JmmStatus.VersionLow -> RichTooltip(title = { Text(BrowserI18nResource.install_tooltip_warning()) },
             action = {
@@ -91,7 +86,7 @@ internal fun BoxScope.BottomDownloadButton() {
     ) {
 
       val bgColor = when {
-        jmmState.state == JmmStatus.VersionLow -> MaterialTheme.colorScheme.secondary
+        jmmUiKit.jmmStatus == JmmStatus.VersionLow -> MaterialTheme.colorScheme.secondary
         else -> MaterialTheme.colorScheme.primary
       }
       ElevatedButton(
@@ -110,7 +105,7 @@ internal fun BoxScope.BottomDownloadButton() {
         modifier = Modifier.requiredSize(height = 50.dp, width = 300.dp).fillMaxWidth(),
         colors = ButtonDefaults.elevatedButtonColors(
           containerColor = bgColor,
-          contentColor = when (jmmState.state) {
+          contentColor = when (jmmUiKit.jmmStatus) {
             JmmStatus.VersionLow -> MaterialTheme.colorScheme.onSecondary
             else -> MaterialTheme.colorScheme.onPrimary
           },
@@ -123,7 +118,7 @@ internal fun BoxScope.BottomDownloadButton() {
           /// 进度背景
           if (jmmUiKit.showLinearProgress) {
             LinearProgressIndicator(
-              progress = { jmmState.progress },
+              progress = { jmmUiKit.jmmStatusEvent.progress },
               modifier = Modifier.fillMaxSize().alpha(0.5f).zIndex(1f),
               color = bgColor,
             )
@@ -132,8 +127,17 @@ internal fun BoxScope.BottomDownloadButton() {
             Modifier.fillMaxSize().padding(ButtonDefaults.ContentPadding).zIndex(2f),
             horizontalAlignment = Alignment.CenterHorizontally
           ) {
-            if (jmmUiKit.labelEnd != null) {
-              Row(
+            when (val labelEnd = jmmUiKit.labelEnd) {
+              null ->
+                Text(
+                  text = jmmUiKit.labelStart,
+                  textAlign = TextAlign.Center,
+                  softWrap = false,
+                  maxLines = 1,
+                  overflow = TextOverflow.Visible
+                )
+
+              else -> Row(
                 modifier = Modifier.fillMaxWidth().weight(1f),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
@@ -148,23 +152,16 @@ internal fun BoxScope.BottomDownloadButton() {
                   )
                 }
                 Text(
-                  text = jmmUiKit.labelEnd,
+                  text = labelEnd,
                   modifier = Modifier.weight(2f),
                   textAlign = TextAlign.End
                 )
               }
-            } else {
-              Text(
-                text = jmmUiKit.labelStart,
-                textAlign = TextAlign.Center,
-                softWrap = false,
-                maxLines = 1,
-                overflow = TextOverflow.Visible
-              )
             }
-            if (jmmUiKit.description != null) {
-              Text(
-                text = jmmUiKit.description,
+            when (val description = jmmUiKit.description) {
+              null -> {}
+              else -> Text(
+                text = description,
                 modifier = Modifier.weight(0.5f),
                 style = MaterialTheme.typography.bodySmall
               )

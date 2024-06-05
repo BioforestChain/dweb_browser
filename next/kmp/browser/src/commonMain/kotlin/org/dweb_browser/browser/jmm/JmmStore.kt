@@ -87,8 +87,11 @@ data class JmmMetadata(
   @SerialName("metadata")
   @Deprecated("use manifest alternative")
   private val _oldMetadata: JmmAppInstallManifest? = null,
+  /**
+   * 目前兼容模式，使用 Nullable，未来这个字段不可空
+   */
   @SerialName("manifest")
-  private var _manifest: JmmAppInstallManifest,
+  private var _manifest: JmmAppInstallManifest? = null,
   var downloadTask: DownloadTask? = null, // 用于保存下载任务，下载完成置空
   @SerialName("state")
   private var _state: JmmStatusEvent = JmmStatusEvent(), // 用于显示下载状态
@@ -102,7 +105,7 @@ data class JmmMetadata(
   }
 
   var state by ObservableMutableState(_state) { _state = it }
-  var manifest by ObservableMutableState(_manifest) { _manifest = it }
+  var manifest by ObservableMutableState(_manifest!!) { _manifest = it }
   suspend fun initDownloadTask(downloadTask: DownloadTask, store: JmmStore) {
     this.downloadTask = downloadTask
     updateDownloadStatus(downloadTask.status, store)

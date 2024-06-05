@@ -23,78 +23,50 @@ internal class JmmUiKit(
   val controller: JmmInstallerController,
   val metadata: JmmMetadata,
 ) {
-  val jmmStatusEvent = metadata.state
-  val jmmStatus = metadata.state.state
-  val labelStart: String
-  val labelEnd: String?
-  val description: String?
+  val jmmStatusEvent get() = metadata.state
+  val jmmStatus get() = jmmStatusEvent.state
+  val labelStart
+    get() = if (!canSupportTarget) {
+      BrowserI18nResource.install_button_jump_home.text
+    } else when (jmmStatus) {
+      JmmStatus.Init, JmmStatus.Canceled -> BrowserI18nResource.install_button_install.text
+      JmmStatus.NewVersion -> BrowserI18nResource.install_button_update.text
+      JmmStatus.Downloading -> BrowserI18nResource.install_button_downloading.text
+      JmmStatus.Paused -> BrowserI18nResource.install_button_paused.text
+      JmmStatus.Completed -> BrowserI18nResource.install_button_installing.text
+      JmmStatus.INSTALLED -> BrowserI18nResource.install_button_open.text
+      JmmStatus.Failed -> BrowserI18nResource.install_button_retry.text
+      JmmStatus.VersionLow -> BrowserI18nResource.install_button_lower.text
+    }
+  val labelEnd
+    get() = when (jmmStatus) {
+      JmmStatus.Init,
+
+      JmmStatus.Canceled,
+
+      JmmStatus.NewVersion,
+
+      JmmStatus.Downloading,
+
+      JmmStatus.Paused -> jmmStatusEvent.progressText
+
+      else -> null
+    }
+  val description
+    get() = if (!canSupportTarget) {
+      BrowserI18nResource.install_button_incompatible.text
+    } else null
 
   /**
    * 应用是否是当前支持的大版本
    */
   private val canSupportTarget = metadata.manifest.canSupportTarget(JsMicroModule.VERSION)
-  val showLinearProgress = jmmStatus == JmmStatus.Downloading || jmmStatus == JmmStatus.Paused
-
-  init {
-    // 应用是否是当前支持的大版本
-    if (!canSupportTarget) {
-      labelStart = BrowserI18nResource.install_button_jump_home.text
-      labelEnd = null
-      description = BrowserI18nResource.install_button_incompatible.text
-    } else {
-      description = null
-      when (jmmStatus) {
-        JmmStatus.Init, JmmStatus.Canceled -> {
-          labelStart = BrowserI18nResource.install_button_install.text
-          labelEnd = jmmStatusEvent.progressText
-        }
-
-
-        JmmStatus.NewVersion -> {
-          labelStart = BrowserI18nResource.install_button_update.text
-          labelEnd = jmmStatusEvent.progressText
-        }
-
-
-        JmmStatus.Downloading -> {
-          labelStart = BrowserI18nResource.install_button_downloading.text
-          labelEnd = jmmStatusEvent.progressText
-        }
-
-
-        JmmStatus.Paused -> {
-          labelStart = BrowserI18nResource.install_button_paused.text
-          labelEnd = jmmStatusEvent.progressText
-        }
-
-
-        JmmStatus.Completed -> {
-          labelStart = BrowserI18nResource.install_button_installing.text
-          labelEnd = null
-        }
-
-
-        JmmStatus.INSTALLED -> {
-          labelStart = BrowserI18nResource.install_button_open.text
-          labelEnd = null
-        }
-
-
-        JmmStatus.Failed -> {
-          labelStart = BrowserI18nResource.install_button_retry.text
-          labelEnd = null
-        }
-
-
-        JmmStatus.VersionLow -> {
-          labelStart = BrowserI18nResource.install_button_lower.text
-          labelEnd = null
-        }
-
-      }
+  val showLinearProgress
+    get() = when (jmmStatus) {
+      JmmStatus.Downloading, JmmStatus.Paused -> true
+      else -> false
     }
 
-  }
 
   fun onClickDownloadButton() = controller.jmmNMM.scopeLaunch(cancelable = true) {
     if (!canSupportTarget) {

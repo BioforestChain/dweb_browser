@@ -24,6 +24,7 @@ import org.dweb_browser.browser.jmm.render.CustomerDivider
 import org.dweb_browser.browser.jmm.render.HorizontalPadding
 import org.dweb_browser.browser.jmm.render.VerticalPadding
 import org.dweb_browser.browser.jmm.render.toContent
+import org.dweb_browser.core.CoreI18nResource
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.std.dns.nativeFetch
@@ -114,9 +115,7 @@ private fun OtherItemView(
 }
 
 fun List<MICRO_MODULE_CATEGORY>.print(): String {
-  val result = StringBuilder()
-  this.forEach { category ->
-    result.append(category.name)
+  return joinToString(", ") { category ->
+    CoreI18nResource.Category.ALL[category]?.res?.text ?: category.name
   }
-  return result.toString()
 }
