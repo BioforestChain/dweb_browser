@@ -2,6 +2,9 @@ import { WalkFiles } from "../../scripts/helper/WalkDir.ts";
 import { createBaseResolveTo } from "../../scripts/helper/resolveTo.ts";
 const resolveTo = createBaseResolveTo(import.meta.url);
 
+// 发布版本的时候，升级下版本信息 versionCode和versionName
+upgradeVersionInfo(resolveTo("gradle/libs.versions.toml"))
+
 // 运行 assembleRelease 命令，继承输出
 const cmd = Deno.build.os === "windows" ? resolveTo("gradlew.bat") : resolveTo("gradlew");
 const args = ["assembleRelease", "assembleDebug", "bundleRelease"];
@@ -81,3 +84,40 @@ for await (const dirEntry of Deno.readDir(BUILD_OUTPUT_DIR_BUNDLE)) {
 }
 
 console.log(`All required APKs have been copied to ${OUTPUT_DIR}`);
+
+// 异步读取并升级版本信息
+async function upgradeVersionInfo(filePath: string) {
+  try {
+    // 读取文件内容
+    const content = await Deno.readTextFile(filePath);
+    
+    // 将文件内容按行分割
+    const lines = content.split("\r\n");
+
+    // 遍历每一行，判断是否是 versionCode和versionName，然后进行修改
+    for(let index = 0; index < lines.length; index++) {
+      const line = lines[index]
+      if(line.startsWith("versionCode")) { // 修改 versionCode
+        const versionCode = line.substring(line.indexOf("=") + 1).replaceAll("\"", "").trim()
+        lines[index] = `versionCode = "${parseInt(versionCode) + 1}"`
+        console.log(`versionCode ${versionCode} >> ${lines[index]}`)
+      } else if(line.startsWith("versionName")) { // 修改 versionName
+        const now = new Date()
+        const currentDate = `${now.getFullYear()-2000}${(now.getMonth()+1).toString().padStart(2, '0')}${(now.getDate()).toString().padStart(2, '0')}`
+        const versionName = line.substring(line.indexOf("=") + 1).replaceAll("\"", "").trim().split(".")
+        if(versionName[1] === currentDate) {
+          lines[index] = `versionName = "${versionName[0]}.${versionName[1]}.${parseInt(versionName[2]) + 1}"`
+        } else {
+          lines[index] = `versionName = "${versionName[0]}.${currentDate}.0"`
+        }
+        console.log(`versionName ${versionName} >> ${lines[index]}`)
+        break
+      }
+    }
+
+    await Deno.writeTextFile(filePath, lines.join("\r\n"))
+    console.log("版本更新完成，开始打包...")
+  } catch (error) {
+    console.error("版本更新失败:", error);
+  }
+}
