@@ -1,8 +1,8 @@
 import type { Ipc } from "@dweb-browser/core/ipc/ipc.ts";
 import { createSignal, type $Callback } from "@dweb-browser/helper/createSignal.ts";
-import { WebSocketIpcBuilder } from "../common/websocketIpc.ts";
 import { BasePlugin } from "../components/base/base.plugin.ts";
 
+import { jsonlinesStreamReadText } from "@dweb-browser/helper/stream/jsonlinesStreamHelper.ts";
 import { bindThis } from "../helper/bindThis.ts";
 
 type $Transform<T, R> = (value: T) => R;
@@ -22,20 +22,42 @@ export class StateObserver<RAW, STATE> {
     // deno-lint-ignore require-await
     private buildWsUrl: (ws_url: URL) => Promise<URL | void> = async (ws_url) => ws_url
   ) {}
+  private ws?: WebSocket;
+
   /**监听状态变化 */
-  async startObserveState() {
+  async jsonlines(options?: { signal?: AbortSignal }) {
     const api_url = BasePlugin.api_url;
     const url = new URL(api_url.replace(/^http/, "ws"));
     // 内部的监听
     url.pathname = `/${this.plugin.mmid}/observe`;
-    const wsIpcBuilder = new WebSocketIpcBuilder((await this.buildWsUrl(url)) ?? url, this.plugin.self);
-    this._ipc = wsIpcBuilder.ipc;
-    console.log("connect=>", this._ipc.remote.mmid, url);
-    this._ipc.onMessage("state-observer").collect((event) => {
-      const data = event.consume();
-      console.log(`/${this.plugin.mmid}/observe=>`, data);
-      // this.currentState = state;
-    });
+    const wsUrl = ((await this.buildWsUrl(url)) ?? url).href;
+    return jsonlinesStreamReadText<STATE>(
+      new ReadableStream<string>({
+        pull: (controller) => {
+          this.pullMessage(wsUrl, controller);
+        },
+        cancel: () => {
+          this.ws?.close();
+        },
+      }),
+      options
+    );
+  }
+  // 断开重连机制
+  pullMessage(wsUrl: string, controller: ReadableStreamDefaultController<string>) {
+    if (this.ws == null || this.ws.readyState === WebSocket.CLOSING) {
+      console.log(`re-create=>${wsUrl}`, this.ws?.readyState);
+      this.ws = new WebSocket(wsUrl);
+      this.ws.onmessage = (msgEvent) => {
+        const data = msgEvent.data;
+        // console.log("ws on message", data, typeof data, wsUrl);
+        if (typeof data === "string") {
+          this.currentState = JSON.parse(data);
+          // console.log("pull", this.currentState);
+          controller.enqueue(data);
+        }
+      };
+    }
   }
 
   stopObserve() {

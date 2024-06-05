@@ -4,7 +4,12 @@ import { StateObserver } from "./StateObserver.ts";
 export class HTMLStateObserverElement<RAW, STATE> extends HTMLElement {
   constructor(readonly state: StateObserver<RAW, STATE>) {
     super();
-    state.startObserveState();
+    (async () => {
+      const stateIter = await state.jsonlines();
+      for await (const _info of stateIter) {
+        // console.log("stateChange", _info);
+      }
+    })();
   }
   #onStateChange?: $OffListener;
   async connectedCallback() {
