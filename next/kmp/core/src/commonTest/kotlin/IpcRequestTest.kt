@@ -13,7 +13,7 @@ import org.dweb_browser.core.ipc.helper.IpcResponse
 import org.dweb_browser.core.ipc.kotlinIpcPool
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
-import org.dweb_browser.core.module.createChannel
+import org.dweb_browser.core.module.channelRequest
 import org.dweb_browser.core.std.dns.DnsNMM
 import org.dweb_browser.helper.addDebugTags
 import org.dweb_browser.helper.collectIn
@@ -117,7 +117,7 @@ class IpcRequestTest {
     launch(start = CoroutineStart.UNDISPATCHED) {
       var actual = 0
       var expected = 0
-      clientRuntime.createChannel("file://${serverMM.mmid}/channel") {
+      clientRuntime.channelRequest("file://${serverMM.mmid}/channel") {
         job1.complete(Unit)
         job2.await()
         launch {
@@ -141,7 +141,7 @@ class IpcRequestTest {
       var actual = 0
       var expected = 0
       job1.await()
-      clientRuntime.createChannel("file://${serverMM.mmid}/channel") {
+      clientRuntime.channelRequest("file://${serverMM.mmid}/channel") {
         launch {
           for (i in 1..10) {
             actual += i * 2

@@ -12,7 +12,7 @@ import org.dweb_browser.core.http.router.bindDwebDeeplink
 import org.dweb_browser.core.ipc.helper.IpcEvent
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
-import org.dweb_browser.core.module.createChannel
+import org.dweb_browser.core.module.channelRequest
 import org.dweb_browser.helper.ChangeState
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.ImageResource
@@ -150,7 +150,7 @@ class ShortcutNMM : NativeMicroModule("shortcut.sys.dweb", "Shortcut") {
     }
 
     private suspend fun doObserve(urlPath: String, cb: suspend ChangeState<MMID>.() -> Unit) {
-      val response = createChannel(urlPath) {
+      val response = channelRequest(urlPath) {
         for (frame in income) {
           when (frame) {
             is PureTextFrame -> {

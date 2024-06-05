@@ -244,7 +244,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
 /**
  * 创建一个 channel 通信
  */
-suspend fun NativeMicroModule.NativeRuntime.createChannel(
+suspend fun NativeMicroModule.NativeRuntime.channelRequest(
   urlPath: String, resolve: suspend PureChannelContext.() -> Unit,
 ): PureResponse {
   val channelDef = CompletableDeferred<PureChannel>()

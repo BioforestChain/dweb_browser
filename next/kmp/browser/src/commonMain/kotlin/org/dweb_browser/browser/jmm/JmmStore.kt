@@ -111,7 +111,11 @@ data class JmmMetadata(
     updateDownloadStatus(downloadTask.status, store)
   }
 
-  suspend fun updateDownloadStatus(status: DownloadStateEvent, store: JmmStore) {
+  suspend fun updateDownloadStatus(
+    status: DownloadStateEvent,
+    store: JmmStore,
+    saveMetadata: Boolean = true
+  ) {
     val newStatus = JmmStatusEvent(
       current = status.current,
       total = status.total,
@@ -126,7 +130,9 @@ data class JmmMetadata(
     )
     if (newStatus != state) { // 只要前后不一样，就进行保存，否则不保存，主要为了防止downloading频繁保存
       state = newStatus
-      store.saveMetadata(this.manifest.id, this@JmmMetadata)
+      if (saveMetadata) {
+        store.saveMetadata(this.manifest.id, this@JmmMetadata)
+      }
     }
   }
 

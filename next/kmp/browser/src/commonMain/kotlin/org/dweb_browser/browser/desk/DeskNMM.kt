@@ -19,7 +19,7 @@ import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.ipc.helper.IpcServerRequest
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
-import org.dweb_browser.core.module.createChannel
+import org.dweb_browser.core.module.channelRequest
 import org.dweb_browser.core.std.dns.ext.onActivity
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.file.ext.ResponseLocalFileBase
@@ -100,7 +100,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
 
     private suspend fun listenApps() = scopeLaunch(cancelable = true) {
       suspend fun doObserve(urlPath: String, cb: suspend ChangeState<MMID>.() -> Unit) {
-        val response = createChannel(urlPath) {
+        val response = channelRequest(urlPath) {
           for (frame in income) {
             when (frame) {
               is PureTextFrame -> {

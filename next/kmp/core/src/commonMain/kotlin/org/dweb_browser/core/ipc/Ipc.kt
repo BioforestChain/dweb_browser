@@ -270,7 +270,6 @@ class Ipc internal constructor(
     awaitOpen("then-fork")
     // 这里确保 endpoint opened 了再 generatePid
     val ipcId = pid ?: endpoint.generatePid()
-    println("QAQ fork endpoint=[${endpoint.hashCode()}]$endpoint pid=$pid")
     val forkedIpc = pool.createIpc(
       pid = ipcId,
       endpoint = endpoint,
