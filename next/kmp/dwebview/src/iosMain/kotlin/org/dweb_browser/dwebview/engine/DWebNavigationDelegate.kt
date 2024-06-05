@@ -2,6 +2,7 @@ package org.dweb_browser.dwebview.engine
 
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.ObjCSignatureOverride
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.MainScope
@@ -163,6 +164,7 @@ class DWebNavigationDelegate(val engine: DWebViewEngine) : NSObject(),
     decidePolicyForNavigationAction(webView, decidePolicyForNavigationAction, decisionHandler)
   }
 
+  @ObjCSignatureOverride
   override fun webView(
     webView: WKWebView, didStartProvisionalNavigation: WKNavigation?
   ) {
@@ -170,6 +172,7 @@ class DWebNavigationDelegate(val engine: DWebViewEngine) : NSObject(),
     engine.mainScope.launch { engine.loadStateChangeSignal.emit(WebLoadStartState(loadedUrl)) }
   }
 
+  @ObjCSignatureOverride
   override fun webView(webView: WKWebView, didFinishNavigation: WKNavigation?) {
     val loadedUrl = webView.URL?.absoluteString ?: "about:blank"
     engine.mainScope.launch {
