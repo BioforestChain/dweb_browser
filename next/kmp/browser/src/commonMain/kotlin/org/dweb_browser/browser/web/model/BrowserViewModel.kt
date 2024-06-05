@@ -48,6 +48,7 @@ import org.dweb_browser.helper.isTrimEndSlashEqual
 import org.dweb_browser.helper.platform.toByteArray
 import org.dweb_browser.helper.toWebUrl
 import org.dweb_browser.helper.toWebUrlOrWithoutProtocol
+import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.helper.withScope
 import org.dweb_browser.sys.permission.SystemPermissionName
 import org.dweb_browser.sys.permission.SystemPermissionTask
@@ -354,24 +355,21 @@ class BrowserViewModel(
     if (index == -1) {
       return false
     }
-    if (focusedPage == page) {
-      // 如果要关闭当前的page，那么需要聚焦到下一个page，但是如果下一个page越界了，就聚焦上一个
-      val newFocusIndex = if (index + 1 >= pageSize) index - 1 else index + 1
-      pages.getOrNull(newFocusIndex)?.also { focusPageUI(it) }
-    }
 
-    /// 如果移除后，发现列表空了，手动补充一个。这个代码必须连着执行，否则会出问题
-    pages.removeAt(index)
-    if (pages.isEmpty()) {
-      addNewPageUI(BrowserHomePage(browserController)) {
-        focusPage = true
-        replaceOldHomePage = false
+    return pages.remove(page).trueAlso {
+      if (pages.isEmpty()) {
+        addNewPageUI(BrowserHomePage(browserController)) {
+          focusPage = true
+          replaceOldHomePage = false
+        }
+      } else if (focusedPage == page) {
+        // TODO 获取的index是否在移除后的列表有效区间内，如果存在可以进行聚焦，不存在（-1），等待PagerState内部自行处理
+        if (index in 0 until pageSize) {
+          focusPageUI(index)
+        }
       }
+      page.destroy()
     }
-
-    // 最后，将移除的页面进行销毁
-    page.destroy()
-    return true
   }
 
   /**检查是否有设置过的默认搜索引擎，并且拼接成webUrl*/
