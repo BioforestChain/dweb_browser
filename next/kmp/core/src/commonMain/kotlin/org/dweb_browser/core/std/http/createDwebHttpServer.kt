@@ -36,15 +36,7 @@ suspend fun MicroModule.Runtime.listenHttpDwebServer(
   microModule: IMicroModuleManifest,
   startResult: HttpNMM.ServerStartResult,
   routes: Array<CommonRoute> = arrayOf(
-    CommonRoute(pathname = "", method = PureMethod.GET),
-    CommonRoute(pathname = "", method = PureMethod.POST),
-    CommonRoute(pathname = "", method = PureMethod.PUT),
-    CommonRoute(pathname = "", method = PureMethod.DELETE),
-    CommonRoute(pathname = "", method = PureMethod.OPTIONS),
-    CommonRoute(pathname = "", method = PureMethod.PATCH),
-    CommonRoute(pathname = "", method = PureMethod.HEAD),
-    CommonRoute(pathname = "", method = PureMethod.CONNECT),
-    CommonRoute(pathname = "", method = PureMethod.TRACE),
+    CommonRoute(pathname = "", method = PureMethod.ALL_VALUES.keys.joinToString("|")),
   ),
   customServerIpc: Ipc? = null,
 ): Ipc {

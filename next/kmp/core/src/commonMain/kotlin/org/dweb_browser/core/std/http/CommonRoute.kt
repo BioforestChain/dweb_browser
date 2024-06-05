@@ -1,19 +1,30 @@
 package org.dweb_browser.core.std.http
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import org.dweb_browser.core.http.router.HttpHandlerChain
 import org.dweb_browser.core.http.router.RouteHandler
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureRequest
 
 @Serializable
-data class CommonRoute(
+class CommonRoute(
   val dwebDeeplink: Boolean = false,
   override val pathname: String,
-  val method: PureMethod,
+  val method: String,
   val matchMode: MatchMode = MatchMode.PREFIX,
 ) : IRoute {
-  private fun methodMatcher(request: PureRequest) = request.method == method
+  constructor(
+    dwebDeeplink: Boolean = false,
+    pathname: String,
+    method: PureMethod,
+    matchMode: MatchMode = MatchMode.PREFIX,
+  ) : this(dwebDeeplink, pathname, method.method, matchMode)
+
+  @Transient
+  val methods = method.uppercase().split(Regex("[|,\\s]+")).toSet()
+
+  private fun methodMatcher(request: PureRequest) = methods.contains(request.method.method)
   private fun protocolMatcher(request: PureRequest) =
     if (dwebDeeplink) request.href.startsWith("dweb:") else true
 
