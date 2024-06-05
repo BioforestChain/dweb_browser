@@ -41,8 +41,12 @@ object BrowserI18nResource {
     SimpleI18nResource(Language.ZH to "重载失效资源", Language.EN to "Retry")
   val install_button_retry2 = SimpleI18nResource(Language.ZH to "重试", Language.EN to "Retry")
   val install_button_incompatible = SimpleI18nResource(
-    Language.ZH to "该软件与您的设备不兼容",
-    Language.EN to "The software is not compatible with your device"
+    Language.ZH to "软件不兼容",
+    Language.EN to "Software Incompatible"
+  )
+  val install_button_jump_home = SimpleI18nResource(
+    Language.ZH to "打开来源页",
+    Language.EN to "Go to Referring Page"
   )
   val install_tooltip_warning =
     SimpleI18nResource(Language.ZH to "警告", Language.EN to "WARING")

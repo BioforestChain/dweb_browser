@@ -21,9 +21,13 @@ import org.dweb_browser.helper.compose.SimpleI18nResource
 import org.dweb_browser.helper.datetimeNow
 
 @Serializable
-data class JsMicroModuleDBItem(val installManifest: JmmAppInstallManifest, val originUrl: String) {
+data class JsMicroModuleDBItem(
+  val installManifest: JmmAppInstallManifest,
+  val originUrl: String,
+  val referrerUrl: String? = null,
+) {
   val jmmMetadata by lazy {
-    installManifest.createJmmMetadata(originUrl)
+    installManifest.createJmmMetadata(originUrl, referrerUrl)
   }
 }
 
@@ -79,16 +83,26 @@ class JmmStore(microModule: MicroModule.Runtime) {
 @Serializable
 data class JmmMetadata(
   val originUrl: String,
+  val referrerUrl: String? = null,
   @SerialName("metadata")
-  private var _metadata: JmmAppInstallManifest,
+  @Deprecated("use manifest alternative")
+  private val _oldMetadata: JmmAppInstallManifest? = null,
+  @SerialName("manifest")
+  private var _manifest: JmmAppInstallManifest,
   var downloadTask: DownloadTask? = null, // 用于保存下载任务，下载完成置空
   @SerialName("state")
   private var _state: JmmStatusEvent = JmmStatusEvent(), // 用于显示下载状态
   var installTime: Long = datetimeNow(), // 表示安装应用的时间
   var upgradeTime: Long = datetimeNow(),
 ) {
+  init {
+    if (_oldMetadata != null) {
+      _manifest = _oldMetadata
+    }
+  }
+
   var state by ObservableMutableState(_state) { _state = it }
-  var metadata by ObservableMutableState(_metadata) { _metadata = it }
+  var manifest by ObservableMutableState(_manifest) { _manifest = it }
   suspend fun initDownloadTask(downloadTask: DownloadTask, store: JmmStore) {
     this.downloadTask = downloadTask
     updateDownloadStatus(downloadTask.status, store)
@@ -109,26 +123,26 @@ data class JmmMetadata(
     )
     if (newStatus != state) { // 只要前后不一样，就进行保存，否则不保存，主要为了防止downloading频繁保存
       state = newStatus
-      store.saveMetadata(this.metadata.id, this@JmmMetadata)
+      store.saveMetadata(this.manifest.id, this@JmmMetadata)
     }
   }
 
   suspend fun initState(store: JmmStore) {
     state = state.copy(state = JmmStatus.Init)
-    store.saveMetadata(this.metadata.id, this@JmmMetadata)
+    store.saveMetadata(this.manifest.id, this@JmmMetadata)
   }
 
   suspend fun installComplete(store: JmmStore) {
     debugJMM("installComplete")
     state = state.copy(state = JmmStatus.INSTALLED)
-    store.saveMetadata(this.metadata.id, this)
-    store.setApp(metadata.id, JsMicroModuleDBItem(metadata, originUrl))
+    store.saveMetadata(this.manifest.id, this)
+    store.setApp(manifest.id, JsMicroModuleDBItem(manifest, originUrl, referrerUrl))
   }
 
   suspend fun installFail(store: JmmStore) {
     debugJMM("installFail")
     state = state.copy(state = JmmStatus.Failed)
-    store.saveMetadata(this.metadata.id, this)
+    store.saveMetadata(this.manifest.id, this)
   }
 }
 
@@ -147,10 +161,15 @@ data class JmmStatusEvent(
 }
 
 fun JmmAppInstallManifest.createJmmMetadata(
-  url: String, state: JmmStatus = JmmStatus.Init, installTime: Long = datetimeNow(),
-) = JmmMetadata(
-  originUrl = url,
-  _metadata = this,
+  originUrl: String,
+  referrerUrl: String?,
+  state: JmmStatus = JmmStatus.Init,
+  installTime: Long = datetimeNow(),
+
+  ) = JmmMetadata(
+  originUrl = originUrl,
+  referrerUrl = referrerUrl,
+  _manifest = this,
   _state = JmmStatusEvent(total = this.bundle_size, state = state),
   installTime = installTime
 )

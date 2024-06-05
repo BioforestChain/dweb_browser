@@ -64,10 +64,11 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Service") {
 
       val routeInstallHandler = defineEmptyResponse {
         val metadataUrl = request.query("url").removeInvisibleChars().trim()
+        val referrerUrl = request.headers.getOrNull("referrer")
 
         debugJMM("fetchJmmMetadata", metadataUrl)
         // 加载url资源，这一步可能要多一些时间
-        val jmmMetadata = jmmController.fetchJmmMetadata(metadataUrl)
+        val jmmMetadata = jmmController.fetchJmmMetadata(metadataUrl, referrerUrl)
         jmmController.openInstallerView(jmmMetadata)
       }
 

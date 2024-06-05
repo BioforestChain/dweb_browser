@@ -29,7 +29,7 @@ class JmmHistoryController(
     when (historyMetadata.state.state) {
       JmmStatus.INSTALLED -> {
         // jmmNMM.bootstrapContext.dns.open(historyMetadata.metadata.id)
-        jmmController.openApp(historyMetadata.metadata.id)
+        jmmController.openApp(historyMetadata.manifest.id)
       }
 
       JmmStatus.Paused -> {
@@ -42,7 +42,7 @@ class JmmHistoryController(
 
       JmmStatus.Completed -> {}
       else -> {
-        jmmController.startDownloadTaskByUrl(historyMetadata.originUrl)
+        jmmController.startDownloadTaskByUrl(historyMetadata.originUrl, historyMetadata.referrerUrl)
       }
     }
   }
@@ -55,7 +55,7 @@ class JmmHistoryController(
   /// 卸载app
   fun unInstall(historyMetadata: JmmMetadata) {
     jmmNMM.scopeLaunch(cancelable = false) {
-      jmmController.uninstall(historyMetadata.metadata.id)
+      jmmController.uninstall(historyMetadata.manifest.id)
     }
   }
 

@@ -69,8 +69,6 @@ internal fun OtherInfoView(jmmAppInstallManifest: JmmAppInstallManifest) {
       type = BrowserI18nResource.JMM.install_info_type(),
       content = jmmAppInstallManifest.categories.print()
     )
-    OtherItemView(type = BrowserI18nResource.JMM.install_info_language(), content = "中文")
-    OtherItemView(type = BrowserI18nResource.JMM.install_info_age(), content = "18+")
     OtherItemView(
       type = BrowserI18nResource.JMM.install_info_copyright(),
       content = jmmAppInstallManifest.author.firstOrNull() ?: jmmAppInstallManifest.name

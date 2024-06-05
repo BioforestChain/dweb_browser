@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,6 +23,7 @@ import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,9 +35,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
+import org.dweb_browser.browser.jmm.JmmInstallerController
 import org.dweb_browser.browser.jmm.JmmStatus
 import org.dweb_browser.browser.jmm.JmmStatusEvent
-import org.dweb_browser.browser.jmm.JsMicroModule
 import org.dweb_browser.browser.jmm.LocalJmmInstallerController
 import org.dweb_browser.helper.compose.AutoResizeTextContainer
 import org.dweb_browser.helper.toSpaceSize
@@ -46,36 +48,16 @@ import org.dweb_browser.helper.withScope
 internal fun BoxScope.BottomDownloadButton() {
   val background = MaterialTheme.colorScheme.surface
   val jmmInstallerController = LocalJmmInstallerController.current
-  val jmmState = jmmInstallerController.installMetadata.state
-  // 应用是否是当前支持的大版本
-  val canSupportTarget =
-    jmmInstallerController.installMetadata.metadata.canSupportTarget(JsMicroModule.VERSION)
+  val jmmMetadata = jmmInstallerController.installMetadata
+  val jmmState = jmmMetadata.state
   val uiScope = rememberCoroutineScope()
+  val jmmUiKit = rememberJmmUiKit(jmmInstallerController);
 
   Box(
     modifier = Modifier.fillMaxWidth().align(Alignment.BottomCenter).background(
       brush = Brush.verticalGradient(listOf(background.copy(0f), background))
     ).padding(16.dp), contentAlignment = Alignment.Center
   ) {
-    val showLinearProgress =
-      jmmState.state == JmmStatus.Downloading || jmmState.state == JmmStatus.Paused
-
-//    val m2 = if (showLinearProgress) {
-//      val percent = jmmState.progress()
-//      val color1 = MaterialTheme.colorScheme.primary
-//      val color2 = color1.copy(alpha = 0.5f)
-//      modifier.background(
-//        Brush.horizontalGradient(
-//          0.0f to color1,
-//          maxOf(percent - 0.01f, 0.0f) to color1,
-//          minOf(percent + 0.01f, 1.0f) to color2,
-//          1.0f to color2
-//        )
-//      )
-//    } else {
-//      modifier.background(MaterialTheme.colorScheme.primary)
-//    }
-
     val tooltipState = rememberTooltipState(isPersistent = true)
     TooltipBox(
       positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(), tooltip = {
@@ -114,37 +96,16 @@ internal fun BoxScope.BottomDownloadButton() {
       }
       ElevatedButton(
         onClick = {
-          jmmInstallerController.jmmNMM.scopeLaunch(cancelable = true) {
-            when (jmmState.state) {
-              JmmStatus.Init, JmmStatus.Failed, JmmStatus.Canceled -> {
-                jmmInstallerController.createAndStartDownload()
-              }
-
-              JmmStatus.NewVersion -> {
-                jmmInstallerController.closeApp()
-                jmmInstallerController.createAndStartDownload()
-              }
-
-              JmmStatus.Paused -> {
-                jmmInstallerController.startDownload()
-              }
-
-              JmmStatus.Downloading -> {
-                jmmInstallerController.pause()
-              }
-
-              JmmStatus.Completed -> {}
-              JmmStatus.VersionLow -> {
-                withScope(uiScope) {
-                  tooltipState.show()
-                }
-              }
-
-              JmmStatus.INSTALLED -> {
-                jmmInstallerController.openApp()
+          when (jmmUiKit.metadata.state.state) {
+            JmmStatus.VersionLow -> {
+              uiScope.launch {
+                tooltipState.show()
               }
             }
+
+            else -> {}
           }
+          jmmUiKit.onClickDownloadButton()
         },
         modifier = Modifier.requiredSize(height = 50.dp, width = 300.dp).fillMaxWidth(),
         colors = ButtonDefaults.elevatedButtonColors(
@@ -157,104 +118,60 @@ internal fun BoxScope.BottomDownloadButton() {
           disabledContentColor = MaterialTheme.colorScheme.onErrorContainer,
         ),
         contentPadding = PaddingValues(0.dp),
-        enabled = canSupportTarget
       ) {
-        Box(Modifier.fillMaxSize()) {
-          if (showLinearProgress) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+          /// 进度背景
+          if (jmmUiKit.showLinearProgress) {
             LinearProgressIndicator(
               progress = { jmmState.progress },
               modifier = Modifier.fillMaxSize().alpha(0.5f).zIndex(1f),
               color = bgColor,
             )
           }
-          Box(
+          Column(
             Modifier.fillMaxSize().padding(ButtonDefaults.ContentPadding).zIndex(2f),
-            contentAlignment = Alignment.Center
+            horizontalAlignment = Alignment.CenterHorizontally
           ) {
-            if (canSupportTarget) {
-              JmmStatusText(jmmState) { statusName, progressText ->
-                progressText?.let {
-                  Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                  ) {
-                    AutoResizeTextContainer(Modifier.weight(1f)) {
-                      Text(
-                        text = statusName,
-                        textAlign = TextAlign.Center,
-                        softWrap = false,
-                        maxLines = 1,
-                        overflow = TextOverflow.Visible
-                      )
-                    }
-                    Text(
-                      text = progressText, modifier = Modifier.weight(2f), textAlign = TextAlign.End
-                    )
-                  }
-                } ?: Text(text = statusName)
+            if (jmmUiKit.labelEnd != null) {
+              Row(
+                modifier = Modifier.fillMaxWidth().weight(1f),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+              ) {
+                AutoResizeTextContainer(Modifier.weight(1f)) {
+                  Text(
+                    text = jmmUiKit.labelStart,
+                    textAlign = TextAlign.Center,
+                    softWrap = false,
+                    maxLines = 1,
+                    overflow = TextOverflow.Visible
+                  )
+                }
+                Text(
+                  text = jmmUiKit.labelEnd,
+                  modifier = Modifier.weight(2f),
+                  textAlign = TextAlign.End
+                )
               }
             } else {
-              Text(text = BrowserI18nResource.install_button_incompatible())
+              Text(
+                text = jmmUiKit.labelStart,
+                textAlign = TextAlign.Center,
+                softWrap = false,
+                maxLines = 1,
+                overflow = TextOverflow.Visible
+              )
+            }
+            if (jmmUiKit.description != null) {
+              Text(
+                text = jmmUiKit.description,
+                modifier = Modifier.weight(0.5f),
+                style = MaterialTheme.typography.bodySmall
+              )
             }
           }
         }
       }
     }
-  }
-}
-
-private val JmmStatusEvent.progressText: String?
-  get() {
-    var text = ""
-    if (current > 0) {
-      text += current.toSpaceSize()
-    }
-    if (total > 1 && total > current) {
-      if (text.isNotEmpty()) {
-        text += " / "
-      }
-      text += total.toSpaceSize()
-    }
-    return text.trim().ifEmpty { null } // 如果字符串是空的，直接返回 null
-  }
-
-/**
- * 通过 JmmStatusEvent，返回需要显示的状态和文件大小或者进度值
- */
-@Composable
-fun JmmStatusText(state: JmmStatusEvent, content: @Composable (String, String?) -> Unit) {
-  return when (state.state) {
-    JmmStatus.Init, JmmStatus.Canceled -> content(
-      BrowserI18nResource.install_button_install(), state.progressText
-    )
-
-    JmmStatus.NewVersion -> content(
-      BrowserI18nResource.install_button_update(), state.progressText
-    )
-
-    JmmStatus.Downloading -> content(
-      BrowserI18nResource.install_button_downloading(), state.progressText,
-    )
-
-    JmmStatus.Paused -> content(
-      BrowserI18nResource.install_button_paused(), state.progressText,
-    )
-
-    JmmStatus.Completed -> content(
-      BrowserI18nResource.install_button_installing(), null
-    )
-
-    JmmStatus.INSTALLED -> content(
-      BrowserI18nResource.install_button_open(), null
-    )
-
-    JmmStatus.Failed -> content(
-      BrowserI18nResource.install_button_retry(), null
-    )
-
-    JmmStatus.VersionLow -> content(
-      BrowserI18nResource.install_button_lower(), null
-    )
   }
 }
