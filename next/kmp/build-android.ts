@@ -3,9 +3,11 @@ import { createBaseResolveTo } from "../../scripts/helper/resolveTo.ts";
 const resolveTo = createBaseResolveTo(import.meta.url);
 
 // 运行 assembleRelease 命令，继承输出
-const gradle = new Deno.Command(Deno.build.os === "windows" ? "./gradlew.bat" : "./gradlew", {
+const cmds = [Deno.build.os === "windows" ? "./gradlew.bat" : "./gradlew", "assembleRelease"];
+console.log(">", ...cmds);
+const gradle = new Deno.Command(cmds[0], {
   cwd: resolveTo(),
-  args: ["assembleRelease"],
+  args: cmds.slice(1),
   stdout: "inherit",
   stderr: "inherit",
 });

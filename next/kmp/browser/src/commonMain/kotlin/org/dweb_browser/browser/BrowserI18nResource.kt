@@ -36,7 +36,7 @@ object BrowserI18nResource {
     SimpleI18nResource(Language.ZH to "安装中", Language.EN to "Installing")
   val install_button_open = SimpleI18nResource(Language.ZH to "打开", Language.EN to "Open")
   val install_button_lower =
-    SimpleI18nResource(Language.ZH to "已安装新版本", Language.EN to "Version Low")
+    SimpleI18nResource(Language.ZH to "版本降级", Language.EN to "Downgrade")
   val install_button_retry =
     SimpleI18nResource(Language.ZH to "重载失效资源", Language.EN to "Retry")
   val install_button_retry2 = SimpleI18nResource(Language.ZH to "重试", Language.EN to "Retry")
@@ -44,6 +44,20 @@ object BrowserI18nResource {
     Language.ZH to "该软件与您的设备不兼容",
     Language.EN to "The software is not compatible with your device"
   )
+  val install_tooltip_warning =
+    SimpleI18nResource(Language.ZH to "警告", Language.EN to "WARING")
+
+  val install_tooltip_lower_version_tip =
+    SimpleI18nResource(
+      Language.ZH to "该目标版本低于当前已安装的版本，确定要进行降级安装吗？",
+      Language.EN to "The target version is lower than the currently installed version. Are you sure you want to downgrade?"
+    )
+
+  val install_tooltip_install_lower_action = SimpleI18nResource(
+    Language.ZH to "降级安装",
+    Language.EN to "Downgrade and install"
+  )
+
   val no_download_links = SimpleI18nResource(
     Language.ZH to "暂无下载数据", Language.EN to "There are no download links yet",
   )
@@ -183,7 +197,7 @@ object BrowserI18nResource {
 
   object JsMM {
     class CanNotSupportTargetParams(
-      var appName: String= "",
+      var appName: String = "",
       var appId: MMID = "",
       var currentVersion: Int = -1,
       var minTarget: Int = -1,

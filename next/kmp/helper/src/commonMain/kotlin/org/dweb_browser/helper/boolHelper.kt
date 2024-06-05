@@ -13,3 +13,8 @@ inline fun Boolean.falseAlso(block: () -> Unit): Boolean {
   }
   return this
 }
+
+inline fun <T> T.letIf(condition: Boolean, block: (T) -> T) = when {
+  condition -> block(this)
+  else -> this
+}

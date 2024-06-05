@@ -200,7 +200,7 @@ infix fun String.bindPrefix(method: PureMethod) =
 infix fun String.bindDwebDeeplink(action: HttpHandler) = bindDwebDeeplink(action.toChain())
 infix fun String.bindDwebDeeplink(action: HttpHandlerChain) = RouteHandler(
   CommonRoute(
-    dwebDeeplink = true, pathname = this, method = PureMethod.GET, matchMode = MatchMode.FULL
+    dwebDeeplink = true, pathname = this, method =  PureMethod.GET, matchMode = MatchMode.FULL
   ), action
 )
 

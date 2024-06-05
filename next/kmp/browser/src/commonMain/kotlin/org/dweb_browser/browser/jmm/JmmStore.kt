@@ -138,11 +138,10 @@ data class JmmStatusEvent(
   val total: Long = 1,
   val state: JmmStatus = JmmStatus.Init,
 ) {
-  fun progress(): Float {
-    return if (total == 0L) {
-      .0f
-    } else {
-      (current * 1.0f / total) * 10 / 10.0f
+  val progress by lazy {
+    when (total) {
+      0L -> .0f
+      else -> current.toFloat() / total.toFloat()
     }
   }
 }

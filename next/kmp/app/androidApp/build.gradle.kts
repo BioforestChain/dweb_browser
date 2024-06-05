@@ -114,6 +114,7 @@ android {
       keyPassword = keystoreProperties["keyPassword"]?.toString()
       storeFile = keystoreProperties["storeFile"]?.let { file(it.toString()) }
       storePassword = keystoreProperties["storePassword"]?.toString()
+      println("qqqq storeFile=${storeFile}")
     }
     getByName("debug") {
       // 获取本地配置的 key 信息，storeFile 是将jks文件放在当前 build.gradle.kts 同级目录

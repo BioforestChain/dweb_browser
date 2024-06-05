@@ -58,7 +58,7 @@ suspend fun NativeMicroModule.NativeRuntime.cancelDownload(taskId: String) =
   nativeFetch("file://download.browser.dweb/cancel?taskId=$taskId").boolean()
 
 suspend fun NativeMicroModule.NativeRuntime.downloadProgressFlow(
-  taskId: String, fps: Double = 10.0,
+  taskId: String, fps: Double = 30.0,
 ) = channelFlow {
   val channelFlow = this
   val throttleMs = (1000.0 / fps).microseconds

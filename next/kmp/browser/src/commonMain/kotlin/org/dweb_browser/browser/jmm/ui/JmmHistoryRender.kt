@@ -191,9 +191,7 @@ fun JmmViewItem(
           modifier = Modifier.size(64.dp).clickableWithNoEffect { buttonClick() },
           contentAlignment = Alignment.Center
         ) {
-          val progress = with(jmmMetadata.state) {
-            if (total > 0) progress() else 0f
-          }
+          val progress = jmmMetadata.state.progress
           val primary = MaterialTheme.colorScheme.primary
           when (jmmMetadata.state.state) {
             JmmStatus.Downloading, JmmStatus.Paused -> {

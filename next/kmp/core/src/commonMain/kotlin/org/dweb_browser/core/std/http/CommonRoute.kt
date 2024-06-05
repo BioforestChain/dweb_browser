@@ -11,7 +11,7 @@ data class CommonRoute(
   val dwebDeeplink: Boolean = false,
   override val pathname: String,
   val method: PureMethod,
-  val matchMode: MatchMode = MatchMode.PREFIX
+  val matchMode: MatchMode = MatchMode.PREFIX,
 ) : IRoute {
   private fun methodMatcher(request: PureRequest) = request.method == method
   private fun protocolMatcher(request: PureRequest) =

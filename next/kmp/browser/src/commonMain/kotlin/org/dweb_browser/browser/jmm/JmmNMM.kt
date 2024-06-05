@@ -15,6 +15,7 @@ import org.dweb_browser.core.std.file.fileTypeAdapterManager
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.ImageResource
+import org.dweb_browser.helper.removeInvisibleChars
 import org.dweb_browser.helper.removeWhen
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.io.SystemFileSystem
@@ -62,7 +63,7 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Service") {
       jmmController.loadHistoryMetadataUrl() // 加载之前加载过的应用
 
       val routeInstallHandler = defineEmptyResponse {
-        val metadataUrl = request.query("url")
+        val metadataUrl = request.query("url").removeInvisibleChars().trim()
 
         debugJMM("fetchJmmMetadata", metadataUrl)
         // 加载url资源，这一步可能要多一些时间
