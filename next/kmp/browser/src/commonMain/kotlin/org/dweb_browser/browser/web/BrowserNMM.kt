@@ -62,7 +62,7 @@ class BrowserNMM : NativeMicroModule("web.browser.dweb", "Web Browser") {
         debugBrowser("do openinbrowser", request.href)
         val url = request.queryOrNull("url") ?: return@defineBooleanResponse false
         openMainWindow()
-        val target = request.queryOrNull("target")?.let { AppBrowserTarget.valueOf(it) }
+        val target = request.queryOrNull("target")?.let { AppBrowserTarget.ALL[it] }
           ?: AppBrowserTarget.BLANK
         browserController.tryOpenBrowserPage(url = url, target = target)
         true

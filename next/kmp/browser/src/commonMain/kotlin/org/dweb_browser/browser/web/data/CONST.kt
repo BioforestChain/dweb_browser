@@ -13,5 +13,8 @@ enum class ConstUrl(val url: String) {
 enum class AppBrowserTarget(val type: String) {
   SELF("_self"),
   BLANK("_blank"),
-  SYSTEM("_system")
+  SYSTEM("_system"),;
+  companion object{
+    val ALL = entries.associateBy { it.type }
+  }
 }
