@@ -126,6 +126,6 @@ internal fun BrowserWebPage.BrowserWebPageRender(modifier: Modifier) {
     ) {
       webView.Render(Modifier.fillMaxSize())
     }
+    LoadingView(webPage.isLoading) { webPage.isLoading = false } // 先不显示加载框。
   }
-  LoadingView(webPage.isLoading) { webPage.isLoading = false } // 先不显示加载框。
 }
