@@ -732,7 +732,7 @@
 					DwebShared,
 				);
 				OTHER_SWIFT_FLAGS = "-D Off_TestOriginWebView";
-				PRODUCT_BUNDLE_IDENTIFIER = com.instinct.bfexplorer;
+				PRODUCT_BUNDLE_IDENTIFIER = com.instinct.bfexplorer.debug;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "dweb-browser-iOS-dev.prov";

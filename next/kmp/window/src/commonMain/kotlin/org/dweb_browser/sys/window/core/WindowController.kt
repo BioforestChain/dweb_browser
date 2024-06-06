@@ -271,8 +271,11 @@ open class WindowController(
    */
   @OptIn(LowLevelWindowAPI::class)
   suspend fun tryCloseOrHide(force: Boolean = false) {
-    if (isMainWindow) toggleVisible(false)
-    else close(force)
+    when {
+      state.constants.microModule.value == null -> close(force)
+      isMainWindow -> toggleVisible(false)
+      else -> close(force)
+    }
   }
 
   //#endregion
