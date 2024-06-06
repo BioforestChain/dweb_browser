@@ -2,41 +2,41 @@
   "helper": {
     "buildToRootDir": "./npm/@dweb-browser__helper",
     "name": "@dweb-browser/helper",
-    "version": "0.1.0"
+    "version": "0.1.1"
   },
   "core": {
     "buildToRootDir": "./npm/@dweb-browser__core",
     "name": "@dweb-browser/core",
-    "version": "0.1.0"
+    "version": "0.1.1"
   },
   "js-process": {
     "buildToRootDir": "./npm/@dweb-browser__js-process",
     "name": "@dweb-browser/js-process",
-    "version": "0.4.3"
+    "version": "0.4.4"
   },
   "server": {
     "buildToRootDir": "./npm/@plaoc__server",
     "name": "@plaoc/server",
-    "version": "0.3.1"
+    "version": "0.3.2"
   },
   "cli": {
     "buildToRootDir": "./npm/@plaoc__cli",
     "name": "@plaoc/cli",
-    "version": "0.9.8"
+    "version": "0.9.9"
   },
   "plugins": {
     "buildToRootDir": "./npm/@plaoc__plugins",
     "name": "@plaoc/plugins",
-    "version": "0.9.8"
+    "version": "0.9.9"
   },
   "is-dweb": {
     "buildToRootDir": "./npm/@plaoc__is-dweb",
     "name": "@plaoc/is-dweb",
-    "version": "0.1.1"
+    "version": "0.1.2"
   },
   "polyfill": {
     "buildToRootDir": "./npm/@dweb-browser__polyfill",
     "name": "@dweb-browser/polyfill",
-    "version": "0.0.8"
+    "version": "0.0.9"
   }
 }
