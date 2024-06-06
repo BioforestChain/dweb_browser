@@ -65,3 +65,6 @@ suspend fun MicroModule.Runtime.writeFile(path: String, body: IPureBody) {
 
 suspend fun MicroModule.Runtime.createDir(path: String) =
   nativeFetch(PureMethod.POST, "file://file.std.dweb/createDir?path=$path").boolean()
+
+suspend fun MicroModule.Runtime.listDir(path: String) =
+  nativeFetch(PureMethod.POST, "file://file.std.dweb/listDir?path=$path").json<List<String>>()

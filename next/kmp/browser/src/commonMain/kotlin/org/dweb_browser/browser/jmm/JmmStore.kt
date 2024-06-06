@@ -33,7 +33,7 @@ data class JsMicroModuleDBItem(
 
 class JmmStore(microModule: MicroModule.Runtime) {
   private val storeApp = microModule.createStore("jmm_apps", false)
-  private val storeMetadata = microModule.createStore("history_metadata", false)
+  private val storeHistory = microModule.createStore("history_metadata", false)
 
   suspend fun getOrPutApp(key: MMID, value: JsMicroModuleDBItem): JsMicroModuleDBItem {
     return storeApp.getOrPut(key) { value }
@@ -58,23 +58,23 @@ class JmmStore(microModule: MicroModule.Runtime) {
   /*****************************************************************************
    * JMM对应的json地址存储，以及下载的 taskId 信息
    */
-  suspend fun saveMetadata(mmid: String, metadata: JmmMetadata) {
-    storeMetadata.set(mmid, metadata)
+  suspend fun saveHistory(mmid: String, metadata: JmmMetadata) {
+    storeHistory.set(mmid, metadata)
   }
 
-  suspend fun getAllMetadata(): MutableMap<String, JmmMetadata> {
-    return storeMetadata.getAll()
+  suspend fun getAllHistory(): Map<String, JmmMetadata> {
+    return storeHistory.getAll()
   }
 
-  suspend fun getMetadata(mmid: String): String? {
-    return storeMetadata.getOrNull<String>(mmid)
+  suspend fun getHistory(mmid: String): String? {
+    return storeHistory.getOrNull<String>(mmid)
   }
 
-  suspend fun deleteMetadata(mmid: String): Boolean {
-    return storeMetadata.delete(mmid)
+  suspend fun deleteHistory(mmid: String): Boolean {
+    return storeHistory.delete(mmid)
   }
 
-  suspend fun clearMetadata() = storeMetadata.clear()
+  suspend fun clearHistory() = storeHistory.clear()
 }
 
 /**
@@ -131,27 +131,27 @@ data class JmmMetadata(
     if (newStatus != state) { // 只要前后不一样，就进行保存，否则不保存，主要为了防止downloading频繁保存
       state = newStatus
       if (saveMetadata) {
-        store.saveMetadata(this.manifest.id, this@JmmMetadata)
+        store.saveHistory(this.manifest.id, this@JmmMetadata)
       }
     }
   }
 
   suspend fun initState(store: JmmStore) {
     state = state.copy(state = JmmStatus.Init)
-    store.saveMetadata(this.manifest.id, this@JmmMetadata)
+    store.saveHistory(this.manifest.id, this@JmmMetadata)
   }
 
   suspend fun installComplete(store: JmmStore) {
     debugJMM("installComplete")
     state = state.copy(state = JmmStatus.INSTALLED)
-    store.saveMetadata(this.manifest.id, this)
+    store.saveHistory(this.manifest.id, this)
     store.setApp(manifest.id, JsMicroModuleDBItem(manifest, originUrl, referrerUrl))
   }
 
   suspend fun installFail(store: JmmStore) {
     debugJMM("installFail")
     state = state.copy(state = JmmStatus.Failed)
-    store.saveMetadata(this.manifest.id, this)
+    store.saveHistory(this.manifest.id, this)
   }
 }
 

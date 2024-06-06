@@ -111,7 +111,6 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Service") {
       }
     }
 
-
     /**
      * 从磁盘中恢复应用
      */
