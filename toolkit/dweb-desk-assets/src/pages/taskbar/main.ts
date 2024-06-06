@@ -5,6 +5,7 @@
  */
 
 // Components
+import "../../provider/disable-context-menu.ts";
 import App from "./App.vue";
 
 // Composables
@@ -18,7 +19,3 @@ const app = createApp(App);
 registerPlugins(app);
 
 app.mount("#app");
-
-window.oncontextmenu = (event) => {
-  event.preventDefault();
-};
