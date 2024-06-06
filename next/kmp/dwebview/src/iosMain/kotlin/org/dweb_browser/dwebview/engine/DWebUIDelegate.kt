@@ -14,6 +14,7 @@ import org.dweb_browser.dwebview.base.isWebUrlScheme
 import org.dweb_browser.dwebview.create
 import org.dweb_browser.dwebview.debugDWebView
 import org.dweb_browser.helper.Signal
+import org.dweb_browser.helper.encodeURIComponent
 import org.dweb_browser.helper.launchWithMain
 import org.dweb_browser.helper.platform.addMmid
 import platform.AVFoundation.AVAuthorizationStatusAuthorized
@@ -103,7 +104,7 @@ class DWebUIDelegate(private val engine: DWebViewEngine) : NSObject(), WKUIDeleg
                 target = "_blank"
               }
 
-              engine.remoteMM.nativeFetch("dweb://openinbrowser?url=${url}&target=$target")
+              engine.remoteMM.nativeFetch("dweb://openinbrowser?url=${url.encodeURIComponent()}&target=$target")
             }
           }
           null

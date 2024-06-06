@@ -11,6 +11,7 @@ import org.dweb_browser.browser.jmm.ui.Render
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.compose.ObservableMutableState
 import org.dweb_browser.helper.compose.compositionChainOf
+import org.dweb_browser.helper.encodeURIComponent
 import org.dweb_browser.helper.isWebUrl
 import org.dweb_browser.sys.window.core.modal.WindowBottomSheetsController
 import org.dweb_browser.sys.window.ext.createBottomSheets
@@ -76,14 +77,17 @@ class JmmInstallerController(
 
   suspend fun openHomePage() {
     closeSelf()
-    jmmNMM.nativeFetch("file://web.browser.dweb/openinbrowser?url=${installMetadata.manifest.homepage_url}")
+    val homepageUrl = installMetadata.referrerUrl ?: installMetadata.manifest.homepage_url
+    if (homepageUrl.isWebUrl() == true) {
+      jmmNMM.nativeFetch("file://web.browser.dweb/openinbrowser?url=${homepageUrl.encodeURIComponent()}")
+    }
   }
 
   suspend fun openReferrerPage() {
     closeSelf()
     val referrerUrl = installMetadata.referrerUrl ?: installMetadata.manifest.homepage_url
     if (referrerUrl?.isWebUrl() == true) {
-      jmmNMM.nativeFetch("file://web.browser.dweb/openinbrowser?url=${referrerUrl}")
+      jmmNMM.nativeFetch("file://web.browser.dweb/openinbrowser?url=${referrerUrl.encodeURIComponent()}")
     }
   }
 
