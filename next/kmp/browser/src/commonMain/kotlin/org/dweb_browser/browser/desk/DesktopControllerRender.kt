@@ -56,7 +56,7 @@ fun DesktopController.Render(
       }
     }
     /// 悬浮框
-    Box(contentAlignment = Alignment.TopStart, modifier = Modifier.border(1.dp, Color.Red)) {
+    Box(contentAlignment = Alignment.TopStart, modifier = Modifier) {
       taskbarController.TaskbarView { FloatWindow() }
     }
 
