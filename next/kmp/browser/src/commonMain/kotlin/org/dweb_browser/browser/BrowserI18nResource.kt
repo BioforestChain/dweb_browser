@@ -180,7 +180,7 @@ object BrowserI18nResource {
     val install_info = SimpleI18nResource(Language.ZH to "信息", Language.EN to "Info")
     val install_info_dev =
       SimpleI18nResource(Language.ZH to "开发者", Language.EN to "Developer")
-    val install_info_size = SimpleI18nResource(Language.ZH to "大小", Language.EN to "Size")
+    val install_info_size = SimpleI18nResource(Language.ZH to "应用大小", Language.EN to "App Size")
     val install_info_type = SimpleI18nResource(Language.ZH to "类别", Language.EN to "Type")
     val install_info_language =
       SimpleI18nResource(Language.ZH to "语言", Language.EN to "Language")
@@ -188,7 +188,7 @@ object BrowserI18nResource {
     val install_info_copyright =
       SimpleI18nResource(Language.ZH to "版权", Language.EN to "CopyRight")
     val install_info_homepage =
-      SimpleI18nResource(Language.ZH to "主页", Language.EN to "Home Page")
+      SimpleI18nResource(Language.ZH to "应用主页", Language.EN to "Home Page")
     val history_details = SimpleI18nResource(Language.ZH to "详情", Language.EN to "Details")
     val history_uninstall =
       SimpleI18nResource(Language.ZH to "卸载", Language.EN to "Uninstall")

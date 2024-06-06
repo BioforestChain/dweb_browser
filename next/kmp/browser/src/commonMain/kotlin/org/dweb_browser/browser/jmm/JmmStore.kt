@@ -27,7 +27,7 @@ data class JsMicroModuleDBItem(
   val referrerUrl: String? = null,
 ) {
   val jmmMetadata by lazy {
-    installManifest.createJmmMetadata(originUrl, referrerUrl)
+    installManifest.createJmmMetadata(originUrl, referrerUrl, JmmStatus.INSTALLED)
   }
 }
 
@@ -114,7 +114,7 @@ data class JmmMetadata(
   suspend fun updateDownloadStatus(
     status: DownloadStateEvent,
     store: JmmStore,
-    saveMetadata: Boolean = true
+    saveMetadata: Boolean = true,
   ) {
     val newStatus = JmmStatusEvent(
       current = status.current,
@@ -172,7 +172,7 @@ data class JmmStatusEvent(
 fun JmmAppInstallManifest.createJmmMetadata(
   originUrl: String,
   referrerUrl: String?,
-  state: JmmStatus = JmmStatus.Init,
+  state: JmmStatus,
   installTime: Long = datetimeNow(),
 
   ) = JmmMetadata(

@@ -252,11 +252,12 @@ export abstract class IpcEndpoint {
   }
 
   async doClose(cause?: string) {
+    cause = cause ? cause.toString() : cause;
     try {
       switch (this.lifecycle.state.name) {
         case ENDPOINT_LIFECYCLE_STATE.OPENED:
         case ENDPOINT_LIFECYCLE_STATE.OPENING: {
-          this.sendLifecycleToRemote(EndpointLifecycle(endpointLifecycleClosing()));
+          this.sendLifecycleToRemote(EndpointLifecycle(endpointLifecycleClosing(cause)));
           break;
         }
         case ENDPOINT_LIFECYCLE_STATE.CLOSED: {
@@ -269,7 +270,7 @@ export abstract class IpcEndpoint {
         await channel.producer.close(cause);
       }
       this.ipcMessageProducers.clear();
-      this.sendLifecycleToRemote(EndpointLifecycle(endpointLifecycleClosed()));
+      this.sendLifecycleToRemote(EndpointLifecycle(endpointLifecycleClosed(cause)));
       this.afterClosed?.();
     } finally {
       this.closedPo.resolve(cause);

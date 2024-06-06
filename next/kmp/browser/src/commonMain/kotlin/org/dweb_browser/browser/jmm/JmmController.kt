@@ -133,7 +133,7 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
     if (!manifest.bundle_url.isWebUrl()) {
       manifest.bundle_url = baseURI.replace("metadata.json", manifest.bundle_url.substring(2))
     }
-    return manifest.createJmmMetadata(metadataUrl, referrerUrl)
+    return manifest.createJmmMetadata(metadataUrl, referrerUrl, JmmStatus.Init)
   }
 
   /**
@@ -142,12 +142,12 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
    * @openHistoryMetadata 元数据
    * @fromHistory 是否是
    */
-  suspend fun openInstallerView(newMetadata: JmmMetadata) {
-    debugJMM("openInstallerView", newMetadata.manifest.bundle_url)
-    compareLocalMetadata(newMetadata)
-    val installerController = openBottomSheet(newMetadata)
+  suspend fun openInstallerView(jmmMetadata: JmmMetadata) {
+    debugJMM("openInstallerView", jmmMetadata.manifest.bundle_url)
+    compareLocalMetadata(jmmMetadata)
+    val installerController = openBottomSheet(jmmMetadata)
     // 不管是否替换的，都进行一次存储新状态，因为需要更新下载状态
-    installerController.installMetadata = newMetadata
+    installerController.installMetadata = jmmMetadata
   }
 
   /**
@@ -325,7 +325,7 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
     task: DownloadTask,
     jmmMetadata: JmmMetadata,
   ): Boolean {
-    val dirName = task.url.substring(task.url.lastIndexOf("/") + 1).also { zipName ->
+    val dirName = task.url.substring(task.url.lastIndexOf("/") + 1).let { zipName ->
       zipName.substring(0, zipName.lastIndexOf("."))
     }
     val mmid = jmmMetadata.manifest.id

@@ -71,7 +71,7 @@ const doCopy = async () => {
 console.log(`All required APKs have been copied to ${OUTPUT_DIR}`);
 
 // 异步读取并升级版本信息
-const upgradeVersionInfo = async (filePath: string) => {
+const upgradeVersionInfo = async (filePath: string, forceUpdate = false) => {
   try {
     // 读取文件内容
     const content = fs.readFileSync(filePath, "utf-8");
@@ -98,7 +98,7 @@ const upgradeVersionInfo = async (filePath: string) => {
       newVersionName = [versionParts[0], currentVersionDate, parseInt(versionParts[2]) + 1].join(".");
     }
 
-    if (newVersionName != versionName) {
+    if (forceUpdate || newVersionName != versionName) {
       newVersionCode = (parseInt(versionCode) + 1).toString();
       fs.writeFileSync(
         filePath,
@@ -127,6 +127,6 @@ const upgradeVersionInfo = async (filePath: string) => {
 };
 
 // 发布版本的时候，升级下版本信息 versionCode和versionName
-// await upgradeVersionInfo(resolveTo("gradle/libs.versions.toml"));
-// await doBundle();
+await upgradeVersionInfo(resolveTo("gradle/libs.versions.toml"), Deno.args.includes("--new"));
+await doBundle();
 await doCopy();

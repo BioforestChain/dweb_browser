@@ -184,7 +184,7 @@ internal fun BoxScope.BottomDownloadButton() {
 
 @Composable
 fun AnimatedCounterText(
-  text: String, modifier: Modifier = Modifier, textStyle: TextStyle? = null
+  text: String, modifier: Modifier = Modifier, textStyle: TextStyle? = null,
 ) {
   Row(modifier) {
     val style = textStyle ?: LocalTextStyle.current
@@ -211,9 +211,9 @@ fun AnimatedCounter(count: String, textStyle: TextStyle? = null) {
   ) {
     val style = textStyle ?: LocalTextStyle.current
     val countNum = count.toFloat()
-    val animationSpec: FiniteAnimationSpec<IntOffset> = iosTween(durationMillis = 100)
-    println("QAQ AnimatedCounter $count")
     count.mapIndexed { index, c -> Digit(c, countNum, index) }.forEach { digit ->
+      val animationSpec: FiniteAnimationSpec<IntOffset> =
+        iosTween(durationMillis = 100 + digit.place * 50)
       key(count.length - digit.place) {
         AnimatedContent(targetState = digit, transitionSpec = {
           if (targetState > initialState) {

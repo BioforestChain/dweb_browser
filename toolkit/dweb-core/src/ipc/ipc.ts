@@ -397,6 +397,7 @@ export class Ipc {
   }
 
   #closeOnce = $once(async (cause?: string) => {
+    cause = cause ? cause.toString() : undefined;
     this.console.verbose("closing", cause);
     {
       const closing = IpcLifecycle(IpcLifecycleClosing(cause));

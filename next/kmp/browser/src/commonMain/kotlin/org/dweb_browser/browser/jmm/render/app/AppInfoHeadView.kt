@@ -64,7 +64,7 @@ internal fun AppInfoHeadView(jmmAppInstallManifest: JmmAppInstallManifest) {
       )
     }
 
-    Spacer(modifier = Modifier.width(16.dp))
+    Spacer(modifier = Modifier.height(8.dp))
     Row(
       modifier = Modifier.fillMaxWidth(),
       verticalAlignment = Alignment.CenterVertically
@@ -77,10 +77,10 @@ internal fun AppInfoHeadView(jmmAppInstallManifest: JmmAppInstallManifest) {
         Icon(
           imageVector = Icons.Outlined.Verified, // Icons.Outlined.Dangerous
           contentDescription = BrowserI18nResource.IconDescription.verified.text,
-          modifier = Modifier.size(16.dp),
+          modifier = Modifier.size(14.dp),
           tint = Color.Blue
         )
-
+        Spacer(modifier = Modifier.width(8.dp))
         Text(
           text = jmmAppInstallManifest.id,
           maxLines = 1,
