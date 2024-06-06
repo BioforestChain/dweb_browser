@@ -73,6 +73,8 @@ compose.desktop {
             </array>
           </dict>
         </array>
+        <key>LSApplicationCategoryType</key>
+        <string>public.app-category.productivity</string>
       """
       windows {
         iconFile.set(iconsRoot.resolve("win/icon.ico"))

@@ -124,6 +124,7 @@ android {
       resValue("string", "appName", "Kmp-$userName")
       applicationIdSuffix = ".kmp.$userName"
       versionNameSuffix = null // ".kmp.$userName"
+      isDebuggable = true
     }
     create("benchmark") {
       initWith(buildTypes.getByName("release"))
@@ -134,25 +135,55 @@ android {
 
   flavorDimensions += listOf("abi")
   productFlavors {
-    create("withArm32") {
+    create("forArm64") {
       dimension = "abi"
       matchingFallbacks += listOf("release")
-      ndk.abiFilters.addAll(listOf("arm64-v8a", "armeabi-v7a"))
+      ndk.abiFilters.run {
+        clear()
+        add("arm64-v8a")
+      }
     }
-
-    create("withX86") {
+    create("forAll") {
       dimension = "abi"
       matchingFallbacks += listOf("release")
-      ndk.abiFilters.addAll(listOf("arm64-v8a", "x86"))
+      ndk.abiFilters.run {
+        clear()
+        addAll(listOf("armeabi-v7a", "x86", "x86_64"))
+      }
+    }
+  }
+  androidComponents {
+    beforeVariants { variantBuilder ->
+      // 只有 release 模式只需要输出 arm64 以外的变体
+      if (variantBuilder.buildType != "release") {
+        if (!variantBuilder.productFlavors.contains("abi" to "forArm64")) {
+          variantBuilder.enable = false
+        }
+      }
+      if (variantBuilder.buildType != "debug" && variantBuilder.buildType != "release") {
+        variantBuilder.enable = true
+      }
+      /// bundleRelease 模式下，只打 forAll 的包
+      gradle.taskGraph.whenReady {
+        if (this.hasTask(":bundleRelease")) {
+          // 仅在 bundleRelease 时禁用 forArm32 的 release 变体
+          if (!variantBuilder.productFlavors.contains("abi" to "forAll")) {
+            variantBuilder.enable = false
+          }
+        }
+      }
+      println("QAQ beforeVariantsBuilder=${variantBuilder.name} buildType=${variantBuilder.buildType} enable=${if (variantBuilder.enable) "✅ " else "❌ "}")
     }
   }
   applicationVariants.all {
     outputs.all {
+      println("QAQ variantBuilder=${name}")
       val midName = when {
-        name.startsWith("with") -> "_" + name.substring(4).split("-").first().lowercase()
+        name.startsWith("for") -> name.substring("for".length).split("-").first().lowercase()
         else -> ""
       }
-      val archivesName = "DwebBrowser${midName}_v${libs.versions.versionName.get()}"
+      val archivesName =
+        "DwebBrowser${if (midName.isEmpty()) midName else "_$midName"}_v${libs.versions.versionName.get()}"
 
       if (buildType.name == "release") {
         // 修改bundle名

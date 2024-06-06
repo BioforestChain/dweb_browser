@@ -5,7 +5,7 @@ const resolveTo = createBaseResolveTo(import.meta.url);
 
 // 运行 assembleRelease 命令，继承输出
 const cmd = Deno.build.os === "windows" ? resolveTo("gradlew.bat") : resolveTo("gradlew");
-const args = ["assembleRelease", "bundleRelease"];
+const args = ["assembleRelease", "assembleDebug", "bundleRelease"];
 const doBundle = async () => {
   console.log(">", cmd, ...args);
 
@@ -32,8 +32,15 @@ const OUTPUT_DIR = resolveTo("./app/androidApp/release");
 // Deno.removeSync(OUTPUT_DIR, { recursive: true });
 // Deno.mkdirSync(OUTPUT_DIR, { recursive: true });
 
-const doCopy = async () => {
-  const CONDITIONS = ["debug", "release", "with"];
+const doCopy = async (versionName: string) => {
+  const CONDITIONS = ["debug", "release", "for"];
+  const outputDir = `${OUTPUT_DIR}/android_v${versionName}`;
+  // 创建目标目录
+  if (fs.existsSync(outputDir)) {
+    Deno.removeSync(outputDir, { recursive: true });
+  }
+  Deno.mkdirSync(outputDir, { recursive: true });
+
   const copyFile = async (baseDir: string, dirEntry: Deno.DirEntry) => {
     if (dirEntry.isDirectory) {
       const variant = dirEntry.name;
@@ -43,13 +50,12 @@ const doCopy = async () => {
 
         for await (const fileEntry of WalkFiles(variantPath)) {
           if (fileEntry.entryname.endsWith(".apk") || fileEntry.entryname.endsWith(".aab")) {
-            const version = fileEntry.entryname.match(/v\d+\.\d+\.\d+/);
-            console.log(`  Copying ${fileEntry.relativepath}`);
-            const outputDir = `${OUTPUT_DIR}/android_${version}`;
-            // 创建目标目录
-            Deno.mkdirSync(outputDir, { recursive: true });
+            const version = fileEntry.entryname.match(/v(\d+\.\d+\.\d+)/)?.at(1);
+            if (version == versionName) {
+              console.log(`  Copying ${fileEntry.relativepath}`);
 
-            await Deno.copyFile(fileEntry.entrypath, `${outputDir}/${fileEntry.entryname}`);
+              await Deno.copyFile(fileEntry.entrypath, `${outputDir}/${fileEntry.entryname}`);
+            }
           }
         }
       }
@@ -66,6 +72,8 @@ const doCopy = async () => {
   for await (const dirEntry of Deno.readDir(BUILD_OUTPUT_DIR_BUNDLE)) {
     await copyFile(BUILD_OUTPUT_DIR_BUNDLE, dirEntry);
   }
+
+  console.log("output dir", outputDir);
 };
 
 console.log(`All required APKs have been copied to ${OUTPUT_DIR}`);
@@ -93,12 +101,12 @@ const upgradeVersionInfo = async (filePath: string, forceUpdate = false) => {
     if (currentVersionDate !== versionParts[1]) {
       newVersionName = [versionParts[0], currentVersionDate, "0"].join(".");
     }
-    // 如果已经打包过这个文件夹，那么就进行更新
-    else if (fs.existsSync(`${OUTPUT_DIR}/android_v${versionName}`)) {
+    // 如果需要，强制升级小版本
+    else if (forceUpdate) {
       newVersionName = [versionParts[0], currentVersionDate, parseInt(versionParts[2]) + 1].join(".");
     }
 
-    if (forceUpdate || newVersionName != versionName) {
+    if (newVersionName != versionName) {
       newVersionCode = (parseInt(versionCode) + 1).toString();
       fs.writeFileSync(
         filePath,
@@ -121,12 +129,14 @@ const upgradeVersionInfo = async (filePath: string, forceUpdate = false) => {
       console.log("versionName =", newVersionName);
       console.log("版本保持，开始打包...");
     }
+    return newVersionName;
   } catch (error) {
     console.error("版本更新失败:", error);
+    Deno.exit(1);
   }
 };
 
 // 发布版本的时候，升级下版本信息 versionCode和versionName
-await upgradeVersionInfo(resolveTo("gradle/libs.versions.toml"), Deno.args.includes("--new"));
+const versionName = await upgradeVersionInfo(resolveTo("gradle/libs.versions.toml"), Deno.args.includes("--new"));
 await doBundle();
-await doCopy();
+await doCopy(versionName);
