@@ -54,9 +54,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
     categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Protocol_Service)
   }
 
-  companion object {
-    val dwebServer = Http1Server()
-  }
+  private val dwebServer = Http1Server()
 
   @Serializable
   data class ServerUrlInfo(
@@ -543,7 +541,6 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
       return key in simpleRequestHeaderKeys
     }
 
-
     public override suspend fun _shutdown() {
       dwebServer.closeServer()
     }
@@ -557,7 +554,8 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
       if (gatewayMap.contains(serverUrlInfo.host)) {
         throw ResponseException(
           code = HttpStatusCode.BadGateway,
-          message = "already in listen: ${serverUrlInfo.internal_origin}")
+          message = "already in listen: ${serverUrlInfo.internal_origin}"
+        )
       }
       val listener = Gateway.PortListener(ipc, serverUrlInfo.host)
       /// ipc 在关闭的时候，自动释放所有的绑定

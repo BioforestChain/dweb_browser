@@ -426,7 +426,7 @@ class Ipc internal constructor(
       }
     }.getOrElse {
       WARNING("fail to postMessage: $data")
-      WARNING(it)
+      WARNING(it.message)
     }
   }
 

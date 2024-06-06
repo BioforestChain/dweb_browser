@@ -5,6 +5,7 @@ import io.ktor.network.sockets.ServerSocket
 import io.ktor.network.sockets.Socket
 import io.ktor.network.sockets.TcpSocketBuilder
 import io.ktor.network.sockets.aSocket
+import io.ktor.network.sockets.isClosed
 import io.ktor.network.sockets.openReadChannel
 import io.ktor.network.sockets.openWriteChannel
 import io.ktor.network.sockets.toJavaAddress
@@ -14,8 +15,11 @@ import io.ktor.utils.io.ByteWriteChannel
 import io.ktor.utils.io.copyTo
 import io.ktor.utils.io.readAvailable
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.io.IOException
 import org.dweb_browser.helper.Debugger
@@ -25,11 +29,14 @@ import java.nio.ByteBuffer
 
 val debugReverseProxy = Debugger("ReverseProxy")
 
+
 class ReverseProxyServer {
   private var proxyServer: ServerSocket? = null
+  private var acceptJob: Job? = null
+  private val actorSelectorManager = ActorSelectorManager(ioAsyncExceptionHandler)
   fun start(backendPort: UShort): UShort {
     val currentProxyServer = this.proxyServer ?: run {
-      val tcpSocketBuilder = aSocket(ActorSelectorManager(ioAsyncExceptionHandler)).tcp()
+      val tcpSocketBuilder = aSocket(actorSelectorManager).tcp()
       val proxyServer: ServerSocket
       val proxyHost = "0.0.0.0"
       val proxyPort = 0
@@ -41,7 +48,7 @@ class ReverseProxyServer {
         throw IOException("Couldn't start proxy server on host [$proxyHost] and port [$proxyPort]\n\t${e.stackTraceToString()}")
       }
       println("Started proxy server at ${proxyServer.localAddress}")
-      val acceptJob = CoroutineScope(ioAsyncExceptionHandler).launch {
+      acceptJob = CoroutineScope(ioAsyncExceptionHandler).launch {
         while (true) {
           val client = proxyServer.accept()
           launch {
@@ -96,8 +103,8 @@ class ReverseProxyServer {
           }
         }
       }
-      acceptJob.invokeOnCompletion {
-        WARNING("Proxy server closed ${proxyServer.localAddress}")
+      acceptJob?.invokeOnCompletion {
+        WARNING("Proxy server closed ${proxyServer.isClosed}")
       }
 
       proxyServer
@@ -107,72 +114,16 @@ class ReverseProxyServer {
     return currentProxyServer.localAddress.toJavaAddress().port.toUShort()
   }
 
-
   fun close() {
-    proxyServer?.close()
+    proxyServer?.let { serverSocket ->
+      if (!serverSocket.isClosed) {
+        serverSocket.close()
+        actorSelectorManager.close()
+      }
+    }
     proxyServer = null
   }
 
-//    val proxyClient = HttpClient(io.ktor.client.engine.jetty.Jetty) {
-//      install(HttpTimeout) {
-//        connectTimeoutMillis = 30_000L
-//      }
-//      install(io.ktor.client.plugins.websocket.WebSockets)
-//    }
-//
-//    val keyStoreFile = File("pure-http/reverse-proxy.keystore.jks")
-//    val keyAlias = "dwebBrowserReverseProxy"
-//    val keyStorePassword = randomUUID()
-//    val privateKeyPassword = randomUUID()
-//    val keyStore = buildKeyStore {
-//      certificate(keyAlias) {
-//        password = privateKeyPassword
-//        domains = listOf("localhost.dweb")
-//      }
-//    }
-//    keyStore.saveToFile(keyStoreFile, keyStorePassword)
-//    val proxyServer = embeddedServer(
-//      io.ktor.server.jetty.Jetty,
-//      applicationEngineEnvironment {
-//        parentCoroutineContext = ioAsyncExceptionHandler
-//        log = KtorSimpleLogger("dweb/pure-http")
-//        watchPaths = emptyList()
-////        connectors.add(EngineConnectorBuilder().apply {
-////          this.port = 0
-////          this.host = "0.0.0.0"
-////        })
-//        sslConnector(
-//          keyStore = keyStore,
-//          keyAlias = "sampleAlias",
-//          keyStorePassword = { keyStorePassword.toCharArray() },
-//          privateKeyPassword = { privateKeyPassword.toCharArray() }) {
-//          port = 8443
-//          keyStorePath = keyStoreFile
-//        }
-//
-//        /// 代理转发逻辑
-//        this.module {
-//          install(io.ktor.server.websocket.WebSockets)
-//          routing {
-//
-//          }
-//          intercept(ApplicationCallPipeline.Call) {
-//            this.call.request
-//            proxyClient.prepareRequest({
-//              this.url(call.request.uri)
-//            }).execute {
-//
-//            }
-//          }
-//          install(createApplicationPlugin("reverse-proxy") {
-//            onCall { call ->
-//              call.request
-//            }
-//          })
-//        }
-//      }
-//    ).start(wait = false)
-//    proxyServer.resolvedConnectors().first().port.toUShort()
 }
 
 

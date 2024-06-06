@@ -160,7 +160,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
               else -> false
             }
           } ?: return@collectIn
-          mmScope.launch(start = CoroutineStart.UNDISPATCHED) {
+          mmScope.launch {
             debugMM("NMM/Handler-start") { ipcRequest.url }
             /// 根据host找到对应的路由模块
             val routers = protocolRouters[ipcRequest.uri.host] ?: protocolRouters["*"]

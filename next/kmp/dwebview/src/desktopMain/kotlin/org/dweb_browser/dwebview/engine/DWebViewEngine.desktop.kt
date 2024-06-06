@@ -62,6 +62,7 @@ import org.dweb_browser.platform.desktop.webview.WebviewEngine
 import org.dweb_browser.sys.device.DeviceManage
 import java.util.function.Consumer
 import javax.swing.SwingUtilities
+import kotlin.system.exitProcess
 
 
 class DWebViewEngine internal constructor(
@@ -169,7 +170,10 @@ class DWebViewEngine internal constructor(
 
   val wrapperView: BrowserView by lazy { BrowserView.newInstance(browser) }
 
-  val mainFrame get() = browser.mainFrame().get()
+  val mainFrame get() = kotlin.runCatching { browser.mainFrame().get() }.getOrElse {
+    // 在开启到一半强制结束程序到时候，释放子线程
+    exitProcess(0)
+  }
   val mainFrameOrNull get() = browser.mainFrame().getOrNull()
   val document get() = mainFrame.document().get()
 
