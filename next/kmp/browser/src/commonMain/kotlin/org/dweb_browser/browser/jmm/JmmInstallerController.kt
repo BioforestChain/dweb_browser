@@ -78,7 +78,7 @@ class JmmInstallerController(
   suspend fun openHomePage() {
     closeSelf()
     val homepageUrl = installMetadata.referrerUrl ?: installMetadata.manifest.homepage_url
-    if (homepageUrl.isWebUrl() == true) {
+    if (homepageUrl?.isWebUrl() == true) {
       jmmNMM.nativeFetch("file://web.browser.dweb/openinbrowser?url=${homepageUrl.encodeURIComponent()}")
     }
   }
