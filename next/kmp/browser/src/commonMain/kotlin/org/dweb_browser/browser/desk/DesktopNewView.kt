@@ -1,6 +1,6 @@
 package org.dweb_browser.browser.desk
 
-import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.EaseInOut
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateIntAsState
@@ -63,6 +63,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -79,6 +80,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.flow.filter
@@ -119,11 +122,13 @@ fun NewDesktopView(
 
   val toRunningApps by remember { mutableStateOf(mutableSetOf<String>()) }
 
+  var textWord by remember { mutableStateOf("") }
+
   fun doGetApps() {
     scope.launch {
       val installApps = desktopController.getDesktopApps().map {
         val icon = it.icons.firstOrNull()?.src ?: ""
-        val isSystermApp = desktopController.isSystermApp(it.mmid)
+        val isSystemApp = desktopController.isSystermApp(it.mmid)
         val runStatus = if (it.running) {
           toRunningApps.remove(it.mmid)
           DesktopAppModel.DesktopAppRunStatus.RUNNING
@@ -142,7 +147,7 @@ fun NewDesktopView(
             it.name,
             it.mmid,
             icon,
-            isSystermApp,
+            isSystemApp,
             runStatus,
           )
       }
@@ -154,9 +159,10 @@ fun NewDesktopView(
   DisposableEffect(Unit) {
     val job = desktopController.onUpdate.run {
       filter { it != "bounds" }
-    }.collectIn(scope) {
-      doGetApps()
     }
+      .collectIn(scope) {
+        doGetApps()
+      }
 
     onDispose {
       job.cancel()
@@ -166,6 +172,7 @@ fun NewDesktopView(
   fun doHideKeyboard() {
     keyboardController?.hide()
     focusManager.clearFocus()
+    textWord = ""
   }
 
   fun doSearch(words: String) {
@@ -175,7 +182,19 @@ fun NewDesktopView(
   }
 
   fun doOpen(mmid: String) {
-    toRunningApps.add(mmid)
+    val index = apps.indexOfFirst {
+      it.mmid == mmid
+    }
+    if (index != -1) {
+      val oldApp = apps[index]
+      if (oldApp.running == DesktopAppModel.DesktopAppRunStatus.NONE) {
+        apps[index] = oldApp.copy(running = DesktopAppModel.DesktopAppRunStatus.TORUNNING)
+        toRunningApps.add(mmid)
+      }
+    } else {
+      return
+    }
+
     scope.launch {
       desktopController.open(mmid)
     }
@@ -222,8 +241,6 @@ fun NewDesktopView(
     blur = false
   }
 
-  doGetApps()
-
   Box(modifier = Modifier.fillMaxSize()) {
     // content
     Box(
@@ -248,7 +265,8 @@ fun NewDesktopView(
       ) {
 
         desktopSearchBar(
-          modifier = Modifier.windowInsetsPadding(WindowInsets.safeGestures).blur(blurValue.dp),
+          textWord,
+          Modifier.windowInsetsPadding(WindowInsets.safeGestures).blur(blurValue.dp),
           ::doSearch,
           ::doHideKeyboard
         )
@@ -398,7 +416,7 @@ fun DeskAppIcon(
     initialValue = 0F,
     targetValue = 8F,
     animationSpec = infiniteRepeatable(
-      animation = tween(1000, easing = LinearEasing),
+      animation = tween(1000, easing = EaseInOut),
       repeatMode = RepeatMode.Reverse
     )
   )
@@ -538,11 +556,18 @@ fun moreAppDisplay(
 }
 
 @Composable
-fun desktopSearchBar(modifier: Modifier, search: (String) -> Unit, hideKeyBoad: () -> Unit) {
+fun desktopSearchBar(
+  textWord: String,
+  modifier: Modifier,
+  search: (String) -> Unit,
+  hideKeyBoad: () -> Unit
+) {
 
   val searchWord = remember {
-    mutableStateOf(TextFieldValue(""))
+    mutableStateOf(TextFieldValue(textWord))
   }
+
+  searchWord.value = TextFieldValue(textWord)
 
   val searchBarWR = 0.9F
   var expand by remember { mutableStateOf(0F) }
@@ -607,6 +632,8 @@ fun desktopSearchBar(modifier: Modifier, search: (String) -> Unit, hideKeyBoad: 
           }
         }
       },
+      textStyle = TextStyle(Color.White, fontSize = TextUnit(18f, TextUnitType.Sp)),
+      cursorBrush = SolidColor(Color.White),
       modifier = Modifier
         .onFocusChanged {
           doSearchTirggleAnimation(it.isFocused, constraints.maxWidth)
