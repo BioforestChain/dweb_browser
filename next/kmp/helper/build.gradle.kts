@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
   id("kmp-library")
 }
@@ -47,7 +49,12 @@ kotlin {
   sourceSets["commonMain"].kotlin.srcDir(buildConfigPath)
 }
 
-val localProperties = localProperties()
+// 不能直接使用 Multiplatform 里面的 localProperties，那个有缓存，所以得这边自己创建一个
+val localProperties = Properties()
+val localPropertiesFile = rootDir.resolve("local.properties")
+if (localPropertiesFile.exists()) {
+  localProperties.load(localPropertiesFile.inputStream())
+}
 
 allprojects {
   afterEvaluate {
