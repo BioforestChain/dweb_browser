@@ -98,19 +98,22 @@ compose.desktop {
         infoPlist {
           extraKeysRawXml = macExtraPlistKeys
         }
-        gradle.taskGraph.hasTask("notarizeReleaseDmg")
-        if (gradle.taskGraph.allTasks.any {
-          println("QAQ gradle task name=${it.name}")
-          it.name.contains("notarize") }) {
-          notarization {
-            appleID.set(properties.getString("compose.desktop.mac.notarization.appleID"))
-            password.set(properties.getString("compose.desktop.mac.notarization.password"))
-            teamID.set(properties.getString("compose.desktop.mac.notarization.teamID"))
-          }
-        } else {
-          provisioningProfile.set(project.file("DwebBrowser.provisionprofile"))
-          runtimeProvisioningProfile.set(project.file("DwebBrowser.provisionprofile"))
+//        gradle.taskGraph.hasTask("notarizeReleaseDmg")
+//        if (gradle.taskGraph.allTasks.any {
+//            println("QAQ gradle task name=${it.name}")
+//            it.name.contains("notarize")
+//          }) {
+//        } else {
+//        }
+
+        // TestFlight
+        provisioningProfile.set(project.file("DwebBrowser.provisionprofile"))
+        runtimeProvisioningProfile.set(project.file("DwebBrowser_jdk_runtime.provisionprofile"))
 //          appStore = true
+        notarization {
+          appleID.set(properties.getString("compose.desktop.mac.notarization.appleID"))
+          password.set(properties.getString("compose.desktop.mac.notarization.password"))
+          teamID.set(properties.getString("compose.desktop.mac.notarization.teamID"))
         }
         signing {
           if (properties.getBoolean("compose.desktop.mac.sign")) {
