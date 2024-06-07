@@ -83,7 +83,7 @@ fun DesktopController.Render(
       break
     }
     /// 新版本
-    newVersionController.NewVersionView()
+    // newVersionController.NewVersionView() // 先不搞这个
   }
 }
 

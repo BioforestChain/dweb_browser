@@ -652,6 +652,12 @@ fun Project.localProperties(filename: String = "local.properties"): Properties {
   }
 }
 
+fun Properties.getBoolean(key: String) = this[key] == "true"
+fun Properties.getString(key: String) =
+  (this[key] ?: throw Exception("properties key not found: $key")).toString()
+
+fun Properties.getStringOrNull(key: String) = this[key]?.toString()
+
 fun Properties.copyTo(outProperties: MutableMap<String, Any>) {
   for ((key, value) in this) {
     if (key is String) {

@@ -18,7 +18,7 @@ import org.dweb_browser.dwebview.proxy.DwebViewProxy
 import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.RememberLazy
 import org.dweb_browser.helper.WARNING
-import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.globalIoScope
 import org.dweb_browser.helper.platform.IPureViewBox
 
 actual suspend fun IDWebView.Companion.create(
@@ -38,7 +38,7 @@ class DWebView(
   companion object {
     suspend fun prepare() {
       coroutineScope {
-        launch(ioAsyncExceptionHandler) {
+        launch {
           DwebViewDesktopPolyfill.prepare();
         }
         DwebViewProxy.prepare()
@@ -46,7 +46,7 @@ class DWebView(
     }
 
     init {
-      CoroutineScope(ioAsyncExceptionHandler).launch {
+      globalIoScope.launch {
         prepare()
       }
     }
@@ -54,7 +54,7 @@ class DWebView(
 
   override val remoteMM get() = viewEngine.remoteMM
   override val ioScope: CoroutineScope
-    get() = viewEngine.ioScope
+    get() = viewEngine.lifecycleScope
 
   override suspend fun startLoadUrl(url: String): String {
     viewEngine.loadUrl(url)

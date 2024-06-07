@@ -172,14 +172,14 @@ private fun WindowController.VisibleEffect(
   RememberEffect(composeWindowParams) {
     state.observable.onChange {
       if (it.key == WindowPropertyKeys.Visible) {
-        composeWindowParams.visible = it.newValue as Boolean
+        composeWindowParams.isMinimized = !(it.newValue as Boolean)
       }
     }
   }
   watchedIsMaximized()
   /// 反向绑定原生的窗口状态到state中
-  LaunchedEffect(composeWindowParams.visible) {
-    state.visible = composeWindowParams.visible
+  LaunchedEffect(composeWindowParams.isMinimized) {
+    state.visible = !composeWindowParams.isMinimized
   }
 }
 

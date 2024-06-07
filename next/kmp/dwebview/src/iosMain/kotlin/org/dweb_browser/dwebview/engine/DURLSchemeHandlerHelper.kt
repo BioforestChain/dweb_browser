@@ -47,7 +47,7 @@ class DURLSchemeHandlerHelper(private val microModule: MicroModule.Runtime) {
     } ?: IPureBody.Empty
 
     val pureRequest = PureClientRequest(
-      pureUrl, PureMethod.valueOf(taskRequest.HTTPMethod!!.uppercase()), headers, pureBody
+      pureUrl, PureMethod.ALL_VALUES[taskRequest.HTTPMethod!!.uppercase()]?:throw Exception("HTTPMethod:${taskRequest.HTTPMethod} is invalid PureMethod"), headers, pureBody
     )
 
     val easyTask = nativeHelper.startURLSchemeTask(

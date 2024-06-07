@@ -12,7 +12,7 @@ let inputFile: HTMLInputElement;
 
 const fileData = reactive({
   capture: false,
-  accept: [] as string[],
+  accept: "image/*",
   multiple: false,
   items: ["*/*", "image/*", "video/*", "audio/*"],
 });

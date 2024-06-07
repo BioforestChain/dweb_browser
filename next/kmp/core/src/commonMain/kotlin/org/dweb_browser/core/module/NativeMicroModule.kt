@@ -2,7 +2,6 @@ package org.dweb_browser.core.module
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.utils.io.core.toByteArray
-import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.launch
@@ -26,9 +25,8 @@ import org.dweb_browser.core.ipc.helper.ReadableStreamOut
 import org.dweb_browser.core.ipc.kotlinIpcPool
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.dns.nativeFetchAdaptersManager
-import org.dweb_browser.core.std.permission.AuthorizationStatus
 import org.dweb_browser.core.std.permission.PermissionProvider
-import org.dweb_browser.core.std.permission.ext.requestPermissions
+import org.dweb_browser.core.std.permission.ext.doRequestWithPermissions
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.listen
@@ -51,21 +49,20 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
   constructor(mmid: MMID, name: String) : this(MicroModuleManifest().apply {
     this.mmid = mmid
     this.name = name
+    targetType = "nmm"
   })
 
   companion object {
-    private val reqIdAcc = atomic(0)
 
     init {
       connectAdapterManager.append { fromMM, toMM, reason ->
         if (toMM is NativeMicroModule.NativeRuntime) {
           fromMM.debugMM("NMM/connectAdapter", "fromMM: ${fromMM.mmid} => toMM: ${toMM.mmid}")
           val channel = NativeMessageChannel(kotlinIpcPool.scope, fromMM.id, toMM.id)
-          val pid = reqIdAcc.addAndGet(1) // 创建新连接，pid自增
           val fromNativeIpc =
-            kotlinIpcPool.createIpc(channel.port1, pid, fromMM.manifest, toMM.microModule.manifest)
+            kotlinIpcPool.createIpc(channel.port1, 0, fromMM.manifest, toMM.microModule.manifest)
           val toNativeIpc =
-            kotlinIpcPool.createIpc(channel.port2, pid, toMM.microModule.manifest, fromMM.manifest)
+            kotlinIpcPool.createIpc(channel.port2, 0, toMM.microModule.manifest, fromMM.manifest)
           // fromMM.beConnect(fromNativeIpc, reason) // 通知发起连接者作为Client
           toMM.beConnect(toNativeIpc, reason) // 通知接收者作为Server
           fromNativeIpc
@@ -87,18 +84,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
           }.getOrElse {
             return@append PureResponse(HttpStatusCode.BadGateway, body = PureStringBody(url))
           }
-          var response = fromIpc.request(request)
-          if (response.status == HttpStatusCode.Unauthorized) {
-            val permissions = response.body.toPureString()
-            /// 尝试进行授权请求
-            if (fromMM.requestPermissions(permissions.split(",").toList()).all {
-                it.value == AuthorizationStatus.GRANTED
-              }) {
-              /// 如果授权完全成功，那么重新进行请求
-              response = fromIpc.request(request)
-            }
-          }
-          response
+          fromMM.doRequestWithPermissions { fromIpc.request(request) }
         } else null
       }
     }
@@ -174,7 +160,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
               else -> false
             }
           } ?: return@collectIn
-          mmScope.launch(start = CoroutineStart.UNDISPATCHED) {
+          mmScope.launch {
             debugMM("NMM/Handler-start") { ipcRequest.url }
             /// 根据host找到对应的路由模块
             val routers = protocolRouters[ipcRequest.uri.host] ?: protocolRouters["*"]
@@ -258,7 +244,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
 /**
  * 创建一个 channel 通信
  */
-suspend fun NativeMicroModule.NativeRuntime.createChannel(
+suspend fun NativeMicroModule.NativeRuntime.channelRequest(
   urlPath: String, resolve: suspend PureChannelContext.() -> Unit,
 ): PureResponse {
   val channelDef = CompletableDeferred<PureChannel>()

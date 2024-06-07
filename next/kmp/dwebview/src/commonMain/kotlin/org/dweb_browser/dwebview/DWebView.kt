@@ -24,6 +24,7 @@ import org.dweb_browser.core.ipc.helper.IWebMessagePort
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.Debugger
+import org.dweb_browser.helper.Once
 import org.dweb_browser.helper.RememberLazy
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
@@ -248,9 +249,9 @@ class DestroyStateSignal(val scope: CoroutineScope) {
     private set
   private var _destroySignal = SimpleSignal();
   val onDestroy = _destroySignal.toListener()
-  fun doDestroy(): Boolean {
+  fun doDestroy() = Once {
     if (isDestroyed) {
-      return false
+      return@Once false
     }
     debugDWebView("DESTROY")
     isDestroyed = true
@@ -259,6 +260,6 @@ class DestroyStateSignal(val scope: CoroutineScope) {
       delay(2000)
       coroutineContext.cancel(CancellationException("destroy"))
     }
-    return true
-  }
+    return@Once true
+  }.invoke()
 }

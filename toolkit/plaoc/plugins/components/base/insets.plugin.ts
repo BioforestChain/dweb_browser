@@ -1,7 +1,7 @@
+import { cacheGetter } from "@dweb-browser/helper/cacheGetter.ts";
 import { bindThis } from "../../helper/bindThis.ts";
-import { cacheGetter } from "../../helper/cacheGetter.ts";
-import { DOMInsets, domInsetsToJson, insetsToDom, type $Insets } from "../../util/insets.ts";
 import { StateObserver, type $Coder } from "../../util/StateObserver.ts";
+import { DOMInsets, domInsetsToJson, insetsToDom, type $Insets } from "../../util/insets.ts";
 import { BasePlugin } from "./base.plugin.ts";
 
 export interface $InsetsRawState {

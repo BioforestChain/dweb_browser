@@ -16,7 +16,7 @@ actual fun getImageResourceRootPath(): String {
 
 @Composable
 actual fun CommonBrowserView(
-  viewModel: BrowserViewModel, modifier: Modifier, windowRenderScope: WindowContentRenderScope
+  viewModel: BrowserViewModel, modifier: Modifier, windowRenderScope: WindowContentRenderScope,
 ) {
   BrowserViewModalRender(viewModel, modifier, windowRenderScope)
 }

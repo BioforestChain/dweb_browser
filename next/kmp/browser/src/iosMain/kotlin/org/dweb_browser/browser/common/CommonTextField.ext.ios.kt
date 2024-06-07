@@ -22,7 +22,7 @@ actual fun CommonTextField(
   maxLines: Int,
   minLines: Int,
   onKeyboardSearch: KeyboardActionScope.() -> Unit,
-  decorationBox: @Composable (innerTextField: @Composable () -> Unit) -> Unit
+  decorationBox: @Composable (innerTextField: @Composable () -> Unit) -> Unit,
 ) {
   BasicTextField(
     value = value,

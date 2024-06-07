@@ -53,6 +53,7 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.browser.dweb", "Multi Webvie
           debugMM("/close", "webviewId:$webviewId,mmid:$remoteMmid")
           closeDwebView(getRemoteRuntime(), webviewId)
         },
+        // 关闭app
         "/close/app" bind PureMethod.GET by defineBooleanResponse {
           val controller = controllerMap[getRemoteRuntime()] ?: return@defineBooleanResponse false;
           controller.destroyWebView()
@@ -118,7 +119,7 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.browser.dweb", "Multi Webvie
       }
     }
 
-    suspend fun openOrActivity(
+    private suspend fun openOrActivity(
       remoteMm: MicroModule.Runtime,
       wid: UUID,
       url: String,

@@ -1,4 +1,4 @@
-import { cacheGetter } from "../../helper/cacheGetter.ts";
+import { cacheGetter } from "@dweb-browser/helper/cacheGetter.ts";
 import { clipboardPlugin } from "./clipboard.plugin.ts";
 
 export class HTMLDwebClipboardElement extends HTMLElement {

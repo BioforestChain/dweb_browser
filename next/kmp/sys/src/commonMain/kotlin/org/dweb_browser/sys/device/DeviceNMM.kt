@@ -12,6 +12,8 @@ import org.dweb_browser.pure.http.PureMethod
 
 val debugDevice = Debugger("Device")
 
+private const val UUID_KEY = "DEVICE_UUID"
+
 class DeviceNMM : NativeMicroModule("device.sys.dweb", "Device Info") {
   init {
     short_name = "Device";
@@ -23,7 +25,6 @@ class DeviceNMM : NativeMicroModule("device.sys.dweb", "Device Info") {
   data class UUIDResponse(val uuid: String)
 
   inner class DeviceRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
-    private val UUID_KEY = "DEVICE_UUID"
     override suspend fun _bootstrap() {
       // 由于android改造了，这边在初始化强制执行一次“文件夹”的创建操作。
       DeviceManage.deviceUUID(store.getOrNull(UUID_KEY))

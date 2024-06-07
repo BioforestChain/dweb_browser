@@ -16,6 +16,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.Debugger
+import org.dweb_browser.helper.globalIoScope
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.pure.http.PureChannel
 import org.dweb_browser.pure.http.PureClientRequest
@@ -42,53 +43,47 @@ open class KtorPureClient<out T : HttpClientEngineConfig>(
   }
 
   suspend fun fetch(request: PureClientRequest): PureResponse {
-    try {
-      debugHttpPureClient("httpFetch request", request.href)
-      if (request.url.protocol.name == "data") {
-        return dataUriToPureResponse(request)
-      }
-
-      /// 尝试从内部 HttpPureServer 上消化掉请求
-      tryDoHttpPureServerResponse(request.toServer())?.also {
-        return it
-      }
-
-      /// 请求标准网络
-      val responsePo = CompletableDeferred<PureResponse>()
-      CoroutineScope(ioAsyncExceptionHandler).launch {
-        try {
-          ktorClient.prepareRequest(request.toHttpRequestBuilder()).execute {
-            debugHttpPureClient("httpFetch execute", request.href)
-            val byteChannel = it.bodyAsChannel()
-            val pureStream = PureStream(byteChannel)
-            val onClosePo = CompletableDeferred<Unit>()
-            pureStream.onClose {
-              onClosePo.complete(Unit)
-            }
-            val response = it.toPureResponse(body = PureStreamBody(pureStream))
-            debugHttpPureClient("httpFetch response", request.href)
-            responsePo.complete(response)
-            onClosePo.await()
-          }
-          // 线程里面的错误需要在线程里捕捉
-        } catch (e: Throwable) {
-          // TODO 连接超时提示用户
-          debugHttpPureClient("httpFetch error", e.stackTraceToString())
-          val response = PureResponse(
-            HttpStatusCode.ServiceUnavailable,
-            body = PureStringBody(request.url.toString() + "\n" + e.stackTraceToString())
-          )
-          responsePo.complete(response)
-        }
-      }
-      return responsePo.await()
-    } catch (e: Throwable) {
-      debugHttpPureClient("httpFetch", request.url, e)
-      return PureResponse(
-        HttpStatusCode.ServiceUnavailable,
-        body = PureStringBody(request.url.toString() + "\n" + e.stackTraceToString())
-      )
+    debugHttpPureClient("httpFetch request", request.href)
+    if (request.url.protocol.name == "data") {
+      return dataUriToPureResponse(request)
     }
+
+    /// 尝试从内部 HttpPureServer 上消化掉请求
+    tryDoHttpPureServerResponse(request.toServer())?.also {
+      return it
+    }
+
+    /// 请求标准网络
+    val responsePo = CompletableDeferred<PureResponse>()
+    globalIoScope.launch {
+      try {
+        ktorClient.prepareRequest(request.toHttpRequestBuilder()).execute {
+          debugHttpPureClient("httpFetch execute", request.href)
+          val byteChannel = it.bodyAsChannel()
+          val pureStream = PureStream(byteChannel)
+          val onClosePo = CompletableDeferred<Unit>()
+          pureStream.onClose {
+            onClosePo.complete(Unit)
+          }
+          val response = it.toPureResponse(body = PureStreamBody(pureStream))
+          debugHttpPureClient("httpFetch response") {
+            "[${response.status}]${request.href}"
+          }
+          responsePo.complete(response)
+          onClosePo.await()
+        }
+        // 线程里面的错误需要在线程里捕捉
+      } catch (e: Throwable) {
+        // TODO 连接超时提示用户
+        debugHttpPureClient("httpFetch error", e.stackTraceToString())
+        val response = PureResponse(
+          HttpStatusCode.ServiceUnavailable,
+          body = PureStringBody(request.url.toString() + "\n" + e.stackTraceToString())
+        )
+        responsePo.complete(response)
+      }
+    }
+    return responsePo.await()
   }
 
   suspend fun websocket(request: PureClientRequest): PureChannel {

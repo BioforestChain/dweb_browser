@@ -1,7 +1,6 @@
 package org.dweb_browser.core.std.file
 
 import dweb_browser_kmp.core.generated.resources.Res
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -9,6 +8,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import okio.FileHandle
 import okio.FileMetadata
+import okio.FileSystem
 import okio.ForwardingFileSystem
 import okio.Path
 import okio.Sink
@@ -16,13 +16,14 @@ import okio.Source
 import okio.buffer
 import okio.fakefilesystem.FakeFileSystem
 import org.dweb_browser.helper.SafeHashMap
-import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.WARNING
+import org.dweb_browser.helper.globalIoScope
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 
 @OptIn(ExperimentalResourceApi::class)
 object ResourceFileSystem {
   private val fakeFileSystem = FakeFileSystem()
-  private val fsScope = CoroutineScope(ioAsyncExceptionHandler)
+  private val fsScope = globalIoScope
   private val sinkMap = SafeHashMap<String, Deferred<Boolean>>()
   fun prepare(path: Path) = sinkMap.getOrPut(path.toString()) {
     fsScope.async(start = CoroutineStart.UNDISPATCHED) {
@@ -49,7 +50,12 @@ object ResourceFileSystem {
   private fun <T> Deferred<T>.blockingAwait() = if (isCompleted) {
     getCompleted()
   } else {
-    runBlocking { await() }
+    WARNING("blockingAwait-start")
+    try {
+      runBlocking { await() }
+    } finally {
+      WARNING("blockingAwait-end")
+    }
   }
 
   val FileSystem = object : ForwardingFileSystem(fakeFileSystem) {
@@ -106,4 +112,25 @@ object ResourceFileSystem {
     }
 
   }
+}
+
+suspend fun FileSystem.safeMetadata(path: Path): okio.FileMetadata {
+  if (this === ResourceFileSystem.FileSystem) {
+    ResourceFileSystem.prepare(path).await()
+  }
+  return metadata(path)
+}
+
+suspend fun FileSystem.safeMetadataOrNull(path: Path): okio.FileMetadata? {
+  if (this === ResourceFileSystem.FileSystem) {
+    ResourceFileSystem.prepare(path).await()
+  }
+  return metadataOrNull(path)
+}
+
+suspend fun FileSystem.safeSource(path: Path): okio.Source {
+  if (this === ResourceFileSystem.FileSystem) {
+    ResourceFileSystem.prepare(path).await()
+  }
+  return source(path)
 }

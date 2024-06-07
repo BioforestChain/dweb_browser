@@ -38,7 +38,7 @@ data class DWebViewOptions(
   /**
    * 标识
    */
-  var tag: Int? = null,
+  var viewId: Int? = null,
   /**
    * 是否使用离屏渲染模式(目前主要用于桌面端web browser)
    * @suppress Desktop Only

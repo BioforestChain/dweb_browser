@@ -9,6 +9,17 @@ pluginManagement {
     gradlePluginPortal()
     mavenCentral()
   }
+  buildscript {
+    repositories {
+      mavenCentral()
+      maven {
+        url = uri("https://storage.googleapis.com/r8-releases/raw")
+      }
+    }
+    dependencies {
+      classpath("com.android.tools:r8:8.3.37")
+    }
+  }
 }
 plugins {
   id("org.gradle.toolchains.foojay-resolver-convention") version ("0.4.0")
@@ -154,6 +165,7 @@ if (features.libs.enabled) {
 if (features.androidApp.enabled) {
   includeApp("androidApp")
   includeApp("androidBenchmark")
+  includeApp("androidBaselineprofile")
 }
 if (features.electronApp.enabled) {
   includeApp("jsCommon")
@@ -186,4 +198,3 @@ if (features.libs.enabled) {
       }
     }
 }
-

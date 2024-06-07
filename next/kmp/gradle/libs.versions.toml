@@ -3,24 +3,25 @@ compileSdkVersion = "34" # Int
 buildToolsVersion = "29.0.2"
 minSdkVersion = "28" # Int
 targetSdkVersion = "34" # Int
-versionCode = "110" # Int
-versionName = "3.240528.0"
+versionCode = "117" # Int
+versionName = "3.240606.2"
 kotlinCompilerExtensionVersion = "1.5.14"
 jvmTarget = "17"
 javaVersion = "VERSION_17" # JavaVersion.VERSION_17
 
 agp = "8.3.2"
+androidx-baselineprofile-version = "1.2.4"
 kotlin-version = "1.9.24"
 kotlin-serialization-gradle = "1.9.24"
 androidx-test = "1.5.2"
-coreKtx = "1.6.0-beta01"
+coreKtx = "1.6.0-rc01"
 androidx-test-rules = "1.5.0"
 androidx-compose-ui-test = "1.6.7"
-androidx-lifecycle = "2.8.0"
+androidx-lifecycle = "2.8.1"
 compose-bom = "2024.05.00"
 
 androidx-activity = "1.9.0"
-androidx-appcompat = "1.6.1"
+androidx-appcompat = "1.7.0"
 androidx-core-ktx = "1.13.1"
 androidx-core-splashscreen = "1.1.0-rc01"
 androidx-annotation = "1.8.0"
@@ -42,13 +43,12 @@ cryptography-version = "0.3.0"
 
 accompanist = "0.34.0"
 google-material = "1.12.0"
-data-gson = "2.10.1"
 coil-version = "3.0.0-alpha06"
 camera-version = "1.4.0-beta01"
 camera-barcode = "17.2.0"
 camera-zxing = "3.5.3"
 commons-compress = "1.26.1"
-jetbrains-compose-version = "1.6.10"
+jetbrains-compose-version = "1.6.11"
 
 # 测试
 test-junit = "5.10.1"
@@ -235,6 +235,7 @@ qiniu-upload = { group = "com.qiniu", name = "qiniu-android-sdk", version.ref = 
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "roomKtx" }
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
+androidxBaselineprofile = { id = "androidx.baselineprofile", version.ref = "androidx-baselineprofile-version" }
 kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin-version" }
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
 kotlinxMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin-version" }

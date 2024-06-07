@@ -1,5 +1,5 @@
-import { $makeExtends } from "./$makeExtends.ts";
-import { fetchExtends } from "./$makeFetchExtends.ts";
+import { $makeExtends } from "@dweb-browser/helper/fetchExtends/$makeFetchBaseExtends.ts";
+import { fetchExtends } from "@dweb-browser/helper/fetchExtends/index.ts";
 
 /**构造request */
 export function buildRequest(url: URL, init?: $BuildRequestInit) {

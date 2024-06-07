@@ -1,10 +1,10 @@
 package org.dweb_browser.sys.window.render
 
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.TextButton
 import androidx.compose.runtime.Composable
@@ -26,12 +26,13 @@ actual fun RowScope.WindowBottomBarMenuPanel(win: WindowController) {
   val infoHeight = min(bottomBarHeight * 0.25f, LocalWindowLimits.current.bottomBarBaseHeight)
   val buttonRoundedSize = infoHeight * 2
 
-  Box(
+  BoxWithConstraints(
     modifier = Modifier.weight(1f).fillMaxWidth(),
   ) {
+    val iconSize = maxHeight
+
     /// 渲染菜单面板
     WindowMenuPanel(win)
-
     TextButton(
       onClick = {
         scope.launch { win.toggleMenuPanel() }
@@ -41,7 +42,8 @@ actual fun RowScope.WindowBottomBarMenuPanel(win: WindowController) {
       modifier = Modifier.align(Alignment.Center).fillMaxWidth(),
     ) {
       win.IconRender(
-        modifier = Modifier.align(Alignment.CenterVertically).fillMaxHeight(),
+        modifier = Modifier.align(Alignment.CenterVertically)
+          .size(width = iconSize, height = iconSize),
         primaryColor = contentColor
       )
     }

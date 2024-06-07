@@ -2,7 +2,6 @@ package org.dweb_browser.browser.jmm.render.app
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
@@ -26,30 +25,45 @@ import org.dweb_browser.core.help.types.JmmAppInstallManifest
 @Composable
 internal fun NewVersionInfoView(jmmAppInstallManifest: JmmAppInstallManifest) {
   val expanded = remember { mutableStateOf(false) }
-  Column(modifier = Modifier.padding(horizontal = HorizontalPadding, vertical = VerticalPadding)) {
+  Column(modifier = Modifier.padding(horizontal = HorizontalPadding, vertical = VerticalPadding)
+    .animateContentSize()
+    .clickable { expanded.value = !expanded.value }) {
     Text(
-      text = BrowserI18nResource.jmm_install_update_log(),
+      text = BrowserI18nResource.JMM.install_update_log(),
       fontSize = 18.sp,
       fontWeight = FontWeight.Bold,
       color = MaterialTheme.colorScheme.onSurface
     )
     Text(
-      text = BrowserI18nResource.jmm_install_version() + " ${jmmAppInstallManifest.version}",
+      text = BrowserI18nResource.JMM.install_version() + " ${jmmAppInstallManifest.version}",
       fontSize = 12.sp,
       fontWeight = FontWeight.Bold,
       color = MaterialTheme.colorScheme.outline,
       modifier = Modifier.padding(vertical = 6.dp)
     )
-
-    Box(modifier = Modifier
-      .animateContentSize()
-      .clickable { expanded.value = !expanded.value }) {
-      Text(
-        text = jmmAppInstallManifest.change_log,
-        maxLines = if (expanded.value) Int.MAX_VALUE else 2,
-        overflow = TextOverflow.Ellipsis,
-        color = MaterialTheme.colorScheme.onSurface
-      )
-    }
+    Text(
+      text = jmmAppInstallManifest.change_log,
+      maxLines = if (expanded.value) Int.MAX_VALUE else 2,
+      overflow = TextOverflow.Ellipsis,
+      color = MaterialTheme.colorScheme.onSurface
+    )
   }
+//  Card(onClick = { expanded.value = !expanded.value },
+//    modifier = Modifier
+//      .animateContentSize().clickable { expanded.value = !expanded.value }) {
+//    Column(Modifier.padding(horizontal = HorizontalPadding, vertical = VerticalPadding)) {
+//      Text(
+//        text = BrowserI18nResource.JMM.install_update_log(),
+//        style = MaterialTheme.typography.labelMedium,
+//        modifier = Modifier.padding(vertical = 6.dp)
+//      )
+//      // TODO Markdown Support
+//      Text(
+//        text = jmmAppInstallManifest.change_log,
+//        maxLines = if (expanded.value) Int.MAX_VALUE else 2,
+//        overflow = TextOverflow.Ellipsis,
+//        style = MaterialTheme.typography.bodyMedium,
+//      )
+//    }
+//  }
 }

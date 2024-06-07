@@ -123,3 +123,6 @@ class PureViewCreateParams(
   override fun getFloat(key: String): Float? = get(key).let { require(it is Float?);it }
   override fun getBoolean(key: String): Boolean? = get(key).let { require(it is Boolean?);it }
 }
+
+actual val IPureViewController.Companion.platform
+  get() = PureViewControllerPlatform.Android

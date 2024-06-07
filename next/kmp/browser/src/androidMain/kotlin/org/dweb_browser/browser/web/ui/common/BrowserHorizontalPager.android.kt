@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.dp
 actual fun BoxWithConstraintsScope.BrowserHorizontalPager(
   state: PagerState,
   modifier: Modifier,
-  pageContent: @Composable() (PagerScope.(Int) -> Unit)
+  pageContent: @Composable() (PagerScope.(Int) -> Unit),
 ) {
   HorizontalPager(
     state = state,

@@ -4,12 +4,12 @@ import androidx.compose.runtime.mutableStateListOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.Signal
-import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.defaultAsyncExceptionHandler
 import kotlin.coroutines.CoroutineContext
 
 class ChangeableMutableList<E>(
   val cList: MutableList<E> = mutableStateListOf(),
-  private val context: CoroutineContext = ioAsyncExceptionHandler
+  private val context: CoroutineContext = defaultAsyncExceptionHandler,
 ) {
 
   fun add(index: Int, element: E) {

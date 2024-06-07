@@ -90,7 +90,7 @@ internal fun BrowserPreviewPanel(modifier: Modifier = Modifier): Boolean {
   }
   val uiScope = rememberCoroutineScope()
   LocalWindowController.current.navigation.GoBackHandler {
-    viewModel.toggleShowPreviewUI(false)
+    viewModel.toggleShowPreviewUI(BrowserViewModel.PreviewPanelVisibleState.Close)
   }
 
   Column(
@@ -173,11 +173,11 @@ internal fun BrowserPreviewPanel(modifier: Modifier = Modifier): Boolean {
     ) {
       IconButton(onClick = {
         uiScope.launch {
+          viewModel.toggleShowPreviewUI(BrowserViewModel.PreviewPanelVisibleState.FastClose)
           viewModel.addNewPageUI {
             addIndex = focusedPageIndex + 1
             focusPage = true
           }
-          viewModel.toggleShowPreviewUI(false)
         }
       }) {
         Icon(
@@ -192,7 +192,9 @@ internal fun BrowserPreviewPanel(modifier: Modifier = Modifier): Boolean {
         modifier = Modifier.weight(1f),
         textAlign = TextAlign.Center
       )
-      TextButton(onClick = { viewModel.toggleShowPreviewUI(false) }) {
+      TextButton(onClick = {
+        viewModel.toggleShowPreviewUI(BrowserViewModel.PreviewPanelVisibleState.Close)
+      }) {
         Text(
           text = BrowserI18nResource.browser_multi_done(),
           color = MaterialTheme.colorScheme.primary,
@@ -386,7 +388,7 @@ private fun PagePreviewCell(
             .clickableWithNoEffect {
               uiScope.launch {
                 viewModel.focusPageUI(page)
-                viewModel.toggleShowPreviewUI(false)
+                viewModel.hideBrowserPreviewWithoutAnimation()
               }
             },
           contentAlignment = if (pagePreview != null) Alignment.TopCenter else Alignment.Center,

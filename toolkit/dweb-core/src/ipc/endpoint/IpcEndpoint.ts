@@ -10,7 +10,6 @@ import { mapHelper } from "@dweb-browser/helper/fun/mapHelper.ts";
 import { setHelper } from "@dweb-browser/helper/fun/setHelper.ts";
 import { CUSTOM_INSPECT, logger } from "@dweb-browser/helper/logger.ts";
 import type { $IpcMessage } from "../ipc-message/IpcMessage.ts";
-import { IPC_MESSAGE_TYPE } from "../ipc-message/internal/IpcMessage.ts";
 import type { Ipc } from "../ipc.ts";
 import type { $EndpointIpcMessage } from "./EndpointIpcMessage.ts";
 import {
@@ -55,12 +54,6 @@ export abstract class IpcEndpoint {
   private ipcMessageProducer(pid: number) {
     const ipcPo = new PromiseOut<Ipc>();
     const producer = new Producer<$IpcMessage>(`ipc-msg/${this.debugId}/${pid}`);
-    const consumer = producer.consumer("watch-fork");
-    consumer.collect((event) => {
-      if (event.data.type === IPC_MESSAGE_TYPE.FORK) {
-        this.accPid = Math.max(event.data.pid - 1, this.accPid);
-      }
-    });
     producer.onClosed(() => {
       this.ipcMessageProducers.delete(pid);
     });
@@ -168,16 +161,17 @@ export abstract class IpcEndpoint {
         // 收到 opened 了，自己也设置成 opened，代表正式握手成功
         case ENDPOINT_LIFECYCLE_STATE.OPENED: {
           const localState = this.lifecycle.state;
-          // this.console.log("remote-opend-&-locale-lifecycle", lifecycleLocale);
+          this.console.verbose("remote-opend-&-locale-lifecycle", localState);
           if (localState.name === ENDPOINT_LIFECYCLE_STATE.OPENING) {
             const opend = EndpointLifecycle(
               endpointLifecycleOpend(localState.subProtocols, localState.sessionIds.join("~"))
             );
+            // 根据 sessionId 来定位 pid 的起点值
+            this.accPid = localState.sessionIds.indexOf(localSessionId);
+
             this.sendLifecycleToRemote(opend);
             this.console.verbose("emit-locale-lifecycle", opend);
             this.lifecycleLocaleFlow.emit(opend);
-            /// 后面被链接的ipc，pid从奇数开始
-            this.accPid++;
           }
           break;
         }
@@ -205,6 +199,8 @@ export abstract class IpcEndpoint {
               nextState = EndpointLifecycle(
                 endpointLifecycleOpend(localState.subProtocols, localState.sessionIds.join("~"))
               );
+              // 根据 sessionId 来定位 pid 的起点值
+              this.accPid = localState.sessionIds.indexOf(localSessionId);
             }
             this.sendLifecycleToRemote(nextState);
           }
@@ -256,11 +252,12 @@ export abstract class IpcEndpoint {
   }
 
   async doClose(cause?: string) {
+    cause = cause ? cause.toString() : cause;
     try {
       switch (this.lifecycle.state.name) {
         case ENDPOINT_LIFECYCLE_STATE.OPENED:
         case ENDPOINT_LIFECYCLE_STATE.OPENING: {
-          this.sendLifecycleToRemote(EndpointLifecycle(endpointLifecycleClosing()));
+          this.sendLifecycleToRemote(EndpointLifecycle(endpointLifecycleClosing(cause)));
           break;
         }
         case ENDPOINT_LIFECYCLE_STATE.CLOSED: {
@@ -273,7 +270,7 @@ export abstract class IpcEndpoint {
         await channel.producer.close(cause);
       }
       this.ipcMessageProducers.clear();
-      this.sendLifecycleToRemote(EndpointLifecycle(endpointLifecycleClosed()));
+      this.sendLifecycleToRemote(EndpointLifecycle(endpointLifecycleClosed(cause)));
       this.afterClosed?.();
     } finally {
       this.closedPo.resolve(cause);

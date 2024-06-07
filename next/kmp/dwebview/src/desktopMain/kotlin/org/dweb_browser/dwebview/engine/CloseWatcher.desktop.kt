@@ -50,7 +50,7 @@ class CloseWatcher(val engine: DWebViewEngine) : ICloseWatcher {
           }
           consuming.add(consumeToken)
           install()
-          engine.ioScope.launch {
+          engine.lifecycleScope.launch {
             // TODO: 使用 evaluateAsyncJavascriptCode 会卡住，导致 openLock 不释放，下一次无法再 open
             openLock.withLock {
 //              engine.evaluateAsyncJavascriptCode("void open('$consumeToken')")
@@ -66,7 +66,7 @@ class CloseWatcher(val engine: DWebViewEngine) : ICloseWatcher {
         @JsAccessible
         fun tryClose(id: String?) = // 这里用 String? 是为了避免 js 传输错误参数，理论上应该用 Any?
           watchers.find { watcher -> watcher.id == id }?.also {
-            engine.ioScope.launch { close(it) }
+            engine.lifecycleScope.launch { close(it) }
           }
 
         /**
@@ -132,7 +132,7 @@ class CloseWatcher(val engine: DWebViewEngine) : ICloseWatcher {
 
   private val canCloseMutableFlow = MutableStateFlow(canClose)
   private fun tryEmitCanCloseMutableFlow() {
-    engine.ioScope.launch {
+    engine.lifecycleScope.launch {
       canCloseMutableFlow.emit(canClose)
     }
   }

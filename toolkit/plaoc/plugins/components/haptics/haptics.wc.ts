@@ -1,4 +1,4 @@
-import { cacheGetter } from "../../helper/cacheGetter.ts";
+import { cacheGetter } from "@dweb-browser/helper/cacheGetter.ts";
 import { hapticsPlugin } from "./haptics.plugin.ts";
 
 export class HTMLDwebHapticsElement extends HTMLElement {

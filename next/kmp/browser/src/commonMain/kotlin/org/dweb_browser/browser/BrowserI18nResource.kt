@@ -1,5 +1,6 @@
 package org.dweb_browser.browser
 
+import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.helper.compose.Language
 import org.dweb_browser.helper.compose.OneParamI18nResource
 import org.dweb_browser.helper.compose.SimpleI18nResource
@@ -35,14 +36,32 @@ object BrowserI18nResource {
     SimpleI18nResource(Language.ZH to "安装中", Language.EN to "Installing")
   val install_button_open = SimpleI18nResource(Language.ZH to "打开", Language.EN to "Open")
   val install_button_lower =
-    SimpleI18nResource(Language.ZH to "已安装新版本", Language.EN to "Version Low")
+    SimpleI18nResource(Language.ZH to "版本降级", Language.EN to "Downgrade")
   val install_button_retry =
     SimpleI18nResource(Language.ZH to "重载失效资源", Language.EN to "Retry")
   val install_button_retry2 = SimpleI18nResource(Language.ZH to "重试", Language.EN to "Retry")
   val install_button_incompatible = SimpleI18nResource(
-    Language.ZH to "该软件与您的设备不兼容",
-    Language.EN to "The software is not compatible with your device"
+    Language.ZH to "软件不兼容",
+    Language.EN to "Software Incompatible"
   )
+  val install_button_jump_home = SimpleI18nResource(
+    Language.ZH to "打开来源页",
+    Language.EN to "Go to Referring Page"
+  )
+  val install_tooltip_warning =
+    SimpleI18nResource(Language.ZH to "警告", Language.EN to "WARING")
+
+  val install_tooltip_lower_version_tip =
+    SimpleI18nResource(
+      Language.ZH to "该目标版本低于当前已安装的版本，确定要进行降级安装吗？",
+      Language.EN to "The target version is lower than the currently installed version. Are you sure you want to downgrade?"
+    )
+
+  val install_tooltip_install_lower_action = SimpleI18nResource(
+    Language.ZH to "降级安装",
+    Language.EN to "Downgrade and install"
+  )
+
   val no_download_links = SimpleI18nResource(
     Language.ZH to "暂无下载数据", Language.EN to "There are no download links yet",
   )
@@ -147,31 +166,56 @@ object BrowserI18nResource {
   val toast_message_download_downloading =
     SimpleI18nResource(Language.ZH to "正在下载中...", Language.EN to "Downloading...")
 
+  object JMM {
+    val short_name = SimpleI18nResource(Language.ZH to "模块管理", Language.EN to "Module Manager")
+    val history_tab_installed =
+      SimpleI18nResource(Language.ZH to "已安装", Language.EN to "Installed")
+    val history_tab_uninstalled =
+      SimpleI18nResource(Language.ZH to "未安装", Language.EN to "No Install")
+    val install_version = SimpleI18nResource(Language.ZH to "版本", Language.EN to "version")
+    val install_introduction =
+      SimpleI18nResource(Language.ZH to "应用介绍", Language.EN to "Introduction")
+    val install_update_log =
+      SimpleI18nResource(Language.ZH to "更新日志", Language.EN to "Update Log")
+    val install_info = SimpleI18nResource(Language.ZH to "信息", Language.EN to "Info")
+    val install_info_dev =
+      SimpleI18nResource(Language.ZH to "开发者", Language.EN to "Developer")
+    val install_info_size = SimpleI18nResource(Language.ZH to "应用大小", Language.EN to "App Size")
+    val install_info_type = SimpleI18nResource(Language.ZH to "类别", Language.EN to "Type")
+    val install_info_language =
+      SimpleI18nResource(Language.ZH to "语言", Language.EN to "Language")
+    val install_info_age = SimpleI18nResource(Language.ZH to "年龄", Language.EN to "Age")
+    val install_info_copyright =
+      SimpleI18nResource(Language.ZH to "版权", Language.EN to "CopyRight")
+    val install_info_homepage =
+      SimpleI18nResource(Language.ZH to "应用主页", Language.EN to "Home Page")
+    val history_details = SimpleI18nResource(Language.ZH to "详情", Language.EN to "Details")
+    val history_uninstall =
+      SimpleI18nResource(Language.ZH to "卸载", Language.EN to "Uninstall")
+    val url_invalid =
+      SimpleI18nResource(
+        Language.ZH to "网址已失效，请前往官网进行安装！",
+        Language.EN to "The website is no longer valid, please go to the official website to install!"
+      )
+  }
 
-  val jmm_short_name =
-    SimpleI18nResource(Language.ZH to "模块管理", Language.EN to "Module Manager")
-  val jmm_history_tab_installed =
-    SimpleI18nResource(Language.ZH to "已安装", Language.EN to "Installed")
-  val jmm_history_tab_uninstalled =
-    SimpleI18nResource(Language.ZH to "未安装", Language.EN to "No Install")
-  val jmm_install_version = SimpleI18nResource(Language.ZH to "版本", Language.EN to "version")
-  val jmm_install_introduction =
-    SimpleI18nResource(Language.ZH to "应用介绍", Language.EN to "Introduction")
-  val jmm_install_update_log =
-    SimpleI18nResource(Language.ZH to "更新日志", Language.EN to "Update Log")
-  val jmm_install_info = SimpleI18nResource(Language.ZH to "信息", Language.EN to "Info")
-  val jmm_install_info_dev =
-    SimpleI18nResource(Language.ZH to "开发者", Language.EN to "Developer")
-  val jmm_install_info_size = SimpleI18nResource(Language.ZH to "大小", Language.EN to "Size")
-  val jmm_install_info_type = SimpleI18nResource(Language.ZH to "类别", Language.EN to "Type")
-  val jmm_install_info_language =
-    SimpleI18nResource(Language.ZH to "语言", Language.EN to "Language")
-  val jmm_install_info_age = SimpleI18nResource(Language.ZH to "年龄", Language.EN to "Age")
-  val jmm_install_info_copyright =
-    SimpleI18nResource(Language.ZH to "版权", Language.EN to "CopyRight")
-  val jmm_history_details = SimpleI18nResource(Language.ZH to "详情", Language.EN to "Details")
-  val jmm_history_uninstall =
-    SimpleI18nResource(Language.ZH to "卸载", Language.EN to "Uninstall")
+  object JsMM {
+    class CanNotSupportTargetParams(
+      var appName: String = "",
+      var appId: MMID = "",
+      var currentVersion: Int = -1,
+      var minTarget: Int = -1,
+      var maxTarget: Int = -1,
+    )
+
+    val canNotSupportMinTarget = OneParamI18nResource({ CanNotSupportTargetParams() },
+      Language.ZH to { "应用：$appName($appId) 与容器版本不匹配，当前版本：${currentVersion}，应用最低要求：${minTarget}" },
+      Language.EN to { "App: $appName($appId) is incompatible with the container version. Current version: ${currentVersion}, app minimum requirement: ${minTarget}." })
+    val canNotSupportMaxTarget = OneParamI18nResource({ CanNotSupportTargetParams() },
+      Language.ZH to { "应用：$appName($appId) 与容器版本不匹配，当前版本：${currentVersion}，应用最高兼容到：${maxTarget}" },
+      Language.EN to { "App: $appName($appId) is incompatible with the container version. Current version: ${currentVersion}, app maximum compatibility: ${maxTarget}." })
+
+  }
 
   val download_shore_name =
     SimpleI18nResource(Language.ZH to "下载管理", Language.EN to "Download Manager")

@@ -21,7 +21,7 @@ data class Gateway(
 
     fun addRouter(config: CommonRoute, ipc: Ipc) {
       val route = StreamIpcRouter(config, ipc)
-      this._routerSet.add(route)
+      _routerSet.add(route)
       ipc.onClosed {
         _routerSet.remove(route)
       }
@@ -54,7 +54,7 @@ data class Gateway(
     }
   }
 
-  class StreamIpcRouter(val config: CommonRoute, val ipc: Ipc) {
+  data class StreamIpcRouter(val config: CommonRoute, val ipc: Ipc) {
     suspend fun handler(request: PureServerRequest) = if (config.isMatch(request)) {
       /// 这里的 request 并不是 pureClientRequest，而是 pureServerRequest
       ipc.request(request.toClient())

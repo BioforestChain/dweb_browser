@@ -11,7 +11,7 @@ import org.dweb_browser.browser.web.data.BrowserDownloadItem
 import org.dweb_browser.browser.web.ui.page.BrowserDownloadPageRender
 
 class BrowserDownloadPage(
-  private val browserController: BrowserController
+  private val browserController: BrowserController,
 ) : BrowserPage(browserController) {
   companion object {
     fun isDownloadUrl(url: String) =

@@ -75,7 +75,7 @@ fun DownloadTabView() {
   LazySwipeColumn(
     items = list,
     key = { item -> item.id },
-    onRemove = { item -> viewModel.removeDownloadTask(item)},
+    onRemove = { item -> viewModel.removeDownloadTask(item) },
     noDataValue = BrowserI18nResource.no_download_links()
   ) { downloadTask ->
     DownloadItem(downloadTask) { decompressModel.show(it) }

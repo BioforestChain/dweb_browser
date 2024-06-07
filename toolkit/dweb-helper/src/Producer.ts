@@ -144,7 +144,7 @@ export class Producer<T> {
     this.#doSend(value);
   }
 
-  #waring_ti?: number;
+  #waring_ti?: any;
   #doSend(value: T) {
     const event = this.event(value);
     this.buffers.add(event);
@@ -321,7 +321,7 @@ export class Producer<T> {
     }
     this.consumers.clear();
     this.buffers.clear();
-    cause && this.console.log("producer-close", cause);
+    cause && this.console.verbose("producer-close", cause);
   }
 
   #closeSignal = createSignal<() => unknown>(false);

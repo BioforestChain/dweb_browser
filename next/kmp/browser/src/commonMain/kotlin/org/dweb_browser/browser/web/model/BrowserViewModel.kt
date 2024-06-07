@@ -10,6 +10,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import io.ktor.http.Url
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -47,6 +48,7 @@ import org.dweb_browser.helper.isTrimEndSlashEqual
 import org.dweb_browser.helper.platform.toByteArray
 import org.dweb_browser.helper.toWebUrl
 import org.dweb_browser.helper.toWebUrlOrWithoutProtocol
+import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.helper.withScope
 import org.dweb_browser.sys.permission.SystemPermissionName
 import org.dweb_browser.sys.permission.SystemPermissionTask
@@ -54,6 +56,7 @@ import org.dweb_browser.sys.permission.ext.requestSystemPermission
 import org.dweb_browser.sys.share.ext.postSystemShare
 import org.dweb_browser.sys.toast.ToastPositionType
 import org.dweb_browser.sys.toast.ext.showToast
+import org.dweb_browser.sys.window.core.WindowContentRenderScope
 
 val LocalBrowserViewModel = compositionChainOf<BrowserViewModel>("BrowserModel")
 
@@ -74,8 +77,8 @@ class BrowserViewModel(
   internal val browserController: BrowserController,
   internal val browserNMM: BrowserNMM.BrowserRuntime,
 ) {
-  val browserOnVisible = browserController.onWindowVisible
-  val browserOnClose = browserController.onCloseWindow
+  val browserOnVisible = browserController.onWindowVisible // IOS 在用
+  val browserOnClose = browserController.onCloseWindow // IOS 在用
 
   val ioScope get() = browserNMM.getRuntimeScope()
   private val pages = mutableStateListOf<BrowserPage>() // 多浏览器列表
@@ -84,11 +87,11 @@ class BrowserViewModel(
   var showMore by mutableStateOf(false)
 
   enum class PreviewPanelVisibleState(val isVisible: Boolean) {
-    DisplayGrid(true), Close(false),
-    ;
+    DisplayGrid(true), Close(false), FastClose(false)/*不做动画，直接隐藏*/;
   }
 
   var showQRCodePanel by mutableStateOf(false)
+    private set
 
   val previewPanelVisibleState = MutableTransitionState(PreviewPanelVisibleState.Close)
 
@@ -100,18 +103,31 @@ class BrowserViewModel(
   /**
    * 是否显示 Preview
    */
-  val showPreview get() = previewPanelVisibleState.targetState != PreviewPanelVisibleState.Close
+  val showPreview get() = previewPanelVisibleState.targetState == PreviewPanelVisibleState.DisplayGrid
 
   /**
    * Preview 是否不显示，同时 也不在 收起显示的动画中
    */
-  val isPreviewInvisible get() = !showPreview && previewPanelVisibleState.isIdle
-  fun toggleShowPreviewUI(show: Boolean) {
-    previewPanelVisibleState.targetState =
-      if (show) PreviewPanelVisibleState.DisplayGrid else PreviewPanelVisibleState.Close
+  val isPreviewInvisible get() = previewPanelVisibleState.targetState == PreviewPanelVisibleState.FastClose || (!showPreview && previewPanelVisibleState.isIdle)
+  fun toggleShowPreviewUI(state: PreviewPanelVisibleState) {
+    previewPanelVisibleState.targetState = state
+  }
+
+  var withoutAnimationOnFocus by mutableStateOf(false)
+
+  /**
+   * 隐藏BrowserPreview，并且将PageState滚动时不适用动画效果
+   */
+  fun hideBrowserPreviewWithoutAnimation() {
+    withoutAnimationOnFocus = true
+    toggleShowPreviewUI(PreviewPanelVisibleState.Close)
   }
 
   var showSearchPage by mutableStateOf<BrowserPage?>(null)
+
+  // 该字段是用来存储通过 deeplink 调用的 search 和 openinbrowser 关键字，关闭搜索界面需要直接置空
+  var searchKeyWord by mutableStateOf<String?>(null)
+    internal set
   var scale by mutableFloatStateOf(1f)
 
   // 无痕模式状态
@@ -160,8 +176,6 @@ class BrowserViewModel(
     private set
   val focusedPageIndex get() = pages.indexOf(focusedPage)
 
-  private val focusPageChangeSignal: Signal<Pair<BrowserPage?, BrowserPage?>> = Signal()
-  private val onFocusedPageChangeUI = focusPageChangeSignal.toListener()
   suspend fun focusPageUI(page: BrowserPage?) {
     val prePage = focusedPage
     if (prePage == page) {
@@ -170,9 +184,7 @@ class BrowserViewModel(
     debugBrowser("focusBrowserView", page)
     // 前一个页面要失去焦点了，所以进行截图
     prePage?.captureViewInBackground()
-    // delay(100) // focusedPage 赋值更新后，会触发 HorizontalPager 变化，但是如果界面没显示，会导致出发失败，这边做下延迟
     focusedPage = page
-    focusPageChangeSignal.emit(Pair(page, prePage))
   }
 
   suspend fun focusPageUI(pageIndex: Int) {
@@ -196,7 +208,7 @@ class BrowserViewModel(
   val pagerStates = BrowserPagerStates(this)
 
   @Composable
-  fun ViewModelEffect() {
+  fun ViewModelEffect(windowRenderScope: WindowContentRenderScope) {
     val uiScope = rememberCoroutineScope()
 
     /// 初始化 isNoTrace
@@ -206,7 +218,23 @@ class BrowserViewModel(
       }
     }
 
-    pagerStates.PagerToFocusEffect() // 监听ContentPage页面，进行focusedUI操作
+    /// 判断是否需要显示SearchPanel
+    LaunchedEffect(Unit) {
+      snapshotFlow { searchKeyWord }.collect { keyWord ->
+        val searchWord = keyWord?.ifEmpty { null } ?: return@collect
+        val replaceHomePage = if (focusedPage is BrowserHomePage) focusedPage else null
+        tryOpenUrlUI(searchWord, replaceHomePage) {
+          // 如果searchWord不满足browserPage，那么就需要弹出搜索界面 BrowserSearchPanel
+          showSearchPage = focusedPage ?: run {
+            BrowserHomePage(browserController).apply {
+              addNewPageUI(this) { addIndex = focusedPageIndex + 1 } // 直接移动到最后
+            }
+          }
+        }
+      }
+    }
+
+    pagerStates.BindingEffect(windowRenderScope) // 监听ContentPage页面，进行focusedUI操作
 
     /// 监听窗口关闭，进行资源释放
     DisposableEffect(Unit) {
@@ -229,17 +257,23 @@ class BrowserViewModel(
       enabledOffScreenRender = false
     ),
     viewBox = browserController.viewBox
-  )
+  ).also { dwebview ->
+    browserNMM.onBeforeShutdown {
+      browserNMM.scopeLaunch(cancelable = false) {
+        dwebview.destroy()
+      }
+    }
+  }
 
   private suspend fun createWebPage(dWebView: IDWebView): BrowserWebPage =
     BrowserWebPage(dWebView, browserController).also {
       dWebView.onCreateWindow { itemDwebView ->
-        val url =itemDwebView.getUrl()
-        if (url.startsWith("dweb://")) {
-          browserNMM.nativeFetch(url)
-        } else {
+        val url = itemDwebView.getUrl()
+        if (!url.startsWith("dweb://")) {
           val newWebPage = createWebPage(itemDwebView)
           addNewPageUI(newWebPage)
+        } else {
+          itemDwebView.destroy()
         }
       }
       addDownloadListener(dWebView.onDownloadListener)
@@ -262,31 +296,8 @@ class BrowserViewModel(
     debugBrowser("openSearchPanelUI", "searchText=$searchText, target=$target")
     deepLinkDoSearch(DwebLinkSearchItem(link = searchText, target = target)) // TODO 调用Ios 接口，实现功能
     // android 实现仍然在 commonMain这边
-    when (target) {
-      AppBrowserTarget.SELF -> {
-        // 如果是搜索的话，直接在当前页显示搜索界面，并且显示待搜索的内容
-        if (searchText.isNotEmpty()) {
-          showSearchPage = focusedPage?.apply { searchKeyWord = searchText } // 显示当前界面
-        }
-      }
-
-      else -> {
-        // 打开新tab，并聚焦到新page，如果打开地址失败，说明不是标准网址，新增tab，并且打开搜索界面
-        val replacePage = focusedPage?.let { page -> if (page is BrowserHomePage) page else null }
-        tryOpenUrlUI(searchText, replacePage) {
-          debugBrowser("openSearchPanelUI", "tryOpenUrlUI fail, focusedPage=$focusedPage")
-          val page = replacePage?.let { // 如果当前界面就是homepage，就不需要再创建新的
-            replacePage.apply { searchKeyWord = searchText }
-          } ?: run {
-            BrowserHomePage(browserController).apply {
-              searchKeyWord = searchText
-              addNewPageUI(this) { addIndex = focusedPageIndex + 1 } // 直接移动到最后
-            }
-          }
-          showSearchPage = page
-        }
-      }
-    }
+    hideAllPanel() // 先将该内容置为空，然后修改 searchKeyWord 的值，出发 ViewModelEffect 监听，来确认是否需要再次显示
+    searchKeyWord = searchText // 上面 ViewModelEffect 监听 searchKeyWord 状态，
   }
 
   /**
@@ -309,6 +320,7 @@ class BrowserViewModel(
           // 否则走未知模式
           if (newPage == null) {
             unknownUrl?.invoke(url)
+            return // 直接返回，否则会影响到将 searchKeyWord 置空操作，也就是下面调用的 hideAllPanel()
           }
         }
 
@@ -331,9 +343,11 @@ class BrowserViewModel(
         // 否则走未知模式
         if (newPage == null) {
           unknownUrl?.invoke(url)
+          return // 直接返回，否则会影响到将 searchKeyWord 置空操作，也就是下面调用的 hideAllPanel()
         }
       }
     }
+    hideAllPanel() // 为了保证页面加载的时候，将前面的Panel关闭
   }
 
   suspend fun closePageUI(page: BrowserPage): Boolean {
@@ -341,24 +355,21 @@ class BrowserViewModel(
     if (index == -1) {
       return false
     }
-    if (focusedPage == page) {
-      // 如果要关闭当前的page，那么需要聚焦到下一个page，但是如果下一个page越界了，就聚焦上一个
-      val newFocusIndex = if (index + 1 >= pageSize) index - 1 else index + 1
-      pages.getOrNull(newFocusIndex)?.also { focusPageUI(it) }
-    }
 
-    /// 如果移除后，发现列表空了，手动补充一个。这个代码必须连着执行，否则会出问题
-    pages.removeAt(index)
-    if (pages.isEmpty()) {
-      addNewPageUI(BrowserHomePage(browserController)) {
-        focusPage = true
-        replaceOldHomePage = false
+    return pages.remove(page).trueAlso {
+      if (pages.isEmpty()) {
+        addNewPageUI(BrowserHomePage(browserController)) {
+          focusPage = true
+          replaceOldHomePage = false
+        }
+      } else if (focusedPage == page) {
+        // TODO 获取的index是否在移除后的列表有效区间内，如果存在可以进行聚焦，不存在（-1），等待PagerState内部自行处理
+        if (index in 0 until pageSize) {
+          focusPageUI(index)
+        }
       }
+      page.destroy()
     }
-
-    // 最后，将移除的页面进行销毁
-    page.destroy()
-    return true
   }
 
   /**检查是否有设置过的默认搜索引擎，并且拼接成webUrl*/
@@ -380,10 +391,9 @@ class BrowserViewModel(
       return@launch
     }
     // 尝试
-    val webUrl = url.toWebUrl()
-      ?: checkAndEnableSearchEngine(url) // 检查是否有默认的搜索引擎
-      ?: url.toWebUrlOrWithoutProtocol() // 上面先判断标准的网址和搜索引擎后，仍然为空时，执行一次域名转化判断
-      ?: filterShowEngines.firstOrNull()?.searchLinks?.first()?.format(url)?.toWebUrl() // 转换成搜索链接
+    val webUrl = url.toWebUrl() ?: checkAndEnableSearchEngine(url) // 检查是否有默认的搜索引擎
+    ?: url.toWebUrlOrWithoutProtocol() // 上面先判断标准的网址和搜索引擎后，仍然为空时，执行一次域名转化判断
+    ?: filterShowEngines.firstOrNull()?.searchLinks?.first()?.format(url)?.toWebUrl() // 转换成搜索链接
     debugBrowser("doIOSearchUrl", "url=$url, webUrl=$webUrl, focusedPage=$focusedPage")
     // 当没有搜到需要的数据，给出提示
     if (webUrl == null) {
@@ -443,9 +453,7 @@ class BrowserViewModel(
       pages.getOrNull(index)?.also { pages.add(index, newPage) }
     } ?: focusedPage.also { pages.add(newPage) }
 
-    if ((options.replaceOldPage && oldPage != null) ||
-      (options.replaceOldHomePage && oldPage != focusedPage && oldPage is BrowserHomePage)
-    ) {
+    if ((options.replaceOldPage && oldPage != null) || (options.replaceOldHomePage && oldPage != focusedPage && oldPage is BrowserHomePage)) {
       closePageUI(oldPage)
     }
     if (options.focusPage) {
@@ -605,12 +613,16 @@ class BrowserViewModel(
     browserNMM.updateEngineState(searchEngine, true)
   }
 
+  fun showQRCodePanelUI() {
+    showQRCodePanel = true
+  }
+
   /**
    * 隐藏所有的Panel
    */
   fun hideAllPanel() {
     previewPanelVisibleState.targetState = PreviewPanelVisibleState.Close
-    showSearchPage?.searchKeyWord = null
+    searchKeyWord = null
     showSearchPage = null
     showQRCodePanel = false
   }

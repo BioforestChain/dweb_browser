@@ -56,7 +56,9 @@ class ComposeWindowParams(
   internal var state: WindowState = CacheWindowState(
     isMinimized = false, placement = WindowPlacement.Floating,
     position = WindowPosition.PlatformDefault,
-    size = DpSize(800.dp, 600.dp),
+    // 目前 BrowserHorizontalPager 在desktop时，默认显示三个，每个220.dp, 间隔5.dp, 左右各10.dp,总共700.dp。
+    // 然后还有三个按钮各 40.dp，所以宽度总共 700 + 120 = 820.dp，但是window显示有问题，需要使用835.dp
+    size = if (PureViewController.isWindows) DpSize(835.dp, 600.dp) else DpSize(820.dp, 600.dp)
   )
 
   /**是否最小化*/

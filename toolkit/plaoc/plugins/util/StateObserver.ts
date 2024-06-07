@@ -1,14 +1,17 @@
+import type { Ipc } from "@dweb-browser/core/ipc/ipc.ts";
+import { createSignal, type $Callback } from "@dweb-browser/helper/createSignal.ts";
 import { BasePlugin } from "../components/base/base.plugin.ts";
-import { $Transform, JsonlinesStream } from "../helper/JsonlinesStream.ts";
+
+import { jsonlinesStreamReadText } from "@dweb-browser/helper/stream/jsonlinesStreamHelper.ts";
 import { bindThis } from "../helper/bindThis.ts";
-import { $Callback, createSignal } from "../helper/createSignal.ts";
-import { ReadableStreamOut, streamRead } from "../helper/readableStreamHelper.ts";
+
+type $Transform<T, R> = (value: T) => R;
 
 /**
  * 提供了一个状态的读取与更新的功能
  */
 export class StateObserver<RAW, STATE> {
-  private _ws: WebSocket | undefined;
+  private _ipc: Ipc | undefined;
   constructor(
     private plugin: BasePlugin,
     private fetcher: () => Promise<RAW>,
@@ -16,41 +19,49 @@ export class StateObserver<RAW, STATE> {
       decode: $Transform<RAW, STATE>;
       encode: $Transform<STATE, RAW>;
     },
+    // deno-lint-ignore require-await
     private buildWsUrl: (ws_url: URL) => Promise<URL | void> = async (ws_url) => ws_url
   ) {}
+  private ws?: WebSocket;
 
-  async *jsonlines(options?: { signal?: AbortSignal }) {
+  /**监听状态变化 */
+  async jsonlines(options?: { signal?: AbortSignal }) {
     const api_url = BasePlugin.api_url;
     const url = new URL(api_url.replace(/^http/, "ws"));
     // 内部的监听
     url.pathname = `/${this.plugin.mmid}/observe`;
-    const ws = new WebSocket((await this.buildWsUrl(url)) ?? url);
-    this._ws = ws;
-    ws.binaryType = "arraybuffer";
-    const streamout = new ReadableStreamOut();
-
-    ws.onmessage = (event) => {
-      const data = event.data;
-      streamout.controller.enqueue(data);
-    };
-    ws.onclose = () => {
-      streamout.controller?.close();
-    };
-    ws.onerror = (event) => {
-      streamout.controller.error(event);
-    };
-
-    for await (const state of streamRead(
-      streamout.stream.pipeThrough(new TextDecoderStream()).pipeThrough(new JsonlinesStream(this.coder.decode)),
+    const wsUrl = ((await this.buildWsUrl(url)) ?? url).href;
+    return jsonlinesStreamReadText<STATE>(
+      new ReadableStream<string>({
+        pull: (controller) => {
+          this.pullMessage(wsUrl, controller);
+        },
+        cancel: () => {
+          this.ws?.close();
+        },
+      }),
       options
-    )) {
-      this.currentState = state;
-      yield state;
+    );
+  }
+  // 断开重连机制
+  pullMessage(wsUrl: string, controller: ReadableStreamDefaultController<string>) {
+    if (this.ws == null || this.ws.readyState === WebSocket.CLOSING) {
+      console.log(`re-create=>${wsUrl}`, this.ws?.readyState);
+      this.ws = new WebSocket(wsUrl);
+      this.ws.onmessage = (msgEvent) => {
+        const data = msgEvent.data;
+        // console.log("ws on message", data, typeof data, wsUrl);
+        if (typeof data === "string") {
+          this.currentState = JSON.parse(data);
+          // console.log("pull", this.currentState);
+          controller.enqueue(data);
+        }
+      };
     }
   }
 
   stopObserve() {
-    this._ws?.close();
+    this._ipc?.close();
   }
 
   private _currentState?: STATE;

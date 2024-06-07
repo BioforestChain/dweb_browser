@@ -27,7 +27,7 @@ internal fun AppIntroductionView(jmmAppInstallManifest: JmmAppInstallManifest) {
   val expanded = remember { mutableStateOf(false) }
   Column(modifier = Modifier.padding(horizontal = HorizontalPadding, vertical = VerticalPadding)) {
     Text(
-      text = BrowserI18nResource.jmm_install_introduction(),
+      text = BrowserI18nResource.JMM.install_introduction(),
       fontSize = 18.sp,
       fontWeight = FontWeight.Bold,
       color = MaterialTheme.colorScheme.onSurface

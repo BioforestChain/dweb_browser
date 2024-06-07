@@ -120,11 +120,11 @@ export abstract class MicroModuleRuntime implements $MicroModuleRuntime {
   bootstrap() {
     return this.stateLock.withLock(async () => {
       if (this.state != MMState.BOOTSTRAP) {
-        this.console.log("bootstrap-start");
+        this.console.verbose("bootstrap-start");
         await this._bootstrap();
-        this.console.log("bootstrap-end");
+        this.console.verbose("bootstrap-end");
       } else {
-        this.console.log("bootstrap", `${this.mmid} already running`);
+        this.console.verbose("bootstrap", `${this.mmid} already running`);
       }
       this.state = MMState.BOOTSTRAP;
     });
@@ -188,23 +188,10 @@ export abstract class MicroModuleRuntime implements $MicroModuleRuntime {
   // deno-lint-ignore require-await
   async beConnect(ipc: Ipc, _reason?: Request) {
     if (setHelper.add(this.connectionLinks, ipc)) {
-      this.console.log("beConnect", ipc);
+      this.console.verbose("beConnect", ipc);
       ipc.onFork("beConnect").collect(async (forkEvent) => {
-        ipc.console.log("onFork", forkEvent.data);
+        ipc.console.verbose("onFork", forkEvent.data);
         await this.beConnect(forkEvent.consume(), undefined);
-      });
-      ipc.onRequest(`${this.mmid}-deepLink`).collect(async (event) => {
-        const url = event.consumeMapNotNull((request) => {
-          if (request.url.startsWith("dweb:")) {
-            return request.url;
-          }
-        });
-        if (url) {
-          const mmid = (await this.bootstrapContext.dns.queryDeeplink(url))?.id;
-          if (mmid) {
-            (await this.connect(mmid as $MMID)).request(url);
-          }
-        }
       });
 
       this.onBeforeShutdown(() => {
@@ -220,7 +207,7 @@ export abstract class MicroModuleRuntime implements $MicroModuleRuntime {
         this.connectionMap.set(ipc.remote.mmid, PromiseOut.resolve(ipc));
       }
       this.#ipcConnectedProducer.send(ipc);
-      this.console.log("beConnect-end", ipc);
+      this.console.verbose("beConnect-end", ipc);
     }
   }
   getConnected(mmid: $MMID) {
@@ -228,11 +215,18 @@ export abstract class MicroModuleRuntime implements $MicroModuleRuntime {
   }
 
   protected async _getIpcForFetch(url: URL): Promise<Ipc | undefined> {
+    if (url.protocol === "dweb:") {
+      const mmid = (await this.bootstrapContext.dns.queryDeeplink(url.href))?.id;
+      if (mmid === undefined) {
+        return;
+      }
+      return await this.connect(mmid as $MMID);
+    }
     return await this.connect(url.hostname as $MMID);
   }
 
   protected async _nativeRequest(parsed_url: URL, request_init: RequestInit) {
-    if (parsed_url.protocol === "file:") {
+    if (parsed_url.protocol === "file:" || parsed_url.protocol === "dweb:") {
       const ipc = await this._getIpcForFetch(parsed_url);
       if (ipc) {
         //  hostName.endsWith(".dweb")?await this._getIpcForFetch(parsed_url):this.fetch

@@ -5,7 +5,6 @@ import org.dweb_browser.helper.PropMetas
 import org.dweb_browser.helper.PropMetasSerializer
 
 
-
 object JmmAppInstallManifestSerializer :
   PropMetasSerializer<JmmAppInstallManifest>(JmmAppInstallManifest.P)
 

@@ -24,7 +24,7 @@ class FaviconPolyfill(val engine: DWebViewEngine) {
       @JsAccessible
       fun emitChange(faviconHref: String) {
         href = faviconHref
-        engine.ioScope.launch {
+        engine.lifecycleScope.launch {
           changeSignal.emit(faviconHref)
         }
       }

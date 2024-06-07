@@ -46,11 +46,11 @@ actual suspend fun jmmAppHashVerify(
             it.toString(16)
           }
         }
-        debugJMM("jmmAppHashVerify", "bundleHash=${jmmMetadata.metadata.bundle_hash}")
+        debugJMM("jmmAppHashVerify", "bundleHash=${jmmMetadata.manifest.bundle_hash}")
         debugJMM("jmmAppHashVerify", "zipFileHash=sha256:${hashValue}")
         deferred.complete(hashValue)
       }
     }
 
-  return "sha256:${deferred.await()}" == jmmMetadata.metadata.bundle_hash
+  return "sha256:${deferred.await()}" == jmmMetadata.manifest.bundle_hash
 }

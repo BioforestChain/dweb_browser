@@ -1,11 +1,11 @@
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import org.dweb_browser.helper.WARNING
+import org.dweb_browser.helper.globalDefaultScope
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.platform.PureViewController
+import kotlin.system.exitProcess
 
-fun main(vararg args: String): Unit = runBlocking {
+suspend fun main(vararg args: String) {
   System.setProperty("apple.awt.application.name", "Dweb Browser");
   // https://github.com/JetBrains/kotlin-multiplatform-dev-docs/blob/master/topics/whats-new/whats-new-compose-1-6-0.md#desktop-experimental
   // 设置为WINDOW，则MenuPanel可以弹出到前面，而不会被webview遮挡
@@ -23,20 +23,27 @@ fun main(vararg args: String): Unit = runBlocking {
       )
     )
   ) {
-    return@runBlocking
+    return
   }
 
-  val dnsNMMDeferred = CoroutineScope(ioAsyncExceptionHandler).async {
-    // 等待“应用”准备完毕
-    PureViewController.awaitPrepared()
-    // 启动内核
-    startDwebBrowser(
-      System.getenv("debug") ?: System.getProperty("debug"),
-      listOf() //ExtMM(TrayNMM(), true)
-    )
-  }
-  // 启动“应用”
-  PureViewController.startApplication()
+  try {
+    val dnsNMMDeferred = globalDefaultScope.async(ioAsyncExceptionHandler) {
+      // 等待“应用”准备完毕
+      PureViewController.awaitPrepared()
+      // 启动内核
+      startDwebBrowser(
+        System.getenv("debug") ?: System.getProperty("debug"),
+        listOf() //ExtMM(TrayNMM(), true)
+      )
+    }
+    // 启动“应用”
+    PureViewController.startApplication()
 
-  dnsNMMDeferred.await().runtimeOrNull?.shutdown()
+    dnsNMMDeferred.await().runtimeOrNull?.shutdown()
+  } catch (e: Exception) {
+    WARNING("global catch error : $e")
+    e.printStackTrace()
+  } finally {
+    exitProcess(0)
+  }
 }

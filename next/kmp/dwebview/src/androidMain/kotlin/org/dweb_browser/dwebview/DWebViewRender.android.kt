@@ -29,7 +29,7 @@ actual fun IDWebView.Render(
   val webView = engine
   // val state = rememberWebViewState(webView.url ?: "about:blank")
   val state = rememberSaveableWebViewState()
-  val navigator = rememberWebViewNavigator(webView.ioScope)
+  val navigator = rememberWebViewNavigator(webView.lifecycleScope)
   val client = remember { AccompanistWebViewClient() }
   val chromeClient = remember { AccompanistWebChromeClient() }
   val focusRequester = LocalFocusRequester.current
@@ -56,7 +56,7 @@ actual fun IDWebView.Render(
         )
       },
       modifier = modifier.requiredSize(contentWidth, contentHeight),
-      factory =  remember {
+      factory = remember {
         {
           // 修复 activity 已存在父级时导致的异常
           webView.parent?.let { parentView ->
@@ -66,10 +66,10 @@ actual fun IDWebView.Render(
           webView
         }
       },
-      onCreated =remember {
+      onCreated = remember {
         {
           onCreate?.also {
-            engine.ioScope.launch { onCreate.invoke(this@Render) }
+            engine.lifecycleScope.launch { onCreate.invoke(this@Render) }
           }
         }
       },
@@ -95,7 +95,7 @@ actual fun IDWebView.Render(
     onDispose?.also {
       DisposableEffect(this) {
         onDispose {
-          engine.ioScope.launch {
+          engine.lifecycleScope.launch {
             onDispose()
           }
         }

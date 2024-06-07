@@ -20,14 +20,13 @@ import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.web.BrowserController
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.capturable.CaptureController
 import org.dweb_browser.helper.compose.SimpleI18nResource
-import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.globalDefaultScope
 
 sealed class BrowserPage(browserController: BrowserController) {
   abstract fun isUrlMatch(url: String): Boolean
@@ -45,10 +44,6 @@ sealed class BrowserPage(browserController: BrowserController) {
   var scale by mutableFloatStateOf(1f)
 
   open fun isWebViewCompose(): Boolean = false // 用于标识是否是webview需要缩放，还是原生的compose需要缩放
-
-  // 该字段是用来存储通过 deeplink 调用的 search 和 openinbrowser 关键字，关闭搜索界面需要直接置空
-  var searchKeyWord by mutableStateOf<String?>(null)
-    internal set
 
   /**
    * 截图器
@@ -79,8 +74,12 @@ sealed class BrowserPage(browserController: BrowserController) {
     return true
   }
 
-  fun captureViewInBackground() = CoroutineScope(ioAsyncExceptionHandler).launch {
-    thumbnail = captureController.captureAsync().await()
+  fun captureViewInBackground() = globalDefaultScope.launch {
+    val preThumbnail = thumbnail
+    onRequestCapture()
+    if (preThumbnail == thumbnail) {
+      thumbnail = captureController.captureAsync().await()
+    }
   }
 
   @Composable
@@ -123,29 +122,19 @@ enum class BrowserPageType(
   val url: String, val icon: ImageVector, val title: SimpleI18nResource,
 ) {
   Home(
-    "about:newtab",
-    Icons.TwoTone.Star,
-    BrowserI18nResource.Home.page_title
+    "about:newtab", Icons.TwoTone.Star, BrowserI18nResource.Home.page_title
   ),
   Bookmark(
-    "about:bookmarks",
-    Icons.TwoTone.Bookmarks,
-    BrowserI18nResource.Bookmark.page_title
+    "about:bookmarks", Icons.TwoTone.Bookmarks, BrowserI18nResource.Bookmark.page_title
   ),
   Download(
-    "about:downloads",
-    Icons.TwoTone.Download,
-    BrowserI18nResource.Download.page_title
+    "about:downloads", Icons.TwoTone.Download, BrowserI18nResource.Download.page_title
   ),
   History(
-    "about:history",
-    Icons.TwoTone.History,
-    BrowserI18nResource.History.page_title
+    "about:history", Icons.TwoTone.History, BrowserI18nResource.History.page_title
   ),
   Engine(
-    "about:engines",
-    Icons.TwoTone.PersonSearch,
-    BrowserI18nResource.Engine.page_title
+    "about:engines", Icons.TwoTone.PersonSearch, BrowserI18nResource.Engine.page_title
   ),
   Setting("about:settings", Icons.TwoTone.Settings, BrowserI18nResource.Setting.page_title);
 

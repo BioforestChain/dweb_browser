@@ -1,194 +1,243 @@
 package org.dweb_browser.browser.jmm.render
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.FiniteAnimationSpec
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RichTooltip
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipDefaults
+import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
+import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.jmm.JmmStatus
-import org.dweb_browser.browser.jmm.JmmStatusEvent
-import org.dweb_browser.browser.jmm.JsMicroModule
 import org.dweb_browser.browser.jmm.LocalJmmInstallerController
 import org.dweb_browser.helper.compose.AutoResizeTextContainer
-import org.dweb_browser.helper.toSpaceSize
+import org.dweb_browser.helper.compose.iosTween
+import org.dweb_browser.helper.withScope
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun BoxScope.BottomDownloadButton() {
   val background = MaterialTheme.colorScheme.surface
   val jmmInstallerController = LocalJmmInstallerController.current
-  val jmmState = jmmInstallerController.installMetadata.state
-  // 应用是否是当前支持的大版本
-  val canSupportTarget =
-    jmmInstallerController.installMetadata.metadata.canSupportTarget(JsMicroModule.VERSION)
+  val uiScope = rememberCoroutineScope()
+  val jmmUiKit = rememberJmmUiKit(jmmInstallerController);
 
   Box(
-    modifier = Modifier
-      .fillMaxWidth()
-      .align(Alignment.BottomCenter)
-      .background(
-        brush = Brush.verticalGradient(listOf(background.copy(0f), background))
-      )
-      .padding(16.dp), contentAlignment = Alignment.Center
+    modifier = Modifier.fillMaxWidth().align(Alignment.BottomCenter).background(
+      brush = Brush.verticalGradient(listOf(background.copy(0f), background))
+    ).padding(16.dp), contentAlignment = Alignment.Center
   ) {
-    val showLinearProgress =
-      jmmState.state == JmmStatus.Downloading || jmmState.state == JmmStatus.Paused
+    val tooltipState = rememberTooltipState(isPersistent = true)
+    TooltipBox(
+      positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(), tooltip = {
+        when (jmmUiKit.jmmStatus) {
+          /// 版本偏低时，提示用户，是否要进行降级安装
+          JmmStatus.VersionLow -> RichTooltip(title = { Text(BrowserI18nResource.install_tooltip_warning()) },
+            action = {
+              Row {
+                TextButton(onClick = { uiScope.launch { tooltipState.dismiss() } }) {
+                  Text(BrowserI18nResource.button_name_cancel())
+                }
+                ElevatedButton(onClick = {
+                  jmmInstallerController.jmmNMM.scopeLaunch(cancelable = true) {
+                    withScope(uiScope) {
+                      tooltipState.dismiss()
+                    }
+                    // 版本偏低时，提示用户，是否要进行降级安装
+                    jmmInstallerController.createAndStartDownload()
+                  }
+                }) {
+                  Text(BrowserI18nResource.install_tooltip_install_lower_action())
+                }
+              }
+            }) {
+            Text(BrowserI18nResource.install_tooltip_lower_version_tip())
+          }
 
-    val modifier = Modifier
-      .requiredSize(height = 50.dp, width = 300.dp)
-      .fillMaxWidth()
-      .clip(ButtonDefaults.elevatedShape)
-    val m2 = if (showLinearProgress) {
-      val percent = jmmState.progress()
-      modifier.background(
-        Brush.horizontalGradient(
-          0.0f to MaterialTheme.colorScheme.primary,
-          maxOf(percent - 0.02f, 0.0f) to MaterialTheme.colorScheme.primary,
-          minOf(percent + 0.02f, 1.0f) to MaterialTheme.colorScheme.outlineVariant,
-          1.0f to MaterialTheme.colorScheme.outlineVariant
-        )
-      )
-    } else {
-      modifier.background(MaterialTheme.colorScheme.primary)
-    }
+          else -> {}
+        }
+      }, state = tooltipState
+    ) {
 
-    ElevatedButton(
-      onClick = {
-        jmmInstallerController.jmmNMM.scopeLaunch(cancelable = true) {
-          when (jmmState.state) {
-            JmmStatus.Init, JmmStatus.Failed, JmmStatus.Canceled -> {
-              jmmInstallerController.createAndStartDownload()
+      val bgColor = when {
+        jmmUiKit.jmmStatus == JmmStatus.VersionLow -> MaterialTheme.colorScheme.secondary
+        else -> MaterialTheme.colorScheme.primary
+      }
+      ElevatedButton(
+        onClick = {
+          when (jmmUiKit.metadata.state.state) {
+            JmmStatus.VersionLow -> {
+              uiScope.launch {
+                tooltipState.show()
+              }
             }
 
-            JmmStatus.NewVersion -> {
-              jmmInstallerController.closeApp()
-              jmmInstallerController.createAndStartDownload()
-            }
+            else -> {}
+          }
+          jmmUiKit.onClickDownloadButton()
+        },
+        modifier = Modifier.requiredSize(height = 50.dp, width = 300.dp).fillMaxWidth(),
+        colors = ButtonDefaults.elevatedButtonColors(
+          containerColor = bgColor,
+          contentColor = when (jmmUiKit.jmmStatus) {
+            JmmStatus.VersionLow -> MaterialTheme.colorScheme.onSecondary
+            else -> MaterialTheme.colorScheme.onPrimary
+          },
+          disabledContainerColor = MaterialTheme.colorScheme.errorContainer,
+          disabledContentColor = MaterialTheme.colorScheme.onErrorContainer,
+        ),
+        contentPadding = PaddingValues(0.dp),
+      ) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+          /// 进度背景
+          if (jmmUiKit.showLinearProgress) {
+            LinearProgressIndicator(
+              progress = { jmmUiKit.jmmStatusEvent.progress },
+              modifier = Modifier.fillMaxSize().alpha(0.5f).zIndex(1f),
+              color = bgColor,
+            )
+          }
+          Column(
+            Modifier.fillMaxSize().padding(ButtonDefaults.ContentPadding).zIndex(2f),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+          ) {
+            when (val labelEnd = jmmUiKit.labelEnd) {
+              null -> Text(
+                text = jmmUiKit.labelStart,
+                textAlign = TextAlign.Center,
+                softWrap = false,
+                maxLines = 1,
+                overflow = TextOverflow.Visible
+              )
 
-            JmmStatus.Paused -> {
-              jmmInstallerController.startDownload()
+              else -> Row(
+                modifier = Modifier.fillMaxWidth().weight(1f),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+              ) {
+                AutoResizeTextContainer(Modifier.weight(1f)) {
+                  Text(
+                    text = jmmUiKit.labelStart,
+                    textAlign = TextAlign.Center,
+                    softWrap = false,
+                    maxLines = 1,
+                    overflow = TextOverflow.Visible
+                  )
+                }
+                Box(Modifier.fillMaxSize().weight(2f), contentAlignment = Alignment.CenterEnd) {
+                  AnimatedCounterText(text = labelEnd)
+                }
+              }
             }
-
-            JmmStatus.Downloading -> {
-              jmmInstallerController.pause()
-            }
-
-            JmmStatus.Completed -> {}
-            JmmStatus.VersionLow -> {} // 版本偏低时，不响应按键
-            JmmStatus.INSTALLED -> {
-              jmmInstallerController.openApp()
+            when (val description = jmmUiKit.description) {
+              null -> {}
+              else -> Text(
+                text = description,
+                modifier = Modifier.weight(0.5f),
+                style = MaterialTheme.typography.bodySmall
+              )
             }
           }
         }
-      },
-      modifier = m2,
-      colors = ButtonDefaults.elevatedButtonColors(
-        containerColor = Color.Transparent,
-        contentColor = MaterialTheme.colorScheme.onPrimary,
-        disabledContainerColor = MaterialTheme.colorScheme.errorContainer,
-        disabledContentColor = MaterialTheme.colorScheme.onErrorContainer,
-      ),
-      enabled = canSupportTarget && jmmState.state != JmmStatus.VersionLow // 版本太低，按键置灰
-    ) {
-      if (canSupportTarget) {
-        JmmStatusText(jmmState) { statusName, progressText ->
-          progressText?.let {
-            Row(
-              modifier = Modifier.fillMaxWidth(),
-              verticalAlignment = Alignment.CenterVertically,
-              horizontalArrangement = Arrangement.Center
-            ) {
-              AutoResizeTextContainer(Modifier.weight(1f)) {
-                Text(
-                  text = statusName,
-                  textAlign = TextAlign.Center,
-                  softWrap = false,
-                  maxLines = 1,
-                  overflow = TextOverflow.Visible
-                )
-              }
-              Text(
-                text = progressText,
-                modifier = Modifier.weight(2f),
-                textAlign = TextAlign.End
-              )
-            }
-          } ?: Text(text = statusName)
-        }
-      } else {
-        Text(text = BrowserI18nResource.install_button_incompatible())
       }
     }
   }
 }
 
-private val JmmStatusEvent.progressText: String?
-  get() {
-    var text = ""
-    if (current > 0) {
-      text += current.toSpaceSize()
-    }
-    if (total > 1 && total > current) {
-      if (text.isNotEmpty()) {
-        text += " / "
-      }
-      text += total.toSpaceSize()
-    }
-    return text.trim().ifEmpty { null } // 如果字符串是空的，直接返回 null
-  }
 
-/**
- * 通过 JmmStatusEvent，返回需要显示的状态和文件大小或者进度值
- */
 @Composable
-fun JmmStatusText(state: JmmStatusEvent, content: @Composable (String, String?) -> Unit) {
-  return when (state.state) {
-    JmmStatus.Init, JmmStatus.Canceled -> content(
-      BrowserI18nResource.install_button_install(), state.progressText
-    )
-
-    JmmStatus.NewVersion -> content(
-      BrowserI18nResource.install_button_update(), state.progressText
-    )
-
-    JmmStatus.Downloading -> content(
-      BrowserI18nResource.install_button_downloading(), state.progressText,
-    )
-
-    JmmStatus.Paused -> content(
-      BrowserI18nResource.install_button_paused(), state.progressText,
-    )
-
-    JmmStatus.Completed -> content(
-      BrowserI18nResource.install_button_installing(), null
-    )
-
-    JmmStatus.INSTALLED -> content(
-      BrowserI18nResource.install_button_open(), null
-    )
-
-    JmmStatus.Failed -> content(
-      BrowserI18nResource.install_button_retry(), null
-    )
-
-    JmmStatus.VersionLow -> content(
-      BrowserI18nResource.install_button_lower(), null
-    )
+fun AnimatedCounterText(
+  text: String, modifier: Modifier = Modifier, textStyle: TextStyle? = null,
+) {
+  Row(modifier) {
+    val style = textStyle ?: LocalTextStyle.current
+    var preTextEndIndex = 0;
+    for (matchResult in Regex("[\\d\\.]+").findAll(text)) {
+      if (preTextEndIndex < matchResult.range.first) {
+        Text(text.substring(preTextEndIndex, matchResult.range.first), style = style)
+      }
+      AnimatedCounter(count = matchResult.value, textStyle = style)
+      preTextEndIndex = matchResult.range.last + 1
+    }
+    if (preTextEndIndex < text.length - 1) {
+      Text(text.substring(preTextEndIndex), style = style)
+    }
   }
+}
+
+@Composable
+fun AnimatedCounter(count: String, textStyle: TextStyle? = null) {
+  Row(
+    modifier = Modifier.animateContentSize(),
+    horizontalArrangement = Arrangement.End,
+    verticalAlignment = Alignment.CenterVertically,
+  ) {
+    val style = textStyle ?: LocalTextStyle.current
+    val countNum = count.toFloat()
+    count.mapIndexed { index, c -> Digit(c, countNum, index) }.forEach { digit ->
+      val animationSpec: FiniteAnimationSpec<IntOffset> =
+        iosTween(durationMillis = 100 + digit.place * 50)
+      key(count.length - digit.place) {
+        AnimatedContent(targetState = digit, transitionSpec = {
+          if (targetState > initialState) {
+            slideInVertically(animationSpec) { -it } togetherWith slideOutVertically(animationSpec) { it }
+          } else {
+            slideInVertically(animationSpec) { it } togetherWith slideOutVertically(animationSpec) { -it }
+          }
+        }) { digit ->
+          Text("${digit.digitChar}", style = style)
+        }
+      }
+    }
+  }
+}
+
+data class Digit(val digitChar: Char, val fullNumber: Float, val place: Int) {
+  override fun equals(other: Any?): Boolean {
+    return when (other) {
+      is Digit -> digitChar == other.digitChar
+      else -> super.equals(other)
+    }
+  }
+}
+
+operator fun Digit.compareTo(other: Digit): Int {
+  return fullNumber.compareTo(other.fullNumber)
 }

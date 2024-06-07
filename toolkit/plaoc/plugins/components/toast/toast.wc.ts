@@ -1,4 +1,4 @@
-import { cacheGetter } from "../../helper/cacheGetter.ts";
+import { cacheGetter } from "@dweb-browser/helper/cacheGetter.ts";
 import { toastPlugin } from "./toast.plugin.ts";
 
 export class HTMLDwebToastElement extends HTMLElement {

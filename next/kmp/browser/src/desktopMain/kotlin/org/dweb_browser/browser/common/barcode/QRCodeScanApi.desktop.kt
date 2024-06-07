@@ -23,7 +23,9 @@ actual fun beepAudio() {
 }
 
 actual fun decoderImage(
-  imageBitmap: ImageBitmap, onSuccess: (QRCodeDecoderResult) -> Unit, onFailure: (Exception) -> Unit
+  imageBitmap: ImageBitmap,
+  onSuccess: (QRCodeDecoderResult) -> Unit,
+  onFailure: (Exception) -> Unit,
 ) {
   try {
     val bufferedImage = imageBitmap.toAwtImage()
@@ -64,7 +66,7 @@ actual fun decoderImage(
  * 计算二维码的位置
  */
 actual fun transformPoint(
-  x: Int, y: Int, srcWidth: Int, srcHeight: Int, destWidth: Int, destHeight: Int, isAlarm: Boolean
+  x: Int, y: Int, srcWidth: Int, srcHeight: Int, destWidth: Int, destHeight: Int, isAlarm: Boolean,
 ): QRCodeDecoderResult.Point {
   val widthRatio = destWidth * 1.0f / srcWidth
   val heightRatio = destHeight * 1.0f / srcHeight

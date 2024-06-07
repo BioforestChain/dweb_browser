@@ -41,7 +41,7 @@ fun CommonWebView() {
         override fun onReceivedError(
           view: WebView,
           request: WebResourceRequest?,
-          error: WebResourceError?
+          error: WebResourceError?,
         ) {
           super.onReceivedError(view, request, error)
           // android 6.0以下执行
@@ -57,7 +57,7 @@ fun CommonWebView() {
         }
 
         override fun onReceivedHttpError(
-          view: WebView?, request: WebResourceRequest?, errorResponse: WebResourceResponse?
+          view: WebView?, request: WebResourceRequest?, errorResponse: WebResourceResponse?,
         ) {
           // Log.e("SplashActivity", "PrivacyView::onReceivedHttpError $errorResponse")
           super.onReceivedHttpError(view, request, errorResponse)

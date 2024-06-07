@@ -28,13 +28,17 @@ open class WebMessageEndpoint(
     super.doStart()
     scope.launch {
       for (event in port.onMessage) {
-        val packMessage =
-          if (protocol == EndpointProtocol.CBOR && event is DWebMessage.DWebMessageBytes) {
-            cborToEndpointMessage(event.binary)
-          } else {
-            jsonToEndpointMessage(event.text)
-          }
-        endpointMsgChannel.send(packMessage)
+        runCatching {
+          val packMessage =
+            if (protocol == EndpointProtocol.CBOR && event is DWebMessage.DWebMessageBytes) {
+              cborToEndpointMessage(event.binary)
+            } else {
+              jsonToEndpointMessage(event.text)
+            }
+          endpointMsgChannel.send(packMessage)
+        }.getOrElse { error ->
+          debugEndpoint("WebEndpointOnMessage", event, error)
+        }
       }
     }
   }

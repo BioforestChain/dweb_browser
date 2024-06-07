@@ -11,7 +11,7 @@ import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.randomUUID
 
 class DWebDownloadListener(val engine: DWebViewEngine) : DownloadListener {
-  private val scope get() = engine.ioScope
+  private val scope get() = engine.lifecycleScope
   private val extends = Extends<DownloadListener>()
   fun addDownloadListener(
     listener: DownloadListener, config: Extends.Config = Extends.Config()

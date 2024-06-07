@@ -16,6 +16,6 @@ fun BrowserController.Render(modifier: Modifier, windowRenderScope: WindowConten
 expect fun CommonBrowserView(
   viewModel: BrowserViewModel,
   modifier: Modifier,
-  windowRenderScope: WindowContentRenderScope
+  windowRenderScope: WindowContentRenderScope,
 )
 

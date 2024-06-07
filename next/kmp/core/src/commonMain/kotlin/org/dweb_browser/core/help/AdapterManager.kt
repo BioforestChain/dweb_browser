@@ -1,10 +1,9 @@
 package org.dweb_browser.core.help
 
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.SafeHashMap
 import org.dweb_browser.helper.Signal
-import org.dweb_browser.helper.defaultAsyncExceptionHandler
+import org.dweb_browser.helper.globalDefaultScope
 
 open class AdapterManager<T> {
   private val adapterOrderMap = SafeHashMap<T, Int>()
@@ -12,7 +11,6 @@ open class AdapterManager<T> {
   private val onChangeSignal = Signal<T>()
   private val onChangeLazy = lazy { onChangeSignal.toListener() }
   val onChange by onChangeLazy
-  private val scope by lazy { CoroutineScope(defaultAsyncExceptionHandler) }
   val adapters get() = orderAdapters
 
   /**
@@ -22,7 +20,7 @@ open class AdapterManager<T> {
     adapterOrderMap[adapter] = order
     orderAdapters = adapterOrderMap.toList().sortedBy { (_, b) -> -b }.map { (adapter) -> adapter }
     if (onChangeLazy.isInitialized()) {
-      scope.launch {
+      globalDefaultScope.launch {
         onChangeSignal.emit(adapter)
       }
     }

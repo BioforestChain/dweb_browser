@@ -165,11 +165,11 @@ class CanvasRectElement {
     return attrs;
   }
 
-  static draw(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, ele: CanvasRectElement) {
+  static draw(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, ele: CanvasRectElement, rectSize: number) {
     const attrs = ele.getAnimated();
     const { cx, cy, fr, fx, fy, r, stopColors } = attrs.fillStyle;
     const { width: W, height: H } = canvas;
-    const SIZE_W = Math.max(W, H);
+    const SIZE_W = rectSize;
     const SIZE_H = SIZE_W;
     const width = SIZE_W * attrs.width;
     const height = SIZE_H * attrs.height;
@@ -321,7 +321,7 @@ export class DwebWallpaperElement extends HTMLElement {
 
         @media (prefers-color-scheme: dark) {
           :host {
-            background-color: #999;
+            background-color: #ccc;
           }
         }
       </style>
@@ -383,7 +383,7 @@ export class DwebWallpaperElement extends HTMLElement {
     this.renderCtx.clearRect(0, 0, this.canvasEle.width, this.canvasEle.height);
     this.renderCtx.globalCompositeOperation = this.#mixBlendMode;
     for (const rect of this.#rectEles) {
-      CanvasRectElement.draw(this.canvasEle, this.renderCtx, rect);
+      CanvasRectElement.draw(this.canvasEle, this.renderCtx, rect, this._rectSize);
     }
   }
 
@@ -493,6 +493,7 @@ export class DwebWallpaperElement extends HTMLElement {
 
   private resizeOb?: ResizeObserver;
   private connected = false;
+  private _rectSize = 0;
   connectedCallback() {
     const resizeOb = new ResizeObserver((es) => {
       const { width, height } = es[0].contentRect;
@@ -502,6 +503,7 @@ export class DwebWallpaperElement extends HTMLElement {
       }
       this.canvasEle.width = width * dpr;
       this.canvasEle.height = height * dpr;
+      this._rectSize = Math.sqrt(width * width + height * height) * 0.62 * dpr;
       this.#draw();
     });
     resizeOb.observe(this);

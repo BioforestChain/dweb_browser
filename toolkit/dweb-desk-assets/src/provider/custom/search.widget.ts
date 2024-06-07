@@ -7,7 +7,7 @@ const css = String.raw;
 export const searchWidget = {
   appId: `browser.dweb`,
   widgetName: "search",
-  templateHtml: html`<form action="dweb://search" method="get" part="form" onsubmit="dwebSearch(event)">
+  templateHtml: html`<form action="dweb://search" method="post" part="form" onsubmit="dwebSearch(event)">
     <input name="q" part="input glass ani" />
     <button type="submit" part="btn btn-primary">
       <span class="icon"> ${search_svg_raw} </span>
@@ -16,7 +16,7 @@ export const searchWidget = {
   scopedStyle: css`
     form {
       display: flex;
-      justify-content: center;
+      justify-content: flex-end;
     }
     input {
       margin-inline-end: 0.5em;
@@ -78,7 +78,7 @@ Object.assign(globalThis, {
       }
     };
     xhr.open(method, url);
-    xhr.send();
+    xhr.send((Date.now() + Math.random()).toString());
 
     return false;
   },

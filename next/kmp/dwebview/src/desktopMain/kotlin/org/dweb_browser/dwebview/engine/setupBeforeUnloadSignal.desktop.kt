@@ -20,7 +20,7 @@ fun setupBeforeUnloadSignal(engine: DWebViewEngine) = Signal<WebBeforeUnloadArgs
     val consoleMessage = event.consoleMessage()
     // 需要用户手势参与才能触发 beforeunload， https://www.chromestatus.com/feature/5082396709879808
     if (consoleMessage.level() == ConsoleMessageLevel.LEVEL_ERROR && consoleMessage.message() == NoDialogNoUserGesture) {
-      engine.ioScope.launch {
+      engine.lifecycleScope.launch {
         val args = WebBeforeUnloadArgs(NoDialogNoUserGesture)
         signal.emit(args)
       }
@@ -46,7 +46,7 @@ fun setupBeforeUnloadSignal(engine: DWebViewEngine) = Signal<WebBeforeUnloadArgs
     }
   }
   engine.browser.set(BeforeUnloadCallback::class.java, BeforeUnloadCallback { params, tell ->
-    engine.ioScope.launch {
+    engine.lifecycleScope.launch {
       var isKeep = false
       if (signal.isNotEmpty()) {
         val args = WebBeforeUnloadArgs(

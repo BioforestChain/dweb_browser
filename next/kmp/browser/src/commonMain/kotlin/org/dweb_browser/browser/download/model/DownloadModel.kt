@@ -26,7 +26,7 @@ enum class DownloadTab(val id: Int, val title: SimpleI18nResource, val vector: I
 
 class DownloadModel(val downloadController: DownloadController) {
   val tabIndex = mutableIntStateOf(0)
-  val tabItems = DownloadTab.values()
+  val tabItems = DownloadTab.entries.toTypedArray()
 
   suspend fun startDownload(downloadTask: DownloadTask) =
     downloadController.startDownload(downloadTask)

@@ -327,9 +327,10 @@ fun WindowController.WindowRender(modifier: Modifier) {
           .run {
             val isMaximized by win.watchedIsMaximized()
             /// 如果最大化，那么不允许移动
-            if (isMaximized) {
-              this
-            } else windowMoveAble(win)
+            when {
+              isMaximized -> windowTouchFocusable(win)
+              else -> windowMoveAble(win)
+            }
           })
       }
     }

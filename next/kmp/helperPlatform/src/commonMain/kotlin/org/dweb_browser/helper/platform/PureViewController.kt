@@ -2,9 +2,6 @@ package org.dweb_browser.helper.platform
 
 import androidx.compose.runtime.Composable
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.mapNotNull
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.compose.compositionChainOf
 
@@ -33,6 +30,15 @@ interface IPureViewController {
       getContents().remove(content)
     }
   }
+}
+
+expect val IPureViewController.Companion.platform: PureViewControllerPlatform
+
+enum class PureViewControllerPlatform(val platformName: String) {
+  Desktop("desktop"),
+  Android("android"),
+  Apple("apple"), ;
+
 }
 
 /**

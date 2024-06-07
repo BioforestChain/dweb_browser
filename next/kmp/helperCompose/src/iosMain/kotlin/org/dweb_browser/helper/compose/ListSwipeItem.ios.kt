@@ -61,26 +61,6 @@ actual fun CommonSwipeDismiss(
     },
     content = content
   )
-  /*val dismissState = DismissState(
-    initialValue = DismissValue.Default,
-    confirmValueChange = { true },
-    positionalThreshold = { density -> 56.0f * density },
-  )
-  LaunchedEffect(dismissState) {
-    snapshotFlow { dismissState.currentValue }.collect {
-      if (it != DismissValue.Default) {
-        onRemove()
-      }
-    }
-  }
-
-  SwipeToDismiss(
-    modifier = modifier,
-    state = dismissState,
-    background = background,
-    dismissContent = content,
-    directions = setOf(DismissDirection.StartToEnd, DismissDirection.EndToStart)
-  )*/
 }
 
 @OptIn(ExperimentalMaterialApi::class)

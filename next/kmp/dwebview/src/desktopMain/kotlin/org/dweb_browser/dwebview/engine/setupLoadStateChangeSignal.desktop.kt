@@ -21,7 +21,7 @@ import org.dweb_browser.helper.Signal
 
 fun setupLoadStateChangeSignal(engine: DWebViewEngine) = Signal<WebLoadState>().also { signal ->
   fun emitSignal(state: WebLoadState) {
-    engine.ioScope.launch {
+    engine.lifecycleScope.launch {
       signal.emit(state)
     }
   }

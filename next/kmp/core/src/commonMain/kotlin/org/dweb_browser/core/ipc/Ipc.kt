@@ -43,7 +43,6 @@ import org.dweb_browser.helper.SafeLinkList
 import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.SuspendOnce1
 import org.dweb_browser.helper.WARNING
-import org.dweb_browser.helper.asProducerWithOrder
 import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.withScope
 import org.dweb_browser.pure.http.IPureBody
@@ -197,7 +196,7 @@ class Ipc internal constructor(
       // 告知对方我启动了
       is IpcLifecycleInit -> IpcLifecycle(IpcLifecycleOpening).also {
         sendLifecycleToRemote(it)
-        debugIpc("emit-locale-lifecycle", it)
+        debugIpc.verbose("emit-locale-lifecycle", it)
         lifecycleLocaleFlow.emit(it)
       }
 
@@ -205,21 +204,20 @@ class Ipc internal constructor(
     }
     // 监听远端生命周期指令，进行协议协商
     lifecycleRemoteFlow.collectIn(scope) { lifecycleRemote ->
-      debugIpc("lifecycle-in") { "remote=$lifecycleRemote locale=$lifecycle" }
+      debugIpc.verbose("lifecycle-in") { "remote=$lifecycleRemote locale=$lifecycle" }
       val doIpcOpened = suspend {
         IpcLifecycle(IpcLifecycleOpened).also {
-          debugIpc("emit-locale-lifecycle", it)
+          debugIpc.verbose("emit-locale-lifecycle", it)
           sendLifecycleToRemote(it)
           lifecycleLocaleFlow.emit(it)
         }
       }
       when (lifecycleRemote.state) {
-        is IpcLifecycleClosing, is IpcLifecycleClosed -> scope.launch(start = CoroutineStart.UNDISPATCHED) { close() }
+        is IpcLifecycleClosing, is IpcLifecycleClosed -> tryClose()
         // 收到 opened 了，自己也设置成 opened，代表正式握手成功
         is IpcLifecycleOpened -> {
           when (lifecycle.state) {
             is IpcLifecycleOpening -> doIpcOpened()
-
             else -> {}
           }
         }
@@ -252,7 +250,7 @@ class Ipc internal constructor(
    * 向远端发送 生命周期 信号
    */
   private suspend fun sendLifecycleToRemote(state: IpcLifecycle) {
-    debugIpc("lifecycle-out", state)
+    debugIpc.verbose("lifecycle-out", state)
     endpoint.postIpcMessage(EndpointIpcMessage(pid, state))
   }
 
@@ -267,11 +265,13 @@ class Ipc internal constructor(
     remote: MicroModuleManifest = this.remote,
     autoStart: Boolean = false,
     startReason: String? = null,
-    pid: Int = endpoint.generatePid(),
+    pid: Int? = null,
   ): Ipc {
     awaitOpen("then-fork")
+    // 这里确保 endpoint opened 了再 generatePid
+    val ipcId = pid ?: endpoint.generatePid()
     val forkedIpc = pool.createIpc(
-      pid = pid,
+      pid = ipcId,
       endpoint = endpoint,
       locale = locale,
       remote = remote,
@@ -306,7 +306,7 @@ class Ipc internal constructor(
   private inline fun <T : Any> messagePipeMap(
     name: String,
     crossinline mapNotNull: suspend (value: IpcMessage) -> T?,
-  ) = Producer<T>(name, scope).also { producer ->
+  ) = Producer<T>("$debugId/$name", scope).also { producer ->
     onClosed { cause ->
       producer.close(cause.exceptionOrNull())
     }
@@ -323,10 +323,7 @@ class Ipc internal constructor(
     messagePipeMap("request") { ipcMessage ->
       when (ipcMessage) {
         is IpcRequest -> when (ipcMessage) {
-          is IpcClientRequest -> {
-            ipcMessage.toServer(this)
-          }
-
+          is IpcClientRequest -> ipcMessage.toServer(this)
           is IpcServerRequest -> ipcMessage
         }
 
@@ -429,7 +426,7 @@ class Ipc internal constructor(
       }
     }.getOrElse {
       WARNING("fail to postMessage: $data")
-      WARNING(it)
+      WARNING(it.message)
     }
   }
 

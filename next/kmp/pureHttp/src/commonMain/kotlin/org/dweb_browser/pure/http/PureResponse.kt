@@ -12,7 +12,7 @@ data class PureResponse(
   val status: HttpStatusCode = HttpStatusCode.OK,
   val headers: PureHeaders = PureHeaders(),
   val body: IPureBody = IPureBody.Empty,
-  val url: String? = null
+  val url: String? = null,
 ) {
 
   val isOk get() = status.value in 200..299 || status.value == 101
@@ -33,6 +33,7 @@ data class PureResponse(
   suspend fun doubleOrNull() = text().toDoubleOrNull()
 
   suspend inline fun <reified T> json() = JsonLoose.decodeFromString<T>(text())
+  suspend inline fun <reified T> jsonOrNull() = runCatching { json<T>() }.getOrNull()
 
 
   companion object {
@@ -78,7 +79,7 @@ data class PureResponse(
 
     inline fun build(
       base: PureResponse = PureResponse(),
-      builder: PureResponseBuilder.() -> Unit
+      builder: PureResponseBuilder.() -> Unit,
     ): PureResponse {
       var result = base
       PureResponseBuilder(Delegates.observable(result) { _/*property*/, _/*oldValue*/, newValue ->

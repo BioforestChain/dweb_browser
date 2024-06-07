@@ -60,6 +60,13 @@
 
 1. 打包应用：
    - 如果是 Desktop 用户，和编译运行时一样，需要在 Configurations 中的打包命令中配置 -Djxbrowser.license.key
+   - 如果是 Android 开发者，请先运行 `./gradlew androidApp:generateBaselineProfile`，它会在 `next/kmp/app/androidApp/src/androidMain/generated/baselineProfiles` 文件夹下生成一些 txt 文件，这些文件可以在之后打包的时候，辅助应用打包出启动更快，运行性能更接近 JIT 优化完成的版本
+     > 不过因为目前使用了一些 WebView 的技术，这对于自动化测试时选择元素是有一些阻碍，所以只能用了固定的坐标来做测试。
+     > 目前这个测试使用了 Pixel4 设备的屏幕大小。
+   - 如果要打包 macos 应用，主要的思路是先打包出 `.app` 文件夹，然后再生成 `.pkg` 文件，之后再通过 Transporter 进行上传
+     1. 首先在系统上准备好证书文件，详见官方文档 [Checking existing certificates](ttps://github.com/JetBrains/compose-multiplatform/blob/fc90219ad63799fc4cd08ceb57b428948a223b21/tutorials/Signing_and_notarization_on_macOS/README.md#checking-existing-certificates)
+        > 注意，这里需要有两个证书："Mac App Distribution" 和 "Mac Installer Distribution"
+     1. 执行 `next/kmp/build-macos.sh` 脚本文件进行打包，会在 `kmp/app/desktopApp/build/compose/binaries/main-release/` 文件夹下分别生成出`.app`和`.pkg`
 
 ## 小提示 Tips
 

@@ -32,6 +32,8 @@ export const nativeFetch = async <T extends unknown>(pathname: string, init?: $B
   }
 };
 
+const wsMap = new Map<string, WebSocket>();
+
 /** 发起请求，响应JSON流 */
 export const nativeFetchStream = <T>(
   pathname: string,
@@ -40,32 +42,37 @@ export const nativeFetchStream = <T>(
 ) => {
   const [url] = buildApiRequestArgs(pathname, init);
   const wsUrl = url.href.replace("http", "ws").replace(/^dweb\+ws/, "ws");
-  const ws = new WebSocket(wsUrl);
 
   return jsonlinesStreamReadText<T>(
     new ReadableStream<string>({
-      start(controller) {
-        ws.onerror = (e) => {
-          controller.error(e);
-        };
-        ws.onclose = () => {
-          controller.close();
-        };
-        ws.onmessage = (msgEvent) => {
-          const data = msgEvent.data;
-          // console.log("ws on message", data ,typeof data, wsUrl);
-          if (typeof data === "string") {
-            controller.enqueue(data);
-          }
-        };
+      pull(controller) {
+        // console.log("pull", wsUrl);
+        pullMessage(wsUrl, controller);
       },
       cancel() {
-        ws.close();
+        wsMap.get(wsUrl)?.close();
       },
     }),
     options,
   );
 };
+// 断开重连机制
+function pullMessage(wsUrl: string, controller: ReadableStreamDefaultController<string>) {
+  let ws = wsMap.get(wsUrl);
+  if (ws == null || ws.readyState === WebSocket.CLOSING) {
+    console.log(`re-create=>${wsUrl}`, ws?.readyState);
+    ws = new WebSocket(wsUrl);
+    wsMap.set(wsUrl, ws);
+    ws.onmessage = (msgEvent) => {
+      const data = msgEvent.data;
+      // console.log("ws on message", data, typeof data, wsUrl);
+      if (typeof data === "string") {
+        controller.enqueue(data);
+      }
+    };
+  }
+  return ws;
+}
 
 export function buildApiRequestArgs(pathname: string, init?: $BuildRequestInit) {
   const mmid = init?.mmid ?? baseMmid;

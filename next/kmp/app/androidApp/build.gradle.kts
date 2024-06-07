@@ -7,6 +7,7 @@ plugins {
   id("target-compose")
   id("target-common")
   id(libs.plugins.androidApplication.get().pluginId)
+  alias(libs.plugins.androidxBaselineprofile)
 }
 
 kotlin {
@@ -55,18 +56,27 @@ android {
     versionCode = libs.versions.versionCode.get().toInt()
     versionName = libs.versions.versionName.get()
 
-    //ndk.abiFilters.addAll(listOf("arm64-v8a"))
+    ndk.abiFilters.addAll(listOf("arm64-v8a"))
+  }
+  baselineProfile {
+    mergeIntoMain = true
+    dexLayoutOptimization = true
+    saveInSrc = true
+    baselineProfileOutputDir = "generated/baselineProfiles"
+    // ./gradlew androidApp:generateBaselineProfile
+    automaticGenerationDuringBuild = false
   }
 
   packaging {
     resources {
       excludes += "/META-INF/versions/9/previous-compilation-data.bin"
       excludes += "/META-INF/{AL2.0,LGPL2.1}"
-// 添加 http4k 框架后，会有异常报错，需要添加如下内容
+      // 添加 http4k 框架后，会有异常报错，需要添加如下内容
       excludes += "/META-INF/INDEX.LIST"
       excludes += "/META-INF/DEPENDENCIES"
     }
   }
+
   signingConfigs {
     create("release") {
 // 使用 keytool -printcert -jarfile app_release.apk 直接打印 jar 签名信息
@@ -86,6 +96,13 @@ android {
       storeFile = keystoreProperties["storeFile"]?.let { file(it.toString()) }
       storePassword = keystoreProperties["storePassword"]?.toString()
     }
+    getByName("debug") {
+      // 获取本地配置的 key 信息，storeFile 是将jks文件放在当前 build.gradle.kts 同级目录
+      keystoreProperties.getProperty("keyAlias", null)?.let { keyAlias = it }
+      keystoreProperties.getProperty("keyPassword", null)?.let { keyPassword = it }
+      keystoreProperties.getProperty("storeFile", null)?.let { storeFile = file(it) }
+      keystoreProperties.getProperty("storePassword", null)?.let { storePassword = it }
+    }
   }
 
   android.buildFeatures.buildConfig = true
@@ -99,37 +116,15 @@ android {
       resValue("string", "appName", "Dweb Browser")
       applicationIdSuffix = null
       versionNameSuffix = null
-
-      // 修改release打包应用名
-      val archivesName = "DwebBrowser_v${libs.versions.versionName.get()}"
-      applicationVariants.all {
-        outputs.all {
-          // 修改bundle名
-          val bundleFinalizeTaskName = StringBuilder("sign").run {
-            append(flavorName.capitalizeAsciiOnly())
-            append(buildType.name.capitalizeAsciiOnly())
-            append("Bundle")
-            toString()
-          }
-          tasks.named(bundleFinalizeTaskName, FinalizeBundleTask::class) {
-            val file = finalBundleFile.asFile.get()
-            finalBundleFile.set(File(file.parentFile, "$archivesName.aab"))
-          }
-
-          // 修改apk名
-          if(this is ApkVariantOutputImpl) {
-            outputFileName = "$archivesName.apk"
-          }
-        }
-      }
     }
-    debug {
+    getByName("debug") {
       signingConfig = signingConfigs.getByName("debug")
-      val userName = System.getProperty("user.name")
-        .replace("[^a-zA-Z0-9]".toRegex(), "").lowercase()
+      val userName = keystoreProperties.getProperty("debugApk", null)
+        ?: System.getProperty("user.name").replace("[^a-zA-Z0-9]".toRegex(), "").lowercase()
       resValue("string", "appName", "Kmp-$userName")
       applicationIdSuffix = ".kmp.$userName"
       versionNameSuffix = null // ".kmp.$userName"
+      isDebuggable = true
     }
     create("benchmark") {
       initWith(buildTypes.getByName("release"))
@@ -137,4 +132,88 @@ android {
       isDebuggable = false
     }
   }
+
+  flavorDimensions += listOf("abi")
+  productFlavors {
+    create("forArm64") {
+      dimension = "abi"
+      matchingFallbacks += listOf("release")
+      ndk.abiFilters.run {
+        clear()
+        add("arm64-v8a")
+      }
+    }
+    create("forAll") {
+      dimension = "abi"
+      matchingFallbacks += listOf("release")
+      ndk.abiFilters.run {
+        clear()
+        addAll(listOf("armeabi-v7a", "x86", "x86_64"))
+      }
+    }
+  }
+  androidComponents {
+    beforeVariants { variantBuilder ->
+      // 只有 release 模式只需要输出 arm64 以外的变体
+      if (variantBuilder.buildType != "release") {
+        if (!variantBuilder.productFlavors.contains("abi" to "forArm64")) {
+          variantBuilder.enable = false
+        }
+      }
+      if (variantBuilder.buildType != "debug" && variantBuilder.buildType != "release") {
+        variantBuilder.enable = true
+      }
+      /// bundleRelease 模式下，只打 forAll 的包
+      gradle.taskGraph.whenReady {
+        if (this.hasTask(":bundleRelease")) {
+          // 仅在 bundleRelease 时禁用 forArm32 的 release 变体
+          if (!variantBuilder.productFlavors.contains("abi" to "forAll")) {
+            variantBuilder.enable = false
+          }
+        }
+      }
+      println("QAQ beforeVariantsBuilder=${variantBuilder.name} buildType=${variantBuilder.buildType} enable=${if (variantBuilder.enable) "✅ " else "❌ "}")
+    }
+  }
+  applicationVariants.all {
+    outputs.all {
+      println("QAQ variantBuilder=${name}")
+      val midName = when {
+        name.startsWith("for") -> name.substring("for".length).split("-").first().lowercase()
+        else -> ""
+      }
+      val archivesName =
+        "DwebBrowser${if (midName.isEmpty()) midName else "_$midName"}_v${libs.versions.versionName.get()}"
+
+      if (buildType.name == "release") {
+        // 修改bundle名
+        val bundleFinalizeTaskName = StringBuilder("sign").run {
+          append(flavorName.capitalizeAsciiOnly())
+          append(buildType.name.capitalizeAsciiOnly())
+          append("Bundle")
+          toString()
+        }
+        tasks.named(bundleFinalizeTaskName, FinalizeBundleTask::class) {
+          val file = finalBundleFile.asFile.get()
+          finalBundleFile.set(File(file.parentFile, "$archivesName.aab"))
+        }
+
+        // 修改apk名
+        if (this is ApkVariantOutputImpl) {
+          outputFileName = "$archivesName.apk"
+        }
+      } else {
+        // 修改apk名
+        if (this is ApkVariantOutputImpl) {
+          outputFileName = "${archivesName}_debug.apk"
+        }
+      }
+    }
+  }
+}
+
+dependencies {
+  implementation(libs.androidx.profile.installer)
+//  baselineProfile(projects.androidBenchmark)
+  baselineProfile(projects.androidBaselineprofile)
 }

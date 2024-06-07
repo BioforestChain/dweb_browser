@@ -1,7 +1,6 @@
 package org.dweb_browser.browser.web
 
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.download.DownloadState
 import org.dweb_browser.browser.web.data.BrowserDownloadItem
@@ -10,8 +9,7 @@ import org.dweb_browser.browser.web.data.WebSiteType
 import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.engine.DWebViewEngine
-import org.dweb_browser.helper.UUID
-import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.globalDefaultScope
 import org.dweb_browser.helper.platform.DeepLinkHook.Companion.deepLinkHook
 import org.dweb_browser.helper.platform.NSDataHelper.toByteArray
 import org.dweb_browser.helper.platform.NSDataHelper.toNSData
@@ -34,13 +32,13 @@ import platform.posix.int64_t
 class BrowserIosDelegate(private var browserViewModel: BrowserViewModel) : NSObject(),
   WebBrowserViewDelegateProtocol {
 
-  private val scope = CoroutineScope(ioAsyncExceptionHandler)
+  private val scope = globalDefaultScope
 
   override fun createDesktopLinkWithLink(
     link: String,
     title: String,
     iconString: String,
-    completionHandler: (NSError?) -> Unit
+    completionHandler: (NSError?) -> Unit,
   ) {
     scope.launch {
       browserViewModel.addUrlToDesktopUI(title, link, iconString)
@@ -128,14 +126,11 @@ class BrowserIosDataSource(val browserViewModel: BrowserViewModel) : NSObject(),
     title: String,
     url: String,
     icon: NSData?,
-    completionHandler: (NSError?) -> Unit
+    completionHandler: (NSError?) -> Unit,
   ) {
     scope.launch {
       val webSiteInfo = WebSiteInfo(
-        title = title,
-        url = url,
-        icon = icon?.toByteArray(),
-        type = WebSiteType.History
+        title = title, url = url, icon = icon?.toByteArray(), type = WebSiteType.History
       )
       browserViewModel.addHistoryLinkUI(webSiteInfo)
       completionHandler(null)
@@ -163,10 +158,9 @@ class BrowserIosDataSource(val browserViewModel: BrowserViewModel) : NSObject(),
 
   //#region bookmark
 
-  override fun loadBookmarks(): List<*>? =
-    browserViewModel.getBookmarks().map {
-      return@map WebBrowserViewSiteData(it.id, it.title, it.url, it::iconUIImage)
-    }
+  override fun loadBookmarks(): List<*>? = browserViewModel.getBookmarks().map {
+    return@map WebBrowserViewSiteData(it.id, it.title, it.url, it::iconUIImage)
+  }
 
   override fun addBookmarkWithTitle(title: String, url: String, icon: NSData?) {
     val webSiteInfo =
@@ -231,7 +225,7 @@ class BrowserIosDataSource(val browserViewModel: BrowserViewModel) : NSObject(),
 
   override fun addDownloadObserverWithId(
     id: String,
-    didChanged: (WebBrowserViewDownloadData?) -> Unit
+    didChanged: (WebBrowserViewDownloadData?) -> Unit,
   ) {
     download.addDownloadProgressListenerIfNeed(id) {
       val model = it.toIOS()

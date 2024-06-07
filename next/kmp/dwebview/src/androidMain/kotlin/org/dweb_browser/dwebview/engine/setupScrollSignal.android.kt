@@ -7,7 +7,7 @@ import org.dweb_browser.helper.Signal
 fun setupScrollSignal(engine: DWebViewEngine) = Signal<ScrollChangeEvent>().also { signal ->
   signal.whenNoEmpty {
     engine.setOnScrollChangeListener { _, scrollX, scrollY, _, _ ->
-      engine.ioScope.launch {
+      engine.lifecycleScope.launch {
         signal.emit(ScrollChangeEvent(scrollX, scrollY))
       }
     }

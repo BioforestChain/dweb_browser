@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.SafeHashMap
 import org.dweb_browser.helper.compose.compositionChainOf
-import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.globalDefaultScope
 import org.dweb_browser.pure.image.OffscreenWebCanvas
 import org.dweb_browser.pure.image.offscreenwebcanvas.FetchHook
 import org.dweb_browser.pure.image.offscreenwebcanvas.WebCanvasContextSession.Companion.buildTask
@@ -30,22 +30,18 @@ class WebImageLoader : PureImageLoader {
     val defaultInstance by lazy { WebImageLoader() }
   }
 
-  private val scope = CoroutineScope(ioAsyncExceptionHandler)
+  private val scope = globalDefaultScope
 
   @Composable
   override fun Load(
-    url: String, maxWidth: Dp, maxHeight: Dp, hook: FetchHook?
+    url: String, maxWidth: Dp, maxHeight: Dp, hook: FetchHook?,
   ): ImageLoadResult {
     val density = LocalDensity.current.density
     // 这里直接计算应该会比remember来的快
     val containerWidth = (maxWidth.value * density).toInt()
     val containerHeight = (maxHeight.value * density).toInt()
     return load(
-      rememberOffscreenWebCanvas(),
-      url,
-      containerWidth,
-      containerHeight,
-      hook
+      rememberOffscreenWebCanvas(), url, containerWidth, containerHeight, hook
     ).collectAsState().value
   }
 
@@ -101,7 +97,7 @@ class WebImageLoader : PureImageLoader {
       url: String,
       containerWidth: Int,
       containerHeight: Int,
-      hook: (FetchHook)?
+      hook: (FetchHook)?,
     ): StateFlow<ImageLoadResult>? {
       val key = CacheItem.genKey(url, containerWidth, containerHeight, hook)
 
@@ -121,11 +117,12 @@ class WebImageLoader : PureImageLoader {
 
   fun load(
     webCanvas: OffscreenWebCanvas,
-    url: String, containerWidth: Int, containerHeight: Int, hook: (FetchHook)? = null
-  ): StateFlow<ImageLoadResult> =
-    caches.get(url, containerWidth, containerHeight, hook) ?: run {
+    url: String, containerWidth: Int, containerHeight: Int, hook: (FetchHook)? = null,
+  ): StateFlow<ImageLoadResult> {
+    val hookKey = if (url.startsWith("https://") || url.startsWith("http://")) null else hook
+    return caches.get(url, containerWidth, containerHeight, hookKey) ?: run {
       val imageResultState = MutableStateFlow(ImageLoadResult.Setup)
-      val cacheItem = CacheItem(url, containerWidth, containerHeight, hook, imageResultState)
+      val cacheItem = CacheItem(url, containerWidth, containerHeight, hookKey, imageResultState)
       caches.save(cacheItem)
       scope.launch {
         val dispose = hook?.let { webCanvas.setHook(url, it) }
@@ -146,4 +143,5 @@ class WebImageLoader : PureImageLoader {
 
       imageResultState
     }
+  }
 }

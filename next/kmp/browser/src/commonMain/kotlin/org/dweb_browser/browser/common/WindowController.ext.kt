@@ -7,7 +7,10 @@ import org.dweb_browser.dwebview.WebColorScheme
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.constant.WindowColorScheme
 
-expect suspend fun WindowController.createDwebView(remoteMM: MicroModule.Runtime, url: String): IDWebView
+expect suspend fun WindowController.createDwebView(
+  remoteMM: MicroModule.Runtime,
+  url: String,
+): IDWebView
 
 fun WindowColorScheme.toWebColorScheme() = when (this) {
   WindowColorScheme.Dark -> WebColorScheme.Dark

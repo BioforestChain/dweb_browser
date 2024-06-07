@@ -5,9 +5,9 @@ import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.server.response.respond
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.withContext
 import org.dweb_browser.core.std.dns.httpFetch
+import org.dweb_browser.helper.defaultAsyncExceptionHandler
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import java.io.File
 import java.net.BindException
@@ -20,7 +20,7 @@ object WindowsSingleInstance {
       embeddedServer(Netty, port = port) {
         install(createApplicationPlugin("dweb_deeplink") {
           onCall { call ->
-            withContext(ioAsyncExceptionHandler) {
+            withContext(defaultAsyncExceptionHandler) {
               val deeplink = call.request.queryParameters["url"]
               singleInstanceFlow.emit(deeplink!!)
               call.respond(HttpStatusCode.OK)

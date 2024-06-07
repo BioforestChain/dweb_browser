@@ -5,7 +5,7 @@ import kotlin.coroutines.CoroutineContext
 
 class ChangeableSet<E>(
   val source: MutableSet<E> = mutableSetOf(),
-  context: CoroutineContext = ioAsyncExceptionHandler,
+  context: CoroutineContext = defaultAsyncExceptionHandler,
 ) :
   MutableSet<E> by source {
   private val changeable = Changeable(this, context)

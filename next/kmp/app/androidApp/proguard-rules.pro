@@ -34,16 +34,13 @@
 -keep class ziplib.** { *; }
 -keepclassmembers class * extends ziplib.** { public *; }
 
-#表示不混淆枚举中的values()和valueOf()方法，枚举我用的非常少，这个就不评论了
+
+# Retain generic signatures of TypeToken and its subclasses with R8 version 3.0 and higher.
+# 一定要保持 values 函数，否则编译出来代码是异常的，目前第三方代码还没有完全改成 Enum.entries，还是有在用 Enum.values
 -keepclassmembers enum * {
     public static **[] values();
     public static ** valueOf(java.lang.String);
 }
-
-# Retain generic signatures of TypeToken and its subclasses with R8 version 3.0 and higher.
-# 异常 java.lang.IllegalStateException: TypeToken must be created with a type argument: new TypeToken<...>() {}; When using code shrinkers (ProGuard, R8, ...) make sure that generic signatures are preserved.
--keep,allowobfuscation,allowshrinking class com.google.gson.reflect.TypeToken
--keep,allowobfuscation,allowshrinking class * extends com.google.gson.reflect.TypeToken
 
 -dontwarn java.lang.management.ManagementFactory
 -dontwarn java.lang.management.RuntimeMXBean

@@ -8,6 +8,8 @@ import com.teamdev.jxbrowser.engine.RenderingMode.HARDWARE_ACCELERATED
 import com.teamdev.jxbrowser.engine.RenderingMode.OFF_SCREEN
 import com.teamdev.jxbrowser.engine.event.EngineClosed
 import kotlinx.atomicfu.locks.SynchronizedObject
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentMap
 import java.nio.file.Path as NioPath
 
 private const val KEY = "jxbrowser.license.key"
@@ -16,7 +18,7 @@ private const val LICENSE = ""
 object WebviewEngine {
   val licenseKey = (System.getenv(KEY) ?: System.getProperty(KEY) ?: LICENSE)
   private val engineLock = SynchronizedObject()
-  private val engineMaps = mutableMapOf<String, Engine>()
+  private val engineMaps = ConcurrentHashMap<String, Engine>()
 
   init {
     /// 监听进程死亡，那么就关闭所有的 engine

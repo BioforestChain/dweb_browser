@@ -1,7 +1,9 @@
 package org.dweb_browser.browser.desk
 
+import dweb_browser_kmp.browser.generated.resources.Res
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
@@ -14,11 +16,13 @@ import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.bindPrefix
 import org.dweb_browser.core.http.router.byChannel
 import org.dweb_browser.core.ipc.Ipc
+import org.dweb_browser.core.ipc.helper.IpcServerRequest
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
-import org.dweb_browser.core.module.createChannel
+import org.dweb_browser.core.module.channelRequest
 import org.dweb_browser.core.std.dns.ext.onActivity
 import org.dweb_browser.core.std.dns.nativeFetch
+import org.dweb_browser.core.std.file.ext.ResponseLocalFileBase
 import org.dweb_browser.core.std.http.CORS_HEADERS
 import org.dweb_browser.core.std.http.DwebHttpServerOptions
 import org.dweb_browser.core.std.http.HttpDwebServer
@@ -26,6 +30,7 @@ import org.dweb_browser.core.std.http.createHttpDwebServer
 import org.dweb_browser.helper.ChangeState
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.Debugger
+import org.dweb_browser.helper.Producer
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.ReasonLock
 import org.dweb_browser.helper.collectIn
@@ -42,6 +47,7 @@ import org.dweb_browser.sys.toast.ext.showToast
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.modal.ModalState
 import org.dweb_browser.sys.window.core.windowInstancesManager
+import org.jetbrains.compose.resources.ExperimentalResourceApi
 
 val debugDesk = Debugger("desk")
 
@@ -63,6 +69,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
     val controllersMap = mutableMapOf<String, DeskControllers>()
   }
 
+  @OptIn(ExperimentalResourceApi::class)
   inner class DeskRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
 
     private val runningApps = ChangeableMap<MMID, RunningApp>()
@@ -93,7 +100,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
 
     private suspend fun listenApps() = scopeLaunch(cancelable = true) {
       suspend fun doObserve(urlPath: String, cb: suspend ChangeState<MMID>.() -> Unit) {
-        val response = createChannel(urlPath) {
+        val response = channelRequest(urlPath) {
           for (frame in income) {
             when (frame) {
               is PureTextFrame -> {
@@ -370,42 +377,32 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
     private suspend fun createTaskbarWebServer(): HttpDwebServer {
       val taskbarServer = createHttpDwebServer(DwebHttpServerOptions(subdomain = "taskbar"))
       val serverIpc = taskbarServer.listen()
-      serverIpc.onRequest("TaskbarWebServer").collectIn(mmScope) { event ->
-//        println("Mike TaskbarWebServer collectIn: ${event.data.toString()}")
-        val ipcServerRequest = event.consume()
-        val pathName = ipcServerRequest.uri.encodedPathAndQuery
-        val url = if (pathName.startsWith(API_PREFIX)) {
-          val internalUri = pathName.substring(API_PREFIX.length)
-          "file://$internalUri"
-        } else {
-          "file:///sys/browser-desk${pathName}?mode=stream"
-        }
-        val response = nativeFetch(ipcServerRequest.toPure().toClient().copy(href = url))
-        serverIpc.postResponse(ipcServerRequest.reqId, response)
-      }
+      serverIpc.onRequest("TaskbarWebServer").collectIn(mmScope, commonWebServerFactory(serverIpc))
       return taskbarServer
     }
 
     private suspend fun createDesktopWebServer(): HttpDwebServer {
       val desktopServer = createHttpDwebServer(DwebHttpServerOptions(subdomain = "desktop"))
       val serverIpc = desktopServer.listen()
-      serverIpc.onRequest("DesktopWebServer").collectIn(mmScope) { event ->
-        val ipcServerRequest = event.consume()
-        val pathName = ipcServerRequest.uri.encodedPathAndQuery
-        val url = if (pathName.startsWith(API_PREFIX)) {
-          val internalUri = pathName.substring(API_PREFIX.length)
-          "file://$internalUri"
-        } else {
-          "file:///sys/browser-desk${ipcServerRequest.uri.encodedPath}?mode=stream"
-        }
-        val response = nativeFetch(ipcServerRequest.toPure().toClient().copy(href = url))
-        serverIpc.postResponse(
-          ipcServerRequest.reqId,
-          PureResponse.build(response) { appendHeaders(CORS_HEADERS) },
-        )
-      }
+      serverIpc.onRequest("DesktopWebServer").collectIn(mmScope, commonWebServerFactory(serverIpc))
       return desktopServer
     }
+
+    private fun commonWebServerFactory(serverIpc: Ipc) =
+      FlowCollector<Producer<IpcServerRequest>.Event> { event ->
+        val ipcServerRequest = event.consume()
+        val pathName = ipcServerRequest.uri.encodedPathAndQuery
+        val pureResponse = if (pathName.startsWith(API_PREFIX)) {
+          val apiUri = "file://${pathName.substring(API_PREFIX.length)}"
+          val response = nativeFetch(ipcServerRequest.toPure().toClient().copy(href = apiUri))
+          PureResponse.build(response) { appendHeaders(CORS_HEADERS) }
+        } else {
+          val filePath = ipcServerRequest.uri.encodedPath
+          val resBinary = Res.readBytes("files/browser-desk${filePath}")
+          ResponseLocalFileBase(filePath, false).returnFile(resBinary)
+        }
+        serverIpc.postResponse(ipcServerRequest.reqId, pureResponse)
+      }
   }
 
   override fun createRuntime(bootstrapContext: BootstrapContext) = DeskRuntime(bootstrapContext)

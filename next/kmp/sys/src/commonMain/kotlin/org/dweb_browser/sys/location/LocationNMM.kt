@@ -1,9 +1,7 @@
 package org.dweb_browser.sys.location
 
 import io.ktor.http.HttpStatusCode
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.buffer
-import kotlinx.coroutines.launch
 import org.dweb_browser.core.help.types.DwebPermission
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
@@ -12,7 +10,7 @@ import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.permission.AuthorizationStatus
 import org.dweb_browser.helper.Debugger
-import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.pure.http.PureMethod
@@ -51,11 +49,9 @@ class LocationNMM : NativeMicroModule("geolocation.sys.dweb", "geolocation") {
               val observer = locationManage.createLocationObserver(false)
               observer.start(precise = precise, minDistance = minDistance)
               // 缓存通道
-              val flowJob = CoroutineScope(ioAsyncExceptionHandler).launch {
-                observer.flow.buffer().collect { position ->
-                  debugLocation("locationChannel=>", "loop:$position")
-                  ctx.sendJsonLine(position.toJsonElement())
-                }
+              val flowJob = observer.flow.buffer().collectIn(mmScope) { position ->
+                debugLocation("locationChannel=>", "loop:$position")
+                ctx.sendJsonLine(position.toJsonElement())
               }
               onClose {
                 debugLocation("locationChannel=>", "onClose：$remoteMmid")

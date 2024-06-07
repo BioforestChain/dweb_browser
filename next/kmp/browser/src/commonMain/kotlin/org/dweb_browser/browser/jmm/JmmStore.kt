@@ -21,15 +21,19 @@ import org.dweb_browser.helper.compose.SimpleI18nResource
 import org.dweb_browser.helper.datetimeNow
 
 @Serializable
-data class JsMicroModuleDBItem(val installManifest: JmmAppInstallManifest, val originUrl: String) {
+data class JsMicroModuleDBItem(
+  val installManifest: JmmAppInstallManifest,
+  val originUrl: String,
+  val referrerUrl: String? = null,
+) {
   val jmmMetadata by lazy {
-    installManifest.createJmmMetadata(originUrl)
+    installManifest.createJmmMetadata(originUrl, referrerUrl, JmmStatus.INSTALLED)
   }
 }
 
 class JmmStore(microModule: MicroModule.Runtime) {
   private val storeApp = microModule.createStore("jmm_apps", false)
-  private val storeMetadata = microModule.createStore("history_metadata", false)
+  private val storeHistory = microModule.createStore("history_metadata", false)
 
   suspend fun getOrPutApp(key: MMID, value: JsMicroModuleDBItem): JsMicroModuleDBItem {
     return storeApp.getOrPut(key) { value }
@@ -54,23 +58,23 @@ class JmmStore(microModule: MicroModule.Runtime) {
   /*****************************************************************************
    * JMM对应的json地址存储，以及下载的 taskId 信息
    */
-  suspend fun saveMetadata(mmid: String, metadata: JmmMetadata) {
-    storeMetadata.set(mmid, metadata)
+  suspend fun saveHistory(mmid: String, metadata: JmmMetadata) {
+    storeHistory.set(mmid, metadata)
   }
 
-  suspend fun getAllMetadata(): MutableMap<String, JmmMetadata> {
-    return storeMetadata.getAll()
+  suspend fun getAllHistory(): Map<String, JmmMetadata> {
+    return storeHistory.getAll()
   }
 
-  suspend fun getMetadata(mmid: String): String? {
-    return storeMetadata.getOrNull<String>(mmid)
+  suspend fun getHistory(mmid: String): String? {
+    return storeHistory.getOrNull<String>(mmid)
   }
 
-  suspend fun deleteMetadata(mmid: String): Boolean {
-    return storeMetadata.delete(mmid)
+  suspend fun deleteHistory(mmid: String): Boolean {
+    return storeHistory.delete(mmid)
   }
 
-  suspend fun clearMetadata() = storeMetadata.clear()
+  suspend fun clearHistory() = storeHistory.clear()
 }
 
 /**
@@ -79,22 +83,39 @@ class JmmStore(microModule: MicroModule.Runtime) {
 @Serializable
 data class JmmMetadata(
   val originUrl: String,
+  val referrerUrl: String? = null,
   @SerialName("metadata")
-  private var _metadata: JmmAppInstallManifest,
+  @Deprecated("use manifest alternative")
+  private val _oldMetadata: JmmAppInstallManifest? = null,
+  /**
+   * 目前兼容模式，使用 Nullable，未来这个字段不可空
+   */
+  @SerialName("manifest")
+  private var _manifest: JmmAppInstallManifest? = null,
   var downloadTask: DownloadTask? = null, // 用于保存下载任务，下载完成置空
   @SerialName("state")
   private var _state: JmmStatusEvent = JmmStatusEvent(), // 用于显示下载状态
   var installTime: Long = datetimeNow(), // 表示安装应用的时间
   var upgradeTime: Long = datetimeNow(),
 ) {
+  init {
+    if (_oldMetadata != null) {
+      _manifest = _oldMetadata
+    }
+  }
+
   var state by ObservableMutableState(_state) { _state = it }
-  var metadata by ObservableMutableState(_metadata) { _metadata = it }
+  var manifest by ObservableMutableState(_manifest!!) { _manifest = it }
   suspend fun initDownloadTask(downloadTask: DownloadTask, store: JmmStore) {
     this.downloadTask = downloadTask
     updateDownloadStatus(downloadTask.status, store)
   }
 
-  suspend fun updateDownloadStatus(status: DownloadStateEvent, store: JmmStore) {
+  suspend fun updateDownloadStatus(
+    status: DownloadStateEvent,
+    store: JmmStore,
+    saveMetadata: Boolean = true,
+  ) {
     val newStatus = JmmStatusEvent(
       current = status.current,
       total = status.total,
@@ -109,28 +130,28 @@ data class JmmMetadata(
     )
     if (newStatus != state) { // 只要前后不一样，就进行保存，否则不保存，主要为了防止downloading频繁保存
       state = newStatus
-      store.saveMetadata(this.metadata.id, this@JmmMetadata)
+      if (saveMetadata) {
+        store.saveHistory(this.manifest.id, this@JmmMetadata)
+      }
     }
   }
 
   suspend fun initState(store: JmmStore) {
     state = state.copy(state = JmmStatus.Init)
-    store.saveMetadata(this.metadata.id, this@JmmMetadata)
+    store.saveHistory(this.manifest.id, this@JmmMetadata)
   }
 
   suspend fun installComplete(store: JmmStore) {
     debugJMM("installComplete")
     state = state.copy(state = JmmStatus.INSTALLED)
-    store.saveMetadata(this.metadata.id, this)
-    store.setApp(
-      metadata.id, JsMicroModuleDBItem(metadata, originUrl)
-    )
+    store.saveHistory(this.manifest.id, this)
+    store.setApp(manifest.id, JsMicroModuleDBItem(manifest, originUrl, referrerUrl))
   }
 
   suspend fun installFail(store: JmmStore) {
     debugJMM("installFail")
     state = state.copy(state = JmmStatus.Failed)
-    store.saveMetadata(this.metadata.id, this)
+    store.saveHistory(this.manifest.id, this)
   }
 }
 
@@ -140,20 +161,24 @@ data class JmmStatusEvent(
   val total: Long = 1,
   val state: JmmStatus = JmmStatus.Init,
 ) {
-  fun progress(): Float {
-    return if (total == 0L) {
-      .0f
-    } else {
-      (current * 1.0f / total) * 10 / 10.0f
+  val progress by lazy {
+    when (total) {
+      0L -> .0f
+      else -> current.toFloat() / total.toFloat()
     }
   }
 }
 
 fun JmmAppInstallManifest.createJmmMetadata(
-  url: String, state: JmmStatus = JmmStatus.Init, installTime: Long = datetimeNow(),
-) = JmmMetadata(
-  originUrl = url,
-  _metadata = this,
+  originUrl: String,
+  referrerUrl: String?,
+  state: JmmStatus,
+  installTime: Long = datetimeNow(),
+
+  ) = JmmMetadata(
+  originUrl = originUrl,
+  referrerUrl = referrerUrl,
+  _manifest = this,
   _state = JmmStatusEvent(total = this.bundle_size, state = state),
   installTime = installTime
 )
@@ -189,7 +214,7 @@ enum class JmmStatus {
 }
 
 enum class JmmTabs(val index: Int, val title: SimpleI18nResource, val vector: ImageVector) {
-  NoInstall(0, BrowserI18nResource.jmm_history_tab_uninstalled, Icons.Default.DeleteForever),
-  Installed(1, BrowserI18nResource.jmm_history_tab_installed, Icons.Default.InstallMobile),
+  NoInstall(0, BrowserI18nResource.JMM.history_tab_uninstalled, Icons.Default.DeleteForever),
+  Installed(1, BrowserI18nResource.JMM.history_tab_installed, Icons.Default.InstallMobile),
   ;
 }

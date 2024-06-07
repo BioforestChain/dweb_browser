@@ -11,7 +11,6 @@ import dweb_browser_kmp.browser.generated.resources.ic_download_image
 import dweb_browser_kmp.browser.generated.resources.ic_download_video
 import io.ktor.http.ContentType
 import io.ktor.http.defaultForFileExtension
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -26,7 +25,7 @@ import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.compose.ObservableMutableState
 import org.dweb_browser.helper.compose.SimpleI18nResource
 import org.dweb_browser.helper.datetimeNow
-import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.globalDefaultScope
 import org.dweb_browser.helper.randomUUID
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.ExperimentalResourceApi
@@ -36,7 +35,7 @@ import org.jetbrains.compose.resources.painterResource
 enum class BrowserDownloadType(
   private val contentType: String,
   private val iconRes: DrawableResource,
-  private val _title: SimpleI18nResource
+  private val _title: SimpleI18nResource,
 ) {
   All("all", Res.drawable.ic_download_all, BrowserI18nResource.Download.chip_all),
   Image(
@@ -86,11 +85,12 @@ data class BrowserDownloadItem(
 ) {
   var state by ObservableMutableState(_state) {
     _state = it
-    CoroutineScope(ioAsyncExceptionHandler).launch {
+    globalDefaultScope.launch {
       // [iOS] ObservableMutableState: ${it.total} ${it.current}
       stateSignal.emit(it)
     }
   }
+
   @Transient
   val id = randomUUID() //标识符，iOS端删除时，使用。
 

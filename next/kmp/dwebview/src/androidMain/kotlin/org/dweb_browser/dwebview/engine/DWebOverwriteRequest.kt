@@ -24,7 +24,7 @@ class DWebOverwriteRequest(val engine: DWebViewEngine) : WebViewClient() {
   override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
     if (!isWebUrlScheme(request.url.scheme ?: "http")) {
       if (request.url.scheme == "dweb") {
-        engine.ioScope.launch {
+        engine.lifecycleScope.launch {
           engine.remoteMM.nativeFetch(request.url.toString())
         }
         return true
@@ -52,7 +52,8 @@ class DWebOverwriteRequest(val engine: DWebViewEngine) : WebViewClient() {
     view: WebView, request: WebResourceRequest,
   ): WebResourceResponse? {
     // 转发请求
-    if (request.method == "GET" && ((request.url.host?.endsWith(".dweb") == true) || (request.url.scheme == "dweb"))) {
+    // TODO 可以使用开关来进行拦截
+    if ((request.method == "GET" && ((request.url.host?.endsWith(".dweb") == true)) || (request.url.scheme == "dweb"))) {
       val response = runBlocking(ioAsyncExceptionHandler) {
         engine.remoteMM.nativeFetch(
           PureClientRequest(

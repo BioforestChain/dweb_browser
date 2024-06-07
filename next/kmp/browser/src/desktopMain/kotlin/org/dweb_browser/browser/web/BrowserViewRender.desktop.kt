@@ -17,7 +17,7 @@ import org.dweb_browser.sys.window.render.watchedState
 actual fun CommonBrowserView(
   viewModel: BrowserViewModel,
   modifier: Modifier,
-  windowRenderScope: WindowContentRenderScope
+  windowRenderScope: WindowContentRenderScope,
 ) {
   BrowserViewModalRender(viewModel, modifier, windowRenderScope)
   // TODO 临时方案

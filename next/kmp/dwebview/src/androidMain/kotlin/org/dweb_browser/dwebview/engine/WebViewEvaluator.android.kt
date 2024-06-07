@@ -4,13 +4,12 @@ import android.annotation.SuppressLint
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.dweb_browser.dwebview.AsyncChannel
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.launchWithMain
+import org.dweb_browser.helper.withMainContext
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
@@ -19,7 +18,7 @@ import java.util.concurrent.atomic.AtomicInteger
  */
 class WebViewEvaluator(
   val webView: WebView,
-  val scope: CoroutineScope
+  val scope: CoroutineScope,
 ) {
   companion object {
     private var idAcc = AtomicInteger(0)
@@ -60,7 +59,7 @@ class WebViewEvaluator(
   /**
    * 执行同步JS代码
    */
-  suspend fun evaluateSyncJavascriptCode(script: String) = withContext(Dispatchers.Main) {
+  suspend fun evaluateSyncJavascriptCode(script: String) = withMainContext {
     val po = PromiseOut<String>()
     webView.evaluateJavascript(script) {
       po.resolve(it)
@@ -72,7 +71,7 @@ class WebViewEvaluator(
    * 执行异步JS代码，需要传入一个表达式
    */
   suspend fun evaluateAsyncJavascriptCode(
-    script: String, afterEval: suspend () -> Unit = {}
+    script: String, afterEval: suspend () -> Unit = {},
   ): String {
 
     val channel: AsyncChannel = Channel()

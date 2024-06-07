@@ -1,4 +1,4 @@
-import { cacheGetter } from "../../helper/cacheGetter.ts";
+import { cacheGetter } from "@dweb-browser/helper/cacheGetter.ts";
 import { geolocationPlugin } from "./geolocation.plugin.ts";
 import { $LocationOptions } from "./geolocation.type.ts";
 
@@ -10,7 +10,7 @@ export class HTMLGeolocationElement extends HTMLElement {
   get getLocation() {
     return this.plugin.getLocation;
   }
- 
+
   async createLocation(option?: $LocationOptions) {
     const controller = await this.plugin.createLocation(option);
     controller.listen((location) => {

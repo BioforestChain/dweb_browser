@@ -1,7 +1,7 @@
 import "@dweb-browser/polyfill";
 
 //
-export { createMockModuleServerIpc } from "../common/websocketIpc.ts";
+export { WebSocketIpcBuilder } from "../common/websocketIpc.ts";
 export * from "./barcode-scanning/index.ts";
 export * from "./biometrics/index.ts";
 // export * from "./bluetooth/index.ts";

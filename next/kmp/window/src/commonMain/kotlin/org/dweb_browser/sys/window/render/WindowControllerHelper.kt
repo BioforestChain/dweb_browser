@@ -115,10 +115,18 @@ val inMoveStore = WeakHashMap<WindowController, MutableState<Boolean>>()
 val WindowController.inMove
   get() = inMoveStore.getOrPut(this) { mutableStateOf(false) }
 
+fun Modifier.windowTouchFocusable(win: WindowController): Modifier = this.pointerInput(win) {
+  detectTapGestures(
+    onPress = {
+      win.focusInBackground()
+    }
+  )
+}
+
 /**
  * 移动窗口的控制器
  */
-fun Modifier.windowMoveAble(win: WindowController) = composed {
+fun Modifier.windowMoveAble(win: WindowController): Modifier = this.composed {
   val useCustomFrameDrag = win.state.renderConfig.useCustomFrameDrag
   pointerInput(win, useCustomFrameDrag) {
     /// 触摸窗口的时候，聚焦，并且提示可以移动

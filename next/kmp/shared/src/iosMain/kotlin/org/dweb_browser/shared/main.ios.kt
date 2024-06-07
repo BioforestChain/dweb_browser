@@ -54,11 +54,13 @@ suspend fun dnsFetch(url: String): PureResponse {
 }
 
 @Suppress("UNUSED_VARIABLE")
-suspend fun startDwebBrowser(app: UIApplication, debugMode: Boolean): DnsNMM {
+suspend fun startDwebBrowser(
+  app: UIApplication, debugMode: Boolean, debugTags: List<String> = listOf("/.+/")
+): DnsNMM {
   nativeMicroModuleUIApplication = app;
 
   if (debugMode) {
-    addDebugTags(listOf("/.+/"))
+    addDebugTags(debugTags)
   }
 
   /// 初始化DNS服务

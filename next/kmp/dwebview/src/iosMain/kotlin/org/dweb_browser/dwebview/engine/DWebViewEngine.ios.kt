@@ -167,6 +167,9 @@ class DWebViewEngine(
     dwebHelper.setProxyWithConfiguration(
       configuration, url.host, url.port.toUShort()
     )
+
+    // https://stackoverflow.com/questions/77078328/warning-prints-in-console-when-using-webkit-to-load-youtube-video
+    this.allowsLinkPreview = true
     /// 测试的时候使用
     this.setInspectable(true)
     setNavigationDelegate(dwebNavigationDelegate)
@@ -259,7 +262,7 @@ class DWebViewEngine(
     scrollView.insetsLayoutMarginsFromSafeArea = true
     scrollView.bounces = false
 
-    options.tag?.toLong()?.also {
+    options.viewId?.toLong()?.also {
       this.tag = it
     }
   }

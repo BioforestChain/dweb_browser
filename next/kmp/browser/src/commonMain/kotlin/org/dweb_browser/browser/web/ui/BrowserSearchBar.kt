@@ -4,8 +4,6 @@ package org.dweb_browser.browser.web.ui
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -21,7 +19,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -62,6 +59,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserDrawResource
+import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.browser.web.model.LocalBrowserViewModel
 import org.dweb_browser.browser.web.model.LocalShowIme
 import org.dweb_browser.browser.web.model.page.BrowserHomePage
@@ -123,7 +121,7 @@ fun BrowserSearchBar(modifier: Modifier) {
     IconButton(modifier = Modifier.size(onceItemSize), onClick = {
       uiScope.launch {
         viewModel.focusedPage?.captureView()
-        viewModel.toggleShowPreviewUI(true)
+        viewModel.toggleShowPreviewUI(BrowserViewModel.PreviewPanelVisibleState.DisplayGrid)
       }
     }) {
       Icon(
@@ -159,7 +157,8 @@ internal fun getMultiImageVector(size: Int) = when (size) {
 }
 
 enum class SearchBoxTheme {
-  Shadow, Border, Focused, Unfocused, ;
+  Shadow, Border, Focused, Unfocused,
+  ;
 }
 
 /// 用于搜索框的外部风格化，提供了阴影风格和边框风格

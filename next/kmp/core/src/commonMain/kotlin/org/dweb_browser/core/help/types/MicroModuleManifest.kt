@@ -24,6 +24,10 @@ class MicroModuleManifest private constructor(
         cbor = true, protobuf = false, json = true
       )
     )
+
+    private val P_targetType = P.optional<String>("targetType")
+    private val P_minTarget = P.optional<Int>("minTarget")
+    private val P_maxTarget = P.optional<Int>("maxTarget")
   }
 
 
@@ -34,6 +38,10 @@ class MicroModuleManifest private constructor(
     }
   }
   override var ipc_support_protocols by P_ipc_support_protocols(p)
+  override var targetType by P_targetType(p)
+  override var minTarget by P_minTarget(p)
+  override var maxTarget by P_maxTarget(p)
+
   override var id by P.getRequired<String>("id")(p) {
     p.set("mmid", value)
     afterWrite = {
@@ -50,4 +58,7 @@ interface IMicroModuleManifest : ICommonAppManifest {
   fun toCommonAppManifest(): CommonAppManifest
 
   fun getMmptList() = listOf(mmid, *dweb_protocols.toTypedArray())
+  var targetType: String?
+  var minTarget: Int?
+  var maxTarget: Int?
 }

@@ -7,6 +7,7 @@ import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlin.coroutines.CoroutineContext
 
 
 val debugOrder = Debugger("order")
@@ -18,7 +19,7 @@ class OrderDeferred(var current: Job? = null) {
     val preJob = current;
     keys.add(key)
     val clearTimeout =
-      debugOrder.timeout(scope, 1000, "queue@${hashCode()}") { "key=$key keys.size=${keys}" }
+      debugOrder.timeout(scope, 1000, "queue@${hashCode()}") { "key=$key keys=${keys}" }
     scope.async(start = CoroutineStart.UNDISPATCHED) {
       preJob?.join();
       clearTimeout()
@@ -50,11 +51,14 @@ class OrderDeferred(var current: Job? = null) {
 //                  key.contains("file://http.std.dweb/listen"))
 //        ) {
 //        } else {
-//          WARNING("QAQ OrderDeferred maybe error: key=$key")
+//          WARNING("QWQ OrderDeferred maybe error: key=$key")
 //        }
 //      }
     }
   }
+
+  fun <T> queue(context: CoroutineContext, key: Any?, handler: suspend () -> T) =
+    queue(CoroutineScope(context), key, handler)
 
   suspend fun <T> queueAndAwait(key: Any?, handler: suspend () -> T) = coroutineScope {
     queue(this, key, handler).await()

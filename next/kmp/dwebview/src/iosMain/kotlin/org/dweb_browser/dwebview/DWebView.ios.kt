@@ -4,7 +4,6 @@ import androidx.compose.ui.graphics.ImageBitmap
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.CValue
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.asSharedFlow
@@ -22,7 +21,7 @@ import org.dweb_browser.helper.RememberLazy
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.WARNING
-import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.globalDefaultScope
 import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.helper.platform.setScale
 import org.dweb_browser.helper.randomUUID
@@ -79,15 +78,13 @@ class DWebView private constructor(
   companion object {
     val prepare = SuspendOnce {
       coroutineScope {
-        launch(ioAsyncExceptionHandler) {
-          DwebViewIosPolyfill.prepare();
-        }
+        launch { DwebViewIosPolyfill.prepare(); }
         DwebViewProxy.prepare();
       }
     }
 
     init {
-      CoroutineScope(ioAsyncExceptionHandler).launch {
+      globalDefaultScope.launch {
         prepare()
       }
     }

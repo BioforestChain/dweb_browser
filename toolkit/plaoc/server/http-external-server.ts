@@ -86,7 +86,7 @@ export class Server_external extends HttpServer {
         const mmid = request.parsed_url.host as $MMID;
         if (!mmid) {
           return streamIpc.postMessage(
-            IpcResponse.fromText(request.reqId, 502, undefined, "not found mmid", streamIpc)
+            IpcResponse.fromText(request.reqId, 404, undefined, "not found mmid", streamIpc)
           );
         }
         // 是否需要激活应用

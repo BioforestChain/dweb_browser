@@ -27,10 +27,12 @@ import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.connectMicroModules
 import org.dweb_browser.core.std.boot.BootNMM
 import org.dweb_browser.core.std.dns.ext.createActivity
+import org.dweb_browser.core.std.permission.ext.doRequestWithPermissions
 import org.dweb_browser.core.std.permission.permissionAdapterManager
 import org.dweb_browser.helper.ChangeState
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.Debugger
+import org.dweb_browser.helper.encodeURIComponent
 import org.dweb_browser.helper.removeWhen
 import org.dweb_browser.helper.some
 import org.dweb_browser.helper.toJsonElement
@@ -116,8 +118,12 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
 
     override suspend fun open(mmpt: MMPT): Boolean {
       if (this.dnsMM.getRunningApps(mmpt).isEmpty()) {
-        dnsMM.runtime.open(mmpt, fromMM)
-        return true
+        runCatching {
+          dnsMM.runtime.open(mmpt, fromMM)
+          true
+        }.getOrElse {
+          false
+        }
       }
       return false
     }
@@ -279,7 +285,9 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
             fromMM.bootstrapContext.dns.queryDeeplink(request.href) ?: return@append PureResponse(
               HttpStatusCode.BadGateway, body = PureStringBody(request.href)
             )
-          return@append fromMM.connect(toMM.mmid, request).request(request)
+          return@append fromMM.connect(toMM.mmid, request).let { ipc ->
+            fromMM.doRequestWithPermissions { ipc.request(request) }
+          }
         } else null
       }.removeWhen(this.mmScope)
 
@@ -403,9 +411,20 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
         }).also { running ->
           addRunningApp(running)
           scopeLaunch(cancelable = false) {
-            running.ready().also { appRuntime ->
-              appRuntime.onShutdown {
-                removeRunningApp(running)
+            runCatching {
+              running.ready().also { appRuntime ->
+                appRuntime.onShutdown {
+                  removeRunningApp(running)
+                }
+              }
+            }.getOrElse {
+              // 启动失败，移除running
+              removeRunningApp(running)
+              // 提示错误信息
+              scopeLaunch(cancelable = true) {
+                it.message?.also { msg ->
+                  nativeFetch("file://toast.sys.dweb/show?message=${msg.encodeURIComponent()}")
+                }
               }
             }
           }

@@ -9,7 +9,7 @@ import org.dweb_browser.helper.platform.PureViewController
 
 actual suspend fun IPureViewController.createDwebView(
   remoteMM: MicroModule.Runtime,
-  options: DWebViewOptions
+  options: DWebViewOptions,
 ): IDWebView {
   require(this is PureViewController)
   return IDWebView.Companion.create(this, remoteMM, options, this)

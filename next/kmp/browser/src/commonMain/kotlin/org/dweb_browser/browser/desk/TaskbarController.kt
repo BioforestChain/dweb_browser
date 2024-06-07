@@ -224,7 +224,7 @@ class TaskbarController private constructor(
     // 现在离屏渲染还有很严重的BUG没有修复，所以这里谨慎使用，只用在taskbar这种没有输入框的简单模块中
     enabledOffScreenRender = !envSwitch.isEnabled(ENV_SWITCH_KEY.DWEBVIEW_ENABLE_TRANSPARENT_BACKGROUND),
     detachedStrategy = DWebViewOptions.DetachedStrategy.Ignore,
-    tag = 2,
+    viewId = 2,
     subDataDirName = "taskbar"
   )
 

@@ -70,8 +70,8 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
   private fun IHandlerContext.getPath(pathKey: String = "path") =
     getVfsPath(pathKey).let { Pair(it.fsFullPath, it.fs) }
 
-  private fun IHandlerContext.getPathInfo(fsPath: VirtualFsPath = getVfsPath()): JsonElement {
-    val metadata = fsPath.fs.metadataOrNull(fsPath.fsFullPath)
+  private suspend fun IHandlerContext.getPathInfo(fsPath: VirtualFsPath = getVfsPath()): JsonElement {
+    val metadata = fsPath.fs.safeMetadataOrNull(fsPath.fsFullPath)
     return if (metadata == null) {
       JsonNull
     } else {
@@ -102,9 +102,14 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
           if (request.method == PureMethod.GET) {
             val vfsPath = getVirtualFsPath(ipc.remote, request.url.encodedPath.decodeURIComponent())
             val create = request.queryAsOrNull<Boolean>("create") ?: false
-            debugFile("easy-read", "create=$create filepath=${vfsPath.fsFullPath},endCodePath:${request.url.encodedPath}")
+            debugFile("easy-read") {
+              "create=$create filepath=${vfsPath.fsFullPath},endCodePath:${request.url.encodedPath}"
+            }
             if (create) {
               touchFile(vfsPath.fsFullPath, vfsPath.fs)
+            }
+            if (vfsPath.fs == ResourceFileSystem.FileSystem) {
+              ResourceFileSystem.prepare(vfsPath.fsFullPath).await()
             }
             val size = vfsPath.fs.metadata(vfsPath.fsFullPath).size
             val fileSource = vfsPath.fs.source(vfsPath.fsFullPath).buffer()
@@ -229,7 +234,7 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
         "/createDir" bind PureMethod.POST by defineBooleanResponse {
           val (path, fs) = getPath()
           if (fs.exists(path)) {
-            fs.metadata(path).isDirectory
+            fs.safeMetadata(path).isDirectory
           } else {
             fs.createDirectories(path, true)
             true
@@ -258,7 +263,7 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
           if (create) {
             touchFile(filepath, fs)
           }
-          val fileSource = fs.source(filepath).buffer()
+          val fileSource = fs.safeSource(filepath).buffer()
 
           val skip = request.queryAsOrNull<Long>("skip")
           if (skip != null) {
@@ -441,8 +446,7 @@ class VirtualFsPath(
 }
 
 
-object FileWatchEventNameSerializer : StringEnumSerializer<FileWatchEventName>(
-  "FileWatchEventName",
+object FileWatchEventNameSerializer : StringEnumSerializer<FileWatchEventName>("FileWatchEventName",
   FileWatchEventName.ALL_VALUES,
   { eventName })
 
@@ -464,8 +468,7 @@ enum class FileWatchEventName(val eventName: String) {
   Unlink("unlink"),
 
   /** 文件夹被移除*/
-  UnlinkDir("unlinkDir"),
-  ;
+  UnlinkDir("unlinkDir"), ;
 
   companion object {
     val ALL_VALUES = entries.associateBy { it.eventName }

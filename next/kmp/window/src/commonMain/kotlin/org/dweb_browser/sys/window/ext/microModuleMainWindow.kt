@@ -13,9 +13,15 @@ import org.dweb_browser.sys.window.core.windowInstancesManager
  */
 suspend fun NativeMicroModule.NativeRuntime.openMainWindow() =
   nativeFetch("file://window.sys.dweb/openMainWindow").text().let { wid ->
-    windowInstancesManager.get(wid)?.also {
-      it.state.constants.microModule.value = this;
-      it.focus()
+    windowInstancesManager.get(wid)?.also { win ->
+      win.state.constants.microModule.value = this
+      onShutdown {
+        win.state.constants.microModule.value = null
+        scopeLaunch(cancelable = false) {
+          win.tryCloseOrHide(true)
+        }
+      }
+      win.focus()
     } ?: throw Exception("fail to open window for $mmid, not an application")
   }
 

@@ -6,6 +6,7 @@ import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import org.dweb_browser.core.ipc.helper.EndpointIpcMessage
@@ -56,8 +57,8 @@ class NativeMessageChannel(parentScope: CoroutineScope, fromId: String, toId: St
    */
   private val messageChannel1 = Channel<EndpointIpcMessage>()
   private val messageChannel2 = Channel<EndpointIpcMessage>()
-  private val lifecycleFlow1 = MutableStateFlow(EndpointLifecycle(EndpointLifecycleInit))
-  private val lifecycleFlow2 = MutableStateFlow(EndpointLifecycle(EndpointLifecycleInit))
+  private val lifecycleRemoteFlow1 = MutableStateFlow(EndpointLifecycle(EndpointLifecycleInit))
+  private val lifecycleRemoteFlow2 = MutableStateFlow(EndpointLifecycle(EndpointLifecycleInit))
   private val debugId1: String
   private val debugId2: String
 
@@ -68,17 +69,30 @@ class NativeMessageChannel(parentScope: CoroutineScope, fromId: String, toId: St
     debugId2 = ids.second
   }
 
-  val port1 =
-    NativeEndpoint(parentScope, messageChannel1, messageChannel2, lifecycleFlow1, debugId1)
-  val port2 =
-    NativeEndpoint(parentScope, messageChannel2, messageChannel1, lifecycleFlow2, debugId2)
+  val port1 = NativeEndpoint(
+    parentScope,
+    messageChannel1,
+    messageChannel2,
+    lifecycleRemoteFlow1,
+    lifecycleRemoteFlow2,
+    debugId1
+  )
+  val port2 = NativeEndpoint(
+    parentScope,
+    messageChannel2,
+    messageChannel1,
+    lifecycleRemoteFlow2,
+    lifecycleRemoteFlow1,
+    debugId2
+  )
 }
 
 class NativeEndpoint(
   parentScope: CoroutineScope,
   private val messageIn: Channel<EndpointIpcMessage>,
   private val messageOut: Channel<EndpointIpcMessage>,
-  override val lifecycleRemoteFlow: MutableStateFlow<EndpointLifecycle>,
+  override val lifecycleRemoteFlow: StateFlow<EndpointLifecycle>,
+  private val lifecycleRemoteFlowSender: MutableStateFlow<EndpointLifecycle>,
   override val debugId: String,
 ) : IpcEndpoint() {
   override fun toString() = "NativeEndpoint@$debugId"
@@ -118,7 +132,7 @@ class NativeEndpoint(
   override fun getLocaleSubProtocols() = setOf<EndpointProtocol>()
 
   override suspend fun sendLifecycleToRemote(state: EndpointLifecycle) {
-    debugEndpoint("lifecycle-out", state)
-    lifecycleRemoteFlow.emit(state)
+    debugEndpoint.verbose("lifecycle-out", state)
+    lifecycleRemoteFlowSender.emit(state)
   }
 }

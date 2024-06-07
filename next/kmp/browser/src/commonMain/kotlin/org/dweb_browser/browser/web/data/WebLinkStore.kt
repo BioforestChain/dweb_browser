@@ -9,7 +9,7 @@ import org.dweb_browser.pure.crypto.hash.sha256
 
 @Serializable
 data class WebLinkManifest(
-  val id: String, val title: String, val url: String, val icons: List<ImageResource>
+  val id: String, val title: String, val url: String, val icons: List<ImageResource>,
 ) {
   companion object {
 

@@ -12,11 +12,11 @@ import okio.EOFException
 import okio.FileSystem
 import org.dweb_browser.helper.consumeEachArrayRange
 import org.dweb_browser.helper.createByteChannel
-import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.globalIoScope
 
 expect val SystemFileSystem: FileSystem
 
-fun BufferedSource.toByteReadChannel(scope: CoroutineScope = CoroutineScope(ioAsyncExceptionHandler)): ByteReadChannel {
+fun BufferedSource.toByteReadChannel(scope: CoroutineScope = globalIoScope): ByteReadChannel {
   val channel = createByteChannel()
   scope.launch {
     var end = false

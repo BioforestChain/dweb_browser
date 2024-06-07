@@ -1,4 +1,4 @@
-import { cacheGetter } from "../../helper/cacheGetter.ts";
+import { cacheGetter } from "@dweb-browser/helper/cacheGetter.ts";
 import { networkPlugin } from "./network.plugin.ts";
 
 export class HTMLDwebNetworkElement extends HTMLElement {

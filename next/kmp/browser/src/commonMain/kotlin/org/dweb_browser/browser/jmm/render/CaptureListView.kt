@@ -21,7 +21,7 @@ import org.dweb_browser.pure.image.compose.CoilAsyncImage
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun CaptureListView(
-  jmmAppInstallManifest: JmmAppInstallManifest, onSelectPic: (Int, LazyListState) -> Unit
+  jmmAppInstallManifest: JmmAppInstallManifest, onSelectPic: (Int, LazyListState) -> Unit,
 ) {
   val lazyListState = rememberLazyListState()
   LazyRow(

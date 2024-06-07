@@ -90,7 +90,7 @@ export class Ipc {
    * 向远端发送 生命周期 信号
    */
   #sendLifecycleToRemote(state: $IpcLifecycle) {
-    // this.console.log("lifecycle-out", state);
+    this.console.verbose("lifecycle-out", state);
     this.endpoint.postIpcMessage(endpointIpcMessage(this.pid, state));
   }
 
@@ -127,7 +127,7 @@ export class Ipc {
    * 启动，会至少等到endpoint握手完成
    */
   async start(isAwait = true, reason?: string) {
-    // this.console.log("start", reason);
+    this.console.verbose("start", reason);
     if (isAwait) {
       this.endpoint.start(true);
       this.startOnce();
@@ -139,7 +139,7 @@ export class Ipc {
   }
 
   startOnce = $once(() => {
-    // this.console.log("startOnce", this.lifecycle);
+    this.console.verbose("startOnce", this.lifecycle);
     // 当前状态必须是从init开始
     if (this.lifecycle.state.name === IPC_LIFECYCLE_STATE.INIT) {
       // 告知对方我启动了
@@ -151,7 +151,7 @@ export class Ipc {
     }
     // 监听远端生命周期指令，进行协议协商
     this.#lifecycleRemoteFlow((lifecycleRemote) => {
-      this.console.verbose("lifecycle-in", `remote=${lifecycleRemote},local=${this.lifecycle}`);
+      // this.console.verbose("lifecycle-in", `remote=${lifecycleRemote},local=${this.lifecycle}`);
       // 告知启动完成
       const doIpcOpened = () => {
         const opend = IpcLifecycle(IpcLifecycleOpened());
@@ -371,7 +371,7 @@ export class Ipc {
     try {
       await this.awaitOpen("then-postMessage");
     } catch (e) {
-      this.console.log(`ipc(${this}) fail to poseMessage: ${e}`);
+      this.console.error(`ipc(${this}) fail to poseMessage: ${e}`);
       return;
     }
     this.endpoint.postIpcMessage(endpointIpcMessage(this.pid, message));
@@ -397,7 +397,8 @@ export class Ipc {
   }
 
   #closeOnce = $once(async (cause?: string) => {
-    this.console.log("closing", cause);
+    cause = cause ? cause.toString() : undefined;
+    this.console.verbose("closing", cause);
     {
       const closing = IpcLifecycle(IpcLifecycleClosing(cause));
       this.#lifecycleLocaleFlow.emit(closing);

@@ -13,14 +13,15 @@ import {
   quitApp,
   resizeTaskbar,
   toggleDesktopView,
+  toggleDragging,
   toggleMaximize,
   vibrateHeavyClick,
   watchTaskbarAppInfo,
   watchTaskBarStatus,
-  toggleDragging,
 } from "@/provider/api.ts";
 import { $TaskBarState, $WidgetAppData } from "@/types/app.type.ts";
 import { computed, onMounted, onUnmounted, ref, ShallowRef, shallowRef, triggerRef } from "vue";
+import { DwebWallpaperElement } from "../../../wallpaper-canvas.ts";
 import x_circle_svg from "/taskbar/x-circle.svg";
 
 /** 打开桌面面板 */
@@ -105,6 +106,9 @@ const doExit = async (metaData: $WidgetAppData) => {
 };
 
 const showMenuOverlayRef = ref<$WidgetAppData["mmid"] | undefined>();
+const showClose = (mmid: string) => {
+  return showMenuOverlayRef.value === mmid;
+};
 // 响应右键点击事件
 const tryOpenMenuOverlay = (metaData: $WidgetAppData) => {
   vibrateHeavyClick();
@@ -159,7 +163,6 @@ const showAppIcons = computed(() => {
   }
   return appRefList.value;
 });
-import { DwebWallpaperElement } from "../../../wallpaper-canvas.ts";
 
 const wallpaperEle = ref<DwebWallpaperElement>();
 
@@ -172,7 +175,7 @@ onMounted(() => {
         const { blockSize: _height, inlineSize: _width } = entry.borderBoxSize[0];
         const height = Math.ceil(_height);
         const width = Math.ceil(_width);
-        console.log("ResizeObserver", height, width);
+        // console.log("ResizeObserver", height, width);
         await resizeTaskbar(width, height);
       }
     });
@@ -272,7 +275,7 @@ const gapSize = "8px";
               @dblclick="doToggleMaximize(appIcon.metaData)"
             >
               <button
-                v-if="showMenuOverlayRef === appIcon.metaData.mmid"
+                v-if="showClose(appIcon.metaData.mmid)"
                 class="exit-button"
                 @blur="tryCloseMenuOverlay(appIcon.metaData)"
                 @click="doExit(appIcon.metaData)"
@@ -302,22 +305,30 @@ const gapSize = "8px";
         "
       >
         <pre>
-        // 晚上
-        19, 20, 21, 22: multiply #00C5DF #00C5DF #00C5D #F2371F
-        // 极光
-        23, 0, 1: overlay #315787 #B8B5D6 #64ADBD #6B93C6 #000000
-        // 凌晨
-        1, 2, 3, 4: multiply #18A0FB #1BC47D
-        // 日出
-        5, 6: luminosity #18A0FB #1BC47D #18A0FB #FFC700 #FFC700 #F2371F
-        // 早上
-        7,8,9,: overlay #18A0FB #907CFF
-        // 中午
-        10,11,12,13: overlay #EE46D3 #907CFF
-        // 下午
-        14, 15, 16: overlay #FFC700 #EE46D3
-        // 日落
-        17,18: overlay #F2371F #18A0FB #907CFF #FFC700
+          0: overlay #9c27b0 #e91e63
+          1: overlay #3973e1 #c03074
+          2: overlay #6b4dc8 #d4276c
+          3: overlay #0899f9 #ab397d
+          4: overlay #add07a #6349a2
+          5: overlay #5ab4ba #874190
+          6: overlay #ffeb3b #3f51b5
+          7: overlay #55cca1 #178cdf
+          8: overlay #aadb6e #2b6eca
+          9: overlay #00bcd4 #03a9f4
+          10: overlay #aadb6e #179cf3
+          11: overlay #55cca1 #0da3f4
+          12: overlay #ffeb3b #2196f3
+          13: overlay #f6a940 #38b9e4
+          14: overlay #faca3d #2da7eb
+          15: overlay #f18842 #44cadc
+          16: overlay #fa672d #c1a949
+          17: overlay #f67837 #82b993
+          18: overlay #ff5722 #ff9800
+          19: overlay #ff7811 #ffc21e
+          20: overlay #ff9800 #ffeb3b
+          21: overlay #b54384 #ef5159
+          22: overlay #ce6058 #f4854f
+          23: overlay #e67c2c #fab845
         </pre>
       </dweb-wallpaper>
     </button>
@@ -350,9 +361,7 @@ const gapSize = "8px";
     pointer-events: none;
   }
 }
-.taskbar.drag-end {
-  // transition-duration: 0.8s;
-}
+
 @media (prefers-color-scheme: dark) {
   .taskbar.frame {
     background-color: rgb(0 0 0 / 40%);
@@ -368,8 +377,7 @@ const gapSize = "8px";
   padding: v-bind(gapSize);
   padding-bottom: calc(v-bind(gapSize) * 0.62);
 }
-.app-icon-list-empty {
-}
+
 .my-divider {
   width: 90%;
   height: 1px;

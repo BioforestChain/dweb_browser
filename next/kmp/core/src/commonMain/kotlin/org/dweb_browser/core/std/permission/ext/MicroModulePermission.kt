@@ -1,10 +1,12 @@
 package org.dweb_browser.core.std.permission.ext
 
+import io.ktor.http.HttpStatusCode
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.permission.AuthorizationStatus
 import org.dweb_browser.core.std.permission.PERMISSION_ID
+import org.dweb_browser.pure.http.PureResponse
 
 suspend fun MicroModule.Runtime.queryPermissions(permissions: List<PERMISSION_ID>) =
   nativeFetch(
@@ -37,3 +39,18 @@ suspend fun MicroModule.Runtime.deletePermissions(mmid: MMID, permissions: List<
 
 suspend fun MicroModule.Runtime.deletePermission(mmid: MMID, permission: PERMISSION_ID) =
   deletePermissions(mmid, listOf(permission))[permission] ?: false
+
+suspend inline fun MicroModule.Runtime.doRequestWithPermissions(doRequest: () -> PureResponse): PureResponse {
+  var response = doRequest()
+  if (response.status == HttpStatusCode.Unauthorized) {
+    val permissions = response.body.toPureString()
+    /// 尝试进行授权请求
+    if (requestPermissions(permissions.split(",").toList()).all {
+        it.value == AuthorizationStatus.GRANTED
+      }) {
+      /// 如果授权完全成功，那么重新进行请求
+      response = doRequest()
+    }
+  }
+  return response
+}

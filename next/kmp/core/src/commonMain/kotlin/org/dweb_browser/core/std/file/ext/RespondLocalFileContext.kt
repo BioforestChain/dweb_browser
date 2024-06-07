@@ -22,15 +22,13 @@ import org.dweb_browser.pure.http.PureStringBody
 import org.dweb_browser.pure.io.SystemFileSystem
 import org.dweb_browser.pure.io.toByteReadChannel
 
-class RespondLocalFileContext(val request: PureRequest) {
-  val filePath by lazy { request.url.encodedPath }
-  private val mode = request.queryOrNull("mode") ?: "auto"
-  val preferenceStream = mode == "stream"
+open class ResponseLocalFileBase(filePath: String? = null, preferenceStream: Boolean? = null) {
+  open val filePath = filePath ?: ""
+  open val preferenceStream = preferenceStream ?: false
   private fun asModePureBody(binary: PureBinary) =
     if (preferenceStream) PureStreamBody(binary) else PureBinaryBody(binary)
 
   private fun asModePureBody(binary: PureStream) = PureStreamBody(binary)
-
   fun returnFile(body: IPureBody, size: Long?): PureResponse {
     val headers = PureHeaders()
     val extension = ContentType.fromFilePath(filePath)
@@ -66,6 +64,12 @@ class RespondLocalFileContext(val request: PureRequest) {
   }
 
   fun returnNext() = null
+}
+
+class RespondLocalFileContext(val request: PureRequest) : ResponseLocalFileBase() {
+  override val filePath by lazy { request.url.encodedPath }
+  private val mode = request.queryOrNull("mode") ?: "auto"
+  override val preferenceStream = mode == "stream"
 
   companion object {
     suspend fun PureRequest.respondLocalFile(respond: suspend RespondLocalFileContext.() -> PureResponse?) =
@@ -76,7 +80,7 @@ class RespondLocalFileContext(val request: PureRequest) {
 }
 
 expect fun loadByteChannelByPath(
-  context: RespondLocalFileContext,
+  context: ResponseLocalFileBase,
   root: String,
   filePath: String,
 ): PureResponse

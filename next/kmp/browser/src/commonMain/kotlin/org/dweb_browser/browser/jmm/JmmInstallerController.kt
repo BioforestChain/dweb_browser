@@ -8,12 +8,16 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.browser.jmm.ui.Render
+import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.compose.ObservableMutableState
 import org.dweb_browser.helper.compose.compositionChainOf
+import org.dweb_browser.helper.encodeURIComponent
+import org.dweb_browser.helper.isWebUrl
 import org.dweb_browser.sys.window.core.modal.WindowBottomSheetsController
 import org.dweb_browser.sys.window.ext.createBottomSheets
 import org.dweb_browser.sys.window.ext.getMainWindowId
 import org.dweb_browser.sys.window.ext.getOrOpenMainWindow
+import org.dweb_browser.sys.window.ext.getWindow
 
 internal val LocalShowWebViewVersion = compositionChainOf("ShowWebViewVersion") {
   mutableStateOf(false)
@@ -51,6 +55,7 @@ class JmmInstallerController(
       Render(modifier, this)
     }.also {
       viewDeferred.complete(it)
+      jmmNMM.getWindow(it.wid).hide()
       it.onDestroy {
         viewDeferred = CompletableDeferred()
       }
@@ -66,12 +71,29 @@ class JmmInstallerController(
   /**安装完成后打开app*/
   suspend fun openApp() {
     closeSelf() // 打开应用之前，需要关闭当前安装界面，否则在原生窗口的层级切换会出现问题
-    jmmNMM.bootstrapContext.dns.open(installMetadata.metadata.id)
+    // jmmNMM.bootstrapContext.dns.open(installMetadata.metadata.id)
+    jmmController.openApp(installMetadata.manifest.id)
+  }
+
+  suspend fun openHomePage() {
+    closeSelf()
+    val homepageUrl = installMetadata.referrerUrl ?: installMetadata.manifest.homepage_url
+    if (homepageUrl?.isWebUrl() == true) {
+      jmmNMM.nativeFetch("file://web.browser.dweb/openinbrowser?url=${homepageUrl.encodeURIComponent()}")
+    }
+  }
+
+  suspend fun openReferrerPage() {
+    closeSelf()
+    val referrerUrl = installMetadata.referrerUrl ?: installMetadata.manifest.homepage_url
+    if (referrerUrl?.isWebUrl() == true) {
+      jmmNMM.nativeFetch("file://web.browser.dweb/openinbrowser?url=${referrerUrl.encodeURIComponent()}")
+    }
   }
 
   // 关闭原来的app
   suspend fun closeApp() {
-    jmmNMM.bootstrapContext.dns.close(installMetadata.metadata.id)
+    jmmNMM.bootstrapContext.dns.close(installMetadata.manifest.id)
   }
 
   /**

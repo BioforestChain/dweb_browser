@@ -25,10 +25,12 @@ val debugBrowser = Debugger("browser")
  */
 class BrowserNMM : NativeMicroModule("web.browser.dweb", "Web Browser") {
   init {
-    short_name = BrowserI18nResource.browser_short_name.text;
+    short_name = BrowserI18nResource.browser_short_name.text
     dweb_deeplinks = listOf("dweb://search", "dweb://openinbrowser")
     categories = listOf(MICRO_MODULE_CATEGORY.Application, MICRO_MODULE_CATEGORY.Web_Browser)
-    icons = listOf(ImageResource(src = "file:///sys/browser-icons/$mmid.svg", type = "image/svg+xml"))
+    icons = listOf(
+      ImageResource(src = "file:///sys/browser-icons/$mmid.svg", type = "image/svg+xml")
+    )
     display = DisplayMode.Fullscreen
 
     /// 提供图标文件的适配器。注意，这里不需要随着 BrowserNMM bootstrap 来安装，而是始终有效。
@@ -58,21 +60,19 @@ class BrowserNMM : NativeMicroModule("web.browser.dweb", "Web Browser") {
       }
       val openBrowser = defineBooleanResponse {
         debugBrowser("do openinbrowser", request.href)
-        request.queryOrNull("url")?.let { url ->
-          openMainWindow()
-          browserController.tryOpenBrowserPage(url = url,
-            target = request.queryOrNull("target")?.let { AppBrowserTarget.valueOf(it) }
-              ?: AppBrowserTarget.BLANK)
-          true
-        } ?: false
+        val url = request.queryOrNull("url") ?: return@defineBooleanResponse false
+        openMainWindow()
+        val target = request.queryOrNull("target")?.let { AppBrowserTarget.ALL[it] }
+          ?: AppBrowserTarget.BLANK
+        browserController.tryOpenBrowserPage(url = url, target = target)
+        true
       }
       val searchBrowser = defineBooleanResponse {
         debugBrowser("do search", request.href)
-        request.queryOrNull("q")?.let { url ->
-          openMainWindow()
-          browserController.tryOpenBrowserPage(url = url, target = AppBrowserTarget.SELF)
-          true
-        } ?: false
+        val url = request.queryOrNull("q") ?: return@defineBooleanResponse false
+        openMainWindow()
+        browserController.tryOpenBrowserPage(url = url, target = AppBrowserTarget.SELF)
+        true
       }
 
       routes("search" bindDwebDeeplink searchBrowser,
@@ -90,7 +90,7 @@ class BrowserNMM : NativeMicroModule("web.browser.dweb", "Web Browser") {
      * 用来加载WebLink数据的，并且监听是否添加到桌面操作
      */
     private suspend fun loadWebLinkApps(
-      browserController: BrowserController, webLinkStore: WebLinkStore
+      browserController: BrowserController, webLinkStore: WebLinkStore,
     ) {
       webLinkStore.getAll().map { (_, webLinkManifest) ->
         bootstrapContext.dns.install(WebLinkMicroModule(webLinkManifest))

@@ -7,5 +7,5 @@ import org.dweb_browser.helper.platform.IPureViewController
 
 expect suspend fun IPureViewController.createDwebView(
   remoteMM: MicroModule.Runtime,
-  options: DWebViewOptions
+  options: DWebViewOptions,
 ): IDWebView

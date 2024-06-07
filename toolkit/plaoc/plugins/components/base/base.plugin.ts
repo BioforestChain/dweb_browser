@@ -1,6 +1,6 @@
 import { IpcPool } from "@dweb-browser/core";
+import { createSignal } from "@dweb-browser/helper/createSignal.ts";
 import { X_PLAOC_QUERY } from "../../common/const.ts";
-import { createSignal } from "../../helper/createSignal.ts";
 import { buildRequest, type $BuildRequestInit } from "../../helper/request.ts";
 import type { $BuildChannelWithBaseInit, $BuildRequestWithBaseInit, $MMID } from "./base.type.ts";
 
@@ -11,7 +11,17 @@ export abstract class BasePlugin {
   static api_url = location.origin.replace("//www", "//api");
   static external_url = BasePlugin.getUrl(X_PLAOC_QUERY.EXTERNAL_URL);
 
-  constructor(readonly mmid: $MMID) {}
+  self = {
+    mmid: "localhost.dweb" as `${string}.dweb`,
+    ipc_support_protocols: { cbor: false, protobuf: false, json: false },
+    dweb_deeplinks: [],
+    categories: [],
+    name: "plugins",
+  };
+
+  constructor(readonly mmid: $MMID) {
+    this.self.mmid = mmid;
+  }
 
   fetchApi(url: string, init?: $BuildRequestInit) {
     return this.buildApiRequest(url, init).fetch();

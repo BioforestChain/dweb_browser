@@ -87,7 +87,7 @@ actual suspend fun deepLinkDoSearch(dwebLinkSearchItem: DwebLinkSearchItem) {
 actual fun CommonBrowserView(
   viewModel: BrowserViewModel,
   modifier: Modifier,
-  windowRenderScope: WindowContentRenderScope
+  windowRenderScope: WindowContentRenderScope,
 ) {
   val iOSDelegate = remember {
     when (val delegate = iOSViewDelegateHolder) {

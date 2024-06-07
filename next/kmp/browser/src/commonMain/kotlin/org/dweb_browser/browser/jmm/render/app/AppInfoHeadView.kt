@@ -1,7 +1,6 @@
 package org.dweb_browser.browser.jmm.render.app
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -10,7 +9,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Verified
@@ -66,7 +64,7 @@ internal fun AppInfoHeadView(jmmAppInstallManifest: JmmAppInstallManifest) {
       )
     }
 
-    Spacer(modifier = Modifier.width(16.dp))
+    Spacer(modifier = Modifier.height(8.dp))
     Row(
       modifier = Modifier.fillMaxWidth(),
       verticalAlignment = Alignment.CenterVertically
@@ -79,10 +77,10 @@ internal fun AppInfoHeadView(jmmAppInstallManifest: JmmAppInstallManifest) {
         Icon(
           imageVector = Icons.Outlined.Verified, // Icons.Outlined.Dangerous
           contentDescription = BrowserI18nResource.IconDescription.verified.text,
-          modifier = Modifier.size(16.dp),
+          modifier = Modifier.size(14.dp),
           tint = Color.Blue
         )
-
+        Spacer(modifier = Modifier.width(8.dp))
         Text(
           text = jmmAppInstallManifest.id,
           maxLines = 1,
@@ -101,7 +99,7 @@ internal fun AppInfoHeadView(jmmAppInstallManifest: JmmAppInstallManifest) {
       Spacer(modifier = Modifier.width(16.dp))
 
       Text(
-        text = BrowserI18nResource.jmm_install_version() + " ${jmmAppInstallManifest.version}",
+        text = BrowserI18nResource.JMM.install_version() + " ${jmmAppInstallManifest.version}",
         fontSize = 12.sp,
         style = TextStyle.Default.copy(
           lineHeightStyle = LineHeightStyle(

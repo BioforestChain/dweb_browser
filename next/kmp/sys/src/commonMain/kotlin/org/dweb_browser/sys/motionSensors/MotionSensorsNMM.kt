@@ -1,12 +1,10 @@
 package org.dweb_browser.sys.motionSensors
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.byChannel
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
-import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.collectIn
 import org.dweb_browser.pure.http.queryAsOrNull
 
 class MotionSensorsNMM : NativeMicroModule("motion-sensors.sys.dweb", "Motion Sensors") {
@@ -27,10 +25,8 @@ class MotionSensorsNMM : NativeMicroModule("motion-sensors.sys.dweb", "Motion Se
           val motionSensors = MotionSensorsManage(this@MotionSensorsRuntime)
 
           if (motionSensors.isSupportAccelerometer) {
-            val job = CoroutineScope(ioAsyncExceptionHandler).launch {
-              motionSensors.getAccelerometerFlow(fps).collect {
-                ctx.sendJsonLine(it)
-              }
+            val job = motionSensors.getAccelerometerFlow(fps).collectIn(mmScope) {
+              ctx.sendJsonLine(it)
             }
 
             onClose {
@@ -44,10 +40,8 @@ class MotionSensorsNMM : NativeMicroModule("motion-sensors.sys.dweb", "Motion Se
           val fps = request.queryAsOrNull<Double>("fps")
 
           if (motionSensors.isSupportGyroscope) {
-            val job = CoroutineScope(ioAsyncExceptionHandler).launch {
-              motionSensors.getGyroscopeFlow(fps).collect {
-                ctx.sendJsonLine(it)
-              }
+            val job = motionSensors.getGyroscopeFlow(fps).collectIn(mmScope) {
+              ctx.sendJsonLine(it)
             }
 
             onClose {

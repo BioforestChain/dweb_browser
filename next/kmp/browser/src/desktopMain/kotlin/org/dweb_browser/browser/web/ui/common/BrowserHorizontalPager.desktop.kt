@@ -16,7 +16,7 @@ import org.dweb_browser.browser.web.model.LocalBrowserViewModel
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 actual fun BoxWithConstraintsScope.BrowserHorizontalPager(
-  state: PagerState, modifier: Modifier, pageContent: @Composable() (PagerScope.(Int) -> Unit)
+  state: PagerState, modifier: Modifier, pageContent: @Composable() (PagerScope.(Int) -> Unit),
 ) {
   val viewModel = LocalBrowserViewModel.current
   LaunchedEffect(Unit) { viewModel.isFillPageSize = false /* 桌面端使用Fixed */ }

@@ -107,7 +107,7 @@ export class JsProcessMicroModule extends MicroModule {
     this.fetchIpc.onEvent("wait-dns-connect").collect((event) => {
       event.consumeMapNotNull(async (ipcEvent) => {
         if (ipcEvent.name === "dns/connect/done") {
-          this.console.log("connect-done", ipcEvent.data);
+          this.console.verbose("connect-done", ipcEvent.data);
           const done = JSON.parse(core.IpcEvent.text(ipcEvent)) as {
             connect: $MMID;
             result: $MMID;
@@ -125,7 +125,7 @@ export class JsProcessMicroModule extends MicroModule {
           }
           return done;
         } else if (ipcEvent.name === "dns/connect/error") {
-          this.console.log("connect-error", ipcEvent.data);
+          this.console.error("connect-error", ipcEvent.data);
           const error = JSON.parse(core.IpcEvent.text(ipcEvent)) as {
             connect: $MMID;
             reason: string;
@@ -147,7 +147,7 @@ export class JsProcessMicroModule extends MicroModule {
     const ctx = {
       dns: {
         connect: (mmid: `${string}.dweb`, reason?: Request | undefined): $PromiseMaybe<core.Ipc> => {
-          this.console.log("connect", mmid);
+          this.console.verbose("connect", mmid);
           const ipc = waitMap.get(mmid);
           if (ipc) {
             return ipc.promise;
@@ -188,6 +188,9 @@ export class JsProcessMicroModule extends MicroModule {
         async search(category: MICRO_MODULE_CATEGORY): Promise<core.$MicroModuleManifest[]> {
           const response = await dnsRequest(`/search?category=${category}`);
           const manifest = await response.body.text();
+          if (manifest === "") {
+            return [];
+          }
           return JSON.parse(manifest);
         },
         async open(mmid: `${string}.dweb`): Promise<boolean> {
@@ -232,6 +235,26 @@ export class JsProcessMicroModuleRuntime extends MicroModuleRuntime {
     return await super.connect(mmid, auto_start);
   }
   protected override _bootstrap() {
+    // 自动转发来自 fetch-ipc 的请求
+    this.fetchIpc.onRequest("proxy-request").collect(async (reqEvent) => {
+      const request = reqEvent.consumeFilter((request) => {
+        const req_url = request.parsed_url;
+        return (
+          (req_url.protocol === "file:" &&
+            req_url.hostname.endsWith(".dweb") &&
+            // 这里不消费自己的 request，只做代理
+            req_url.hostname !== this.fetchIpc.locale.mmid) ||
+          (req_url.protocol === "dweb:" &&
+            // 这里不消费自己的 deeplink，只做代理
+            this.dweb_deeplinks.some((dp) => request.url.startsWith(dp)) === false)
+        );
+      });
+      if (request) {
+        console.log("proxy-request", request);
+        const response = await this.nativeFetch(request.toPureClientRequest());
+        return request.ipc.postMessage(await core.IpcResponse.fromResponse(request.reqId, response, request.ipc));
+      }
+    });
     const _beConnect = async (event: MessageEvent) => {
       const data = event.data;
       if (Array.isArray(data) === false) {
@@ -239,7 +262,7 @@ export class JsProcessMicroModuleRuntime extends MicroModuleRuntime {
       }
       const IPC_CONNECT_PREFIX = "ipc-connect/";
       if (typeof data[0] === "string" && data[0].startsWith(IPC_CONNECT_PREFIX)) {
-        this.console.log("ipc-connect", data);
+        this.console.verbose("ipc-connect", data);
         const mmid = data[0].slice(IPC_CONNECT_PREFIX.length);
         const port = event.ports[0];
         const endpoint = new WebMessageEndpoint(port, mmid);
@@ -366,7 +389,8 @@ export class JsProcessMicroModuleRuntime extends MicroModuleRuntime {
   }
 
   protected override async _getIpcForFetch(url: URL) {
-    if (url.hostname === "") {
+    // 支持 file:///
+    if (url.protocol === "file:" && url.hostname === "") {
       return await this.fileIpcPo;
     }
     return await super._getIpcForFetch(url);

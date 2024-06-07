@@ -85,15 +85,7 @@ const listenHttpDwebServer = async (
   target: string,
   routes: $ReqMatcher[] = [
     /** 定义了路由的方法 */
-    { pathname: "/", matchMode: "prefix", method: "GET" },
-    { pathname: "/", matchMode: "prefix", method: "POST" },
-    { pathname: "/", matchMode: "prefix", method: "PUT" },
-    { pathname: "/", matchMode: "prefix", method: "DELETE" },
-    { pathname: "/", matchMode: "prefix", method: "PATCH" },
-    { pathname: "/", matchMode: "prefix", method: "OPTIONS" },
-    { pathname: "/", matchMode: "prefix", method: "HEAD" },
-    { pathname: "/", matchMode: "prefix", method: "CONNECT" },
-    { pathname: "/", matchMode: "prefix", method: "TRACE" },
+    { pathname: "/", matchMode: "prefix", method: "GET,POST,PUT,DELETE,PATCH,OPTIONS,HEAD,CONNECT,TRACE" },
   ] satisfies $ReqMatcher[],
   customServerIpc?: Ipc
 ) => {

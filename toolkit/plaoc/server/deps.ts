@@ -15,7 +15,7 @@ export * from "@dweb-browser/helper/stream/readableStreamHelper.ts";
 export { isWebSocket } from "@dweb-browser/core/ipc/helper/ipcRequestHelper.ts";
 export type * from "@dweb-browser/js-process";
 export type * as $Http from "@dweb-browser/js-process/std-dweb-http.ts";
-export { $Core };
+export type { $Core };
 
 import type * as $Core from "@dweb-browser/js-process/std-dweb-core.ts";
 

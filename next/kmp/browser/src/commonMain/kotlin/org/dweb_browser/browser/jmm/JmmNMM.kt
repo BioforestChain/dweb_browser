@@ -15,6 +15,7 @@ import org.dweb_browser.core.std.file.fileTypeAdapterManager
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.ImageResource
+import org.dweb_browser.helper.removeInvisibleChars
 import org.dweb_browser.helper.removeWhen
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.io.SystemFileSystem
@@ -36,7 +37,7 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Service") {
   }
 
   init {
-    short_name = BrowserI18nResource.jmm_short_name.text
+    short_name = BrowserI18nResource.JMM.short_name.text
     categories = listOf(
       MICRO_MODULE_CATEGORY.Application,
       MICRO_MODULE_CATEGORY.Service,
@@ -62,11 +63,12 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Service") {
       jmmController.loadHistoryMetadataUrl() // 加载之前加载过的应用
 
       val routeInstallHandler = defineEmptyResponse {
-        val metadataUrl = request.query("url")
+        val metadataUrl = request.query("url").removeInvisibleChars().trim()
+        val referrerUrl = request.headers.getOrNull("referrer")
 
         debugJMM("fetchJmmMetadata", metadataUrl)
         // 加载url资源，这一步可能要多一些时间
-        val jmmMetadata = jmmController.fetchJmmMetadata(metadataUrl)
+        val jmmMetadata = jmmController.fetchJmmMetadata(metadataUrl, referrerUrl)
         jmmController.openInstallerView(jmmMetadata)
       }
 
@@ -116,7 +118,6 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Service") {
         }
       }
     }
-
 
     /**
      * 从磁盘中恢复应用

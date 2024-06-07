@@ -9,11 +9,10 @@ import kotlin.reflect.KProperty
 class Observable<K : Any> {
   data class Change<K, V>(val key: K, val newValue: V, val oldValue: V)
 
-  private val defaultCoroutineScope = CoroutineScope(ioAsyncExceptionHandler)
   private var customCoroutineScope: CoroutineScope? = null
   var coroutineScope
     get() = (if (customCoroutineScope?.isActive == true) customCoroutineScope else null)
-      ?: defaultCoroutineScope
+      ?: globalDefaultScope
     set(value) {
       customCoroutineScope = value
     }

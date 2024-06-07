@@ -21,7 +21,6 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -31,7 +30,7 @@ import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.interceptStartApp
 import org.dweb_browser.helper.compose.LocalCommonUrl
 import org.dweb_browser.helper.getBoolean
-import org.dweb_browser.helper.mainAsyncExceptionHandler
+import org.dweb_browser.helper.globalMainScope
 import org.dweb_browser.helper.platform.theme.DwebBrowserAppTheme
 import org.dweb_browser.helper.saveBoolean
 import kotlin.system.exitProcess
@@ -63,7 +62,7 @@ class SplashActivity : AppCompatActivity() {
         } else {
           // 如果不同意协议就把整个应用停了
           finish()
-          CoroutineScope(mainAsyncExceptionHandler).launch {
+          globalMainScope.launch {
             delay(100)
             exitProcess(0)
           }

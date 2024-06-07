@@ -12,7 +12,8 @@ suspend fun MicroModule.Runtime.awaitComposeWindow() =
   }
 
 fun MicroModule.Runtime.getComposeWindowOrNull() = (getPureViewControllerOrNull()
-  ?: windowInstancesManager.findByOwner(mmid)?.pureViewController)?.let {
+  ?: windowInstancesManager.findByOwner(mmid)?.pureViewController
+  ?: getRootPureViewControllerOrNull())?.let {
   require(it is PureViewController);
   it.getComposeWindowOrNull()
 }

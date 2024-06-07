@@ -59,6 +59,6 @@ interface $InsetsToCssOptions {
 const formatInsetsToCssOptions = (options: $InsetsToCssOptions = {}) => {
   const css_var_prefix =
     options.css_var_prefix ?? (options.css_var_name ? `--${options.css_var_name}-inset-` : `--inset-`);
-  const density = options.density ?? window.devicePixelRatio;
+  const density = options.density ?? globalThis.devicePixelRatio;
   return { css_var_prefix, density };
 };
