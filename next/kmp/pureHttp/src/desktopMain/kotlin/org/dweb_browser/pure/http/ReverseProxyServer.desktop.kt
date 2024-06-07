@@ -32,7 +32,6 @@ val debugReverseProxy = Debugger("ReverseProxy")
 
 class ReverseProxyServer {
   private var proxyServer: ServerSocket? = null
-  private var acceptJob: Job? = null
   fun start(backendPort: UShort): UShort {
     val currentProxyServer = this.proxyServer ?: run {
       val tcpSocketBuilder = aSocket(ActorSelectorManager(ioAsyncExceptionHandler)).tcp()
@@ -47,7 +46,7 @@ class ReverseProxyServer {
         throw IOException("Couldn't start proxy server on host [$proxyHost] and port [$proxyPort]\n\t${e.stackTraceToString()}")
       }
       println("Started proxy server at ${proxyServer.localAddress}")
-      acceptJob = CoroutineScope(ioAsyncExceptionHandler).launch {
+      val acceptJob = CoroutineScope(ioAsyncExceptionHandler).launch {
         while (!proxyServer.isClosed) {
           val client = proxyServer.accept()
           launch {
@@ -83,9 +82,8 @@ class ReverseProxyServer {
                   println("Failed to connect to client or receive request from ${client.remoteAddress}")
                   // this blocks the coroutine's flow but whatever, it's the end of the coroutine now
                   client.close()
-//                  cancel()
+                  cancel()
                 }
-
               }
             } catch (e: Exception) {
               debugReverseProxy(
@@ -99,7 +97,7 @@ class ReverseProxyServer {
           }
         }
       }
-      acceptJob?.invokeOnCompletion {
+      acceptJob.invokeOnCompletion {
         WARNING("Proxy server closed ${proxyServer.isClosed}")
       }
 
@@ -154,28 +152,28 @@ suspend fun tunnelHttps(
   clientWriter.flush()
 
   coroutineScope {
-    launch(ioAsyncExceptionHandler) {
+    launch {
       try {
         serverReader.copyTo(clientWriter)
       } catch (e: IOException) {
         WARNING("Failed to copy from server to client: ${e.message} [${connectHost}:${connectPort}]")
-        serverReader.cancel(e)
-        clientWriter.close(e)
+//        serverReader.cancel(e)
+//        clientWriter.close(e)
         client.close()
-        server.close()
-        throw e
+//        server.close()
+//        throw e
       }
     }
-    launch(ioAsyncExceptionHandler) {
+    launch {
       try {
         clientReader.copyTo(serverWriter)
       } catch (e: IOException) {
         WARNING("Failed to copy from client to server: ${e.message} [${connectHost}:${connectPort}]")
-        clientReader.cancel(e)
-        serverWriter.close(e)
+//        clientReader.cancel(e)
+//        serverWriter.close(e)
         client.close()
-        server.close()
-        throw e
+//        server.close()
+//        throw e
       }
     }
   }

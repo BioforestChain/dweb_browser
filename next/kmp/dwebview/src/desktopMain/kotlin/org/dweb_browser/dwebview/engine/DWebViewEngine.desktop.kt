@@ -211,7 +211,7 @@ class DWebViewEngine internal constructor(
               if (result.first() == '1') {
                 deferred.complete(result.substring(1))
               } else {
-                deferred.completeExceptionally(JsException(result.substring(1)))
+                deferred.completeExceptionally(JsException("result error: ${result.substring(1)}"))
               }
             }.getOrElse { deferred.completeExceptionally(it) }
           }

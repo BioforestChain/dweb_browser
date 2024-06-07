@@ -55,6 +55,12 @@ class RunningApp(
       }
     )
     windows.add(newWin)
+    // 监听app被shutdown的时候也需要移除window
+    ipc.onClosed {
+      newWin.lifecycleScope.launch {
+        newWin.closeRoot()
+      }
+    }
     /// 窗口销毁的时候
     newWin.onClose {
       /// 通知模块，销毁渲染
