@@ -421,9 +421,9 @@ class Ipc internal constructor(
   suspend fun postMessage(data: IpcMessage) {
     runCatching {
       awaitOpen("then-postMessage")
-      withScope(scope) {
+//      withScope(scope) {
         endpoint.postIpcMessage(EndpointIpcMessage(pid, data))
-      }
+//      }
     }.getOrElse {
       WARNING("fail to postMessage: $data")
       WARNING(it.message)

@@ -38,12 +38,11 @@ suspend fun main(vararg args: String) {
     }
     // 启动“应用”
     PureViewController.startApplication()
-
     dnsNMMDeferred.await().runtimeOrNull?.shutdown()
   } catch (e: Exception) {
-    WARNING("global catch error : $e")
-    e.printStackTrace()
+    WARNING("global catch error : ${e.message}")
   } finally {
+    WARNING("exitProcess")
     exitProcess(0)
   }
 }

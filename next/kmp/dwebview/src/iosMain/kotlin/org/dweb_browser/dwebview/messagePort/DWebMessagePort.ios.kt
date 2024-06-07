@@ -34,7 +34,6 @@ class DWebMessagePort(val portId: Int, private val webview: DWebView, parentScop
     }
     channel
   }
-  private val scope = parentScope + SupervisorJob()
 
   override suspend fun start() {
     _started.value

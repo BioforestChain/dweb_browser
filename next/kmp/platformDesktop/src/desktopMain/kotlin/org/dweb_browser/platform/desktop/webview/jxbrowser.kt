@@ -9,7 +9,6 @@ import com.teamdev.jxbrowser.engine.RenderingMode.OFF_SCREEN
 import com.teamdev.jxbrowser.engine.event.EngineClosed
 import kotlinx.atomicfu.locks.SynchronizedObject
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.ConcurrentMap
 import java.nio.file.Path as NioPath
 
 private const val KEY = "jxbrowser.license.key"

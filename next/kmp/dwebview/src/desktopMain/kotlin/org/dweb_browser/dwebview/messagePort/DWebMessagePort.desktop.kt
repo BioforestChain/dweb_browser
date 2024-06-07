@@ -90,6 +90,8 @@ class DWebMessagePort(val port: /* MessagePort */JsObject, private val webview: 
         port.call<Unit>("close")
       } catch (e: ObjectClosedException) {
         WARNING("messageChannel port 对象已经被释放！${cause}")
+      } catch (e: Exception) {
+        WARNING("port.call send message error：[${e.message}]")
       }
       unref()
     }
