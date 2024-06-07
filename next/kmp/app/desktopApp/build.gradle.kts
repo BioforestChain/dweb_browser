@@ -33,11 +33,10 @@ kotlin {
   }
 }
 
-val appVersion = "3.6.0400"
+val appVersion = "3.6.0601"
 
 compose.desktop {
   val properties = localProperties()
-  val isAppStoreRelease = properties.getBoolean("compose.desktop.mac.release")
   application {
     mainClass = "MainKt"
 
@@ -91,8 +90,27 @@ compose.desktop {
         bundleID = "com.instinct.bfexplorer"
         setDockNameSameAsPackageName = true
 
+        buildTypes.release.proguard {
+          isEnabled.set(false)
+          obfuscate.set(false)
+          configurationFiles.from(project.file("../androidApp/proguard-rules.pro"))
+        }
         infoPlist {
           extraKeysRawXml = macExtraPlistKeys
+        }
+        gradle.taskGraph.hasTask("notarizeReleaseDmg")
+        if (gradle.taskGraph.allTasks.any {
+          println("QAQ gradle task name=${it.name}")
+          it.name.contains("notarize") }) {
+          notarization {
+            appleID.set(properties.getString("compose.desktop.mac.notarization.appleID"))
+            password.set(properties.getString("compose.desktop.mac.notarization.password"))
+            teamID.set(properties.getString("compose.desktop.mac.notarization.teamID"))
+          }
+        } else {
+          provisioningProfile.set(project.file("DwebBrowser.provisionprofile"))
+          runtimeProvisioningProfile.set(project.file("DwebBrowser.provisionprofile"))
+//          appStore = true
         }
         signing {
           if (properties.getBoolean("compose.desktop.mac.sign")) {
@@ -101,23 +119,9 @@ compose.desktop {
             keychain.set(properties.getString("compose.desktop.mac.keychain"))
           }
         }
-        notarization {
-          appleID.set("kezhaofeng@bnqkl.cn")
-        }
-        buildTypes.release.proguard {
-          isEnabled.set(false)
-          obfuscate.set(false)
-          configurationFiles.from(project.file("../androidApp/proguard-rules.pro"))
-        }
-        if (isAppStoreRelease) {
-          provisioningProfile.set(project.file("DwebBrowser.provisionprofile"))
-          runtimeProvisioningProfile.set(project.file("DwebBrowser.provisionprofile"))
-          entitlementsFile.set(project.file("default-entitlements.plist"))
-          runtimeEntitlementsFile.set(project.file("runtime-entitlements.plist"))
-//          appStore = true
-        } else {
-          entitlementsFile.set(project.file("default-entitlements.plist"))
-        }
+
+        entitlementsFile.set(project.file("default-entitlements.plist"))
+        runtimeEntitlementsFile.set(project.file("runtime-entitlements.plist"))
       }
     }
   }
