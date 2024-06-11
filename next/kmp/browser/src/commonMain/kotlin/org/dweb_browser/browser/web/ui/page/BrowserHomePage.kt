@@ -19,7 +19,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -30,9 +34,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserDrawResource
+import org.dweb_browser.browser.web.BrowserNMM
 import org.dweb_browser.browser.web.model.LocalBrowserViewModel
 import org.dweb_browser.browser.web.model.page.BrowserHomePage
+import org.dweb_browser.core.std.dns.DnsNMM
+import org.dweb_browser.core.std.file.FileNMM
 import org.dweb_browser.helper.compose.clickableWithNoEffect
+import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
 fun BrowserHomePage.BrowserHomePageRender(modifier: Modifier = Modifier) {
@@ -96,4 +104,22 @@ fun BrowserHomePage.BrowserHomePageRender(modifier: Modifier = Modifier) {
       }
     }
   }
+}
+
+@Preview
+@Composable
+fun BrowserHomePagePreview() {
+  val dnsNMM = DnsNMM()
+  var browserHomePage by mutableStateOf<BrowserHomePage?>(null)
+  LaunchedEffect(Unit) {
+    val browserNMM = BrowserNMM()
+    val fileNMM = FileNMM()
+    dnsNMM.install(browserNMM)
+    dnsNMM.install(fileNMM)
+    val dnsRuntime = dnsNMM.bootstrap()
+    val browserRuntime = dnsRuntime.open(browserNMM.mmid) as BrowserNMM.BrowserRuntime
+    browserHomePage = BrowserHomePage(browserRuntime.browserController)
+  }
+
+  browserHomePage?.BrowserHomePageRender()
 }

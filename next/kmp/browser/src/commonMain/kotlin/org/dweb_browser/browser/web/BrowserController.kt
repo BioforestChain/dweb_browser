@@ -26,8 +26,9 @@ import org.dweb_browser.sys.window.core.windowAdapterManager
 import org.dweb_browser.sys.window.ext.getWindow
 
 class BrowserController(
-  private val browserNMM: BrowserNMM.BrowserRuntime, private val webLinkStore: WebLinkStore,
+  private val browserNMM: BrowserNMM.BrowserRuntime,
 ) {
+  val webLinkStore: WebLinkStore = browserNMM.webLinkStore
   private val windowVisibleSignal = Signal<Boolean>()
   val onWindowVisible = windowVisibleSignal.toListener()
 
@@ -84,7 +85,8 @@ class BrowserController(
       when (IPureViewController.platform) {
         PureViewControllerPlatform.Android,
 
-        PureViewControllerPlatform.Apple -> {
+        PureViewControllerPlatform.Apple,
+        -> {
           newWin.maximize()
         }
 
