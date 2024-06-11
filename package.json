@@ -1,9 +1,9 @@
 {
   "name": "dweb-browser",
   "productName": "Dweb Browser",
-  "description": "该配置只包含基本的一些全局工具链",
+  "description": "跨平台分布式应用浏览器",
   "private": "true",
-  "version": "0.0.0",
+  "version": "3.0.0",
   "devDependencies": {
     "prettier": "^2.8.8",
     "prettier-plugin-organize-imports": "^3.2.4",

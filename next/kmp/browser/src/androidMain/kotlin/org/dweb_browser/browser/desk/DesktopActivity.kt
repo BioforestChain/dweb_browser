@@ -4,6 +4,7 @@ import android.os.Build
 import android.provider.Settings.Global
 import android.webkit.WebView
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.imeAnimationTarget
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalDensity
@@ -34,19 +35,13 @@ class DesktopActivity : PureViewController() {
     DesktopViewControllerCore(this)
 
     addContent {
-      val imeVisible = LocalWindowsImeVisible.current
+      /// 对 imeVisible 的绑定支持
+      val imeVisibleState = LocalWindowsImeVisible.current
       val density = LocalDensity.current
-      val ime =
-        androidx.compose.foundation.layout.WindowInsets.imeAnimationTarget // 直接使用ime，数据不稳定，会变化，改为imeAnimationTarget就是固定值
-      LaunchedEffect(ime) {
+      val imeInsets = WindowInsets.imeAnimationTarget // 直接使用ime，数据不稳定，会变化，改为imeAnimationTarget就是固定值
+      LaunchedEffect(imeInsets, density) {
         window.decorView.viewTreeObserver.addOnGlobalLayoutListener {
-          /*val rect = android.graphics.Rect()
-          window.decorView.getWindowVisibleDisplayFrame(rect)
-          val screenHeight = window.decorView.rootView.height
-          val screenDifference = screenHeight - rect.bottom
-          val visible =  screenDifference > screenHeight / 3
-          imeVisible.value = visible*/
-          imeVisible.value = ime.getBottom(density) != 0
+          imeVisibleState.value = imeInsets.getBottom(density) != 0
         }
       }
     }

@@ -15,12 +15,12 @@ import io.ktor.utils.io.ByteWriteChannel
 import io.ktor.utils.io.copyTo
 import io.ktor.utils.io.readAvailable
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.io.IOException
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.WARNING
@@ -32,11 +32,9 @@ val debugReverseProxy = Debugger("ReverseProxy")
 
 class ReverseProxyServer {
   private var proxyServer: ServerSocket? = null
-  private var acceptJob: Job? = null
-  private val actorSelectorManager = ActorSelectorManager(ioAsyncExceptionHandler)
   fun start(backendPort: UShort): UShort {
     val currentProxyServer = this.proxyServer ?: run {
-      val tcpSocketBuilder = aSocket(actorSelectorManager).tcp()
+      val tcpSocketBuilder = aSocket(ActorSelectorManager(ioAsyncExceptionHandler)).tcp()
       val proxyServer: ServerSocket
       val proxyHost = "0.0.0.0"
       val proxyPort = 0
@@ -48,18 +46,15 @@ class ReverseProxyServer {
         throw IOException("Couldn't start proxy server on host [$proxyHost] and port [$proxyPort]\n\t${e.stackTraceToString()}")
       }
       println("Started proxy server at ${proxyServer.localAddress}")
-      acceptJob = CoroutineScope(ioAsyncExceptionHandler).launch {
-        while (true) {
+      val acceptJob = CoroutineScope(ioAsyncExceptionHandler).launch {
+        while (!proxyServer.isClosed) {
           val client = proxyServer.accept()
           launch {
             try {
               val clientReader = client.openReadChannel()
               val clientWriter = client.openWriteChannel(true)
 
-              // actually Ktor's documentation is pretty shallow so I'm not sure whether it is supposed to first
-              // call awaitContent() and only then read data or not
-              // readAvailable() ensures that it is suspendable method that waits until some data is received
-              // whatever, it works without awaitContent() but let's just left it here
+              // 等待内容填充
               clientReader.awaitContent()
               val buffer = ByteArray(clientReader.availableForRead)
               clientReader.readAvailable(buffer)
@@ -89,13 +84,12 @@ class ReverseProxyServer {
                   client.close()
                   cancel()
                 }
-
               }
             } catch (e: Exception) {
               debugReverseProxy(
-                "start",
+                "proxyServer-error",
                 "Something went wrong during communicating with client",
-                e
+                e.message
               )
               client.close()
               cancel()
@@ -103,7 +97,7 @@ class ReverseProxyServer {
           }
         }
       }
-      acceptJob?.invokeOnCompletion {
+      acceptJob.invokeOnCompletion {
         WARNING("Proxy server closed ${proxyServer.isClosed}")
       }
 
@@ -118,7 +112,6 @@ class ReverseProxyServer {
     proxyServer?.let { serverSocket ->
       if (!serverSocket.isClosed) {
         serverSocket.close()
-        actorSelectorManager.close()
       }
     }
     proxyServer = null
@@ -143,8 +136,10 @@ suspend fun tunnelHttps(
     }
     server = tcpSocketBuilder.connect(connectHost, connectPort)
   } catch (e: Exception) {
-    println("Failed to connect to ${connectHost}:${connectPort}\n\t${e.printStackTrace()}")
-    client.close()
+    WARNING("Failed to connect to ${connectHost}:${connectPort}=> ${e.message}")
+    withContext(Dispatchers.IO) {
+      client.close()
+    }
     return
   }
   println("Connected to ${connectHost}:${connectPort}")
@@ -156,12 +151,32 @@ suspend fun tunnelHttps(
   clientWriter.writeAvailable(ByteBuffer.wrap(successConnectionString.toByteArray()))
   clientWriter.flush()
 
-  runCatching {
-    coroutineScope {
-      launch { serverReader.copyTo(clientWriter) }
-      launch { clientReader.copyTo(serverWriter) }
+  coroutineScope {
+    launch {
+      try {
+        serverReader.copyTo(clientWriter)
+      } catch (e: IOException) {
+        WARNING("Failed to copy from server to client: ${e.message} [${connectHost}:${connectPort}]")
+        serverReader.cancel(e)
+        clientWriter.close(e)
+        client.close()
+        server.close()
+        throw e
+      }
     }
-  }.getOrNull()
+    launch {
+      try {
+        clientReader.copyTo(serverWriter)
+      } catch (e: IOException) {
+        WARNING("Failed to copy from client to server: ${e.message} [${connectHost}:${connectPort}]")
+        clientReader.cancel(e)
+        serverWriter.close(e)
+        client.close()
+        server.close()
+        throw e
+      }
+    }
+  }
 }
 
 class ConnectRequest(buffer: ByteArray) {

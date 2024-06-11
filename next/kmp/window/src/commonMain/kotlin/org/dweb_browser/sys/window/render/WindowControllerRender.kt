@@ -268,7 +268,9 @@ fun WindowController.WindowRender(modifier: Modifier) {
            * 用于扣除的底部区域
            * 这边使用键盘与窗口的交集作为底部区域
            */
-          val paddingBottom = if (!keyboardOverlaysContent) keyboardInsetBottom else 0f
+          val paddingBottom = if (keyboardOverlaysContent) 0f else keyboardInsetBottom
+
+          println("QAQ paddingBottom=$paddingBottom keyboardOverlaysContent=$keyboardOverlaysContent")
 
           val limits = LocalWindowLimits.current
           val isResizing = inResizeAnimation || inResizeFrame

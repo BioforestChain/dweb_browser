@@ -155,14 +155,12 @@ class DWebViewEngine internal constructor(
         // 同步销毁
         browser.on(BrowserClosed::class.java) {
           userDataDirectoryInUseMicroModuleSet.remove(remoteMM.mmid)
-          engine.browsers().isEmpty().trueAlso { engine.close() }
+          engine.browsers().isEmpty().trueAlso {
+            if (!engine.isClosed) {
+              engine.close()
+            }
+          }
         }
-//        remoteMM.scopeLaunch(cancelable = true) {
-//          remoteMM.nativeFetch(URLBuilder("file://tray.sys.dweb/registry").apply {
-//            parameters["title"] = "Exit App"
-//            parameters["url"] = ""
-//          }.buildUnsafeString())
-//        }
         browser
       }
     }
@@ -213,7 +211,7 @@ class DWebViewEngine internal constructor(
               if (result.first() == '1') {
                 deferred.complete(result.substring(1))
               } else {
-                deferred.completeExceptionally(JsException(result.substring(1)))
+                deferred.completeExceptionally(JsException("result error: ${result.substring(1)}"))
               }
             }.getOrElse { deferred.completeExceptionally(it) }
           }

@@ -3,7 +3,7 @@ package org.dweb_browser.helper
 actual open class EnvSwitchCore {
   private val switchSet = mutableMapOf<String, String>()
   actual fun add(switch: String, value: String) {
-    switchSet[switch] = value
+    switchSet["dweb-$switch"] = value
   }
 
   actual fun isEnabled(switch: String): Boolean {
@@ -11,6 +11,7 @@ actual open class EnvSwitchCore {
   }
 
   actual fun get(switch: String): String {
-    return switchSet[switch] ?: ""
+    val key = "dweb-$switch"
+    return switchSet[key] ?: CommonBuildConfig.switchMaps[key] ?: ""
   }
 }

@@ -6,6 +6,7 @@ const resolveTo = createBaseResolveTo(import.meta.url);
 // 运行 assembleRelease 命令，继承输出
 const cmd = Deno.build.os === "windows" ? resolveTo("gradlew.bat") : resolveTo("gradlew");
 const args = ["assembleRelease", "assembleDebug", "bundleRelease"];
+
 const doBundle = async () => {
   console.log(">", cmd, ...args);
 
@@ -22,6 +23,20 @@ const doBundle = async () => {
   if (code !== 0) {
     console.error(`${cmd} 失败`);
     Deno.exit(code);
+  }
+};
+
+// 定义编译目录，放在这边的目的是为了编译器先删除内部文件，避免之前编译的数据也被拷贝到 release 中
+const BUILD_OUTPUT_DIR = resolveTo("./app/androidApp/build/outputs/apk");
+const BUILD_OUTPUT_DIR_BUNDLE = resolveTo("./app/androidApp/build/outputs/bundle");
+
+const doCleanBuildDIR = async () => {
+  console.log("清空编译目录，避免旧数据干扰...")
+  if (fs.existsSync(BUILD_OUTPUT_DIR)) {
+    Deno.removeSync(BUILD_OUTPUT_DIR, { recursive: true })
+  }
+  if (fs.existsSync(BUILD_OUTPUT_DIR_BUNDLE)) {
+    Deno.removeSync(BUILD_OUTPUT_DIR_BUNDLE, { recursive: true })
   }
 };
 
@@ -62,13 +77,11 @@ const doCopy = async (versionName: string) => {
     }
   };
   // 遍历构建输出目录，筛选需要的文件夹
-  const BUILD_OUTPUT_DIR = resolveTo("./app/androidApp/build/outputs/apk");
   for await (const dirEntry of Deno.readDir(BUILD_OUTPUT_DIR)) {
     await copyFile(BUILD_OUTPUT_DIR, dirEntry);
   }
 
   // 遍历构建输出目录，筛选需要的文件夹(针对aab文件)
-  const BUILD_OUTPUT_DIR_BUNDLE = resolveTo("./app/androidApp/build/outputs/bundle");
   for await (const dirEntry of Deno.readDir(BUILD_OUTPUT_DIR_BUNDLE)) {
     await copyFile(BUILD_OUTPUT_DIR_BUNDLE, dirEntry);
   }
@@ -138,5 +151,6 @@ const upgradeVersionInfo = async (filePath: string, forceUpdate = false) => {
 
 // 发布版本的时候，升级下版本信息 versionCode和versionName
 const versionName = await upgradeVersionInfo(resolveTo("gradle/libs.versions.toml"), Deno.args.includes("--new"));
+await doCleanBuildDIR(); // 清空编译目录
 await doBundle();
 await doCopy(versionName);

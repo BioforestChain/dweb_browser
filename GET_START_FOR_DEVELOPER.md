@@ -59,10 +59,29 @@
      1. 最后，选择刚才创建的 Configuration，点击 Run 就可以跑起来了
 
 1. 打包应用：
+
    - 如果是 Desktop 用户，和编译运行时一样，需要在 Configurations 中的打包命令中配置 -Djxbrowser.license.key
    - 如果是 Android 开发者，请先运行 `./gradlew androidApp:generateBaselineProfile`，它会在 `next/kmp/app/androidApp/src/androidMain/generated/baselineProfiles` 文件夹下生成一些 txt 文件，这些文件可以在之后打包的时候，辅助应用打包出启动更快，运行性能更接近 JIT 优化完成的版本
      > 不过因为目前使用了一些 WebView 的技术，这对于自动化测试时选择元素是有一些阻碍，所以只能用了固定的坐标来做测试。
      > 目前这个测试使用了 Pixel4 设备的屏幕大小。
+   - Android 开发者需要在 androidApp 文件夹下配置 key.propries 文件，然后就可以运行 deno task bundle:android 来生成 apk/aab 文件。
+     并且该脚本会自动根据日期配置版本号，目前的自动配置版本的规则是：
+
+     如果日期变了，那么会自动升级版本成 $major.$taday.$patch=0
+     如果在当天，默认不会再去修改 patch 这个小版本号。但是可以添加 --new 参数来强行更新小版本号。
+
+     最终产出是这样几个文件：
+
+     - DwebBrowser_all_v$VERSION.aab
+     - DwebBrowser_all_v$VERSION.apk
+     - DwebBrowser_arm64_v$VERSION.aab
+     - DwebBrowser_arm64_v$VERSION.apk
+     - DwebBrowser_arm64_v$VERSION_debug.apk
+
+     分别是 release apk 两个，分别是单 arm64 架构和 all 所有支持的架构（arm64 + arm32 + x86 + x86_64）；
+     配对的 release aab 也有两个，架构同上。上架 Google Play 只需要提供 all 的 aab；
+     最后还有一个 debug apk，是 arm64 架构。
+
    - 如果要打包 macos 应用，主要的思路是先打包出 `.app` 文件夹，然后再生成 `.pkg` 文件，之后再通过 Transporter 进行上传
      1. 首先在系统上准备好证书文件，详见官方文档 [Checking existing certificates](ttps://github.com/JetBrains/compose-multiplatform/blob/fc90219ad63799fc4cd08ceb57b428948a223b21/tutorials/Signing_and_notarization_on_macOS/README.md#checking-existing-certificates)
         > 注意，这里需要有两个证书："Mac App Distribution" 和 "Mac Installer Distribution"

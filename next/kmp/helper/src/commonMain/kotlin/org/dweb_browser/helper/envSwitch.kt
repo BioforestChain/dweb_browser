@@ -17,7 +17,6 @@ class EnvSwitch : EnvSwitchCore() {
   fun get(switch: ENV_SWITCH_KEY) = get(switch.key)
 }
 
-
 val envSwitch = EnvSwitch()
 
 enum class ENV_SWITCH_KEY(val key: String) {
@@ -30,5 +29,5 @@ enum class ENV_SWITCH_KEY(val key: String) {
   ALL_WINDOW_DEVTOOLS("*-window-devtools"),
   DWEBVIEW_JS_CONSOLE("dwebview-js-console"),
   DESKTOP_STYLE_COMPOSE("destktop-style-compose"),
-  ;
+  DESKTOP_USE_ORIGIN("desktop-use-origin"),
 }
