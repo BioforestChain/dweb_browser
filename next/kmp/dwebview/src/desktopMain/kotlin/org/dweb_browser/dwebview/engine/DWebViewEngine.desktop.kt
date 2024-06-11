@@ -155,7 +155,7 @@ class DWebViewEngine internal constructor(
         // 同步销毁
         browser.on(BrowserClosed::class.java) {
           userDataDirectoryInUseMicroModuleSet.remove(remoteMM.mmid)
-          engine.browsers().isNotEmpty().trueAlso {
+          engine.browsers().isEmpty().trueAlso {
             if (!engine.isClosed) {
               engine.close()
             }

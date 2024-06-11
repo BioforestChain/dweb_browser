@@ -157,11 +157,11 @@ suspend fun tunnelHttps(
         serverReader.copyTo(clientWriter)
       } catch (e: IOException) {
         WARNING("Failed to copy from server to client: ${e.message} [${connectHost}:${connectPort}]")
-//        serverReader.cancel(e)
-//        clientWriter.close(e)
+        serverReader.cancel(e)
+        clientWriter.close(e)
         client.close()
-//        server.close()
-//        throw e
+        server.close()
+        throw e
       }
     }
     launch {
@@ -169,11 +169,11 @@ suspend fun tunnelHttps(
         clientReader.copyTo(serverWriter)
       } catch (e: IOException) {
         WARNING("Failed to copy from client to server: ${e.message} [${connectHost}:${connectPort}]")
-//        clientReader.cancel(e)
-//        serverWriter.close(e)
+        clientReader.cancel(e)
+        serverWriter.close(e)
         client.close()
-//        server.close()
-//        throw e
+        server.close()
+        throw e
       }
     }
   }
