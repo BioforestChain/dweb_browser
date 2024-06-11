@@ -258,4 +258,6 @@ class TaskbarController private constructor(
     }
     return if (toggle) openTaskbarActivity() else closeTaskbarActivity()
   }
+
+  suspend fun toggleWindowMaximize(mmid: MMID) = desktopController.getDesktopWindowsManager().toggleMaximize(mmid)
 }

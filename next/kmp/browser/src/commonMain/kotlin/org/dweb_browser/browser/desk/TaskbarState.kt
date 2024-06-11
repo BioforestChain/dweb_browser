@@ -22,8 +22,8 @@ class TaskbarState() {
   val composableHelper by lazy { observable.toComposableHelper(this@TaskbarState) }
   var layoutX by observable.observe(TASKBAR_PROPERTY_KEY.LayoutX, Float.NaN)
   var layoutY by observable.observe(TASKBAR_PROPERTY_KEY.LayoutY, Float.NaN)
-  var layoutWidth by observable.observe(TASKBAR_PROPERTY_KEY.LayoutWidth, 75f)
-  var layoutHeight by observable.observe(TASKBAR_PROPERTY_KEY.LayoutHeight, 75f)
+  var layoutWidth by observable.observe(TASKBAR_PROPERTY_KEY.LayoutWidth, 55f)
+  var layoutHeight by observable.observe(TASKBAR_PROPERTY_KEY.LayoutHeight, 55f)
   var layoutTopPadding by observable.observe(TASKBAR_PROPERTY_KEY.LayoutTopPadding, 0f)
   var layoutLeftPadding by observable.observe(TASKBAR_PROPERTY_KEY.LayoutLeftPadding, 0f)
   var floatActivityState by observable.observe(TASKBAR_PROPERTY_KEY.FloatActivityState, false)

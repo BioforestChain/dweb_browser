@@ -688,9 +688,3 @@ data class DesktopAppModel(
     return "${id}, ${mmid}, ${running}"
   }
 }
-
-fun Modifier.noRippleClickable(onClick: () -> Unit): Modifier {
-  return pointerInput(Unit) {
-    detectTapGestures(onTap = { onClick() })
-  }
-}

@@ -1,13 +1,10 @@
 package org.dweb_browser.browser.desk
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -22,9 +19,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Divider
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.Image
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,33 +41,32 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawStyle
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.delay
+import androidx.compose.ui.window.Popup
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
-import org.dweb_browser.helper.compose.clickableWithNoEffect
-import org.dweb_browser.helper.compose.hex
+import org.dweb_browser.helper.collectIn
+import org.dweb_browser.pure.image.compose.PureImageLoader
+import org.dweb_browser.pure.image.compose.SmartLoad
 import org.dweb_browser.pure.image.offscreenwebcanvas.FetchHook
-import org.dweb_browser.sys.window.render.AppIcon
+import org.dweb_browser.sys.window.render.LocalWindowController
 import org.dweb_browser.sys.window.render.imageFetchHook
-import kotlin.random.Random
 import kotlin.math.PI
 import kotlin.math.cos
+import kotlin.math.max
 import kotlin.math.sin
+import kotlin.random.Random
 
-private val paddingValue = 8
-private val taskBarWidth = 60f
-private val taskBarDividerHeight = 10f
+private val paddingValue = 6
+private val taskBarWidth = 55f
+private val taskBarDividerHeight = 8f
 
 @Composable
 fun NewTaskbarView(
@@ -85,13 +86,35 @@ fun NewTaskbarView(
     }
   }
 
-  LaunchedEffect(Unit) {
-    val taskbarApps = taskbarController.getTaskbarAppList(Int.MAX_VALUE).map {
-      TaskbarAppModel(it.mmid, it.icons.firstOrNull()?.src ?: "", it.running)
+  fun doGetApps() {
+    scope.launch {
+      val taskbarApps = taskbarController.getTaskbarAppList(Int.MAX_VALUE).map { new ->
+        val oldApp = apps.firstOrNull { old ->
+          old.mmid == new.mmid && old.icon == new.icons.firstOrNull()?.src
+        }
+        TaskbarAppModel(
+          new.mmid,
+          new.icons.firstOrNull()?.src ?: "",
+          new.running,
+          oldApp?.isShowClose ?: false,
+        )
+      }
+      apps.clear()
+      apps.addAll(taskbarApps)
+      updateTaskBarSize(taskbarApps.count())
     }
-    apps.clear()
-    apps.addAll(taskbarApps)
-    updateTaskBarSize(taskbarApps.count())
+  }
+
+  DisposableEffect(Unit) {
+    val job = taskbarController.onUpdate.run {
+      filter { it != "bounds" }
+    }.collectIn(scope) {
+      doGetApps()
+    }
+
+    onDispose {
+      job.cancel()
+    }
   }
 
   Box(
@@ -108,23 +131,31 @@ fun NewTaskbarView(
       },
     contentAlignment = Alignment.Center
   ) {
+
     Column(
       modifier = Modifier.fillMaxSize(),
       verticalArrangement = Arrangement.Center,
       horizontalAlignment = Alignment.CenterHorizontally
     ) {
-      apps.forEach {
+
+      apps.forEach { app ->
         TaskBarAppIcon(
           Modifier,
-          it,
+          app,
           taskbarController.deskNMM.imageFetchHook,
-          click = {
+          openApp = { mmid ->
             scope.launch {
-              taskbarController.open(it)
+              taskbarController.open(mmid)
             }
-          }, close = {
+          },
+          quitApp = { mmid ->
             scope.launch {
-              taskbarController.quit(it)
+              taskbarController.quit(mmid)
+            }
+          },
+          toggleWindow = { mmid ->
+            scope.launch {
+              taskbarController.toggleWindowMaximize(mmid)
             }
           }
         )
@@ -134,7 +165,7 @@ fun NewTaskbarView(
         TaskBarDivider()
       }
 
-      TaskBarHomeIcon(){
+      TaskBarHomeIcon() {
         scope.launch {
           taskbarController.toggleDesktopView()
         }
@@ -148,26 +179,26 @@ private fun TaskBarAppIcon(
   modifier: Modifier,
   app: TaskbarAppModel,
   hook: FetchHook,
-  click: (mmid: String) -> Unit,
-  close: (mmid: String) -> Unit
+  openApp: (mmid: String) -> Unit,
+  quitApp: (mmid: String) -> Unit,
+  toggleWindow:(mmid: String) -> Unit
 ) {
 
   val scaleValue = remember { Animatable(1f) }
   val scope = rememberCoroutineScope()
-  var showClose by remember { mutableStateOf(false) }
+  var showQuit by remember(app.isShowClose) { mutableStateOf(app.isShowClose) }
 
-  LaunchedEffect(app.mmid, app.running) {
-    showClose = false
-  }
-
-  fun doClickAnimation() {
+  fun doClickAnimationToggle() {
     scope.launch {
-      scaleValue.animateTo(1.1f)
-      scaleValue.animateTo(1.0f)
+      if (scaleValue.value == 1.0f) {
+        scaleValue.animateTo(1.1f)
+      } else {
+        scaleValue.animateTo(1.0f)
+      }
     }
   }
 
-  Box(
+  BoxWithConstraints(
     contentAlignment = Alignment.Center,
     modifier = modifier
       .graphicsLayer {
@@ -176,61 +207,94 @@ private fun TaskBarAppIcon(
       }
       .padding(start = paddingValue.dp, top = paddingValue.dp, end = paddingValue.dp)
       .aspectRatio(1.0f)
+      .shadow(3.dp, RoundedCornerShape(12.dp))
       .background(Color.White, RoundedCornerShape(12.dp))
-      .pointerInput(Unit) {
+      .pointerInput(app) {
         detectTapGestures(
+          onPress = {
+            doClickAnimationToggle()
+          },
           onTap = {
-            doClickAnimation()
-            click(app.mmid)
+            doClickAnimationToggle()
+            openApp(app.mmid)
+          },
+          onDoubleTap = {
+            doClickAnimationToggle()
+            if (app.running) {
+              toggleWindow(app.mmid)
+            } else {
+              openApp(app.mmid)
+            }
           },
           onLongPress = {
-            doClickAnimation()
-            showClose = true
+            doClickAnimationToggle()
+            if (app.running) {
+              showQuit = true
+            } else {
+              openApp(app.mmid)
+            }
           }
         )
       }) {
-    AppIcon(
-      app.icon,
-      iconFetchHook = hook,
-      modifier = Modifier.blur(if (showClose) 1.dp else 0.dp)
-    )
 
-    AnimatedVisibility(
-      showClose,
-      Modifier
-        .fillMaxSize()
-        .clickable {
-          close(app.mmid)
-          showClose = false
-        },
-      enter = fadeIn(),
-      exit = fadeOut(),
-    ) {
-      Canvas(Modifier.fillMaxSize()) {
-        val r = size.minDimension / 2.0f * 0.8f
 
-        val xLeft = (size.width - 2 * r) / 2f + r * 0.7f
-        val xRight = size.width - (size.width - 2 * r) / 2f - r * 0.7f
-        val yTop = (size.height - 2 * r) / 2f + r * 0.7f
-        val yBottom = size.height - (size.height - 2 * r) / 2f - r * 0.7f
-
-        drawCircle(Color.Gray, r, style = Stroke(width = 5f))
-
-        drawLine(
-          Color.Black,
-          Offset(xLeft, yTop),
-          Offset(xRight, yBottom),
-          5f
-        )
-
-        drawLine(
-          Color.Black,
-          Offset(xLeft, yBottom),
-          Offset(xRight, yTop),
-          5f
-        )
+    key(app.icon) {
+      BoxWithConstraints(Modifier.padding(5.dp).blur(if (showQuit) 1.dp else 0.dp)) {
+        val iconImage = TaskbarAppModel.getCacheIcon(app.icon)
+        if (iconImage != null) {
+          Image(iconImage, contentDescription = null)
+        } else {
+          val imageResult = PureImageLoader.SmartLoad(app.icon, maxWidth, maxWidth, hook)
+          if (imageResult.isSuccess) {
+            TaskbarAppModel.setCacheIcon(app.mmid, imageResult.success!!)
+            Image(imageResult.success!!, contentDescription = null)
+          } else {
+            Image(Icons.TwoTone.Image, contentDescription = null)
+          }
+        }
       }
     }
+
+    if (showQuit) {
+      Popup(
+        onDismissRequest = {
+          showQuit = false
+        }
+      ) {
+        CloseButton(Modifier.size(maxWidth).clickable {
+          quitApp(app.mmid)
+          showQuit = false
+        })
+      }
+    }
+  }
+}
+
+@Composable
+fun CloseButton(modifier: Modifier) {
+  Canvas(modifier.background(Color.Black.copy(alpha = 0.1f), CircleShape)) {
+    val r = size.minDimension / 2.0f * 0.8f
+
+    val xLeft = (size.width - 2 * r) / 2f + r * 0.7f
+    val xRight = size.width - (size.width - 2 * r) / 2f - r * 0.7f
+    val yTop = (size.height - 2 * r) / 2f + r * 0.7f
+    val yBottom = size.height - (size.height - 2 * r) / 2f - r * 0.7f
+
+    drawCircle(Color.Gray, r, style = Stroke(width = 5f))
+
+    drawLine(
+      Color.Black,
+      Offset(xLeft, yTop),
+      Offset(xRight, yBottom),
+      5f
+    )
+
+    drawLine(
+      Color.Gray,
+      Offset(xLeft, yBottom),
+      Offset(xRight, yTop),
+      5f
+    )
   }
 }
 
@@ -264,7 +328,7 @@ private fun TaskBarHomeIcon(click: () -> Unit) {
     }
   }
 
-  BoxWithConstraints (
+  BoxWithConstraints(
     contentAlignment = Alignment.Center,
     modifier = Modifier
       .graphicsLayer {
@@ -287,7 +351,20 @@ private fun TaskBarHomeIcon(click: () -> Unit) {
   }
 }
 
-private data class TaskbarAppModel(val mmid: String, val icon: String, val running: Boolean)
+private data class TaskbarAppModel(
+  val mmid: String,
+  val icon: String,
+  val running: Boolean,
+  var isShowClose: Boolean = false,
+) {
+  companion object {
+    private val iconCache = mutableMapOf<String, ImageBitmap>()
+    fun getCacheIcon(mmid: String) = iconCache[mmid]
+    fun setCacheIcon(mmid: String, image: ImageBitmap) {
+      iconCache[mmid] = image
+    }
+  }
+}
 
 @Composable
 fun bezGradient(color: Color, modifier: Modifier, style: DrawStyle = Fill, random: Float = 20f) {
@@ -366,7 +443,7 @@ fun bezGradient(color: Color, modifier: Modifier, style: DrawStyle = Fill, rando
     path.quadraticBezierTo(last.x, last.y, start.x, start.y)
     path.close()
 
-    return  path
+    return path
   }
 
   var path by remember {
@@ -374,18 +451,15 @@ fun bezGradient(color: Color, modifier: Modifier, style: DrawStyle = Fill, rando
   }
 
   AnimatedContent(path) {
-    Canvas(modifier
-      .fillMaxSize()
-      .clip(CircleShape)
+    Canvas(
+      modifier
+        .fillMaxSize()
+        .clip(CircleShape)
     ) {
 
       val center = Offset(size.width / 2.0f, size.height / 2.0f)
       val radius = size.minDimension / 2.0
       val path0 = getPath(center, radius.toFloat())
-
-      //Modulate
-      //Darken
-      //Multiply
       drawPath(path0, color, style = style)
     }
   }

@@ -46,7 +46,7 @@ import kotlin.math.sin
 import kotlin.random.Random
 
 @Composable
-fun desktopWallpaperView(circleCount: Int, modifier: Modifier, onClick: (()->Unit)? = null) {
+fun desktopWallpaperView(circleCount: Int, modifier: Modifier, onClick: (()->Unit)? = null): (Int)->Unit {
 
   val circles = remember {
     mutableStateListOf<DesktopBgCircleModel>().apply {
@@ -55,10 +55,11 @@ fun desktopWallpaperView(circleCount: Int, modifier: Modifier, onClick: (()->Uni
   }
 
   var hour by remember {
-    val currentMoment: Instant = Clock.System.now()
-    val datetimeInSystemZone: LocalDateTime =
-      currentMoment.toLocalDateTime(TimeZone.currentSystemDefault())
-    mutableStateOf<Int>(datetimeInSystemZone.hour)
+    mutableStateOf(0).apply {
+      val currentMoment: Instant = Clock.System.now()
+      val datetimeInSystemZone: LocalDateTime = currentMoment.toLocalDateTime(TimeZone.currentSystemDefault())
+      value = datetimeInSystemZone.hour
+    }
   }
 
   fun updateCircle() {
@@ -70,17 +71,20 @@ fun desktopWallpaperView(circleCount: Int, modifier: Modifier, onClick: (()->Uni
   }
 
   LaunchedEffect(Unit) {
+//    suspend fun observerHourChange(action: (Int) -> Unit) {
+//      val currentMoment: Instant = Clock.System.now()
+//      val datetimeInSystemZone = currentMoment.toLocalDateTime(TimeZone.currentSystemDefault())
+//      val triggleSeconds = (60 - datetimeInSystemZone.minute) * 60 - datetimeInSystemZone.second
+//      delay(triggleSeconds.toLong() * 1000)
+//      action(datetimeInSystemZone.hour)
+//    }
+
     var c_hour = 0
     suspend fun observerHourChange(action: (Int) -> Unit) {
-      val currentMoment: Instant = Clock.System.now()
-      val datetimeInSystemZone = currentMoment.toLocalDateTime(TimeZone.currentSystemDefault())
-//      val triggleSeconds = (60 - datetimeInSystemZone.minute) * 60 - datetimeInSystemZone.second
-      val triggleSeconds = 5 - datetimeInSystemZone.second % 5
-      delay(triggleSeconds.toLong() * 1000)
-//      c_hour += 1
-//      c_hour %= 24
-//      action(c_hour)
-      action(datetimeInSystemZone.hour)
+      delay(10 * 1000)
+      c_hour += 1
+      c_hour %= 24
+      action(c_hour)
     }
 
     while (true) {
@@ -95,9 +99,7 @@ fun desktopWallpaperView(circleCount: Int, modifier: Modifier, onClick: (()->Uni
     modifier
       .fillMaxSize()
       .clickableWithNoEffect {
-        println("Mike tap")
         onClick?.let {
-          println("Mike tap tap tap")
           updateCircle()
           onClick()
         }
@@ -108,15 +110,19 @@ fun desktopWallpaperView(circleCount: Int, modifier: Modifier, onClick: (()->Uni
       DesktopBgCircle(it)
     }
   }
+
+  return {
+    hour = it
+    updateCircle()
+  }
 }
 
 @Composable
 fun RotatingLinearGradientBox(hour: Int, modifier: Modifier) {
-  // 当前时间的角度 + 90f， 默认是从270度开始的，所以添加90度的偏移
-  val angle = hour.toFloat() / 24f * 360f + 90f
-  // 将角度转换为弧度, 逆时针旋转
+
+  val angle = hour.toFloat() / 24f * 360f + 90f //添加90度的偏移
   val angleRad = angle * PI / 180
-  // 计算起点和终点
+
   val start = Offset(
     x = 0.5f + 0.5f * cos(angleRad).toFloat(),
     y = 0.5f - 0.5f * sin(angleRad).toFloat()
@@ -238,25 +244,6 @@ fun BoxWithConstraintsScope.DesktopBgCircle(
 
 
 private fun random(times: Float = 1f) = (Random.nextFloat() - 0.5f) * times
-
-/*
-        // 晚上
-        19, 20, 21, 22: multiply #00C5DF #00C5DF #00C5D #F2371F
-        // 极光
-        23, 0, 1: overlay #315787 #B8B5D6 #64ADBD #6B93C6 #000000
-        // 凌晨
-        1, 2, 3, 4: multiply #18A0FB #1BC47D
-        // 日出
-        5, 6: luminosity #18A0FB #1BC47D #18A0FB #FFC700 #FFC700 #F2371F
-        // 早上
-        7,8,9,: overlay #18A0FB #907CFF
-        // 中午
-        10,11,12,13: overlay #EE46D3 #907CFF
-        // 下午
-        14, 15, 16: overlay #FFC700 #EE46D3
-        // 日落
-        17,18: overlay #F2371F #18A0FB #907CFF #FFC700
-* */
 
 private typealias ColorString = String
 
