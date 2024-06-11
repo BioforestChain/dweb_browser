@@ -143,29 +143,24 @@ abstract class ITaskbarView(private val taskbarController: TaskbarController) {
         })
       }
 
-      val showOldVersion = false
-      var showNewVersion = true
-
-      if (showOldVersion) {
-        TaskbarViewRender(draggableHelper,
-          Modifier
-          .zIndex(1000f)
-          .size(boxWidth.dp, boxHeight.dp)
-          .offset(x = boxOffset.x.dp, y = boxOffset.y.dp)
-          .clip(RoundedCornerShape(16.dp))
-          .background(Color.Black.copy(alpha = 0.2f))
-        )
-      }
-
-      if (showNewVersion) {
+      if (envSwitch.isEnabled(ENV_SWITCH_KEY.DESKTOP_STYLE_COMPOSE)) {
         NewTaskbarView(taskbarController,
           draggableHelper,
           Modifier
-          .zIndex(1000f)
-          .size(boxWidth.dp, boxHeight.dp)
-          .offset(x = boxOffset.x.dp, y = boxOffset.y.dp)
-          .clip(RoundedCornerShape(16.dp))
-          .background(Color.Black.copy(alpha = 0.2f))
+            .zIndex(1000f)
+            .size(boxWidth.dp, boxHeight.dp)
+            .offset(x = boxOffset.x.dp, y = boxOffset.y.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color.Black.copy(alpha = 0.2f))
+        )
+      } else {
+        TaskbarViewRender(draggableHelper,
+          Modifier
+            .zIndex(1000f)
+            .size(boxWidth.dp, boxHeight.dp)
+            .offset(x = boxOffset.x.dp, y = boxOffset.y.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color.Black.copy(alpha = 0.2f))
         )
       }
     }

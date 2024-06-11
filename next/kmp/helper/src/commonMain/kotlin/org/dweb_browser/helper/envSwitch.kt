@@ -29,5 +29,4 @@ enum class ENV_SWITCH_KEY(val key: String) {
   ALL_WINDOW_DEVTOOLS("*-window-devtools"),
   DWEBVIEW_JS_CONSOLE("dwebview-js-console"),
   DESKTOP_STYLE_COMPOSE("destktop-style-compose"),
-  DESKTOP_USE_ORIGIN("desktop-use-origin"),
 }

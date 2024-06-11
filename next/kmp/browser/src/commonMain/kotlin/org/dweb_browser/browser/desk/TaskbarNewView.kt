@@ -188,13 +188,10 @@ private fun TaskBarAppIcon(
   val scope = rememberCoroutineScope()
   var showQuit by remember(app.isShowClose) { mutableStateOf(app.isShowClose) }
 
-  fun doClickAnimationToggle() {
+  fun doAnimation() {
     scope.launch {
-      if (scaleValue.value == 1.0f) {
-        scaleValue.animateTo(1.1f)
-      } else {
-        scaleValue.animateTo(1.0f)
-      }
+      scaleValue.animateTo(1.1f)
+      scaleValue.animateTo(1.0f)
     }
   }
 
@@ -212,14 +209,12 @@ private fun TaskBarAppIcon(
       .pointerInput(app) {
         detectTapGestures(
           onPress = {
-            doClickAnimationToggle()
+            doAnimation()
           },
           onTap = {
-            doClickAnimationToggle()
             openApp(app.mmid)
           },
           onDoubleTap = {
-            doClickAnimationToggle()
             if (app.running) {
               toggleWindow(app.mmid)
             } else {
@@ -227,7 +222,6 @@ private fun TaskBarAppIcon(
             }
           },
           onLongPress = {
-            doClickAnimationToggle()
             if (app.running) {
               showQuit = true
             } else {
