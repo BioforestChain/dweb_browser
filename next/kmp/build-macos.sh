@@ -14,19 +14,25 @@ cd app/desktopApp/build/compose/binaries/main-release/
 # spctl -vvv --assess --raw --type exec app/DwebBrowser.app/Contents/MacOS/DwebBrowser
 
 # ## 公证
-# /usr/bin/ditto -c -k app/DwebBrowser.app app/DwebBrowser.zip
-# /usr/bin/xcrun notarytool submit --wait --apple-id kezhaofeng@bnqkl.cn --team-id "F9M4UWUYYN" app/DwebBrowser.zip
-# # xcrun notarytool log 951c0427-4b8a-4372-8f29-7ba8f8ec9664 --apple-id kezhaofeng@bnqkl.cn --team-id "F9M4UWUYYN" developer_log.json
-# # /usr/bin/xcrun stapler staple app/DwebBrowser.app
+# /usr/bin/ditto -c -k app-arm64/DwebBrowser.app zip/DwebBrowser-arm64.zip
+# /usr/bin/xcrun notarytool submit --wait --apple-id kezhaofeng@bnqkl.cn --team-id "F9M4UWUYYN" zip/DwebBrowser-arm64.zip
+# # xcrun notarytool log 59e68828-dd39-4a62-853d-63eca031ea10 --apple-id kezhaofeng@bnqkl.cn --team-id "F9M4UWUYYN" developer_log.json
+# # /usr/bin/xcrun stapler staple app-arm64/DwebBrowser.app
+
+# ## 公证
+# /usr/bin/ditto -c -k app-x86_64/DwebBrowser.app zip/DwebBrowser-x86_64.zip
+# /usr/bin/xcrun notarytool submit --wait --apple-id kezhaofeng@bnqkl.cn --team-id "F9M4UWUYYN" zip/DwebBrowser-x86_64.zip
+# # xcrun notarytool log c60c0970-15cb-41d5-bca7-72564f8b1596 --apple-id kezhaofeng@bnqkl.cn --team-id "F9M4UWUYYN" developer_log.json
+# # /usr/bin/xcrun stapler staple app-x86_64/DwebBrowser.app
 
 # create-dmg \
 #   --volname "Dweb Browser Installer" \
-#   --volicon "app/desktopApp/src/desktopMain/res/icons/mac/icon.icns" \
+#   --volicon "../../../../src/desktopMain/res/icons/mac/icon.icns" \
 #   --window-pos 200 120 \
 #   --window-size 800 400 \
 #   --icon-size 100 \
 #   --icon "DwebBrowser.app" 200 190 \
 #   --hide-extension "DwebBrowser.app" \
 #   --app-drop-link 600 185 \
-#   "Dweb-Browser-Installer.dmg" \
+#   "DwebBrowser.dmg" \
 #   "app/desktopApp/build/compose/binaries/main-release/app"
