@@ -25,14 +25,14 @@ cd app/desktopApp/build/compose/binaries/main-release/
 # # xcrun notarytool log c60c0970-15cb-41d5-bca7-72564f8b1596 --apple-id kezhaofeng@bnqkl.cn --team-id "F9M4UWUYYN" developer_log.json
 # # /usr/bin/xcrun stapler staple app-x86_64/DwebBrowser.app
 
-# create-dmg \
-#   --volname "Dweb Browser Installer" \
-#   --volicon "../../../../src/desktopMain/res/icons/mac/icon.icns" \
-#   --window-pos 200 120 \
-#   --window-size 800 400 \
-#   --icon-size 100 \
-#   --icon "DwebBrowser.app" 200 190 \
-#   --hide-extension "DwebBrowser.app" \
-#   --app-drop-link 600 185 \
-#   "DwebBrowser.dmg" \
-#   "app/desktopApp/build/compose/binaries/main-release/app"
+create-dmg \
+  --volname "Dweb Browser Installer" \
+  --volicon "../../../../src/desktopMain/res/icons/mac/icon.icns" \
+  --window-pos 200 120 \
+  --window-size 800 400 \
+  --icon-size 100 \
+  --icon "DwebBrowser.app" 200 190 \
+  --hide-extension "DwebBrowser.app" \
+  --app-drop-link 600 185 \
+  "DwebBrowser-x86_64.dmg" \
+  "app-x86_64"

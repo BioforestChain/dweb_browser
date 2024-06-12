@@ -6,7 +6,8 @@
     "clean": "deno run -A ./scripts/clean.ts",
     "build": "deno run -A ./scripts/build.ts",
     "bundle:android": "deno run -A ./next/kmp/build-android.ts",
-    "bundle:macos": "bash ./next/kmp/build-macos.sh",
+    "bundle:macos": "deno run -A ./next/kmp/build-macos.ts",
+    "bundle:windows": "deno run -A ./next/kmp/build-windows.ts",
     "test": "vitest",
     "plaoc": "deno run -A ./toolkit/scripts/toolkit-plaoc.ts",
     "plaoc:watch": "deno task plaoc --watch",
@@ -33,6 +34,7 @@
     "@plaoc/is-dweb": "./toolkit/plaoc/is-dweb/index.ts",
     "@plaoc/plugins": "./toolkit/plaoc/plugins/index.ts",
     "@plaoc/server": "./toolkit/plaoc/server/index.ts",
+    "@std/cli": "jsr:@std/cli@^0.224.6",
     "@std/fs": "jsr:@std/fs@^0.224.0",
     "@std/path": "jsr:@std/path@^0.224.0",
     "@types/web": "npm:@types/web@^0.0.143",
@@ -48,8 +50,8 @@
   },
   "compilerOptions": {
     "noImplicitOverride": true,
-    "experimentalDecorators": true /* Enable experimental support for legacy experimental decorators. */,
-    "emitDecoratorMetadata": true /* Emit design-type metadata for decorated declarations in source files. */,
+    "experimentalDecorators": true, /* Enable experimental support for legacy experimental decorators. */
+    "emitDecoratorMetadata": true, /* Emit design-type metadata for decorated declarations in source files. */
     "verbatimModuleSyntax": true
   },
   "exclude": [
