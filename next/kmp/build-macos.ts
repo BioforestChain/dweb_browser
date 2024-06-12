@@ -1,41 +1,16 @@
-import { parseArgs } from "@std/cli/parse-args";
-
 import { DOMParser } from "https://deno.land/x/deno_dom/deno-dom-wasm.ts";
 import fs from "node:fs";
 import os from "node:os";
 import { $ } from "../../scripts/helper/exec.ts";
 
 import { createBaseResolveTo } from "../../scripts/helper/resolveTo.ts";
-const args = parseArgs(Deno.args);
+import { args, localProperties } from "./build-helper.ts";
 
 const resolveTo = createBaseResolveTo(import.meta.url);
-const loadProperties = (filepath: string) => {
-  const properties = new Map<string, string>();
-  fs.readFileSync(filepath, "utf-8")
-    .split("\n")
-    .map((line) => line.trim())
-    .filter((line) => line.startsWith("#") === false && line !== "")
-    .forEach((line) => {
-      const splitIndex = line.indexOf("=");
-      if (splitIndex !== -1) {
-        const key = line.slice(0, splitIndex).trim();
-        let value = line.slice(splitIndex + 1).trim();
-        if (value.startsWith(`"`) && value.endsWith(`"`)) {
-          value = value.slice(1, -1);
-        }
-        properties.set(key, value);
-      }
-    });
-  return Object.assign(properties, {
-    getBoolean: (key: string) => {
-      return properties.get(key) === "true";
-    },
-  });
-};
-const properties = loadProperties(resolveTo("./local.properties"));
-const notarization_appleId = properties.get("compose.desktop.mac.notarization.appleID");
-const notarization_password = properties.get("compose.desktop.mac.notarization.password");
-const notarization_teamID = properties.get("compose.desktop.mac.notarization.teamID");
+
+const notarization_appleId = localProperties.get("compose.desktop.mac.notarization.appleID");
+const notarization_password = localProperties.get("compose.desktop.mac.notarization.password");
+const notarization_teamID = localProperties.get("compose.desktop.mac.notarization.teamID");
 
 export const suffixMap = new Map<$Arch, string>([
   ["x64", "x86_64"],
@@ -50,7 +25,7 @@ export const getSuffix = (_arch: string = args.arch) => {
 };
 
 async function doRelease(suffix: string) {
-  if (false === properties.getBoolean("compose.desktop.mac.sign")) {
+  if (false === localProperties.getBoolean("compose.desktop.mac.sign")) {
     console.error("❌ 缺少 compose.desktop.mac.sign 配置，无法正确执行打包");
     return;
   }
@@ -59,7 +34,7 @@ async function doRelease(suffix: string) {
   console.info("💡 开始执行编译");
   await $("./gradlew :desktopApp:createReleaseDistributable");
 
-  await doNotarization(suffix);
+  return await doNotarization(suffix);
 }
 
 async function doNotarization(suffix: string) {
@@ -159,7 +134,9 @@ async function doNotarization(suffix: string) {
       `app-${suffix}`,
     ]);
 
-    console.log("✅ 构建完成:", resolveTo($.pwd(), dmgFilename));
+    const dmgFilepath = resolveTo($.pwd(), dmgFilename);
+    console.log("✅ 构建完成:", dmgFilepath);
+    return dmgFilepath;
   }
 }
 
