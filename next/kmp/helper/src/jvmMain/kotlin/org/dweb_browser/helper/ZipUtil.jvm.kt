@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.zip
+package org.dweb_browser.helper
 
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
@@ -9,6 +9,8 @@ import java.nio.charset.StandardCharsets
 import java.util.*
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
+
+val debugZip = Debugger("zip")
 
 object ZipUtil {
   private val TAG = ZipUtil::class.simpleName!!

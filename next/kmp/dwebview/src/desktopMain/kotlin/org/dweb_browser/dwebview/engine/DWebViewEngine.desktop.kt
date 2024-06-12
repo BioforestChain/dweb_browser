@@ -102,7 +102,7 @@ class DWebViewEngine internal constructor(
         // 拦截dweb deeplink
         addScheme(Scheme.of("dweb")) { params ->
           remoteMM.scopeLaunch(cancelable = true) {
-            val res = remoteMM.nativeFetch(params.urlRequest().url())
+            remoteMM.nativeFetch(params.urlRequest().url())
             // TODO eval navigator.dweb.dispatchEvent(new CustomEvent("dweb-deeplink"))
           }
 
@@ -300,10 +300,6 @@ class DWebViewEngine internal constructor(
             EventParams.newBuilder().bubbles(true).cancelable(true).build()
           ).build()
         ).build()
-    )
-
-    val event2 = document.createEvent(
-      EventType.FOCUS, EventParams.newBuilder().bubbles(true).cancelable(true).build()
     )
 
     document.dispatch(mouseClickEvent)

@@ -107,14 +107,17 @@ compose.desktop {
 //        }
 
         // TestFlight
-        provisioningProfile.set(project.file("DwebBrowser.provisionprofile"))
-        runtimeProvisioningProfile.set(project.file("DwebBrowser_jdk_runtime.provisionprofile"))
-//          appStore = true
-        notarization {
-          appleID.set(properties.getString("compose.desktop.mac.notarization.appleID"))
-          password.set(properties.getString("compose.desktop.mac.notarization.password"))
-          teamID.set(properties.getString("compose.desktop.mac.notarization.teamID"))
+//        provisioningProfile.set(project.file("DwebBrowser.provisionprofile"))
+//        runtimeProvisioningProfile.set(project.file("DwebBrowser_jdk_runtime.provisionprofile"))
+//        appStore = true
+        if (!properties.getBoolean("compose.desktop.mac.notarization.disable") && properties.contains("compose.desktop.mac.notarization.appleID")) {
+          notarization {
+            appleID.set(properties.getString("compose.desktop.mac.notarization.appleID"))
+            password.set(properties.getString("compose.desktop.mac.notarization.password"))
+            teamID.set(properties.getString("compose.desktop.mac.notarization.teamID"))
+          }
         }
+
         signing {
           if (properties.getBoolean("compose.desktop.mac.sign")) {
             sign.set(true)

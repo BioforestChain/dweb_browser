@@ -29,8 +29,10 @@ kotlin {
     }
   }
 
-  val jvmMain = sourceSets.creating {
+  sourceSets.jvmMain {
     dependencies {
+      //解压缩
+      implementation(libs.apache.common.compress)
       api(libs.org.slf4j.log4j12)
     }
   }

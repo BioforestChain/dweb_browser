@@ -75,8 +75,6 @@ kotlin {
   kmpDesktopTarget(project)
   sourceSets.jvmMain {
     dependencies {
-      //解压缩
-      implementation(libs.apache.common.compress)
       // zxing 解析二维码
       implementation(libs.camera.zxing.code)
       implementation(libs.camera.zxing.javase)
