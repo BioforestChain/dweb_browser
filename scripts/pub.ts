@@ -51,10 +51,7 @@ export const doUpdatePackage = async (inputConfigFile: string, target: string) =
   const npmConfigs: Packages = (await import(inputConfigFile, { with: { type: "json" } })).default;
   const config = npmConfigs[target];
   const cwd = config.buildToRootDir;
-  // 看看需不需要更新版本
-  if (await checkVersion(cwd, { name: config.name, version: config.version })) {
-    return;
-  }
+
   /// 更新package.json配置文件
   const packagePath = cwdResolve(cwd + "/package.json");
   const packageJson = (
@@ -62,13 +59,19 @@ export const doUpdatePackage = async (inputConfigFile: string, target: string) =
       with: { type: "json" },
     })
   ).default;
-  packageJson.version = config.version;
-  /// 写入配置文件
-  Deno.writeFileSync(
-    new URL(packagePath, import.meta.url),
-    new TextEncoder().encode(JSON.stringify(packageJson, null, 2)),
-    {}
-  );
+  if (packageJson.version !== config.version) {
+    packageJson.version = config.version;
+    /// 写入配置文件
+    Deno.writeFileSync(
+      new URL(packagePath, import.meta.url),
+      new TextEncoder().encode(JSON.stringify(packageJson, null, 2)),
+      {}
+    );
+  }
+  // 看看需不需要发布版本
+  if (await checkVersion(cwd, { name: config.name, version: config.version })) {
+    return;
+  }
   await doPublish(config.buildToRootDir);
   await asyncNpmMirror(config.name);
 };

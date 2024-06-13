@@ -2,7 +2,7 @@ import { ChannelEndpoint } from "@dweb-browser/core/ipc/endpoint/ChannelEndpoint
 import type { $MicroModuleManifest } from "@dweb-browser/core/types.ts";
 import { PromiseOut } from "@dweb-browser/helper/PromiseOut.ts";
 import { streamReadAll } from "@dweb-browser/helper/stream/readableStreamHelper.ts";
-import { webIpcPool } from "../index.ts";
+import { webIpcPool } from "../components/base/base.plugin.ts";
 
 export class WebSocketIpcBuilder {
   #wsUrl;
