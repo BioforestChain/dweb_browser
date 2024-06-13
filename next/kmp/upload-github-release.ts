@@ -1,6 +1,8 @@
 import * as colors from "@std/fmt/colors";
 import fs from "node:fs";
 import path from "node:path";
+import stream from "node:stream";
+import webstream from "node:stream/web";
 import { Octokit } from "npm:@octokit/rest";
 import mime from "npm:mime";
 import { UploadSpinner } from "../../scripts/helper/UploadSpinner.ts";
@@ -8,6 +10,7 @@ import { WalkFiles } from "../../scripts/helper/WalkDir.ts";
 import { $ } from "../../scripts/helper/exec.ts";
 import { createBaseResolveTo } from "../../scripts/helper/resolveTo.ts";
 import { cliArgs, localProperties } from "./build-helper.ts";
+const enableWebStream = false;
 
 const resolveTo = createBaseResolveTo(import.meta.url);
 export async function recordUploadRelease(taskId: string, uploadArgs: $UploadReleaseParams) {
@@ -36,7 +39,7 @@ export async function recordUploadRelease(taskId: string, uploadArgs: $UploadRel
     );
     await $([`deno`, `fmt`, uploadTestTsFile]);
   }
-  console.log(colors.bgMagenta(`> deno task upload ${taskId}`))
+  console.log(colors.bgMagenta(`> deno task upload ${taskId}`));
 }
 export type $UploadReleaseParams = Parameters<typeof doUploadRelease>;
 
@@ -107,9 +110,9 @@ export async function doUploadRelease(tag: string, filepath_or_dirpath: string, 
 
   console.info("💡 开始执行文件上传");
   for (const [index, filepath] of uploadFiles.entries()) {
-    if (existsAssets.includes(path.basename(filepath))) {
-      continue;
-    }
+    // if (existsAssets.includes(path.basename(filepath))) {
+    //   continue;
+    // }
     const stat = fs.statSync(filepath);
     const totalSize = stat.size;
 
@@ -137,21 +140,23 @@ export async function doUploadRelease(tag: string, filepath_or_dirpath: string, 
       .uploadReleaseAsset({
         headers: {
           "Content-Type": mime.getType(path.extname(filepath)) || "application/octet-stream",
-          "Content-Length": totalSize.toString(),
+          // "Content-Length": totalSize.toString(),
+          // "Transfer-Encoding": "chunked",
         },
         ...baseParams,
         release_id: release_id,
         name: path.basename(filepath),
         /// 目前流上传在deno中有bug
-        // data: stream.Readable.toWeb(fs.createReadStream(filepath)).pipeThrough(
-        //   new webstream.TransformStream<Uint8Array, Uint8Array>({
-        //     transform(chunk, controller) {
-        //       spinner.addUploadedSize(chunk.byteLength);
-        //       controller.enqueue(chunk);
-        //     },
-        //   })
-        // ) as any,
-        data: fs.readFileSync(filepath) as any,
+        data: (enableWebStream
+          ? stream.Readable.toWeb(fs.createReadStream(filepath)).pipeThrough(
+              new webstream.TransformStream<Uint8Array, Uint8Array>({
+                transform(chunk, controller) {
+                  spinner.addUploadedSize(chunk.byteLength);
+                  controller.enqueue(chunk);
+                },
+              })
+            )
+          : fs.readFileSync(filepath)) as any,
       })
       .finally(() => {
         spinner.stop();
