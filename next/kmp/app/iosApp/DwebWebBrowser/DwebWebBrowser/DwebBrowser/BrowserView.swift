@@ -70,6 +70,7 @@ struct BrowserView: View {
     func doNewTabUrl(url: String, target: String) {
         switch target {
         case AppBrowserTarget._blank.rawValue:
+            toolbarState.newTabUrl = url.isURL() ? URL(string: url)! : emptyURL
             toolbarState.shouldCreateTab = true
         case AppBrowserTarget._self.rawValue:
             break

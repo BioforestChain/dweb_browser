@@ -27,19 +27,6 @@ struct TabPageView: View {
     var body: some View {
         GeometryReader { geo in
             content
-                .onChange(of: openingLink.clickedLink) { _, link in
-                    guard link != emptyURL else { return }
-                    if isVisible {
-                        webCache.lastVisitedUrl = link
-                        if webCache.isWebVisible {
-                            webWrapper.webMonitor.isLoadingDone = false
-                            webWrapper.webView.load(URLRequest(url: link))
-                        }
-                        openingLink.clickedLink = emptyURL
-                        print("clickedLink has changed at index: \(link)")
-                    }
-                }
-
                 .onChange(of: toolbarState.tabsState) { _, state in
                     if isVisible, state == .shouldShrink { // 截图，为缩小动画做准备
                         animation.snapshotImage = UIImage.snapshotImage(from: .defaultSnapshotURL)
@@ -94,6 +81,19 @@ struct TabPageView: View {
         }
         .onChange(of: webCache.lastVisitedUrl, initial: true) { _, _ in
             shouldShowWeb = webCache.lastVisitedUrl != emptyURL
+        }
+
+        .onChange(of: openingLink.clickedLink) { _, link in
+            guard link != emptyURL else { return }
+            if isVisible {
+                webCache.lastVisitedUrl = link
+                if webCache.isWebVisible {
+                    webWrapper.webMonitor.isLoadingDone = false
+                    webWrapper.webView.load(URLRequest(url: link))
+                }
+                openingLink.clickedLink = emptyURL
+                print("clickedLink has changed at index: \(link)")
+            }
         }
     }
 

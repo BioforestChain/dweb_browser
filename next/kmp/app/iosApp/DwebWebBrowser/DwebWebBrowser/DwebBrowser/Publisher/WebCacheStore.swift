@@ -116,14 +116,14 @@ class WebCacheStore {
     init() {
         loadCaches()
     }
-    
+
     func resetWrappers() {
         webWrappers.forEach { browserViewDataSource.destroyWebView(web: $0.webView) }
         caches = [.blank]
     }
-    
-    func createOne() {
-        let cache = WebCache()
+
+    func createOne(url: URL = emptyURL) {
+        let cache = WebCache(lastVisitedUrl: url)
         cache.snapshotChangedHandler = saveCaches
         caches.append(cache)
         saveCaches()

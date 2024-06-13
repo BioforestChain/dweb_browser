@@ -75,6 +75,7 @@ class ToolBarState {
     var shouldCreateTab = false
     var showMoreMenu = false
     var isPresentingScanner = false
+    var newTabUrl = emptyURL // 新打开的标签页
 
     enum TabsStates: Int {
         case shouldExpand

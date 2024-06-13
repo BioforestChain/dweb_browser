@@ -77,10 +77,11 @@ struct TabsContainerView: View {
             }
             .onChange(of: toolbarState.shouldCreateTab) { _, shouldCreate in
                 if shouldCreate { // 准备放大动画
-                    webcacheStore.createOne()
+                    webcacheStore.createOne(url: toolbarState.newTabUrl)
                     seletecdTab.index = webcacheStore.cacheCount - 1
                     selectedCellFrame = CGRect(x: geo.frame(in: .global).midX, y: geo.frame(in: .global).midY, width: 5, height: 5)
                     toolbarState.tabsState = .shouldExpand
+                    toolbarState.newTabUrl = emptyURL
                     toolbarState.shouldCreateTab = false
                 }
             }

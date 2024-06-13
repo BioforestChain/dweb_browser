@@ -63,9 +63,7 @@ struct HistoryView: View {
                 }
                 .accessibilityElement(children: .contain)
                 .accessibilityIdentifier("HistoryView_List")
-                .task {
-                    historyStore.loadHistory()
-                }
+                
             }
         }
         .background(content: {
@@ -74,6 +72,9 @@ struct HistoryView: View {
         })
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("HistoryView")
+        .task {
+            historyStore.loadHistory()
+        }
     }
 }
 
