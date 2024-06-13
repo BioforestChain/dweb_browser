@@ -110,9 +110,9 @@ export async function doUploadRelease(tag: string, filepath_or_dirpath: string, 
 
   console.info("💡 开始执行文件上传");
   for (const [index, filepath] of uploadFiles.entries()) {
-    // if (existsAssets.includes(path.basename(filepath))) {
-    //   continue;
-    // }
+    if (existsAssets.includes(path.basename(filepath))) {
+      continue;
+    }
     const stat = fs.statSync(filepath);
     const totalSize = stat.size;
 
