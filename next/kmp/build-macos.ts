@@ -4,7 +4,8 @@ import os from "node:os";
 import { $ } from "../../scripts/helper/exec.ts";
 
 import { createBaseResolveTo } from "../../scripts/helper/resolveTo.ts";
-import { args, localProperties } from "./build-helper.ts";
+import { cliArgs, localProperties } from "./build-helper.ts";
+import { doUploadRelease, recordUploadRelease, type $UploadReleaseParams } from "./upload-github-release.ts";
 
 const resolveTo = createBaseResolveTo(import.meta.url);
 
@@ -18,7 +19,7 @@ export const suffixMap = new Map<$Arch, string>([
   ["arm", "arm32"],
 ]);
 export type $Arch = "arm" | "arm64" | "ia32" | "mips" | "mipsel" | "ppc" | "ppc64" | "s390" | "s390x" | "x64";
-export const getSuffix = (_arch: string = args.arch) => {
+export const getSuffix = (_arch: string = cliArgs.arch) => {
   const arch = (_arch ?? os.arch()) as $Arch;
   const suffix = suffixMap.get(arch) ?? arch;
   return suffix;
@@ -105,8 +106,9 @@ async function doNotarization(suffix: string) {
   } else {
     console.info("💡 开始执行打包");
     await $([`/usr/bin/xcrun`, `stapler`, `staple`, `app-${suffix}/DwebBrowser.app`]);
+    const version = getVersion(suffix);
 
-    const dmgFilename = `DwebBrowser-${getVersion(suffix)}-${suffix}.dmg`;
+    const dmgFilename = `DwebBrowser-${version}-${suffix}.dmg`;
     await $([
       `create-dmg`,
       `--volname`,
@@ -136,7 +138,7 @@ async function doNotarization(suffix: string) {
 
     const dmgFilepath = resolveTo($.pwd(), dmgFilename);
     console.log("✅ 构建完成:", dmgFilepath);
-    return dmgFilepath;
+    return { version: version, filepath: dmgFilepath };
   }
 }
 
@@ -150,18 +152,26 @@ const getVersion = (suffix: string) => {
     let ele = dict.firstElementChild;
     while (ele) {
       if (ele.tagName === "KEY" && ele.textContent === "CFBundleShortVersionString") {
-        return ele.nextElementSibling?.textContent;
+        return ele.nextElementSibling!.textContent;
       }
       ele = ele.nextElementSibling;
     }
   }
+  throw new Error("No found version string");
 };
 
 if (import.meta.main) {
   // 如果有手动指明 arch，那么不做编译，只做分发
-  if (args.arch) {
+  if (cliArgs.arch) {
     await doNotarization(getSuffix());
   } else {
-    await doRelease(getSuffix());
+    const result = await doRelease(getSuffix());
+    if (result && cliArgs.upload) {
+      const uploadArgs: $UploadReleaseParams = [`desktop-${result.version}`, result.filepath];
+      await recordUploadRelease(`desktop-${result.version}/macos`, uploadArgs);
+      if (cliArgs.upload) {
+        await doUploadRelease(...uploadArgs);
+      }
+    }
   }
 }

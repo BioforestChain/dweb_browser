@@ -3,7 +3,7 @@ import node_path from "node:path";
 import ignore from "npm:ignore";
 import { normalizeFilePath } from "./WalkDir.ts";
 
-export class IgnoreGlob {
+export class Glob {
   #rules;
   get rules() {
     return Object.freeze(this.#rules.slice());
@@ -12,7 +12,7 @@ export class IgnoreGlob {
   constructor(rules: string[], readonly cwd: string) {
     this.cwd = normalizeFilePath(cwd);
     this.#rules = rules;
-    this.#ignore = ignore().add(rules);
+    this.#ignore = ignore.default().add(rules);
   }
   static fromIgnoreFile(filepath: string) {
     filepath = normalizeFilePath(filepath);
@@ -22,9 +22,9 @@ export class IgnoreGlob {
       .map((it) => it.trim())
       .filter((it) => !it.startsWith("#") && it.length > 0);
     const cwd = node_path.dirname(filepath);
-    return new IgnoreGlob(rules, cwd);
+    return new Glob(rules, cwd);
   }
-  isIgnore(filepath: string): boolean {
+  isMatch(filepath: string): boolean {
     filepath = normalizeFilePath(filepath);
 
     const relativepath = node_path.isAbsolute(filepath) ? node_path.relative(this.cwd, filepath) : filepath;

@@ -1,19 +1,21 @@
 import fs from "node:fs";
 import { WalkFiles } from "../../scripts/helper/WalkDir.ts";
 import { createBaseResolveTo } from "../../scripts/helper/resolveTo.ts";
+import { cliArgs } from "./build-helper.ts";
+import { doUploadRelease, recordUploadRelease, type $UploadReleaseParams } from "./upload-github-release.ts";
 const resolveTo = createBaseResolveTo(import.meta.url);
 
 // 运行 assembleRelease 命令，继承输出
 const cmd = Deno.build.os === "windows" ? resolveTo("gradlew.bat") : resolveTo("gradlew");
-const args = ["assembleRelease", "assembleDebug", "bundleRelease"];
+const cmd_args = ["assembleRelease", "assembleDebug", "bundleRelease"];
 
 const doBundle = async () => {
-  console.log(">", cmd, ...args);
+  console.log(">", cmd, ...cmd_args);
 
   // 执行 assembleRelease
   const gradle = new Deno.Command(cmd, {
     cwd: resolveTo(),
-    args: args,
+    args: cmd_args,
     stdout: "inherit",
     stderr: "inherit",
   });
@@ -27,16 +29,16 @@ const doBundle = async () => {
 };
 
 // 定义编译目录，放在这边的目的是为了编译器先删除内部文件，避免之前编译的数据也被拷贝到 release 中
-const BUILD_OUTPUT_DIR = resolveTo("./app/androidApp/build/outputs/apk");
-const BUILD_OUTPUT_DIR_BUNDLE = resolveTo("./app/androidApp/build/outputs/bundle");
+const BUILD_APK_OUTPUT_DIR = resolveTo("./app/androidApp/build/outputs/apk");
+const BUILD_AAB_OUTPUT_DIR = resolveTo("./app/androidApp/build/outputs/bundle");
 
 const doCleanBuildDIR = async () => {
-  console.log("清空编译目录，避免旧数据干扰...")
-  if (fs.existsSync(BUILD_OUTPUT_DIR)) {
-    Deno.removeSync(BUILD_OUTPUT_DIR, { recursive: true })
+  console.log("清空编译目录，避免旧数据干扰...");
+  if (fs.existsSync(BUILD_APK_OUTPUT_DIR)) {
+    Deno.removeSync(BUILD_APK_OUTPUT_DIR, { recursive: true });
   }
-  if (fs.existsSync(BUILD_OUTPUT_DIR_BUNDLE)) {
-    Deno.removeSync(BUILD_OUTPUT_DIR_BUNDLE, { recursive: true })
+  if (fs.existsSync(BUILD_AAB_OUTPUT_DIR)) {
+    Deno.removeSync(BUILD_AAB_OUTPUT_DIR, { recursive: true });
   }
 };
 
@@ -77,16 +79,17 @@ const doCopy = async (versionName: string) => {
     }
   };
   // 遍历构建输出目录，筛选需要的文件夹
-  for await (const dirEntry of Deno.readDir(BUILD_OUTPUT_DIR)) {
-    await copyFile(BUILD_OUTPUT_DIR, dirEntry);
+  for await (const dirEntry of Deno.readDir(BUILD_APK_OUTPUT_DIR)) {
+    await copyFile(BUILD_APK_OUTPUT_DIR, dirEntry);
   }
 
   // 遍历构建输出目录，筛选需要的文件夹(针对aab文件)
-  for await (const dirEntry of Deno.readDir(BUILD_OUTPUT_DIR_BUNDLE)) {
-    await copyFile(BUILD_OUTPUT_DIR_BUNDLE, dirEntry);
+  for await (const dirEntry of Deno.readDir(BUILD_AAB_OUTPUT_DIR)) {
+    await copyFile(BUILD_AAB_OUTPUT_DIR, dirEntry);
   }
 
   console.log("output dir", outputDir);
+  return outputDir;
 };
 
 console.log(`All required APKs have been copied to ${OUTPUT_DIR}`);
@@ -149,8 +152,18 @@ const upgradeVersionInfo = async (filePath: string, forceUpdate = false) => {
   }
 };
 
-// 发布版本的时候，升级下版本信息 versionCode和versionName
-const versionName = await upgradeVersionInfo(resolveTo("gradle/libs.versions.toml"), Deno.args.includes("--new"));
-await doCleanBuildDIR(); // 清空编译目录
-await doBundle();
-await doCopy(versionName);
+if (import.meta.main) {
+  // 发布版本的时候，升级下版本信息 versionCode和versionName
+  const version = await upgradeVersionInfo(resolveTo("gradle/libs.versions.toml"), Deno.args.includes("--new"));
+  if (cliArgs.clean) {
+    await doCleanBuildDIR(); // 清空编译目录
+  }
+  await doBundle();
+  const dirpath = await doCopy(version);
+
+  const uploadArgs: $UploadReleaseParams = [`android-${version}`, dirpath, "*.apk"];
+  await recordUploadRelease(uploadArgs[0], uploadArgs);
+  if (cliArgs.upload) {
+    await doUploadRelease(...uploadArgs);
+  }
+}

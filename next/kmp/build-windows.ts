@@ -3,7 +3,9 @@ import path from "node:path";
 import { WalkFiles } from "../../scripts/helper/WalkDir.ts";
 import { $ } from "../../scripts/helper/exec.ts";
 import { createBaseResolveTo } from "../../scripts/helper/resolveTo.ts";
+import { cliArgs } from "./build-helper.ts";
 import { getSuffix } from "./build-macos.ts";
+import { doUploadRelease, recordUploadRelease, type $UploadReleaseParams } from "./upload-github-release.ts";
 const resolveTo = createBaseResolveTo(import.meta.url);
 
 async function doRelease(suffix: string) {
@@ -25,9 +27,22 @@ async function doRelease(suffix: string) {
   } else {
     msiFilepath = msiFile.entrypath;
   }
-  return msiFilepath;
+  const version = msiFilepath.match(/\d+\.\d+\.\d+/);
+  if (version) {
+    return {
+      version: version[0],
+      filepath: msiFilepath,
+    };
+  }
 }
 
 if (import.meta.main) {
-  doRelease(getSuffix());
+  const result = await doRelease(getSuffix());
+  if (result) {
+    const uploadArgs: $UploadReleaseParams = [`desktop-${result.version}`, result.filepath];
+    await recordUploadRelease(`desktop-${result.version}/windows`, uploadArgs);
+    if (cliArgs.upload) {
+      await doUploadRelease(...uploadArgs);
+    }
+  }
 }

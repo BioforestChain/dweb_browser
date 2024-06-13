@@ -19,3 +19,4 @@ debug
 *.link
 /kotlin-js-store/
 *.provisionprofile
+.upload-tasks.ts

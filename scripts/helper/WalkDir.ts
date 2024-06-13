@@ -2,7 +2,7 @@ import node_fs from "node:fs";
 import node_os from "node:os";
 import node_path from "node:path";
 import { fileURLToPath } from "node:url";
-import { IgnoreGlob } from "./IgnoreGlob.ts";
+import { Glob } from "./Glob.ts";
 const isWindow = node_os.platform() === "win32";
 export const normalizeFilePath = (filepath: string) => {
   if (filepath.startsWith("file:")) {
@@ -16,6 +16,7 @@ export const normalizeFilePath = (filepath: string) => {
 };
 export type WalkOptions = {
   ignore?: string | string[] | ((entry: $WalkEntry) => boolean);
+  match?: string | string[] | ((entry: $WalkEntry) => boolean);
   workspace?: string;
   deepth?: number;
   self?: boolean;
@@ -79,6 +80,7 @@ const genEntry = (
   rootpath: string,
   workspace: string,
   ignore: (entry: $WalkEntry) => boolean,
+  match: (entry: $WalkEntry) => boolean,
   entrypath: string,
   dirpath = node_path.dirname(entrypath),
   entryname = node_path.basename(entrypath)
@@ -103,10 +105,15 @@ const genEntry = (
   } else if (isDirectory) {
     entry = new DirectoryEntry(rootpath, workspace, entrypath, dirpath, entryname);
   }
-  if (entry && ignore(entry)) {
+  if (!entry) {
     return;
   }
-  return entry;
+  if (ignore(entry)) {
+    return;
+  }
+  if (match(entry)) {
+    return entry;
+  }
 };
 export function* WalkAny(rootpath: string, options: WalkOptions = {}) {
   rootpath = normalizeFilePath(rootpath);
@@ -115,19 +122,25 @@ export function* WalkAny(rootpath: string, options: WalkOptions = {}) {
     ? typeof options.ignore === "function"
       ? options.ignore
       : (() => {
-          const ignore = new IgnoreGlob(
-            typeof options.ignore === "string" ? [options.ignore] : options.ignore,
-            workspace
-          );
-          return (entry: Entry) => ignore.isIgnore(entry.entrypath);
+          const ignore = new Glob(typeof options.ignore === "string" ? [options.ignore] : options.ignore, workspace);
+          return (entry: Entry) => ignore.isMatch(entry.entrypath);
         })()
     : () => false;
+
+  const match = options.match
+    ? typeof options.match === "function"
+      ? options.match
+      : (() => {
+          const match = new Glob(typeof options.match === "string" ? [options.match] : options.match, workspace);
+          return (entry: Entry) => match.isMatch(entry.entrypath);
+        })()
+    : () => true;
 
   if (log) {
     console.log("start", rootpath);
   }
   if (self) {
-    const rootEntry = genEntry(rootpath, workspace, ignore, rootpath);
+    const rootEntry = genEntry(rootpath, workspace, ignore, match, rootpath);
     if (rootEntry) {
       yield rootEntry;
     } else {
@@ -158,7 +171,15 @@ export function* WalkAny(rootpath: string, options: WalkOptions = {}) {
     }
 
     for (const entryname of node_fs.readdirSync(dirpath)) {
-      const entry = genEntry(rootpath, workspace, ignore, node_path.join(dirpath, entryname), dirpath, entryname);
+      const entry = genEntry(
+        rootpath,
+        workspace,
+        ignore,
+        match,
+        node_path.join(dirpath, entryname),
+        dirpath,
+        entryname
+      );
       if (!entry) {
         continue;
       }

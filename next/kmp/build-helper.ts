@@ -1,5 +1,5 @@
 import { parseArgs } from "@std/cli/parse-args";
-export const args = parseArgs(Deno.args);
+export const cliArgs = parseArgs(Deno.args);
 
 import fs from "node:fs";
 import { createBaseResolveTo } from "../../scripts/helper/resolveTo.ts";
@@ -29,45 +29,65 @@ export const loadProperties = (filepath: string) => {
 };
 export const localProperties = loadProperties(resolveTo("./local.properties"));
 
-import ora from "npm:ora";
-import prettyBytes from "npm:pretty-bytes";
-export class UploadSpinner {
-  readonly spinner;
-  #ti;
-  constructor(readonly totalSize: number, ...args: Parameters<typeof ora>) {
-    this.spinner = ora(...args).start();
-    this.#ti = setInterval(() => {
-      this.redraw();
-    }, 500);
-  }
-  private uploadRecords: Array<{ size: number; time: number }> = [];
-  private accSize = 0;
+import { Glob } from "../../scripts/helper/Glob.ts";
 
-  addUploadSize(size: number) {
-    this.accSize += size;
-    this.uploadRecords.unshift({ size, time: Date.now() });
-    this.redraw();
+const allTasks = new Map<string, () => unknown>();
+export function defineTask(id: string, action: () => unknown) {
+  allTasks.set(id, action);
+}
+export function listTasks(filter?: string) {
+  const allTaskIds = [...[...allTasks.keys()].entries()];
+  let taskIds: typeof allTaskIds;
+  if (filter) {
+    const match = new Glob([filter], "/");
+    taskIds = allTaskIds.filter(([_, taskId]) => match.isMatch(taskId));
+  } else {
+    taskIds = allTaskIds;
   }
-  redraw() {
-    const now = Date.now();
-    this.spinner.text = ((this.accSize / this.totalSize) * 100).toFixed(2) + "%";
-    let secondsAccSize = 0;
-    let endTime = now;
-    for (const item of this.uploadRecords) {
-      if (now - item.time > 1000) {
-        break;
+  console.log(taskIds.map(([index, taskId]) => `${index + 1}. ${taskId}`).join("\n"));
+}
+export function tryExecTask() {
+  queueMicrotask(async () => {
+    if (cliArgs.list === true) {
+      listTasks();
+      return;
+    }
+    if (typeof cliArgs.list === "string") {
+      listTasks(cliArgs.list);
+      return;
+    }
+    const allTaskIds = [...allTasks.keys()];
+
+    const idFilters = cliArgs._.map((filter) => {
+      if (typeof filter === "string") {
+        return filter;
+      } else if (typeof filter === "number") {
+        return allTaskIds[filter - 1];
       }
-      secondsAccSize += item.size;
-      endTime = item.time;
+      return;
+    }).filter((it) => typeof it === "string") as string[];
+    if (idFilters.length === 0) {
+      console.warn("请输入 taskId 或者 taskId-glob 或者 taskId-序号");
+      listTasks();
+      return;
     }
-    if (endTime === now) {
-      this.spinner.suffixText = `${prettyBytes(0)}/s`;
-    } else {
-      this.spinner.suffixText = `${prettyBytes((secondsAccSize / (now - endTime)) * 1000)}/s`;
+
+    const match = new Glob(idFilters, "/");
+    const taskIds = allTaskIds.filter((taskId) => match.isMatch(taskId));
+
+    if (taskIds.length === 0) {
+      console.warn("没有找到匹配的任务", ...idFilters);
+      return;
     }
-  }
-  stop() {
-    this.spinner.stop();
-    clearInterval(this.#ti);
-  }
+    for (const taskId of taskIds) {
+      console.log("开始执行任务", taskId);
+      try {
+        await allTasks.get(taskId)!();
+      } catch (e) {
+        console.error("QWQ", e);
+        Deno.exit(1);
+      }
+    }
+    console.log("done");
+  });
 }

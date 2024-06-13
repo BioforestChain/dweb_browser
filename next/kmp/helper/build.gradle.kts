@@ -33,7 +33,7 @@ kotlin {
     dependencies {
       //解压缩
       implementation(libs.apache.common.compress)
-      api(libs.org.slf4j.log4j12)
+//      api(libs.org.slf4j.log4j12)
     }
   }
 
