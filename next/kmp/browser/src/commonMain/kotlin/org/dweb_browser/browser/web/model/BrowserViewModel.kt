@@ -240,7 +240,7 @@ class BrowserViewModel(
     DisposableEffect(Unit) {
       val off = browserController.onCloseWindow {
         withScope(uiScope) {
-          pages.forEach { browserContentItem -> closePageUI(browserContentItem) }
+          pages.toList().forEach { browserContentItem -> closePageUI(browserContentItem) }
           pages.clear()
         }
       }

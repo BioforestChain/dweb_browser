@@ -39,6 +39,8 @@ actual fun getImageResourceRootPath(): String = ""
 private var iOSViewHolder: DwebWebView? = null
 private var iOSViewDelegateHolder: BrowserIosDelegate? = null
 private var iOSViewDataSourceHolder: BrowserIosDataSource? = null
+@OptIn(ExperimentalForeignApi::class)
+private var iOSBrowserView: DwebWebView? = null
 
 @OptIn(ExperimentalForeignApi::class)
 private var iOSViewHolderDeferred = CompletableDeferred<Unit>()
@@ -116,7 +118,7 @@ actual fun CommonBrowserView(
     }
   }
 
-  val iOSView = remember {
+  iOSBrowserView = remember {
     when (val webView = iOSViewHolder) {
       null -> DwebWebView(CGRectMake(0.0, 0.0, 0.0, 0.0), iOSDelegate, iOSDataSource).also {
         iOSViewHolder = it
@@ -135,7 +137,7 @@ actual fun CommonBrowserView(
   val scope = rememberCoroutineScope()
 
   fun backHandler() {
-    if (!iOSView.gobackIfCanDo()) {
+    if (!iOSBrowserView!!.gobackIfCanDo()) {
       scope.launch {
         win.tryCloseOrHide()
       }
@@ -146,21 +148,22 @@ actual fun CommonBrowserView(
   win.navigation.GoBackHandler { backHandler() }
 
   LaunchedEffect(win.state.colorScheme) {
-    iOSView.colorSchemeChangedWithColor(win.state.colorScheme.ordinal)
+    iOSBrowserView!!.colorSchemeChangedWithColor(win.state.colorScheme.ordinal)
   }
 
   Box {
     UIKitView(
       factory = {
-        iOSView
+        iOSBrowserView!!
       },
       onRelease = {
         println("DwebWebView UIKitView onRelease")
+        iOSBrowserView = null
       },
       modifier = modifier,
     )
 //    iOSView.setScale(windowRenderScope.scale)
-    iOSView.WindowFrameStyleEffect()
+    iOSBrowserView!!.WindowFrameStyleEffect()
   }
 }
 

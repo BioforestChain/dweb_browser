@@ -168,4 +168,9 @@ struct BrowserView: View {
         outerSearch = OuterSearch()
         addressBar = AddressBarState()
     }
+    
+    func destroy() {
+        webcacheStore.webWrappers = []
+        webcacheStore.caches = []
+    }
 }

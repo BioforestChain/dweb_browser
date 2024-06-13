@@ -119,7 +119,6 @@ class WebCacheStore {
 
     func resetWrappers() {
         webWrappers.forEach { browserViewDataSource.destroyWebView(web: $0.webView) }
-        caches = [.blank]
     }
 
     func createOne(url: URL = emptyURL) {

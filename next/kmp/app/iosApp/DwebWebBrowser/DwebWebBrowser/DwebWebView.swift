@@ -37,6 +37,7 @@ var browserViewDataSource: WebBrowserViewDataSource {
     
     deinit {
         Log("DwebWebView deinit")
+        browerView?.destroy()
     }
     
     fileprivate var isTransitionEffect = false
