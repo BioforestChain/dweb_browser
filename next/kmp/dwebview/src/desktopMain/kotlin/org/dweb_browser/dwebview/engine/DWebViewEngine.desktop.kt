@@ -70,7 +70,7 @@ class DWebViewEngine internal constructor(
   val dataDir: Path,
   val options: DWebViewOptions,
   internal val browser: Browser = createMainBrowser(
-    remoteMM, dataDir, options.enabledOffScreenRender
+    remoteMM, dataDir, options.enabledOffScreenRender, options.incognito
   ),
 ) {
   companion object {
@@ -97,8 +97,14 @@ class DWebViewEngine internal constructor(
       remoteMM: MicroModule.Runtime,
       dataDir: Path,
       enabledOffScreenRender: Boolean,
+      incognito: Boolean
     ): Browser {
       val optionsBuilder: EngineOptions.Builder.() -> Unit = {
+        // 是否开启无痕模式
+        if(incognito) {
+          enableIncognito()
+        }
+
         // 拦截dweb deeplink
         addScheme(Scheme.of("dweb")) { params ->
           remoteMM.scopeLaunch(cancelable = true) {

@@ -15,6 +15,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
+import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.http.dwebHttpGatewayServer
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.dwebview.DWebViewOptions
@@ -24,6 +25,7 @@ import org.dweb_browser.dwebview.WebDownloadArgs
 import org.dweb_browser.dwebview.WebLoadState
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcherScriptMessageHandler
+import org.dweb_browser.dwebview.debugDWebView
 import org.dweb_browser.dwebview.messagePort.DWebViewWebMessage
 import org.dweb_browser.dwebview.polyfill.DWebViewFaviconMessageHandler
 import org.dweb_browser.dwebview.polyfill.DWebViewWebSocketMessageHandler
@@ -45,6 +47,7 @@ import org.jetbrains.compose.resources.ExperimentalResourceApi
 import platform.CoreGraphics.CGRect
 import platform.Foundation.NSURL
 import platform.Foundation.NSURLRequest
+import platform.Foundation.NSUUID
 import platform.UIKit.UIEdgeInsetsEqualToEdgeInsets
 import platform.UIKit.UIEdgeInsetsMake
 import platform.UIKit.UIEdgeInsetsZero
@@ -56,6 +59,8 @@ import platform.WebKit.WKPreferences
 import platform.WebKit.WKUserScript
 import platform.WebKit.WKUserScriptInjectionTime
 import platform.WebKit.WKWebViewConfiguration
+import platform.WebKit.WKWebsiteDataRecord
+import platform.WebKit.WKWebsiteDataStore
 import platform.WebKit.javaScriptEnabled
 
 @OptIn(ExperimentalForeignApi::class)
@@ -111,6 +116,31 @@ class DWebViewEngine(
       configuration.setURLSchemeHandler(dwebSchemeHandler, "dweb")
     }
 
+    // 删除指定MMID的数据存储
+    fun removeMmidSiteStore(mmid: MMID) = removeUuidSiteStore(NSUUID(uUIDString = mmid))
+
+    // 删除指定UUID的数据存储
+    fun removeUuidSiteStore(uuid: NSUUID) {
+      WKWebsiteDataStore.removeDataStoreForIdentifier(uuid) { err ->
+        if (err != null) {
+          debugDWebView(
+            "removeMmidSiteStore",
+            "code: ${err.code} description: ${err.localizedDescription}"
+          )
+        }
+      }
+    }
+
+    // 删除所有WKWebView持久化网站数据
+    fun removeAllMmidSiteStore() {
+      WKWebsiteDataStore.fetchAllDataStoreIdentifiers { uuids ->
+        if (uuids != null) {
+          (uuids as List<NSUUID>).forEach {
+            removeUuidSiteStore(it)
+          }
+        }
+      }
+    }
   }
 
   suspend fun loadUrl(url: String): String {
@@ -167,6 +197,14 @@ class DWebViewEngine(
     dwebHelper.setProxyWithConfiguration(
       configuration, url.host, url.port.toUShort()
     )
+
+    // 是否开启无痕模式
+    if(options.incognito) {
+      configuration.setWebsiteDataStore(WKWebsiteDataStore.nonPersistentDataStore())
+    } else {
+      // 开启WKWebView数据隔离
+      configuration.setWebsiteDataStore(WKWebsiteDataStore.dataStoreForIdentifier(NSUUID(uUIDString = remoteMM.mmid)))
+    }
 
     // https://stackoverflow.com/questions/77078328/warning-prints-in-console-when-using-webkit-to-load-youtube-video
     this.allowsLinkPreview = true
@@ -401,6 +439,19 @@ class DWebViewEngine(
     }
 
   //#endregion
+
+  // 删除当前WKWebView的所有数据类型的存储数据
+  fun removeAllTypeSiteData() {
+    val dataTypes = WKWebsiteDataStore.allWebsiteDataTypes()
+    configuration.websiteDataStore.fetchDataRecordsOfTypes(dataTypes) {
+      if (it != null) {
+        configuration.websiteDataStore.removeDataOfTypes(
+          WKWebsiteDataStore.allWebsiteDataTypes(),
+          it as List<WKWebsiteDataRecord>
+        ) {}
+      }
+    }
+  }
 
   /**
    * 必须在 mainThread 调用这个函数

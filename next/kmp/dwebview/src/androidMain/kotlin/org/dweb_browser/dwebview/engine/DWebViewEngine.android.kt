@@ -7,8 +7,10 @@ import android.graphics.Rect
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams
 import android.view.WindowInsets
+import android.webkit.CookieManager
 import android.webkit.DownloadListener
 import android.webkit.WebChromeClient
+import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.core.view.DisplayCutoutCompat
@@ -241,6 +243,8 @@ class DWebViewEngine internal constructor(
     defaultDownloadListenerRemover = listener?.let { addDownloadListener(it) }
   }
 
+//  private val cookieManager = CookieManager.getInstance()
+
   init {
     debugDWebView("INIT", options)
 
@@ -248,9 +252,22 @@ class DWebViewEngine internal constructor(
       ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT
     )
     setUA()
+
+//    // 是否开启无痕模式
+//    if(options.incognito) {
+//      clearHistory()
+//      clearCache(true)
+//      settings.saveFormData = false
+//      settings.domStorageEnabled = false
+//      settings.databaseEnabled = false
+//      cookieManager.removeAllCookies(null)
+//      cookieManager.flush()
+//    } else {
+      settings.domStorageEnabled = true
+      settings.databaseEnabled = true
+//    }
+
     settings.javaScriptEnabled = true
-    settings.domStorageEnabled = true
-    settings.databaseEnabled = true
     settings.safeBrowsingEnabled = true
     settings.loadWithOverviewMode = true
     settings.loadsImagesAutomatically = true
