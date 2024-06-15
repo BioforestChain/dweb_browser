@@ -1,7 +1,13 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import squircle_svg_url from "../icon-squircle-box/squircle.svg";
 import { $AppIconInfo } from "./types.ts";
+import { get, set, createStore } from "idb-keyval";
+import { computedAsync } from "@vueuse/core";
+import { withLock } from "../../provider/lock.ts";
+
+const iconStore = createStore("desk", "icon");
+type $IconRow = { blob: Blob; updateTime: number };
 
 const props = defineProps({
   size: {
@@ -26,8 +32,49 @@ const props = defineProps({
 });
 
 const mono_css = computed(() => props.icon.monoimage ?? props.icon.monocolor ?? "none");
-const icon_css = computed(() => `url(${props.icon.src})`);
-console.log("squircle_svg_url", squircle_svg_url);
+
+const setIconRow = async (url: string) => {
+  try {
+    const iconBlob = await (await fetch(url, { mode: "cors" })).blob();
+    const iconRow: $IconRow = {
+      blob: iconBlob,
+      updateTime: Date.now(),
+    };
+    await set(url, iconRow, iconStore);
+    return iconRow;
+  } catch (err) {
+    console.warn("fail to fetch error", err);
+  }
+};
+
+const DAY = 24 * 60 * 60 * 1000;
+const icon_blob_ref = ref<Blob>();
+const icon_css = computedAsync<string | undefined>(async () => {
+  const blob = await withLock(props.icon.src, async () => {
+    if (false === props.icon.src.startsWith("https://")) {
+      return;
+    }
+    let iconRow = await get<$IconRow>(props.icon.src, iconStore);
+    if (iconRow === undefined) {
+      iconRow = await setIconRow(props.icon.src);
+      icon_blob_ref.value = iconRow?.blob;
+    } else {
+      icon_blob_ref.value = iconRow.blob;
+      if (Date.now() - iconRow.updateTime > DAY) {
+        void setIconRow(props.icon.src).then((it) => {
+          icon_blob_ref.value = it?.blob;
+        });
+      }
+    }
+    return icon_blob_ref.value;
+  });
+  if (blob) {
+    return `url(${URL.createObjectURL(blob)})`;
+  } else {
+    return `url(${props.icon.src})`;
+  }
+}, undefined);
+
 const squircle_css = `url("${squircle_svg_url}")`;
 const bg_image = computed(() => {
   if (props.bgImage) {

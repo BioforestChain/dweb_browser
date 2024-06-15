@@ -17,6 +17,7 @@
     "@vueuse/components": "^10.6.1",
     "@vueuse/core": "^10.9.0",
     "core-js": "^3.29.0",
+    "idb-keyval": "^6.2.1",
     "roboto-fontface": "*",
     "vue": "^3.4.25",
     "vue-router": "^4.3.2",
