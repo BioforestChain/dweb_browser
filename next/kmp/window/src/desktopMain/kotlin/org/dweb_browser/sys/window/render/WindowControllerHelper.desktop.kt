@@ -34,15 +34,17 @@ actual fun getWindowControllerBorderRounded(isMaximize: Boolean) =
 
 // if (isMaximize || PureViewController.isWindows) 0 else 16
 
+suspend fun MicroModule.Runtime.loadSourceToImageBitmap(src: String, width: Int, height: Int) =
+  WebImageLoader.defaultInstance.load(
+    OffscreenWebCanvas.defaultInstance, src, width, height, imageFetchHook
+  ).firstOrNull {
+    it.isSuccess
+  }?.success
 
 @OptIn(ExperimentalResourceApi::class)
-suspend fun MicroModule.Runtime.loadAwtIconImage(): BufferedImage =
+suspend fun MicroModule.Runtime.loadIconAsAwtImage(): BufferedImage =
   icons.toStrict().pickLargest()?.src?.let { url ->
-    WebImageLoader.defaultInstance.load(
-      OffscreenWebCanvas.defaultInstance, url, 256, 256, imageFetchHook
-    ).firstOrNull {
-      it.isSuccess
-    }?.success?.toAwtImage()
+    loadSourceToImageBitmap(url, 256, 256)?.toAwtImage()
   } ?: withContext(ioAsyncExceptionHandler) {
     ImageIO.read(Res.readBytes("files/sys-icons/notification_default_icon.png").inputStream())
   }
@@ -51,7 +53,7 @@ val MMR_awtIconImage_WM = WeakHashMap<MicroModule.Runtime, Deferred<BufferedImag
 val MicroModule.Runtime.awtIconImage
   get() = MMR_awtIconImage_WM.getOrPut(this) {
     getRuntimeScope().async {
-      loadAwtIconImage()
+      loadIconAsAwtImage()
     }
   }
 
