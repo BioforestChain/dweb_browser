@@ -17,6 +17,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.twotone.Image
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
@@ -52,7 +53,8 @@ import org.dweb_browser.helper.compose.produceEvent
 import org.dweb_browser.helper.formatDatestampByMilliseconds
 import org.dweb_browser.helper.platform.theme.dimens
 import org.dweb_browser.helper.toSpaceSize
-import org.dweb_browser.pure.image.compose.CoilAsyncImage
+import org.dweb_browser.pure.image.compose.PureImageLoader
+import org.dweb_browser.pure.image.compose.SmartLoad
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
 import org.dweb_browser.sys.window.core.WindowContentScaffold
 
@@ -178,11 +180,28 @@ fun JmmViewItem(
       leadingContent = {
         Box(modifier = Modifier.height(72.dp), contentAlignment = Alignment.Center) {
           key(jmmMetadata.manifest.logo) {
-            CoilAsyncImage(
-              model = jmmMetadata.manifest.logo,
-              contentDescription = "icon",
-              modifier = Modifier.size(56.dp),
-            )
+            PureImageLoader.SmartLoad(jmmMetadata.manifest.logo, 56.dp, 56.dp).with(
+              onBusy = {
+                Image(
+                  imageVector = Icons.TwoTone.Image,
+                  contentDescription = it,
+                  modifier = Modifier.size(56.dp),
+                  alpha = 0.5f
+                )
+              },
+              onError = {
+                Text(it.message?:"ERR")
+//                Image(
+//                  imageVector = Icons.TwoTone.BrokenImage,
+//                  contentDescription = "icon",
+//                  modifier = Modifier.size(56.dp),
+//                )
+              }) {
+              Image(
+                bitmap = it, contentDescription = "icon",
+                modifier = Modifier.size(56.dp),
+              )
+            }
           }
         }
       },

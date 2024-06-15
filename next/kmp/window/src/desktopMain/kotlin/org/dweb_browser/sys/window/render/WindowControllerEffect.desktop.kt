@@ -16,6 +16,7 @@ import org.dweb_browser.helper.platform.ComposeWindowParams
 import org.dweb_browser.helper.platform.LocalPureViewController
 import org.dweb_browser.helper.platform.asDesktop
 import org.dweb_browser.pure.image.OffscreenWebCanvas
+import org.dweb_browser.pure.image.compose.LoaderTask
 import org.dweb_browser.pure.image.compose.WebImageLoader
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.WindowState
@@ -137,10 +138,12 @@ private fun WindowController.IconEffect(composeWindowParams: ComposeWindowParams
     iconUrl?.let { url ->
       WebImageLoader.defaultInstance.load(
         OffscreenWebCanvas.defaultInstance,
-        url,
-        64,
-        64,
-        state.constants.microModule.value?.imageFetchHook
+        LoaderTask(
+          url,
+          64,
+          64,
+          state.constants.microModule.value?.imageFetchHook
+        )
       ).firstOrNull {
         it.isSuccess
       }?.success?.also {

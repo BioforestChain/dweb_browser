@@ -1,18 +1,21 @@
 package org.dweb_browser.pure.image.offscreenwebcanvas
 
 
-import org.dweb_browser.helper.OrderDeferred
 import org.dweb_browser.helper.platform.toImageBitmap
 import org.dweb_browser.pure.image.OffscreenWebCanvas
 
 suspend fun OffscreenWebCanvas.waitReady() = core.channel.waitReady()
-class WebCanvasContextSession private constructor(internal val core: OffscreenWebCanvasCore) {
+class WebCanvasContextSession private constructor(
+  val sessionId: String,
+  internal val core: OffscreenWebCanvasCore,
+) {
   companion object {
-    suspend fun <T> OffscreenWebCanvas.buildTask(builder: suspend WebCanvasContextSession.() -> T): T {
-      return WebCanvasContextSession(core).builder()
+    suspend fun <T> OffscreenWebCanvas.buildTask(
+      sessionId: String,
+      builder: suspend WebCanvasContextSession.() -> T,
+    ): T {
+      return WebCanvasContextSession(sessionId, core).builder()
     }
-
-    private val renderOrder = OrderDeferred()
   }
 
   private var jsCode = mutableListOf<String>();
@@ -34,23 +37,35 @@ class WebCanvasContextSession private constructor(internal val core: OffscreenWe
     jsCode += "ctx.drawImage(img,0,0,img.width,img.height);" // 绘制图片到画布中
   }
 
+  fun prepareImage(imageUri: String) {
+    jsCode += "await prepareImage(wrapUrlByProxy(`$imageUri`));"
+  }
+
+  fun returnRequestCanvas(then: () -> Unit) {
+    jsCode += "return requestCanvas(async(canvas,ctx)=>{"
+    then()
+    jsCode += "});"
+  }
+
   private fun fetchImageBitmap(imageUri: String, containerWidth: Int, containerHeight: Int) =
     /// fetch 如果使用 mode:'no-cors'，那么blob始终为空，所以匿名模式没有意义
     "(await fetchImageBitmap(wrapUrlByProxy(`$imageUri`),$containerWidth,$containerHeight))"
 
-  suspend fun toDataURL(type: String = "image/png", quality: Float = 0.8f) =
-    renderOrder.queueAndAwait(Unit) {
-      jsCode += "return canvasToDataURL(canvas,{type:`$type`,quality:$quality});"
-      runCatching {
-        core.evalJavaScriptReturnString(getExecCode())
-      }.getOrElse { "data:$type;base64," }
-    }
+  fun returnDataURL(type: String = "image/png", quality: Float = 0.8f) {
+    jsCode += "return canvasToDataURL(canvas,{type:`$type`,quality:$quality});"
+  }
 
-  suspend fun toImageBitmap(type: String = "image/png", quality: Float = 0.8f) =
-    renderOrder.queueAndAwait(Unit) {
-      jsCode += "return canvasToBlob(canvas,{type:`$type`,quality:$quality});"
-      core.evalJavaScriptReturnByteArray(getExecCode()).toImageBitmap()
-    }
+  fun returnImageBitmap(type: String = "image/png", quality: Float = 0.8f) {
+    jsCode += "return canvasToBlob(canvas,{type:`$type`,quality:$quality});"
+  }
+
+  suspend fun execToDataURL(type: String = "image/png") =
+    runCatching {
+      core.evalJavaScriptReturnString(getExecCode())
+    }.getOrElse { "data:$type;base64," }
+
+  suspend fun execToImageBitmap() =
+    core.evalJavaScriptReturnByteArray(getExecCode()).toImageBitmap()
 
   fun clearRect(x: Int, y: Int, w: Int, h: Int) {
     jsCode += "ctx.clearRect($x,$y,$w,$h);"

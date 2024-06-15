@@ -212,7 +212,7 @@ importers:
   toolkit/dweb-offscreen-web-canvas-assets:
     dependencies:
       canvg:
-        specifier: ^4.0.1
+        specifier: ^4.0.2
         version: 4.0.2
       xmldom:
         specifier: ^0.6.0

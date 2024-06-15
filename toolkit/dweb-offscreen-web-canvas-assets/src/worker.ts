@@ -1,5 +1,7 @@
 import { prepareInWorker } from "./prepare-in-worker.ts";
 import { svgToBlob } from "./svg-rasterization.ts";
+import { HalfFadeCache } from "./util/HalfFadeCache.ts";
+import { withResolvers } from "./util/PromiseWithResolvers.ts";
 import { calcFitSize } from "./util/calcFitSize.ts";
 // Move Three.js imports here if you use Three.js
 
@@ -8,14 +10,16 @@ const { toMainChannel } = prepareInWorker(import.meta.url);
 (async () => {
   let wsUrl: string | null = null;
   let proxyUrl: string | null = null;
-  const canvas = await new Promise<OffscreenCanvas>((resolve) =>
+  const canvasList = await new Promise<OffscreenCanvas[]>((resolve) =>
     toMainChannel.addEventListener(
       "message",
       (event) => {
-        const { canvas, width, height, wsUrl: _wsUrl, proxyUrl: _proxyUrl } = event.data;
-        canvas.width = width;
-        canvas.height = height;
-        resolve(canvas);
+        const { canvasList, width, height, wsUrl: _wsUrl, proxyUrl: _proxyUrl } = event.data;
+        canvasList.forEach((canvas) => {
+          canvas.width = width;
+          canvas.height = height;
+        });
+        resolve(canvasList);
         wsUrl = _wsUrl || null;
         proxyUrl = _proxyUrl || null;
       },
@@ -23,7 +27,7 @@ const { toMainChannel } = prepareInWorker(import.meta.url);
     )
   );
 
-  const ctx = canvas.getContext("2d")!;
+  // const ctx = canvas.getContext("2d")!;
 
   const wrapUrlByProxy = (url: string) => {
     if (!proxyUrl) {
@@ -37,10 +41,7 @@ const { toMainChannel } = prepareInWorker(import.meta.url);
     proxyedUrl.searchParams.set("url", url);
     return proxyedUrl.href;
   };
-
-  const fetchImageBitmap = async (imageUrl: string, containerWidth: number, containerHeight: number) => {
-    containerWidth = Math.min(containerWidth, 8192);
-    containerHeight = Math.min(containerHeight, 8192);
+  const fetchImage = async (imageUrl: string) => {
     let imgSource: ImageBitmapSource;
     let needFitSize = true;
     if (typeof Image === "function") {
@@ -57,15 +58,39 @@ const { toMainChannel } = prepareInWorker(import.meta.url);
         throw new Error(`network error:${res.statusText}\n${await res.text()}`);
       }
       if (res.headers.get("Content-Type")?.includes("image/svg+xml")) {
-        const svgCode = await res.text();
-        imgSource = await svgToBlob(svgCode, {
-          width: containerWidth,
-          height: containerHeight,
-        });
-        needFitSize = false;
+        return await res.text();
+        // const svgCode = await res.text();
+        // imgSource = await svgToBlob(svgCode, {
+        //   width: containerWidth,
+        //   height: containerHeight,
+        // });
+        // needFitSize = false;
       } else {
         imgSource = await res.blob();
       }
+    }
+    return { imgSource, needFitSize };
+  };
+  const imageCache = new HalfFadeCache<string, ReturnType<typeof fetchImage>>();
+  const prepareImage = (imageUrl: string) => {
+    return imageCache.getOrPut(imageUrl, () => fetchImage(imageUrl));
+  };
+
+  const fetchImageBitmap = async (imageUrl: string, containerWidth: number, containerHeight: number) => {
+    containerWidth = Math.min(containerWidth, 8192);
+    containerHeight = Math.min(containerHeight, 8192);
+    const preImage = await prepareImage(imageUrl);
+    let imgSource: ImageBitmapSource;
+    let needFitSize = true;
+    if (typeof preImage === "string") {
+      imgSource = await svgToBlob(preImage, {
+        width: containerWidth,
+        height: containerHeight,
+      });
+      needFitSize = false;
+    } else {
+      imgSource = preImage.imgSource;
+      needFitSize = preImage.needFitSize;
     }
 
     let img = await createImageBitmap(imgSource);
@@ -83,6 +108,33 @@ const { toMainChannel } = prepareInWorker(import.meta.url);
     }
     return img;
   };
+
+  const busyCanvasSet = new Set<OffscreenCanvas>();
+  const canvasWaitters: PromiseOut<OffscreenCanvas>[] = [];
+  const requestCanvas = async <R>(handler: (canvas: OffscreenCanvas, ctx: OffscreenCanvasRenderingContext2D) => R) => {
+    let canvas: OffscreenCanvas | undefined;
+    if (busyCanvasSet.size < canvasList.length) {
+      canvas = canvasList.find((canvas) => false === busyCanvasSet.has(canvas));
+    }
+    if (canvas === undefined) {
+      const waitter = withResolvers<OffscreenCanvas>();
+      canvasWaitters.push(waitter);
+      canvas = await waitter.promise;
+    }
+    busyCanvasSet.add(canvas);
+    try {
+      return await handler(canvas, canvas.getContext("2d")!);
+    } finally {
+      /// 尝试 resolve，否则直接传递给 waitter
+      const waitter = canvasWaitters.shift();
+      if (waitter === undefined) {
+        busyCanvasSet.delete(canvas);
+      } else {
+        waitter.resolve(canvas);
+      }
+    }
+  };
+
   const canvasToDataURL = async (canvas: OffscreenCanvas | HTMLCanvasElement, options?: ImageEncodeOptions) => {
     if ("toDataURL" in canvas) {
       return await canvas.toDataURL(options?.type, options?.quality);
@@ -132,9 +184,9 @@ const { toMainChannel } = prepareInWorker(import.meta.url);
   ) => {
     try {
       const res = (await new AsyncFunction(
-        "canvas,ctx,fetchImageBitmap,blobToDataURL,canvasToDataURL,canvasToBlob,wrapUrlByProxy",
+        "canvasList,fetchImageBitmap,blobToDataURL,canvasToDataURL,canvasToBlob,wrapUrlByProxy",
         code
-      )(canvas, ctx, fetchImageBitmap, blobToDataURL, canvasToDataURL, canvasToBlob, wrapUrlByProxy)) as unknown;
+      )(canvasList, fetchImageBitmap, blobToDataURL, canvasToDataURL, canvasToBlob, wrapUrlByProxy)) as unknown;
       let result: string | $WsBinary | undefined;
       switch (returnType) {
         case "json":
@@ -160,13 +212,15 @@ const { toMainChannel } = prepareInWorker(import.meta.url);
   };
   Object.assign(self, {
     evalCode,
-    canvas,
-    ctx,
+    canvasList,
+    // ctx,
     fetchImageBitmap,
     blobToDataURL,
     canvasToBlob,
     canvasToDataURL,
     wrapUrlByProxy,
+    prepareImage,
+    requestCanvas,
   });
 
   if (wsUrl) {
@@ -212,33 +266,5 @@ const { toMainChannel } = prepareInWorker(import.meta.url);
       const req = JSON.parse(ev.data) as $RunCommandReq;
       queueReq(req);
     };
-  } else {
-    console.log("start tests");
-    const testResize = () => {
-      canvas.width = 300;
-      canvas.height = 300;
-      return {
-        width: canvas.width,
-        height: canvas.height,
-      };
-    };
-    const testDrawImage = async () => {
-      const img = await fetchImageBitmap(
-        "https://upload.wikimedia.org/wikipedia/commons/5/55/John_William_Waterhouse_A_Mermaid.jpg",
-        100,
-        100
-      );
-      ctx.drawImage(img, 0, 0);
-
-      return await canvasToDataURL(canvas);
-    };
-    for (const [test, config] of new Map<Function, $ReturnType>([
-      [testResize, "json"],
-      [testDrawImage, "string"],
-    ])) {
-      await evalCode(config, test.toString().match(/\{([\w\W]+)\}/)![1], (err, result) =>
-        err ? console.error(test.name, err) : console.log(test.name, result)
-      );
-    }
   }
 })().catch(console.error);

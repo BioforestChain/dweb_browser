@@ -270,8 +270,6 @@ fun WindowController.WindowRender(modifier: Modifier) {
            */
           val paddingBottom = if (keyboardOverlaysContent) 0f else keyboardInsetBottom
 
-          println("QAQ paddingBottom=$paddingBottom keyboardOverlaysContent=$keyboardOverlaysContent")
-
           val limits = LocalWindowLimits.current
           val isResizing = inResizeAnimation || inResizeFrame
           val windowRenderScope = remember(

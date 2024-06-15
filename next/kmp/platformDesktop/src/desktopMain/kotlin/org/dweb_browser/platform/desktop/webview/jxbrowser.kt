@@ -42,7 +42,6 @@ object WebviewEngine {
       if (!sandboxChromiumDir.isDirectory()) {
         val sandboxChromiumZip =
           Paths.get(System.getProperty("java.io.tmpdir")).resolve("jxbrowser/7.39.0.zip").toFile()
-        println("QAQ sourceChromiumZip=${WebviewEngine.javaClass.getResourceAsStream("/jxbrowser-7.39.0.zip")}")
         val myChromiumZip = WebviewEngine.javaClass.getResourceAsStream("/jxbrowser-7.39.0.zip")!!
         myChromiumZip.pipeTo(sandboxChromiumZip.outputStream())
         val tmpChromiumDir =
@@ -50,7 +49,6 @@ object WebviewEngine {
         easyUnZip(sandboxChromiumZip, tmpChromiumDir)
         tmpChromiumDir.renameTo(sandboxChromiumDir.toFile())
       }
-      println("QAQ sandboxChromiumDir=$sandboxChromiumDir")
     }
 
     /// 监听进程死亡，那么就关闭所有的 engine

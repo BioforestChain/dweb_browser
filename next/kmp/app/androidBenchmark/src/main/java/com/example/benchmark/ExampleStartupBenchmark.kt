@@ -92,7 +92,7 @@ class BaselineProfileGenerator {
     }
 
     device.waitForIdle()
-    Log.d("WebView", "QAQ try click webview")
+    Log.d("WebView", "try click webview")
     device.click(450, 550)
     device.waitForIdle()
     device.drag(445, 240, 560, 1150, 50)

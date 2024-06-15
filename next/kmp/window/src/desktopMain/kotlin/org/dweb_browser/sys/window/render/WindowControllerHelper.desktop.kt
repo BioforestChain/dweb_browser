@@ -11,6 +11,7 @@ import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.getOrPut
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.pure.image.OffscreenWebCanvas
+import org.dweb_browser.pure.image.compose.LoaderTask
 import org.dweb_browser.pure.image.compose.WebImageLoader
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.helper.pickLargest
@@ -36,7 +37,7 @@ actual fun getWindowControllerBorderRounded(isMaximize: Boolean) =
 
 suspend fun MicroModule.Runtime.loadSourceToImageBitmap(src: String, width: Int, height: Int) =
   WebImageLoader.defaultInstance.load(
-    OffscreenWebCanvas.defaultInstance, src, width, height, imageFetchHook
+    OffscreenWebCanvas.defaultInstance, LoaderTask(src, width, height, imageFetchHook)
   ).firstOrNull {
     it.isSuccess
   }?.success

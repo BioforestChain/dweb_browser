@@ -1,10 +1,11 @@
 package org.dweb_browser.pure.image.compose
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
 
-class ImageLoadResult(
+data class ImageLoadResult(
   val success: ImageBitmap? = null,
   val error: Throwable? = null,
   val busy: String? = null,
@@ -20,6 +21,7 @@ class ImageLoadResult(
 
   val isSuccess get() = success != null
   val isError get() = error != null
+  val isBusy get() = busy != null
   inline fun with(
     onBusy: (String) -> Unit = {},
     onError: (Throwable) -> Unit = {},
@@ -35,5 +37,5 @@ class ImageLoadResult(
   }
 
   @Composable
-  fun painter() = success?.let { BitmapPainter(it) }
+  fun painter() = remember(success) { success?.let { BitmapPainter(it) } }
 }

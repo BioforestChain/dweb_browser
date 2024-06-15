@@ -25,8 +25,7 @@ export class MockMessagePort extends EventTarget {
     this.remote.dispatchMessageEvent(data, transfer);
   }
   private dispatchMessageEvent(data, transfer?: Transferable[]) {
-    const ports = (transfer?.filter((v) => v instanceof MessagePort) ??
-      []) as MessagePort[];
+    const ports = (transfer?.filter((v) => v instanceof MessagePort) ?? []) as MessagePort[];
     this.dispatchEvent(
       new MessageEvent("message", {
         data: data,
@@ -53,17 +52,14 @@ export class MokeWorker {
     const port2 = new MockMessagePort();
     port1.remote = port2;
     port2.remote = port1;
-    return [
-      port1 as unknown as MessagePort,
-      port2 as unknown as MessagePort,
-    ] as const;
+    return [port1 as unknown as MessagePort, port2 as unknown as MessagePort] as const;
   })();
   readonly toWorkerPort = this.mockChannel[0];
   readonly toMainPort = this.mockChannel[1];
   constructor(workerUrl: string) {
     const randomId = (Date.now() + Math.random()).toString(36);
     const script = (this.script = document.createElement("script"));
-    debugger
+    debugger;
     script.dataset.workerId = randomId;
     script.type = "module";
     script.async = true;
@@ -113,9 +109,11 @@ export function prepareInMain(canvas: HTMLCanvasElement) {
       delete canvas.transferControlToOffscreen;
       return offscreencanvas;
     };
-    Object.assign(window, {
-      Worker: MokeWorker,
-    });
+    if (window.Worker.valueOf() !== MokeWorker) {
+      Object.assign(window, {
+        Worker: MokeWorker,
+      });
+    }
   }
 
   // const offscreen = canvas.transferControlToOffscreen();

@@ -102,10 +102,8 @@ class WindowsManagerState(
                 keyboardInsetBottom = max(contentOffsetY + modifierOffsetY, 0f)
               }
             }
-            println("QAQ imeBounds=$imeBounds")
           }
           win.state.keyboardInsetBottom = keyboardInsetBottom
-          println("QAQ keyboardInsetBottom=$keyboardInsetBottom")
           this.offset(y = modifierOffsetY.dp)
         }
         .getOrDefault(this)

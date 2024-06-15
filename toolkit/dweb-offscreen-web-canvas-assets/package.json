@@ -12,7 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "canvg": "^4.0.1",
+    "canvg": "^4.0.2",
     "xmldom": "^0.6.0"
   },
   "devDependencies": {

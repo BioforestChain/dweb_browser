@@ -4,8 +4,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.Dp
 import coil3.ComponentRegistry
 import coil3.ImageLoader
 import coil3.PlatformContext
@@ -34,6 +32,7 @@ import io.ktor.util.flattenEntries
 import kotlinx.coroutines.CoroutineDispatcher
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.buildUrlString
+import org.dweb_browser.helper.globalDefaultScope
 import org.dweb_browser.pure.http.IPureBody
 import org.dweb_browser.pure.http.PureHeaders
 import org.dweb_browser.pure.http.PureMethod
@@ -64,67 +63,73 @@ class CoilImageLoader(private val diskCache: DiskCache? = null) : PureImageLoade
     }
   }
 
-  @Composable
-  override fun Load(
-    url: String, maxWidth: Dp, maxHeight: Dp, hook: FetchHook?
-  ): ImageLoadResult {
-    val density = LocalDensity.current.density
-    // 这里直接计算应该会比remember来的快
-    val containerWidth = (maxWidth.value * density).toInt()
-    val containerHeight = (maxHeight.value * density).toInt()
-    return Load(url, containerWidth, containerHeight, hook)
-  }
+
+  private val caches = LoaderCacheMap<ImageLoadResult>(globalDefaultScope)
+
 
   @OptIn(ExperimentalCoilApi::class)
   @Composable
-  fun Load(
-    url: String, containerWidth: Int, containerHeight: Int, hook: FetchHook? = null
+  override fun Load(
+    task: LoaderTask,
   ): ImageLoadResult {
-    val requestHref = remember(url) {
-      url.replace(Regex("\\{WIDTH\\}"), containerWidth.toString())
-        .replace(Regex("\\{HEIGHT\\}"), containerHeight.toString())
-    }
-    /// 这里需要对url进行一次统一的包装，以避免coil的keyer面对file协议的时候异常
-    val wrappedRequestHref = remember(requestHref) {
-      buildUrlString("https://image.std.dweb") {
-        parameters.append("url", requestHref)
+    return caches.get(task)?.let {
+      when {
+        it.isSuccess -> it
+        else -> null
       }
-    }
-    val safeHook: FetchHook? = remember(wrappedRequestHref, hook) {
-      hook?.let {
-        {
-          when (request.href) {
-            wrappedRequestHref -> this.copy(request = request.copy(href = requestHref)).hook()
-            else -> null
+    } ?: run {
+      val requestHref = remember(task.url) {
+        task.url.replace("{WIDTH}", task.containerWidth.toString())
+          .replace("{HEIGHT}", task.containerHeight.toString())
+      }
+      /// 这里需要对url进行一次统一的包装，以避免coil的keyer面对file协议的时候异常
+      val wrappedRequestHref = remember(requestHref) {
+        buildUrlString("https://image.std.dweb") {
+          parameters.append("url", requestHref)
+        }
+      }
+      val safeHook: FetchHook? = remember(wrappedRequestHref, task.hook) {
+        task.hook?.let { hook ->
+          {
+            when (request.href) {
+              wrappedRequestHref -> this.copy(request = request.copy(href = requestHref)).hook()
+              else -> null
+            }
           }
         }
       }
-    }
 
-    if (safeHook != null) {
-      hooks.add(safeHook)
-    }
-
-    val platformContext = LocalPlatformContext.current
-    val loader = getLoader(platformContext)
-
-    return produceState(ImageLoadResult.Setup) {
-      value = ImageLoadResult.Loading;
-      val imgReq = ImageRequest.Builder(platformContext).run {
-        size(containerWidth, containerHeight)
-        data(wrappedRequestHref)
-        build()
-      }
-      value = when (val result = loader.execute(imgReq)) {
-        is ErrorResult -> ImageLoadResult.error(result.throwable)
-        is SuccessResult -> ImageLoadResult.success(
-          result.image.toImageBitmap()
-        )
-      }
       if (safeHook != null) {
-        hooks.remove(safeHook)
+        hooks.add(safeHook)
       }
-    }.value
+
+      val platformContext = LocalPlatformContext.current
+      val loader = getLoader(platformContext)
+
+      produceState(ImageLoadResult.Setup) {
+        value = ImageLoadResult.Loading;
+        val imgReq = ImageRequest.Builder(platformContext).run {
+          size(task.containerWidth, task.containerHeight)
+          data(wrappedRequestHref)
+          build()
+        }
+        value = when (val result = loader.execute(imgReq)) {
+          is ErrorResult -> ImageLoadResult.error(result.throwable)
+          is SuccessResult -> ImageLoadResult.success(
+            result.image.toImageBitmap()
+          )
+        }
+        if (safeHook != null) {
+          hooks.remove(safeHook)
+        }
+      }.value.also {
+        if (it.isError) {
+          caches.delete(task)
+        } else {
+          caches.save(CacheItem(task, it))
+        }
+      }
+    }
   }
 
   companion object {
@@ -139,7 +144,7 @@ class CoilImageLoader(private val diskCache: DiskCache? = null) : PureImageLoade
     private fun buildLoader(
       platformContext: PlatformContext,
       hooks: Set<FetchHook>? = null,
-      diskCache: DiskCache? = null
+      diskCache: DiskCache? = null,
     ): ImageLoader = ImageLoader.Builder(platformContext).components {
       if (hooks == null) {
         add(KtorNetworkFetcherFactory(defaultHttpClient))
