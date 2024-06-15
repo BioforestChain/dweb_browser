@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 internal data class RunCommandReq(
-  val rid: Int, val returnType: ReturnType, val runCode: String
+  val rid: Int, val returnType: ReturnType, val runCode: String,
 )
 
 @Serializable

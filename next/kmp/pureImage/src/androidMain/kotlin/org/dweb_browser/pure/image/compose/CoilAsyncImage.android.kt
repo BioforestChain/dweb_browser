@@ -10,7 +10,6 @@ import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.layout.ContentScale
 import coil3.compose.AsyncImage
 import coil3.compose.AsyncImagePainter
-import coil3.compose.EqualityDelegate
 
 @Composable
 actual fun CoilAsyncImage(
