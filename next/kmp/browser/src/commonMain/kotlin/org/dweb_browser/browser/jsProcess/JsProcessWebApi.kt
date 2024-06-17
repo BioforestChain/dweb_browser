@@ -68,7 +68,7 @@ class JsProcessWebApi(internal val dWebView: IDWebView) {
 
     val onTerminateCallbackId = randomUUID()
     val onTerminateCallbackReady = CompletableDeferred<Unit>()
-    dWebView.ioScope.launch {
+    dWebView.lifecycleScope.launch {
       dWebView.evaluateAsyncJavascriptCode("(window['$onTerminateCallbackId'] = new PromiseOut()).promise") {
         onTerminateCallbackReady.complete(Unit)
       }
@@ -154,7 +154,7 @@ class JsProcessWebApi(internal val dWebView: IDWebView) {
     val onCloseCallbackId = randomUUID()
     // 连接方关闭
     val onTerminateCallbackReady = CompletableDeferred<Unit>()
-    dWebView.ioScope.launch {
+    dWebView.lifecycleScope.launch {
       dWebView.evaluateAsyncJavascriptCode("(window['$onCloseCallbackId'] = new PromiseOut()).promise") {
         onTerminateCallbackReady.complete(Unit)
       }

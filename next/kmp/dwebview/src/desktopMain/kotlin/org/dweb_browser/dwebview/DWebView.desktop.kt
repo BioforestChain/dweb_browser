@@ -53,7 +53,7 @@ class DWebView(
   }
 
   override val remoteMM get() = viewEngine.remoteMM
-  override val ioScope: CoroutineScope
+  override val lifecycleScope: CoroutineScope
     get() = viewEngine.lifecycleScope
 
   override suspend fun startLoadUrl(url: String): String {
@@ -71,7 +71,7 @@ class DWebView(
     return viewEngine.getTitle()
   }
 
-  override suspend fun getIcon() = viewEngine.dwebFavicon.href
+  override suspend fun getIcon() = viewEngine.dwebFavicon.urlFlow.value
 
   override suspend fun destroy() {
     viewEngine.destroy()
@@ -144,6 +144,8 @@ class DWebView(
   override val onDestroy by _engineLazy.then { viewEngine.destroyStateSignal.onDestroy }
   override val onLoadStateChange by _engineLazy.then { viewEngine.loadStateChangeSignal.toListener() }
   override val titleFlow by _engineLazy.then { viewEngine.titleFlow }
+  override val iconFlow by _engineLazy.then { viewEngine.dwebFavicon.urlFlow }
+  override val iconBitmapFlow by _engineLazy.then { viewEngine.iconBitmapFlow }
   override val onReady get() = viewEngine.onReady
   override val onBeforeUnload by _engineLazy.then { viewEngine.beforeUnloadSignal.toListener() }
   override val loadingProgressFlow by _engineLazy.then { viewEngine.loadingProgressSharedFlow.asSharedFlow() }
@@ -157,7 +159,7 @@ class DWebView(
     viewEngine.browser.devTools().show()
   }
 
-  override suspend fun getFavoriteIcon() = viewEngine.getFavoriteIcon()
+  override suspend fun getIconBitmap() = viewEngine.getFavoriteIcon()
 
   override suspend fun requestClose() {
     viewEngine.requestClose()

@@ -93,7 +93,7 @@ sealed class BrowserPage(browserController: BrowserController) {
 
   private val _isInBookmark by lazy {
     mutableStateOf(false).also { state ->
-      val job = browserController.ioScope.launch {
+      val job = browserController.lifecycleScope.launch {
         /// 只在这里修改，所以不用担心线程冲突，不需要走Effect
         browserController.bookmarksStateFlow.collect { bookmarks ->
           state.value = bookmarks.any { it.url == url }

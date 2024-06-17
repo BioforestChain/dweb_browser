@@ -15,7 +15,7 @@ import org.dweb_browser.sys.permission.SystemPermissionTask
 import org.dweb_browser.sys.permission.ext.requestSystemPermissions
 
 class DWebPermissionRequest(
-  val remoteMM: MicroModule.Runtime, val ioScope: CoroutineScope
+  val remoteMM: MicroModule.Runtime, val lifecycleScope: CoroutineScope
 ) : WebChromeClient() {
 
   private suspend fun requestPermission(name: SystemPermissionName, title: String, desc: String) =
@@ -30,7 +30,7 @@ class DWebPermissionRequest(
       "activity:$context request.resources:${request.resources.joinToString { it }}"
     )
 
-    ioScope.launch {
+    lifecycleScope.launch {
       val responsePermissionsMap = mutableMapOf<String, Boolean>()
       // 参考资料： https://developer.android.com/reference/android/webkit/PermissionRequest#constants.1
       for (res in request.resources) {

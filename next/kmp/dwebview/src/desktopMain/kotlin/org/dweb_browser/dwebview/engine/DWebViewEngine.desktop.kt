@@ -26,7 +26,6 @@ import com.teamdev.jxbrowser.net.callback.InterceptUrlRequestCallback.Response
 import com.teamdev.jxbrowser.net.callback.VerifyCertificateCallback
 import com.teamdev.jxbrowser.net.proxy.CustomProxyConfig
 import com.teamdev.jxbrowser.permission.callback.RequestPermissionCallback
-import com.teamdev.jxbrowser.ui.Bitmap
 import com.teamdev.jxbrowser.ui.Point
 import com.teamdev.jxbrowser.view.swing.BrowserView
 import com.teamdev.jxbrowser.zoom.ZoomLevel
@@ -97,11 +96,11 @@ class DWebViewEngine internal constructor(
       remoteMM: MicroModule.Runtime,
       dataDir: Path,
       enabledOffScreenRender: Boolean,
-      incognito: Boolean
+      incognito: Boolean,
     ): Browser {
       val optionsBuilder: EngineOptions.Builder.() -> Unit = {
         // 是否开启无痕模式
-        if(incognito) {
+        if (incognito) {
           enableIncognito()
         }
 
@@ -174,10 +173,11 @@ class DWebViewEngine internal constructor(
 
   val wrapperView: BrowserView by lazy { BrowserView.newInstance(browser) }
 
-  val mainFrame get() = kotlin.runCatching { browser.mainFrame().get() }.getOrElse {
-    // 在开启到一半强制结束程序到时候，释放子线程
-    exitProcess(0)
-  }
+  val mainFrame
+    get() = kotlin.runCatching { browser.mainFrame().get() }.getOrElse {
+      // 在开启到一半强制结束程序到时候，释放子线程
+      exitProcess(0)
+    }
   val mainFrameOrNull get() = browser.mainFrame().getOrNull()
   val document get() = mainFrame.document().get()
 
@@ -267,18 +267,8 @@ class DWebViewEngine internal constructor(
     browser.navigation().goForward()
   }
 
-  private var faviconIcon: FaviconIcon? = null
-
-  private class FaviconIcon(val favicon: Bitmap) {
-    val imageBitmap = if (favicon.size().isEmpty) null else favicon.toImageBitmap()
-  }
-
   fun getFavoriteIcon(): ImageBitmap? {
-    val favicon = browser.favicon()
-    if (faviconIcon?.favicon != favicon) {
-      faviconIcon = favicon?.let { FaviconIcon(it) }
-    }
-    return faviconIcon?.imageBitmap
+    return iconBitmapFlow.value
   }
 
   fun getCaptureImage() = browser.bitmap().toImageBitmap()
@@ -427,6 +417,7 @@ class DWebViewEngine internal constructor(
   val loadingProgressSharedFlow = setupLoadingProgressSharedFlow(this)
   val downloadSignal = setupDownloadSignal(this)
   internal val createWebMessagePortPicker = setupWebMessagePicker(this)
+  val iconBitmapFlow = setupIconBitmapFlow(this)
 
   init {
 

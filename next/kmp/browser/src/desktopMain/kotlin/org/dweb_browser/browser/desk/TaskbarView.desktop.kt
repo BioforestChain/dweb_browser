@@ -343,7 +343,7 @@ class TaskbarView private constructor(
       if (taskbarController.state.taskbarDragging) {
         taskbarController.state.taskbarDragging = false
         /// 强行释放 js 里的状态
-        taskbarDWebView.ioScope.launch(start = CoroutineStart.UNDISPATCHED) {
+        taskbarDWebView.lifecycleScope.launch(start = CoroutineStart.UNDISPATCHED) {
           runCatching {
             taskbarDWebView.evaluateAsyncJavascriptCode("dragEnd()")
           }

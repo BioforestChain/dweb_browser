@@ -36,7 +36,7 @@ class DWebEstimatedProgressObserver(val engine: DWebViewEngine) : NSObject(),
       val progress = change?.get("new") as? NSNumber
       if (progress != null) {
         if (engine.loadingProgressSharedFlow.subscriptionCount.value != 0) {
-          engine.ioScope.launch {
+          engine.lifecycleScope.launch {
             engine.loadingProgressSharedFlow.emit(progress.floatValue)
           }
         }

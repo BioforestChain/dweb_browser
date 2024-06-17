@@ -430,4 +430,5 @@ class DWebViewEngine internal constructor(
 
   val scrollSignal = setupScrollSignal(this)
   val titleFlow = setupTitleFlow(this)
+  val iconBitmapFlow = setupIconBitmapFlow(this)
 }

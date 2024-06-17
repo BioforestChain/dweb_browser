@@ -1,15 +1,12 @@
 package org.dweb_browser.browser.web.model.page
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
-import androidx.compose.ui.graphics.painter.Painter
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.search.SearchEngine
 import org.dweb_browser.browser.web.BrowserController
@@ -25,19 +22,15 @@ class BrowserWebPage(val webView: IDWebView, browserController: BrowserControlle
     fun isWebUrl(url: String) = url.isWebUrlOrWithoutProtocol()
   }
 
-  internal var tick by mutableIntStateOf(1)
-
-  override val icon: Painter?
-    @Composable get() = produceState<WebIcon?>(null, tick) {
-      val icon = webView.getFavoriteIcon()
-      if (value?.icon != icon) {
-        value = icon?.let { WebIcon(it) }
-      }
-    }.value?.painter
-
-  private class WebIcon(val icon: ImageBitmap) {
-    val painter = BitmapPainter(icon)
-  }
+  //   override var icon by mutableStateOf<Painter?>(null)
+//    internal set
+  override val icon
+    @Composable get() = webView.iconBitmapFlow.collectAsState().value?.let {
+      BitmapPainter(it)
+    }
+//  private class WebIcon(val icon: ImageBitmap) {
+//    val painter = BitmapPainter(icon)
+//  }
 
   override fun isUrlMatch(url: String) = this.url == url
 
@@ -46,7 +39,7 @@ class BrowserWebPage(val webView: IDWebView, browserController: BrowserControlle
     val safeUrl = (url.toWebUrlOrWithoutProtocol() ?: return).toString()
 
     superUpdateUrl(safeUrl)
-    webView.ioScope.launch {
+    webView.lifecycleScope.launch {
       superUpdateUrl(webView.loadUrl(safeUrl))
     }
   }

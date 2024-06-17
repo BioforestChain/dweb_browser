@@ -15,7 +15,6 @@ import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.UUID
-import org.dweb_browser.helper.compose.ScreenSize
 import org.dweb_browser.helper.platform.IPureViewController
 import org.dweb_browser.helper.platform.PureViewControllerPlatform
 import org.dweb_browser.helper.platform.platform
@@ -44,13 +43,13 @@ class BrowserController(
 
   private var winLock = Mutex(false)
 
-  val ioScope get() = browserNMM.getRuntimeScope()
+  val lifecycleScope get() = browserNMM.getRuntimeScope()
 
   val bookmarksStateFlow = MutableStateFlow<List<WebSiteInfo>>(listOf())
   val historyStateFlow = MutableStateFlow<Map<String, List<WebSiteInfo>>>(mapOf())
 
   init {
-    ioScope.launch {
+    lifecycleScope.launch {
       bookmarksStateFlow.value = browserStore.getBookLinks()
       historyStateFlow.value = browserStore.getHistoryLinks()
     }
@@ -153,7 +152,7 @@ class BrowserController(
   suspend fun openDownloadDialog(args: WebDownloadArgs) =
     downloadController.openDownloadDialog(args)
 
-  fun showToastMessage(message: String, position: ToastPositionType? = null) = ioScope.launch {
+  fun showToastMessage(message: String, position: ToastPositionType? = null) = lifecycleScope.launch {
     browserNMM.showToast(message = message, position = position)
   }
 }

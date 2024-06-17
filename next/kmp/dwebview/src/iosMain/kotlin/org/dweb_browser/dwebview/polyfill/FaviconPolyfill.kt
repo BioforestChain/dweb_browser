@@ -1,6 +1,5 @@
 package org.dweb_browser.dwebview.polyfill
 
-import org.dweb_browser.dwebview.engine.DWebViewEngine
 import platform.WebKit.WKContentWorld
 import platform.WebKit.WKScriptMessage
 import platform.WebKit.WKScriptMessageHandlerProtocol
@@ -11,15 +10,15 @@ object FaviconPolyfill {
   val faviconContentWorld = WKContentWorld.worldWithName("favicon");
 }
 
-class DWebViewFaviconMessageHandler(val engine: DWebViewEngine) : NSObject(),
+class DWebViewFaviconMessageHandler(val onChange:(String)->Unit) : NSObject(),
   WKScriptMessageHandlerProtocol {
   override fun userContentController(
     userContentController: WKUserContentController,
     didReceiveScriptMessage: WKScriptMessage
   ) {
     try {
-      val message = didReceiveScriptMessage.body as String
-      engine.setIcon(message)
+      val iconHref = didReceiveScriptMessage.body as String
+      onChange(iconHref)
     } catch (_: Throwable) {
     }
   }

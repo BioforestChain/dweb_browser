@@ -9,6 +9,9 @@ import WebKit
 
 @objc(DwebWKWebView)
 public class DwebWKWebView: WKWebView {
+    /**
+     * WKWebView 没有 icon ，只有 title，所以这里定义了，由 kotlin 中的 DWebView 来实现它
+     */
     @objc public dynamic var icon = NSString("")
 
     override init(frame: CGRect, configuration: WKWebViewConfiguration) {

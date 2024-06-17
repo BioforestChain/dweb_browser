@@ -75,7 +75,7 @@ class BrowserIosDelegate(private var browserViewModel: BrowserViewModel) : NSObj
 class BrowserIosDataSource(val browserViewModel: BrowserViewModel) : NSObject(),
   WebBrowserViewDataSourceProtocol {
 
-  private val scope = browserViewModel.ioScope
+  private val scope = browserViewModel.lifecycleScope
 
   private val browserViewModelHelper = BrowserViewModelIosHelper(browserViewModel)
 

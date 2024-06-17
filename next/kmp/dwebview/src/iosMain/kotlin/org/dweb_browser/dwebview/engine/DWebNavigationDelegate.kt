@@ -69,7 +69,7 @@ class DWebNavigationDelegate(val engine: DWebViewEngine) : NSObject(),
     val scheme = url?.scheme ?: "http"
     if (url != null && !isWebUrlScheme(scheme)) {
       if (scheme == "dweb") {
-        engine.ioScope.launch {
+        engine.lifecycleScope.launch {
           engine.remoteMM.nativeFetch(url.absoluteString!!)
         }
         decisionHandler(WKNavigationActionPolicy.WKNavigationActionPolicyCancel)
@@ -93,7 +93,7 @@ class DWebNavigationDelegate(val engine: DWebViewEngine) : NSObject(),
         else -> "离开此网站？"
       }
       confirmReferred = CompletableDeferred()
-      engine.ioScope.launch {
+      engine.lifecycleScope.launch {
         val args = WebBeforeUnloadArgs(message)
         engine.beforeUnloadSignal.emit(args)
         confirmReferred.complete(
@@ -112,7 +112,7 @@ class DWebNavigationDelegate(val engine: DWebViewEngine) : NSObject(),
     if (confirmReferred.isCompleted) {
       decisionHandler(confirmReferred.getCompleted())
     } else {
-      engine.ioScope.launch {
+      engine.lifecycleScope.launch {
         decisionHandler(confirmReferred.await())
       }
     }
@@ -207,7 +207,7 @@ class DWebNavigationDelegate(val engine: DWebViewEngine) : NSObject(),
     completionHandler: (NSURLSessionAuthChallengeDisposition, NSURLCredential?) -> Unit
   ) {
     /// 这里在IO线程处理，否则会警告：This method should not be called on the main thread as it may lead to UI unresponsiveness.
-    engine.ioScope.launch {
+    engine.lifecycleScope.launch {
       if (didReceiveAuthenticationChallenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodServerTrust) {
         completionHandler(
           NSURLSessionAuthChallengeUseCredential,

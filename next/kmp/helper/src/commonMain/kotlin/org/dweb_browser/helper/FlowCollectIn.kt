@@ -21,30 +21,6 @@ inline fun <T> Flow<T>.collectInContext(
 ) = collectIn(CoroutineScope(scope), collector)
 
 
-enum class ScopeType {
-  Main,
-  IO,
-  Default,
-  Empty,
-  ;
-}
-
-inline fun <T> Flow<T>.collectIn2(
-  scopeType: ScopeType,
-  collector: FlowCollector<T>,
-) = collectIn(
-  when (scopeType) {
-    ScopeType.Main -> globalMainScope
-    ScopeType.IO -> globalIoScope
-    ScopeType.Default -> globalDefaultScope
-    ScopeType.Empty -> globalEmptyScope
-  }, collector
-)
-
-//suspend inline fun <T> Flow<T>.collectIn(collector: FlowCollector<T>) =
-//  coroutineScope { this@collectIn.collectIn(this, collector) }
-
-
 /**
  * 继承 emit 所在作用域，执行 FlowCollector
  * 与常见的 Event.listen 这种模式类似

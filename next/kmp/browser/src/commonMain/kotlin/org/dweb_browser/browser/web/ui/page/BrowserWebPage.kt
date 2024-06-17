@@ -5,18 +5,15 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
-import kotlinx.coroutines.delay
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.common.loading.LoadingView
 import org.dweb_browser.browser.common.toWebColorScheme
@@ -34,26 +31,12 @@ internal fun BrowserWebPage.Effect() {
   val webPage = this
   val viewModel = LocalBrowserViewModel.current
   val uiScope = rememberCoroutineScope()
-  /// 有的网址会改变网页到图标和标题，这里使用定时器轮训更新
-  LaunchedEffect(Unit) {
-    while (true) {
-      delay(1000)
-      tick++
-    }
-  }
+
   /// 绑定title
-  LaunchedEffect(Unit) { // 不要直接使用tick做effect，会导致这个Compose一直重组，从而导致下面的 GoBackHandler 也在一直注册释放。影响性能
-    snapshotFlow { tick }.collect {
-      title = webView.getTitle().ifEmpty { BrowserI18nResource.Web.page_title.text }
-    }
+  webView.titleFlow.collectAsState().value.also {
+    title = it.ifEmpty { BrowserI18nResource.Web.page_title() }
   }
-  /// 每一次页面加载完成的时候，触发一次脏检查
-  DisposableEffect(webView) {
-    val off = webView.onReady {
-      tick++
-    }
-    onDispose { off() }
-  }
+
   /// 绑定URL
   LaunchedEffect(webPage) {
     webView.urlStateFlow.collect { url ->

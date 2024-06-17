@@ -195,7 +195,7 @@ internal fun Modifier.searchInnerStyle(start: Boolean = true, end: Boolean = tru
 @Composable
 private fun SearchBox(page: BrowserPage) {
   val viewModel = LocalBrowserViewModel.current
-  val scope = viewModel.ioScope
+  val scope = viewModel.lifecycleScope
   val isFocus =
     viewModel.isFillPageSize || page == viewModel.focusedPage // 确认是否是聚焦的页面，如果Page模式是fill直接聚焦，另外就是如果page是当前页，需要突出显示
 

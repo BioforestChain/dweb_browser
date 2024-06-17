@@ -104,7 +104,7 @@ class DWebView private constructor(
   private var _engine: DWebViewEngine? = viewEngine
   internal val engine get() = _engine ?: throw NullPointerException("dwebview already been destroy")
   private val _engineLazy = RememberLazy(viewEngine) { _engine }
-  override val ioScope get() = engine.ioScope
+  override val lifecycleScope get() = engine.lifecycleScope
 
   val viewWrapper by lazy {
     val wrapper = UIView(engine.frame)
@@ -137,7 +137,7 @@ class DWebView private constructor(
 
   override suspend fun getIcon() = engine.getFavicon()
 
-  private val destroyStateSignal = DestroyStateSignal(ioScope)
+  private val destroyStateSignal = DestroyStateSignal(lifecycleScope)
 
   override val onDestroy = destroyStateSignal.onDestroy
   override val onLoadStateChange by _engineLazy.then {
@@ -156,10 +156,11 @@ class DWebView private constructor(
   override val onCreateWindow by _engineLazy.then {
     engine.createWindowSignal.toListener()
   }
-  override val onDownloadListener by lazy { engine.downloadSignal.toListener() }
-  override val titleFlow by lazy { engine.titleObserver.titleFlow }
+  override val onDownloadListener by _engineLazy.then { engine.downloadSignal.toListener() }
+  override val titleFlow by _engineLazy.then { engine.titleObserver.titleFlow }
+  override val iconFlow by _engineLazy.then { engine.iconFlow }
+  override val iconBitmapFlow by _engineLazy.then { engine.iconBitmapFlow }
 
-  @OptIn(NativeRuntimeApi::class)
   override suspend fun destroy() {
     doDestroy { getUrl() }
   }
@@ -198,8 +199,8 @@ class DWebView private constructor(
     val port1_id = ports_id.objectAtIndex(0u) as Double
     val port2_id = ports_id.objectAtIndex(1u) as Double
 
-    val port1 = DWebMessagePort(port1_id.toInt(), this, ioScope)
-    val port2 = DWebMessagePort(port2_id.toInt(), this, ioScope)
+    val port1 = DWebMessagePort(port1_id.toInt(), this, lifecycleScope)
+    val port2 = DWebMessagePort(port2_id.toInt(), this, lifecycleScope)
 
     DWebMessageChannel(port1, port2)
   }
@@ -292,10 +293,7 @@ class DWebView private constructor(
     evaluateAsyncJavascriptCode("console.log('openDevTool')")
   }
 
-  override suspend fun getFavoriteIcon(): ImageBitmap? = withMainContext {
-    WARNING("Not yet implemented getFavoriteIcon")
-    null
-  }
+  override suspend fun getIconBitmap(): ImageBitmap? = engine.iconBitmapFlow.value
 
   override suspend fun setSafeAreaInset(bounds: Bounds) {
     engine.safeArea = bounds

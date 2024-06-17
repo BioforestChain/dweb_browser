@@ -27,7 +27,6 @@ import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcherScriptMessageHandler
 import org.dweb_browser.dwebview.debugDWebView
 import org.dweb_browser.dwebview.messagePort.DWebViewWebMessage
-import org.dweb_browser.dwebview.polyfill.DWebViewFaviconMessageHandler
 import org.dweb_browser.dwebview.polyfill.DWebViewWebSocketMessageHandler
 import org.dweb_browser.dwebview.polyfill.DwebViewIosPolyfill
 import org.dweb_browser.dwebview.polyfill.FaviconPolyfill
@@ -79,7 +78,7 @@ class DWebViewEngine(
   registryDwebSchemeHandler(remoteMM, it)
 }) {
   val mainScope = CoroutineScope(mainAsyncExceptionHandler + SupervisorJob())
-  val ioScope = CoroutineScope(remoteMM.getRuntimeScope().coroutineContext + SupervisorJob())
+  val lifecycleScope = CoroutineScope(remoteMM.getRuntimeScope().coroutineContext + SupervisorJob())
 
   val loadStateChangeSignal = Signal<WebLoadState>()
   val onReady by lazy { loadStateChangeSignal.toReadyListener() }
@@ -102,7 +101,7 @@ class DWebViewEngine(
      * 所以 http(s)?:*.dweb 在 IOS上 反而是一个更加安全的、仅走内存控制的技术，通常用于内部模块使用
      */
     private fun registryDwebHttpUrlSchemeHandler(
-      microModule: MicroModule.Runtime, configuration: WKWebViewConfiguration
+      microModule: MicroModule.Runtime, configuration: WKWebViewConfiguration,
     ) {
       val dwebSchemeHandler = DwebHttpURLSchemeHandler(microModule)
       configuration.setURLSchemeHandler(dwebSchemeHandler, "dweb+http")
@@ -110,7 +109,7 @@ class DWebViewEngine(
     }
 
     fun registryDwebSchemeHandler(
-      microModule: MicroModule.Runtime, configuration: WKWebViewConfiguration
+      microModule: MicroModule.Runtime, configuration: WKWebViewConfiguration,
     ) {
       val dwebSchemeHandler = DwebURLSchemeHandler(microModule)
       configuration.setURLSchemeHandler(dwebSchemeHandler, "dweb")
@@ -191,6 +190,7 @@ class DWebViewEngine(
   internal val dwebUIScrollViewDelegate = DWebUIScrollViewDelegate(this)
   private val estimatedProgressObserver = DWebEstimatedProgressObserver(this)
   internal val titleObserver = DWebTitleObserver(this)
+  private val websiteDataStore: WKWebsiteDataStore
 
   init {
     /// 启动代理
@@ -199,13 +199,13 @@ class DWebViewEngine(
       configuration, url.host, url.port.toUShort()
     )
 
-    // 是否开启无痕模式
-    if(options.incognito) {
-      configuration.setWebsiteDataStore(WKWebsiteDataStore.nonPersistentDataStore())
-    } else {
+    websiteDataStore = when {
+      // 是否开启无痕模式
+      options.incognito -> WKWebsiteDataStore.nonPersistentDataStore()
       // 开启WKWebView数据隔离
-      configuration.setWebsiteDataStore(WKWebsiteDataStore.dataStoreForIdentifier(NSUUID(uUIDString = remoteMM.mmid)))
+      else -> WKWebsiteDataStore.dataStoreForIdentifier(NSUUID(uUIDString = remoteMM.mmid))
     }
+    configuration.setWebsiteDataStore(websiteDataStore)
 
     // https://stackoverflow.com/questions/77078328/warning-prints-in-console-when-using-webkit-to-load-youtube-video
     this.allowsLinkPreview = true
@@ -247,19 +247,6 @@ class DWebViewEngine(
           false,
           DWebViewWebMessage.webMessagePortContentWorld
         )
-      )
-      addScriptMessageHandler(
-        scriptMessageHandler = DWebViewFaviconMessageHandler(this@DWebViewEngine),
-        contentWorld = FaviconPolyfill.faviconContentWorld,
-        name = "favicons"
-      )
-      addUserScript(
-        WKUserScript(
-          DwebViewIosPolyfill.Favicon,
-          WKUserScriptInjectionTime.WKUserScriptInjectionTimeAtDocumentStart,
-          true,
-          FaviconPolyfill.faviconContentWorld,
-        ),
       )
 
       addUserScript(
@@ -308,11 +295,16 @@ class DWebViewEngine(
 
 
   //#region favicon
-  suspend fun getFavicon() = withMainContext {
-    awaitAsyncJavaScript<String>(
-      "getIosIcon()", inContentWorld = FaviconPolyfill.faviconContentWorld
-    )
+  val iconFlow = setupIconFlow(this)
+  suspend fun getFavicon() = iconFlow.value.ifEmpty {
+    withMainContext {
+      awaitAsyncJavaScript<String>(
+        "getIosIcon()", inContentWorld = FaviconPolyfill.faviconContentWorld
+      )
+    }
   }
+
+  val iconBitmapFlow by lazy { setupIconBitmapFlow(this) }
 
   /**
    * 重写setFrame修复虚拟键盘弹出时界面可以滚动的问题
@@ -348,7 +340,7 @@ class DWebViewEngine(
   }
 
   fun <T> evalAsyncJavascript(
-    code: String, wkFrameInfo: WKFrameInfo?, wkContentWorld: WKContentWorld
+    code: String, wkFrameInfo: WKFrameInfo?, wkContentWorld: WKContentWorld,
   ): Deferred<T> {
     val deferred = CompletableDeferred<T>()
     evaluateJavaScript(code, wkFrameInfo, wkContentWorld) { result, error ->
@@ -367,7 +359,7 @@ class DWebViewEngine(
     arguments: Map<Any?, *>? = null,
     inFrame: WKFrameInfo? = null,
     inContentWorld: WKContentWorld = WKContentWorld.pageWorld,
-    afterEval: (suspend () -> Unit)? = null
+    afterEval: (suspend () -> Unit)? = null,
   ): T {
     val deferred = CompletableDeferred<T>()
     callAsyncJavaScript(functionBody, arguments, inFrame, inContentWorld) { result, error ->
@@ -468,6 +460,6 @@ class DWebViewEngine(
     removeFromSuperview()
     dwebNavigationDelegate.webViewWebContentProcessDidTerminate(webView = this)
     mainScope.cancel(null)
-    ioScope.cancel(null)
+    lifecycleScope.cancel(null)
   }
 }

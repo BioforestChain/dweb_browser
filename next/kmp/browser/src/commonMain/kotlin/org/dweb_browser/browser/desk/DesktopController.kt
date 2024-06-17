@@ -70,7 +70,7 @@ open class DesktopController private constructor(
 
       if (_desktopView.isCompleted) {
         val oldView = _desktopView.getCompleted()
-        oldView.ioScope.launch {
+        oldView.lifecycleScope.launch {
           oldView.destroy()
         }
         _desktopView = CompletableDeferred()
@@ -134,7 +134,7 @@ open class DesktopController private constructor(
       view.content()
       val canGoBack by view.canGoBackStateFlow.collectAsState()
       NativeBackHandler(canGoBack) {
-        view.ioScope.launch {
+        view.lifecycleScope.launch {
           view.goBack()
         }
       }

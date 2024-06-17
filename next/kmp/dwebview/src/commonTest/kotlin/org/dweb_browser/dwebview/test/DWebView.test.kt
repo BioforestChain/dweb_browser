@@ -105,7 +105,7 @@ class DWebViewTest {
     val dwebview = getWebview()
     dwebview.loadUrl("https://www.baidu.com")
     assertEquals("https://www.baidu.com/favicon.ico", dwebview.getIcon())
-    println("icon.image=${dwebview.getFavoriteIcon()}")
+    println("icon.image=${dwebview.getIconBitmap()}")
   }
 
   @Test

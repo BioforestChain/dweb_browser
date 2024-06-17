@@ -3,9 +3,7 @@ package org.dweb_browser.dwebview.messagePort
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.plus
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.core.ipc.helper.DWebMessage
@@ -25,7 +23,7 @@ class DWebMessagePort(val portId: Int, private val webview: DWebView, parentScop
 
   internal val _started = lazy {
     val channel = Channel<DWebMessage>(capacity = Channel.UNLIMITED)
-    webview.ioScope.launchWithMain {
+    webview.lifecycleScope.launchWithMain {
       webview.engine.evalAsyncJavascript<Unit>(
         "nativeStart($portId)",
         null,

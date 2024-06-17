@@ -19,7 +19,7 @@ import java.io.File
 
 class DWebFileChooser(
   private val remoteMM: MicroModule.Runtime,
-  private val ioScope: CoroutineScope,
+  private val lifecycleScope: CoroutineScope,
   private val activity: BaseActivity?
 ) : WebChromeClient() {
   override fun onShowFileChooser(
@@ -35,7 +35,7 @@ class DWebFileChooser(
     )
     if (captureEnabled) {
       if (mimeTypes.startsWith("video/")) {
-        ioScope.launch {
+        lifecycleScope.launch {
           val uriList = captureVideo()
           withMainContext {
             filePathCallback.onReceiveValue(uriList)
@@ -44,7 +44,7 @@ class DWebFileChooser(
         return true
       } else if (mimeTypes.startsWith("image/")) {
         // filePathCallback.onReceiveValue 需要在主线程调用，否则会卡住，导致应用crash
-        ioScope.launch {
+        lifecycleScope.launch {
           val uriList = takePicture()
           withMainContext {
             filePathCallback.onReceiveValue(uriList)
@@ -52,7 +52,7 @@ class DWebFileChooser(
         }
         return true
       } else if (mimeTypes.startsWith("audio/")) {
-        ioScope.launch {
+        lifecycleScope.launch {
           val uriList = recordAudio()
           withMainContext {
             filePathCallback.onReceiveValue(uriList)
@@ -62,7 +62,7 @@ class DWebFileChooser(
       }
     }
 
-    ioScope.launch {
+    lifecycleScope.launch {
       try {
         if (fileChooserParams.mode == FileChooserParams.MODE_OPEN_MULTIPLE) {
           val uris = context.getMultipleContentsLauncher.launch(mimeTypes)

@@ -95,7 +95,7 @@ class DWebUIDelegate(private val engine: DWebViewEngine) : NSObject(), WKUIDeleg
         DWebViewOptions.CreateWindowBehavior.Deeplink -> {
           if (url == null) return null
           val urlScheme = url.split(':', limit = 2).first()
-          engine.ioScope.launch {
+          engine.lifecycleScope.launch {
             if (urlScheme == "dweb") {
               engine.remoteMM.nativeFetch(url)
             } else if (isWebUrlScheme(urlScheme)) {

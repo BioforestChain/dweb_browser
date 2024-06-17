@@ -2,10 +2,8 @@ package org.dweb_browser.dwebview
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.graphics.Bitmap
 import android.net.Uri
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.webkit.WebMessageCompat
 import androidx.webkit.WebSettingsCompat
@@ -89,7 +87,7 @@ class DWebView private constructor(internal val engine: DWebViewEngine, initUrl:
   }
 
   override val remoteMM get() = engine.remoteMM
-  override val ioScope get() = engine.lifecycleScope
+  override val lifecycleScope get() = engine.lifecycleScope
   override suspend fun startLoadUrl(url: String) = withMainContext {
     engine.loadUrl(url)
     url
@@ -105,7 +103,7 @@ class DWebView private constructor(internal val engine: DWebViewEngine, initUrl:
     engine.title ?: ""
   }
 
-  override suspend fun getIcon() = engine.dwebFavicon.href
+  override suspend fun getIcon() = engine.dwebFavicon.urlFlow.value
   override suspend fun destroy() = withMainContext {
     engine.destroy()
   }
@@ -235,21 +233,11 @@ class DWebView private constructor(internal val engine: DWebViewEngine, initUrl:
   override val onCreateWindow by lazy { engine.createWindowSignal.toListener() }
   override val onDownloadListener by lazy { engine.dWebDownloadListener.downloadSignal.toListener() }
   override val onScroll by lazy { engine.scrollSignal.toListener() }
+  override val iconBitmapFlow by lazy { engine.iconBitmapFlow }
+  override val iconFlow by lazy { engine.dwebFavicon.urlFlow }
 
-  private class FaviconIcon(val favicon: Bitmap) {
-    val imageBitmap = favicon.asImageBitmap()
-  }
-
-  private var faviconIcon: FaviconIcon? = null
-  override suspend fun getFavoriteIcon(): ImageBitmap? = withMainContext {
-    // 考虑到 engine.favicon 在加载的时候会是空的，这边直接返回空，避免出现加载的时候显示旧的图标
-    engine.favicon?.let { favicon ->
-      if (faviconIcon?.favicon != favicon) {
-        faviconIcon = FaviconIcon(favicon)
-      }
-    } ?: run { faviconIcon = null }
-    faviconIcon?.imageBitmap
-  }
+  override suspend fun getIconBitmap() =
+    engine.iconBitmapFlow.value ?: withMainContext { engine.favicon?.asImageBitmap() }
 
   override suspend fun setSafeAreaInset(bounds: Bounds) = withMainContext {
     engine.safeArea = bounds

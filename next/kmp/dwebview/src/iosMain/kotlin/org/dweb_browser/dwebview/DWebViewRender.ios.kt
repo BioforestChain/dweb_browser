@@ -18,7 +18,7 @@ actual fun IDWebView.Render(
     factory = {
       viewWrapper.also {
         onCreate?.also {
-          ioScope.launch { onCreate(); }
+          lifecycleScope.launch { onCreate(); }
         }
       }
     },
@@ -26,7 +26,7 @@ actual fun IDWebView.Render(
     update = {},
     onRelease = {
       onDispose?.also {
-        ioScope.launch { onDispose(); }
+        lifecycleScope.launch { onDispose(); }
       }
     })
 }

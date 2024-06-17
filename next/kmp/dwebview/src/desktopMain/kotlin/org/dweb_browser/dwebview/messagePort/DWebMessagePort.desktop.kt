@@ -57,7 +57,7 @@ class DWebMessagePort(val port: /* MessagePort */JsObject, private val webview: 
 
     val webMessagePortPicker = webview.viewEngine.createWebMessagePortPicker(port)
 
-    val job = webview.ioScope.launch {
+    val job = webview.lifecycleScope.launch {
       runCatching {
         webMessagePortPicker.collect {
           handleMessageEvent(it)

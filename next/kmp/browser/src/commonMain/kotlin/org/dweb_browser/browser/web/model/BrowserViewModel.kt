@@ -80,7 +80,7 @@ class BrowserViewModel(
   val browserOnVisible = browserController.onWindowVisible // IOS 在用
   val browserOnClose = browserController.onCloseWindow // IOS 在用
 
-  val ioScope get() = browserNMM.getRuntimeScope()
+  val lifecycleScope get() = browserNMM.getRuntimeScope()
   private val pages = mutableStateListOf<BrowserPage>() // 多浏览器列表
   val pageSize get() = pages.size
 
@@ -136,7 +136,7 @@ class BrowserViewModel(
 
   suspend fun updateIncognitoModeUI(noTrace: Boolean) {
     isIncognitoOn = noTrace
-    withScope(ioScope) {
+    withScope(lifecycleScope) {
       browserController.saveStringToStore(KEY_NO_TRACE, if (noTrace) "true" else "")
     }
   }
@@ -146,7 +146,7 @@ class BrowserViewModel(
   val filterAllEngines get() = searchEngineList
 
   init {
-    ioScope.launch {
+    lifecycleScope.launch {
       // 同步搜索引擎列表
       browserNMM.collectChannelOfEngines {
         searchEngineList = engineList
@@ -374,7 +374,7 @@ class BrowserViewModel(
 
   /**检查是否有设置过的默认搜索引擎，并且拼接成webUrl*/
   private suspend fun checkAndEnableSearchEngine(key: String): Url? {
-    val homeLink = withScope(ioScope) {
+    val homeLink = withScope(lifecycleScope) {
       browserNMM.getEngineHomeLink(key.encodeURIComponent())
     } // 将关键字对应的搜索引擎置为有效
     return if (homeLink.isNotEmpty()) homeLink.toWebUrl() else null
@@ -385,7 +385,7 @@ class BrowserViewModel(
    * 是：直接代理访问
    * 否：将 url 进行判断封装，符合条件后，判断当前界面是否是 BrowserWebPage，然后进行搜索操作
    */
-  fun doIOSearchUrl(url: String) = ioScope.launch {
+  fun doIOSearchUrl(url: String) = lifecycleScope.launch {
     if (url.isDwebDeepLink()) {
       browserNMM.nativeFetch(url)
       return@launch
@@ -512,7 +512,7 @@ class BrowserViewModel(
     // 追加到前面
     browserController.bookmarksStateFlow.value =
       (newItems + browserController.bookmarksStateFlow.value)
-    ioScope.launch {
+    lifecycleScope.launch {
       browserController.saveBookLinks()
     }.join()
   }
@@ -523,7 +523,7 @@ class BrowserViewModel(
   suspend fun removeBookmarkUI(vararg items: WebSiteInfo) {
     showToastMessage(BrowserI18nResource.toast_message_remove_bookmark.text)
     browserController.bookmarksStateFlow.value -= items
-    ioScope.launch {
+    lifecycleScope.launch {
       browserController.saveBookLinks()
     }.join()
   }
@@ -547,7 +547,7 @@ class BrowserViewModel(
     newBookmarks[index] = newBookmark
     browserController.bookmarksStateFlow.value = newBookmarks.toList()
     showToastMessage(BrowserI18nResource.toast_message_update_bookmark.text)
-    ioScope.launch { browserController.saveBookLinks() }.join()
+    lifecycleScope.launch { browserController.saveBookLinks() }.join()
     return true
   }
 
@@ -602,14 +602,14 @@ class BrowserViewModel(
   }
 
   fun showToastMessage(message: String, position: ToastPositionType? = null) {
-    browserController.ioScope.launch { browserNMM.showToast(message, position = position) }
+    browserController.lifecycleScope.launch { browserNMM.showToast(message, position = position) }
   }
 
-  fun disableSearchEngine(searchEngine: SearchEngine) = ioScope.launch {
+  fun disableSearchEngine(searchEngine: SearchEngine) = lifecycleScope.launch {
     browserNMM.updateEngineState(searchEngine, false)
   }
 
-  fun enableSearchEngine(searchEngine: SearchEngine) = ioScope.launch {
+  fun enableSearchEngine(searchEngine: SearchEngine) = lifecycleScope.launch {
     browserNMM.updateEngineState(searchEngine, true)
   }
 
@@ -670,5 +670,5 @@ suspend fun IDWebView.toWebSiteInfo(type: WebSiteType, url: String = getUrl()) =
   title = getTitle().ifEmpty { url },
   url = url,
   type = type,
-  icon = getFavoriteIcon()?.toByteArray() // 这也有一个
+  icon = getIconBitmap()?.toByteArray() // 这也有一个
 )

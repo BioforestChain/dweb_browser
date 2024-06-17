@@ -49,7 +49,7 @@ expect suspend fun IDWebView.Companion.create(
 
 abstract class IDWebView(initUrl: String?) {
   abstract val remoteMM: MicroModule.Runtime
-  abstract val ioScope: CoroutineScope
+  abstract val lifecycleScope: CoroutineScope
 
   @Serializable
   data class UserAgentBrandData(val brand: String, val version: String)
@@ -98,7 +98,7 @@ abstract class IDWebView(initUrl: String?) {
   private val canGoBackStateFlowLazy by lazy {
     closeWatcherLazy.then {
       listOf(closeWatcher.canCloseFlow, urlStateFlow).merge().map { canGoBack() }
-        .distinctUntilChanged().stateIn(ioScope, SharingStarted.Eagerly, false)
+        .distinctUntilChanged().stateIn(lifecycleScope, SharingStarted.Eagerly, false)
     }
   }
   val canGoBackStateFlow get() = canGoBackStateFlowLazy.value
@@ -111,14 +111,21 @@ abstract class IDWebView(initUrl: String?) {
   abstract suspend fun getOriginalUrl(): String
 
   abstract suspend fun getTitle(): String
+  abstract val titleFlow: StateFlow<String>
   abstract suspend fun getIcon(): String
+  abstract val iconFlow: StateFlow<String>
+
+  /**
+   * 获取webview返回到favorite icon
+   */
+  abstract suspend fun getIconBitmap(): ImageBitmap?
+  abstract val iconBitmapFlow: StateFlow<ImageBitmap?>
   abstract suspend fun destroy()
   abstract suspend fun historyCanGoBack(): Boolean
   abstract suspend fun historyGoBack(): Boolean
   abstract suspend fun historyCanGoForward(): Boolean
   abstract suspend fun historyGoForward(): Boolean
   val urlStateFlow: StateFlow<String> get() = urlState.stateFlow
-  abstract val titleFlow: StateFlow<String>
 
   abstract suspend fun createMessageChannel(): IWebMessageChannel
   abstract suspend fun postMessage(data: String, ports: List<IWebMessagePort> = listOf())
@@ -165,11 +172,6 @@ abstract class IDWebView(initUrl: String?) {
    * 打开开发者工具
    */
   abstract suspend fun openDevTool(): Unit
-
-  /**
-   * 获取webview返回到favorite icon
-   */
-  abstract suspend fun getFavoriteIcon(): ImageBitmap?
 
   /**
    * 申请关闭webview，会尝试触发 beforeUnload

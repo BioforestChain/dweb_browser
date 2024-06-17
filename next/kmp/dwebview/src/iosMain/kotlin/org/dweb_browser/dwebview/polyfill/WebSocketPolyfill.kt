@@ -47,7 +47,7 @@ class DWebViewWebSocketMessageHandler(val engine: DWebViewEngine) : NSObject(),
   private val scriptMessageChannel = Channel<WKScriptMessageEvent>()
 
   init {
-    engine.ioScope.launch {
+    engine.lifecycleScope.launch {
       val pureTextFinData = PureFinData.text()
       val pureBinaryFinData = PureFinData.binary()
 
@@ -59,7 +59,7 @@ class DWebViewWebSocketMessageHandler(val engine: DWebViewEngine) : NSObject(),
           debugIosWebSocket("scriptMessageChannel") { "wsId=$wsId cmd=$cmd message=$message" }
 
           when (cmd) {
-            "connect" -> engine.ioScope.launch {
+            "connect" -> engine.lifecycleScope.launch {
               try {
                 val url = (message.objectAtIndex(2u) as NSString).toKString()
                 val pureChannel = httpFetch.client.websocket(url)
