@@ -1,4 +1,4 @@
-./gradlew :desktopApp:createReleaseDistributable
+./gradlew :desktopApp:createReleaseDistributable -PreleaseBuild=true
 #./gradlew :desktopApp:notarizeReleasePkg --info
 cd app/desktopApp/build/compose/binaries/main-release/
 

@@ -5,7 +5,14 @@ plugins {
 }
 
 // 定义编译的文件，用于保存 local.properties 文件中定义的参数，用于代码调用操作
-val buildConfigPath = "build/generated/kmpBuildConfig/kotlin"
+val buildConfigPath = "build/classes/kotlin/source"
+
+// 不能直接使用 Multiplatform 里面的 localProperties，那个有缓存，所以得这边自己创建一个
+val gradleProperties = Properties()
+val gradlePropertiesFile = rootDir.resolve("gradle.properties")
+if (gradlePropertiesFile.exists()) {
+  gradleProperties.load(gradlePropertiesFile.inputStream())
+}
 
 kotlin {
   kmpCommonTarget(project) {
@@ -51,34 +58,42 @@ kotlin {
   sourceSets["commonMain"].kotlin.srcDir(buildConfigPath)
 }
 
-// 不能直接使用 Multiplatform 里面的 localProperties，那个有缓存，所以得这边自己创建一个
-val localProperties = Properties()
-val localPropertiesFile = rootDir.resolve("local.properties")
-if (localPropertiesFile.exists()) {
-  localProperties.load(localPropertiesFile.inputStream())
-}
-
 allprojects {
   afterEvaluate {
+    // 判断编译的时候是否传入了 -PreleaseBuild=true，表示是脚本执行
+    val isReleaseBuild = hasProperty("releaseBuild") && property("releaseBuild") == "true"
+
     // 在 gradle sync，或者编译的时候，会执行当前code
     // 这个是创建一个配置文件
-    val stringBuffer = StringBuffer()
-    localProperties.forEach { (key, value) ->
-      if (key == "jxbrowser.license.key" || key == "sdk.dir") return@forEach // 这两个特殊作用，不是作为开关的，不添加进去
-      println("QAQ: key = $key, value = $value")
-      stringBuffer.append("\n    \"${key.toString().replace("\\", "\\\\")}\"") // 追加 key
-      stringBuffer.append(" to ")
-      stringBuffer.append("\"${value.toString().replace("\\", "\\\\")}\",") // 追加 value
-    }
-
-    val content = """
+    val content = if (!isReleaseBuild) { // 增加判断，如果是脚本执行会默认增加 -PreleaseBuild=true
+      val stringBuffer = StringBuffer()
+      gradleProperties.forEach { (key, value) ->
+        if (key.toString().startsWith("dweb-") && value.toString().isNotEmpty()) { // 只针对 dweb- 开头的内容
+          println("QAQ: key = $key, value = $value")
+          stringBuffer.append("\n    \"${key.toString().replace("\\", "\\\\")}\"") // 追加 key
+          stringBuffer.append(" to ")
+          stringBuffer.append("\"${value.toString().replace("\\", "\\\\")}\",") // 追加 value
+        }
+      }
+"""
 package org.dweb_browser.helper
 
 object CommonBuildConfig {
   val switchMaps: Map<String, String> = mapOf($stringBuffer
   )
 }
-    """.trimIndent()
+""".trimIndent()
+    } else {
+"""
+package org.dweb_browser.helper
+
+object CommonBuildConfig {
+  val switchMaps: Map<String, String> = mapOf()
+}
+""".trimIndent()
+    }
+
+
 
     file("$buildConfigPath/CommonBuildConfig.kt").also { // 创建父级目录
       if (it.exists()) it.deleteRecursively()

@@ -11,7 +11,8 @@ const resolveTo = createBaseResolveTo(import.meta.url);
 async function doRelease(suffix: string) {
   $.cd(import.meta.resolve("./"));
   console.info("💡 开始执行编译");
-  await $("./gradlew.bat :desktopApp:packageReleaseMsi");
+  // -PreleaseBuild=true 增加传入参数表示当前是 release 打包操作
+  await $(`${resolveTo("gradlew.bat")} :desktopApp:packageReleaseMsi -PreleaseBuild=true`);
 
   const msiDir = resolveTo("./app/desktopApp/build/compose/binaries/main/msi");
   const msiFile = [...WalkFiles(msiDir)].sort((a, b) => b.stats.birthtimeMs - a.stats.birthtimeMs).shift();

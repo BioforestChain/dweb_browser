@@ -7,7 +7,8 @@ const resolveTo = createBaseResolveTo(import.meta.url);
 
 // 运行 assembleRelease 命令，继承输出
 const cmd = Deno.build.os === "windows" ? resolveTo("gradlew.bat") : resolveTo("gradlew");
-const cmd_args = ["assembleRelease", "assembleDebug", "bundleRelease"];
+// -PreleaseBuild=true 增加传入参数表示当前是 release 打包操作
+const cmd_args = ["assembleRelease", "assembleDebug", "bundleRelease", "-PreleaseBuild=true"];
 
 const doBundle = async () => {
   console.log(">", cmd, ...cmd_args);

@@ -33,7 +33,8 @@ async function doRelease(suffix: string) {
 
   $.cd(import.meta.resolve("./"));
   console.info("💡 开始执行编译");
-  await $("./gradlew :desktopApp:createReleaseDistributable");
+  // -PreleaseBuild=true 增加传入参数表示当前是 release 打包操作
+  await $("./gradlew :desktopApp:createReleaseDistributable -PreleaseBuild=true");
 
   return await doNotarization(suffix);
 }
