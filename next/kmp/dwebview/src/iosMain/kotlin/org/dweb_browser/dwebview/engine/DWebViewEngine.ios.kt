@@ -3,10 +3,13 @@ package org.dweb_browser.dwebview.engine
 import io.ktor.http.URLProtocol
 import io.ktor.http.Url
 import io.ktor.http.hostWithPort
+import io.ktor.utils.io.core.toByteArray
 import kotlinx.cinterop.CValue
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.cValue
 import kotlinx.cinterop.useContents
+import kotlinx.cinterop.usePinned
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
@@ -41,6 +44,7 @@ import org.dweb_browser.helper.toIosUIEdgeInsets
 import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.platform.ios.DwebHelper
 import org.dweb_browser.platform.ios.DwebWKWebView
+import org.dweb_browser.pure.crypto.hash.ccSha256
 import org.dweb_browser.sys.device.DeviceManage
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import platform.CoreGraphics.CGRect
@@ -203,7 +207,10 @@ class DWebViewEngine(
       // 是否开启无痕模式
       options.incognito -> WKWebsiteDataStore.nonPersistentDataStore()
       // 开启WKWebView数据隔离
-      else -> WKWebsiteDataStore.dataStoreForIdentifier(NSUUID(uUIDString = remoteMM.mmid))
+      else -> WKWebsiteDataStore.dataStoreForIdentifier(
+        ccSha256(remoteMM.mmid.toByteArray()).asUByteArray().usePinned {
+          NSUUID(uUIDBytes = it.addressOf(0))
+        })
     }
     configuration.setWebsiteDataStore(websiteDataStore)
 
