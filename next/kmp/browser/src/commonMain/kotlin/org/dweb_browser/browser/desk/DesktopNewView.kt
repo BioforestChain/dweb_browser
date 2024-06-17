@@ -61,8 +61,10 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
@@ -143,14 +145,13 @@ fun NewDesktopView(
           oldApp.mmid == it.mmid
         }
 
-        oldApp?.copy(running = runStatus)
-          ?: DesktopAppModel(
-            it.name,
-            it.mmid,
-            icon,
-            isSystemApp,
-            runStatus,
-          )
+        oldApp?.copy(running = runStatus) ?: DesktopAppModel(
+          it.short_name.ifEmpty { it.name },
+          it.mmid,
+          icon,
+          isSystemApp,
+          runStatus,
+        )
       }
       apps.clear()
       apps.addAll(installApps)
@@ -160,10 +161,9 @@ fun NewDesktopView(
   DisposableEffect(Unit) {
     val job = desktopController.onUpdate.run {
       filter { it != "bounds" }
+    }.collectIn(scope) {
+      doGetApps()
     }
-      .collectIn(scope) {
-        doGetApps()
-      }
 
     onDispose {
       job.cancel()
@@ -245,25 +245,17 @@ fun NewDesktopView(
   Box(modifier = Modifier.fillMaxSize()) {
     // content
     Box(
-      modifier = Modifier.fillMaxSize().blur(blurValue.dp),
-      contentAlignment = Alignment.TopStart
+      modifier = Modifier.fillMaxSize().blur(blurValue.dp), contentAlignment = Alignment.TopStart
     ) {
-      desktopWallpaperView(
-        desktopBgCircleCount(),
-        modifier = Modifier
-          .clickableWithNoEffect {
-            doHideKeyboard()
-          }
-      )
+      desktopWallpaperView(desktopBgCircleCount(), modifier = Modifier.clickableWithNoEffect {
+        doHideKeyboard()
+      })
 
-      Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
+      Column(horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeContent)
-          .padding(top = desktopTap())
-          .clickableWithNoEffect {
+          .padding(top = desktopTap()).clickableWithNoEffect {
             doHideKeyboard()
-          }
-      ) {
+          }) {
 
         desktopSearchBar(
           textWord,
@@ -273,8 +265,7 @@ fun NewDesktopView(
         )
 
         LazyVerticalGrid(
-          columns = desktopGridLayout(),
-          modifier = Modifier.fillMaxSize()
+          columns = desktopGridLayout(), modifier = Modifier.fillMaxSize()
         ) {
 
           itemsIndexed(apps) { index, app ->
@@ -303,12 +294,9 @@ fun NewDesktopView(
     // floating
     if (popUpApp?.image != null) {
       BoxWithConstraints(contentAlignment = Alignment.TopStart,
-        modifier = Modifier
-          .fillMaxSize()
-          .clickableWithNoEffect {
-            doHidePopUp()
-          }
-      ) {
+        modifier = Modifier.fillMaxSize().clickableWithNoEffect {
+          doHidePopUp()
+        }) {
 
         var popSize by remember { mutableStateOf(IntSize.Zero) }
         var popAlpha by remember { mutableStateOf(0f) }
@@ -322,17 +310,13 @@ fun NewDesktopView(
         val width = (popUpApp!!.size!!.width / density) * scale
         val height = (popUpApp!!.size!!.height / density) * scale
 
-        Box(
-          contentAlignment = Alignment.Center,
-          modifier = Modifier
-            .size(width = width.dp, height = height.dp).offset(offX.dp, offY.dp)
-            .aspectRatio(1.0f)
-            .background(color = Color.White, shape = RoundedCornerShape(16.dp))
+        Box(contentAlignment = Alignment.Center,
+          modifier = Modifier.size(width = width.dp, height = height.dp).offset(offX.dp, offY.dp)
+            .aspectRatio(1.0f).background(color = Color.White, shape = RoundedCornerShape(16.dp))
             .clickableWithNoEffect {
               doOpen(popUpApp!!.mmid)
               doHidePopUp()
-            }
-        ) {
+            }) {
           Image(popUpApp!!.image!!, contentDescription = null)
         }
 
@@ -344,21 +328,14 @@ fun NewDesktopView(
 
 
         Box(
-          modifier = Modifier
-            .offset {
-              IntOffset(
-                x = popOffX,
-                y = popOffY
-              )
-            }.alpha(popAlpha)
+          modifier = Modifier.offset {
+            IntOffset(
+              x = popOffX, y = popOffY
+            )
+          }.alpha(popAlpha)
         ) {
           moreAppDisplay(
-            popUpApp!!,
-            ::doQuit,
-            ::doDetail,
-            ::doUninstall,
-            ::doShare,
-            ::doHidePopUp
+            popUpApp!!, ::doQuit, ::doDetail, ::doUninstall, ::doShare, ::doHidePopUp
           ) {
             popSize = it
             popAlpha = 1f
@@ -379,27 +356,23 @@ fun AppItem(
 ) {
 
   Box(
-    modifier = (modifier.fillMaxSize())
-      .padding(5.dp),
+    modifier = (modifier.fillMaxSize()).padding(5.dp),
     contentAlignment = Alignment.TopStart,
   ) {
     Column(
-      modifier = Modifier
-        .align(Alignment.CenterStart)
+      modifier = Modifier.align(Alignment.CenterStart)
     ) {
 
       DeskAppIcon(
-        app,
-        hook
+        app, hook
       )
       Text(
-        text = app.name,
-        fontSize = 10.sp,
-        maxLines = 2,
-        overflow = TextOverflow.Ellipsis,
-        style = TextStyle(textAlign = TextAlign.Center),
-        modifier = Modifier.fillMaxWidth()
-          .background(color = Color.White, shape = RoundedCornerShape(4.dp))
+        text = app.name, maxLines = 2, overflow = TextOverflow.Ellipsis, style = TextStyle(
+          color = Color.White,
+          fontSize = 12.sp,
+          textAlign = TextAlign.Center,
+          shadow = Shadow(Color.Black, Offset(4f, 4f), 4f)
+        ), modifier = Modifier.fillMaxWidth()
       )
     }
   }
@@ -407,34 +380,21 @@ fun AppItem(
 
 @Composable
 fun DeskAppIcon(
-  app: DesktopAppModel,
-  hook: FetchHook,
-  width: Dp = 50.dp,
-  height: Dp = 50.dp
+  app: DesktopAppModel, hook: FetchHook, width: Dp = 50.dp, height: Dp = 50.dp
 ) {
   val toRuningAnimation = rememberInfiniteTransition()
   val offY by toRuningAnimation.animateFloat(
-    initialValue = 0F,
-    targetValue = 8F,
-    animationSpec = infiniteRepeatable(
-      animation = tween(1000, easing = EaseInOut),
-      repeatMode = RepeatMode.Reverse
+    initialValue = 0F, targetValue = 8F, animationSpec = infiniteRepeatable(
+      animation = tween(1000, easing = EaseInOut), repeatMode = RepeatMode.Reverse
     )
   )
-  Box(contentAlignment = Alignment.Center,
-    modifier = Modifier
-      .fillMaxSize()
-      .padding(8.dp)
-      .offset(
-        0.dp,
-        if (app.running == DesktopAppModel.DesktopAppRunStatus.TORUNNING) offY.dp else 0.dp
-      )
-      .aspectRatio(1.0f)
-      .background(color = Color.White, shape = RoundedCornerShape(16.dp))
-      .onGloballyPositioned {
-        app.size = it.size
-        app.offSet = it.positionInWindow().toIntOffset(1F)
-      }
+  Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize().padding(8.dp).offset(
+    0.dp, if (app.running == DesktopAppModel.DesktopAppRunStatus.TORUNNING) offY.dp else 0.dp
+  ).aspectRatio(1.0f).background(color = Color.White, shape = RoundedCornerShape(16.dp))
+    .onGloballyPositioned {
+      app.size = it.size
+      app.offSet = it.positionInWindow().toIntOffset(1F)
+    }
 
   ) {
     val imageResult = PureImageLoader.SmartLoad(app.icon, width, height, hook)
@@ -461,12 +421,16 @@ private data class MoreAppModel(
 private enum class MoreAppModelType {
   OFF {
     override val data: MoreAppModelTypeData
-      get() = MoreAppModelTypeData(BrowserI18nResource.Desktop.quit.text, Icons.Outlined.HighlightOff)
+      get() = MoreAppModelTypeData(
+        BrowserI18nResource.Desktop.quit.text, Icons.Outlined.HighlightOff
+      )
   },
 
   DETAIL {
     override val data: MoreAppModelTypeData
-      get() = MoreAppModelTypeData(BrowserI18nResource.Desktop.detail.text, Icons.Outlined.Description)
+      get() = MoreAppModelTypeData(
+        BrowserI18nResource.Desktop.detail.text, Icons.Outlined.Description
+      )
   },
 
   UNINSTALL {
@@ -487,8 +451,7 @@ private enum class MoreAppModelType {
 @Composable
 private fun moreAppItemsDisplay(displays: List<MoreAppModel>, dismiss: () -> Unit) {
   Row(
-    modifier = Modifier.padding(8.dp),
-    horizontalArrangement = Arrangement.SpaceBetween
+    modifier = Modifier.padding(8.dp), horizontalArrangement = Arrangement.SpaceBetween
   ) {
     displays.forEach {
       Column(
@@ -505,9 +468,7 @@ private fun moreAppItemsDisplay(displays: List<MoreAppModel>, dismiss: () -> Uni
           tint = if (it.enable) Color.Black else Color.Gray
         )
         Text(
-          it.type.data.title,
-          fontSize = 12.sp,
-          color = if (it.enable) Color.Black else Color.Gray
+          it.type.data.title, fontSize = 12.sp, color = if (it.enable) Color.Black else Color.Gray
         )
       }
     }
@@ -544,13 +505,10 @@ fun moreAppDisplay(
   }
   displays.add(MoreAppModel(app.mmid, MoreAppModelType.SHARE, share, false))
 
-  Box(
-    modifier = Modifier.clip(RoundedCornerShape(8.dp))
-      .background(color = Color.White.copy(alpha = 0.6F))
-      .onSizeChanged {
-        onSize(it)
-      }
-  ) {
+  Box(modifier = Modifier.clip(RoundedCornerShape(8.dp))
+    .background(color = Color.White.copy(alpha = 0.6F)).onSizeChanged {
+      onSize(it)
+    }) {
 
     moreAppItemsDisplay(displays, dismiss)
   }
@@ -558,10 +516,7 @@ fun moreAppDisplay(
 
 @Composable
 fun desktopSearchBar(
-  textWord: String,
-  modifier: Modifier,
-  search: (String) -> Unit,
-  hideKeyBoad: () -> Unit
+  textWord: String, modifier: Modifier, search: (String) -> Unit, hideKeyBoad: () -> Unit
 ) {
 
   val searchWord = remember {
@@ -602,26 +557,22 @@ fun desktopSearchBar(
       },
       singleLine = true,
       keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-      keyboardActions = KeyboardActions(
-        onSearch = {
-          hideKeyBoad()
-          search(searchWord.value.text)
-          searchWord.value = TextFieldValue("")
-        }),
+      keyboardActions = KeyboardActions(onSearch = {
+        hideKeyBoad()
+        search(searchWord.value.text)
+        searchWord.value = TextFieldValue("")
+      }),
       decorationBox = {
         Box(
-          contentAlignment = Alignment.Center,
-          modifier = Modifier.fillMaxWidth()
+          contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth()
         ) {
 
-          Icon(
-            imageVector = Icons.Outlined.Search,
+          Icon(imageVector = Icons.Outlined.Search,
             contentDescription = null,
             tint = Color.White,
             modifier = Modifier.size(30.dp).offset {
               searchIconOffset.value
-            }
-          )
+            })
 
           Box(
             contentAlignment = Alignment.Center,
@@ -635,13 +586,9 @@ fun desktopSearchBar(
       },
       textStyle = TextStyle(Color.White, fontSize = TextUnit(18f, TextUnitType.Sp)),
       cursorBrush = SolidColor(Color.White),
-      modifier = Modifier
-        .onFocusChanged {
-          doSearchTirggleAnimation(it.isFocused, constraints.maxWidth)
-        }
-        .fillMaxWidth(searchBarWidthRadio.value)
-        .height(44.dp)
-        .background(color = Color.Transparent)
+      modifier = Modifier.onFocusChanged {
+        doSearchTirggleAnimation(it.isFocused, constraints.maxWidth)
+      }.fillMaxWidth(searchBarWidthRadio.value).height(44.dp).background(color = Color.Transparent)
         .clip(RoundedCornerShape(8.dp))
         .border(1.dp, color = Color.White, shape = RoundedCornerShape(22.dp))
         .windowInsetsPadding(WindowInsets.safeGestures)
