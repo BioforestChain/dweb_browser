@@ -7,27 +7,37 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Serializable
+import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.ipc.helper.IWebMessageChannel
 import org.dweb_browser.core.ipc.helper.IWebMessagePort
 import org.dweb_browser.core.module.MicroModule
+import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.RememberLazy
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
+import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.platform.IPureViewBox
+import org.dweb_browser.helper.randomUUID
+import org.dweb_browser.helper.trueAlso
+import org.dweb_browser.pure.http.PureMethod
+import org.dweb_browser.sys.tray.TRAY_ITEM_TYPE
+import org.dweb_browser.sys.tray.TrayItem
+import org.dweb_browser.sys.tray.ext.registryTray
 
 val debugDWebView = Debugger("dwebview")
 
@@ -47,6 +57,9 @@ abstract class IDWebView(initUrl: String?) {
   @OptIn(DelicateCoroutinesApi::class)
   companion object {
     val brands = mutableListOf<UserAgentBrandData>()
+
+    private var devtoolsMenuTrayId: String? = null
+    private val tray_lock = Mutex()
   }
 
   /**
@@ -105,7 +118,7 @@ abstract class IDWebView(initUrl: String?) {
   abstract suspend fun historyCanGoForward(): Boolean
   abstract suspend fun historyGoForward(): Boolean
   val urlStateFlow: StateFlow<String> get() = urlState.stateFlow
-
+  abstract val titleFlow: StateFlow<String>
 
   abstract suspend fun createMessageChannel(): IWebMessageChannel
   abstract suspend fun postMessage(data: String, ports: List<IWebMessagePort> = listOf())
@@ -172,6 +185,49 @@ abstract class IDWebView(initUrl: String?) {
 //   * 让页面进入激活态，从而可以做一些需要 激活状 才能执行的事务
 //   */
 //  abstract suspend fun requestUserActivation(): Unit
+
+  private val devtoolsItemTrayId by lazy { randomUUID() }
+  protected fun afterInit() {
+    (remoteMM.debugMM.isEnable && remoteMM is NativeMicroModule.NativeRuntime).trueAlso {
+      remoteMM.scopeLaunch(cancelable = true) {
+        tray_lock.withLock {
+          if (devtoolsMenuTrayId == null) {
+            devtoolsMenuTrayId = remoteMM.registryTray(
+              TrayItem(
+                title = "devtools", type = TRAY_ITEM_TYPE.Menu
+              )
+            )
+          }
+          devtoolsMenuTrayId?.isNotEmpty()?.trueAlso {
+            val pathname = "/open-devtools/$devtoolsItemTrayId"
+            val addOrUpdate: suspend (String) -> String = { trayTitle ->
+              remoteMM.registryTray(
+                TrayItem(
+                  id = devtoolsItemTrayId,
+                  parent = devtoolsMenuTrayId,
+                  title = trayTitle,
+                  url = "file://${remoteMM.mmid}$pathname",
+                )
+              )
+            }
+            addOrUpdate("${getUrl()} - ${getTitle()}")
+            titleFlow.combine(urlStateFlow) { title, urlState ->
+              "$urlState - $title"
+            }.collectIn(remoteMM.getRuntimeScope()) { trayTitle ->
+              addOrUpdate(trayTitle)
+            }
+            val nmm = remoteMM as NativeMicroModule.NativeRuntime
+            val router = nmm.routes(pathname bind PureMethod.GET by nmm.defineEmptyResponse {
+              openDevTool()
+            })
+            onDestroy {
+              nmm.removeRouter(router)
+            }
+          }
+        }
+      }
+    }
+  }
 }
 
 class ScrollChangeEvent(val scrollX: Int, val scrollY: Int)

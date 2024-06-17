@@ -157,6 +157,7 @@ class DWebView private constructor(
     engine.createWindowSignal.toListener()
   }
   override val onDownloadListener by lazy { engine.downloadSignal.toListener() }
+  override val titleFlow by lazy { engine.titleObserver.titleFlow }
 
   @OptIn(NativeRuntimeApi::class)
   override suspend fun destroy() {
@@ -310,6 +311,10 @@ class DWebView private constructor(
 
   override fun requestRefresh() {
     WARNING("Not yet implemented requestRefresh")
+  }
+
+  init {
+    afterInit()
   }
 }
 

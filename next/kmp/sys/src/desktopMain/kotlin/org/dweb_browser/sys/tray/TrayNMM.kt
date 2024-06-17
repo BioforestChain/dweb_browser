@@ -2,18 +2,19 @@ package org.dweb_browser.sys.tray
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.runtime.key
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.toAwtImage
 import androidx.compose.ui.graphics.toPainter
 import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyShortcut
 import androidx.compose.ui.window.ApplicationScope
+import androidx.compose.ui.window.MenuScope
 import androidx.compose.ui.window.Tray
 import dweb_browser_kmp.sys.generated.resources.Res
 import dweb_browser_kmp.sys.generated.resources.tray_dweb_browser
-import kotlinx.coroutines.flow.MutableStateFlow
+import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.Serializable
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.module.BootstrapContext
@@ -33,109 +34,116 @@ class TrayNMM : NativeMicroModule("tray.sys.dweb", "tray") {
     categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Render_Service)
   }
 
-  private val allActionsFlow = MutableStateFlow(mapOf<String, TrayAction>())
+  private val trayRootTree = TrayComposeItem(id = "", title = "", type = TRAY_ITEM_TYPE.Menu)
 
-  fun getRender(): @Composable ApplicationScope.() -> Unit {
-    return {
-      Render()
+  @Composable
+  private fun MenuScope.RenderNode(node: TrayComposeItem) {
+    key(node.id) {
+      when (node.type) {
+        TRAY_ITEM_TYPE.Menu -> Menu(
+          text = node.title,
+          enabled = node.enabled,
+          mnemonic = node.mnemonic,
+        ) {
+          RenderNodeList(node.children.collectAsState().value)
+        }
+
+        TRAY_ITEM_TYPE.Item -> Item(
+          text = node.title,
+          icon = node.icon,
+          enabled = node.enabled,
+          mnemonic = node.mnemonic,
+          shortcut = remember(node.shortcut) { node.shortcut?.toComposeKeyShortcut() },
+          onClick = {
+            node.url?.also { url ->
+              runtime.scopeLaunch(cancelable = true) {
+                runtime.nativeFetch(url)
+              }
+            }
+          }
+        )
+      }
     }
   }
 
   @Composable
-  fun ApplicationScope.Render() {
-    Tray(icon = painterResource(Res.drawable.tray_dweb_browser), menu = {
-      val actions by allActionsFlow.collectAsState()
-      for (group in actions.values.groupBy { it.group }) {
-        for (action in group.value) {
-          Item(
-            text = action.title,
-            icon = action.icon,
-            enabled = action.enabled,
-            mnemonic = action.mnemonic,
-            shortcut = action.shortcut?.asComposeKeyShortcut,
-          ) {
-            runtime.scopeLaunch(cancelable = true) {
-              runtime.nativeFetch(action.url)
-            }
-          }
-        }
-        Separator()
+  private fun MenuScope.RenderNodeList(nodeList: List<TrayComposeItem>) {
+    for (group in nodeList.groupBy { it.group }) {
+      for (node in group.value) {
+        RenderNode(node)
       }
-      Item(SysI18nResource.exit_app()) {
-        runBlocking {
-          PureViewController.exitDesktop()
-        }
-      }
-    })
-  }
-
-  data class TrayAction(
-    val id: String,
-    val title: String,
-    val url: String,
-    val group: String? = null,
-    val enabled: Boolean = true,
-    val mnemonic: Char? = null,
-    val icon: Painter? = null,
-    val shortcut: KeyShortcut? = null,
-  ) {
-
-    @Serializable
-    data class KeyShortcut(
-      /**
-       * @see androidx.compose.ui.input.key.Key
-       */
-      val keyCode: Int,
-      /**
-       * UNKNOWN 0
-       * STANDARD 1
-       * LEFT 2
-       * RIGHT 3
-       * NUMPAD 4
-       */
-      val keyLocation: Int,
-      val ctrl: Boolean = false,
-      val meta: Boolean = false,
-      val alt: Boolean = false,
-      val shift: Boolean = false,
-    ) {
-      val asComposeKeyShortcut by lazy {
-        androidx.compose.ui.input.key.KeyShortcut(
-          key = Key(keyCode, keyLocation),
-          ctrl = ctrl,
-          meta = meta,
-          alt = alt,
-          shift = shift,
-        )
-      }
+      Separator()
     }
   }
 
+  fun getRender(): @Composable ApplicationScope.() -> Unit {
+    return {
+      Tray(icon = painterResource(Res.drawable.tray_dweb_browser), menu = {
+        RenderNodeList(trayRootTree.children.collectAsState().value)
+
+        Item(SysI18nResource.exit_app()) {
+          runBlocking {
+            PureViewController.exitDesktop()
+          }
+        }
+      })
+    }
+  }
+
+  private fun SysKeyShortcut.toComposeKeyShortcut() = KeyShortcut(
+    key = Key(keyCode, keyLocation),
+    ctrl = ctrl,
+    meta = meta,
+    alt = alt,
+    shift = shift,
+  )
+
+
   inner class TrayRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
     override suspend fun _bootstrap() {
-      routes("/registry" bind PureMethod.GET by defineStringResponse {
-        val id = request.queryOrNull("id") ?: randomUUID()
-        val title = request.query("title")
-        val url = request.query("url")
-        val group = request.queryOrNull("group")
-        val enabled = request.queryAsOrNull<Boolean>("enabled")
-        val mnemonic = request.queryAsOrNull<Char>("mnemonic")
-        val icon = request.queryAsOrNull<String>("icon")
-          ?.let { loadSourceToImageBitmap(it, 64, 64)?.toAwtImage()?.toPainter() }
-        val shortcut = request.queryAsOrNull<TrayAction.KeyShortcut>("shortcut")
-        val action = TrayAction(
-          id = id,
-          title = title,
-          url = url,
-          group = group,
-          enabled = enabled ?: true,
-          mnemonic = mnemonic,
-          icon = icon,
-          shortcut = shortcut,
-        )
-        allActionsFlow.value += action.id to action
-        action.id
-      }).cors()
+      routes(
+        "/registry" bind PureMethod.GET by defineStringResponse {
+          val id = request.queryOrNull("id") ?: randomUUID()
+          val title = request.query("title")
+          val type = request.query("type").let {
+            TRAY_ITEM_TYPE.ALL[it] ?: throwException(
+              code = HttpStatusCode.NotFound,
+              message = "no found type: $it"
+            )
+          }
+          val parentId = request.queryOrNull("parent")
+          val url = request.queryOrNull("url")
+          val group = request.queryOrNull("group")
+          val enabled = request.queryAsOrNull<Boolean>("enabled")
+          val mnemonic = request.queryAsOrNull<Char>("mnemonic")
+          val icon = request.queryAsOrNull<String>("icon")
+            ?.let { loadSourceToImageBitmap(it, 64, 64)?.toAwtImage()?.toPainter() }
+          val shortcut = request.queryAsOrNull<SysKeyShortcut>("shortcut")
+
+          val parent = parentId?.let {
+            trayRootTree.findById(parentId) ?: throwException(
+              code = HttpStatusCode.NotFound,
+              message = "no found parent by id: $parentId"
+            )
+          } ?: trayRootTree
+          val newItem = TrayComposeItem(
+            id = id,
+            type = type,
+            title = title,
+            url = url,
+            group = group,
+            enabled = enabled ?: true,
+            mnemonic = mnemonic,
+            icon = icon,
+            shortcut = shortcut,
+          )
+          when (val oldItem = parent.findById(id)) {
+            null -> parent.addChild(newItem)
+            else -> parent.replaceChild(oldItem, newItem)
+          }
+
+          newItem.id
+        }).cors()
     }
 
     override suspend fun _shutdown() {

@@ -5,6 +5,7 @@ import { $AppIconInfo } from "./types.ts";
 import { get, set, createStore } from "idb-keyval";
 import { computedAsync } from "@vueuse/core";
 import { withLock } from "../../provider/lock.ts";
+import { nativeFetch } from "../../provider/fetch.ts";
 
 const iconStore = createStore("desk", "icon");
 type $IconRow = { blob: Blob; updateTime: number };
@@ -35,7 +36,7 @@ const mono_css = computed(() => props.icon.monoimage ?? props.icon.monocolor ?? 
 
 const setIconRow = async (url: string) => {
   try {
-    const iconBlob = await (await fetch(url, { mode: "cors" })).blob();
+    const iconBlob = await nativeFetch("/proxy", { search: { url }, responseType: "blob" });
     const iconRow: $IconRow = {
       blob: iconBlob,
       updateTime: Date.now(),

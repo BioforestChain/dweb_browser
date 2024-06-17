@@ -417,6 +417,7 @@ class DWebViewEngine internal constructor(
   val loadStateChangeSignal = setupLoadStateChangeSignal(this)
   val onReady by lazy { loadStateChangeSignal.toReadyListener() }
   val scrollSignal = setupScrollSignal(this)
+  val titleFlow = setupTitleFlow(this)
   val dwebFavicon = FaviconPolyfill(this)
   private val _setupCreateWindowSignals = setupCreateWindowSignals(this)
   val beforeCreateWindowSignal = _setupCreateWindowSignals.beforeCreateWindowSignal

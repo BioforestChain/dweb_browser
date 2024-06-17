@@ -143,6 +143,7 @@ class DWebView(
 
   override val onDestroy by _engineLazy.then { viewEngine.destroyStateSignal.onDestroy }
   override val onLoadStateChange by _engineLazy.then { viewEngine.loadStateChangeSignal.toListener() }
+  override val titleFlow by _engineLazy.then { viewEngine.titleFlow }
   override val onReady get() = viewEngine.onReady
   override val onBeforeUnload by _engineLazy.then { viewEngine.beforeUnloadSignal.toListener() }
   override val loadingProgressFlow by _engineLazy.then { viewEngine.loadingProgressSharedFlow.asSharedFlow() }
@@ -164,6 +165,10 @@ class DWebView(
 
   override fun requestRefresh() {
     WARNING("Not yet implemented requestRefresh")
+  }
+
+  init {
+    afterInit()
   }
 }
 

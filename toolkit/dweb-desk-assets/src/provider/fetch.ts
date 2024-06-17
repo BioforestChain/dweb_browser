@@ -14,14 +14,32 @@ const baseMmid = apiUrl.searchParams.get("mmid") ?? "desk.browser.dweb";
  */
 const noImplementedCaches = new Map<string, string>();
 /** 发起请求，响应JSON */
-export const nativeFetch = async <T extends unknown>(pathname: string, init?: $BuildRequestInit) => {
+interface $NativeFetch {
+  <T extends Blob = Blob>(pathname: string, init?: $BuildRequestInit & { responseType: "blob" }): Promise<T>;
+  <T extends string = string>(pathname: string, init?: $BuildRequestInit & { responseType: "text" }): Promise<T>;
+  <T extends unknown>(pathname: string, init?: $BuildRequestInit): Promise<T>;
+}
+export const nativeFetch: $NativeFetch = async <T extends unknown>(pathname: string, init?: $BuildRequestInit) => {
   if (noImplementedCaches.has(pathname)) {
     throw noImplementedCaches.get(pathname);
   }
   const res = await fetch(...buildApiRequestArgs(pathname, init));
   if (res.ok) {
-    const data = await res.json();
-    return data as T;
+    const responseType = init?.responseType ?? "json";
+
+    let data: T;
+    switch (responseType) {
+      case "json":
+        data = (await res.json()) as T;
+        break;
+      case "blob":
+        data = (await res.blob()) as T;
+        break;
+      case "text":
+        data = (await res.text()) as T;
+        break;
+    }
+    return data;
   } else {
     const errorCache = await res.text();
     /// 501 Not Implemented
@@ -115,4 +133,5 @@ interface $BuildRequestInit extends RequestInit {
     | Record<string, any>;
   base?: string;
   mmid?: `${string}.dweb`;
+  responseType?: "json" | "blob" | "text";
 }

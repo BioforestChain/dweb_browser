@@ -170,10 +170,6 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
             GlobalWebMessageEndpoint.get(remoteGlobalId).port,
             manifestJson
           ) {}
-        },
-        "/open-devTool" bind PureMethod.GET by defineEmptyResponse {
-          debugMM("open-debug") { request.url }
-          apis.dWebView.openDevTool()
         }
       )
     }

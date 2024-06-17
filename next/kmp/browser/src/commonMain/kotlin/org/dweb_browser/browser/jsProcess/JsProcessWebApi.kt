@@ -214,8 +214,6 @@ suspend fun createJsProcessWeb(
       enabledOffScreenRender = true
     )
   )
-  // 注册托盘
-  registryTray(mm)
   // 等待加载完成
   dWebView.loadUrl(jsProcessUrl)
   /// 确保API可用
@@ -225,6 +223,3 @@ suspend fun createJsProcessWeb(
 
   return JsProcessWebApi(dWebView)
 }
-
-/**桌面端托盘*/
-expect suspend fun registryTray(runtime: NativeMicroModule.NativeRuntime)

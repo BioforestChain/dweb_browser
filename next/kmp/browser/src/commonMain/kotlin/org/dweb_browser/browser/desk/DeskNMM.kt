@@ -41,6 +41,7 @@ import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureResponse
 import org.dweb_browser.pure.http.PureStringBody
 import org.dweb_browser.pure.http.PureTextFrame
+import org.dweb_browser.pure.http.initCors
 import org.dweb_browser.pure.http.queryAs
 import org.dweb_browser.pure.http.queryAsOrNull
 import org.dweb_browser.sys.toast.ext.showToast
@@ -349,7 +350,14 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
           debugBrowser("showToast", request.href)
           val message = request.query("message")
           showToast(message)
-        }).cors()
+        },
+        "/proxy" bind PureMethod.GET by definePureResponse {
+          val url = request.query("url")
+          nativeFetch(url).also {
+            it.headers.initCors()
+          }
+        }
+      ).cors()
 
       onActivity {
         startDesktopView(deskSessionId)

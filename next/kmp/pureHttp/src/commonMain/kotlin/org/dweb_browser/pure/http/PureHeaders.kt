@@ -106,3 +106,12 @@ class PureHeaders() {
       .joinToString("-") { it.first().uppercaseChar() + it.substring(1) }
   }
 }
+
+fun PureHeaders.initCors() {
+  init("Access-Control-Allow-Credentials", "true")
+  init("Access-Control-Allow-Origin", "*")
+  init("Access-Control-Allow-Headers", "*")
+  init("Access-Control-Allow-Methods", "*")
+}
+
+fun PureHeaders.cors() = copy().initCors()

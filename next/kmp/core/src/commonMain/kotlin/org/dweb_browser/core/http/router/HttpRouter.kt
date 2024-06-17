@@ -16,10 +16,10 @@ import org.dweb_browser.core.std.permission.ext.queryPermissions
 import org.dweb_browser.helper.remove
 import org.dweb_browser.pure.http.IPureBody
 import org.dweb_browser.pure.http.PureChannelContext
-import org.dweb_browser.pure.http.PureHeaders
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureRequest
 import org.dweb_browser.pure.http.PureResponse
+import org.dweb_browser.pure.http.initCors
 
 class HttpRouter(private val mm: MicroModule.Runtime, val host: String) {
   private val routes = mutableMapOf<IRoute, HttpHandlerChain>()
@@ -127,15 +127,8 @@ class HttpRouter(private val mm: MicroModule.Runtime, val host: String) {
 
     private val cors_handler: MiddlewareHttpHandler = { next ->
       val res = next()
-      res.headers.cors()
+      res.headers.initCors()
       res
-    }
-
-    private fun PureHeaders.cors() {
-      init("Access-Control-Allow-Credentials", "true")
-      init("Access-Control-Allow-Origin", "*")
-      init("Access-Control-Allow-Headers", "*")
-      init("Access-Control-Allow-Methods", "*")
     }
 
     private val corsRoute: Pair<IRoute, HttpHandlerChain> = object : IRoute {
@@ -143,7 +136,7 @@ class HttpRouter(private val mm: MicroModule.Runtime, val host: String) {
 
       override fun isMatch(request: PureRequest) = request.method == PureMethod.OPTIONS
     } to HttpHandlerChain {
-      PureResponse().apply { headers.cors() }
+      PureResponse().apply { headers.initCors() }
     }
   }
 

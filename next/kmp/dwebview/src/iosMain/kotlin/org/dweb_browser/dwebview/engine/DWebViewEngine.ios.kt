@@ -190,6 +190,7 @@ class DWebViewEngine(
   internal val dwebNavigationDelegate = DWebNavigationDelegate(this)
   internal val dwebUIScrollViewDelegate = DWebUIScrollViewDelegate(this)
   private val estimatedProgressObserver = DWebEstimatedProgressObserver(this)
+  internal val titleObserver = DWebTitleObserver(this)
 
   init {
     /// 启动代理

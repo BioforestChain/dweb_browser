@@ -222,6 +222,7 @@ class DWebView private constructor(internal val engine: DWebViewEngine, initUrl:
   ): String = engine.evaluateAsyncJavascriptCode(script, afterEval)
 
   override val onDestroy by lazy { engine.destroyStateSignal.onDestroy }
+  override val titleFlow by lazy { engine.titleFlow }
   override val onLoadStateChange by lazy { engine.dWebViewClient.loadStateChangeSignal.toListener() }
   override val onReady get() = engine.dWebViewClient.onReady
 
@@ -267,6 +268,10 @@ class DWebView private constructor(internal val engine: DWebViewEngine, initUrl:
 
   override fun requestRefresh() {
     engine.invalidate()
+  }
+
+  init {
+    afterInit()
   }
 }
 

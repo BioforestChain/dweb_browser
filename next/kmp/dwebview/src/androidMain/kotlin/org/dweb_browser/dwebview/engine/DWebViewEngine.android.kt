@@ -7,10 +7,8 @@ import android.graphics.Rect
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams
 import android.view.WindowInsets
-import android.webkit.CookieManager
 import android.webkit.DownloadListener
 import android.webkit.WebChromeClient
-import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.core.view.DisplayCutoutCompat
@@ -263,8 +261,8 @@ class DWebViewEngine internal constructor(
 //      cookieManager.removeAllCookies(null)
 //      cookieManager.flush()
 //    } else {
-      settings.domStorageEnabled = true
-      settings.databaseEnabled = true
+    settings.domStorageEnabled = true
+    settings.databaseEnabled = true
 //    }
 
     settings.javaScriptEnabled = true
@@ -431,4 +429,5 @@ class DWebViewEngine internal constructor(
   }
 
   val scrollSignal = setupScrollSignal(this)
+  val titleFlow = setupTitleFlow(this)
 }
