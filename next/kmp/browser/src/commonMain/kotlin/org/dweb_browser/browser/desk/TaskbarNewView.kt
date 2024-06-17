@@ -274,23 +274,27 @@ fun CloseButton(modifier: Modifier) {
     val yTop = (size.height - 2 * r) / 2f + r * 0.7f
     val yBottom = size.height - (size.height - 2 * r) / 2f - r * 0.7f
 
-    drawCircle(Color.Gray, r, style = Stroke(width = 5f))
+    val lineWidth = taskBarCloseButtonLineWidth()
+
+    drawCircle(Color.Gray, r, style = Stroke(width = lineWidth))
 
     drawLine(
       Color.Black,
       Offset(xLeft, yTop),
       Offset(xRight, yBottom),
-      5f
+      lineWidth
     )
 
     drawLine(
-      Color.Gray,
+      Color.Black,
       Offset(xLeft, yBottom),
       Offset(xRight, yTop),
-      5f
+      lineWidth
     )
   }
 }
+
+expect fun taskBarCloseButtonLineWidth(): Float
 
 @Composable
 private fun TaskBarDivider() {
@@ -361,7 +365,7 @@ private data class TaskbarAppModel(
 }
 
 @Composable
-fun bezGradient(color: Color, modifier: Modifier, style: DrawStyle = Fill, random: Float = 20f) {
+fun BezGradient(color: Color, modifier: Modifier, style: DrawStyle = Fill, random: Float = 20f) {
 
   fun toCanvasCoordinate(point: Offset, center: Offset): Offset {
     return Offset(point.x + center.x, point.y + center.y)

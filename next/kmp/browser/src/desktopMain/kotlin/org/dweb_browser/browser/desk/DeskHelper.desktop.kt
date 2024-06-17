@@ -54,4 +54,4 @@ actual fun desktopTap(): Dp = 20.dp
 
 actual fun desktopBgCircleCount(): Int = 12
 
-actual fun taskbarUsingWebView(): Boolean = true
+actual fun taskBarCloseButtonLineWidth() = 2f

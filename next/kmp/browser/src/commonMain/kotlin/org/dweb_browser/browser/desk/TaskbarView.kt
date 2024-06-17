@@ -165,5 +165,3 @@ abstract class ITaskbarView(private val taskbarController: TaskbarController) {
 
 
 fun Offset.toIntOffset(density: Float) = IntOffset((density * x).toInt(), (density * y).toInt())
-
-expect fun taskbarUsingWebView(): Boolean
