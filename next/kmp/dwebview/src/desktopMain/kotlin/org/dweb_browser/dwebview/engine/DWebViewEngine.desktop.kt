@@ -68,9 +68,7 @@ class DWebViewEngine internal constructor(
   internal val remoteMM: MicroModule.Runtime,
   val dataDir: Path,
   val options: DWebViewOptions,
-  internal val browser: Browser = createMainBrowser(
-    remoteMM, dataDir, options.enabledOffScreenRender, options.incognito
-  ),
+  internal val browser: Browser = createMainBrowser(remoteMM, dataDir, options),
 ) {
   companion object {
     // userDataDir同一个engine不能多次调用，jxbrowser会弹出异常无法捕获
@@ -95,12 +93,11 @@ class DWebViewEngine internal constructor(
     internal fun createMainBrowser(
       remoteMM: MicroModule.Runtime,
       dataDir: Path,
-      enabledOffScreenRender: Boolean,
-      incognito: Boolean,
+      options: DWebViewOptions,
     ): Browser {
       val optionsBuilder: EngineOptions.Builder.() -> Unit = {
         // 是否开启无痕模式
-        if (incognito) {
+        if (options.incognitoSessionId != null) {
           enableIncognito()
         }
 
@@ -125,9 +122,14 @@ class DWebViewEngine internal constructor(
         addSwitch("--enable-experimental-web-platform-features")
       }
 
-      val dataNioDir = dataDir.toNioPath()
+      val dataNioDir = dataDir.let {
+        when (val sessionId = options.incognitoSessionId) {
+          null -> it
+          else -> it.resolve(sessionId)
+        }
+      }.toNioPath()
 
-      return if (enabledOffScreenRender) {
+      return if (options.enabledOffScreenRender) {
         WebviewEngine.offScreen(dataNioDir, optionsBuilder)
       } else {
         WebviewEngine.hardwareAccelerated(dataNioDir, optionsBuilder)

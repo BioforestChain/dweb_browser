@@ -178,3 +178,7 @@ fun IDWebView.asDesktop(): DWebView {
   require(this is DWebView)
   return this
 }
+
+internal actual fun IDWebView.Companion.supportProfile(): Boolean {
+  return true
+}

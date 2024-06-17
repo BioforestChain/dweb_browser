@@ -13,6 +13,8 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.core.view.DisplayCutoutCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.webkit.Profile
+import androidx.webkit.ProfileStore
 import androidx.webkit.UserAgentMetadata
 import androidx.webkit.UserAgentMetadata.BrandVersion
 import androidx.webkit.WebSettingsCompat
@@ -38,6 +40,8 @@ import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.JsonLoose
 import org.dweb_browser.helper.Remover
 import org.dweb_browser.helper.Signal
+import org.dweb_browser.helper.WeakHashMap
+import org.dweb_browser.helper.getOrPut
 import org.dweb_browser.helper.toAndroidRect
 import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.sys.device.DeviceManage
@@ -97,7 +101,10 @@ class DWebViewEngine internal constructor(
    */
   var activity: org.dweb_browser.helper.android.BaseActivity? = null,
 ) : WebView(context) {
-
+  companion object {
+    val profileStore = ProfileStore.getInstance();
+    private val profileRef = WeakHashMap<Profile, MutableSet<WebView>>()
+  }
 
   init {
     if (activity == null && context is org.dweb_browser.helper.android.BaseActivity) {
@@ -243,6 +250,8 @@ class DWebViewEngine internal constructor(
 
 //  private val cookieManager = CookieManager.getInstance()
 
+  val profile: Profile?
+
   init {
     debugDWebView("INIT", options)
 
@@ -250,6 +259,18 @@ class DWebViewEngine internal constructor(
       ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT
     )
     setUA()
+    profile = if (IDWebView.isSupportProfile) {
+      when (val sessionId = options.incognitoSessionId) {
+        null -> profileStore.getOrCreateProfile(remoteMM.mmid)
+        else -> profileStore.getOrCreateProfile("incognito_${sessionId}")
+      }.also { profile ->
+        profileRef.getOrPut(profile) { mutableSetOf() }.add(this)
+        WebViewCompat.setProfile(this, profile.name)
+      }
+    } else {
+      null
+    }
+
 
 //    // 是否开启无痕模式
 //    if(options.incognito) {
@@ -337,6 +358,15 @@ class DWebViewEngine internal constructor(
         super.onDetachedFromWindow()
       }
       super.destroy()
+      if (profile != null) {
+        val isNoRef = profileRef[profile]?.let { webviews ->
+          webviews.remove(this)
+          webviews.isEmpty()
+        } ?: true
+        if (options.incognitoSessionId != null && isNoRef) {
+          profileStore.deleteProfile(profile.name)
+        }
+      }
     }
   }
 

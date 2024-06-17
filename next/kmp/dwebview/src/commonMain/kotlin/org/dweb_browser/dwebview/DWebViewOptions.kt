@@ -50,9 +50,9 @@ data class DWebViewOptions(
   val subDataDirName: String? = null,
 
   /**
-   * 无痕模式
+   * 是否启用无痕模式，如果为null，则不启用，否则，同个sessionId的会共享该模式下的数据，并在结束时销毁这些数据
    */
-  val incognito: Boolean = false,
+  val incognitoSessionId: String? = null,
 ) {
 
   enum class DetachedStrategy {

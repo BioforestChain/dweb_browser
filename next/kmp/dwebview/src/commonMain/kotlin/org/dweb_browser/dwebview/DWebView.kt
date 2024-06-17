@@ -47,6 +47,8 @@ expect suspend fun IDWebView.Companion.create(
   viewBox: IPureViewBox? = null,
 ): IDWebView
 
+expect internal fun IDWebView.Companion.supportProfile(): Boolean
+
 abstract class IDWebView(initUrl: String?) {
   abstract val remoteMM: MicroModule.Runtime
   abstract val lifecycleScope: CoroutineScope
@@ -60,6 +62,8 @@ abstract class IDWebView(initUrl: String?) {
 
     private var devtoolsMenuTrayId: String? = null
     private val tray_lock = Mutex()
+
+    val isSupportProfile = supportProfile()
   }
 
   /**

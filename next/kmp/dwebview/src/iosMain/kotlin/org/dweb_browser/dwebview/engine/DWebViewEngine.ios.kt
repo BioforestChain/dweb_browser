@@ -203,14 +203,14 @@ class DWebViewEngine(
       configuration, url.host, url.port.toUShort()
     )
 
-    websiteDataStore = when {
-      // 是否开启无痕模式
-      options.incognito -> WKWebsiteDataStore.nonPersistentDataStore()
+    websiteDataStore = when (options.incognitoSessionId) {
       // 开启WKWebView数据隔离
-      else -> WKWebsiteDataStore.dataStoreForIdentifier(
+      null -> WKWebsiteDataStore.dataStoreForIdentifier(
         ccSha256(remoteMM.mmid.toByteArray()).asUByteArray().usePinned {
           NSUUID(uUIDBytes = it.addressOf(0))
         })
+      // 是否开启无痕模式
+      else -> WKWebsiteDataStore.nonPersistentDataStore()
     }
     configuration.setWebsiteDataStore(websiteDataStore)
 

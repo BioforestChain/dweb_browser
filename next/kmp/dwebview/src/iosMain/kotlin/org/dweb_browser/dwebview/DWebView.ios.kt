@@ -328,3 +328,7 @@ fun IDWebView.asIosUIView(): UIView {
   require(this is DWebView)
   return viewWrapper
 }
+
+internal actual fun IDWebView.Companion.supportProfile(): Boolean {
+  return true
+}
