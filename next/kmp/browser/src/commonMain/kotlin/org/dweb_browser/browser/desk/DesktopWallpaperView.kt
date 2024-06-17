@@ -71,21 +71,22 @@ fun desktopWallpaperView(circleCount: Int, modifier: Modifier, onClick: (()->Uni
   }
 
   LaunchedEffect(Unit) {
-//    suspend fun observerHourChange(action: (Int) -> Unit) {
-//      val currentMoment: Instant = Clock.System.now()
-//      val datetimeInSystemZone = currentMoment.toLocalDateTime(TimeZone.currentSystemDefault())
-//      val triggleSeconds = (60 - datetimeInSystemZone.minute) * 60 - datetimeInSystemZone.second
-//      delay(triggleSeconds.toLong() * 1000)
-//      action(datetimeInSystemZone.hour)
-//    }
-
-    var c_hour = 0
     suspend fun observerHourChange(action: (Int) -> Unit) {
-      delay(10 * 1000)
-      c_hour += 1
-      c_hour %= 24
-      action(c_hour)
+      val currentMoment: Instant = Clock.System.now()
+      val datetimeInSystemZone = currentMoment.toLocalDateTime(TimeZone.currentSystemDefault())
+      val triggleSeconds = (60 - datetimeInSystemZone.minute) * 60 - datetimeInSystemZone.second
+      delay(triggleSeconds.toLong() * 1000)
+      action(datetimeInSystemZone.hour)
     }
+
+// 以下为debug代码：用来查看整个壁纸动态效果。
+//    var c_hour = 0
+//    suspend fun observerHourChange(action: (Int) -> Unit) {
+//      delay(10 * 1000)
+//      c_hour += 1
+//      c_hour %= 24
+//      action(c_hour)
+//    }
 
     while (true) {
       observerHourChange { toHour ->

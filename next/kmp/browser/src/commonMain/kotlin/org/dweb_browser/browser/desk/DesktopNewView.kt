@@ -86,6 +86,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
+import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.helper.UUID
@@ -460,22 +461,22 @@ private data class MoreAppModel(
 private enum class MoreAppModelType {
   OFF {
     override val data: MoreAppModelTypeData
-      get() = MoreAppModelTypeData("退出", Icons.Outlined.HighlightOff)
+      get() = MoreAppModelTypeData(BrowserI18nResource.Desktop.quit.text, Icons.Outlined.HighlightOff)
   },
 
   DETAIL {
     override val data: MoreAppModelTypeData
-      get() = MoreAppModelTypeData("详情", Icons.Outlined.Description)
+      get() = MoreAppModelTypeData(BrowserI18nResource.Desktop.detail.text, Icons.Outlined.Description)
   },
 
   UNINSTALL {
     override val data: MoreAppModelTypeData
-      get() = MoreAppModelTypeData("删除", Icons.Outlined.Delete)
+      get() = MoreAppModelTypeData(BrowserI18nResource.Desktop.delete.text, Icons.Outlined.Delete)
   },
 
   SHARE {
     override val data: MoreAppModelTypeData
-      get() = MoreAppModelTypeData("分享", Icons.Outlined.Share)
+      get() = MoreAppModelTypeData(BrowserI18nResource.Desktop.share.text, Icons.Outlined.Share)
   };
 
   data class MoreAppModelTypeData(val title: String, val icon: ImageVector)

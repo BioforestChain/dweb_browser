@@ -401,4 +401,27 @@ object BrowserI18nResource {
       Language.EN to "Unverified"
     )
   }
+
+  object Desktop {
+    val quit = SimpleI18nResource(
+      Language.ZH to "退出",
+      Language.EN to "Close"
+    )
+
+    val detail = SimpleI18nResource(
+      Language.ZH to "详情",
+      Language.EN to "Detail"
+    )
+
+    val delete = SimpleI18nResource(
+      Language.ZH to "删除",
+      Language.EN to "Delete"
+    )
+
+    val share = SimpleI18nResource(
+      Language.ZH to "分享",
+      Language.EN to "Share"
+    )
+
+  }
 }
