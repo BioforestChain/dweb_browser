@@ -9,11 +9,11 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.updateTransition
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -67,7 +67,6 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.layout.positionInWindow
@@ -102,6 +101,7 @@ import org.dweb_browser.sys.window.render.imageFetchHook
 import kotlin.math.min
 
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun NewDesktopView(
   desktopController: DesktopController,
@@ -242,104 +242,105 @@ fun NewDesktopView(
     blur = false
   }
 
-  Box(modifier = Modifier.fillMaxSize()) {
-    // content
-    Box(
-      modifier = Modifier.fillMaxSize().blur(blurValue.dp), contentAlignment = Alignment.TopStart
-    ) {
-      desktopWallpaperView(desktopBgCircleCount(), modifier = Modifier.clickableWithNoEffect {
-        doHideKeyboard()
-      })
+  Box(
+    modifier = Modifier.fillMaxSize().blur(blurValue.dp), contentAlignment = Alignment.TopStart
+  ) {
+    desktopWallpaperView(desktopBgCircleCount(), modifier = Modifier, isTapDoAnimation = false) {
+      doHideKeyboard()
+    }
 
-      Column(horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeContent)
-          .padding(top = desktopTap()).clickableWithNoEffect {
-            doHideKeyboard()
-          }) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally,
+      modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeContent)
+        .padding(top = desktopTap()).clickableWithNoEffect {
+          doHideKeyboard()
+        }) {
 
-        desktopSearchBar(
-          textWord,
-          Modifier.windowInsetsPadding(WindowInsets.safeGestures).blur(blurValue.dp),
-          ::doSearch,
-          ::doHideKeyboard
-        )
+      desktopSearchBar(
+        textWord,
+        Modifier.windowInsetsPadding(WindowInsets.safeGestures).blur(blurValue.dp),
+        ::doSearch,
+        ::doHideKeyboard
+      )
 
-        LazyVerticalGrid(
-          columns = desktopGridLayout(), modifier = Modifier.fillMaxSize()
-        ) {
+      LazyVerticalGrid(
+        columns = desktopGridLayout(), modifier = Modifier.fillMaxSize()
+      ) {
 
-          itemsIndexed(apps) { index, app ->
-            var alpha = 1F
-            if (popUpIndex != null) {
-              alpha = if (index == popUpIndex) 0F else 1F
-            }
-
-            AppItem(
-              modifier = Modifier.alpha(alpha).pointerInput(Unit) {
-                detectTapGestures(onTap = {
-                  doOpen(app.mmid)
-                }, onLongPress = {
-                  doShowPopUp(index)
-                })
-              },
-              app = app,
-              hook = microModule.imageFetchHook,
-            )
+        itemsIndexed(apps) { index, app ->
+          var alpha = 1F
+          if (popUpIndex != null) {
+            alpha = if (index == popUpIndex) 0F else 1F
           }
+
+          AppItem(
+            modifier = Modifier
+              .alpha(alpha)
+              .DesktopEventDetector(
+                onClick = {
+                  doOpen(app.mmid)
+                },
+                onDoubleClick = {},
+                onLongClick = {
+                  doShowPopUp(index)
+                }
+              ),
+            app = app,
+            hook = microModule.imageFetchHook,
+          )
         }
       }
     }
+  }
 
 
-    // floating
-    if (popUpApp?.image != null) {
-      BoxWithConstraints(contentAlignment = Alignment.TopStart,
-        modifier = Modifier.fillMaxSize().clickableWithNoEffect {
-          doHidePopUp()
-        }) {
+  // floating
+  if (popUpApp?.image != null) {
+    BoxWithConstraints(contentAlignment = Alignment.TopStart,
+      modifier = Modifier.fillMaxSize().clickableWithNoEffect {
+        doHidePopUp()
+      }) {
 
-        var popSize by remember { mutableStateOf(IntSize.Zero) }
-        var popAlpha by remember { mutableStateOf(0f) }
-        val density = LocalDensity.current.density
-        val boxWidth = constraints.maxWidth
-        val boxHeight = constraints.maxHeight
+      var popSize by remember { mutableStateOf(IntSize.Zero) }
+      var popAlpha by remember { mutableStateOf(0f) }
+      val density = LocalDensity.current.density
+      val boxWidth = constraints.maxWidth
+      val boxHeight = constraints.maxHeight
 
-        val scale = 1.05
-        val offX = popUpApp!!.offSet!!.x / density
-        val offY = popUpApp!!.offSet!!.y / density
-        val width = (popUpApp!!.size!!.width / density) * scale
-        val height = (popUpApp!!.size!!.height / density) * scale
+      val scale = 1.05
+      val offX = popUpApp!!.offSet!!.x / density
+      val offY = popUpApp!!.offSet!!.y / density
+      val width = (popUpApp!!.size!!.width / density) * scale
+      val height = (popUpApp!!.size!!.height / density) * scale
 
-        Box(contentAlignment = Alignment.Center,
-          modifier = Modifier.size(width = width.dp, height = height.dp).offset(offX.dp, offY.dp)
-            .aspectRatio(1.0f).background(color = Color.White, shape = RoundedCornerShape(16.dp))
-            .clickableWithNoEffect {
-              doOpen(popUpApp!!.mmid)
-              doHidePopUp()
-            }) {
-          Image(popUpApp!!.image!!, contentDescription = null)
-        }
+      Box(contentAlignment = Alignment.Center,
+        modifier = Modifier.size(width = width.dp, height = height.dp).offset(offX.dp, offY.dp)
+          .aspectRatio(1.0f).background(color = Color.White, shape = RoundedCornerShape(16.dp))
+          .clickableWithNoEffect {
+            doOpen(popUpApp!!.mmid)
+            doHidePopUp()
+          }) {
+        Image(popUpApp!!.image!!, contentDescription = null)
+      }
 
-        val popOffX = min((offX * density), (boxWidth - popSize.width).toFloat()).toInt()
-        var popOffY = ((offY + height + 15) * density).toInt()
-        if (popOffY + popSize.height + 15 > boxHeight) {
-          popOffY = ((offY - popSize.height - 15) * density).toInt()
-        }
+      val popOffX = min((offX * density), (boxWidth - popSize.width).toFloat()).toInt()
+      var popOffY = ((offY + height + 15) * density).toInt()
+      if (popOffY + popSize.height + 15 > boxHeight) {
+        popOffY = ((offY - popSize.height - 15) * density).toInt()
+      }
 
 
-        Box(
-          modifier = Modifier.offset {
-            IntOffset(
-              x = popOffX, y = popOffY
-            )
-          }.alpha(popAlpha)
+      Box(
+        modifier = Modifier.offset {
+          IntOffset(
+            x = popOffX, y = popOffY
+          )
+        }.alpha(popAlpha)
+      ) {
+        moreAppDisplay(
+          popUpApp!!, ::doQuit, ::doDetail, ::doUninstall, ::doShare, ::doHidePopUp
         ) {
-          moreAppDisplay(
-            popUpApp!!, ::doQuit, ::doDetail, ::doUninstall, ::doShare, ::doHidePopUp
-          ) {
-            popSize = it
-            popAlpha = 1f
-          }
+          popSize = it
+          popAlpha = 1f
         }
       }
     }
@@ -478,6 +479,11 @@ private fun moreAppItemsDisplay(displays: List<MoreAppModel>, dismiss: () -> Uni
 expect fun desktopGridLayout(): GridCells
 expect fun desktopTap(): Dp
 expect fun desktopBgCircleCount(): Int
+expect fun Modifier.DesktopEventDetector(
+  onClick: () -> Unit,
+  onDoubleClick: () -> Unit,
+  onLongClick: () -> Unit
+): Modifier
 
 @Composable
 fun moreAppDisplay(

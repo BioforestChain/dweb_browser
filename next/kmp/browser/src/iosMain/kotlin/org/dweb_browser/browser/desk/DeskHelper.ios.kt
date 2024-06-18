@@ -1,6 +1,9 @@
 package org.dweb_browser.browser.desk
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.sync.Mutex
@@ -48,3 +51,19 @@ actual fun desktopTap(): Dp = 0.dp
 actual fun desktopBgCircleCount(): Int = 8
 
 actual fun taskBarCloseButtonLineWidth() = 5f
+
+actual fun taskBarCloseButtonUsePopUp() = true
+
+@OptIn(ExperimentalFoundationApi::class)
+actual fun Modifier.DesktopEventDetector(
+  onClick: () -> Unit,
+  onDoubleClick: () -> Unit,
+  onLongClick: () -> Unit
+) = this.then(
+  combinedClickable(
+    true,
+    onClick = onClick,
+    onDoubleClick = onDoubleClick,
+    onLongClick = onLongClick
+  )
+)

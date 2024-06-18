@@ -1,6 +1,11 @@
 package org.dweb_browser.browser.desk
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.PointerMatcher
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.onClick
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerButton
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import org.dweb_browser.browser.desk.upgrade.NewVersionItem
@@ -55,3 +60,24 @@ actual fun desktopTap(): Dp = 20.dp
 actual fun desktopBgCircleCount(): Int = 12
 
 actual fun taskBarCloseButtonLineWidth() = 2f
+
+actual fun taskBarCloseButtonUsePopUp() = false
+
+@OptIn(ExperimentalFoundationApi::class)
+actual fun Modifier.DesktopEventDetector(
+  onClick: () -> Unit, onDoubleClick: () -> Unit, onLongClick: () -> Unit
+) = this.then(
+  onClick(
+    true,
+    matcher = PointerMatcher.mouse(PointerButton.Primary),
+    onClick = onClick,
+    onDoubleClick = onDoubleClick,
+    onLongClick = onLongClick
+  ).then(
+      onClick(
+        true,
+        matcher = PointerMatcher.mouse(PointerButton.Secondary),
+        onClick = onLongClick,
+      )
+    )
+)

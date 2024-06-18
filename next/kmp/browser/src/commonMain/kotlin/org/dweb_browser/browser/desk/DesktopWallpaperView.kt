@@ -46,7 +46,12 @@ import kotlin.math.sin
 import kotlin.random.Random
 
 @Composable
-fun desktopWallpaperView(circleCount: Int, modifier: Modifier, onClick: (()->Unit)? = null): (Int)->Unit {
+fun desktopWallpaperView(
+  circleCount: Int,
+  modifier: Modifier,
+  isTapDoAnimation: Boolean = true,
+  onClick: (() -> Unit)? = null
+): (Int) -> Unit {
 
   val circles = remember {
     mutableStateListOf<DesktopBgCircleModel>().apply {
@@ -57,7 +62,8 @@ fun desktopWallpaperView(circleCount: Int, modifier: Modifier, onClick: (()->Uni
   var hour by remember {
     mutableStateOf(0).apply {
       val currentMoment: Instant = Clock.System.now()
-      val datetimeInSystemZone: LocalDateTime = currentMoment.toLocalDateTime(TimeZone.currentSystemDefault())
+      val datetimeInSystemZone: LocalDateTime =
+        currentMoment.toLocalDateTime(TimeZone.currentSystemDefault())
       value = datetimeInSystemZone.hour
     }
   }
@@ -101,7 +107,9 @@ fun desktopWallpaperView(circleCount: Int, modifier: Modifier, onClick: (()->Uni
       .fillMaxSize()
       .clickableWithNoEffect {
         onClick?.let {
-          updateCircle()
+          if (isTapDoAnimation) {
+            updateCircle()
+          }
           onClick()
         }
       }
@@ -186,7 +194,7 @@ fun BoxWithConstraintsScope.DesktopBgCircle(
       launch {
         scaleXValue.animateTo(1.05f, scaleAnimationSpec)
         scaleXValue.animateTo(0.95f, scaleAnimationSpec)
-        scaleXValue.animateTo(0.97f, scaleAnimationSpec)
+        scaleXValue.animateTo(1.03f, scaleAnimationSpec)
         scaleXValue.animateTo(1.0f, scaleAnimationSpec)
       }
 
@@ -216,7 +224,8 @@ fun BoxWithConstraintsScope.DesktopBgCircle(
   }
   val width = constraints.maxWidth
   val height = constraints.maxHeight
-  Box(modifier = Modifier
+  Canvas(modifier = Modifier
+    .fillMaxSize()
     .offset {
       Offset(
         x = model.offset.x * width / 2,
@@ -231,14 +240,11 @@ fun BoxWithConstraintsScope.DesktopBgCircle(
       translationY = transformYValue.value
     }
     .blur(model.blur.dp)
-  )
-  {
-    Canvas(modifier = Modifier.fillMaxSize()) {
-      drawCircle(
-        color = colorValue.value,
-        model.radius * width / 4f,
-      )
-    }
+  ) {
+    drawCircle(
+      color = colorValue.value,
+      model.radius * width / 4f,
+    )
   }
 
 }
@@ -304,7 +310,8 @@ data class DesktopBgCircleModel(
 ) {
   companion object {
 
-    fun randomUpdate(origin: DesktopBgCircleModel, hour: Int? = null) = origin.copy(color = desktopBgPrimaryRandomColor(hour),
+    fun randomUpdate(origin: DesktopBgCircleModel, hour: Int? = null) = origin.copy(
+      color = desktopBgPrimaryRandomColor(hour),
       animationToX = random(0.5f),
       animationToY = random(0.5f)
     )
@@ -335,7 +342,16 @@ data class DesktopBgCircleModel(
       }
 
       (1..count).forEach {
-        list.add(DesktopBgCircleModel(offset(), radius(), color(), blur(), random(0.4f), random(0.4f)))
+        list.add(
+          DesktopBgCircleModel(
+            offset(),
+            radius(),
+            color(),
+            blur(),
+            random(0.4f),
+            random(0.4f)
+          )
+        )
       }
 
       list.sortBy {

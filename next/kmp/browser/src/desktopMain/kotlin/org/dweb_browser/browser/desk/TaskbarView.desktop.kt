@@ -1,11 +1,8 @@
 package org.dweb_browser.browser.desk
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -14,11 +11,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposePanel
-import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.WindowPlacement
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -34,7 +29,6 @@ import org.dweb_browser.helper.platform.getScreenBounds
 import org.dweb_browser.helper.toPureIntPoint
 import org.dweb_browser.helper.toPureIntRect
 import java.awt.Color
-import java.awt.Component
 import java.awt.Dimension
 import java.awt.MouseInfo
 import java.awt.Point
@@ -54,7 +48,7 @@ private abstract class DialogContentView {
   open fun endDrag() {}
 }
 
-private class DialogWebContentView(private val content: IDWebView): DialogContentView() {
+private class DialogWebContentView(private val content: IDWebView) : DialogContentView() {
   override fun addContentView(dialog: TaskbarDialog) {
     dialog.add(content.asDesktop().viewEngine.wrapperView)
   }
@@ -69,11 +63,12 @@ private class DialogWebContentView(private val content: IDWebView): DialogConten
   }
 }
 
-private class DialogComposeContentView(private val composableView: (@Composable ()->Unit)): DialogContentView() {
+private class DialogComposeContentView(private val composableView: (@Composable () -> Unit)) :
+  DialogContentView() {
   override fun addContentView(dialog: TaskbarDialog) {
     SwingUtilities.invokeLater {
       val composePanel = ComposePanel().apply {
-        background =  Color(0, 0, 0, 0)
+        background = Color(0, 0, 0, 0)
         setContent {
           composableView()
         }
@@ -83,8 +78,10 @@ private class DialogComposeContentView(private val composableView: (@Composable 
   }
 }
 
-private class TaskbarDialog(val taskbarController: TaskbarController,
-                            val contentView: DialogContentView): JDialog() {
+private class TaskbarDialog(
+  val taskbarController: TaskbarController,
+  val contentView: DialogContentView
+) : JDialog() {
   private lateinit var contentShape: Shape
   val round = 20
   val padding = 5
@@ -230,45 +227,45 @@ private class TaskbarDialog(val taskbarController: TaskbarController,
   private fun effectRelativePosition() {
     val dialog = this
     // 位置
-      dialog.taskbarController.deskNMM.also { nmm ->
-        nmm.scopeLaunch(cancelable = true) {
-          var taskbarLocation = nmm.store.getOrPut("taskbar.location") {
-            getScreenBounds().let {
-              PureIntPoint(
-                it.right - 100, (it.bottom - it.top) / 2 + it.top - 100
-              )
-            }
-          }.apply {
-            dialog.setLocation(x, y)
+    dialog.taskbarController.deskNMM.also { nmm ->
+      nmm.scopeLaunch(cancelable = true) {
+        var taskbarLocation = nmm.store.getOrPut("taskbar.location") {
+          getScreenBounds().let {
+            PureIntPoint(
+              it.right - 100, (it.bottom - it.top) / 2 + it.top - 100
+            )
           }
+        }.apply {
+          dialog.setLocation(x, y)
+        }
 
-          var desktopBounds = nmm.store.getOrNull<PureIntRect>("desktop.bounds")?.apply {
-            parentWindow?.setBounds(x, y, width, height)
-          }
+        var desktopBounds = nmm.store.getOrNull<PureIntRect>("desktop.bounds")?.apply {
+          parentWindow?.setBounds(x, y, width, height)
+        }
 
-          // 初始化动画
-          playMagnetEffect()
-          desktopMagnetEffect?.start()
+        // 初始化动画
+        playMagnetEffect()
+        desktopMagnetEffect?.start()
 
-          while (true) {
-            delay(2000)
-            dialog.location.toPureIntPoint().also {
-              if (taskbarLocation != it) {
-                taskbarLocation = it
-                nmm.store.set("taskbar.location", it)
-              }
+        while (true) {
+          delay(2000)
+          dialog.location.toPureIntPoint().also {
+            if (taskbarLocation != it) {
+              taskbarLocation = it
+              nmm.store.set("taskbar.location", it)
             }
-            parentWindow?.apply {
-              bounds.toPureIntRect().also {
-                if (desktopBounds != it) {
-                  desktopBounds = it
-                  nmm.store.set("desktop.bounds", it)
-                }
+          }
+          parentWindow?.apply {
+            bounds.toPureIntRect().also {
+              if (desktopBounds != it) {
+                desktopBounds = it
+                nmm.store.set("desktop.bounds", it)
               }
             }
           }
         }
       }
+    }
     dialog.addMouseListener(object : MouseAdapter() {
       override fun mouseReleased(p0: MouseEvent) {
         dragging = false
@@ -421,7 +418,7 @@ class TaskbarView private constructor(
       dialog?.isVisible = true
     }
 
-    DisposableEffect(Unit){
+    DisposableEffect(Unit) {
       onDispose {
         dialog.dispose()
       }
@@ -446,7 +443,7 @@ class TaskbarView private constructor(
   @Composable
   override fun TaskbarViewRenderNewVersion(draggableHelper: DraggableHelper, modifier: Modifier) {
     val dialog = remember {
-      val composeContentView = DialogComposeContentView(){
+      val composeContentView = DialogComposeContentView() {
         NewTaskbarView(
           taskbarController,
           draggableHelper,

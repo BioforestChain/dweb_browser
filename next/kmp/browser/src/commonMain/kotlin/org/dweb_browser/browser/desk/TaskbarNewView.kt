@@ -3,9 +3,10 @@ package org.dweb_browser.browser.desk
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -22,9 +23,7 @@ import androidx.compose.material.Divider
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Image
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateListOf
@@ -33,6 +32,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.BlurredEdgeTreatment
 import androidx.compose.ui.draw.blur
@@ -50,17 +50,17 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.collectIn
+import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.pure.image.compose.PureImageLoader
 import org.dweb_browser.pure.image.compose.SmartLoad
 import org.dweb_browser.pure.image.offscreenwebcanvas.FetchHook
-import org.dweb_browser.sys.window.render.LocalWindowController
 import org.dweb_browser.sys.window.render.imageFetchHook
 import kotlin.math.PI
 import kotlin.math.cos
-import kotlin.math.max
 import kotlin.math.sin
 import kotlin.random.Random
 
@@ -118,18 +118,14 @@ fun NewTaskbarView(
   }
 
   Box(
-    modifier
-      .pointerInput(draggableHelper) {
-        detectDragGestures(
-          onDragEnd = draggableHelper.onDragEnd,
+    modifier.pointerInput(draggableHelper) {
+        detectDragGestures(onDragEnd = draggableHelper.onDragEnd,
           onDragCancel = draggableHelper.onDragEnd,
           onDragStart = draggableHelper.onDragStart,
           onDrag = { _, dragAmount ->
             draggableHelper.onDrag(dragAmount.div(density))
-          }
-        )
-      },
-    contentAlignment = Alignment.Center
+          })
+      }, contentAlignment = Alignment.Center
   ) {
 
     Column(
@@ -139,26 +135,19 @@ fun NewTaskbarView(
     ) {
 
       apps.forEach { app ->
-        TaskBarAppIcon(
-          Modifier,
-          app,
-          taskbarController.deskNMM.imageFetchHook,
-          openApp = { mmid ->
-            scope.launch {
-              taskbarController.open(mmid)
-            }
-          },
-          quitApp = { mmid ->
-            scope.launch {
-              taskbarController.quit(mmid)
-            }
-          },
-          toggleWindow = { mmid ->
-            scope.launch {
-              taskbarController.toggleWindowMaximize(mmid)
-            }
+        TaskBarAppIcon(Modifier, app, taskbarController.deskNMM.imageFetchHook, openApp = { mmid ->
+          scope.launch {
+            taskbarController.open(mmid)
           }
-        )
+        }, quitApp = { mmid ->
+          scope.launch {
+            taskbarController.quit(mmid)
+          }
+        }, toggleWindow = { mmid ->
+          scope.launch {
+            taskbarController.toggleWindowMaximize(mmid)
+          }
+        })
       }
 
       if (apps.isNotEmpty()) {
@@ -174,6 +163,7 @@ fun NewTaskbarView(
   }
 }
 
+@OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
 @Composable
 private fun TaskBarAppIcon(
   modifier: Modifier,
@@ -181,7 +171,7 @@ private fun TaskBarAppIcon(
   hook: FetchHook,
   openApp: (mmid: String) -> Unit,
   quitApp: (mmid: String) -> Unit,
-  toggleWindow:(mmid: String) -> Unit
+  toggleWindow: (mmid: String) -> Unit
 ) {
 
   val scaleValue = remember { Animatable(1f) }
@@ -195,41 +185,31 @@ private fun TaskBarAppIcon(
     }
   }
 
-  BoxWithConstraints(
-    contentAlignment = Alignment.Center,
-    modifier = modifier
-      .graphicsLayer {
-        scaleX = scaleValue.value
-        scaleY = scaleValue.value
-      }
-      .padding(start = paddingValue.dp, top = paddingValue.dp, end = paddingValue.dp)
-      .aspectRatio(1.0f)
-      .shadow(3.dp, RoundedCornerShape(12.dp))
-      .background(Color.White, RoundedCornerShape(12.dp))
-      .pointerInput(app) {
-        detectTapGestures(
-          onPress = {
-            doAnimation()
-          },
-          onTap = {
-            openApp(app.mmid)
-          },
-          onDoubleTap = {
-            if (app.running) {
-              toggleWindow(app.mmid)
-            } else {
-              openApp(app.mmid)
-            }
-          },
-          onLongPress = {
-            if (app.running) {
-              showQuit = true
-            } else {
-              openApp(app.mmid)
-            }
-          }
-        )
-      }) {
+  BoxWithConstraints(contentAlignment = Alignment.Center, modifier = modifier.graphicsLayer {
+      scaleX = scaleValue.value
+      scaleY = scaleValue.value
+    }.padding(start = paddingValue.dp, top = paddingValue.dp, end = paddingValue.dp)
+    .aspectRatio(1.0f).shadow(3.dp, RoundedCornerShape(12.dp))
+    .background(Color.White, RoundedCornerShape(12.dp))
+    .pointerInput(app) {
+      detectTapGestures(onPress = {
+        doAnimation()
+      }, onTap = {
+        openApp(app.mmid)
+      }, onDoubleTap = {
+        if (app.running) {
+          toggleWindow(app.mmid)
+        } else {
+          openApp(app.mmid)
+        }
+      }, onLongPress = {
+        if (app.running) {
+          showQuit = true
+        } else {
+          openApp(app.mmid)
+        }
+      })
+    }) {
 
 
     key(app.icon) {
@@ -250,12 +230,17 @@ private fun TaskBarAppIcon(
     }
 
     if (showQuit) {
-      Popup(
-        onDismissRequest = {
+      if (taskBarCloseButtonUsePopUp()) {
+        Popup(onDismissRequest = {
           showQuit = false
+        }) {
+          CloseButton(Modifier.size(maxWidth).clickableWithNoEffect {
+            quitApp(app.mmid)
+            showQuit = false
+          })
         }
-      ) {
-        CloseButton(Modifier.size(maxWidth).clickable {
+      } else {
+        CloseButton(Modifier.size(maxWidth).clickableWithNoEffect {
           quitApp(app.mmid)
           showQuit = false
         })
@@ -279,38 +264,29 @@ fun CloseButton(modifier: Modifier) {
     drawCircle(Color.Gray, r, style = Stroke(width = lineWidth))
 
     drawLine(
-      Color.Black,
-      Offset(xLeft, yTop),
-      Offset(xRight, yBottom),
-      lineWidth
+      Color.Black, Offset(xLeft, yTop), Offset(xRight, yBottom), lineWidth
     )
 
     drawLine(
-      Color.Black,
-      Offset(xLeft, yBottom),
-      Offset(xRight, yTop),
-      lineWidth
+      Color.Black, Offset(xLeft, yBottom), Offset(xRight, yTop), lineWidth
     )
   }
 }
 
 expect fun taskBarCloseButtonLineWidth(): Float
+expect fun taskBarCloseButtonUsePopUp(): Boolean
 
 @Composable
 private fun TaskBarDivider() {
   Divider(
-    Modifier
-      .padding(start = paddingValue.dp, top = paddingValue.dp, end = paddingValue.dp)
+    Modifier.padding(start = paddingValue.dp, top = paddingValue.dp, end = paddingValue.dp)
       .background(
         Brush.horizontalGradient(
           listOf(
-            Color.Transparent,
-            Color.Black,
-            Color.Transparent
+            Color.Transparent, Color.Black, Color.Transparent
           )
         )
-      ),
-    color = Color.Transparent
+      ), color = Color.Transparent
   )
 }
 
@@ -326,21 +302,13 @@ private fun TaskBarHomeIcon(click: () -> Unit) {
     }
   }
 
-  BoxWithConstraints(
-    contentAlignment = Alignment.Center,
-    modifier = Modifier
-      .graphicsLayer {
-        scaleX = scaleValue.value
-        scaleY = scaleValue.value
-      }
-      .aspectRatio(1.0f)
-      .padding(paddingValue.dp)
-  ) {
+  BoxWithConstraints(contentAlignment = Alignment.Center, modifier = Modifier.graphicsLayer {
+      scaleX = scaleValue.value
+      scaleY = scaleValue.value
+    }.aspectRatio(1.0f).padding(paddingValue.dp)) {
     desktopWallpaperView(
       5,
-      modifier = Modifier
-        .blur(1.dp, BlurredEdgeTreatment.Unbounded)
-        .clip(CircleShape)
+      modifier = Modifier.blur(1.dp, BlurredEdgeTreatment.Unbounded).clip(CircleShape)
         .shadow(3.dp, CircleShape)
     ) {
       doClickAnimation()
@@ -450,9 +418,7 @@ fun BezGradient(color: Color, modifier: Modifier, style: DrawStyle = Fill, rando
 
   AnimatedContent(path) {
     Canvas(
-      modifier
-        .fillMaxSize()
-        .clip(CircleShape)
+      modifier.fillMaxSize().clip(CircleShape)
     ) {
 
       val center = Offset(size.width / 2.0f, size.height / 2.0f)

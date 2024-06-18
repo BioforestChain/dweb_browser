@@ -60,7 +60,6 @@ abstract class ITaskbarView(private val taskbarController: TaskbarController) {
   /**
    * 普通的浮动窗口，背景透明
    */
-  @OptIn(ExperimentalMaterial3Api::class)
   @Composable
   open fun NormalFloatWindow() {
     BoxWithConstraints(Modifier.background(Color.Transparent)) {
