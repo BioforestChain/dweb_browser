@@ -15,7 +15,6 @@ import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import org.dweb_browser.browser.BrowserI18nResource
-import org.dweb_browser.browser.common.loading.LoadingView
 import org.dweb_browser.browser.common.toWebColorScheme
 import org.dweb_browser.browser.web.data.WebSiteType
 import org.dweb_browser.browser.web.model.LocalBrowserViewModel
@@ -53,16 +52,13 @@ internal fun BrowserWebPage.Effect() {
     webView.loadingProgressFlow.collect {
       when (it) {
         1f -> {
-          isLoading = false
           /// 如果网页在后台加载，那么加载完成后，应该进行截图
           if (viewModel.focusedPage != this) {
             captureViewInBackground()
           }
         }
 
-        else -> {
-          isLoading = true
-        }
+        else -> {}
       }
     }
   }
@@ -109,6 +105,5 @@ internal fun BrowserWebPage.BrowserWebPageRender(modifier: Modifier) {
     ) {
       webView.Render(Modifier.fillMaxSize())
     }
-    LoadingView(webPage.isLoading) { webPage.isLoading = false } // 先不显示加载框。
   }
 }

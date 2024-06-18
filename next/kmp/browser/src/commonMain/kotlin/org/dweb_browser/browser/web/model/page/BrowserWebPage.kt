@@ -2,9 +2,6 @@ package org.dweb_browser.browser.web.model.page
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import kotlinx.coroutines.launch
@@ -53,8 +50,6 @@ class BrowserWebPage(val webView: IDWebView, browserController: BrowserControlle
   internal fun superUpdateUrl(url: String) {
     super.updateUrl(url)
   }
-
-  var isLoading by mutableStateOf(false)
 
   @Composable
   override fun Render(modifier: Modifier) {
