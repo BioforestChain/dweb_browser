@@ -479,6 +479,7 @@ private fun moreAppItemsDisplay(displays: List<MoreAppModel>, dismiss: () -> Uni
 expect fun desktopGridLayout(): GridCells
 expect fun desktopTap(): Dp
 expect fun desktopBgCircleCount(): Int
+@Composable
 expect fun Modifier.DesktopEventDetector(
   onClick: () -> Unit,
   onDoubleClick: () -> Unit,

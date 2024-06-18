@@ -214,7 +214,7 @@ fun BoxWithConstraintsScope.DesktopBgCircle(
       }
 
       launch {
-        colorValue.animateTo(model.color, tween(3000, 0, LinearEasing))
+        colorValue.animateTo(model.color, tween(1000, 0, LinearEasing))
       }
     }
   }

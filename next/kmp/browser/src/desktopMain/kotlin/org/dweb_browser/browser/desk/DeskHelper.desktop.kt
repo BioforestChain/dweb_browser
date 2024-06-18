@@ -4,6 +4,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.PointerMatcher
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.onClick
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerButton
 import androidx.compose.ui.unit.Dp
@@ -63,6 +64,7 @@ actual fun taskBarCloseButtonLineWidth() = 2f
 
 actual fun taskBarCloseButtonUsePopUp() = false
 
+@Composable
 @OptIn(ExperimentalFoundationApi::class)
 actual fun Modifier.DesktopEventDetector(
   onClick: () -> Unit, onDoubleClick: () -> Unit, onLongClick: () -> Unit
