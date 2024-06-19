@@ -7,7 +7,9 @@ import org.dweb_browser.helper.ioAsyncExceptionHandler
 
 class DeepLinkHook private constructor() {
   companion object {
-    val deepLinkHook = DeepLinkHook()
+    val deepLinkHook by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+      DeepLinkHook()
+    }
   }
 
   private val scope = CoroutineScope(ioAsyncExceptionHandler)
