@@ -1,19 +1,16 @@
 package org.dweb_browser.browser.jmm.render.app
 
 import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.dp
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.jmm.render.HorizontalPadding
 import org.dweb_browser.browser.jmm.render.VerticalPadding
@@ -24,23 +21,16 @@ import org.dweb_browser.core.help.types.JmmAppInstallManifest
  */
 @Composable
 internal fun AppIntroductionView(jmmAppInstallManifest: JmmAppInstallManifest) {
-  val expanded = remember { mutableStateOf(false) }
   Column(modifier = Modifier.padding(horizontal = HorizontalPadding, vertical = VerticalPadding)) {
     Text(
       text = BrowserI18nResource.JMM.install_introduction(),
-      fontSize = 18.sp,
-      fontWeight = FontWeight.Bold,
-      color = MaterialTheme.colorScheme.onSurface
+      style = MaterialTheme.typography.titleMedium,
     )
-
-    Box(modifier = Modifier
-      .animateContentSize()
-      .clickable { expanded.value = !expanded.value }) {
+    Spacer(Modifier.size(16.dp))
+    Box(modifier = Modifier.animateContentSize()) {
       Text(
         text = jmmAppInstallManifest.description ?: "",
-        maxLines = if (expanded.value) Int.MAX_VALUE else 2,
-        overflow = TextOverflow.Ellipsis,
-        color = MaterialTheme.colorScheme.onSurface
+        style = MaterialTheme.typography.bodySmall,
       )
     }
   }

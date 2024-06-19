@@ -1,19 +1,15 @@
 package org.dweb_browser.browser.jmm.render.app
 
 import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.jmm.render.HorizontalPadding
 import org.dweb_browser.browser.jmm.render.VerticalPadding
@@ -23,29 +19,26 @@ import org.dweb_browser.core.help.types.JmmAppInstallManifest
  * 应用新版本信息部分
  */
 @Composable
-internal fun NewVersionInfoView(jmmAppInstallManifest: JmmAppInstallManifest) {
-  val expanded = remember { mutableStateOf(false) }
-  Column(modifier = Modifier.padding(horizontal = HorizontalPadding, vertical = VerticalPadding)
-    .animateContentSize()
-    .clickable { expanded.value = !expanded.value }) {
+internal fun NewVersionInfoView(
+  jmmAppInstallManifest: JmmAppInstallManifest,
+  modifier: Modifier = Modifier,
+) {
+  Column(
+    modifier = modifier.padding(horizontal = HorizontalPadding, vertical = VerticalPadding)
+      .animateContentSize()
+  ) {
     Text(
-      text = BrowserI18nResource.JMM.install_update_log(),
-      fontSize = 18.sp,
-      fontWeight = FontWeight.Bold,
-      color = MaterialTheme.colorScheme.onSurface
+      text = BrowserI18nResource.JMM.install_info(),
+      style = MaterialTheme.typography.titleMedium,
     )
+    Spacer(Modifier.size(16.dp))
     Text(
       text = BrowserI18nResource.JMM.install_version() + " ${jmmAppInstallManifest.version}",
-      fontSize = 12.sp,
-      fontWeight = FontWeight.Bold,
-      color = MaterialTheme.colorScheme.outline,
-      modifier = Modifier.padding(vertical = 6.dp)
+      style = MaterialTheme.typography.labelSmall,
     )
     Text(
       text = jmmAppInstallManifest.change_log,
-      maxLines = if (expanded.value) Int.MAX_VALUE else 2,
-      overflow = TextOverflow.Ellipsis,
-      color = MaterialTheme.colorScheme.onSurface
+      style = MaterialTheme.typography.bodySmall,
     )
   }
 //  Card(onClick = { expanded.value = !expanded.value },

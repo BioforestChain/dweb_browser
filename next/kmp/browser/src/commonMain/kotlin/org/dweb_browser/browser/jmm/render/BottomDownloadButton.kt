@@ -65,7 +65,9 @@ internal fun BoxScope.BottomDownloadButton() {
   ) {
     val tooltipState = rememberTooltipState(isPersistent = true)
     TooltipBox(
-      positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(), tooltip = {
+      enableUserInput = false,
+      positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+      tooltip = {
         when (jmmUiKit.jmmStatus) {
           /// 版本偏低时，提示用户，是否要进行降级安装
           JmmStatus.VersionLow -> RichTooltip(title = { Text(BrowserI18nResource.install_tooltip_warning()) },
@@ -92,9 +94,9 @@ internal fun BoxScope.BottomDownloadButton() {
 
           else -> {}
         }
-      }, state = tooltipState
+      },
+      state = tooltipState,
     ) {
-
       val bgColor = when {
         jmmUiKit.jmmStatus == JmmStatus.VersionLow -> MaterialTheme.colorScheme.secondary
         else -> MaterialTheme.colorScheme.primary

@@ -1,23 +1,28 @@
 package org.dweb_browser.browser.jmm.render.app
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Verified
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.jmm.LocalJmmInstallerController
 import org.dweb_browser.browser.jmm.render.CustomerDivider
@@ -35,19 +40,47 @@ import org.dweb_browser.helper.toSpaceSize
  * 应用的其他相关内容
  */
 @Composable
-internal fun OtherInfoView(jmmAppInstallManifest: JmmAppInstallManifest) {
-  Column(modifier = Modifier.padding(horizontal = HorizontalPadding, vertical = VerticalPadding)) {
+internal fun OtherInfoView(
+  jmmAppInstallManifest: JmmAppInstallManifest,
+  modifier: Modifier = Modifier,
+) {
+  Column(modifier = modifier.padding(horizontal = HorizontalPadding, vertical = VerticalPadding)) {
     Text(
-      text = BrowserI18nResource.JMM.install_info(),
-      fontSize = 18.sp,
-      fontWeight = FontWeight.Bold,
-      color = MaterialTheme.colorScheme.onSurface
+      text = BrowserI18nResource.JMM.tab_param(),
+      style = MaterialTheme.typography.titleMedium,
     )
-    Spacer(modifier = Modifier.height(HorizontalPadding))
+    Spacer(Modifier.size(16.dp))
+    Row(
+      modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+      verticalAlignment = Alignment.CenterVertically,
+      horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+      Label(BrowserI18nResource.JMM.install_mmid())
+
+      Row(
+        verticalAlignment = Alignment.CenterVertically,
+      ) {
+        // TODO: 验证成功失败，使用不同的图标
+        Icon(
+          imageVector = Icons.Outlined.Verified, // Icons.Outlined.Dangerous
+          contentDescription = BrowserI18nResource.IconDescription.verified.text,
+          modifier = Modifier.size(14.dp),
+          tint = Color.Blue
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Info(jmmAppInstallManifest.id)
+      }
+    }
+    CustomerDivider()
+    OtherItemView(
+      type = BrowserI18nResource.JMM.install_version(), content = jmmAppInstallManifest.version
+    )
+    CustomerDivider()
     OtherItemView(
       type = BrowserI18nResource.JMM.install_info_dev(),
       content = jmmAppInstallManifest.author.toContent()
     )
+    CustomerDivider()
     jmmAppInstallManifest.homepage_url?.also { homepage_url ->
       val controller = LocalJmmInstallerController.current
       OtherItemView(
@@ -62,14 +95,17 @@ internal fun OtherInfoView(jmmAppInstallManifest: JmmAppInstallManifest) {
         contentTextStyle = TextStyle(color = MaterialTheme.colorScheme.primary)
       )
     }
+    CustomerDivider()
     OtherItemView(
       type = BrowserI18nResource.JMM.install_info_size(),
       content = jmmAppInstallManifest.bundle_size.toSpaceSize()
     )
+    CustomerDivider()
     OtherItemView(
       type = BrowserI18nResource.JMM.install_info_type(),
       content = jmmAppInstallManifest.categories.print()
     )
+    CustomerDivider()
     OtherItemView(
       type = BrowserI18nResource.JMM.install_info_copyright(),
       content = jmmAppInstallManifest.author.firstOrNull() ?: jmmAppInstallManifest.name
@@ -90,29 +126,41 @@ private fun OtherItemView(
   largeContent: String? = null,
   onClick: (() -> Unit)? = null,
 ) {
-  Column(modifier = Modifier.fillMaxWidth()) {
-    Row(
-      modifier = modifier
-        .fillMaxWidth()
-        .padding(vertical = 8.dp),
-      verticalAlignment = Alignment.CenterVertically
-    ) {
-      Text(text = type, color = MaterialTheme.colorScheme.outline)
-
-      Text(
-        text = content,
-        modifier = contentModifier.weight(1f),
-        style = TextStyle(
-          color = MaterialTheme.colorScheme.onSurface,
-          textAlign = TextAlign.End,
-        ).merge(contentTextStyle),
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis
-      )
-    }
-    CustomerDivider()
+  Row(
+    modifier = modifier.fillMaxWidth().padding(vertical = 8.dp),
+    verticalAlignment = Alignment.CenterVertically,
+    horizontalArrangement = Arrangement.SpaceBetween,
+  ) {
+    Label(type)
+    Info(content, contentModifier, contentTextStyle)
   }
 }
+
+@Composable
+private fun RowScope.Label(
+  text: String,
+  modifier: Modifier = Modifier,
+  textStyle: TextStyle? = null,
+) = Text(
+  text = text, color = MaterialTheme.colorScheme.outline,
+  modifier = modifier.weight(1f, false),
+  style = MaterialTheme.typography.labelSmall.merge(textStyle),
+)
+
+@Composable
+private fun RowScope.Info(
+  content: String,
+  modifier: Modifier = Modifier,
+  textStyle: TextStyle? = null,
+) = Text(
+  text = content,
+  modifier = modifier.weight(1f, false),
+  color = MaterialTheme.colorScheme.onSurface,
+  textAlign = TextAlign.End,
+  style = MaterialTheme.typography.bodyMedium.merge(textStyle),
+  maxLines = 1,
+  overflow = TextOverflow.Ellipsis,
+)
 
 fun List<MICRO_MODULE_CATEGORY>.print(): String {
   return joinToString(", ") { category ->
