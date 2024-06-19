@@ -5,6 +5,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -63,9 +64,8 @@ import org.dweb_browser.helper.platform.theme.dimens
 import org.dweb_browser.helper.toSpaceSize
 import org.dweb_browser.pure.image.compose.PureImageLoader
 import org.dweb_browser.pure.image.compose.SmartLoad
-import org.dweb_browser.sys.window.core.LocalWindowContentRenderScope
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
-import org.dweb_browser.sys.window.core.WindowContentScaffold
+import org.dweb_browser.sys.window.core.WindowContentScaffoldWithTitleText
 import org.dweb_browser.sys.window.render.LocalWindowController
 
 
@@ -79,36 +79,43 @@ expect fun JmmRenderController.Render(
 internal fun JmmRenderController.CommonRender(
   modifier: Modifier, windowRenderScope: WindowContentRenderScope,
 ) {
-  windowRenderScope.WindowContentScaffold(
-    modifier = modifier, topBarTitle = BrowserI18nResource.top_bar_title_install()
-  ) { innerPadding ->
-    val navigator = rememberListDetailPaneScaffoldNavigator()
-    val win = LocalWindowController.current
-    win.navigation.GoBackHandler(enabled = navigator.canNavigateBack()) {
-      navigator.navigateBack()
-      closeDetail()
-    }
-    LaunchedEffect(detailController) {
-      if (detailController != null) {
-        navigator.navigateTo(ListDetailPaneScaffoldRole.Detail)
-      }
-    }
-
-    ListDetailPaneScaffold(
-      listPane = {
-        JmmListView(Modifier.padding(innerPadding))
-      },
-      detailPane = {
-        when (val detail = detailController) {
-          null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("未选择要展示的详情")
-          }
-
-          else -> detail.Render(Modifier.fillMaxSize(), LocalWindowContentRenderScope.current)
-        }
-      },
-    )
+  val navigator = rememberListDetailPaneScaffoldNavigator()
+  val win = LocalWindowController.current
+  win.navigation.GoBackHandler(enabled = navigator.canNavigateBack()) {
+    navigator.navigateBack()
+    closeDetail()
   }
+  LaunchedEffect(detailController) {
+    if (detailController != null) {
+      navigator.navigateTo(ListDetailPaneScaffoldRole.Detail)
+    }
+  }
+
+  ListDetailPaneScaffold(
+    listPane = {
+      BoxWithConstraints {
+        windowRenderScope.copyFrom(this).WindowContentScaffoldWithTitleText(
+          modifier = modifier,
+          topBarTitleText = BrowserI18nResource.top_bar_title_install(),
+        ) { innerPadding ->
+          JmmListView(Modifier.padding(innerPadding))
+        }
+      }
+    },
+    detailPane = {
+      when (val detail = detailController) {
+        null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+          Text("未选择要展示的详情")
+        }
+
+        else -> BoxWithConstraints {
+          detail.Render(
+            Modifier.fillMaxSize(), windowRenderScope.copyFrom(this)
+          )
+        }
+      }
+    },
+  )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -163,14 +170,8 @@ fun JmmRenderController.JmmListView(modifier: Modifier, showDetailButton: Boolea
   }
 }
 
-
 @Composable
-fun JmmRenderController.JmmDetailView(modifier: Modifier) {
-  detailController?.Render(modifier, LocalWindowContentRenderScope.current)
-}
-
-@Composable
-fun JmmAppInstallManifest.IconRender(size: Dp = 56.dp) {
+fun JmmAppInstallManifest.IconRender(size: Dp = 36.dp) {
   key(logo) {
     val modifier = remember(size) { Modifier.size(size).clip(RoundedCornerShape(size / 5)) }
     PureImageLoader.SmartLoad(logo, size, size).with(onBusy = {
@@ -229,7 +230,7 @@ fun JmmViewItem(
       }
     }, leadingContent = {
       Box(modifier = Modifier.height(72.dp), contentAlignment = Alignment.Center) {
-        jmmMetadata.manifest.IconRender(56.dp)
+        jmmMetadata.manifest.IconRender()
       }
     }, trailingContent = {
       Box(

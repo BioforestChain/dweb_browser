@@ -15,81 +15,131 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
+import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.sys.window.render.LocalWindowController
 import org.dweb_browser.sys.window.render.watchedState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun WindowContentRenderScope.WindowContentScaffold(
+private fun WindowContentScaffoldWrapper(
+  renderScope: WindowContentRenderScope,
   modifier: Modifier = Modifier,
-  topBar: @Composable (scrollBehavior: TopAppBarScrollBehavior) -> Unit = {},
+  scrollBehavior: TopAppBarScrollBehavior,
+  topBar: @Composable () -> Unit = {},
   content: @Composable (PaddingValues) -> Unit,
 ) {
-  val windowRenderScope = this
-//  val win = LocalWindowController.current
-//  win.GoBackHandler {
-//    win.hide()
-//  }
-  val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
   Scaffold(
-    modifier = windowRenderScope.run {
-      modifier
-        .fillMaxSize()
-        .requiredSize((width / scale).dp, (height / scale).dp) // 原始大小
+    modifier = renderScope.run {
+      modifier.fillMaxSize().requiredSize(widthDp / scale, heightDp / scale) // 原始大小
         .scale(scale)
     }.nestedScroll(scrollBehavior.nestedScrollConnection),
     // TODO 添加 ime 的支持
     contentWindowInsets = WindowInsets(0),
     topBar = {
-      topBar(scrollBehavior)
+      topBar()
     },
-  ) { innerPadding ->
-    content(innerPadding)
+    content = { innerPadding ->
+      content(innerPadding)
+    },
+  )
+}
+
+@Composable
+fun WindowController.GoBackButton() {
+  val uiScope = rememberCoroutineScope()
+  val win = this
+  val goBackButtonId = remember { randomUUID() }
+  /// 我们允许 WindowContentScaffold 在一个 win 中多次使用，比方说响应式布局中，将多个路由页面同时展示
+  /// 这时候我们会有多个 TopBar 在同时渲染，而为了让 GoBackButton 只出现一个
+  /// 我们将 goBackButtonId 放到一个数组中，第一个id获得 GoBackButton 的渲染权
+  /// 因此页面的渲染顺序很重要
+  DisposableEffect(goBackButtonId) {
+    win.navigation.goBackButtonStack.add(goBackButtonId)
+    onDispose {
+      win.navigation.goBackButtonStack.remove(goBackButtonId)
+    }
+  }
+
+  val canGoBack by win.watchedState { canGoBack }
+  if (canGoBack == true && win.navigation.goBackButtonStack.firstOrNull() == goBackButtonId) {
+    IconButton(onClick = {
+      // TODO 提供导航功能
+      uiScope.launch { win.navigation.emitGoBack() }
+    }) {
+      Icon(
+        imageVector = Icons.Default.ArrowBackIosNew,
+        contentDescription = "Go Back",
+      )
+    }
   }
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WindowContentRenderScope.WindowContentScaffold(
   modifier: Modifier = Modifier,
-  topBarTitle: String,
+  scrollBehavior: TopAppBarScrollBehavior,
+  topBar: @Composable () -> Unit,
   content: @Composable (PaddingValues) -> Unit,
 ) {
-  WindowContentScaffold(modifier, topBar = { scrollBehavior ->
-    val win = LocalWindowController.current
-    val uiScope = rememberCoroutineScope()
-    TopAppBar(
-      title = {
-        Text(
-          topBarTitle,
-          maxLines = 1,
-          overflow = TextOverflow.Ellipsis
-        )
-      },
-      windowInsets = WindowInsets(0),
-      navigationIcon = {
-        val canGoBack by win.watchedState { canGoBack }
-        if (canGoBack == true) {
-          IconButton(onClick = {
-            // TODO 提供导航功能
-            uiScope.launch { win.navigation.emitGoBack() }
-          }) {
-            Icon(
-              imageVector = Icons.Default.ArrowBackIosNew,
-              contentDescription = "Go Back",
-            )
-          }
-        }
-      },
-      scrollBehavior = scrollBehavior
-    )
-  }, content = content)
+  WindowContentScaffoldWrapper(
+    this,
+    modifier,
+    scrollBehavior = scrollBehavior,
+    topBar = topBar,
+    content = content,
+  )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun WindowContentRenderScope.WindowContentScaffoldWithTitle(
+  modifier: Modifier = Modifier,
+  topBarTitle: @Composable (scrollBehavior: TopAppBarScrollBehavior) -> Unit = {},
+  content: @Composable (PaddingValues) -> Unit,
+) {
+  val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+  WindowContentScaffoldWrapper(
+    this,
+    modifier,
+    scrollBehavior = scrollBehavior,
+    topBar = {
+      val win = LocalWindowController.current
+      TopAppBar(
+        title = { topBarTitle(scrollBehavior) },
+        windowInsets = WindowInsets(0),
+        navigationIcon = { win.GoBackButton() },
+        scrollBehavior = scrollBehavior,
+      )
+    },
+    content = content,
+  )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun WindowContentRenderScope.WindowContentScaffoldWithTitleText(
+  modifier: Modifier = Modifier,
+  topBarTitleText: String,
+  content: @Composable (PaddingValues) -> Unit,
+) {
+  WindowContentScaffoldWithTitle(
+    modifier,
+    topBarTitle = {
+      Text(
+        topBarTitleText, maxLines = 1, overflow = TextOverflow.Ellipsis
+      )
+    },
+    content = content,
+  )
 }

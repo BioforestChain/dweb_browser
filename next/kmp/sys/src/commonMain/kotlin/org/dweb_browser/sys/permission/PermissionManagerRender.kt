@@ -31,7 +31,7 @@ import org.dweb_browser.core.std.permission.AuthorizationStatus
 import org.dweb_browser.core.std.permission.PermissionTable
 import org.dweb_browser.helper.compose.NoDataRender
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
-import org.dweb_browser.sys.window.core.WindowContentScaffold
+import org.dweb_browser.sys.window.core.WindowContentScaffoldWithTitleText
 
 @Composable
 fun PermissionManagerRender(
@@ -39,7 +39,7 @@ fun PermissionManagerRender(
   windowRenderScope: WindowContentRenderScope,
   table: PermissionTable,
 ) {
-  windowRenderScope.WindowContentScaffold(topBarTitle = PermissionI18nResource.record_list_title()) { innerPadding ->
+  windowRenderScope.WindowContentScaffoldWithTitleText(topBarTitleText = PermissionI18nResource.record_list_title()) { innerPadding ->
     val allData = table.AllData().also {
       if (it.isEmpty()) {
         NoDataRender(PermissionI18nResource.no_record())

@@ -167,11 +167,16 @@ object BrowserI18nResource {
     SimpleI18nResource(Language.ZH to "正在下载中...", Language.EN to "Downloading...")
 
   object JMM {
+    val tab_detail = SimpleI18nResource(Language.ZH to "详情", Language.EN to "Detail")
+    val tab_intro = SimpleI18nResource(Language.ZH to "介绍", Language.EN to "Introduction")
+    val tab_param = SimpleI18nResource(Language.ZH to "参数", Language.EN to "Parameter")
+
     val short_name = SimpleI18nResource(Language.ZH to "模块管理", Language.EN to "Module Manager")
     val history_tab_installed =
       SimpleI18nResource(Language.ZH to "已安装", Language.EN to "Installed")
     val history_tab_uninstalled =
       SimpleI18nResource(Language.ZH to "未安装", Language.EN to "No Install")
+    val install_mmid = SimpleI18nResource(Language.ZH to "唯一标识", Language.EN to "id")
     val install_version = SimpleI18nResource(Language.ZH to "版本", Language.EN to "version")
     val install_introduction =
       SimpleI18nResource(Language.ZH to "应用介绍", Language.EN to "Introduction")

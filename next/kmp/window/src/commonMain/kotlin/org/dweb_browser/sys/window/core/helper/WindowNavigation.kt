@@ -70,6 +70,8 @@ class WindowNavigation(private val state: WindowState) {
     goBackSignal.emit()
   }
 
+  internal val goBackButtonStack = mutableStateListOf<String>()
+
 
   private val goForwardSignal = SimpleSignal()
   val onGoForward = goForwardSignal.toListener()
