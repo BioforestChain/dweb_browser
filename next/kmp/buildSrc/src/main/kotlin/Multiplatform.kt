@@ -445,6 +445,7 @@ fun KotlinMultiplatformExtension.kmpComposeTarget(
     implementation(libs.jetbrains.compose.material)
     implementation(libs.jetbrains.compose.material3)
     implementation(libs.jetbrains.compose.materialIcons)
+//    implementation(libs.jetbrains.androidx.navigation)
 
     implementation(compose.components.uiToolingPreview)
   }
@@ -466,6 +467,10 @@ fun KotlinMultiplatformExtension.kmpComposeTarget(
         implementation(libs.androidx.animation.core.android)
         implementation(libs.androidx.lifecycle.runtime.ktx)
         implementation(libs.androidx.activity.compose)
+
+//        implementation(libs.androidx.adaptive)
+//        implementation(libs.androidx.adaptive.layout)
+//        implementation(libs.androidx.adaptive.navigation)
 
         implementation(libs.compose.ui.tooling.preview)
       }

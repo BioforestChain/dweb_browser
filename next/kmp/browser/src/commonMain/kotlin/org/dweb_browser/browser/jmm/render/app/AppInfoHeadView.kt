@@ -1,6 +1,5 @@
 package org.dweb_browser.browser.jmm.render.app
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -9,7 +8,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Verified
 import androidx.compose.material3.Icon
@@ -18,7 +16,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -30,8 +27,8 @@ import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.jmm.render.HeadHeight
 import org.dweb_browser.browser.jmm.render.HorizontalPadding
 import org.dweb_browser.browser.jmm.render.VerticalPadding
+import org.dweb_browser.browser.jmm.ui.IconRender
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
-import org.dweb_browser.pure.image.compose.CoilAsyncImage
 
 /**
  * 顶部的头像和应用名称
@@ -47,13 +44,9 @@ internal fun AppInfoHeadView(jmmAppInstallManifest: JmmAppInstallManifest) {
       modifier = Modifier.fillMaxWidth().height(size / 2),
       verticalAlignment = Alignment.CenterVertically
     ) {
-      CoilAsyncImage(
-        model = jmmAppInstallManifest.logo,
-        contentDescription = "AppIcon",
-        modifier = Modifier.size(size / 2).clip(RoundedCornerShape(16.dp))
-          .background(MaterialTheme.colorScheme.surface)
-      )
-      Spacer(modifier = Modifier.width(16.dp))
+      jmmAppInstallManifest.IconRender(size / 2)
+
+      Spacer(modifier = Modifier.width(12.dp))
       Text(
         text = jmmAppInstallManifest.name,
         maxLines = 2,
@@ -96,7 +89,7 @@ internal fun AppInfoHeadView(jmmAppInstallManifest: JmmAppInstallManifest) {
         )
       }
 
-      Spacer(modifier = Modifier.width(16.dp))
+      Spacer(modifier = Modifier.width(12.dp))
 
       Text(
         text = BrowserI18nResource.JMM.install_version() + " ${jmmAppInstallManifest.version}",

@@ -1,10 +1,13 @@
 package org.dweb_browser.browser.jmm
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.browser.jmm.ui.Render
@@ -37,18 +40,20 @@ class JmmInstallerController(
   var installMetadata by ObservableMutableState(metadata) {}
     internal set
 
-  private var viewDeferred = CompletableDeferred<WindowBottomSheetsController>()
+  private val viewDeferredFlow =
+    MutableStateFlow(CompletableDeferred<WindowBottomSheetsController>())
+  private val viewDeferred get() = viewDeferredFlow.value
   private val getViewLock = Mutex()
 
   @OptIn(ExperimentalCoroutinesApi::class)
-  suspend fun getBottomSheetView() = getViewLock.withLock {
+  suspend fun getBottomSheet() = getViewLock.withLock {
     if (viewDeferred.isCompleted) {
       val bottomSheetsModal = viewDeferred.getCompleted()
       /// TODO 这里 onDestroy 回调可能不触发，因此需要手动进行一次判断
       if (bottomSheetsModal.wid == jmmNMM.getMainWindowId()) {
         return@withLock bottomSheetsModal
       }
-      viewDeferred = CompletableDeferred()
+      viewDeferredFlow.value = CompletableDeferred()
     }
     /// 创建 BottomSheets 视图，提供渲染适配
     jmmNMM.createBottomSheets { modifier ->
@@ -57,26 +62,26 @@ class JmmInstallerController(
       viewDeferred.complete(it)
       jmmNMM.getWindow(it.wid).hide()
       it.onDestroy {
-        viewDeferred = CompletableDeferred()
+        viewDeferredFlow.value = CompletableDeferred()
       }
     }
   }
 
-  suspend fun openRender() {
+  suspend fun openBottomSheet() {
     /// 显示抽屉
-    val bottomSheets = getBottomSheetView()
+    val bottomSheets = getBottomSheet()
     bottomSheets.open()
   }
 
   /**安装完成后打开app*/
   suspend fun openApp() {
-    closeSelf() // 打开应用之前，需要关闭当前安装界面，否则在原生窗口的层级切换会出现问题
+    closeBottomSheet() // 打开应用之前，需要关闭当前安装界面，否则在原生窗口的层级切换会出现问题
     // jmmNMM.bootstrapContext.dns.open(installMetadata.metadata.id)
     jmmController.openApp(installMetadata.manifest.id)
   }
 
   suspend fun openHomePage() {
-    closeSelf()
+    closeBottomSheet()
     val homepageUrl = installMetadata.referrerUrl ?: installMetadata.manifest.homepage_url
     if (homepageUrl?.isWebUrl() == true) {
       jmmNMM.nativeFetch("file://web.browser.dweb/openinbrowser?url=${homepageUrl.encodeURIComponent()}")
@@ -84,7 +89,7 @@ class JmmInstallerController(
   }
 
   suspend fun openReferrerPage() {
-    closeSelf()
+    closeBottomSheet()
     val referrerUrl = installMetadata.referrerUrl ?: installMetadata.manifest.homepage_url
     if (referrerUrl?.isWebUrl() == true) {
       jmmNMM.nativeFetch("file://web.browser.dweb/openinbrowser?url=${referrerUrl.encodeURIComponent()}")
@@ -107,7 +112,15 @@ class JmmInstallerController(
 
   suspend fun pause() = jmmController.pause(installMetadata)
 
-  suspend fun closeSelf() {
-    jmmNMM.getOrOpenMainWindow().closeRoot()
+
+  val canCloseBottomSheet get() = viewDeferred.isCompleted
+
+  @Composable
+  fun CanCloseBottomSheet() = viewDeferredFlow.collectAsState().value.isCompleted
+
+  suspend fun closeBottomSheet() {
+    if (canCloseBottomSheet) {
+      jmmNMM.getOrOpenMainWindow().closeRoot()
+    }
   }
 }

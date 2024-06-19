@@ -24,7 +24,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.help.AdapterManager
 import org.dweb_browser.helper.ChangeableMap
+import org.dweb_browser.helper.compose.LocalCompositionChain
 import org.dweb_browser.helper.compose.MetaBallLoadingView
+import org.dweb_browser.helper.compose.compositionChainOf
 import org.dweb_browser.helper.defaultAsyncExceptionHandler
 import org.dweb_browser.helper.platform.theme.DwebBrowserAppTheme
 import org.dweb_browser.sys.window.render.LocalWindowController
@@ -69,6 +71,9 @@ data class WindowContentRenderScope internal constructor(
   ) : this(width, height, scale, width.dp, height.dp, isResizing)
 }
 typealias WindowRenderProvider = @Composable WindowContentRenderScope.(modifier: Modifier) -> Unit
+
+val LocalWindowContentRenderScope =
+  compositionChainOf<WindowContentRenderScope>("WindowContentRenderScope")
 
 /**
  * 窗口的适配器管理
@@ -136,16 +141,18 @@ class WindowAdapterManager : AdapterManager<CreateWindowAdapter>() {
           CompositionLocalProvider(
             LocalContentColor provides theme.themeContentColor,
           ) {
-            /**
-             * 视图的宽高随着窗口的缩小而缩小，随着窗口的放大而放大，
-             * 但这些缩放不是等比的，而是会以一定比例进行换算。
-             */
-            render(
-              windowRenderScope,
-              Modifier
-                .requiredSize(windowRenderScope.width.dp, windowRenderScope.height.dp)
-                .then(contentModifier),
-            )
+            LocalCompositionChain.current.Provider(LocalWindowContentRenderScope provides windowRenderScope) {
+              /**
+               * 视图的宽高随着窗口的缩小而缩小，随着窗口的放大而放大，
+               * 但这些缩放不是等比的，而是会以一定比例进行换算。
+               */
+              render(
+                windowRenderScope,
+                Modifier
+                  .requiredSize(windowRenderScope.width.dp, windowRenderScope.height.dp)
+                  .then(contentModifier),
+              )
+            }
           }
         }
       }

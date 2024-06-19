@@ -49,6 +49,7 @@ camera-barcode = "17.2.0"
 camera-zxing = "3.5.3"
 commons-compress = "1.26.1"
 jetbrains-compose-version = "1.6.11"
+jetbrains-androidx-navigation-version = "2.8.0-alpha02"
 
 # 测试
 test-junit = "5.10.1"
@@ -99,6 +100,7 @@ jetbrains-compose-material3 = { module = "org.jetbrains.compose.material3:materi
 jetbrains-compose-materialIcons = { module = "org.jetbrains.compose.material:material-icons-extended", version.ref = "jetbrains-compose-version" }
 jetbrains-compose-ui-tooling-preview-desktop = { module = "org.jetbrains.compose.ui:ui-tooling-preview-desktop", version.ref = "jetbrains-compose-version" }
 jetbrains-compose-ui-test-junit4 = { module = "org.jetbrains.compose.ui:ui-test-junit4", version.ref = "jetbrains-compose-version" }
+jetbrains-androidx-navigation = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "jetbrains-androidx-navigation-version" }
 
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "androidx-lifecycle" }
 androidx-lifecycle-common-java8 = { group = "androidx.lifecycle", name = "lifecycle-common-java8", version.ref = "androidx-lifecycle" }

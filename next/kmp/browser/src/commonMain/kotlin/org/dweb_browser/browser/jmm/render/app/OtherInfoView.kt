@@ -54,7 +54,7 @@ internal fun OtherInfoView(jmmAppInstallManifest: JmmAppInstallManifest) {
         modifier = Modifier.clickable {
           controller.jmmNMM.scopeLaunch(cancelable = true) {
             controller.jmmNMM.nativeFetch("dweb://openinbrowser?url=${homepage_url.encodeURIComponent()}")
-            controller.closeSelf()
+            controller.closeBottomSheet()
           }
         },
         type = BrowserI18nResource.JMM.install_info_homepage(),

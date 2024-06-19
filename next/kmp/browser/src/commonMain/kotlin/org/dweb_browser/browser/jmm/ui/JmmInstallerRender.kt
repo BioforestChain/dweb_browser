@@ -1,6 +1,7 @@
 package org.dweb_browser.browser.jmm.ui
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
@@ -42,31 +43,33 @@ fun JmmInstallerController.Render(modifier: Modifier, renderScope: WindowContent
   }
 
   val win = LocalWindowController.current
-  win.navigation.GoBackHandler {
-    if (previewState.showPreview.targetState) {
-      previewState.showPreview.targetState = false
-    } else {
-      closeSelf()
-    }
+
+  win.navigation.GoBackHandler(enabled = CanCloseBottomSheet()) {
+    closeBottomSheet()
+  }
+  win.navigation.GoBackHandler(enabled = previewState.showPreview.targetState) {
+    previewState.showPreview.targetState = false
   }
 
   LocalCompositionChain.current.Provider(LocalJmmInstallerController provides this) {
     val bottomSafePadding = win.state.safePadding.bottom
-    Box(modifier = with(renderScope) {
-      modifier
-        .requiredSize((width / scale).dp, (height / scale).dp) // 原始大小
-        .padding(0.dp, 0.dp, 0.dp, bottomSafePadding.dp)
-        .scale(scale)
-    }) {
-      installMetadata.manifest.Render { index, imageLazyListState ->
-        previewState.selectIndex.value = index
-        previewState.imageLazy = imageLazyListState
-        previewState.offset.value = measureCenterOffset(index, previewState)
-        previewState.showPreview.targetState = true
+    BoxWithConstraints {
+      Box(modifier = with(renderScope) {
+        modifier
+          .requiredSize(maxWidth / scale, maxHeight / scale) // 原始大小
+          .padding(0.dp, 0.dp, 0.dp, bottomSafePadding.dp)
+          .scale(scale)
+      }) {
+        installMetadata.manifest.Render { index, imageLazyListState ->
+          previewState.selectIndex.value = index
+          previewState.imageLazy = imageLazyListState
+          previewState.offset.value = measureCenterOffset(index, previewState)
+          previewState.showPreview.targetState = true
+        }
+        BottomDownloadButton()
+        ImagePreview(installMetadata.manifest, previewState)
+        WebviewVersionWarningDialog()
       }
-      BottomDownloadButton()
-      ImagePreview(installMetadata.manifest, previewState)
-      WebviewVersionWarningDialog()
     }
   }
 }

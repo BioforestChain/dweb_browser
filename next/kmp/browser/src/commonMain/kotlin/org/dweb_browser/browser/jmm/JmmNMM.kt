@@ -22,6 +22,7 @@ import org.dweb_browser.pure.io.SystemFileSystem
 import org.dweb_browser.sys.window.core.helper.setStateFromManifest
 import org.dweb_browser.sys.window.ext.getMainWindow
 import org.dweb_browser.sys.window.ext.onRenderer
+import org.dweb_browser.sys.window.ext.openMainWindow
 
 val debugJMM = Debugger("JMM")
 
@@ -98,7 +99,8 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Service") {
           val mmid = request.query("app_id")
           debugJMM("detailApp", mmid)
           val info = store.getApp(mmid) ?: return@defineBooleanResponse false
-          jmmController.openInstallerView(info.jmmMetadata)
+          jmmController.openDetailView(info.jmmMetadata)
+          openMainWindow()
           true
         }).cors()
 

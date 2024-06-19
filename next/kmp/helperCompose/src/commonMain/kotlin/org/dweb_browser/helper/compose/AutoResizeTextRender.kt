@@ -37,7 +37,7 @@ import kotlin.math.min
 @Composable
 fun AutoResizeTextContainer(
   modifier: Modifier = Modifier,
-  content: @Composable @UiComposable (AutoResizeTextContainerScope.() -> Unit)
+  content: @Composable @UiComposable (AutoResizeTextContainerScope.() -> Unit),
 ) {
   BoxWithConstraints(modifier) {
     val scope = remember(maxWidth, maxHeight) {
@@ -78,6 +78,7 @@ class AutoResizeTextContainerScope(
     /// 根据行数计算字体大小
     var lines = 1
     while (true) {
+      println("QAQ resizing 1")
       // 首先计算出这个行数情况下能否满足填充需求
       val minTextSize = calcTextSizeByLines(lines + 1)
       val maxTextCount = (maxWidth / minTextSize) * lines
@@ -92,6 +93,7 @@ class AutoResizeTextContainerScope(
       val tryUnit = max(0.1f, (maxTextSize - minTextSize) / 5)// 5个档位
       var bestTextSize = minTextSize
       while (bestTextSize < maxTextSize) {
+        println("QAQ resizing 2")
         val tryTextSize = bestTextSize + tryUnit
         val tryTextCount = (maxWidth / tryTextSize) * lines
         if (tryTextCount >= textCount) {

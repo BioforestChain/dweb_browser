@@ -1,6 +1,9 @@
 package org.dweb_browser.browser.jmm
 
-import org.dweb_browser.browser.jmm.ui.ManagerViewRender
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import org.dweb_browser.browser.jmm.ui.Render
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.windowAdapterManager
 import org.dweb_browser.sys.window.ext.getMainWindow
@@ -8,7 +11,7 @@ import org.dweb_browser.sys.window.ext.getMainWindow
 /**
  * JS 模块安装 的 控制器
  */
-class JmmHistoryController(
+class JmmRenderController(
   internal val jmmNMM: JmmNMM.JmmRuntime, private val jmmController: JmmController,
 ) {
   fun getHistoryMetadataMap() = jmmController.historyMetadataMaps
@@ -18,9 +21,9 @@ class JmmHistoryController(
   }
 
   /**打开jmm下载历史视图*/
-  suspend fun showHistoryView(win: WindowController) {
+  suspend fun showView(win: WindowController) {
     windowAdapterManager.provideRender(win.id) { modifier ->
-      ManagerViewRender(modifier = modifier, windowRenderScope = this)
+      Render(modifier = modifier, windowRenderScope = this)
     }
     win.show()
   }
@@ -47,9 +50,16 @@ class JmmHistoryController(
     }
   }
 
+  var detailController by mutableStateOf<JmmInstallerController?>(null)
+    private set
+
   /** 打开详情界面*/
-  fun openDetail(historyMetadata: JmmMetadata) = jmmNMM.scopeLaunch(cancelable = false) {
-    jmmController.openBottomSheet(historyMetadata)
+  fun openDetail(historyMetadata: JmmMetadata) {
+    detailController = jmmController.getInstallerController(historyMetadata)
+  }
+
+  fun closeDetail() {
+    detailController = null
   }
 
   /// 卸载app
