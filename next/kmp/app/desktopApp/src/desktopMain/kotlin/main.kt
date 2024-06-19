@@ -1,8 +1,10 @@
+import androidx.compose.runtime.InternalComposeApi
 import kotlinx.coroutines.async
 import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.globalDefaultScope
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.platform.PureViewController
+import org.dweb_browser.pure.image.compose.rememberOffscreenWebCanvas
 import kotlin.system.exitProcess
 
 suspend fun main(vararg args: String) {
@@ -37,7 +39,10 @@ suspend fun main(vararg args: String) {
       )
     }
     // 启动“应用”
-    PureViewController.startApplication()
+    @OptIn(InternalComposeApi::class)
+    PureViewController.startApplication {
+      rememberOffscreenWebCanvas()
+    }
     dnsNMMDeferred.await().runtimeOrNull?.shutdown()
   } catch (e: Exception) {
     WARNING("global catch error : ${e.message}")

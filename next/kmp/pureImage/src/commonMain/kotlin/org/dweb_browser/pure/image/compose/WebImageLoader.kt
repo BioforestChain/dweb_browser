@@ -1,6 +1,7 @@
 package org.dweb_browser.pure.image.compose
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.InternalComposeApi
 import androidx.compose.runtime.collectAsState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,7 +17,8 @@ import org.dweb_browser.pure.image.setHook
 val LocalWebImageLoader = compositionChainOf("ImageLoader") { WebImageLoader.defaultInstance }
 
 @Composable
-internal expect fun rememberOffscreenWebCanvas(): OffscreenWebCanvas
+@InternalComposeApi
+expect fun rememberOffscreenWebCanvas(): OffscreenWebCanvas
 
 
 class WebImageLoader : PureImageLoader {
@@ -26,6 +28,7 @@ class WebImageLoader : PureImageLoader {
 
   private val scope = globalDefaultScope
 
+  @OptIn(InternalComposeApi::class)
   @Composable
   override fun Load(task: LoaderTask): ImageLoadResult {
     return load(
