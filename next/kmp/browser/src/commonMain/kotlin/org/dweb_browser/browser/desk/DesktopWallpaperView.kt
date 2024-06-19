@@ -51,7 +51,7 @@ fun desktopWallpaperView(
   modifier: Modifier,
   isTapDoAnimation: Boolean = true,
   onClick: (() -> Unit)? = null
-): (Int) -> Unit {
+) {
 
   val circles = remember {
     mutableStateListOf<DesktopBgCircleModel>().apply {
@@ -118,11 +118,6 @@ fun desktopWallpaperView(
     circles.forEach {
       DesktopBgCircle(it)
     }
-  }
-
-  return {
-    hour = it
-    updateCircle()
   }
 }
 
