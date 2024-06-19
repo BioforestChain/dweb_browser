@@ -13,7 +13,7 @@ import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.getOrPut
 import org.dweb_browser.sys.window.core.WindowState
 
-class WindowNavigation(val state: WindowState) {
+class WindowNavigation(private val state: WindowState) {
 
   private val goBackSignal = SimpleSignal()
   val onGoBack = goBackSignal.toListener()

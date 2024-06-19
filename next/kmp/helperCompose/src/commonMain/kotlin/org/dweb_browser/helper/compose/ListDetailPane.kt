@@ -35,6 +35,7 @@ fun ListDetailPaneScaffold(
   BoxWithConstraints {
     val nav = LocalListDetailPaneScaffoldNavigator.current
     nav.isFold = maxWidth.value >= 720
+    val maxWidth = maxWidth - minWidth
     when {
       nav.isFold -> {
         var listWidth by remember { mutableStateOf(minWidth) }
@@ -57,6 +58,9 @@ fun ListDetailPaneScaffold(
                   listWidth += (delta / density).dp
                   if (listWidth < minWidth) {
                     listWidth = minWidth
+                  }
+                  if (listWidth > maxWidth) {
+                    listWidth = maxWidth
                   }
                 }
               ),

@@ -15,6 +15,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
@@ -23,6 +24,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.dweb_browser.sys.window.render.LocalWindowController
+import org.dweb_browser.sys.window.render.watchedState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -74,14 +76,17 @@ fun WindowContentRenderScope.WindowContentScaffold(
       },
       windowInsets = WindowInsets(0),
       navigationIcon = {
-        IconButton(onClick = {
-          // TODO 提供导航功能
-          uiScope.launch { win.hide() }
-        }) {
-          Icon(
-            imageVector = Icons.Default.ArrowBackIosNew,
-            contentDescription = "Go Back",
-          )
+        val canGoBack by win.watchedState { canGoBack }
+        if (canGoBack == true) {
+          IconButton(onClick = {
+            // TODO 提供导航功能
+            uiScope.launch { win.navigation.emitGoBack() }
+          }) {
+            Icon(
+              imageVector = Icons.Default.ArrowBackIosNew,
+              contentDescription = "Go Back",
+            )
+          }
         }
       },
       scrollBehavior = scrollBehavior

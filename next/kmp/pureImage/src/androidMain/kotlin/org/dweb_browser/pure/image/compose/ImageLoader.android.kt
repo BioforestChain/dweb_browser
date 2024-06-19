@@ -3,6 +3,7 @@ package org.dweb_browser.pure.image.compose
 import android.content.Context
 import android.view.ContextThemeWrapper
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.InternalComposeApi
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import coil3.ComponentRegistry
@@ -13,7 +14,8 @@ import org.dweb_browser.pure.image.OffscreenWebCanvas
 private val contextOffscreenWebCanvasCache = WeakHashMap<Context, OffscreenWebCanvas>()
 
 @Composable
-internal actual fun rememberOffscreenWebCanvas(): OffscreenWebCanvas {
+@InternalComposeApi
+actual fun rememberOffscreenWebCanvas(): OffscreenWebCanvas {
   val context = LocalContext.current
 
   return remember(context) {
