@@ -14,6 +14,7 @@ import org.dweb_browser.browser.common.loading.LoadingView
 import org.dweb_browser.browser.util.regexDeepLink
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.platform.PureViewController
+import org.dweb_browser.sys.toast.ext.showToast
 
 class DeepLinkActivity : PureViewController() {
   init {
@@ -24,7 +25,10 @@ class DeepLinkActivity : PureViewController() {
         intent.dataString?.let { uri ->
           uri.regexDeepLink()?.let { dwebUri ->
             val dnsNMM = DwebBrowserApp.startMicroModuleProcess().waitPromise()
-            dnsNMM.runtime.nativeFetch(dwebUri)
+            val response = dnsNMM.runtime.nativeFetch(dwebUri)
+            if (!response.isOk) {
+              dnsNMM.runtime.showToast("DeepLink Error -> ${response.status.value}>${response.status.description}")
+            }
           }
         }
         finish()

@@ -88,7 +88,7 @@ actual fun transformPoint(
  * 打开扫码的结果
  */
 actual fun openDeepLink(data: String, showBackground: Boolean): Boolean {
-  // 下盘的是否是 DeepLink，如果不是的话，判断是否是
+  // 下面判断的是否是 DeepLink，如果不是的话，判断是否是
   val deepLink = data.regexDeepLink() ?: run {
     if (data.isWebUrl()) {
       "dweb://openinbrowser?url=${data.encodeURIComponent()}"
