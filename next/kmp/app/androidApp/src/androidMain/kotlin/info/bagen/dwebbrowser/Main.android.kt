@@ -7,6 +7,7 @@ import org.dweb_browser.browser.jmm.JmmNMM
 import org.dweb_browser.browser.jsProcess.JsProcessNMM
 import org.dweb_browser.browser.mwebview.MultiWebViewNMM
 import org.dweb_browser.browser.nativeui.torch.TorchNMM
+import org.dweb_browser.browser.scan.ScanStdNMM
 import org.dweb_browser.browser.search.SearchNMM
 import org.dweb_browser.browser.web.BrowserNMM
 import org.dweb_browser.browser.zip.ZipNMM
@@ -96,6 +97,7 @@ suspend fun startDwebBrowser(): DnsNMM {
   val searchNMM = SearchNMM().setup()
   /// 扫码
   val scannerNMM = ScanningNMM().setup()
+  val scanStdNMM = ScanStdNMM().setup()
   ///安装剪切板
   val clipboardNMM = ClipboardNMM().setup()
   ///设备信息
