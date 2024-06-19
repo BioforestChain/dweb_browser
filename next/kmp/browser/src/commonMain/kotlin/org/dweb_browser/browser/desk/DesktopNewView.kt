@@ -9,7 +9,6 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.updateTransition
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -101,7 +100,6 @@ import org.dweb_browser.sys.window.render.imageFetchHook
 import kotlin.math.min
 
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun NewDesktopView(
   desktopController: DesktopController,
