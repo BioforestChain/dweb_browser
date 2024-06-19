@@ -98,5 +98,5 @@ actual fun openDeepLink(data: String, showBackground: Boolean): Boolean {
   }
   DeepLinkHook.deepLinkHook.emitOnInit(deepLink)
   // Desktop.getDesktop().browse(URI.create(deepLink)) // 走系统 deeplink
-  return false
+  return true
 }
