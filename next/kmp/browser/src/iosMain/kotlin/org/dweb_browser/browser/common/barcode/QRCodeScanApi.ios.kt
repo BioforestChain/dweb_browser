@@ -1,12 +1,15 @@
 package org.dweb_browser.browser.common.barcode
 
 import androidx.compose.ui.graphics.ImageBitmap
+import kotlinx.cinterop.ExperimentalForeignApi
 import org.dweb_browser.browser.util.regexDeepLink
 import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.encodeURIComponent
 import org.dweb_browser.helper.isWebUrl
 import org.dweb_browser.helper.platform.DeepLinkHook
+import org.dweb_browser.helper.platform.NSDataHelper.toNSData
 import org.dweb_browser.helper.platform.toByteArray
+import org.dweb_browser.helper.toRect
 import kotlin.math.abs
 import platform.CoreImage.CIDetector
 import platform.CoreImage.CIImage
@@ -17,22 +20,24 @@ actual fun beepAudio() {
   WARNING("Not yet implemented beepAudio")
 }
 
+@OptIn(ExperimentalForeignApi::class)
 actual fun decoderImage(
   imageBitmap: ImageBitmap,
   onSuccess: (QRCodeDecoderResult) -> Unit,
   onFailure: (Exception) -> Unit,
 ) {
-  val ciImage = CIImage(data = imageBitmap.toByteArray().toNSData())
+  val data = imageBitmap.toByteArray()?.toNSData() ?: return
+  val ciImage = CIImage(data = data)
   val detector = CIDetector.detectorOfType("CIDetectorTypeQRCode", null, null)
   detector?.featuresInImage(image = ciImage, options = null)?.let { detectResult ->
     val listRect: MutableList<QRCodeDecoderResult.QRCode> = mutableListOf()
-    (detectResult as List<CIQRCodeFeature>).map { barcode
+    (detectResult as List<CIQRCodeFeature>).map { barcode ->
       listRect.add(
         QRCodeDecoderResult.QRCode(
           org.dweb_browser.helper.PureRect(
-            x = barcode.boundingBox?.centerX()?.toFloat() ?: 0f,
-            y = barcode.boundingBox?.centerY()?.toFloat() ?: 0f
-          ), barcode.displayValue
+            x = barcode.bounds.toRect().x + barcode.bounds.toRect().width / 2,
+            y = barcode.bounds.toRect().y + barcode.bounds.toRect().height / 2,
+          ), barcode.messageString()
         )
       )
       val qrCodeDecoderResult = QRCodeDecoderResult(imageBitmap, imageBitmap, listRect)
