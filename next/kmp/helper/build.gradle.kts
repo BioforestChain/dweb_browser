@@ -8,10 +8,10 @@ plugins {
 val buildConfigPath = "build/classes/kotlin/source"
 
 // 不能直接使用 Multiplatform 里面的 localProperties，那个有缓存，所以得这边自己创建一个
-val gradleProperties = Properties()
-val gradlePropertiesFile = rootDir.resolve("gradle.properties")
-if (gradlePropertiesFile.exists()) {
-  gradleProperties.load(gradlePropertiesFile.inputStream())
+val localProperties = Properties()
+val localPropertiesFile = rootDir.resolve("local.properties")
+if (localPropertiesFile.exists()) {
+  localProperties.load(localPropertiesFile.inputStream())
 }
 
 kotlin {
@@ -67,7 +67,7 @@ allprojects {
     // 这个是创建一个配置文件
     val content = if (!isReleaseBuild) { // 增加判断，如果是脚本执行会默认增加 -PreleaseBuild=true
       val stringBuffer = StringBuffer()
-      gradleProperties.forEach { (key, value) ->
+      localProperties.forEach { (key, value) ->
         if (key.toString().startsWith("dweb-") && value.toString().isNotEmpty()) { // 只针对 dweb- 开头的内容
           println("QAQ: key = $key, value = $value")
           stringBuffer.append("\n    \"${key.toString().replace("\\", "\\\\")}\"") // 追加 key

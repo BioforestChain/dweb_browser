@@ -102,7 +102,7 @@ class DWebViewEngine internal constructor(
   var activity: org.dweb_browser.helper.android.BaseActivity? = null,
 ) : WebView(context) {
   companion object {
-    val profileStore = ProfileStore.getInstance();
+    val profileStore by lazy(LazyThreadSafetyMode.SYNCHRONIZED) { ProfileStore.getInstance() } // webview兼容问题，ProfileStore低版本不兼容
     private val profileRef = WeakHashMap<Profile, MutableSet<WebView>>()
   }
 
