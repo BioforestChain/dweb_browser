@@ -1,5 +1,14 @@
 package org.dweb_browser.browser.desk
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.browser.desk.upgrade.NewVersionItem
@@ -37,3 +46,29 @@ actual suspend fun loadApplicationNewVersion(): NewVersionItem? {
   WARNING("Not yet implement loadNewVersion")
   return null
 }
+
+actual fun desktopGridLayout(): GridCells = GridCells.Fixed(4)
+
+actual fun desktopTap(): Dp = 0.dp
+
+actual fun desktopBgCircleCount(): Int = 8
+
+actual fun taskBarCloseButtonLineWidth() = 5f
+
+actual fun taskBarCloseButtonUsePopUp() = true
+
+@Composable
+@OptIn(ExperimentalFoundationApi::class)
+actual fun Modifier.DesktopEventDetector(
+  onClick: () -> Unit,
+  onDoubleClick: () -> Unit,
+  onLongClick: () -> Unit
+) = this.then(
+  combinedClickable(
+    indication = null,
+    interactionSource = remember { MutableInteractionSource() },
+    onClick = onClick,
+    onDoubleClick = onDoubleClick,
+    onLongClick = onLongClick
+  )
+)
