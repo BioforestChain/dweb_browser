@@ -1,9 +1,18 @@
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.InternalComposeApi
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.produceState
+import com.teamdev.jxbrowser.browser.event.BrowserClosed
+import com.teamdev.jxbrowser.browser.event.TitleChanged
 import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.MutableStateFlow
+import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.dwebview.IDWebView.Companion.registryDevtoolsTray
 import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.globalDefaultScope
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.platform.PureViewController
+import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.pure.image.compose.rememberOffscreenWebCanvas
 import kotlin.system.exitProcess
 
@@ -34,14 +43,17 @@ suspend fun main(vararg args: String) {
       PureViewController.awaitPrepared()
       // 启动内核
       startDwebBrowser(
-        System.getenv("debug") ?: System.getProperty("debug"),
-        listOf() //ExtMM(TrayNMM(), true)
+        System.getenv("debug") ?: System.getProperty("debug"), listOf() //ExtMM(TrayNMM(), true)
       )
     }
     // 启动“应用”
-    @OptIn(InternalComposeApi::class)
     PureViewController.startApplication {
-      rememberOffscreenWebCanvas()
+      val dnsNMM = produceState<NativeMicroModule.NativeRuntime?>(null) {
+        value = dnsNMMDeferred.await().runtimeOrNull as NativeMicroModule.NativeRuntime?
+      }.value
+      if (dnsNMM != null) {
+        PrepareOffscreenWebCanvas(dnsNMM)
+      }
     }
     dnsNMMDeferred.await().runtimeOrNull?.shutdown()
   } catch (e: Exception) {
@@ -49,5 +61,35 @@ suspend fun main(vararg args: String) {
   } finally {
     WARNING("exitProcess")
     exitProcess(0)
+  }
+}
+
+val devtoolsItemTrayId = randomUUID()
+
+@OptIn(InternalComposeApi::class)
+@Composable
+fun PrepareOffscreenWebCanvas(nativeMM: NativeMicroModule.NativeRuntime) {
+  val offscreenWebCanvas = rememberOffscreenWebCanvas()
+  LaunchedEffect(offscreenWebCanvas) {
+    val webview = offscreenWebCanvas.webview
+    val trayTitleFlow = MutableStateFlow(webview.title());
+    webview.on(TitleChanged::class.java) {
+      trayTitleFlow.value = it.title()
+    }
+//    webview.navigation().apply {
+//      on(NavigationStarted::class.java) {
+//        trayTitleFlow.value = "${it.url()} - ${it.navigation().browser().title()}"
+//      }
+//      on(NavigationFinished::class.java) {
+//        trayTitleFlow.value = "${it.url()} - ${it.navigation().browser().title()}"
+//      }
+//    }
+    registryDevtoolsTray(nativeMM, devtoolsItemTrayId, trayTitleFlow, openDevTool = {
+      webview.devTools().show()
+    }, onDestroy = { handler ->
+      webview.on(BrowserClosed::class.java) {
+        handler()
+      }
+    })
   }
 }

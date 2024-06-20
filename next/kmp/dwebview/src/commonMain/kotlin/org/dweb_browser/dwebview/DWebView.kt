@@ -62,6 +62,56 @@ abstract class IDWebView(initUrl: String?) {
 
     private var devtoolsMenuTrayId: String? = null
     private val tray_lock = Mutex()
+    fun registryDevtoolsTray(
+      remoteMM: NativeMicroModule.NativeRuntime,
+      devtoolsItemTrayId: String,
+      trayTitleFlow: StateFlow<String>,
+      openDevTool: suspend () -> Unit,
+      onDestroy: (() -> Unit) -> Unit,
+    ) {
+      remoteMM.scopeLaunch(cancelable = true) {
+        IDWebView.tray_lock.withLock {
+          if (devtoolsMenuTrayId == null) {
+            devtoolsMenuTrayId = remoteMM.registryTray(
+              TrayItem(
+                title = "devtools", type = TRAY_ITEM_TYPE.Menu
+              )
+            )
+          }
+          devtoolsMenuTrayId?.isNotEmpty()?.trueAlso {
+            val pathname = "/open-devtools/$devtoolsItemTrayId"
+            val addOrUpdate: suspend (String) -> String = { trayTitle ->
+              remoteMM.registryTray(
+                TrayItem(
+                  id = devtoolsItemTrayId,
+                  parent = devtoolsMenuTrayId,
+                  title = trayTitle,
+                  url = "file://${remoteMM.mmid}$pathname",
+                )
+              )
+            }
+            val job = trayTitleFlow.collectIn(remoteMM.getRuntimeScope()) {
+              addOrUpdate(it)
+            }
+
+//            addOrUpdate("${getUrl()} - ${getTitle()}")
+//            titleFlow.combine(urlStateFlow) { title, urlState ->
+//              "$urlState - $title"
+//            }.collectIn(remoteMM.getRuntimeScope()) { trayTitle ->
+//              addOrUpdate(trayTitle)
+//            }
+            val nmm = remoteMM as NativeMicroModule.NativeRuntime
+            val router = nmm.routes(pathname bind PureMethod.GET by nmm.defineEmptyResponse {
+              openDevTool()
+            })
+            onDestroy {
+              job.cancel()
+              nmm.removeRouter(router)
+            }
+          }
+        }
+      }
+    }
 
     val isSupportProfile = supportProfile()
   }
@@ -195,42 +245,23 @@ abstract class IDWebView(initUrl: String?) {
   private val devtoolsItemTrayId by lazy { randomUUID() }
   protected fun afterInit() {
     (remoteMM.debugMM.isEnable && remoteMM is NativeMicroModule.NativeRuntime).trueAlso {
-      remoteMM.scopeLaunch(cancelable = true) {
-        tray_lock.withLock {
-          if (devtoolsMenuTrayId == null) {
-            devtoolsMenuTrayId = remoteMM.registryTray(
-              TrayItem(
-                title = "devtools", type = TRAY_ITEM_TYPE.Menu
-              )
-            )
+      lifecycleScope.launch {
+        val trayTitleFlow = titleFlow.combine(urlStateFlow) { title, urlState ->
+          "$urlState - $title"
+        }.stateIn(
+          lifecycleScope,
+          started = SharingStarted.Eagerly,
+          initialValue = "${getUrl()} - ${getTitle()}"
+        );
+        registryDevtoolsTray(
+          remoteMM as NativeMicroModule.NativeRuntime,
+          devtoolsItemTrayId,
+          trayTitleFlow,
+          openDevTool = ::openDevTool,
+          onDestroy = { handler ->
+            onDestroy { handler() }
           }
-          devtoolsMenuTrayId?.isNotEmpty()?.trueAlso {
-            val pathname = "/open-devtools/$devtoolsItemTrayId"
-            val addOrUpdate: suspend (String) -> String = { trayTitle ->
-              remoteMM.registryTray(
-                TrayItem(
-                  id = devtoolsItemTrayId,
-                  parent = devtoolsMenuTrayId,
-                  title = trayTitle,
-                  url = "file://${remoteMM.mmid}$pathname",
-                )
-              )
-            }
-            addOrUpdate("${getUrl()} - ${getTitle()}")
-            titleFlow.combine(urlStateFlow) { title, urlState ->
-              "$urlState - $title"
-            }.collectIn(remoteMM.getRuntimeScope()) { trayTitle ->
-              addOrUpdate(trayTitle)
-            }
-            val nmm = remoteMM as NativeMicroModule.NativeRuntime
-            val router = nmm.routes(pathname bind PureMethod.GET by nmm.defineEmptyResponse {
-              openDevTool()
-            })
-            onDestroy {
-              nmm.removeRouter(router)
-            }
-          }
-        }
+        )
       }
     }
   }
