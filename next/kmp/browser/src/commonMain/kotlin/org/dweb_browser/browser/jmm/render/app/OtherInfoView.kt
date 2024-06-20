@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Verified
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -24,11 +25,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import org.dweb_browser.browser.BrowserI18nResource
-import org.dweb_browser.browser.jmm.LocalJmmInstallerController
-import org.dweb_browser.browser.jmm.render.CustomerDivider
+import org.dweb_browser.browser.jmm.LocalJmmDetailController
 import org.dweb_browser.browser.jmm.render.HorizontalPadding
 import org.dweb_browser.browser.jmm.render.VerticalPadding
-import org.dweb_browser.browser.jmm.render.toContent
 import org.dweb_browser.core.CoreI18nResource
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
@@ -71,18 +70,18 @@ internal fun OtherInfoView(
         Info(jmmAppInstallManifest.id)
       }
     }
-    CustomerDivider()
+    HorizontalDivider()
     OtherItemView(
       type = BrowserI18nResource.JMM.install_version(), content = jmmAppInstallManifest.version
     )
-    CustomerDivider()
+    HorizontalDivider()
     OtherItemView(
       type = BrowserI18nResource.JMM.install_info_dev(),
-      content = jmmAppInstallManifest.author.toContent()
+      content = jmmAppInstallManifest.author.joinToString(", ")
     )
-    CustomerDivider()
+    HorizontalDivider()
     jmmAppInstallManifest.homepage_url?.also { homepage_url ->
-      val controller = LocalJmmInstallerController.current
+      val controller = LocalJmmDetailController.current
       OtherItemView(
         modifier = Modifier.clickable {
           controller.jmmNMM.scopeLaunch(cancelable = true) {
@@ -95,17 +94,17 @@ internal fun OtherInfoView(
         contentTextStyle = TextStyle(color = MaterialTheme.colorScheme.primary)
       )
     }
-    CustomerDivider()
+    HorizontalDivider()
     OtherItemView(
       type = BrowserI18nResource.JMM.install_info_size(),
       content = jmmAppInstallManifest.bundle_size.toSpaceSize()
     )
-    CustomerDivider()
+    HorizontalDivider()
     OtherItemView(
       type = BrowserI18nResource.JMM.install_info_type(),
       content = jmmAppInstallManifest.categories.print()
     )
-    CustomerDivider()
+    HorizontalDivider()
     OtherItemView(
       type = BrowserI18nResource.JMM.install_info_copyright(),
       content = jmmAppInstallManifest.author.firstOrNull() ?: jmmAppInstallManifest.name

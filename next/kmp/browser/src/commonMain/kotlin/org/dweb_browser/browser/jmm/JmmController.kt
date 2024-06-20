@@ -92,18 +92,18 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
     }
   }
 
-  private val installViews = SafeHashMap<String, JmmInstallerController>()
+  private val installViews = SafeHashMap<String, JmmDetailController>()
 
   // 记录旧的版本
   private var oldVersion: String? = null
 
   fun getInstallerController(metadata: JmmMetadata) = installViews.getOrPut(metadata.manifest.id) {
-    JmmInstallerController(
+    JmmDetailController(
       jmmNMM = jmmNMM, metadata = metadata, jmmController = this@JmmController
     )
   }.also {
     // 不管是否替换的，都进行一次存储新状态，因为需要更新下载状态
-    it.installMetadata = metadata
+    it.metadata = metadata
   }
 
   /**打开bottomSheet的详情页面*/

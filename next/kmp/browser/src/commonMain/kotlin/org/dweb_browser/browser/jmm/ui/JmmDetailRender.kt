@@ -5,15 +5,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
@@ -25,28 +24,22 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
-import org.dweb_browser.browser.jmm.JmmInstallerController
-import org.dweb_browser.browser.jmm.LocalJmmInstallerController
+import org.dweb_browser.browser.jmm.JmmDetailController
+import org.dweb_browser.browser.jmm.LocalJmmDetailController
 import org.dweb_browser.browser.jmm.render.AppBottomHeight
 import org.dweb_browser.browser.jmm.render.BottomDownloadButton
 import org.dweb_browser.browser.jmm.render.CaptureListView
-import org.dweb_browser.browser.jmm.render.CustomerDivider
 import org.dweb_browser.browser.jmm.render.HorizontalPadding
-import org.dweb_browser.browser.jmm.render.ImagePreview
-import org.dweb_browser.browser.jmm.render.PreviewState
 import org.dweb_browser.browser.jmm.render.WebviewVersionWarningDialog
 import org.dweb_browser.browser.jmm.render.app.AppIntroductionView
 import org.dweb_browser.browser.jmm.render.app.NewVersionInfoView
 import org.dweb_browser.browser.jmm.render.app.OtherInfoView
-import org.dweb_browser.browser.jmm.render.measureCenterOffset
 import org.dweb_browser.helper.compose.LocalCompositionChain
 import org.dweb_browser.helper.compose.SimpleI18nResource
-import org.dweb_browser.helper.compose.rememberScreenSize
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
 import org.dweb_browser.sys.window.core.WindowContentScaffoldWithTitle
 import org.dweb_browser.sys.window.render.LocalWindowController
@@ -54,14 +47,14 @@ import org.dweb_browser.sys.window.render.watchedState
 
 
 enum class JmmDetailTabs(val i18n: SimpleI18nResource) {
+  /** 参数信息 */
+  Param(BrowserI18nResource.JMM.tab_param),
+
   /** 详情 */
   Detail(BrowserI18nResource.JMM.tab_detail),
 
   /** 介绍 */
   Intro(BrowserI18nResource.JMM.tab_intro),
-
-  /** 参数信息 */
-  Param(BrowserI18nResource.JMM.tab_param),
   ;
 
   companion object {
@@ -71,39 +64,22 @@ enum class JmmDetailTabs(val i18n: SimpleI18nResource) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun JmmInstallerController.Render(modifier: Modifier, renderScope: WindowContentRenderScope) {
-  val previewListState = rememberLazyListState()
-  val screenSize = rememberScreenSize()
-  val density = LocalDensity.current.density
-  val statusBarHeight = WindowInsets.statusBars.getTop(LocalDensity.current)
-  val previewState = remember {
-    PreviewState(
-      outsideLazy = previewListState,
-      screenWidth = screenSize.screenWidth,
-      screenHeight = screenSize.screenHeight,
-      statusBarHeight = statusBarHeight,
-      density = density
-    )
-  }
-
+fun JmmDetailController.Render(modifier: Modifier, renderScope: WindowContentRenderScope) {
   val win = LocalWindowController.current
 
   win.navigation.GoBackHandler(enabled = CanCloseBottomSheet()) {
     closeBottomSheet()
   }
-  win.navigation.GoBackHandler(enabled = previewState.showPreview.targetState) {
-    previewState.showPreview.targetState = false
-  }
 
-  LocalCompositionChain.current.Provider(LocalJmmInstallerController provides this) {
+  LocalCompositionChain.current.Provider(LocalJmmDetailController provides this) {
 
     renderScope.WindowContentScaffoldWithTitle(
       modifier = modifier,
       topBarTitle = {
         Row(verticalAlignment = Alignment.CenterVertically) {
-          installMetadata.manifest.IconRender()
+          metadata.manifest.IconRender()
           Spacer(Modifier.size(16.dp))
-          Text(installMetadata.manifest.name, maxLines = 2)
+          Text(metadata.manifest.name, maxLines = 2)
         }
       },
       content = {
@@ -114,7 +90,7 @@ fun JmmInstallerController.Render(modifier: Modifier, renderScope: WindowContent
             padding(PaddingValues(bottom = bottomSafePadding.dp))
           } else this
         }) {
-          val hasDetail = installMetadata.manifest.images.isNotEmpty()
+          val hasDetail = metadata.manifest.images.isNotEmpty()
 
           Column(
             Modifier.fillMaxWidth().padding(bottom = AppBottomHeight)
@@ -169,23 +145,19 @@ fun JmmInstallerController.Render(modifier: Modifier, renderScope: WindowContent
               for (tab in allTabs) {
                 when (tab) {
                   JmmDetailTabs.Detail -> item(key = tab) {
-                    CaptureListView(installMetadata.manifest) { index, imageLazyListState ->
-                      previewState.selectIndex.value = index
-                      previewState.imageLazy = imageLazyListState
-                      previewState.offset.value = measureCenterOffset(index, previewState)
-                      previewState.showPreview.targetState = true
-                    }
+                    println("QAQ CaptureListView")
+                    CaptureListView(metadata.manifest)
                   }
 
                   JmmDetailTabs.Intro -> item(key = tab) {
-                    AppIntroductionView(installMetadata.manifest)
-                    CustomerDivider(modifier = Modifier.padding(horizontal = HorizontalPadding))
-                    NewVersionInfoView(installMetadata.manifest)
-                    CustomerDivider(modifier = Modifier.padding(horizontal = HorizontalPadding))
+                    AppIntroductionView(metadata.manifest)
+                    HorizontalDivider(modifier = Modifier.padding(horizontal = HorizontalPadding))
+                    NewVersionInfoView(metadata.manifest)
+                    HorizontalDivider(modifier = Modifier.padding(horizontal = HorizontalPadding))
                   }
 
                   JmmDetailTabs.Param -> item(key = tab) {
-                    OtherInfoView(installMetadata.manifest)
+                    OtherInfoView(metadata.manifest)
                   }
                 }
               }
@@ -193,7 +165,6 @@ fun JmmInstallerController.Render(modifier: Modifier, renderScope: WindowContent
           }
 
           BottomDownloadButton()
-          ImagePreview(installMetadata.manifest, previewState)
           WebviewVersionWarningDialog()
         }
       },

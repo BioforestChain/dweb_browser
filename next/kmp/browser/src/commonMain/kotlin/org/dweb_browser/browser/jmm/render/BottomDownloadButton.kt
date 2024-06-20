@@ -45,7 +45,7 @@ import androidx.compose.ui.zIndex
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.jmm.JmmStatus
-import org.dweb_browser.browser.jmm.LocalJmmInstallerController
+import org.dweb_browser.browser.jmm.LocalJmmDetailController
 import org.dweb_browser.helper.compose.AutoResizeTextContainer
 import org.dweb_browser.helper.compose.iosTween
 import org.dweb_browser.helper.withScope
@@ -54,7 +54,7 @@ import org.dweb_browser.helper.withScope
 @Composable
 internal fun BoxScope.BottomDownloadButton() {
   val background = MaterialTheme.colorScheme.surface
-  val jmmInstallerController = LocalJmmInstallerController.current
+  val jmmInstallerController = LocalJmmDetailController.current
   val uiScope = rememberCoroutineScope()
   val jmmUiKit = rememberJmmUiKit(jmmInstallerController);
 

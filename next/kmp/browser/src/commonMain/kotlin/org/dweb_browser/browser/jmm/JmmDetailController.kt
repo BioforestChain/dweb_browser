@@ -26,18 +26,18 @@ internal val LocalShowWebViewVersion = compositionChainOf("ShowWebViewVersion") 
   mutableStateOf(false)
 }
 
-internal val LocalJmmInstallerController =
-  compositionChainOf<JmmInstallerController>("JmmInstallerController")
+internal val LocalJmmDetailController =
+  compositionChainOf<JmmDetailController>("JmmDetailController")
 
 /**
  * JS 模块安装 的 控制器
  */
-class JmmInstallerController(
+class JmmDetailController(
   metadata: JmmMetadata,
   internal val jmmNMM: JmmNMM.JmmRuntime,
   private val jmmController: JmmController,
 ) {
-  var installMetadata by ObservableMutableState(metadata) {}
+  var metadata by ObservableMutableState(metadata) {}
     internal set
 
   private val viewDeferredFlow =
@@ -77,12 +77,12 @@ class JmmInstallerController(
   suspend fun openApp() {
     closeBottomSheet() // 打开应用之前，需要关闭当前安装界面，否则在原生窗口的层级切换会出现问题
     // jmmNMM.bootstrapContext.dns.open(installMetadata.metadata.id)
-    jmmController.openApp(installMetadata.manifest.id)
+    jmmController.openApp(metadata.manifest.id)
   }
 
   suspend fun openHomePage() {
     closeBottomSheet()
-    val homepageUrl = installMetadata.referrerUrl ?: installMetadata.manifest.homepage_url
+    val homepageUrl = metadata.referrerUrl ?: metadata.manifest.homepage_url
     if (homepageUrl?.isWebUrl() == true) {
       jmmNMM.nativeFetch("file://web.browser.dweb/openinbrowser?url=${homepageUrl.encodeURIComponent()}")
     }
@@ -90,7 +90,7 @@ class JmmInstallerController(
 
   suspend fun openReferrerPage() {
     closeBottomSheet()
-    val referrerUrl = installMetadata.referrerUrl ?: installMetadata.manifest.homepage_url
+    val referrerUrl = metadata.referrerUrl ?: metadata.manifest.homepage_url
     if (referrerUrl?.isWebUrl() == true) {
       jmmNMM.nativeFetch("file://web.browser.dweb/openinbrowser?url=${referrerUrl.encodeURIComponent()}")
     }
@@ -98,19 +98,19 @@ class JmmInstallerController(
 
   // 关闭原来的app
   suspend fun closeApp() {
-    jmmNMM.bootstrapContext.dns.close(installMetadata.manifest.id)
+    jmmNMM.bootstrapContext.dns.close(metadata.manifest.id)
   }
 
   /**
    * 创建任务，如果存在则恢复
    */
   suspend fun createAndStartDownload() {
-    jmmController.startDownloadTask(installMetadata)
+    jmmController.startDownloadTask(metadata)
   }
 
-  suspend fun startDownload() = jmmController.startDownloadTask(installMetadata)
+  suspend fun startDownload() = jmmController.startDownloadTask(metadata)
 
-  suspend fun pause() = jmmController.pause(installMetadata)
+  suspend fun pause() = jmmController.pause(metadata)
 
 
   val canCloseBottomSheet get() = viewDeferred.isCompleted

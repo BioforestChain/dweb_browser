@@ -50,7 +50,7 @@ class JmmRenderController(
     }
   }
 
-  var detailController by mutableStateOf<JmmInstallerController?>(null)
+  var detailController by mutableStateOf<JmmDetailController?>(null)
     private set
 
   /** 打开详情界面*/

@@ -3,7 +3,7 @@ package org.dweb_browser.browser.jmm.render
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import org.dweb_browser.browser.BrowserI18nResource
-import org.dweb_browser.browser.jmm.JmmInstallerController
+import org.dweb_browser.browser.jmm.JmmDetailController
 import org.dweb_browser.browser.jmm.JmmMetadata
 import org.dweb_browser.browser.jmm.JmmStatus
 import org.dweb_browser.browser.jmm.JmmStatusEvent
@@ -14,13 +14,13 @@ import org.dweb_browser.helper.toSpaceSize
  * 通过 JmmStatusEvent，返回需要显示的状态和文件大小或者进度值
  */
 @Composable
-internal fun rememberJmmUiKit(controller: JmmInstallerController) =
-  remember(controller, controller.installMetadata) {
-    JmmUiKit(controller, controller.installMetadata)
+internal fun rememberJmmUiKit(controller: JmmDetailController) =
+  remember(controller, controller.metadata) {
+    JmmUiKit(controller, controller.metadata)
   }
 
 internal class JmmUiKit(
-  val controller: JmmInstallerController,
+  val controller: JmmDetailController,
   val metadata: JmmMetadata,
 ) {
   val jmmStatusEvent get() = metadata.state
