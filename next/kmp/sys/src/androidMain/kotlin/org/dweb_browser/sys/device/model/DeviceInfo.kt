@@ -7,6 +7,7 @@ import android.os.Build
 import android.os.Build.MODEL
 import android.provider.Settings
 import android.telephony.TelephonyManager
+import androidx.compose.runtime.NoLiveLiterals
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -140,6 +141,7 @@ class DeviceInfo {
    * AudioManager.RINGER_MODE_SILENT  静音模式 0
    * AudioManager.RINGER_MODE_VIBRATE 振动模式 1
    */
+  @NoLiveLiterals
   val ringerMode: Int
     get() {
       AudioManager.RINGER_MODE_NORMAL

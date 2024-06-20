@@ -5,11 +5,11 @@ plugins {
 }
 
 kotlin {
-  @OptIn(ExperimentalKotlinGradlePluginApi::class)
-  compilerOptions {
-    languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_0)
-    apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_0)
-  }
+//  @OptIn(ExperimentalKotlinGradlePluginApi::class)
+//  compilerOptions {
+//    languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_0)
+//    apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_0)
+//  }
   kmpCommonTarget(project) {
     applyHierarchy {
       common {

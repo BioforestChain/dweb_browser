@@ -102,7 +102,7 @@ fun BrowserPageBox(contentScaled: Float) {
       userScrollEnabled = false,
       reverseLayout = false,
       contentPadding = PaddingValues(0.dp),
-      beyondBoundsPageCount = 1,
+      beyondViewportPageCount = 1,
       pageContent = { currentPage ->
         val browserPage = viewModel.getPage(currentPage)
         browserPage.scale = contentScaled

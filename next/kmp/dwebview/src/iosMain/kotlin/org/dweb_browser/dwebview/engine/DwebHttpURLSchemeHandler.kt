@@ -6,7 +6,6 @@ import platform.WebKit.WKURLSchemeHandlerProtocol
 import platform.WebKit.WKURLSchemeTaskProtocol
 import platform.WebKit.WKWebView
 import platform.darwin.NSObject
-//import kotlinx.cinterop.ObjCSignatureOverride
 
 @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE", "CONFLICTING_OVERLOADS")
 class DwebHttpURLSchemeHandler(microModule: MicroModule.Runtime) : NSObject(), WKURLSchemeHandlerProtocol {

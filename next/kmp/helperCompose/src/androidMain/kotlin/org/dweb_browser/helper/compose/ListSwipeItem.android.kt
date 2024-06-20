@@ -1,6 +1,8 @@
 package org.dweb_browser.helper.compose
 
+import androidx.compose.animation.SplineBasedFloatDecayAnimationSpec
 import androidx.compose.animation.core.TweenSpec
+import androidx.compose.animation.core.generateDecayAnimationSpec
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -86,9 +88,11 @@ fun AnchoredDragBox(
   val state = remember {
     AnchoredDraggableState(
       initialValue = AnchoredDragValue.Start,
-      positionalThreshold = { distance -> distance * 0.5f }, // 触发位置的阈值，这里设置0.5即中间位置时切换到下一个状态
+      positionalThreshold = { distance: Float -> distance * 0.5f }, // 触发位置的阈值，这里设置0.5即中间位置时切换到下一个状态
       velocityThreshold = { with(density) { 125.dp.toPx() } }, // 拖动速度必须超过该阈值才能设置到下一个状态
-      animationSpec = TweenSpec(100),
+      snapAnimationSpec = TweenSpec(100),
+      // TODO: 未验证 decayAnimationSpec 设置
+      decayAnimationSpec = SplineBasedFloatDecayAnimationSpec(density).generateDecayAnimationSpec()
     )
   }
 

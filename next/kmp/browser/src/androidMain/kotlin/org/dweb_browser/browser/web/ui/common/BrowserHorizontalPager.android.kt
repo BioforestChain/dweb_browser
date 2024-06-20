@@ -23,7 +23,7 @@ actual fun BoxWithConstraintsScope.BrowserHorizontalPager(
     modifier = modifier,
     contentPadding = PaddingValues(10.dp),
     pageSize = PageSize.Fill,
-    beyondBoundsPageCount = 5,
+    beyondViewportPageCount = 5,
     userScrollEnabled = true,
     reverseLayout = false,
     pageSpacing = 5.dp,
