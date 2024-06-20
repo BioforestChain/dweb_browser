@@ -7,6 +7,7 @@ import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.platform.desktop.os.dataDir
 import org.dweb_browser.platform.desktop.webview.WebviewEngine
 import org.dweb_browser.pure.image.offscreenwebcanvas.OffscreenWebCanvasCore
+import org.jetbrains.annotations.ApiStatus.Internal
 
 actual class OffscreenWebCanvas private actual constructor(width: Int, height: Int) {
   companion object {
@@ -14,7 +15,9 @@ actual class OffscreenWebCanvas private actual constructor(width: Int, height: I
   }
 
   internal actual val core = OffscreenWebCanvasCore()
-  private val webview =
+
+  @Internal
+  val webview =
     WebviewEngine.offScreen(dataDir = dataDir.resolve(("offscreen-web-canvas"))).newBrowser().also {
       if (envSwitch.isEnabled("offscreen-web-canvas-devtools")) {
         it.devTools().show()
