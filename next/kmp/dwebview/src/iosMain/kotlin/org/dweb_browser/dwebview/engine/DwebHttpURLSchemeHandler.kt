@@ -1,5 +1,6 @@
 package org.dweb_browser.dwebview.engine
 
+import kotlinx.cinterop.ObjCSignatureOverride
 import org.dweb_browser.core.module.MicroModule
 import platform.WebKit.WKURLSchemeHandlerProtocol
 import platform.WebKit.WKURLSchemeTaskProtocol
@@ -10,6 +11,7 @@ import platform.darwin.NSObject
 class DwebHttpURLSchemeHandler(microModule: MicroModule.Runtime) : NSObject(), WKURLSchemeHandlerProtocol {
   val helper = DURLSchemeHandlerHelper(microModule)
 
+  @ObjCSignatureOverride
   override fun webView(webView: WKWebView, startURLSchemeTask: WKURLSchemeTaskProtocol) {
     val url = startURLSchemeTask.request.URL?.absoluteString ?: return run {
       startURLSchemeTask.didFinish()
@@ -22,6 +24,7 @@ class DwebHttpURLSchemeHandler(microModule: MicroModule.Runtime) : NSObject(), W
     helper.startURLSchemeTask(webView, startURLSchemeTask, pureUrl)
   }
 
+  @ObjCSignatureOverride
   override fun webView(webView: WKWebView, stopURLSchemeTask: WKURLSchemeTaskProtocol) {
     helper.stopURLSchemeTask(webView, stopURLSchemeTask)
   }

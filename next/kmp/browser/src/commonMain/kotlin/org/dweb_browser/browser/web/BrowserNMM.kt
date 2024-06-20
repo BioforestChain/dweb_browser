@@ -13,7 +13,6 @@ import org.dweb_browser.core.std.file.ext.RespondLocalFileContext.Companion.resp
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.DisplayMode
 import org.dweb_browser.helper.ImageResource
-import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.sys.window.ext.onRenderer
 import org.dweb_browser.sys.window.ext.openMainWindow
@@ -47,13 +46,11 @@ class BrowserNMM : NativeMicroModule("web.browser.dweb", "Web Browser") {
 
   inner class BrowserRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
 
+    val webLinkStore = WebLinkStore(this)
+    val browserController = BrowserController(this)
     override suspend fun _bootstrap() {
-      val webLinkStore = WebLinkStore(this)
       // 由于 WebView创建需要在主线程，所以这边做了 withContext 操作
-      val browserController = withMainContext {
-        BrowserController(this, webLinkStore)
-      }
-      loadWebLinkApps(browserController, webLinkStore)
+      loadWebLinkApps(browserController)
 
       onRenderer {
         browserController.renderBrowserWindow(wid)
@@ -89,8 +86,9 @@ class BrowserNMM : NativeMicroModule("web.browser.dweb", "Web Browser") {
      * 用来加载WebLink数据的，并且监听是否添加到桌面操作
      */
     private suspend fun loadWebLinkApps(
-      browserController: BrowserController, webLinkStore: WebLinkStore,
+      browserController: BrowserController,
     ) {
+      val webLinkStore = browserController.webLinkStore
       webLinkStore.getAll().map { (_, webLinkManifest) ->
         bootstrapContext.dns.install(WebLinkMicroModule(webLinkManifest))
       }

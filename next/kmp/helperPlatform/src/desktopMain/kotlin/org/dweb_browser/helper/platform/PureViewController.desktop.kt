@@ -180,7 +180,7 @@ class PureViewController(
   }
 
   private val contents = mutableStateListOf<@Composable () -> Unit>();
-  override fun getContents(): MutableList<() -> Unit> {
+  override fun getContents(): MutableList<@Composable () -> Unit> {
     return contents
   }
 }

@@ -76,7 +76,7 @@ internal fun ImagePreview(
         userScrollEnabled = true,
         reverseLayout = false,
         contentPadding = PaddingValues(0.dp),
-        beyondBoundsPageCount = 0,
+        beyondViewportPageCount = 0,
         pageContent = { index ->
           CoilAsyncImage(model = imageList[index],
             contentDescription = "Picture",

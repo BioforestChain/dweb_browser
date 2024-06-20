@@ -11,8 +11,8 @@ javaVersion = "VERSION_17" # JavaVersion.VERSION_17
 
 agp = "8.3.2"
 androidx-baselineprofile-version = "1.2.4"
-kotlin-version = "1.9.24"
-kotlin-serialization-gradle = "1.9.24"
+kotlin-version = "2.0.20-Beta1"
+kotlin-serialization-gradle = "2.0.0"
 androidx-test = "1.5.2"
 coreKtx = "1.6.0-rc01"
 androidx-test-rules = "1.5.0"
@@ -36,7 +36,7 @@ ktor-wasm-version = "3.0.0-wasm2"
 kotlinx-coroutines = "1.8.0"
 kotlinx-datetime-version = "0.6.0"
 kotlinx-atomicfu-version = "0.24.0"
-kotlinx-io-version = "0.3.4"
+kotlinx-io-version = "0.4.0"
 kotlinx-html-version = "0.11.0"
 okio-version = "3.9.0"
 cryptography-version = "0.3.0"
@@ -48,7 +48,7 @@ camera-version = "1.4.0-beta02"
 camera-barcode = "17.2.0"
 camera-zxing = "3.5.3"
 commons-compress = "1.26.1"
-jetbrains-compose-version = "1.6.11"
+jetbrains-compose-version = "1.7.0-dev1686"
 jetbrains-androidx-navigation-version = "2.8.0-alpha02"
 
 # 测试
@@ -56,7 +56,7 @@ test-junit = "5.10.1"
 animation-core-android = "1.6.7"
 material3Android = "1.2.1"
 
-kotlinx-serialization = "1.6.3"
+kotlinx-serialization = "1.7.0"
 
 #jxbrowser-version = "8.0.0-eap.+"
 jxbrowser-version = "7.39.0"
@@ -230,6 +230,7 @@ gradlePlugin-android = { group = "com.android.tools.build", name = "gradle", ver
 gradlePlugin-kotlin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin-version" }
 gradlePlugin-serialization = { group = "org.jetbrains.kotlin", name = "kotlin-serialization", version.ref = "kotlin-serialization-gradle" }
 gradlePlugin-jetbrainsCompose = { group = "org.jetbrains.compose", name = "compose-gradle-plugin", version.ref = "jetbrains-compose-version" }
+gradlePlugin-composeCompiler = { group = "org.jetbrains.kotlin", name = "compose-compiler-gradle-plugin", version.ref = "kotlin-version" }
 gradlePlugin-jxbrowser = { group = "com.teamdev.jxbrowser", name = "JxBrowser-Gradle-Plugin", version.ref = "jxbrowser-gradle" }
 
 # 七牛数据
@@ -243,6 +244,7 @@ androidLibrary = { id = "com.android.library", version.ref = "agp" }
 kotlinxMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin-version" }
 kotlinPluginSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin-version" }
 kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin-version" }
+composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin-version" }
 
 
 [bundles]
