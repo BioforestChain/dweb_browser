@@ -50,7 +50,14 @@ const setIconRow = async (url: string) => {
 
 const DAY = 24 * 60 * 60 * 1000;
 const icon_blob_ref = ref<Blob>();
+const icon_css_map = new Map<string, string>();
 const icon_css = computedAsync<string | undefined>(async () => {
+  let cache_icon_css = icon_css_map.get(props.icon.src);
+
+  if (cache_icon_css) {
+    return cache_icon_css;
+  }
+
   const blob = await withLock(props.icon.src, async () => {
     if (false === props.icon.src.startsWith("https://")) {
       return;
@@ -70,7 +77,9 @@ const icon_css = computedAsync<string | undefined>(async () => {
     return icon_blob_ref.value;
   });
   if (blob) {
-    return `url(${URL.createObjectURL(blob)})`;
+    cache_icon_css = `url(${URL.createObjectURL(blob)})`;
+    icon_css_map.set(props.icon.src, cache_icon_css);
+    return cache_icon_css;
   } else {
     return `url(${props.icon.src})`;
   }
