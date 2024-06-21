@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
@@ -16,7 +17,11 @@ import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.itemsIndexed
 import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Card
+import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
@@ -24,6 +29,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -40,6 +46,7 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.zIndex
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.clamp
@@ -67,60 +74,71 @@ internal fun CaptureListView(
     }
   }
   val layoutList = waterfallCalc(columns = cells, items = waterfallItems.map { it.sizeState.value })
-  var unitSize by remember { mutableStateOf(180.dp) }
+  var unitSize by remember { mutableStateOf(160.dp) }
   val gridHeight = unitSize * (waterfallItems.mapIndexed { index, gridItem ->
     gridItem.sizeState.value.height + (layoutList?.getOrNull(index)?.y ?: 0)
   }.maxOrNull() ?: 0)
   BoxWithConstraints(
     Modifier.fillMaxWidth().requiredHeight(gridHeight).onGloballyPositioned { coordinates ->
-      cells = max(1, (coordinates.size.width / density / 180).toInt())
+      cells = max(1, (coordinates.size.width / density / 160).toInt())
     }) {
     unitSize = maxWidth / cells
     waterfallItems.forEachIndexed { index, gridItem ->
       val layout = layoutList?.get(index) ?: IntOffset(0, 0)
-      var showPreview by remember { mutableStateOf(false) }
+      var showBigView by remember { mutableStateOf(false) }
       CaptureListItem(Modifier.offset(unitSize * layout.x, unitSize * layout.y),
         gridItem.key,
         unitSize,
         gridItem.sizeState,
         onClick = {
-          showPreview = true
+          showBigView = true
         })
 
-      if (showPreview) {
+      if (showBigView) {
         Dialog(
           onDismissRequest = {
-            showPreview = false
+            showBigView = false
           },
-          DialogProperties(
+          properties = DialogProperties(
             dismissOnBackPress = true,
             dismissOnClickOutside = true,
-//            usePlatformDefaultWidth = true,
-//            usePlatformInsets = false,
-//            useSoftwareKeyboardInset = false,
-          )
+          ),
         ) {
           var scale by remember { mutableStateOf(1f) }
           var offset by remember { mutableStateOf(Offset.Zero) }
           Box(Modifier.fillMaxSize().pointerInput(Unit) {
-
             detectTransformGestures { _, pan, zoom, _ ->
               scale *= zoom
               scale = clamp(0.5f, scale, 5f)
               offset += pan
             }
           }) {
-            CoilAsyncImage(
-              model = gridItem.key,
-              modifier = Modifier.fillMaxSize().graphicsLayer(
-                scaleX = scale,
-                scaleY = scale,
-                translationX = offset.x,
-                translationY = offset.y,
-              ),
-              contentDescription = null,
-              contentScale = ContentScale.Fit,
-            )
+            Box(
+              Modifier.align(Alignment.BottomCenter).zIndex(2f).navigationBarsPadding()
+                .padding(bottom = 48.dp)
+            ) {
+              FilledTonalIconButton(
+                onClick = {
+                  showBigView = false
+                },
+                modifier = Modifier.align(Alignment.Center),
+              ) {
+                Icon(Icons.Default.Close, contentDescription = "close image view")
+              }
+            }
+            Box(Modifier.zIndex(1f).align(Alignment.Center).fillMaxSize().padding(24.dp)) {
+              CoilAsyncImage(
+                model = gridItem.key,
+                modifier = Modifier.fillMaxSize().graphicsLayer(
+                  scaleX = scale,
+                  scaleY = scale,
+                  translationX = offset.x,
+                  translationY = offset.y,
+                ),
+                contentDescription = null,
+                contentScale = ContentScale.Fit,
+              )
+            }
           }
         }
       }
