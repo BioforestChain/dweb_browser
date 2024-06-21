@@ -45,7 +45,7 @@ actual fun <T : WindowController> WindowsManager<T>.SceneRender() {
       for (win in topWinList) {
         key(win.id) {
           /// 渲染窗口
-          win.MaterialTheme {
+          win.WithMaterialTheme {
             win.Prepare(
               winMaxWidth = maxWidth.value,
               winMaxHeight = maxHeight.value

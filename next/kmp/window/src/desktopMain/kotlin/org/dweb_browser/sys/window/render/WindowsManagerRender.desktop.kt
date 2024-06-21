@@ -96,7 +96,7 @@ private class DesktopWindowNativeView(
             /// 注册副作用
             win.WindowControllerEffect()
             /// 渲染窗口
-            win.MaterialTheme {
+            win.WithMaterialTheme {
               win.WindowRender(
                 modifier = Modifier.windowImeOutsetBounds(),
               )

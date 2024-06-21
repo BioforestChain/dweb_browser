@@ -10,7 +10,7 @@ import org.dweb_browser.helper.platform.LocalPureViewController
 import org.dweb_browser.helper.platform.ModalDialog
 import org.dweb_browser.helper.platform.asDesktop
 import org.dweb_browser.sys.window.render.LocalWindowController
-import org.dweb_browser.sys.window.render.MaterialTheme
+import org.dweb_browser.sys.window.render.WithMaterialTheme
 import javax.swing.JDialog
 
 internal sealed class ModalViewController<T : ModalState>(
@@ -50,7 +50,7 @@ internal sealed class ModalViewController<T : ModalState>(
       }.also(configState)
     ) { dialog ->
       compositionChain.Provider(LocalCompositionChain.current) {
-        LocalWindowController.current.MaterialTheme {
+        LocalWindowController.current.WithMaterialTheme {
           if (modal.isShowCloseTip) {
             modal.CommonRenderCloseTip {
               emitModalVisibilityChange(EmitModalVisibilityState.ForceClose)

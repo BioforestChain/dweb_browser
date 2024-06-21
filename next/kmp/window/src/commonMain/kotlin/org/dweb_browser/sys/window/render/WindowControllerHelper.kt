@@ -812,7 +812,7 @@ val WindowController.incForRender get() = state.constants.owner
  * 提供一个计算函数，来获得一个在Compose中使用的 state
  */
 @Composable
-fun WindowController.MaterialTheme(content: @Composable () -> Unit) {
+fun WindowController.WithMaterialTheme(content: @Composable () -> Unit) {
   DwebBrowserAppTheme(isDarkTheme = watchedState(WindowPropertyField.ColorScheme) {
     when (colorScheme) {
       WindowColorScheme.Normal -> null
