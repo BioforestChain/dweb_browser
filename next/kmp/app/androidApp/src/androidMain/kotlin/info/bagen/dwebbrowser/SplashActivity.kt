@@ -48,7 +48,6 @@ import org.dweb_browser.helper.getBoolean
 import org.dweb_browser.helper.globalMainScope
 import org.dweb_browser.helper.platform.theme.DwebBrowserAppTheme
 import org.dweb_browser.helper.saveBoolean
-import org.dweb_browser.sys.window.render.NativeBackHandler
 import kotlin.system.exitProcess
 
 @SuppressLint("CustomSplashScreen")
@@ -113,8 +112,7 @@ class SplashActivity : AppCompatActivity() {
           },
         )
         if (localPrivacy.isNotEmpty()) {
-          NativeBackHandler { localPrivacy = "" }
-          CommonWebView(localPrivacy)
+          CommonWebView(localPrivacy) { localPrivacy = "" }
         }
       }
     }
@@ -134,8 +132,7 @@ fun SplashMainView() {
   ) {
     val size = min(maxWidth, maxHeight)
     Column(
-      modifier = Modifier.size(size * 1.618f),
-      horizontalAlignment = Alignment.CenterHorizontally
+      modifier = Modifier.size(size * 1.618f), horizontalAlignment = Alignment.CenterHorizontally
     ) {
       Box(Modifier.weight(0.382f))
       BoxWithConstraints(

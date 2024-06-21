@@ -6,10 +6,16 @@ import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
@@ -24,11 +30,13 @@ import org.dweb_browser.dwebview.AccompanistWebViewClient
 import org.dweb_browser.dwebview.LoadingState
 import org.dweb_browser.dwebview.WebContent
 import org.dweb_browser.dwebview.WebViewState
+import org.dweb_browser.sys.window.render.NativeBackHandler
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
-fun CommonWebView(url: String) {
+fun CommonWebView(url: String, onGoBack: () -> Unit) {
   val state = remember(url) { WebViewState(WebContent.Url(url)) }
 
   val webViewClient = remember {
@@ -96,12 +104,20 @@ fun CommonWebView(url: String) {
       }
     }
   }
-  Box(
-    modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
-  ) {
-    val background = MaterialTheme.colorScheme.background
+  NativeBackHandler {
+    onGoBack()
+  };
+  Scaffold(modifier = Modifier.fillMaxSize(), topBar = {
+    TopAppBar(title = {
+      Text(state.pageTitle ?: "")
+    }, navigationIcon = {
+      IconButton(onClick = onGoBack) {
+        Icon(Icons.Default.ArrowBackIosNew, contentDescription = "Go Back")
+      }
+    })
+  }) { paddingValues ->
     AccompanistWebView(state = state,
-      modifier = Modifier.fillMaxSize().background(background), // TODO 为了避免暗模式突然闪一下白屏
+      modifier = Modifier.fillMaxSize().padding(paddingValues), // TODO 为了避免暗模式突然闪一下白屏
       client = webViewClient,
       chromeClient = webChromeClient,
       factory = {
