@@ -5,19 +5,22 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.EaseInOutQuart
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -28,13 +31,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
-import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -43,6 +47,7 @@ import org.dweb_browser.browser.common.CommonWebView
 import org.dweb_browser.browser.common.SplashPrivacyDialog
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.interceptStartApp
+import org.dweb_browser.helper.Once1
 import org.dweb_browser.helper.compose.LocalCommonUrl
 import org.dweb_browser.helper.getBoolean
 import org.dweb_browser.helper.globalMainScope
@@ -52,18 +57,12 @@ import kotlin.system.exitProcess
 
 @SuppressLint("CustomSplashScreen")
 class SplashActivity : AppCompatActivity() {
-  private var mKeepOnAtomicBool by atomic(true)
+  private var mKeepOnAtomicBool by mutableStateOf(true)
   private val keyEnableAgreement = "enable.agreement" // 判断是否第一次运行程序
 
+
   @OptIn(ExperimentalCoroutinesApi::class)
-  @SuppressLint("ObjectAnimatorBinding", "CoroutineCreationDuringComposition")
-  override fun onCreate(savedInstanceState: Bundle?) {
-//    enableEdgeToEdge() // 全屏
-    WindowCompat.setDecorFitsSystemWindows(window, false) // 全屏
-
-    super.onCreate(savedInstanceState)
-
-    val agree = this.getBoolean(keyEnableAgreement, false) // 获取隐私协议状态
+  private val grantInstaller = Once1 { agree: Boolean ->
     // 启动屏幕的安装 必须放在setContent之前
     val splashScreen = installSplashScreen().also {
       it.setKeepOnScreenCondition { mKeepOnAtomicBool } // 使用mKeepOnAtomicBool状态控制欢迎界面
@@ -92,11 +91,24 @@ class SplashActivity : AppCompatActivity() {
     /// 启动应用
     DwebBrowserApp.startMicroModuleProcess() // 启动MicroModule
 
+    grant
+  }
+
+  @OptIn(ExperimentalCoroutinesApi::class)
+  @SuppressLint("ObjectAnimatorBinding", "CoroutineCreationDuringComposition")
+  override fun onCreate(savedInstanceState: Bundle?) {
+//    enableEdgeToEdge() // 全屏
+    WindowCompat.setDecorFitsSystemWindows(window, false) // 全屏
+
+    super.onCreate(savedInstanceState)
+    val agree = this.getBoolean(keyEnableAgreement, false) // 获取隐私协议状态
+    val grant = grantInstaller(agree)
+
     setContent {
       var localPrivacy by LocalCommonUrl.current
 
       DwebBrowserAppTheme {
-        SplashMainView()
+        SplashMainView(startAnimation = !mKeepOnAtomicBool)
         if (agree) {
           return@DwebBrowserAppTheme
         }
@@ -125,59 +137,80 @@ class SplashActivity : AppCompatActivity() {
 }
 
 @Composable
-fun SplashMainView() {
+fun dpAni(targetValue: Dp, label: String, onFinished: () -> Unit = {}): Dp {
+  return animateDpAsState(targetValue,
+    animationSpec = tween(800, easing = EaseInOutQuart),
+    label = label,
+    finishedListener = { onFinished() }).value
+}
+
+@Composable
+fun SplashMainView(startAnimation: Boolean) {
   BoxWithConstraints(
     Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
-    contentAlignment = Alignment.TopCenter,
+    contentAlignment = Alignment.Center,
   ) {
-    val size = min(maxWidth, maxHeight)
-    Column(
-      modifier = Modifier.size(size * 1.618f), horizontalAlignment = Alignment.CenterHorizontally
+    var aniStart by remember { mutableStateOf(false) }
+    val logoHeight = 288.dp//maxHeight * 0.566f
+    var logoTop by remember { mutableStateOf(0.dp) }
+    val bannerTop = logoHeight / 2 + logoTop
+
+    if (startAnimation) {
+      LaunchedEffect(null) {
+        delay(10)
+        val boxSize = min(maxWidth, maxHeight) * 1.618f
+        logoTop = (boxSize * 0.217f) - ((maxHeight - logoHeight) / 2)
+        delay(500)
+        aniStart = true
+      }
+    }
+
+    val logoOffsetY = dpAni(logoTop, "logoPaddingTop")
+    Image(imageVector = ImageVector.vectorResource(R.drawable.ic_launcher_foreground),
+      contentDescription = "Dweb Browser Logo",
+      modifier = Modifier.requiredSize(288.dp).offset {
+        IntOffset(0, (logoOffsetY.value * density).toInt())
+      })
+    val bannerOffsetY = dpAni(bannerTop, "bannerPaddingTop")
+    Box(
+      Modifier.offset {
+        IntOffset(0, (bannerOffsetY.value * density).toInt())
+      },
+      contentAlignment = Alignment.TopCenter,
     ) {
-      Box(Modifier.weight(0.382f))
-      BoxWithConstraints(
-        Modifier.fillMaxSize().weight(1f), contentAlignment = Alignment.Center
-      ) {
-        Image(
-          imageVector = ImageVector.vectorResource(R.drawable.ic_launcher_foreground),
-          contentDescription = "Dweb Browser Logo",
-          modifier = Modifier.size(min(maxWidth, maxHeight))
-        )
+      var brushStartX by remember { mutableFloatStateOf(0.5f) }
+      var brushEndX by remember { mutableFloatStateOf(0.5f) }
+      var brushColor by remember { mutableStateOf(Color.Transparent) }
+      val toColor = MaterialTheme.colorScheme.primary
+      if (aniStart) {
+        brushStartX = 0f
+        brushEndX = 1f
+        brushColor = toColor
       }
-      Box(Modifier.weight(0.382f), contentAlignment = Alignment.TopCenter) {
-        var brushStartX by remember { mutableFloatStateOf(0.5f) }
-        var brushEndX by remember { mutableFloatStateOf(0.5f) }
-        var brushColor by remember { mutableStateOf(Color.Transparent) }
-        val brushToColor = MaterialTheme.colorScheme.primary
-        val animationSpec = tween<Float>(durationMillis = 2000, easing = FastOutSlowInEasing)
-        val startX by animateFloatAsState(
-          brushStartX, label = "startX", animationSpec = animationSpec
-        )
-        val endX by animateFloatAsState(brushEndX, label = "endX", animationSpec = animationSpec)
-        val color by animateColorAsState(
-          brushColor,
-          label = "color",
-          animationSpec = tween(durationMillis = 2000, easing = FastOutSlowInEasing)
-        )
-        val brush = Brush.horizontalGradient(
-          colorStops = arrayOf(
-            0f to Color.Transparent,
-            startX to color,
-            0.5f to brushToColor,
-            endX to color,
-            1f to Color.Transparent,
-          ),
-        )
-        Text(" Dweb Browser ", style = MaterialTheme.typography.headlineLarge.merge(
-          TextStyle(
-            brush = brush,
-          )
-        ), modifier = Modifier.onGloballyPositioned {
-          brushStartX = 0f
-          brushEndX = 1f
-          brushColor = brushToColor
-        })
-      }
+      val animationSpec =
+        remember { tween<Float>(durationMillis = 2000, easing = FastOutSlowInEasing) }
+      val startX by animateFloatAsState(
+        brushStartX, label = "startX", animationSpec = animationSpec
+      )
+      val endX by animateFloatAsState(brushEndX, label = "endX", animationSpec = animationSpec)
+      val color by animateColorAsState(
+        brushColor,
+        label = "color",
+        animationSpec = tween(durationMillis = 2000, easing = FastOutSlowInEasing)
+      )
+      val brush = Brush.horizontalGradient(
+        colorStops = arrayOf(
+          0f to Color.Transparent,
+          startX to color,
+          0.5f to toColor,
+          endX to color,
+          1f to Color.Transparent,
+        ),
+      )
+      Text(
+        " Dweb Browser ",
+        style = MaterialTheme.typography.headlineLarge.merge(TextStyle(brush = brush)),
+      )
     }
   }
 }

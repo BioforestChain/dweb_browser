@@ -5,7 +5,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.updateTransition
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -39,8 +38,10 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.helper.PrivacyUrl
+import org.dweb_browser.helper.compose.IosFastOutSlowInEasing
 import org.dweb_browser.helper.platform.theme.dimens
 
 @Composable
@@ -48,36 +49,35 @@ fun SplashPrivacyDialog(
   openHome: () -> Unit, openWebView: (String) -> Unit, closeApp: () -> Unit,
 ) {
   var showPrivacyDeny by remember { mutableStateOf(false) }
+  val showPrivacyView by remember(showPrivacyDeny) { mutableStateOf(!showPrivacyDeny) }
 
-  val transition = updateTransition(showPrivacyDeny, "")
-  Box(
-    modifier = Modifier.fillMaxSize()
-  ) {
-    Box(
-      modifier = Modifier.widthIn(max = 600.dp).align(Alignment.BottomCenter),
-    ) {
-      transition.AnimatedVisibility(
-        visible = { show -> !show },
+  Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = Modifier.widthIn(max = 600.dp).align(Alignment.BottomCenter)) {
+      updateTransition(showPrivacyView, "PrivacyView").AnimatedVisibility(
+        visible = { it },
+        modifier = Modifier.zIndex(if (showPrivacyView) 1f else 0f),
         enter = slideInVertically(
-          initialOffsetY = { fullHeight -> fullHeight }, animationSpec = tween(350)
+          initialOffsetY = { it }, animationSpec = tween(350, easing = IosFastOutSlowInEasing)
         ),
         exit = slideOutVertically(
-          targetOffsetY = { fullHeight -> fullHeight }, animationSpec = tween(50)
+          targetOffsetY = { it }, animationSpec = tween(350, easing = IosFastOutSlowInEasing)
         ),
       ) {
-        SplashPrivacyView(openWebView, openHome) { showPrivacyDeny = true }
+        SplashPrivacyView(Modifier, openWebView, openHome) { showPrivacyDeny = true }
       }
-
-      transition.AnimatedVisibility(
-        visible = { show -> show },
+    }
+    Box(modifier = Modifier.widthIn(max = 600.dp).align(Alignment.BottomCenter)) {
+      updateTransition(showPrivacyDeny, "PrivacyDeny").AnimatedVisibility(
+        visible = { it },
+        modifier = Modifier.zIndex(if (showPrivacyDeny) 1f else 0f),
         enter = slideInVertically(
-          initialOffsetY = { fullHeight -> fullHeight }, animationSpec = tween(350)
+          initialOffsetY = { it }, animationSpec = tween(350, easing = IosFastOutSlowInEasing)
         ),
         exit = slideOutVertically(
-          targetOffsetY = { fullHeight -> fullHeight }, animationSpec = tween(50)
+          targetOffsetY = { it }, animationSpec = tween(350, easing = IosFastOutSlowInEasing)
         ),
       ) {
-        SplashPrivacyDeny(closeApp) { showPrivacyDeny = false }
+        SplashPrivacyDeny(Modifier, closeApp) { showPrivacyDeny = false }
       }
     }
   }
@@ -85,9 +85,10 @@ fun SplashPrivacyDialog(
 
 @Composable
 private fun SplashPrivacyView(
+  modifier: Modifier,
   openWebView: (String) -> Unit, onConfirm: () -> Unit, onDismiss: () -> Unit,
 ) {
-  BottomSheet {
+  BottomSheet(modifier) {
     Text(
       text = BrowserI18nResource.privacy_title(),
       style = MaterialTheme.typography.titleMedium,
@@ -133,8 +134,8 @@ private fun SplashPrivacyView(
  * 这个是不同意协议后，弹出的再次确认框
  */
 @Composable
-private fun SplashPrivacyDeny(onDismiss: () -> Unit, onConfirm: () -> Unit) {
-  BottomSheet {
+private fun SplashPrivacyDeny(modifier: Modifier, onDismiss: () -> Unit, onConfirm: () -> Unit) {
+  BottomSheet(modifier) {
     Text(
       text = BrowserI18nResource.privacy_title(),
       style = MaterialTheme.typography.titleMedium,
@@ -158,15 +159,14 @@ private fun SplashPrivacyDeny(onDismiss: () -> Unit, onConfirm: () -> Unit) {
 
 
 @Composable
-private fun BottomSheet(content: @Composable ColumnScope.() -> Unit) {
+private fun BottomSheet(modifier: Modifier, content: @Composable ColumnScope.() -> Unit) {
   Surface(
-    modifier = Modifier.fillMaxWidth(),
+    modifier = modifier.fillMaxWidth(),
     shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
     shadowElevation = MaterialTheme.dimens.medium,
   ) {
     Column(
-      modifier = Modifier.fillMaxWidth().padding(24.dp),
-      content = content
+      modifier = Modifier.fillMaxWidth().padding(24.dp), content = content
     )
   }
 }

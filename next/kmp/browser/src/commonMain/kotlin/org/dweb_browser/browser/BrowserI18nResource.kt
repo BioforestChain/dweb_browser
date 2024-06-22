@@ -91,8 +91,8 @@ object BrowserI18nResource {
 
   val privacy_title = SimpleI18nResource(Language.ZH to "温馨提示", Language.EN to "Tips")
   val privacy_content = SimpleI18nResource(
-    Language.ZH to "欢迎使用 Dweb Browser，在您使用的时候，需要连接网络，产生的流量费用请咨询当地运营商。在使用 Dweb Browser 前，请认真阅读《隐私协议》。您需要同意并接受全部条款后再开始使用该软件。",
-    Language.EN to "Welcome to Dweb Browser. Please note that an internet connection is required for use. Please consult your local operator for any data charges that may apply. Before using Dweb Browser, please carefully read the 'Privacy Policy'. You must agree to and accept all terms and conditions before using the software."
+    Language.ZH to "欢迎使用 Dweb Browser，在您使用的时候，需要连接网络，产生的流量费用请咨询当地运营商。\n在使用 Dweb Browser 前，请认真阅读《隐私协议》。您需要同意并接受全部条款后再开始使用该软件。",
+    Language.EN to "Welcome to Dweb Browser. Please note that an internet connection is required for use. Please consult your local operator for any data charges that may apply.\nBefore using Dweb Browser, please carefully read the 'Privacy Policy'. You must agree to and accept all terms and conditions before using the software."
   )
   val privacy_policy =
     SimpleI18nResource(Language.ZH to "《隐私协议》", Language.EN to "'Privacy Policy'")
