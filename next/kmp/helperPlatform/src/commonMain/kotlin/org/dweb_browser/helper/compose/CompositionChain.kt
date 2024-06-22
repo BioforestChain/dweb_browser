@@ -108,7 +108,7 @@ class CompositionChainKey<T> private constructor(
   infix fun provides(value: T) = ProvidedChainValue(this, value)
 }
 
-data class ProvidedChainValue<T> internal constructor(
+class ProvidedChainValue<T> internal constructor(
   val key: CompositionChainKey<T>,
   val value: T,
 )

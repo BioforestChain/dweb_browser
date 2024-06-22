@@ -25,7 +25,8 @@ export async function recordUploadRelease(taskId: string, uploadArgs: $UploadRel
       import { defineTask, tryExecTask } from "./build-helper.ts";
       if (import.meta.main) {
         void tryExecTask();
-      }\n`
+      }
+      `
     );
   }
   if (fs.readFileSync(uploadTestTsFile, { encoding: "utf-8" }).includes(taskId) === false) {
