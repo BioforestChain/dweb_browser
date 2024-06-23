@@ -1,11 +1,9 @@
 package org.dweb_browser.sys.shortcut
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AppShortcut
@@ -16,11 +14,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.unit.dp
 import org.dweb_browser.helper.compose.LazySwipeAndReorderList
 import org.dweb_browser.helper.compose.reorder.ItemPosition
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
+import org.dweb_browser.sys.window.core.WindowContentScaffoldWithTitleText
 
 @Composable
 fun ShortcutManagerRender(
@@ -31,19 +29,15 @@ fun ShortcutManagerRender(
   onDragEnd: (startIndex: Int, endIndex: Int) -> Unit,
   onRemove: (SystemShortcut) -> Unit
 ) {
-  Box(
-    modifier = modifier
-      .fillMaxSize()
-      .requiredSize(
-        width = (windowRenderScope.width / windowRenderScope.scale).dp,
-        height = (windowRenderScope.height / windowRenderScope.scale).dp
-      ) // 原始大小
-      .scale(windowRenderScope.scale)
-  ) {
+  windowRenderScope.WindowContentScaffoldWithTitleText(
+    modifier,
+    topBarTitleText = ShortcutI18nResource.shortcut_title(),
+  ) { paddingValues ->
     LazySwipeAndReorderList(
       items = shortcutList,
       key = { item -> item.title },
-      modifier = Modifier.fillMaxWidth().height(72.dp),
+      modifier = Modifier.padding(paddingValues),
+      itemModifier = Modifier.fillMaxWidth().height(72.dp),
       onDragMove = onDragMove,
       onDragEnd = onDragEnd,
       onRemove = onRemove,
@@ -52,9 +46,7 @@ fun ShortcutManagerRender(
       leadingContent = { item ->
         item.iconImage?.let { iconImage ->
           Image(
-            modifier = Modifier.size(72.dp),
-            bitmap = iconImage,
-            contentDescription = "shortcut"
+            modifier = Modifier.size(72.dp), bitmap = iconImage, contentDescription = "shortcut"
           )
         } ?: Icon(Icons.Default.AppShortcut, contentDescription = "shortcut")
       },

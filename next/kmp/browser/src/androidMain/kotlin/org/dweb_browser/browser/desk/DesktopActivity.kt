@@ -29,7 +29,6 @@ class DesktopActivity : PureViewController() {
         allowReturnTransitionOverlap = true
 
         enterTransition = Fade()
-        transitionBackgroundFadeDuration = 10000
       }
       /// 禁止自适应布局，执行后，可以将我们的内容嵌入到状态栏和导航栏，但是会发现我们的界面呗状态栏和导航栏给覆盖了，这时候就需要systemUiController来改颜色
       WindowCompat.setDecorFitsSystemWindows(window, false)

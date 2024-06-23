@@ -1,7 +1,6 @@
 package org.dweb_browser.browser.common
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.updateTransition
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
@@ -41,7 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.helper.PrivacyUrl
-import org.dweb_browser.helper.compose.IosFastOutSlowInEasing
+import org.dweb_browser.helper.compose.iosTween
 import org.dweb_browser.helper.platform.theme.dimens
 
 @Composable
@@ -57,10 +56,10 @@ fun SplashPrivacyDialog(
         visible = { it },
         modifier = Modifier.zIndex(if (showPrivacyView) 1f else 0f),
         enter = slideInVertically(
-          initialOffsetY = { it }, animationSpec = tween(350, easing = IosFastOutSlowInEasing)
+          initialOffsetY = { it }, animationSpec = iosTween(durationIn = showPrivacyView)
         ),
         exit = slideOutVertically(
-          targetOffsetY = { it }, animationSpec = tween(350, easing = IosFastOutSlowInEasing)
+          targetOffsetY = { it }, animationSpec = iosTween(durationIn = showPrivacyView)
         ),
       ) {
         SplashPrivacyView(Modifier, openWebView, openHome) { showPrivacyDeny = true }
@@ -71,10 +70,10 @@ fun SplashPrivacyDialog(
         visible = { it },
         modifier = Modifier.zIndex(if (showPrivacyDeny) 1f else 0f),
         enter = slideInVertically(
-          initialOffsetY = { it }, animationSpec = tween(350, easing = IosFastOutSlowInEasing)
+          initialOffsetY = { it }, animationSpec = iosTween(durationIn = showPrivacyDeny)
         ),
         exit = slideOutVertically(
-          targetOffsetY = { it }, animationSpec = tween(350, easing = IosFastOutSlowInEasing)
+          targetOffsetY = { it }, animationSpec = iosTween(durationIn = showPrivacyDeny)
         ),
       ) {
         SplashPrivacyDeny(Modifier, closeApp) { showPrivacyDeny = false }

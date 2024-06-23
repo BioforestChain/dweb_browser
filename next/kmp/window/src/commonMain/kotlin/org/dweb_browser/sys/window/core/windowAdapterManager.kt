@@ -54,6 +54,9 @@ data class WindowContentRenderScope internal constructor(
   )
 
   companion object {
+    val Unspecified =
+      WindowContentRenderScope(Float.NaN, Float.NaN, 1f, Dp.Unspecified, Dp.Unspecified, false)
+
     fun fromDp(
       widthDp: Dp,
       heightDp: Dp,
@@ -154,9 +157,7 @@ class WindowAdapterManager : AdapterManager<CreateWindowAdapter>() {
              */
             render(
               windowRenderScope,
-              Modifier
-                .requiredSize(windowRenderScope.width.dp, windowRenderScope.height.dp)
-                .then(contentModifier),
+              contentModifier,
             )
             // }
           }

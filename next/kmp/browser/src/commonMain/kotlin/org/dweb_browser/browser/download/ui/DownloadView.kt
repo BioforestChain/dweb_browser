@@ -24,18 +24,18 @@ import org.dweb_browser.browser.download.model.LocalDownloadModel
 import org.dweb_browser.helper.compose.LazySwipeColumn
 
 @Composable
-fun DownloadView() {
-  DownloadHistory()
-  DecompressView()
+fun DownloadView(modifier: Modifier) {
+  DownloadHistory(modifier)
+  DecompressView(modifier)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DownloadHistory() {
+fun DownloadHistory(modifier: Modifier) {
   val viewModel = LocalDownloadModel.current
   val scope = rememberCoroutineScope()
   Column(
-    modifier = Modifier
+    modifier = modifier
       .fillMaxSize()
       .background(MaterialTheme.colorScheme.background)
   ) {

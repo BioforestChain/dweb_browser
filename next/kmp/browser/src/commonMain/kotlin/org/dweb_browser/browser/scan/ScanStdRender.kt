@@ -11,6 +11,7 @@ import org.dweb_browser.browser.common.barcode.QRCodeScanModel
 import org.dweb_browser.browser.common.barcode.QRCodeScanRender
 import org.dweb_browser.browser.common.barcode.QRCodeState
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
+import org.dweb_browser.sys.window.core.withRenderScope
 import org.dweb_browser.sys.window.render.NativeBackHandler
 
 @Composable
@@ -27,9 +28,7 @@ fun ScanStdController.ScanStdRender(
       else -> closeWindow()
     }
   }
-  Box(modifier = with(windowContentRenderScope) {
-    modifier.requiredSize((width / scale).dp, (height / scale).dp).scale(scale)
-  }) {
+  Box(modifier = modifier.withRenderScope(windowContentRenderScope)) {
     QRCodeScanRender(
       scanModel = qrCodeScanModel,
       requestPermission = { true },

@@ -1,5 +1,6 @@
 package org.dweb_browser.sys.window.render
 
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.animateRectAsState
 import androidx.compose.animation.core.tween
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -193,11 +195,12 @@ fun WindowController.WindowRender(modifier: Modifier) {
     val inResizeFrame by win.inResize
     val winBounds by win.watchedBounds()
     var inResizeAnimation by remember { mutableStateOf(false) }
-    val modifierRect = when {
+    val windowRectNoTranslate = inResizeFrame || inMove
+    val windowRect = when {
       win.state.isSystemWindow -> null
       else -> winBounds.toRect().let { rect ->
         when {
-          inResizeFrame || inMove -> rect
+          windowRectNoTranslate -> rect
           else -> animateRectAsState(
             targetValue = rect,
             animationSpec = iosTween(durationIn = isMaximized),
@@ -210,27 +213,35 @@ fun WindowController.WindowRender(modifier: Modifier) {
     }
     Box(
       modifier = modifier.composed {
-        when (modifierRect) {
+        when (windowRect) {
           // 如果使用 原生窗口的边框，那么只需要填充满画布即可
           null -> fillMaxSize()
           // 否则使用 模拟窗口的边框，需要自定义坐标、阴影、缩放
           else -> {
-            offset(modifierRect.left.dp, modifierRect.top.dp).size(
-              modifierRect.width.dp, modifierRect.height.dp
+            offset(windowRect.left.dp, windowRect.top.dp).size(
+              windowRect.width.dp, windowRect.height.dp
             ).graphicsLayer {
               this.alpha = opacity
               this.scaleX = scale
               this.scaleY = scale
-            }.shadow(
-              /**
-               * 窗口海拔阴影
-               */
+            }.shadow(/**
+             * 窗口海拔阴影
+             */
               elevation = animateFloatAsState(
                 targetValue = (if (inMove) 20f else 1f) + zIndex,
                 animationSpec = tween(durationMillis = if (inMove) 250 else 500),
                 label = "elevation"
-              ).value.dp, shape = winPadding.boxRounded.roundedCornerShape
-            ).focusable()
+              ).value.dp, shape = winPadding.boxRounded.run {
+                when {
+                  windowRectNoTranslate -> roundedCornerShape
+                  else -> RoundedCornerShape(
+                    animateDpAsState(topStart.dp, iosTween(durationIn = isMaximized)).value,
+                    animateDpAsState(topEnd.dp, iosTween(durationIn = isMaximized)).value,
+                    animateDpAsState(bottomStart.dp, iosTween(durationIn = isMaximized)).value,
+                    animateDpAsState(bottomEnd.dp, iosTween(durationIn = isMaximized)).value,
+                  )
+                }
+              }).focusable()
           }
         }
       },
@@ -307,8 +318,7 @@ fun WindowController.WindowRender(modifier: Modifier) {
           )
         }
         /// 显示底部控制条
-        WindowBottomBar(
-          win,
+        WindowBottomBar(win,
           Modifier.height(winPadding.bottom.dp).fillMaxWidth().onGloballyPositioned {
             bottomBarHeight = it.size.height / density
           })

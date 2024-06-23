@@ -112,7 +112,6 @@ class SplashActivity : AppCompatActivity() {
       allowReturnTransitionOverlap = true
 
       exitTransition = Fade()
-      transitionBackgroundFadeDuration = 10000
     }
     addStartActivityOptions(this) {
       ActivityOptions.makeSceneTransitionAnimation(this).toBundle()

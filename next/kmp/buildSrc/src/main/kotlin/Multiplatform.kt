@@ -445,7 +445,7 @@ fun KotlinMultiplatformExtension.kmpComposeTarget(
     implementation(libs.jetbrains.compose.material)
     implementation(libs.jetbrains.compose.material3)
     implementation(libs.jetbrains.compose.materialIcons)
-//    implementation(libs.jetbrains.androidx.navigation)
+    implementation(libs.jetbrains.androidx.navigation)
 
     implementation(compose.components.uiToolingPreview)
   }

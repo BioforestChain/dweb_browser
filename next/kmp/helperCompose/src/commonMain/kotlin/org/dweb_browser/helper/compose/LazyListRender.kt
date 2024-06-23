@@ -137,6 +137,7 @@ fun <T> LazySwipeAndReorderList(
   onDragEnd: (startIndex: Int, endIndex: Int) -> Unit,
   onRemove: (item: T) -> Unit,
   modifier: Modifier = Modifier,
+  itemModifier: Modifier = Modifier,
   headlineContent: @Composable (item: T) -> Unit,
   overlineContent: @Composable ((item: T) -> Unit)? = null,
   supportingContent: @Composable ((item: T) -> Unit)? = null,
@@ -154,13 +155,13 @@ fun <T> LazySwipeAndReorderList(
   val state = rememberReorderAbleLazyListState(onMove = onDragMove, onDragEnd = onDragEnd)
   LazyColumn(
     state = state.listState,
-    modifier = Modifier.fillMaxSize().reorderAble(state)
+    modifier = modifier.reorderAble(state)
   ) {
     items(items, key = { item -> key(item) }) { item ->
       ReorderAbleItem(
         reorderAbleState = state,
         key = key(item),
-        modifier = modifier,
+        modifier = itemModifier,
       ) { dragging ->
         val elevation = animateDpAsState(if (dragging) 8.dp else 0.dp, label = "")
         ListSwipeItem(

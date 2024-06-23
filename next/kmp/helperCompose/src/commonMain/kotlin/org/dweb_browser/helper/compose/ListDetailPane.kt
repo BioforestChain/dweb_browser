@@ -1,5 +1,7 @@
 package org.dweb_browser.helper.compose
 
+import androidx.compose.animation.slideIn
+import androidx.compose.animation.slideOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
@@ -8,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredWidth
@@ -18,27 +21,37 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.launch
 
 
 expect fun Modifier.cursorForHorizontalResize(): Modifier
 
 @Composable
 fun ListDetailPaneScaffold(
+  navigator: ListDetailPaneScaffoldNavigator,
+  modifier: Modifier = Modifier,
   listPane: @Composable () -> Unit,
   detailPane: @Composable () -> Unit,
 ) {
   val minWidth = 360.dp
-  BoxWithConstraints {
-    val nav = LocalListDetailPaneScaffoldNavigator.current
-    nav.isFold = maxWidth.value >= 720
+  BoxWithConstraints(modifier) {
+    navigator.isFold = maxWidth.value >= 720
     val maxWidth = maxWidth - minWidth
     when {
-      nav.isFold -> {
+      navigator.isFold -> {
         var listWidth by remember { mutableStateOf(minWidth) }
         val density = LocalDensity.current.density
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -47,8 +60,7 @@ fun ListDetailPaneScaffold(
           }
           Box(
             Modifier.background(MaterialTheme.colorScheme.surfaceDim).padding(4.dp)
-              .wrapContentWidth()
-              .fillMaxHeight(),
+              .wrapContentWidth().fillMaxHeight(),
             contentAlignment = Alignment.Center,
           ) {
             var dragging by remember { mutableStateOf(false) }
@@ -81,9 +93,27 @@ fun ListDetailPaneScaffold(
       }
 
       else -> {
-        when (LocalListDetailPaneScaffoldNavigator.current.currentRole) {
-          ListDetailPaneScaffoldRole.List -> listPane()
-          ListDetailPaneScaffoldRole.Detail -> detailPane()
+        NavHost(
+          navController = navigator.navHostController,
+          startDestination = ListDetailPaneScaffoldRole.List.name,
+          modifier = Modifier.fillMaxSize(),
+          // 新页面进场
+          enterTransition = { slideIn(iosTween(true)) { IntOffset(it.width, 0) } },
+          // 新页面退场
+          popExitTransition = { slideOut(iosTween(false)) { IntOffset(it.width, 0) } },
+
+          // 旧页面退场
+          exitTransition = { slideOut(iosTween(false)) { IntOffset(-it.width, 0) } },
+          // 旧页面回场
+          popEnterTransition = { slideIn(iosTween(true)) { IntOffset(-it.width, 0) } },
+//          popExitTransition = { fadeOut() },
+        ) {
+          composable(ListDetailPaneScaffoldRole.List.name) {
+            listPane()
+          }
+          composable(ListDetailPaneScaffoldRole.Detail.name) {
+            detailPane()
+          }
         }
       }
     }
@@ -96,25 +126,64 @@ enum class ListDetailPaneScaffoldRole {
 
 @Composable
 fun rememberListDetailPaneScaffoldNavigator(): ListDetailPaneScaffoldNavigator {
-  return LocalListDetailPaneScaffoldNavigator.current
+  val navHostController = rememberNavController()
+  val scope = rememberCoroutineScope()
+  return remember(navHostController, scope) {
+    ListDetailPaneScaffoldNavigator(
+      navHostController,
+      scope
+    )
+  }
 }
 
-class ListDetailPaneScaffoldNavigator {
+class ListDetailPaneScaffoldNavigator(
+  internal val navHostController: NavHostController,
+  private val scope: CoroutineScope,
+) {
   var isFold by mutableStateOf(false)
     internal set
   internal var currentRole by mutableStateOf(ListDetailPaneScaffoldRole.List)
-  fun navigateBack() {
-    currentRole = ListDetailPaneScaffoldRole.List
+  fun navigateBack(onBack: () -> Unit = {}) {
+    navigateTo(ListDetailPaneScaffoldRole.List, onDidLeave = onBack)
   }
 
   fun canNavigateBack(): Boolean {
     return currentRole !== ListDetailPaneScaffoldRole.List
   }
 
-  fun navigateTo(role: ListDetailPaneScaffoldRole) {
-    currentRole = role
+  private val navAniJob = scope.launch(start = CoroutineStart.UNDISPATCHED) {
+    navHostController.currentBackStackEntryFlow.collect {
+      println("QAQ currentBackStackEntryFlow ${it.destination.route}")
+    }
   }
-}
 
-internal val LocalListDetailPaneScaffoldNavigator =
-  compositionChainOf("ListDetailPaneScaffoldNavigator") { ListDetailPaneScaffoldNavigator() }
+
+  fun navigateTo(
+    role: ListDetailPaneScaffoldRole,
+    onWillEnter: () -> Unit = {},
+    onDidEnter: () -> Unit = {},
+    onWillLeave: () -> Unit = {},
+    onDidLeave: () -> Unit = {},
+  ) {
+    if (role == currentRole) {
+      return
+    }
+    onWillEnter()
+    onWillLeave()
+    currentRole = role
+
+    when (role) {
+      ListDetailPaneScaffoldRole.List -> {
+        println("QAQ navHostController.popBackStack list")
+        navHostController.popBackStack()
+      }
+
+      ListDetailPaneScaffoldRole.Detail -> {
+        println("QAQ navHostController.navigate detail")
+        navHostController.navigate(role.name)
+      }
+    }
+  }
+
+  fun navigateToDetail() = navigateTo(ListDetailPaneScaffoldRole.Detail)
+}

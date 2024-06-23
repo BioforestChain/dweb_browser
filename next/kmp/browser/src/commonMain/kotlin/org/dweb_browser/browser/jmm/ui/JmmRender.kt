@@ -31,6 +31,7 @@ import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -55,7 +56,6 @@ import org.dweb_browser.browser.jmm.JmmTabs
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.helper.compose.LazySwipeColumn
 import org.dweb_browser.helper.compose.ListDetailPaneScaffold
-import org.dweb_browser.helper.compose.ListDetailPaneScaffoldRole
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.compose.produceEvent
 import org.dweb_browser.helper.compose.rememberListDetailPaneScaffoldNavigator
@@ -66,6 +66,7 @@ import org.dweb_browser.pure.image.compose.PureImageLoader
 import org.dweb_browser.pure.image.compose.SmartLoad
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
 import org.dweb_browser.sys.window.core.WindowContentScaffoldWithTitleText
+import org.dweb_browser.sys.window.core.withRenderScope
 import org.dweb_browser.sys.window.render.LocalWindowController
 
 
@@ -83,23 +84,22 @@ internal fun JmmRenderController.CommonRender(
   val win = LocalWindowController.current
   win.navigation.GoBackHandler(enabled = navigator.canNavigateBack()) {
     navigator.navigateBack()
-    closeDetail()
   }
   LaunchedEffect(detailController) {
     if (detailController != null) {
-      navigator.navigateTo(ListDetailPaneScaffoldRole.Detail)
+      navigator.navigateToDetail()
     }
   }
 
   ListDetailPaneScaffold(
+    modifier = modifier.withRenderScope(windowRenderScope),
+    navigator = navigator,
     listPane = {
-      BoxWithConstraints {
-        windowRenderScope.copyFrom(this).WindowContentScaffoldWithTitleText(
-          modifier = modifier,
-          topBarTitleText = BrowserI18nResource.top_bar_title_install(),
-        ) { innerPadding ->
-          JmmListView(Modifier.padding(innerPadding))
-        }
+      WindowContentRenderScope.Unspecified.WindowContentScaffoldWithTitleText(
+        modifier = Modifier.fillMaxSize(),
+        topBarTitleText = BrowserI18nResource.top_bar_title_install(),
+      ) { innerPadding ->
+        JmmListView(Modifier.padding(innerPadding))
       }
     },
     detailPane = {
@@ -109,8 +109,13 @@ internal fun JmmRenderController.CommonRender(
         }
 
         else -> BoxWithConstraints {
+          DisposableEffect(null) {
+            onDispose {
+              closeDetail()
+            }
+          }
           detail.Render(
-            Modifier.fillMaxSize(), windowRenderScope.copyFrom(this)
+            Modifier.fillMaxSize(), WindowContentRenderScope.Unspecified
           )
         }
       }

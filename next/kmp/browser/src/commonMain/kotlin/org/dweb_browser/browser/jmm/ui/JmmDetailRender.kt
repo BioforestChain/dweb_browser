@@ -72,7 +72,6 @@ fun JmmDetailController.Render(modifier: Modifier, renderScope: WindowContentRen
   }
 
   LocalCompositionChain.current.Provider(LocalJmmDetailController provides this) {
-
     renderScope.WindowContentScaffoldWithTitle(
       modifier = modifier,
       topBarTitle = {

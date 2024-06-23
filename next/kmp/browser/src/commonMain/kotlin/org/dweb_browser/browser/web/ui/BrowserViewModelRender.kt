@@ -2,22 +2,18 @@ package org.dweb_browser.browser.web.ui
 
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -25,10 +21,11 @@ import androidx.compose.ui.zIndex
 import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.browser.web.model.LocalBrowserViewModel
 import org.dweb_browser.helper.capturable.capturable
-import org.dweb_browser.helper.compose.IosFastOutSlowInEasing
+import org.dweb_browser.helper.compose.IosLeaveEasing
 import org.dweb_browser.helper.compose.LocalCompositionChain
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
+import org.dweb_browser.sys.window.core.withRenderScope
 import org.dweb_browser.sys.window.render.LocalWindowController
 
 internal val dimenTextFieldFontSize = 16.sp
@@ -42,8 +39,8 @@ internal val dimenBottomHeight = 60.dp
 internal val dimenSearchHeight = 40.dp
 internal val dimenNavigationHeight = 40.dp
 
-internal fun <T> enterAnimationSpec() = tween<T>(250, easing = IosFastOutSlowInEasing)
-internal fun <T> exitAnimationSpec() = tween<T>(300, easing = IosFastOutSlowInEasing)
+internal fun <T> enterAnimationSpec() = tween<T>(250, easing = IosLeaveEasing)
+internal fun <T> exitAnimationSpec() = tween<T>(300, easing = IosLeaveEasing)
 
 @Composable
 fun BrowserViewModalRender(
@@ -51,18 +48,14 @@ fun BrowserViewModalRender(
 ) {
   LocalCompositionChain.current.Provider(LocalBrowserViewModel provides viewModel) {
     viewModel.ViewModelEffect(windowRenderScope)
-    Box(modifier = remember(windowRenderScope) {
-      with(windowRenderScope) {
-        modifier.requiredSize(widthDp / scale, heightDp / scale).scale(scale)
-      }
-    }.background(MaterialTheme.colorScheme.background)) {
+    Surface(Modifier.withRenderScope(windowRenderScope)) {
       // 搜索界面考虑到窗口和全屏问题，显示的问题，需要控制modifier
-      if (BrowserPreviewPanel(Modifier.fillMaxSize().zIndex(2f))) return@Box
-      if (BrowserSearchPanel(Modifier.fillMaxSize().zIndex(2f))) return@Box
+      if (BrowserPreviewPanel(Modifier.fillMaxSize().zIndex(2f))) return@Surface
+      if (BrowserSearchPanel(Modifier.fillMaxSize().zIndex(2f))) return@Surface
       if (BrowserQRCodePanel(
           Modifier.fillMaxSize().zIndex(2f)
         )
-      ) return@Box // 扫码隐藏时，动画导致BrowserPagePanel优先显示，盖在了BrowserQRCodePanel上
+      ) return@Surface // 扫码隐藏时，动画导致BrowserPagePanel优先显示，盖在了BrowserQRCodePanel上
 
       BrowserPagePanel(Modifier.fillMaxSize(), windowRenderScope.scale)
     }

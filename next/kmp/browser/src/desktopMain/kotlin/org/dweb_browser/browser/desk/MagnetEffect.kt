@@ -1,7 +1,7 @@
 package org.dweb_browser.browser.desk
 
 import org.dweb_browser.helper.PureIntPoint
-import org.dweb_browser.helper.compose.IosFastOutSlowInEasing
+import org.dweb_browser.helper.compose.IosLeaveEasing
 import org.dweb_browser.helper.datetimeNow
 import org.dweb_browser.helper.platform.getAnimationFrameMs
 import java.awt.Container
@@ -46,7 +46,7 @@ class MagnetEffect(
     val durationMs: Int,
   ) {
     var progress = 0f
-    val easing = IosFastOutSlowInEasing
+    val easing = IosLeaveEasing
     val startTime = datetimeNow()
 
     fun draw(nowTime: Long) {

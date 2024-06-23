@@ -56,14 +56,14 @@ class DecompressModel(private val downloadController: DownloadController) {
 }
 
 @Composable
-fun DecompressView() {
+fun DecompressView(modifier: Modifier) {
   val decompressModel = LocalDecompressModel.current
   if (decompressModel.downloadTask.value != null) {
     LocalWindowController.current.navigation.GoBackHandler {
       decompressModel.hide()
     }
     Column(
-      modifier = Modifier
+      modifier = modifier
         .fillMaxSize()
         .background(MaterialTheme.colorScheme.background)
     ) {

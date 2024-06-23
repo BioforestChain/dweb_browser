@@ -2,7 +2,6 @@ package org.dweb_browser.sys.window.core
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIosNew
@@ -16,6 +15,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -38,10 +38,8 @@ private fun WindowContentScaffoldWrapper(
   content: @Composable (PaddingValues) -> Unit,
 ) {
   Scaffold(
-    modifier = renderScope.run {
-      modifier.fillMaxSize().requiredSize(widthDp / scale, heightDp / scale) // 原始大小
-        .scale(scale)
-    }.nestedScroll(scrollBehavior.nestedScrollConnection),
+    modifier = modifier.withRenderScope(renderScope)
+      .nestedScroll(scrollBehavior.nestedScrollConnection),
     // TODO 添加 ime 的支持
     contentWindowInsets = WindowInsets(0),
     topBar = {
@@ -51,6 +49,14 @@ private fun WindowContentScaffoldWrapper(
       content(innerPadding)
     },
   )
+}
+
+@Stable
+fun Modifier.withRenderScope(renderScope: WindowContentRenderScope) = when (renderScope) {
+  WindowContentRenderScope.Unspecified -> this
+  else -> renderScope.run {
+    this@withRenderScope.scale(scale).requiredSize(widthDp / scale, heightDp / scale) // 原始大小
+  }
 }
 
 @Composable
