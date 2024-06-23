@@ -9,6 +9,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
@@ -35,7 +36,7 @@ open class PureViewController : BaseActivity(), IPureViewController {
   override val onTouch = touchSignal.toListener()
   final override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    lifecycleScope.launch {
+    lifecycleScope.launch(start = CoroutineStart.UNDISPATCHED) {
       createSignal.emit(PureViewCreateParams(intent))
     }
     setContent {

@@ -1,7 +1,10 @@
 package info.bagen.dwebbrowser
 
 import android.annotation.SuppressLint
+import android.app.ActivityOptions
 import android.os.Bundle
+import android.transition.Fade
+import android.view.Window
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.animateColorAsState
@@ -48,10 +51,12 @@ import org.dweb_browser.browser.common.SplashPrivacyDialog
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.interceptStartApp
 import org.dweb_browser.helper.Once1
+import org.dweb_browser.helper.addStartActivityOptions
 import org.dweb_browser.helper.compose.LocalCommonUrl
 import org.dweb_browser.helper.getBoolean
 import org.dweb_browser.helper.globalMainScope
 import org.dweb_browser.helper.platform.theme.DwebBrowserAppTheme
+import org.dweb_browser.helper.removeStartActivityOptions
 import org.dweb_browser.helper.saveBoolean
 import kotlin.system.exitProcess
 
@@ -101,6 +106,17 @@ class SplashActivity : AppCompatActivity() {
     WindowCompat.setDecorFitsSystemWindows(window, false) // 全屏
 
     super.onCreate(savedInstanceState)
+    with(window) {
+      requestFeature(Window.FEATURE_ACTIVITY_TRANSITIONS)
+      allowEnterTransitionOverlap = true
+      allowReturnTransitionOverlap = true
+
+      exitTransition = Fade()
+      transitionBackgroundFadeDuration = 10000
+    }
+    addStartActivityOptions(this) {
+      ActivityOptions.makeSceneTransitionAnimation(this).toBundle()
+    }
     val agree = this.getBoolean(keyEnableAgreement, false) // 获取隐私协议状态
     val grant = grantInstaller(agree)
 
@@ -108,7 +124,10 @@ class SplashActivity : AppCompatActivity() {
       var localPrivacy by LocalCommonUrl.current
 
       DwebBrowserAppTheme {
-        SplashMainView(startAnimation = !mKeepOnAtomicBool)
+        SplashMainView(
+          Modifier,
+          startAnimation = !mKeepOnAtomicBool,
+        )
         if (agree) {
           return@DwebBrowserAppTheme
         }
@@ -134,6 +153,11 @@ class SplashActivity : AppCompatActivity() {
     super.onStop()
     finish()
   }
+
+  override fun onDestroy() {
+    super.onDestroy()
+    removeStartActivityOptions(this)
+  }
 }
 
 @Composable
@@ -145,9 +169,9 @@ fun dpAni(targetValue: Dp, label: String, onFinished: () -> Unit = {}): Dp {
 }
 
 @Composable
-fun SplashMainView(startAnimation: Boolean) {
+fun SplashMainView(modifier: Modifier, startAnimation: Boolean) {
   BoxWithConstraints(
-    Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
+    modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
     contentAlignment = Alignment.Center,
   ) {
     var aniStart by remember { mutableStateOf(false) }

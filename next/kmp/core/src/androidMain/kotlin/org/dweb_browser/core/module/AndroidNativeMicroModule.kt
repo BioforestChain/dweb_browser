@@ -5,6 +5,8 @@ import android.content.Intent
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.helper.getAppContext
+import org.dweb_browser.helper.getStartActivityOptions
+import org.dweb_browser.helper.withMainContext
 
 private val lockActivityState = Mutex()
 fun <T : Activity> MicroModule.Runtime.startAppActivity(
@@ -16,12 +18,14 @@ fun <T : Activity> MicroModule.Runtime.startAppActivity(
       if (grant?.await() == false) {
         return@withLock // TODO 用户拒绝协议应该做的事情ØÏ
       }
-      val context = getAppContext()
+      val (context, optionsBuilder) = getStartActivityOptions() ?: (getAppContext() to null)
       val intent = Intent(context, cls).also {
         it.`package` = context.packageName
       }
       onIntent(intent)
-      context.startActivity(intent)
+
+      val bounds = optionsBuilder?.let { withMainContext { optionsBuilder() } }
+      context.startActivity(intent, bounds)
     }
   }
 }

@@ -2,6 +2,8 @@ package org.dweb_browser.browser.desk
 
 import android.os.Build
 import android.provider.Settings.Global
+import android.transition.Fade
+import android.view.Window
 import android.webkit.WebView
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets
@@ -21,6 +23,14 @@ class DesktopActivity : PureViewController() {
 
   init {
     onCreate {
+      with(window) {
+        requestFeature(Window.FEATURE_ACTIVITY_TRANSITIONS)
+        allowEnterTransitionOverlap = true
+        allowReturnTransitionOverlap = true
+
+        enterTransition = Fade()
+        transitionBackgroundFadeDuration = 10000
+      }
       /// 禁止自适应布局，执行后，可以将我们的内容嵌入到状态栏和导航栏，但是会发现我们的界面呗状态栏和导航栏给覆盖了，这时候就需要systemUiController来改颜色
       WindowCompat.setDecorFitsSystemWindows(window, false)
       // lifecycleScope.launch { uploadDeviceInfo(this@DesktopActivity) } // 提交系统信息

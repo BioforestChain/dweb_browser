@@ -14,7 +14,9 @@ export class StdinDiscarder {
     });
     const wrapWithAbortSignal = <R>(promise: Promise<R>) => Promise.any([promise, abortPromise]);
 
-    Deno.stdin.setRaw(true, { cbreak: true });
+    try {
+      Deno.stdin.setRaw(true, { cbreak: true });
+    } catch {}
     const ASCII_ETX_CODE = 3; // Ctrl+C emits this code
     const stdin = Deno.stdin.readable.getReader();
     try {
@@ -32,7 +34,9 @@ export class StdinDiscarder {
       stdin.cancel();
       stdin.releaseLock();
       this.#readingController = undefined;
-      Deno.stdin.setRaw(false, { cbreak: false });
+      try {
+        Deno.stdin.setRaw(false, { cbreak: false });
+      } catch {}
       Deno.stdin.close();
     }
   }
