@@ -76,7 +76,7 @@ fun WindowController.GoBackButton() {
   }
 
   val canGoBack by win.watchedState { canGoBack }
-  if (canGoBack == true && win.navigation.goBackButtonStack.firstOrNull() == goBackButtonId) {
+  if (canGoBack == true && win.navigation.goBackButtonStack.lastOrNull() == goBackButtonId) {
     IconButton(onClick = {
       // TODO 提供导航功能
       uiScope.launch { win.navigation.emitGoBack() }

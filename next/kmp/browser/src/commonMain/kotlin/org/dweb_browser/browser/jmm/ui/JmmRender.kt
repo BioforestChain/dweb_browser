@@ -31,7 +31,6 @@ import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -83,11 +82,15 @@ internal fun JmmRenderController.CommonRender(
   val navigator = rememberListDetailPaneScaffoldNavigator()
   val win = LocalWindowController.current
   win.navigation.GoBackHandler(enabled = navigator.canNavigateBack()) {
-    navigator.navigateBack()
+    navigator.backToList {
+      closeDetail()
+    }
   }
   LaunchedEffect(detailController) {
     if (detailController != null) {
       navigator.navigateToDetail()
+    } else {
+      navigator.backToList()
     }
   }
 
@@ -109,11 +112,6 @@ internal fun JmmRenderController.CommonRender(
         }
 
         else -> BoxWithConstraints {
-          DisposableEffect(null) {
-            onDispose {
-              closeDetail()
-            }
-          }
           detail.Render(
             Modifier.fillMaxSize(), WindowContentRenderScope.Unspecified
           )
@@ -127,7 +125,7 @@ internal fun JmmRenderController.CommonRender(
 @Composable
 fun JmmRenderController.JmmListView(modifier: Modifier, showDetailButton: Boolean = true) {
 
-  var curTab by remember { mutableStateOf(JmmTabs.NoInstall) }
+  var curTab by remember { mutableStateOf(JmmTabs.Installed) }
   Column(
     modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)
   ) {
@@ -135,42 +133,44 @@ fun JmmRenderController.JmmListView(modifier: Modifier, showDetailButton: Boolea
       modifier = Modifier.fillMaxWidth().padding(horizontal = MaterialTheme.dimens.medium)
     ) {
       JmmTabs.entries.forEachIndexed { index, jmmTab ->
-        SegmentedButton(shape = SegmentedButtonDefaults.itemShape(
-          index = index, count = JmmTabs.entries.size
-        ),
-          onClick = { curTab = JmmTabs.entries[index] },
-          selected = index == curTab.index,
+        val selected = curTab == jmmTab
+        SegmentedButton(
+          shape = SegmentedButtonDefaults.itemShape(index = index, count = JmmTabs.entries.size),
+          onClick = {
+            curTab = jmmTab
+          },
+          selected = selected,
           icon = { Icon(imageVector = jmmTab.vector, contentDescription = jmmTab.title()) },
-          label = { Text(text = jmmTab.title()) })
+          label = { Text(text = jmmTab.title()) },
+        )
       }
     }
 
-    // 这个后续需要优化，目前下载完成后，历史展示没有直接刷新
-    val list = getHistoryMetadataMap().values.filter {
-      when (curTab) {
-        JmmTabs.Installed -> it.state.state == JmmStatus.INSTALLED
-        JmmTabs.NoInstall -> it.state.state != JmmStatus.INSTALLED
-      }
-    }.sortedByDescending { it.upgradeTime }
+    for (jmmTab in JmmTabs.entries) {
+      if (curTab == jmmTab) {
+        // TODO 这个后续需要优化，目前下载完成后，历史展示没有直接刷新
+        val list = jmmTab.listFilter(getHistoryMetadataMap().values)
 
-    LazySwipeColumn(items = list,
-      key = { item -> item.manifest.id },
-      onRemove = { item -> removeHistoryMetadata(item) },
-      noDataValue = BrowserI18nResource.no_apps_data(),
-      background = {
-        Box(
-          Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
-        )
-      }) { metadata ->
-      JmmViewItem(
-        jmmMetadata = metadata,
-        buttonClick = produceEvent(metadata, scope = jmmNMM.getRuntimeScope()) {
-          buttonClick(metadata)
-        },
-        uninstall = { unInstall(metadata) },
-        showDetailButton = showDetailButton,
-        detail = { openDetail(metadata) },
-      )
+        LazySwipeColumn(items = list,
+          key = { item -> item.manifest.id },
+          onRemove = { item -> removeHistoryMetadata(item) },
+          noDataValue = BrowserI18nResource.no_apps_data(),
+          background = {
+            Box(
+              Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
+            )
+          }) { metadata ->
+          JmmViewItem(
+            jmmMetadata = metadata,
+            buttonClick = produceEvent(metadata, scope = jmmNMM.getRuntimeScope()) {
+              buttonClick(metadata)
+            },
+            uninstall = { unInstall(metadata) },
+            showDetailButton = showDetailButton,
+            detail = { openDetail(metadata) },
+          )
+        }
+      }
     }
   }
 }

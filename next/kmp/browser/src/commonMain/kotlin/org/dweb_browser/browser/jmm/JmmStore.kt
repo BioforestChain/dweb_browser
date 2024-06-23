@@ -84,17 +84,13 @@ class JmmStore(microModule: MicroModule.Runtime) {
 data class JmmMetadata(
   val originUrl: String,
   val referrerUrl: String? = null,
-  @SerialName("metadata")
-  @Deprecated("use manifest alternative")
-  private val _oldMetadata: JmmAppInstallManifest? = null,
+  @SerialName("metadata") @Deprecated("use manifest alternative") private val _oldMetadata: JmmAppInstallManifest? = null,
   /**
    * 目前兼容模式，使用 Nullable，未来这个字段不可空
    */
-  @SerialName("manifest")
-  private var _manifest: JmmAppInstallManifest? = null,
+  @SerialName("manifest") private var _manifest: JmmAppInstallManifest? = null,
   var downloadTask: DownloadTask? = null, // 用于保存下载任务，下载完成置空
-  @SerialName("state")
-  private var _state: JmmStatusEvent = JmmStatusEvent(), // 用于显示下载状态
+  @SerialName("state") private var _state: JmmStatusEvent = JmmStatusEvent(), // 用于显示下载状态
   var installTime: Long = datetimeNow(), // 表示安装应用的时间
   var upgradeTime: Long = datetimeNow(),
 ) {
@@ -117,9 +113,7 @@ data class JmmMetadata(
     saveMetadata: Boolean = true,
   ) {
     val newStatus = JmmStatusEvent(
-      current = status.current,
-      total = status.total,
-      state = when (status.state) {
+      current = status.current, total = status.total, state = when (status.state) {
         DownloadState.Init -> JmmStatus.Init
         DownloadState.Downloading -> JmmStatus.Downloading
         DownloadState.Paused -> JmmStatus.Paused
@@ -213,8 +207,26 @@ enum class JmmStatus {
   VersionLow;
 }
 
-enum class JmmTabs(val index: Int, val title: SimpleI18nResource, val vector: ImageVector) {
-  NoInstall(0, BrowserI18nResource.JMM.history_tab_uninstalled, Icons.Default.DeleteForever),
-  Installed(1, BrowserI18nResource.JMM.history_tab_installed, Icons.Default.InstallMobile),
-  ;
+enum class JmmTabs(
+  val index: Int,
+  val title: SimpleI18nResource,
+  val vector: ImageVector,
+  val listFilter: (Iterable<JmmMetadata>) -> List<JmmMetadata>
+) {
+  NoInstall(
+    index = 0,
+    title = BrowserI18nResource.JMM.history_tab_uninstalled,
+    vector = Icons.Default.DeleteForever,
+    listFilter = { list ->
+      list.filter { it.state.state != JmmStatus.INSTALLED }.sortedBy { it.upgradeTime }
+    },
+  ),
+  Installed(
+    index = 1,
+    title = BrowserI18nResource.JMM.history_tab_installed,
+    vector = Icons.Default.InstallMobile,
+    listFilter = { list ->
+      list.filter { it.state.state == JmmStatus.INSTALLED }.sortedBy { it.installTime }
+    },
+  ), ;
 }

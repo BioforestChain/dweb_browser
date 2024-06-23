@@ -1,7 +1,5 @@
 package org.dweb_browser.helper.compose
 
-import androidx.compose.animation.slideIn
-import androidx.compose.animation.slideOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
@@ -18,6 +16,7 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -26,15 +25,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.launch
 
 
 expect fun Modifier.cursorForHorizontalResize(): Modifier
@@ -87,31 +82,40 @@ fun ListDetailPaneScaffold(
             )
           }
           Box(Modifier.fillMaxHeight().padding(start = 4.dp).weight(1f)) {
+            remember(navigator.currentRole) {
+              if (navigator.currentRole != ListDetailPaneScaffoldRole.Detail) {
+                navigator.onDidLeaveDetail()
+              }
+            }
             detailPane()
           }
         }
       }
 
       else -> {
-        NavHost(
+        SlideNavHost(
           navController = navigator.navHostController,
           startDestination = ListDetailPaneScaffoldRole.List.name,
           modifier = Modifier.fillMaxSize(),
-          // 新页面进场
-          enterTransition = { slideIn(iosTween(true)) { IntOffset(it.width, 0) } },
-          // 新页面退场
-          popExitTransition = { slideOut(iosTween(false)) { IntOffset(it.width, 0) } },
-
-          // 旧页面退场
-          exitTransition = { slideOut(iosTween(false)) { IntOffset(-it.width, 0) } },
-          // 旧页面回场
-          popEnterTransition = { slideIn(iosTween(true)) { IntOffset(-it.width, 0) } },
-//          popExitTransition = { fadeOut() },
         ) {
           composable(ListDetailPaneScaffoldRole.List.name) {
+            DisposableEffect(null) {
+              onDispose {
+                if (navigator.currentRole != ListDetailPaneScaffoldRole.Detail) {
+                  navigator.onDidLeaveList()
+                }
+              }
+            }
             listPane()
           }
           composable(ListDetailPaneScaffoldRole.Detail.name) {
+            DisposableEffect(null) {
+              onDispose {
+                if (navigator.currentRole != ListDetailPaneScaffoldRole.Detail) {
+                  navigator.onDidLeaveDetail()
+                }
+              }
+            }
             detailPane()
           }
         }
@@ -130,8 +134,7 @@ fun rememberListDetailPaneScaffoldNavigator(): ListDetailPaneScaffoldNavigator {
   val scope = rememberCoroutineScope()
   return remember(navHostController, scope) {
     ListDetailPaneScaffoldNavigator(
-      navHostController,
-      scope
+      navHostController, scope
     )
   }
 }
@@ -143,34 +146,42 @@ class ListDetailPaneScaffoldNavigator(
   var isFold by mutableStateOf(false)
     internal set
   internal var currentRole by mutableStateOf(ListDetailPaneScaffoldRole.List)
-  fun navigateBack(onBack: () -> Unit = {}) {
-    navigateTo(ListDetailPaneScaffoldRole.List, onDidLeave = onBack)
-  }
 
   fun canNavigateBack(): Boolean {
     return currentRole !== ListDetailPaneScaffoldRole.List
   }
 
-  private val navAniJob = scope.launch(start = CoroutineStart.UNDISPATCHED) {
-    navHostController.currentBackStackEntryFlow.collect {
-      println("QAQ currentBackStackEntryFlow ${it.destination.route}")
-    }
-  }
-
+  internal var onDidLeaveList by mutableStateOf({})
+  internal var onDidLeaveDetail by mutableStateOf({})
 
   fun navigateTo(
     role: ListDetailPaneScaffoldRole,
-    onWillEnter: () -> Unit = {},
-    onDidEnter: () -> Unit = {},
-    onWillLeave: () -> Unit = {},
-    onDidLeave: () -> Unit = {},
+    onDidLeaveCurrent: (() -> Unit)? = null,
+    onDidLeaveRole: (() -> Unit)? = null,
   ) {
     if (role == currentRole) {
       return
     }
-    onWillEnter()
-    onWillLeave()
     currentRole = role
+    when (role) {
+      ListDetailPaneScaffoldRole.List -> {
+        onDidLeaveCurrent?.also { onDidLeaveDetail ->
+          this.onDidLeaveDetail = onDidLeaveDetail
+        }
+        onDidLeaveRole?.also { onDidLeaveList ->
+          this.onDidLeaveList = onDidLeaveList
+        }
+      }
+
+      ListDetailPaneScaffoldRole.Detail -> {
+        onDidLeaveCurrent?.also { onDidLeaveList ->
+          this.onDidLeaveList = onDidLeaveList
+        }
+        onDidLeaveRole?.also { onDidLeaveDetail ->
+          this.onDidLeaveDetail = onDidLeaveDetail
+        }
+      }
+    }
 
     when (role) {
       ListDetailPaneScaffoldRole.List -> {
@@ -185,5 +196,16 @@ class ListDetailPaneScaffoldNavigator(
     }
   }
 
-  fun navigateToDetail() = navigateTo(ListDetailPaneScaffoldRole.Detail)
+  fun backToList(onDidLeaveDetail: (() -> Unit)? = null) {
+    navigateTo(
+      ListDetailPaneScaffoldRole.List,
+      onDidLeaveCurrent = onDidLeaveDetail,
+    )
+  }
+
+  fun navigateToDetail(onDidLeaveList: (() -> Unit)? = null) =
+    navigateTo(
+      ListDetailPaneScaffoldRole.Detail,
+      onDidLeaveCurrent = onDidLeaveList,
+    )
 }
