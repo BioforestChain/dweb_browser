@@ -66,13 +66,13 @@ class ScanStdController(private val scanStdNMM: ScanStdNMM.ScanStdRuntime) {
   fun callScanResult(result: String) {
     scanStdNMM.scopeLaunch(cancelable = true) {
       _scanResult.emit(result)
-      hideWindow()
+      closeWindow()
     }
   }
 
-  fun hideWindow() {
+  fun closeWindow() {
     scanStdNMM.scopeLaunch(cancelable = true) {
-      win?.hide()
+      win?.closeRoot()
     }
   }
 
@@ -88,7 +88,7 @@ class ScanStdController(private val scanStdNMM: ScanStdNMM.ScanStdRuntime) {
       val off = onScanResult { scanResult.complete(it) }
       scanResult.await().also { off() }
     } else {
-      hideWindow()
+      closeWindow()
       scanStdNMM.showToast(BrowserI18nResource.QRCode.permission_denied.text)
       null
     }

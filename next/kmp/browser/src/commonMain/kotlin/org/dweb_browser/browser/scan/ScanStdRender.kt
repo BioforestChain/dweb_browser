@@ -19,7 +19,7 @@ fun ScanStdController.ScanStdRender(
         qrCodeScanModel.updateQRCodeStateUI(QRCodeState.Scanning)
       }
 
-      else -> hideWindow()
+      else -> closeWindow()
     }
   }
   Box(modifier = modifier.withRenderScope(windowContentRenderScope)) {
@@ -27,7 +27,7 @@ fun ScanStdController.ScanStdRender(
       scanModel = qrCodeScanModel,
       requestPermission = { true },
       onSuccess = { callScanResult(it) },
-      onCancel = { hideWindow() }
+      onCancel = { closeWindow() }
     )
   }
 }
