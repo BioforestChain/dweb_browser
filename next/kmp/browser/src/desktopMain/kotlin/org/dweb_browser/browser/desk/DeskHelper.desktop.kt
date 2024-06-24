@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerButton
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import org.dweb_browser.browser.desk.upgrade.NewVersionItem
 import org.dweb_browser.helper.WARNING
@@ -54,7 +55,7 @@ actual suspend fun loadApplicationNewVersion(): NewVersionItem? {
   return null
 }
 
-actual fun desktopGridLayout(): GridCells = GridCells.FixedSize(100.dp)
+actual fun desktopGridLayout(size: IntSize): GridCells = GridCells.FixedSize(100.dp)
 
 actual fun desktopTap(): Dp = 20.dp
 

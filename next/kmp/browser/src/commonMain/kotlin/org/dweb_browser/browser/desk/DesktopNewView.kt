@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
@@ -25,7 +26,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeContent
 import androidx.compose.foundation.layout.safeGestures
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -55,6 +55,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
@@ -240,15 +241,23 @@ fun NewDesktopView(
     blur = false
   }
 
-  Box(
+  BoxWithConstraints(
     modifier = Modifier.fillMaxSize().blur(blurValue.dp), contentAlignment = Alignment.TopStart
   ) {
+
+    val boxSize = IntSize(constraints.maxWidth, constraints.maxHeight)
+    val layoutStyle by remember(boxSize) {
+      mutableStateOf(desktopGridLayout(boxSize))
+    }
+
     desktopWallpaperView(desktopBgCircleCount(), modifier = Modifier, isTapDoAnimation = false) {
       doHideKeyboard()
     }
 
     Column(horizontalAlignment = Alignment.CenterHorizontally,
-      modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeContent)
+      modifier =
+      Modifier.fillMaxSize()
+        .windowInsetsPadding(WindowInsets.safeGestures)
         .padding(top = desktopTap()).clickableWithNoEffect {
           doHideKeyboard()
         }) {
@@ -261,7 +270,9 @@ fun NewDesktopView(
       )
 
       LazyVerticalGrid(
-        columns = desktopGridLayout(), modifier = Modifier.fillMaxSize()
+        columns = layoutStyle,
+        contentPadding = PaddingValues(5.dp),
+        modifier = Modifier.fillMaxSize(),
       ) {
 
         itemsIndexed(apps) { index, app ->
@@ -355,7 +366,8 @@ fun AppItem(
 ) {
 
   Box(
-    modifier = (modifier.fillMaxSize()).padding(5.dp),
+    modifier = modifier
+      .fillMaxSize(),
     contentAlignment = Alignment.TopStart,
   ) {
     Column(
@@ -474,9 +486,10 @@ private fun moreAppItemsDisplay(displays: List<MoreAppModel>, dismiss: () -> Uni
   }
 }
 
-expect fun desktopGridLayout(): GridCells
+expect fun desktopGridLayout(size: IntSize): GridCells
 expect fun desktopTap(): Dp
 expect fun desktopBgCircleCount(): Int
+
 @Composable
 expect fun Modifier.DesktopEventDetector(
   onClick: () -> Unit,

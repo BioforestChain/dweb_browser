@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -47,7 +48,13 @@ actual suspend fun loadApplicationNewVersion(): NewVersionItem? {
   return null
 }
 
-actual fun desktopGridLayout(): GridCells = GridCells.Fixed(4)
+actual fun desktopGridLayout(size: IntSize): GridCells {
+  return if (size.width < size.height) {
+    GridCells.Fixed(4)
+  } else {
+    GridCells.Adaptive(80.dp)
+  }
+}
 
 actual fun desktopTap(): Dp = 0.dp
 
