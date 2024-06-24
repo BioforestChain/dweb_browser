@@ -41,7 +41,7 @@ actual fun RadialGradientX(
 ) {
   val context = LocalContext.current
   val d = LocalDensity.current.density
-  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S&&false) {
+  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
     val canvasView = remember(context) { SkiaRadialGradientView(context) }
     // Creating a gradient using makeTwoPointConicalGradient
     remember(canvasView, d, startX, startY, startRadius, endX, endY, endRadius, colors, stops) {
