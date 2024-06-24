@@ -2,7 +2,6 @@ package org.dweb_browser.browser.scan
 
 import io.ktor.http.HttpStatusCode
 import org.dweb_browser.browser.BrowserI18nResource
-import org.dweb_browser.browser.common.barcode.openDeepLink
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.ResponseException
 import org.dweb_browser.core.http.router.bind
@@ -12,9 +11,8 @@ import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.DisplayMode
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.pure.http.PureMethod
-import org.dweb_browser.sys.permission.SystemPermissionName
-import org.dweb_browser.sys.permission.ext.requestSystemPermission
-import org.dweb_browser.sys.window.ext.getMainWindow
+import org.dweb_browser.sys.window.ext.getMainWindowId
+import org.dweb_browser.sys.window.ext.getOrOpenMainWindow
 import org.dweb_browser.sys.window.ext.onRenderer
 
 val debugSCAN = Debugger("scan.std")
@@ -36,19 +34,8 @@ class ScanStdNMM : NativeMicroModule("scan.std.dweb", "QRCode Scan") {
       val scanStdController = ScanStdController(this)
       onRenderer {
         scanStdController.renderScanWindow(wid) // 窗口已打开，默认还是直接渲染，再请求权限
-        if (requestSystemPermission(
-            title = BrowserI18nResource.QRCode.permission_tip_camera_title.text,
-            description = BrowserI18nResource.QRCode.permission_tip_camera_message.text,
-            name = SystemPermissionName.CAMERA
-          )
-        ) {
-          val result = scanStdController.tryShowScanWindow()
-          if (result?.isNotEmpty() == true) {
-            openDeepLink(result)
-          }
-        } else {
-          // 权限请求失败，直接退出
-          getMainWindow().closeRoot()
+        scanStdController.tryShowScanWindow()?.let { data ->
+          openDeepLink(data)
         }
       }
 
@@ -58,9 +45,10 @@ class ScanStdNMM : NativeMicroModule("scan.std.dweb", "QRCode Scan") {
          */
         "/open" bind PureMethod.GET by defineStringResponse {
           debugSCAN("open", request.href)
+          getOrOpenMainWindow() // 保证窗口显示，如果是第一次的话，会加载 onRenderer
           scanStdController.tryShowScanWindow() ?: throw ResponseException(
-            code = HttpStatusCode.NoContent,
-            message = BrowserI18nResource.QRCode.permission_tip_camera_message.text
+            code = HttpStatusCode.Forbidden,
+            message = BrowserI18nResource.QRCode.noFoundWindow.text
           )
         },
       )

@@ -121,6 +121,7 @@ internal fun BrowserMenuPanel(modifier: Modifier = Modifier) {
       }, trailingIcon = Icons.AutoMirrored.Filled.ArrowForwardIos
     )
 
+    // 扫码功能
     SettingListItem(title = BrowserI18nResource.browser_menu_scanner(), // stringResource(id = R.string.browser_options_privacy),
       leadingIcon = {
         Icon(

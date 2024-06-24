@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.common.barcode
+package org.dweb_browser.browser.scan
 
 import android.graphics.BitmapFactory
 import android.util.Log

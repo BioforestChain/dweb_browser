@@ -15,6 +15,7 @@ import io.ktor.http.Url
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
+import org.dweb_browser.browser.scan.openDeepLink
 import org.dweb_browser.browser.search.SearchEngine
 import org.dweb_browser.browser.search.SearchInject
 import org.dweb_browser.browser.web.BrowserController
@@ -89,9 +90,6 @@ class BrowserViewModel(
   enum class PreviewPanelVisibleState(val isVisible: Boolean) {
     DisplayGrid(true), Close(false), FastClose(false)/*不做动画，直接隐藏*/;
   }
-
-  var showQRCodePanel by mutableStateOf(false)
-    private set
 
   val previewPanelVisibleState = MutableTransitionState(PreviewPanelVisibleState.Close)
 
@@ -614,7 +612,14 @@ class BrowserViewModel(
   }
 
   fun showQRCodePanelUI() {
-    showQRCodePanel = true
+    browserNMM.scopeLaunch(cancelable = true) {
+      val response = browserNMM.nativeFetch("file://scan.std.dweb/open")
+      if (response.isOk) {
+        openDeepLink(response.text())
+      } else {
+        browserNMM.showToast(message = response.text())
+      }
+    }
   }
 
   /**
@@ -624,7 +629,6 @@ class BrowserViewModel(
     previewPanelVisibleState.targetState = PreviewPanelVisibleState.Close
     searchKeyWord = null
     showSearchPage = null
-    showQRCodePanel = false
   }
 }
 

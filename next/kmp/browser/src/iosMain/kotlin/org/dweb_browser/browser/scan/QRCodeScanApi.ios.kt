@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.common.barcode
+package org.dweb_browser.browser.scan
 
 import androidx.compose.ui.graphics.ImageBitmap
 import kotlinx.cinterop.ExperimentalForeignApi
@@ -14,7 +14,6 @@ import kotlin.math.abs
 import platform.CoreImage.CIDetector
 import platform.CoreImage.CIImage
 import platform.CoreImage.CIQRCodeFeature
-import platform.Foundation.NSData
 
 actual fun beepAudio() {
   WARNING("Not yet implemented beepAudio")

@@ -1,7 +1,6 @@
 package org.dweb_browser.browser.web.ui
 
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -52,10 +51,6 @@ fun BrowserViewModalRender(
       // 搜索界面考虑到窗口和全屏问题，显示的问题，需要控制modifier
       if (BrowserPreviewPanel(Modifier.fillMaxSize().zIndex(2f))) return@Surface
       if (BrowserSearchPanel(Modifier.fillMaxSize().zIndex(2f))) return@Surface
-      if (BrowserQRCodePanel(
-          Modifier.fillMaxSize().zIndex(2f)
-        )
-      ) return@Surface // 扫码隐藏时，动画导致BrowserPagePanel优先显示，盖在了BrowserQRCodePanel上
 
       BrowserPagePanel(Modifier.fillMaxSize(), windowRenderScope.scale)
     }
@@ -74,7 +69,6 @@ fun BrowserPagePanel(modifier: Modifier, contentScaled: Float) {
   }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun BrowserPageBox(contentScaled: Float) {
   val viewModel = LocalBrowserViewModel.current

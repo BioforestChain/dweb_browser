@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.common.barcode
+package org.dweb_browser.browser.scan
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColor
@@ -152,7 +152,7 @@ private fun DefaultScanningView(
 
 @Composable
 private fun ScannerLine() {
-  var linePosition by remember { mutableStateOf(0f) }
+  var linePosition by remember { mutableFloatStateOf(0f) }
   val infiniteTransition = rememberInfiniteTransition(label = "")
   val animatedLinePosition by infiniteTransition.animateFloat(
     initialValue = 0f, targetValue = 1f, animationSpec = infiniteRepeatable(

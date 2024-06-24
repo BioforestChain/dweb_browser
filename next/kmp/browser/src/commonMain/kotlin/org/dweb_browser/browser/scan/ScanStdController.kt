@@ -3,11 +3,15 @@ package org.dweb_browser.browser.scan
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.platform.IPureViewController
 import org.dweb_browser.helper.platform.PureViewControllerPlatform
 import org.dweb_browser.helper.platform.platform
+import org.dweb_browser.sys.permission.SystemPermissionName
+import org.dweb_browser.sys.permission.ext.requestSystemPermission
+import org.dweb_browser.sys.toast.ext.showToast
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.helper.setStateFromManifest
 import org.dweb_browser.sys.window.core.windowAdapterManager
@@ -43,6 +47,7 @@ class ScanStdController(private val scanStdNMM: ScanStdNMM.ScanStdRuntime) {
         else -> {}
       }
 
+      newWin.state.alwaysOnTop = true // 扫码模块置顶
       /// 提供渲染适配
       windowAdapterManager.provideRender(wid) { modifier ->
         ScanStdRender(modifier, this)
@@ -61,20 +66,31 @@ class ScanStdController(private val scanStdNMM: ScanStdNMM.ScanStdRuntime) {
   fun callScanResult(result: String) {
     scanStdNMM.scopeLaunch(cancelable = true) {
       _scanResult.emit(result)
-      closeWindow()
+      hideWindow()
     }
   }
 
-  fun closeWindow() {
+  fun hideWindow() {
     scanStdNMM.scopeLaunch(cancelable = true) {
-      win?.closeRoot()
+      win?.hide()
     }
   }
 
   suspend fun tryShowScanWindow() = win?.let { winController ->
-    val scanResult = CompletableDeferred<String>()
     winController.show()
-    val off = onScanResult { scanResult.complete(it) }
-    scanResult.await().also { off() }
+    if (scanStdNMM.requestSystemPermission(
+        title = BrowserI18nResource.QRCode.permission_tip_camera_title.text,
+        description = BrowserI18nResource.QRCode.permission_tip_camera_message.text,
+        name = SystemPermissionName.CAMERA
+      )
+    ) {
+      val scanResult = CompletableDeferred<String>()
+      val off = onScanResult { scanResult.complete(it) }
+      scanResult.await().also { off() }
+    } else {
+      hideWindow()
+      scanStdNMM.showToast(BrowserI18nResource.QRCode.permission_denied.text)
+      null
+    }
   }
 }

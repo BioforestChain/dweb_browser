@@ -378,6 +378,11 @@ object BrowserI18nResource {
       Language.EN to "Failed to obtain the Camera permission and cannot provide the code scanning service"
     )
 
+    val noFoundWindow = SimpleI18nResource(
+      Language.ZH to "无法找到承载的窗口信息",
+      Language.EN to "Failed to obtain the Camera permission and cannot provide the code scanning service"
+    )
+
     val recognizing = SimpleI18nResource(
       Language.ZH to "正在识别中...",
       Language.EN to "Recognizing..."
