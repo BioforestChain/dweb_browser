@@ -16,6 +16,8 @@ import androidx.core.content.ContextCompat
 import java.io.File
 import java.io.FileOutputStream
 
+@Deprecated("should not use BitmapUtil")
+@Suppress("DEPRECATION")
 object BitmapUtil {
   /**
    * 获取手机里视频缩略图
@@ -28,7 +30,7 @@ object BitmapUtil {
     var cursor = cr.query(uri, arrayOf(MediaStore.Video.Media._ID), null, null)
     if (cursor != null) {
       if (cursor.moveToFirst()) {
-        var videoId =
+        val videoId =
           cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media._ID)) //image id in image table.s
         return MediaStore.Video.Thumbnails.getThumbnail(
           cr, videoId.toLong(),
@@ -96,7 +98,7 @@ object BitmapUtil {
    * @return 指定大小的视频缩略图
    */
   fun getVideoThumbnail(
-    videoPath: String, width: Int, height: Int, kind: Int = MINI_KIND
+    videoPath: String, width: Int, height: Int, kind: Int = MINI_KIND,
   ): Bitmap? {
     // 获取视频的缩略图
     return ThumbnailUtils.extractThumbnail(
@@ -163,7 +165,7 @@ object BitmapUtil {
     }
   }
 
-  fun saveBase64ToFile(filePath:String, data: String) {
+  fun saveBase64ToFile(filePath: String, data: String) {
     val fos = FileOutputStream(filePath)
     fos.write(data.toBase64ByteArray())
     fos.flush()

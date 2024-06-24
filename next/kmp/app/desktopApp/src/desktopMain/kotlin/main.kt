@@ -29,9 +29,7 @@ suspend fun main(vararg args: String) {
   //  System.setProperty("skiko.renderApi", "OPENGL")
   // windows平台需要开启单实例，否则会打开多个桌面端
   if (PureViewController.isWindows && !WindowsSingleInstance.requestSingleInstance(
-      args.joinToString(
-        ","
-      )
+      args.joinToString(",")
     )
   ) {
     return

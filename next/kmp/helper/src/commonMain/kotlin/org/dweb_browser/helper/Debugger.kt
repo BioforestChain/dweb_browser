@@ -30,7 +30,7 @@ import kotlinx.coroutines.launch
  * "fetch-file"
  *
  */
-data class DebugTags private constructor(
+private data class DebugTags(
   val debugRegexes: Set<Regex>,
   val debugNames: Set<String>,
   val verboseRegexes: Set<Regex>,
@@ -130,7 +130,7 @@ class Debugger(val scope: String) {
     println("Debugger scope: $scope")
   }
 
-  inline fun print(tag: String, msg: Any? = "", err: Any?, symbol: String) {
+  fun print(tag: String, msg: Any? = "", err: Any?, symbol: String) {
     printDebug(scope, tag, msg, err, symbol)
   }
 
@@ -159,7 +159,7 @@ class Debugger(val scope: String) {
     print(tag, msg, err, symbol)
   }
 
-  inline operator fun invoke(tag: String, msg: Any? = "", err: Any? = null) {
+  operator fun invoke(tag: String, msg: Any? = "", err: Any? = null) {
     if (err != null || isEnable) {
       print(tag, msg, err, "│")
     }
@@ -196,7 +196,7 @@ class Debugger(val scope: String) {
     }
   }
 
-  inline fun verbose(tag: String, msg: Any? = "") {
+  fun verbose(tag: String, msg: Any? = "") {
     if (isEnableVerbose) {
       print(tag, msg, null, "░")
     }

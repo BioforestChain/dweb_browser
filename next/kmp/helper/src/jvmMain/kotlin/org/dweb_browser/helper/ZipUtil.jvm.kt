@@ -153,7 +153,7 @@ object ZipUtil {
       //创建输出目录
       createDirectory(outputDir, null)
       var entry: TarArchiveEntry? = null
-      while (tarIn.nextTarEntry.also { entry = it } != null) {
+      while (tarIn.nextEntry.also { entry = it } != null) {
         val name = entry!!.name
         //val name = getEntryName(entry!!.name, mmid) { if (dirName.isEmpty()) dirName = it; dirName }
         //是目录
@@ -181,7 +181,7 @@ object ZipUtil {
       //创建输出目录
       createDirectory(outputDir, null)
       var entry: TarArchiveEntry? = null
-      while (tarIn.nextTarEntry.also { entry = it } != null) {
+      while (tarIn.nextEntry.also { entry = it } != null) {
         val name =
           entry!!.name // getEntryName(entry!!.name, mmid) { if (dirName.isEmpty()) dirName = it; dirName }
         //是目录
@@ -214,7 +214,7 @@ object ZipUtil {
     ).use { tarIn ->
       createDirectory(outputDir, null)
       var entry: TarArchiveEntry
-      while (tarIn.nextTarEntry.also { entry = it } != null) {
+      while (tarIn.nextEntry.also { entry = it } != null) {
         val name =
           entry.name // getEntryName(entry.name, mmid) { if (dirName.isEmpty()) dirName = it; dirName }
         if (entry.isDirectory) { // 是目录

@@ -471,11 +471,14 @@ fun KotlinMultiplatformExtension.kmpComposeTarget(
 //        implementation(libs.androidx.adaptive)
 //        implementation(libs.androidx.adaptive.layout)
 //        implementation(libs.androidx.adaptive.navigation)
-
+        implementation(libs.compose.ui.tooling)
         implementation(libs.compose.ui.tooling.preview)
       }
 
       "androidTest" -> sourceSet.dependencies {
+      }
+
+      "androidDebug" -> sourceSet.dependencies {
       }
 
       "androidInstrumentedTest" -> sourceSet.dependencies {
@@ -484,6 +487,7 @@ fun KotlinMultiplatformExtension.kmpComposeTarget(
       }
 
       "desktopMain" -> sourceSet.dependencies {
+        implementation(libs.jetbrains.compose.ui.tooling)
         implementation(libs.jetbrains.compose.ui.tooling.preview.desktop)
       }
 

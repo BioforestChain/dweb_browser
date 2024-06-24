@@ -8,14 +8,14 @@ import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 
-inline fun <T> Flow<T>.collectIn(
+fun <T> Flow<T>.collectIn(
   scope: CoroutineScope = globalDefaultScope,
   collector: FlowCollector<T>,
 ) = scope.launch(start = CoroutineStart.UNDISPATCHED) {
   collect(collector)
 }
 
-inline fun <T> Flow<T>.collectInContext(
+fun <T> Flow<T>.collectInContext(
   scope: CoroutineContext = EmptyCoroutineContext,
   collector: FlowCollector<T>,
 ) = collectIn(CoroutineScope(scope), collector)
@@ -25,7 +25,7 @@ inline fun <T> Flow<T>.collectInContext(
  * 继承 emit 所在作用域，执行 FlowCollector
  * 与常见的 Event.listen 这种模式类似
  */
-inline fun <T> Flow<T>.listen(
+fun <T> Flow<T>.listen(
   scope: CoroutineScope = globalEmptyScope,
   collector: FlowCollector<T>,
 ) =

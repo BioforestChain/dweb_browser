@@ -11,6 +11,10 @@ kotlin {
           withAndroidTarget()
           withIosTarget()
         }
+        group("skiko") {
+          withDesktopTarget()
+          withIosTarget()
+        }
       }
     }
   }
