@@ -111,7 +111,7 @@ public class KeychainSettings @ExperimentalSettingsApi constructor(vararg defaul
   public override fun getStringOrNull(key: String): String? =
     getKeychainItem(key)?.let { NSString.create(it, NSUTF8StringEncoding)?.toKString() }
 
-  private inline fun addOrUpdateKeychainItem(key: String, value: NSData?) {
+  private fun addOrUpdateKeychainItem(key: String, value: NSData?) {
     if (hasKeychainItem(key)) {
       updateKeychainItem(key, value)
     } else {
@@ -120,7 +120,7 @@ public class KeychainSettings @ExperimentalSettingsApi constructor(vararg defaul
   }
 
   @OptIn(ExperimentalForeignApi::class)
-  private inline fun addKeychainItem(key: String, value: NSData?): Unit =
+  private fun addKeychainItem(key: String, value: NSData?): Unit =
     cfRetain(key, value) { cfKey, cfValue ->
       val status = keyChainOperation(
         kSecAttrAccount to cfKey,
@@ -130,7 +130,7 @@ public class KeychainSettings @ExperimentalSettingsApi constructor(vararg defaul
     }
 
   @OptIn(ExperimentalForeignApi::class)
-  private inline fun removeKeychainItem(key: String): Unit = cfRetain(key) { cfKey ->
+  private fun removeKeychainItem(key: String): Unit = cfRetain(key) { cfKey ->
     val status = keyChainOperation(
       kSecAttrAccount to cfKey,
     ) { SecItemDelete(it) }
@@ -138,7 +138,7 @@ public class KeychainSettings @ExperimentalSettingsApi constructor(vararg defaul
   }
 
   @OptIn(ExperimentalForeignApi::class)
-  private inline fun updateKeychainItem(key: String, value: NSData?): Unit =
+  private fun updateKeychainItem(key: String, value: NSData?): Unit =
     cfRetain(key, value) { cfKey, cfValue ->
       val status = keyChainOperation(
         kSecAttrAccount to cfKey,
@@ -153,7 +153,7 @@ public class KeychainSettings @ExperimentalSettingsApi constructor(vararg defaul
     }
 
   @OptIn(ExperimentalForeignApi::class)
-  private inline fun getKeychainItem(key: String): NSData? = cfRetain(key) { cfKey ->
+  private fun getKeychainItem(key: String): NSData? = cfRetain(key) { cfKey ->
     val cfValue = alloc<CFTypeRefVar>()
     val status = keyChainOperation(
       kSecAttrAccount to cfKey,
@@ -168,7 +168,7 @@ public class KeychainSettings @ExperimentalSettingsApi constructor(vararg defaul
   }
 
   @OptIn(ExperimentalForeignApi::class)
-  private inline fun hasKeychainItem(key: String): Boolean = cfRetain(key) { cfKey ->
+  private fun hasKeychainItem(key: String): Boolean = cfRetain(key) { cfKey ->
     val status = keyChainOperation(
       kSecAttrAccount to cfKey,
       kSecMatchLimit to kSecMatchLimitOne
@@ -178,7 +178,7 @@ public class KeychainSettings @ExperimentalSettingsApi constructor(vararg defaul
   }
 
   @OptIn(ExperimentalForeignApi::class)
-  private inline fun MemScope.keyChainOperation(
+  private fun MemScope.keyChainOperation(
     vararg input: Pair<CFStringRef?, CFTypeRef?>,
     operation: (query: CFDictionaryRef?) -> OSStatus,
   ): OSStatus {
@@ -189,7 +189,7 @@ public class KeychainSettings @ExperimentalSettingsApi constructor(vararg defaul
   }
 
   @OptIn(ExperimentalForeignApi::class)
-  private inline fun OSStatus.checkError(vararg expectedErrors: OSStatus) {
+  private fun OSStatus.checkError(vararg expectedErrors: OSStatus) {
     if (this != 0 && this !in expectedErrors) {
       val cfMessage = SecCopyErrorMessageString(this, null)
       val nsMessage = CFBridgingRelease(cfMessage) as? NSString
@@ -200,11 +200,11 @@ public class KeychainSettings @ExperimentalSettingsApi constructor(vararg defaul
 }
 
 @OptIn(ExperimentalForeignApi::class)
-internal inline fun MemScope.cfDictionaryOf(vararg items: Pair<CFStringRef?, CFTypeRef?>): CFDictionaryRef? =
+internal fun MemScope.cfDictionaryOf(vararg items: Pair<CFStringRef?, CFTypeRef?>): CFDictionaryRef? =
   cfDictionaryOf(mapOf(*items))
 
 @OptIn(ExperimentalForeignApi::class)
-internal inline fun MemScope.cfDictionaryOf(map: Map<CFStringRef?, CFTypeRef?>): CFDictionaryRef? {
+internal fun MemScope.cfDictionaryOf(map: Map<CFStringRef?, CFTypeRef?>): CFDictionaryRef? {
   val size = map.size
   val keys = allocArrayOf(*map.keys.toTypedArray())
   val values = allocArrayOf(*map.values.toTypedArray())
@@ -232,7 +232,7 @@ internal inline fun <T> cfRetain(value: Any?, block: MemScope.(CFTypeRef?) -> T)
 internal inline fun <T> cfRetain(
   value1: Any?,
   value2: Any?,
-  block: MemScope.(CFTypeRef?, CFTypeRef?) -> T
+  block: MemScope.(CFTypeRef?, CFTypeRef?) -> T,
 ): T =
   memScoped {
     val cfValue1 = CFBridgingRetain(value1)

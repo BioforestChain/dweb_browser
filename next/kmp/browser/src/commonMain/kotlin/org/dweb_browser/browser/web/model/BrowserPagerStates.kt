@@ -9,6 +9,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.unit.dp
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -28,7 +29,7 @@ class BrowserPagerStates(val viewModel: BrowserViewModel) {
    */
   val searchBar: PagerState = InnerPagerState()
 
-  private var lastWindowRenderScope = WindowContentRenderScope(0f, 0f, 0f)
+  private var lastWindowRenderScope = WindowContentRenderScope(0f.dp, 0f.dp, 0f)
   private var isResizeWin by mutableStateOf(false) // 用于判断是否是窗口大小变化，如果是的话，不响应searchBar的监听
 
   @Composable

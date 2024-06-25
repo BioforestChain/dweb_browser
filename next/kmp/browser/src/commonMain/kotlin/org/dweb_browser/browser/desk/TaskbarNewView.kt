@@ -6,7 +6,6 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -19,9 +18,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Divider
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Image
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -50,7 +49,6 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
-import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.collectIn
@@ -72,7 +70,7 @@ private val taskBarDividerHeight = 8f
 fun NewTaskbarView(
   taskbarController: TaskbarController,
   draggableHelper: ITaskbarView.DraggableHelper,
-  modifier: Modifier
+  modifier: Modifier,
 ) {
 
   val apps = remember { mutableStateListOf<TaskbarAppModel>() }
@@ -119,13 +117,13 @@ fun NewTaskbarView(
 
   Box(
     modifier.pointerInput(draggableHelper) {
-        detectDragGestures(onDragEnd = draggableHelper.onDragEnd,
-          onDragCancel = draggableHelper.onDragEnd,
-          onDragStart = draggableHelper.onDragStart,
-          onDrag = { _, dragAmount ->
-            draggableHelper.onDrag(dragAmount.div(density))
-          })
-      }, contentAlignment = Alignment.Center
+      detectDragGestures(onDragEnd = draggableHelper.onDragEnd,
+        onDragCancel = draggableHelper.onDragEnd,
+        onDragStart = draggableHelper.onDragStart,
+        onDrag = { _, dragAmount ->
+          draggableHelper.onDrag(dragAmount.div(density))
+        })
+    }, contentAlignment = Alignment.Center
   ) {
 
     Column(
@@ -171,7 +169,7 @@ private fun TaskBarAppIcon(
   hook: FetchHook,
   openApp: (mmid: String) -> Unit,
   quitApp: (mmid: String) -> Unit,
-  toggleWindow: (mmid: String) -> Unit
+  toggleWindow: (mmid: String) -> Unit,
 ) {
 
   val scaleValue = remember { Animatable(1f) }
@@ -186,9 +184,9 @@ private fun TaskBarAppIcon(
   }
 
   BoxWithConstraints(contentAlignment = Alignment.Center, modifier = modifier.graphicsLayer {
-      scaleX = scaleValue.value
-      scaleY = scaleValue.value
-    }.padding(start = paddingValue.dp, top = paddingValue.dp, end = paddingValue.dp)
+    scaleX = scaleValue.value
+    scaleY = scaleValue.value
+  }.padding(start = paddingValue.dp, top = paddingValue.dp, end = paddingValue.dp)
     .aspectRatio(1.0f).shadow(3.dp, RoundedCornerShape(12.dp))
     .background(Color.White, RoundedCornerShape(12.dp))
     .pointerInput(app) {
@@ -278,7 +276,7 @@ expect fun taskBarCloseButtonUsePopUp(): Boolean
 
 @Composable
 private fun TaskBarDivider() {
-  Divider(
+  HorizontalDivider(
     Modifier.padding(start = paddingValue.dp, top = paddingValue.dp, end = paddingValue.dp)
       .background(
         Brush.horizontalGradient(
@@ -303,9 +301,9 @@ private fun TaskBarHomeIcon(click: () -> Unit) {
   }
 
   BoxWithConstraints(contentAlignment = Alignment.Center, modifier = Modifier.graphicsLayer {
-      scaleX = scaleValue.value
-      scaleY = scaleValue.value
-    }.aspectRatio(1.0f).padding(paddingValue.dp)) {
+    scaleX = scaleValue.value
+    scaleY = scaleValue.value
+  }.aspectRatio(1.0f).padding(paddingValue.dp)) {
     desktopWallpaperView(
       5,
       modifier = Modifier.blur(1.dp, BlurredEdgeTreatment.Unbounded).clip(CircleShape)

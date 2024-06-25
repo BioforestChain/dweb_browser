@@ -304,11 +304,9 @@ fun WindowController.WindowRender(modifier: Modifier) {
                 safeDp((winBounds.height - topBarHeight - paddingBottom - bottomBarHeight).dp)
             }
             WindowContentRenderScope(
-              width = targetWidth.value,
-              height = targetHeight.value,
-              scale = win.calcContentScale(limits, targetWidth.value, targetHeight.value),
               widthDp = targetWidth,
               heightDp = targetHeight,
+              scale = win.calcContentScale(limits, targetWidth.value, targetHeight.value),
               isResizing = isResizing
             )
           }

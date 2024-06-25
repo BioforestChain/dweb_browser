@@ -10,6 +10,7 @@ import androidx.compose.material.icons.rounded.GppMaybe
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -134,7 +135,7 @@ fun PermissionManagerRender(
                     },
                     colors = MenuDefaults.itemColors(leadingIconColor = AuthorizationStatus.DENIED.Color())
                   )
-                  Divider()
+                  HorizontalDivider()
                   DropdownMenuItem(
                     onClick = {
                       scope.launch {

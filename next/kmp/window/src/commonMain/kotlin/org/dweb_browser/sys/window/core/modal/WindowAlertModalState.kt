@@ -41,7 +41,7 @@ interface IAlertModalArgs {
 
 @Serializable
 @SerialName("alert")
-data class AlertModalState internal constructor(
+class AlertModalState private constructor(
   override val title: String,
   override val message: String,
   override val iconUrl: String? = null,

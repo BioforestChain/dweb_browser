@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Text
@@ -34,50 +33,25 @@ import org.dweb_browser.sys.window.render.watchedState
 
 typealias CreateWindowAdapter = suspend (winState: WindowState) -> WindowController?
 
-data class WindowContentRenderScope internal constructor(
-  val width: Float,
-  val height: Float,
-  val scale: Float,
+data class WindowContentRenderScope(
   val widthDp: Dp,
   val heightDp: Dp,
-  val isResizing: Boolean,
+  val scale: Float = 1f,
+  val isResizing: Boolean = false,
 ) {
+  val width get() = widthDp.value
+  val height get() = heightDp.value
   override fun toString(): String {
     return "WindowContentRenderScope(width=$width, height=$height, scale=$scale, isResizing=$isResizing)"
   }
 
   fun copyFrom(boxConstraints: BoxWithConstraintsScope) = copy(
-    width = boxConstraints.maxWidth.value,
-    widthDp = boxConstraints.maxWidth,
-    height = boxConstraints.maxHeight.value,
-    heightDp = boxConstraints.maxHeight
+    widthDp = boxConstraints.maxWidth, heightDp = boxConstraints.maxHeight
   )
 
   companion object {
-    val Unspecified =
-      WindowContentRenderScope(Float.NaN, Float.NaN, 1f, Dp.Unspecified, Dp.Unspecified, false)
-
-    fun fromDp(
-      widthDp: Dp,
-      heightDp: Dp,
-      scale: Float,
-      isResizing: Boolean = false,
-    ) = WindowContentRenderScope(
-      widthDp.value,
-      heightDp.value,
-      scale,
-      widthDp,
-      heightDp,
-      isResizing
-    )
+    val Unspecified = WindowContentRenderScope(Dp.Unspecified, Dp.Unspecified)
   }
-
-  constructor(
-    width: Float,
-    height: Float,
-    scale: Float,
-    isResizing: Boolean = false,
-  ) : this(width, height, scale, width.dp, height.dp, isResizing)
 }
 typealias WindowRenderProvider = @Composable WindowContentRenderScope.(modifier: Modifier) -> Unit
 
@@ -130,9 +104,7 @@ class WindowAdapterManager : AdapterManager<CreateWindowAdapter>() {
       when (val render = windowAdapterManager.rememberRender(rid)) {
         null -> {
           Box(
-            modifier = Modifier
-              .fillMaxSize(),
-            contentAlignment = Alignment.Center
+            modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center
           ) {
             /*Text(
               "Op！视图被销毁了",
