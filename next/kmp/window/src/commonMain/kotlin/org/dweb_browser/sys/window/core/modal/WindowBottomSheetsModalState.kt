@@ -265,7 +265,7 @@ internal fun BottomSheetsModalState.CommonRenderImpl(emitModalVisibilityChange: 
 
 
 @Composable
-fun BottomSheetsModalState.TitleBarWithCustomCloseBottom(
+fun BottomSheetsModalState.TitleBarWithCustomCloseButton(
   closeBottom: @Composable (Modifier) -> Unit, content: @Composable BoxScope.() -> Unit,
 ) {
   val winTheme = LocalWindowControllerTheme.current
@@ -303,7 +303,7 @@ fun BottomSheetsModalState.TitleBarWithCustomCloseBottom(
 fun BottomSheetsModalState.TitleBarWithOnClose(
   onClose: () -> Unit, content: @Composable BoxScope.() -> Unit,
 ) {
-  TitleBarWithCustomCloseBottom(
+  TitleBarWithCustomCloseButton(
     { modifier ->
       val winTheme = LocalWindowControllerTheme.current
       Box(

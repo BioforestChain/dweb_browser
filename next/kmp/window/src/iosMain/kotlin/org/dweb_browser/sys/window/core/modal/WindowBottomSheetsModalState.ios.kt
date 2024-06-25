@@ -103,7 +103,7 @@ internal fun BottomSheetsModalState.RenderImplOld(emitModalVisibilityChange: (st
               val winPadding = LocalWindowPadding.current
               Column {
                 /// banner
-                TitleBarWithCustomCloseBottom(
+                TitleBarWithCustomCloseButton(
                   /// 使用原生的UIKitView来做关闭按钮，所以这里只是做一个简单的占位
                   { modifier ->
                     Box(modifier)
@@ -149,7 +149,7 @@ internal fun BottomSheetsModalState.RenderImplOld(emitModalVisibilityChange: (st
     UIImage.systemImageNamed(name = "xmark.circle.fill")
   }
   // 菜单关闭按钮的样式
-  val closeBottom = remember(gestureRecognizer) {
+  val closeButton = remember(gestureRecognizer) {
     UIBarButtonItem(
       primaryAction = gestureRecognizer,
       menu = null
@@ -160,7 +160,7 @@ internal fun BottomSheetsModalState.RenderImplOld(emitModalVisibilityChange: (st
       it.tintColor = winTheme.topContentColor.toUIColor()
     }
   }
-  LaunchedEffect(closeBottom, emitModalVisibilityChange) {
+  LaunchedEffect(closeButton, emitModalVisibilityChange) {
     val vc = pureViewController.getUiViewController()
     val nav = UINavigationController(rootViewController = vc)
     // 始终保持展开，只能通过点击按钮关闭
@@ -170,13 +170,13 @@ internal fun BottomSheetsModalState.RenderImplOld(emitModalVisibilityChange: (st
       // 可以半屏、全屏
       sheet.setDetents(
         listOf(
-//          UISheetPresentationControllerDetent.mediumDetent(),
+          UISheetPresentationControllerDetent.mediumDetent(),
           UISheetPresentationControllerDetent.largeDetent(),
         )
       )
       sheet.preferredCornerRadius = winPadding.contentRounded.topStart.toDouble()
       // 当滚动到边缘时，滚动扩展
-      sheet.prefersScrollingExpandsWhenScrolledToEdge = false
+      sheet.prefersScrollingExpandsWhenScrolledToEdge = true
       // 显示可拖动的手柄
       sheet.setPrefersGrabberVisible(true)
       // 添加窗口标识
@@ -188,7 +188,7 @@ internal fun BottomSheetsModalState.RenderImplOld(emitModalVisibilityChange: (st
       }
     }
     /// 配置关闭按钮
-    vc.navigationItem.rightBarButtonItem = closeBottom
+    vc.navigationItem.rightBarButtonItem = closeButton
     val afterPresent = CompletableDeferred<Unit>()
     uiViewController.presentViewController(
       viewControllerToPresent = nav,
