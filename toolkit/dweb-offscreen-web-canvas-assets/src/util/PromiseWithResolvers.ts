@@ -10,13 +10,14 @@ declare global {
 }
 
 export const withResolvers =
-  (Promise.withResolvers.bind(Promise) as typeof Promise.withResolvers) ||
-  (Promise.withResolvers = function withResolvers<R>() {
-    var a,
-      b,
-      c = new Promise<R>(function (resolve, reject) {
-        a = resolve;
-        b = reject;
+  typeof Promise.withResolvers === "function"
+    ? (Promise.withResolvers.bind(Promise) as typeof Promise.withResolvers)
+    : (Promise.withResolvers = function withResolvers<R>() {
+        var a,
+          b,
+          c = new Promise<R>(function (resolve, reject) {
+            a = resolve;
+            b = reject;
+          });
+        return { resolve: a, reject: b, promise: c };
       });
-    return { resolve: a, reject: b, promise: c };
-  });
