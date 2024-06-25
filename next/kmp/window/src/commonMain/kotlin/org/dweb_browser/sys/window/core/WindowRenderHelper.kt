@@ -55,7 +55,7 @@ private fun WindowContentScaffoldWrapper(
 fun Modifier.withRenderScope(renderScope: WindowContentRenderScope) = when (renderScope) {
   WindowContentRenderScope.Unspecified -> this
   else -> renderScope.run {
-    this@withRenderScope.scale(scale).requiredSize(widthDp / scale, heightDp / scale) // 原始大小
+    this@withRenderScope.requiredSize(widthDp / scale, heightDp / scale).scale(scale)// 原始大小
   }
 }
 

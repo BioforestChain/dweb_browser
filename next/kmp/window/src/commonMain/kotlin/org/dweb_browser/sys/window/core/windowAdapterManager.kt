@@ -55,9 +55,6 @@ data class WindowContentRenderScope(
 }
 typealias WindowRenderProvider = @Composable WindowContentRenderScope.(modifier: Modifier) -> Unit
 
-//val LocalWindowContentRenderScope =
-//  compositionChainOf<WindowContentRenderScope>("WindowContentRenderScope")
-
 /**
  * 窗口的适配器管理
  * 提供了窗口创建、窗口渲染的相关适配器功能
@@ -122,7 +119,6 @@ class WindowAdapterManager : AdapterManager<CreateWindowAdapter>() {
           CompositionLocalProvider(
             LocalContentColor provides theme.themeContentColor,
           ) {
-            // LocalCompositionChain.current.Provider(LocalWindowContentRenderScope provides windowRenderScope) {
             /**
              * 视图的宽高随着窗口的缩小而缩小，随着窗口的放大而放大，
              * 但这些缩放不是等比的，而是会以一定比例进行换算。
@@ -131,7 +127,6 @@ class WindowAdapterManager : AdapterManager<CreateWindowAdapter>() {
               windowRenderScope,
               contentModifier,
             )
-            // }
           }
         }
       }
