@@ -144,7 +144,6 @@ fun JmmDetailController.Render(modifier: Modifier, renderScope: WindowContentRen
               for (tab in allTabs) {
                 when (tab) {
                   JmmDetailTabs.Detail -> item(key = tab) {
-                    println("QAQ CaptureListView")
                     CaptureListView(metadata.manifest)
                   }
 
