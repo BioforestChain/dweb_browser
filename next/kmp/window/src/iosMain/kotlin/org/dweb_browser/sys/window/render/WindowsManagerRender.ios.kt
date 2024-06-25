@@ -34,7 +34,7 @@ private class IosWindowNativeView(
         compositionChain.Provider(LocalCompositionChain.current)
           .Provider(LocalWindowsManager provides windowsManager) {
             /// 渲染窗口
-            win.MaterialTheme {
+            win.WithMaterialTheme {
               win.WindowRender(Modifier.windowImeOutsetBounds())
             }
           }
