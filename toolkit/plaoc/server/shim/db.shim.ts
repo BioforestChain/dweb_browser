@@ -1,15 +1,13 @@
 /// <reference lib="dom"/>
 
-export const setupDB = async (sessionId: string) => {
+export const setupDB = async (sessionId: string, isClear: boolean = false) => {
   document.currentScript?.parentElement?.removeChild(document.currentScript);
   const KEY = "--plaoc-session-id--";
   console.log(
-    KEY,
-    localStorage.getItem(KEY) !== sessionId,
-    localStorage.getItem(KEY) == null,
-    localStorage.getItem(KEY)
+    "是否清空数据：",
+    localStorage.getItem(KEY) !== null && localStorage.getItem(KEY) !== sessionId && isClear
   );
-  if (localStorage.getItem(KEY) !== sessionId) {
+  if (localStorage.getItem(KEY) !== sessionId && isClear) {
     // 解决target2版本适配，临时代码
     if (localStorage.getItem(KEY) == null) {
       localStorage.setItem(KEY, sessionId);

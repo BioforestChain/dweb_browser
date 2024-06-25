@@ -2,32 +2,32 @@
   "helper": {
     "buildToRootDir": "./npm/@dweb-browser__helper",
     "name": "@dweb-browser/helper",
-    "version": "0.1.1"
+    "version": "0.1.2"
   },
   "core": {
     "buildToRootDir": "./npm/@dweb-browser__core",
     "name": "@dweb-browser/core",
-    "version": "0.1.1"
+    "version": "0.1.2"
   },
   "js-process": {
     "buildToRootDir": "./npm/@dweb-browser__js-process",
     "name": "@dweb-browser/js-process",
-    "version": "0.4.4"
+    "version": "0.4.5"
   },
   "server": {
     "buildToRootDir": "./npm/@plaoc__server",
     "name": "@plaoc/server",
-    "version": "0.3.2"
+    "version": "0.3.3"
   },
   "cli": {
     "buildToRootDir": "./npm/@plaoc__cli",
     "name": "@plaoc/cli",
-    "version": "1.0.1"
+    "version": "1.0.2"
   },
   "plugins": {
     "buildToRootDir": "./npm/@plaoc__plugins",
     "name": "@plaoc/plugins",
-    "version": "1.0.1"
+    "version": "1.0.2"
   },
   "is-dweb": {
     "buildToRootDir": "./npm/@plaoc__is-dweb",

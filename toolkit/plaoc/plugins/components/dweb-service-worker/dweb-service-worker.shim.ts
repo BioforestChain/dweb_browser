@@ -81,6 +81,11 @@ class DwebServiceWorker extends EventTarget {
     return this.plugin.restart;
   }
 
+  @cacheGetter()
+  get clearCache() {
+    return this.plugin.clearCache;
+  }
+
   /**
    *  dwebview 注册一个监听事件
    * @param eventName

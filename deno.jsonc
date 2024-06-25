@@ -15,8 +15,8 @@
     "plaoc:watch": "deno task plaoc --watch",
     "plaoc:hack": "deno run -A ./toolkit/scripts/hack-plaoc-server.ts",
     "plaoc:demo": "node ./npm/@plaoc__cli/esm/plaoc.js serve ./npm/@plaoc__examples/plugin-demo",
-    "plaoc:demo2": "node ./npm/@plaoc__cli/esm/plaoc.js serve ./npm/@plaoc__examples/html-demo",
-    "plaoc:html": "node ./npm/@plaoc__cli/esm/plaoc.js serve ./npm/@plaoc__examples/html-demo",
+    "plaoc:demo2": "node ./npm/@plaoc__cli/esm/plaoc.js serve ./npm/@plaoc__examples/html-demo --port 8097",
+    "plaoc:html": "node ./npm/@plaoc__cli/esm/plaoc.js serve ./npm/@plaoc__examples/html-demo --port 8097",
     "pub": "deno run -A ./scripts/pub.ts",
     "pub:all": "deno run -A ./scripts/pub-all.ts",
     "sync": "deno run -A ./scripts/sync_npm.ts",
@@ -53,8 +53,8 @@
   },
   "compilerOptions": {
     "noImplicitOverride": true,
-    "experimentalDecorators": true, /* Enable experimental support for legacy experimental decorators. */
-    "emitDecoratorMetadata": true, /* Emit design-type metadata for decorated declarations in source files. */
+    "experimentalDecorators": true /* Enable experimental support for legacy experimental decorators. */,
+    "emitDecoratorMetadata": true /* Emit design-type metadata for decorated declarations in source files. */,
     "verbatimModuleSyntax": true
   },
   "exclude": [

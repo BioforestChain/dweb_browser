@@ -56,13 +56,13 @@ export class Server_api extends HttpServer {
         const mmid = event.searchParams.get("mmid") as $MMID;
         const data = await this.jsRuntime.dns.query(mmid);
 
-        if(data) {
+        if (data) {
           return Response.json(data);
         }
 
         return new Response(null, { status: 404 });
       }
-      
+
       return Response.json(false);
     };
 

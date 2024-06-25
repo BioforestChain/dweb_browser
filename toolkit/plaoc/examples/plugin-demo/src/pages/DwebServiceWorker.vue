@@ -30,8 +30,8 @@ const sayHi = async () => {
     search: {
       哈哈哈: "xx",
     },
-    method: "POST",
-    body: new Blob([`{"xxx":${input.value}}`], { type: "application/json" }),
+    method: "GET",
+    // body: new Blob([`{"xxx":${input.value}}`], { type: "application/json" }),
   });
   message.value = await response.text();
   console.log("sayHi return => ", message.value);

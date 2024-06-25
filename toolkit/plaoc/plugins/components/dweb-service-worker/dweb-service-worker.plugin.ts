@@ -54,6 +54,41 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
   }
 
   /**
+   * 配置没有命中缓存是否自动清空数据
+   * @returns boolean
+   */
+  @bindThis
+  async clearCache() {
+    const KEY = "--plaoc-session-id--";
+    const sessionId = localStorage.getItem(KEY);
+    localStorage.clear();
+    if (sessionId) localStorage.setItem(KEY, sessionId);
+    sessionStorage.clear();
+    const tasks = [];
+    const t1 = indexedDB.databases().then((dbs) => {
+      for (const db of dbs) {
+        if (db.name) {
+          indexedDB.deleteDatabase(db.name);
+        }
+      }
+    });
+    tasks.push(t1.catch(console.error));
+    // @ts-ignore
+    if (typeof cookieStore === "object") {
+      // @ts-ignore
+      const t2 = cookieStore.getAll().then((cookies) => {
+        for (const c of cookies) {
+          // @ts-ignore
+          cookieStore.delete(c.name);
+        }
+      });
+      tasks.push(t2.catch(console.error));
+    }
+    await Promise.all(tasks);
+    (location as Location).replace(location.href);
+  }
+
+  /**
    * 查询应用是否安装
    * @param mmid
    * @returns boolean

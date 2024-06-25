@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import { HTMLDwebNetworkElement, networkPlugin } from "@plaoc/plugins";
 import { onMounted, ref } from "vue";
 import LogPanel, { defineLogAction, toConsole } from "../components/LogPanel.vue";
-import { HTMLDwebNetworkElement, networkPlugin } from "@plaoc/plugins";
 
 const title = "Scanner";
 

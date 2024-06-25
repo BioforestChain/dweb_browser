@@ -283,7 +283,7 @@ export abstract class MicroModuleRuntime implements $MicroModuleRuntime {
    * 模拟fetch的返回值
    * 这里的做fetch的时候需要先connect
    */
-  nativeFetch(url: RequestInfo | URL, init?: RequestInit) {
+  nativeFetch(url: RequestInfo | URL, init?: RequestInit & { duplex: "half" }) {
     return Object.assign(this._nativeFetch(url, init), fetchExtends);
   }
 
