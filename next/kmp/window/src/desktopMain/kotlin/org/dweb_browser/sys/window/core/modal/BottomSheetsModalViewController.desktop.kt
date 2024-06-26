@@ -4,18 +4,29 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.BottomSheetDefaults
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetValue
+import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.launch
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
 import org.dweb_browser.sys.window.core.windowAdapterManager
 import org.dweb_browser.sys.window.render.LocalWindowLimits
@@ -54,6 +65,14 @@ internal class BottomSheetsModalViewController(modal: BottomSheetsModalState) :
     val density = LocalDensity.current.density
 
     val windowLimits = LocalWindowLimits.current
+    val desktopFixScrollBugFlow = remember { MutableStateFlow(0f) }
+    LaunchedEffect(desktopFixScrollBugFlow) {
+      @OptIn(FlowPreview::class)
+      desktopFixScrollBugFlow.debounce(200).collect {
+        println("QAQ will show")
+        sheetState.show()
+      }
+    }
 
     ModalBottomSheet(sheetState = sheetState,
       // 桌面端允许铺满dialog宽度，因为有原生的dialog宽度来拖兜底
@@ -74,8 +93,9 @@ internal class BottomSheetsModalViewController(modal: BottomSheetsModalState) :
         Modifier.padding(
           start = winPadding.start.dp,
           end = winPadding.end.dp,
-//          bottom = 0.do
-        )
+        ).onGloballyPositioned { coordinates ->
+          desktopFixScrollBugFlow.value = coordinates.positionInWindow().y
+        }
       ) {
         val windowRenderScope = remember(winPadding, maxWidth, maxHeight) {
           WindowContentRenderScope(maxWidth, maxHeight)

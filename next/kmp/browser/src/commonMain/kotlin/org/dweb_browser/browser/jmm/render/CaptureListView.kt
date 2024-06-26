@@ -224,7 +224,6 @@ fun waterfallCalc(
   val density = LocalDensity.current.density
   val key = "$columns/${items.joinToString(",") { "${it.width}x${it.height}" }}"
   val cache = calcCacheMap[key]
-  println("QAQ waterfallCalc key=$key cache=$cache")
   return cache?.getResult(items) ?: run {
     Box(Modifier.height(0.dp)) {
       LazyVerticalStaggeredGrid(
