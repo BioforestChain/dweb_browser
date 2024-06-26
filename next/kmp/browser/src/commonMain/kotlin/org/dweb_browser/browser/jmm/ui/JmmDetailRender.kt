@@ -143,6 +143,10 @@ fun JmmDetailController.Render(modifier: Modifier, renderScope: WindowContentRen
             LazyColumn(Modifier.fillMaxSize(), state = lazyListState) {
               for (tab in allTabs) {
                 when (tab) {
+                  JmmDetailTabs.Param -> item(key = tab) {
+                    OtherInfoView(metadata.manifest)
+                  }
+
                   JmmDetailTabs.Detail -> item(key = tab) {
                     CaptureListView(metadata.manifest)
                   }
@@ -152,10 +156,6 @@ fun JmmDetailController.Render(modifier: Modifier, renderScope: WindowContentRen
                     HorizontalDivider(modifier = Modifier.padding(horizontal = HorizontalPadding))
                     NewVersionInfoView(metadata.manifest)
                     HorizontalDivider(modifier = Modifier.padding(horizontal = HorizontalPadding))
-                  }
-
-                  JmmDetailTabs.Param -> item(key = tab) {
-                    OtherInfoView(metadata.manifest)
                   }
                 }
               }

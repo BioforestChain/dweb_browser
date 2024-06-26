@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -63,9 +64,6 @@ private val imageSizeCache = mutableMapOf<String, GridItem<String>>()
 internal fun CaptureListView(
   jmmAppInstallManifest: JmmAppInstallManifest,
 ) {
-  var cells by remember { mutableIntStateOf(2) }
-  val density = LocalDensity.current.density
-
   val waterfallItems = remember(jmmAppInstallManifest.images) {
     jmmAppInstallManifest.images.map {
       imageSizeCache.getOrPut(it) {
@@ -73,76 +71,77 @@ internal fun CaptureListView(
       }
     }
   }
-  val layoutList = waterfallCalc(columns = cells, items = waterfallItems.map { it.sizeState.value })
-  var unitSize by remember { mutableStateOf(160.dp) }
-  val gridHeight = unitSize * (waterfallItems.mapIndexed { index, gridItem ->
-    gridItem.sizeState.value.height + (layoutList?.getOrNull(index)?.y ?: 0)
-  }.maxOrNull() ?: 0)
-  BoxWithConstraints(
-    Modifier.fillMaxWidth().requiredHeight(gridHeight).onGloballyPositioned { coordinates ->
-      cells = max(1, (coordinates.size.width / density / 160).toInt())
-    }) {
-    unitSize = maxWidth / cells
-    waterfallItems.forEachIndexed { index, gridItem ->
-      val layout = layoutList?.get(index) ?: IntOffset(0, 0)
-      var showBigView by remember { mutableStateOf(false) }
-      CaptureListItem(Modifier.offset(unitSize * layout.x, unitSize * layout.y),
-        gridItem.key,
-        unitSize,
-        gridItem.sizeState,
-        onClick = {
-          showBigView = true
-        })
+  BoxWithConstraints(Modifier.fillMaxWidth()) {
+    val cells = max(1, (maxWidth.value / 160).toInt())
+    val layoutList =
+      waterfallCalc(columns = cells, items = waterfallItems.map { it.sizeState.value })
+    val unitSize = maxWidth / cells
+    val gridHeight = unitSize * (waterfallItems.mapIndexed { index, gridItem ->
+      gridItem.sizeState.value.height + (layoutList?.getOrNull(index)?.y ?: 0)
+    }.maxOrNull() ?: 0)
+    Box(Modifier.fillMaxWidth().requiredHeight(gridHeight)) {
 
-      if (showBigView) {
-        Dialog(
-          onDismissRequest = {
-            showBigView = false
-          },
-          properties = DialogProperties(
-            dismissOnBackPress = true,
-            dismissOnClickOutside = true,
-          ),
-        ) {
-          var scale by remember { mutableStateOf(1f) }
-          var offset by remember { mutableStateOf(Offset.Zero) }
-          Box(Modifier.fillMaxSize().pointerInput(Unit) {
-            detectTransformGestures { _, pan, zoom, _ ->
-              scale *= zoom
-              scale = clamp(0.5f, scale, 5f)
-              offset += pan
-            }
-          }) {
-            Box(
-              Modifier.align(Alignment.BottomCenter).zIndex(2f).navigationBarsPadding()
-                .padding(bottom = 48.dp)
-            ) {
-              FilledTonalIconButton(
-                onClick = {
-                  showBigView = false
-                },
-                modifier = Modifier.align(Alignment.Center),
-              ) {
-                Icon(Icons.Default.Close, contentDescription = "close image view")
+      waterfallItems.forEachIndexed { index, gridItem ->
+        val layout = layoutList?.get(index) ?: IntOffset(0, 0)
+        var showBigView by remember { mutableStateOf(false) }
+        CaptureListItem(Modifier.offset(unitSize * layout.x, unitSize * layout.y),
+          gridItem.key,
+          unitSize,
+          gridItem.sizeState,
+          onClick = {
+            showBigView = true
+          })
+
+        if (showBigView) {
+          Dialog(
+            onDismissRequest = {
+              showBigView = false
+            },
+            properties = DialogProperties(
+              dismissOnBackPress = true,
+              dismissOnClickOutside = true,
+            ),
+          ) {
+            var scale by remember { mutableStateOf(1f) }
+            var offset by remember { mutableStateOf(Offset.Zero) }
+            Box(Modifier.fillMaxSize().pointerInput(Unit) {
+              detectTransformGestures { _, pan, zoom, _ ->
+                scale *= zoom
+                scale = clamp(0.5f, scale, 5f)
+                offset += pan
               }
-            }
-            Box(Modifier.zIndex(1f).align(Alignment.Center).fillMaxSize().padding(24.dp)) {
-              CoilAsyncImage(
-                model = gridItem.key,
-                modifier = Modifier.fillMaxSize().graphicsLayer(
-                  scaleX = scale,
-                  scaleY = scale,
-                  translationX = offset.x,
-                  translationY = offset.y,
-                ),
-                contentDescription = null,
-                contentScale = ContentScale.Fit,
-              )
+            }) {
+              Box(
+                Modifier.align(Alignment.BottomCenter).zIndex(2f).navigationBarsPadding()
+                  .padding(bottom = 48.dp)
+              ) {
+                FilledTonalIconButton(
+                  onClick = {
+                    showBigView = false
+                  },
+                  modifier = Modifier.align(Alignment.Center),
+                ) {
+                  Icon(Icons.Default.Close, contentDescription = "close image view")
+                }
+              }
+              Box(Modifier.zIndex(1f).align(Alignment.Center).fillMaxSize().padding(24.dp)) {
+                CoilAsyncImage(
+                  model = gridItem.key,
+                  modifier = Modifier.fillMaxSize().graphicsLayer(
+                    scaleX = scale,
+                    scaleY = scale,
+                    translationX = offset.x,
+                    translationY = offset.y,
+                  ),
+                  contentDescription = null,
+                  contentScale = ContentScale.Fit,
+                )
+              }
             }
           }
         }
-      }
 
+      }
     }
   }
 }
@@ -225,25 +224,28 @@ fun waterfallCalc(
   val density = LocalDensity.current.density
   val key = "$columns/${items.joinToString(",") { "${it.width}x${it.height}" }}"
   val cache = calcCacheMap[key]
+  println("QAQ waterfallCalc key=$key cache=$cache")
   return cache?.getResult(items) ?: run {
-    LazyVerticalStaggeredGrid(
-      columns = StaggeredGridCells.Fixed(columns),
-      modifier = Modifier.width(columns.dp)
-        .requiredHeight(items.map { it.height }.reduce { acc, it -> acc + it }.dp)
-        // 透明，不现实
-        .alpha(
-          when {
-            debugCompose.isEnable -> 1f
-            else -> 0f
-          }
-        ),
-      state = state,
-    ) {
-      itemsIndexed(items) { index, item ->
-        Box(
-          Modifier.requiredSize(item.width.dp, item.height.dp)
-            .background(debugColors[index % debugColors.size])
-        )
+    Box(Modifier.height(0.dp)) {
+      LazyVerticalStaggeredGrid(
+        columns = StaggeredGridCells.Fixed(columns),
+        modifier = Modifier.width(columns.dp)
+          .requiredHeight(items.map { it.height }.reduce { acc, it -> acc + it }.dp)
+          // 透明，不现实
+          .alpha(
+            when {
+              debugCompose.isEnable -> 1f
+              else -> 0f
+            }
+          ),
+        state = state,
+      ) {
+        itemsIndexed(items) { index, item ->
+          Box(
+            Modifier.requiredSize(item.width.dp, item.height.dp)
+              .background(debugColors[index % debugColors.size])
+          )
+        }
       }
     }
     val result = state.layoutInfo.visibleItemsInfo.sortedBy { it.index }.map { gridItemInfo ->
