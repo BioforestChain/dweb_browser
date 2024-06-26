@@ -49,7 +49,7 @@ camera-version = "1.4.0-beta02"
 camera-barcode = "17.2.0"
 camera-zxing = "3.5.3"
 commons-compress = "1.26.1"
-jetbrains-compose-version = "1.7.0-dev1698"
+jetbrains-compose-version = "1.7.0-dev1686"
 jetbrains-androidx-navigation-version = "2.8.0-alpha02"
 
 # 测试

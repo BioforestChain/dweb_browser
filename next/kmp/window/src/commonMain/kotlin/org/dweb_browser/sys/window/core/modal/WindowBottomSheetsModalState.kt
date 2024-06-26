@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -209,6 +211,9 @@ internal fun BottomSheetsModalState.CommonRenderImpl(emitModalVisibilityChange: 
 
   val density = LocalDensity.current
   val defaultWindowInsets = BottomSheetDefaults.windowInsets
+  val modalWindowInsets = remember {
+    WindowInsets(0, 0, 0, 0)
+  }
 
   val winPadding = LocalWindowPadding.current
 
@@ -220,7 +225,6 @@ internal fun BottomSheetsModalState.CommonRenderImpl(emitModalVisibilityChange: 
   val windowInsetBottom = remember(defaultWindowInsets) {
     (defaultWindowInsets.getBottom(density) / density.density).dp
   }
-
   ModalBottomSheet(
     sheetState = sheetState,
     modifier = Modifier.padding(top = windowInsetTop),
@@ -235,6 +239,7 @@ internal fun BottomSheetsModalState.CommonRenderImpl(emitModalVisibilityChange: 
         BottomSheetDefaults.DragHandle(Modifier.align(Alignment.TopCenter))
       }
     },
+    windowInsets = modalWindowInsets,
     onDismissRequest = { emitModalVisibilityChange(EmitModalVisibilityState.TryClose) }
   ) {
     /// 显示内容
