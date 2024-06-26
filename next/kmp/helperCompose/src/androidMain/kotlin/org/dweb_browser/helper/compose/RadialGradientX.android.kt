@@ -163,17 +163,40 @@ private class GlRadialGradientView(
         uniform float endRadius;
         uniform vec4 colors[${colors.size}];
         uniform float stops[${colors.size}];
+
+        float calc_t(vec2 c0, float r0, vec2 c1, float r1, vec2 p) {
+          float w = 1.0;
+          float result = 0.0;
+          vec2 ab = c1 - c0;
+          float dr = r1 - r0;
+          float delta = 1.0 / length(ab);
+          while (w >= 0.0) {
+            vec2 cw = w * ab + c0;
+            float rw = w * dr + r0;
+            if (length(p - cw) <= rw) {
+              result = w;
+              break;
+            }
+            w -= delta;
+          }
+          return 1.0 - result;
+        }
+
         void main() {
           float d1 = distance(gl_FragCoord.xy, start) - startRadius;
           float d2 = endRadius - distance(gl_FragCoord.xy, end);
-          
+
           if (d1 <= 0.0) {
             gl_FragColor = colors[0];
           } else if (d2 <= 0.0) {
             gl_FragColor = colors[${colors.size - 1}];
           } else {
-            float t1 = d1 / (d1 + d2);
-            float t = t1;
+            vec2 c0 = end;
+            vec2 c1 = start;
+            float r0 = endRadius;
+            float r1 = startRadius;
+            vec2 p = gl_FragCoord.xy;
+            float t = calc_t(c0, r0, c1, r1, p);
             if (t <= stops[0]) {
               gl_FragColor = colors[0];
             } else if (t >= stops[${colors.size - 1}]) {
@@ -187,7 +210,7 @@ private class GlRadialGradientView(
                   break;
                 }
               }
-          
+
               gl_FragColor = color;
             }
           }
