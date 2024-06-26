@@ -24,8 +24,9 @@ fun <T : Activity> MicroModule.Runtime.startAppActivity(
       }
       onIntent(intent)
 
-      val bounds = optionsBuilder?.let { withMainContext { optionsBuilder() } }
-      context.startActivity(intent, bounds)
+      withMainContext {
+        context.startActivity(intent, optionsBuilder?.invoke()) // startActivity 需要放在主线程
+      }
     }
   }
 }
