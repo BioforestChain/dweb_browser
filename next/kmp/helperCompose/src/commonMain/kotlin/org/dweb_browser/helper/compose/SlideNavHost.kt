@@ -17,7 +17,7 @@ fun SlideNavHost(
   modifier: Modifier = Modifier,
   contentAlignment: Alignment = Alignment.Center,
   route: String? = null,
-  builder: NavGraphBuilder.() -> Unit
+  builder: NavGraphBuilder.() -> Unit,
 ) {
   NavHost(
     navController = navController,
@@ -26,15 +26,29 @@ fun SlideNavHost(
     contentAlignment = contentAlignment,
     route = route,
     // 新页面进场
-    enterTransition = { slideIn(iosTween(true)) { IntOffset(it.width, 0) } },
+    enterTransition = { SlideNavAnimations.enterTransition },
     // 新页面退场
-    popExitTransition = { slideOut(iosTween(false)) { IntOffset(it.width, 0) } },
+    popExitTransition = { SlideNavAnimations.popExitTransition },
 
     // 旧页面退场
-    exitTransition = { slideOut(iosTween(false)) { IntOffset(-it.width, 0) } },
+    exitTransition = { SlideNavAnimations.exitTransition },
     // 旧页面回场
-    popEnterTransition = { slideIn(iosTween(true)) { IntOffset(-it.width, 0) } },
+    popEnterTransition = { SlideNavAnimations.popEnterTransition },
 
     builder = builder
   )
+}
+
+object SlideNavAnimations {
+  // 新页面进场
+  val enterTransition = slideIn(iosTween(true)) { IntOffset(it.width, 0) }
+
+  // 新页面退场
+  val popExitTransition = slideOut(iosTween(false)) { IntOffset(it.width, 0) }
+
+  // 旧页面退场
+  val exitTransition = slideOut(iosTween(false)) { IntOffset(-it.width, 0) }
+
+  // 旧页面回场
+  val popEnterTransition = slideIn(iosTween(true)) { IntOffset(-it.width, 0) }
 }

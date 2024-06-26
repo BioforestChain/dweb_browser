@@ -1,5 +1,6 @@
 package org.dweb_browser.helper.compose
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
@@ -20,16 +21,11 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-import kotlinx.coroutines.CoroutineScope
 
 
 expect fun Modifier.cursorForHorizontalResize(): Modifier
@@ -93,31 +89,37 @@ fun ListDetailPaneScaffold(
       }
 
       else -> {
-        SlideNavHost(
-          navController = navigator.navHostController,
-          startDestination = ListDetailPaneScaffoldRole.List.name,
-          modifier = Modifier.fillMaxSize(),
+        val showList = navigator.currentRole == ListDetailPaneScaffoldRole.List
+        AnimatedVisibility(
+          showList,
+          Modifier.fillMaxSize(),
+          enter = SlideNavAnimations.popEnterTransition,
+          exit = SlideNavAnimations.exitTransition,
         ) {
-          composable(ListDetailPaneScaffoldRole.List.name) {
-            DisposableEffect(null) {
-              onDispose {
-                if (navigator.currentRole != ListDetailPaneScaffoldRole.Detail) {
-                  navigator.onDidLeaveList()
-                }
+          DisposableEffect(null) {
+            onDispose {
+              if (navigator.currentRole != ListDetailPaneScaffoldRole.Detail) {
+                navigator.onDidLeaveList()
               }
             }
-            listPane()
           }
-          composable(ListDetailPaneScaffoldRole.Detail.name) {
-            DisposableEffect(null) {
-              onDispose {
-                if (navigator.currentRole != ListDetailPaneScaffoldRole.Detail) {
-                  navigator.onDidLeaveDetail()
-                }
+          listPane()
+        }
+        val showDetail = navigator.currentRole == ListDetailPaneScaffoldRole.Detail
+        AnimatedVisibility(
+          showDetail,
+          modifier = Modifier.fillMaxSize(),
+          enter = SlideNavAnimations.enterTransition,
+          exit = SlideNavAnimations.popExitTransition,
+        ) {
+          DisposableEffect(null) {
+            onDispose {
+              if (navigator.currentRole != ListDetailPaneScaffoldRole.Detail) {
+                navigator.onDidLeaveDetail()
               }
             }
-            detailPane()
           }
+          detailPane()
         }
       }
     }
@@ -130,18 +132,10 @@ enum class ListDetailPaneScaffoldRole {
 
 @Composable
 fun rememberListDetailPaneScaffoldNavigator(): ListDetailPaneScaffoldNavigator {
-  val navHostController = rememberNavController()
-  val scope = rememberCoroutineScope()
-  return remember(navHostController, scope) {
-    ListDetailPaneScaffoldNavigator(
-      navHostController, scope
-    )
-  }
+  return remember { ListDetailPaneScaffoldNavigator() }
 }
 
 class ListDetailPaneScaffoldNavigator(
-  internal val navHostController: NavHostController,
-  private val scope: CoroutineScope,
 ) {
   var isFold by mutableStateOf(false)
     internal set
@@ -180,18 +174,6 @@ class ListDetailPaneScaffoldNavigator(
         onDidLeaveRole?.also { onDidLeaveDetail ->
           this.onDidLeaveDetail = onDidLeaveDetail
         }
-      }
-    }
-
-    when (role) {
-      ListDetailPaneScaffoldRole.List -> {
-        println("QAQ navHostController.popBackStack list")
-        navHostController.popBackStack()
-      }
-
-      ListDetailPaneScaffoldRole.Detail -> {
-        println("QAQ navHostController.navigate detail")
-        navHostController.navigate(role.name)
       }
     }
   }
