@@ -43,6 +43,7 @@
       android:name=".SplashActivity"
       android:exported="true"
       android:resizeableActivity="true"
+      android:configChanges="keyboardHidden|screenSize|screenLayout|orientation|keyboard|navigation|uiMode"
       android:theme="@style/Theme.App.Starting">
       <intent-filter>
         <action android:name="android.intent.action.MAIN" />
