@@ -62,7 +62,7 @@ fun Context.removeKey(key: String) {
   sp.edit { remove(key) }
 }
 
-fun Context.removeKeys(keys: ArrayList<String>) {
+fun Context.removeKeys(keys: List<String>) {
   val sp = getSharedPreferences(SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE)
   sp.edit {
     keys.forEach {

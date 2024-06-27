@@ -9,12 +9,15 @@ import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.dwebview.engine.DWebViewEngine
+import org.dweb_browser.helper.SafeHashMap
 import org.dweb_browser.helper.SuspendOnce
+import org.dweb_browser.helper.appKvGetValues
+import org.dweb_browser.helper.appKvRemoveValues
+import org.dweb_browser.helper.appKvSetValues
 import org.dweb_browser.helper.getAppContext
-import org.dweb_browser.helper.getAppContextUnsafe
-import org.dweb_browser.helper.getStringSet
 import org.dweb_browser.helper.saveStringSet
 import org.dweb_browser.helper.toWebUrl
+import org.dweb_browser.helper.withMainContext
 
 
 interface AndroidWebProfileStore : DWebProfileStore {
@@ -39,71 +42,94 @@ class CompactDWebProfileStore private constructor() : AndroidWebProfileStore {
     profileName: String,
   ): DWebProfile = allProfiles.getOrPut(profileName) {
     CompactDWebProfile(profileName).also {
-      getAppContextUnsafe().saveStringSet("dweb-profiles", allProfiles.keys + profileName)
+      appKvSetValues("dweb-profiles", allProfiles.keys + profileName)
     }
   }.also {
     setProfile(it, engine)
   }
 
   private val allProfiles by lazy {
-    (getAppContextUnsafe().getStringSet("dweb-profiles") ?: setOf()).associateWith {
+    SafeHashMap((appKvGetValues("dweb-profiles") ?: setOf()).associateWith {
       CompactDWebProfile(it)
-    }.toMutableMap()
+    }.toMutableMap())
   }
 
   override suspend fun getAllProfileNames() = allProfiles.keys.toList()
 
-  private fun setProfile(profile: DWebProfile, engine: DWebViewEngine) {
+  private fun setProfile(profile: CompactDWebProfile, engine: DWebViewEngine) {
     if (profile.profileName.endsWith(".dweb")) {
-      engine.lifecycleScope.launch(start = CoroutineStart.UNDISPATCHED) {
-        val storeKey = keyVisitedUrls(profile.profileName)
-        val visitedUrls = SuspendOnce {
-          getValues(storeKey)?.toMutableSet() ?: mutableSetOf()
+      val job = engine.lifecycleScope.launch(start = CoroutineStart.UNDISPATCHED) {
+        val visitedOriginsKey = keyVisitedOrigins(profile.profileName)
+        val visitedOrigins = SuspendOnce {
+          appKvGetValues(visitedOriginsKey)?.toMutableSet() ?: mutableSetOf()
         }
-        engine.dWebViewClient.loadStateChangeSignal.listen {
-          if (it is WebLoadStartState) {
-            val webUrl = it.url.toWebUrl()
+        val visitedUrlsKey = keyVisitedUrls(profile.profileName)
+        val visitedUrls = SuspendOnce {
+          appKvGetValues(visitedUrlsKey)?.toMutableSet() ?: mutableSetOf()
+        }
+        engine.dWebViewClient.loadStateChangeSignal.listen { state ->
+          if (state is WebLoadStartState) {
+            val webUrl = state.url.toWebUrl()
             if (webUrl?.host?.endsWith(profile.profileName) == true) {
-              visitedUrls().apply {
-                if (add(webUrl.protocolWithAuthority)) {
-                  getAppContext().saveStringSet(storeKey, this)
+              val origin = webUrl.protocolWithAuthority + "/"
+              visitedUrls().also {
+                if (it.add(origin)) {
+                  getAppContext().saveStringSet(visitedUrlsKey, it)
+                }
+              }
+              visitedOrigins().also {
+                if (it.add(origin)) {
+                  getAppContext().saveStringSet(visitedOriginsKey, it)
                 }
               }
             }
           }
         }
       }
+
+      profile.bindingJobs += job
+      engine.destroyStateSignal.onDestroy {
+        println("QAQ unbindingJobs ${profile.profileName}")
+        profile.bindingJobs -= job
+      }
     }
   }
 
   private fun keyVisitedUrls(mmid: MMID) = "visitedUrls-$mmid"
   private fun keyVisitedOrigins(mmid: MMID) = "visitedOrigins-$mmid"
-  private fun getValues(storeKey: String) = getAppContextUnsafe().getStringSet(storeKey)
 
   override suspend fun deleteProfile(name: String) = when {
-    name.endsWith(".dweb") -> {
+    name.endsWith(".dweb") -> withMainContext {
+      println("QAQ deleteProfile name=$name")
       var success = false
       val visitedOriginsKey = keyVisitedOrigins(name)
-      getValues(visitedOriginsKey)?.let { origins ->
+      appKvGetValues(visitedOriginsKey)?.let { origins ->
+        println("QAQ deleteProfile visitedOrigins=${origins.joinToString(";")}")
         success = true
         for (origin in origins) {
           webStorage.deleteOrigin(origin)
           geolocationPermissions.clear(origin)
         }
       }
+
       val visitedUrlsKey = keyVisitedUrls(name)
-      getValues(visitedUrlsKey)?.let { urls ->
+      appKvGetValues(visitedUrlsKey)?.let { urls ->
+        println("QAQ deleteProfile visitedUrls=${urls.joinToString(";")}")
         success = true
         for (url in urls) {
           cookieManager.setCookie(url, "")
         }
       }
+      appKvRemoveValues(visitedOriginsKey, visitedUrlsKey)
+
+      allProfiles.remove(name)
+      appKvSetValues("dweb-profiles", allProfiles.keys)
+
       success
     }
 
     else -> false
   }
-
 }
 
 internal val androidWebProfileStore by lazy {

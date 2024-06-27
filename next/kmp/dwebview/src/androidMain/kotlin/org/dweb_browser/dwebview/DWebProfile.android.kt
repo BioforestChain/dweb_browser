@@ -6,9 +6,12 @@ import android.webkit.GeolocationPermissions
 import android.webkit.ServiceWorkerController
 import android.webkit.WebStorage
 import androidx.webkit.Profile
+import kotlinx.coroutines.Job
 
 class CompactDWebProfile internal constructor(override val profileName: String) : Profile,
   DWebProfile {
+
+    internal val bindingJobs = mutableListOf<Job>()
 
   override fun getName(): String {
     return this.profileName

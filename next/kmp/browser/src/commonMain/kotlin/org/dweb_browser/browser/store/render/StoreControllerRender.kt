@@ -35,6 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import org.dweb_browser.browser.store.StoreController
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.module.MicroModule
@@ -139,6 +140,7 @@ fun StoreController.Render(modifier: Modifier, windowRenderScope: WindowContentR
             Modifier.fillMaxSize(),
             topBarTitleText = "数据项详情:${profileDetail.short_name}"
           ) { paddingValues ->
+            var deleteJob by remember { mutableStateOf<Job?>(null) }
             val deleteProfile: suspend (ProfileDetail) -> Unit = remember {
               { detail ->
                 dWebProfileStore.deleteProfile(detail.mmid)
@@ -151,20 +153,39 @@ fun StoreController.Render(modifier: Modifier, windowRenderScope: WindowContentR
             Column(Modifier.padding(paddingValues).fillMaxSize()) {
               key(profileDetail) {
                 var showForceDeleteProfileDialog by remember { mutableStateOf(false) }
-                FilledTonalButton({
-                  storeNMM.scopeLaunch(cancelable = false) {
-                    if (dWebProfileStore.isUsingProfile(profileDetail.mmid)) {
-                      showForceDeleteProfileDialog = true
-                    } else {
-                      deleteProfile(profileDetail)
+                FilledTonalButton(
+                  {
+                    storeNMM.scopeLaunch(cancelable = false) {
+                      if (storeNMM.bootstrapContext.dns.isRunning(profileDetail.mmid)) {
+                        showForceDeleteProfileDialog = true
+                      } else {
+                        deleteJob = launch {
+                          deleteProfile(profileDetail)
+                        }
+                      }
                     }
+                  },
+                  enabled = deleteJob == null,
+                  colors = ButtonDefaults.filledTonalButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                ) {
+                  Row(verticalAlignment = Alignment.CenterVertically) {
+                    when (deleteJob) {
+                      null -> Icon(
+                        Icons.TwoTone.DeleteForever,
+                        contentDescription = "kill and delete profile"
+                      )
+
+                      else -> CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = MaterialTheme.colorScheme.secondary,
+                        trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                      )
+                    }
+                    Text("清除数据")
                   }
-                }) {
-                  Text("清除数据")
                 }
 
                 if (showForceDeleteProfileDialog) {
-                  var closeJob by remember { mutableStateOf<Job?>(null) }
                   AlertDialog(
                     { showForceDeleteProfileDialog = false },
                     title = { Text("程序正在运行") },
@@ -172,17 +193,17 @@ fun StoreController.Render(modifier: Modifier, windowRenderScope: WindowContentR
                     confirmButton = {
                       FilledTonalButton(
                         {
-                          closeJob = storeNMM.scopeLaunch(cancelable = true) {
+                          deleteJob = storeNMM.scopeLaunch(cancelable = true) {
                             storeNMM.bootstrapContext.dns.close(profileDetail.mmid)
                             deleteProfile(profileDetail)
                             showForceDeleteProfileDialog = false
                           }
                         },
-                        enabled = closeJob == null,
-                        colors = ButtonDefaults.filledTonalButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                        enabled = deleteJob == null,
+                        colors = ButtonDefaults.filledTonalButtonColors(contentColor = MaterialTheme.colorScheme.error),
                       ) {
-                        Row {
-                          when (closeJob) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                          when (deleteJob) {
                             null -> Icon(
                               Icons.TwoTone.DeleteForever,
                               contentDescription = "kill and delete profile"
@@ -201,8 +222,8 @@ fun StoreController.Render(modifier: Modifier, windowRenderScope: WindowContentR
                     },
                     dismissButton = {
                       Button({
-                        closeJob?.cancel()
-                        closeJob = null
+                        deleteJob?.cancel()
+                        deleteJob = null
                         showForceDeleteProfileDialog = false
                       }) {
                         Text("取消")

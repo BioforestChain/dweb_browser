@@ -247,6 +247,26 @@ class DWebViewEngine internal constructor(
     defaultDownloadListenerRemover = listener?.let { addDownloadListener(it) }
   }
 
+  val destroyStateSignal = DestroyStateSignal(lifecycleScope)
+  override fun destroy() {
+    if (destroyStateSignal.doDestroy()) {
+      if (!isAttachedToWindow) {
+        super.onDetachedFromWindow()
+      }
+      super.destroy()
+      val isNoRef = profileRef[profile]?.let { webViews ->
+        webViews.remove(this)
+        webViews.isEmpty()
+      } ?: true
+      if (isNoRef && profile.profileName.endsWith(".incognito")) {
+        lifecycleScope.launch {
+          androidWebProfileStore.deleteProfile(profile.profileName)
+        }
+      }
+    }
+  }
+
+
   private val profile: DWebProfile
 
   init {
@@ -342,25 +362,6 @@ class DWebViewEngine internal constructor(
         script, afterEval
       )
     }
-
-  val destroyStateSignal = DestroyStateSignal(lifecycleScope)
-  override fun destroy() {
-    if (destroyStateSignal.doDestroy()) {
-      if (!isAttachedToWindow) {
-        super.onDetachedFromWindow()
-      }
-      super.destroy()
-      val isNoRef = profileRef[profile]?.let { webViews ->
-        webViews.remove(this)
-        webViews.isEmpty()
-      } ?: true
-      if (isNoRef && profile.profileName.endsWith(".incognito")) {
-        lifecycleScope.launch {
-          androidWebProfileStore.deleteProfile(profile.profileName)
-        }
-      }
-    }
-  }
 
   private var isAttachedToWindow = false
 

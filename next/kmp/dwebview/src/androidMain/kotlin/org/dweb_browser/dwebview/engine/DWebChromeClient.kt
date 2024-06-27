@@ -13,6 +13,7 @@ import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebStorage
 import android.webkit.WebView
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
@@ -68,7 +69,7 @@ class DWebChromeClient(val engine: DWebViewEngine) : WebChromeClient() {
   internal val closeSignal = SimpleSignal()
 
   override fun onCloseWindow(window: WebView?) {
-    scope.launch {
+    scope.launch(start = CoroutineStart.UNDISPATCHED) {
       closeSignal.emit()
     }
     inners("onCloseWindow").one { it.onCloseWindow(window) } ?: super.onCloseWindow(window)

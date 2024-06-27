@@ -90,6 +90,10 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
       return dnsMM.search(category)
     }
 
+    override suspend fun isRunning(mmid: MMID): Boolean {
+      return dnsMM.runtime.isRunning(mmid)
+    }
+
     // 调用重启
     override suspend fun restart(mmpt: MMPT) {
       // 关闭后端连接
@@ -443,6 +447,10 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
         }
         count
       }
+    }
+
+    suspend fun isRunning(mmid: MMID) = openLock.withLock {
+      getRunningApps(mmid).filter { it.key == mmid }.isNotEmpty()
     }
   }
 

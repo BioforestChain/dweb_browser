@@ -1,6 +1,7 @@
 package org.dweb_browser.core.module
 
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
+import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.help.types.MMPT
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.pure.http.PureRequest
@@ -27,6 +28,7 @@ interface DnsApi {
   fun query(mmpt: MMPT): MicroModule?
   fun queryAll(mmpt: MMPT): List<MicroModule>
 
+
   /**
    * 根据 url 查询能匹配响应的模块
    */
@@ -40,6 +42,10 @@ interface DnsApi {
    */
   suspend fun search(category: MICRO_MODULE_CATEGORY): List<MicroModule>
 
+  /**
+   * 是否正在运行中
+   */
+  suspend fun isRunning(mmid: MMID): Boolean
   /**
    * 重启应用
    */

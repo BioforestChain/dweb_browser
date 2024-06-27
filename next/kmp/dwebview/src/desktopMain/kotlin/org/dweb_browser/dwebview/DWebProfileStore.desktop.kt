@@ -24,10 +24,6 @@ class ChromiumWebProfileStore private constructor() : DWebProfileStore {
 
   override suspend fun getAllProfileNames() = getAllProfiles().keys.toList()
 
-  override suspend fun isUsingProfile(name: String): Boolean {
-    return getAllProfiles()[name]?.profile?.browsers()?.isNotEmpty() ?: false
-  }
-
   override suspend fun deleteProfile(name: String): Boolean {
     return getAllProfiles()[name]?.let { item ->
       item.engine.profiles().delete(item.profile)
