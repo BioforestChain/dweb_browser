@@ -4,8 +4,6 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.BatteryManager
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import org.dweb_browser.helper.getAppContextUnsafe
 
 @Serializable
@@ -35,19 +33,20 @@ class BatteryInfo {
   private val BATTERY_PLUGGED_WIRELESS = "Wireless"
   private val BATTERY_PLUGGED_UNKNOWN = "Unknown Source"
 
-  fun getBatteryInfo(): String {
-    var battery = Battery(
-      batteryPercent,
-      isPhoneCharging,
-      batteryHealth,
-      batteryTechnology,
-      batteryTemperature,
-      batteryVoltage,
-      chargingSource,
-      isBatteryPresent
-    )
-    return Json.encodeToString(battery)
+  private val batteryManager: BatteryManager by lazy {
+    getAppContextUnsafe().getSystemService(BatteryManager::class.java)
   }
+
+  fun getBatteryInfo() = Battery(
+    batteryPercent,
+    isPhoneCharging,
+    batteryHealth,
+    batteryTechnology,
+    batteryTemperature,
+    batteryVoltage,
+    chargingSource,
+    isBatteryPresent
+  )
 
   /* Battery Info:
       * battery percentage
@@ -77,11 +76,7 @@ class BatteryInfo {
     }
 
   val isPhoneCharging: Boolean
-    get() {
-      val intent = batteryStatusIntent
-      val plugged = intent!!.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0)
-      return plugged == BatteryManager.BATTERY_PLUGGED_AC || plugged == BatteryManager.BATTERY_PLUGGED_USB
-    }
+    get() = batteryManager.isCharging
 
   val batteryHealth: String
     get() {

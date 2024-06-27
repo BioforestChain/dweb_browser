@@ -23,6 +23,7 @@ import org.dweb_browser.helper.addDebugTags
 import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.platform.DeepLinkHook
 import org.dweb_browser.helper.platform.PureViewController
+import org.dweb_browser.sys.about.AboutNMM
 import org.dweb_browser.sys.biometrics.BiometricsNMM
 import org.dweb_browser.sys.clipboard.ClipboardNMM
 import org.dweb_browser.sys.configure.ConfigNMM
@@ -147,6 +148,8 @@ suspend fun startDwebBrowser(debugTags: String?, extMM: List<ExtMM> = listOf()):
   /// tray
   val tray = TrayNMM().setup()
 
+  val aboutNMM = AboutNMM().setup()
+
   for (mm in extMM) {
     mm.microModule.setup()
   }
@@ -166,6 +169,7 @@ suspend fun startDwebBrowser(debugTags: String?, extMM: List<ExtMM> = listOf()):
     browserNMM.mmid, // 为了启动后能够顺利加载添加到桌面的哪些数据，不加载browser界面
     deskNMM.mmid,//
     shortcutNMM.mmid, // 为了启动时，注入快捷内容
+    aboutNMM.mmid
   ) + extMM.filter { it.boot }.map { it.microModule.mmid }).setup()
 
   if (debugPermission.isEnable) {

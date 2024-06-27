@@ -5,12 +5,14 @@ import org.dweb_browser.core.std.file.getApplicationRootDir
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.platform.desktop.os.OsType
 
+data class DesktopHardwareInfo(val modelName: String)
+
 actual object DeviceManage {
   private val runtime by lazy { Runtime.getRuntime() }
   private val initDeviceUUID by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
     runCatching {
       when (OsType.current) {
-        OsType.MacOS-> {
+        OsType.MacOS -> {
           val cmd = arrayOf(
             "/bin/sh",
             "-c",
@@ -36,6 +38,9 @@ actual object DeviceManage {
   }
 
   actual fun deviceAppVersion(): String {
-    return System.getProperty("dwebbrowser.version") ?: javaClass.`package`?.implementationVersion ?: "0.0.0-dev.0"
+    return System.getProperty("dwebbrowser.version") ?: javaClass.`package`?.implementationVersion
+    ?: "0.0.0-dev.0"
   }
+
+  fun getHardwareInfo() = DesktopHardwareInfo(modelName = "Unknown")
 }

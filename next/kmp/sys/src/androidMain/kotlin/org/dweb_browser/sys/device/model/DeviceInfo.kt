@@ -12,32 +12,37 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.helper.getAppContextUnsafe
+import kotlin.jvm.Throws
+import kotlin.math.sqrt
 
 @Serializable
 data class DeviceData(
-  var deviceName: String = "", // 设备名称
-  var deviceMode: String = "", // 设备型号
-  var deviceVersion: String = "", // 版本号
-  var processor: String = "", // 处理器
+  var id: String = "",
+  var board: String = "",
+  var brand: String = "", // 品牌
+  var manufacturer: String = "", // 产品/硬件 制造商
+//  var deviceName: String = "", // 设备名称
+  var deviceModel: String = "", // 设备型号
+  var display: String = "", // 版本号
+  var hardware: String = "", // 硬件
   var memory: MemoryData? = null, // 运行内存
   var storage: StorageSize? = null, // 存储
-  var screen: String = "", // 屏幕
+  var resolution: String = "", // 屏幕分辨率
+  var density: String = "", // 屏幕像素密度
+  var refreshRate: String = "", // 屏幕最高帧率
+  var screenSizeInches: String = "", // 屏幕尺寸 单位/英寸
   var module: String = "default", // 手机模式(silentMode,doNotDisturb,default)
+  var supportAbis: String = "", // 支持的Abis
+  var radio: String = "", // 基带
 )
 
-class DeviceInfo {
+object DeviceInfo {
 
   fun getAppInfo(): String {
     return AppInfo().getAppInfo()
   }
 
-  fun getDevice(): String {
-    return deviceData.deviceVersion
-  }
-
-  fun getBatteryInfo(): String {
-    return BatteryInfo().getBatteryInfo()
-  }
+  fun getBatteryInfo() = BatteryInfo().getBatteryInfo()
 
   fun getDeviceInfo(): String {
     return Json.encodeToString(deviceData)
@@ -54,57 +59,109 @@ class DeviceInfo {
 
   val deviceData: DeviceData
     get() {
-      var deviceData = DeviceData()
-      deviceData.deviceName = deviceName
-      deviceData.deviceMode = deviceMode
-      deviceData.screen = deviceScreen
-      deviceData.deviceVersion = deviceVersion
-      deviceData.processor = deviceProcessor
-      deviceData.module = module
-      var memoryInfo = MemoryInfo()
-      deviceData.memory = memoryInfo.memoryData
-      deviceData.storage = memoryInfo.storageSize
-      return deviceData
+      try {
+        val deviceData = DeviceData()
+        deviceData.id = id
+        deviceData.board = board
+        deviceData.brand = brand
+        deviceData.manufacturer = manufacturer
+//        deviceData.deviceName = deviceName
+        deviceData.deviceModel = deviceModel
+        deviceData.resolution = resolution
+        deviceData.screenSizeInches = screenSizeInches
+        deviceData.display = display
+        deviceData.hardware = hardware
+        deviceData.module = module
+        deviceData.supportAbis = supportAbis
+        deviceData.radio = radio
+        deviceData.density = density
+        deviceData.refreshRate = refreshRate
+        val memoryInfo = MemoryInfo()
+        deviceData.memory = memoryInfo.memoryData
+        deviceData.storage = memoryInfo.storageSize
+        return deviceData
+      } catch (e: Throwable) {
+        println("QAQ deviceData ${e.message}")
+        throw e
+      }
     }
 
   private lateinit var mTelephonyManager: TelephonyManager
 
+  val id: String
+    get() = Build.ID
+
+  val board: String
+    get() = Build.BOARD
+
+  // 品牌
+  val brand: String
+    get() = Build.BRAND
+
+  // 产品硬件制造商
+  val manufacturer: String
+    get() = Build.MANUFACTURER
+
   val deviceName: String
-    @SuppressLint("MissingPermission")
-    get() {
-      mTelephonyManager = getAppContextUnsafe()
-        .getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+    @SuppressLint("MissingPermission") get() {
+      mTelephonyManager =
+        getAppContextUnsafe().getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
       // 获取 Global.DEVICE_NAME值不对，所以考虑用蓝牙名称，这二者理论上是一致的
       // 但是如果蓝牙是关闭的，修改设备名称后不会立刻同步到蓝牙，只有等蓝牙打开后才会同步名称
       return Settings.Secure.getString(getAppContextUnsafe().contentResolver, "bluetooth_name")
     }
 
-  val deviceMode: String
+  val deviceModel: String
     get() {
       //return Settings.Global.getString(App.appContext.contentResolver, Settings.Global.DEVICE_NAME)
       return MODEL
     }
 
-  val deviceScreen: String
+  private val displayMetrics = getAppContextUnsafe().resources.displayMetrics
+
+  val resolution: String
     get() {
-      var displayMetrics = getAppContextUnsafe().resources.displayMetrics
-      var screenWith = displayMetrics.widthPixels
-      var screenHeight = displayMetrics.heightPixels
-      /*var windowManager = App.appContext.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+      val screenWith = displayMetrics.widthPixels
+      val screenHeight = displayMetrics.heightPixels/*var windowManager = App.appContext.getSystemService(Context.WINDOW_SERVICE) as WindowManager
       val dm = DisplayMetrics()
       windowManager.defaultDisplay.getMetrics(dm)*/
-      return "$screenHeight * $screenWith"
+      return "$screenHeight * $screenWith pixels"
     }
 
-  val deviceVersion: String
+  val screenSizeInches: String
+    get() {
+      val screenWidthDp = displayMetrics.widthPixels / displayMetrics.density
+      val screenHeightDp = displayMetrics.heightPixels / displayMetrics.density
+      val screenDiagonalDp =
+        sqrt((screenWidthDp * screenWidthDp + screenHeightDp * screenHeightDp).toDouble())
+      val screenDiagonalInches = screenDiagonalDp / 160 // 1 inch = 160 dp
+      return "$screenDiagonalInches inches"
+    }
+
+  val density: String
+    get() = "${displayMetrics.densityDpi} dpi"
+
+  val refreshRate: String
+    get() = "${(getAppContextUnsafe().getSystemService(Context.WINDOW_SERVICE) as android.view.WindowManager).defaultDisplay.refreshRate} Hz"
+
+  val display: String
     get() {
       return Build.DISPLAY
     }
 
-  val deviceProcessor: String
+  val sdkInt: Int
+    get() = Build.VERSION.SDK_INT
+
+  val osVersion: String
+    get() = Build.VERSION.RELEASE
+
+  val hardware: String
     get() {
       return Build.HARDWARE
     }
+
+  val radio: String
+    get() = Build.getRadioVersion()
 
   val module: String // silentMode,doNotDisturb,default
     get() {
@@ -130,8 +187,7 @@ class DeviceInfo {
    */
   val enableZenMode: Boolean
     get() {
-      var zenMode =
-        Settings.Global.getInt(getAppContextUnsafe().contentResolver, "zen_mode", 0)
+      var zenMode = Settings.Global.getInt(getAppContextUnsafe().contentResolver, "zen_mode", 0)
       return zenMode == 1
     }
 
@@ -149,4 +205,10 @@ class DeviceInfo {
       val am = getAppContextUnsafe().getSystemService(Context.AUDIO_SERVICE) as AudioManager
       return am.ringerMode
     }
+
+  /**
+   * 获取设备支持的Abis
+   */
+  val supportAbis: String
+    get() = Build.SUPPORTED_ABIS.joinToString()
 }

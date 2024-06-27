@@ -49,6 +49,22 @@ fun AutoResizeTextContainer(
   }
 }
 
+@Composable
+fun AutoResizeTextContainer(
+  modifier: Modifier = Modifier,
+  contentAlignment: Alignment = Alignment.TopStart,
+  content: @Composable @UiComposable (AutoResizeTextContainerScope.() -> Unit),
+) {
+  BoxWithConstraints(modifier, contentAlignment) {
+    val scope = remember(maxWidth, maxHeight) {
+      AutoResizeTextContainerScope(
+        maxWidth.value, maxHeight.value, this
+      )
+    }
+    scope.content()
+  }
+}
+
 /**
  * 上下文
  */

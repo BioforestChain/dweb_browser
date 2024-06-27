@@ -1,5 +1,19 @@
 package org.dweb_browser.sys.device
 
+import kotlinx.serialization.Serializable
+
+@Serializable
+sealed class AboutBaseInfo()
+//sealed class AboutBaseInfo(
+//  val appName: String,
+//  val appVersion: String,
+//  val platform: String,
+//  val arch: String,
+//  val modelName: String,
+//  val osVersion: String,
+//  val webviewVersion: String
+//)
+
 expect object DeviceManage {
 
   /**

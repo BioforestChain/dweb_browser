@@ -19,6 +19,7 @@ import org.dweb_browser.core.std.file.FileNMM
 import org.dweb_browser.core.std.http.HttpNMM
 import org.dweb_browser.core.std.http.MultipartNMM
 import org.dweb_browser.helper.addDebugTags
+import org.dweb_browser.sys.about.AboutNMM
 import org.dweb_browser.sys.biometrics.BiometricsNMM
 import org.dweb_browser.sys.clipboard.ClipboardNMM
 import org.dweb_browser.sys.configure.ConfigNMM
@@ -133,6 +134,8 @@ suspend fun startDwebBrowser(): DnsNMM {
   /// file chooser
   val fileChooser = FileChooserNMM().setup()
 
+  /// 关于
+  val aboutNMM = AboutNMM().setup()
 
   /// 安装Jmm
   val jmmNMM = JmmNMM().setup()
@@ -148,6 +151,7 @@ suspend fun startDwebBrowser(): DnsNMM {
       browserNMM.mmid, // 为了启动后能够顺利加载添加到桌面的哪些数据，不加载browser界面
       deskNMM.mmid,// 桌面程序
       shortcutNMM.mmid, // 为了启动时，注入快捷内容
+      aboutNMM.mmid, // 用于显示应用相关信息，便于调试
     )
   ).setup()
 

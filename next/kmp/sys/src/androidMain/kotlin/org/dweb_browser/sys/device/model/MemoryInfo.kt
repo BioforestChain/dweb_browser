@@ -22,6 +22,7 @@ data class StorageSize(
   var hasExternalSDCard: Boolean = false,
   var internalTotalSize: String = "",
   var internalFreeSize: String = "",
+  var internalUsageSize: String = "",
   var externalTotalSize: String = "",
   var externalFreelSize: String = "",
 )
@@ -47,6 +48,7 @@ class MemoryInfo {
       val storageSize = StorageSize()
       storageSize.internalTotalSize = totalInternalStorageSize
       storageSize.internalFreeSize = availableInternalStorageSize
+      storageSize.internalUsageSize = usageInternalStorageSize
       storageSize.hasExternalSDCard = hasExternalSDCard
       storageSize.externalTotalSize = totalExternalMemorySize
       storageSize.externalFreelSize = availableExternalMemorySize
@@ -139,6 +141,28 @@ class MemoryInfo {
         availableBlocks = stat.availableBlocks.toLong()
       }
       return unitConversionFromKB(availableBlocks * blockSize / 1024)
+    }
+
+  val usageInternalStorageSize: String
+    get() {
+      val path = Environment.getDataDirectory()
+      val stat = StatFs(path.path)
+      val blockSize: Long
+      val availableBlocks: Long
+      val totalBlocks: Long
+      val usageBlocks: Long
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+        blockSize = stat.blockSizeLong
+        availableBlocks = stat.availableBlocksLong
+        totalBlocks = stat.blockCountLong
+        usageBlocks = totalBlocks - availableBlocks
+      } else {
+        blockSize = stat.blockSize.toLong()
+        availableBlocks = stat.availableBlocks.toLong()
+        totalBlocks = stat.blockCount.toLong()
+        usageBlocks = totalBlocks - availableBlocks
+      }
+      return unitConversionFromKB(usageBlocks * blockSize / 1024)
     }
 
   val hasExternalSDCard: Boolean get() = Environment.getExternalStorageState() == Environment.MEDIA_MOUNTED
