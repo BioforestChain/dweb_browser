@@ -5,17 +5,16 @@ import com.teamdev.jxbrowser.js.JsObject
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
-import okio.Path.Companion.toPath
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.file.ext.createDir
-import org.dweb_browser.core.std.file.ext.realPath
 import org.dweb_browser.helper.SuspendOnce1
-import org.dweb_browser.platform.desktop.webview.WebviewEngine
+import org.dweb_browser.helper.platform.getOrCreateProfile
+import org.dweb_browser.helper.platform.webViewEngine
 
 class DesktopLocationObserver(override val mm: MicroModule.Runtime) : LocationObserver() {
   companion object {
     val browser = SuspendOnce1 { mm: MicroModule.Runtime ->
-      WebviewEngine.offScreen(mm.realPath("/data/sys-location").toNioPath()).newBrowser()
+      webViewEngine.offScreenEngine.profiles().getOrCreateProfile(mm.mmid).newBrowser()
     }
     val getWebGeolocation = SuspendOnce1 { mm: MicroModule.Runtime ->
       mm.createDir("/data/sys-location")

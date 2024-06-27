@@ -15,13 +15,13 @@ suspend fun getAppContext() = androidAppContextDeferred.await()
 private val startActivityOptions = SafeLinkList<Pair<Activity, (() -> Bundle?)?>>()
 fun addStartActivityOptions(activity: Activity, optionsBuilder: (() -> Bundle?)? = null) {
   startActivityOptions.sync {
-    removeIf { it.first == activity }
+    removeAll { it.first == activity }
     add(activity to optionsBuilder)
   }
 }
 
 fun removeStartActivityOptions(activity: Activity) {
-  startActivityOptions.removeIf { it.first == activity }
+  startActivityOptions.removeAll { it.first == activity }
 }
 
 fun getStartActivityOptions() = startActivityOptions.lastOrNull()

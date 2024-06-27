@@ -13,8 +13,6 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.core.view.DisplayCutoutCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.webkit.Profile
-import androidx.webkit.ProfileStore
 import androidx.webkit.UserAgentMetadata
 import androidx.webkit.UserAgentMetadata.BrandVersion
 import androidx.webkit.WebSettingsCompat
@@ -26,11 +24,13 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import kotlinx.serialization.encodeToString
 import org.dweb_browser.core.module.MicroModule
+import org.dweb_browser.dwebview.DWebProfile
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.DWebViewOptions.DisplayCutoutStrategy.Default
 import org.dweb_browser.dwebview.DWebViewOptions.DisplayCutoutStrategy.Ignore
 import org.dweb_browser.dwebview.DestroyStateSignal
 import org.dweb_browser.dwebview.IDWebView
+import org.dweb_browser.dwebview.androidWebProfileStore
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
 import org.dweb_browser.dwebview.debugDWebView
 import org.dweb_browser.dwebview.polyfill.DwebViewAndroidPolyfill
@@ -102,8 +102,7 @@ class DWebViewEngine internal constructor(
   var activity: org.dweb_browser.helper.android.BaseActivity? = null,
 ) : WebView(context) {
   companion object {
-    val profileStore by lazy(LazyThreadSafetyMode.SYNCHRONIZED) { ProfileStore.getInstance() } // webview兼容问题，ProfileStore低版本不兼容
-    private val profileRef = WeakHashMap<Profile, MutableSet<WebView>>()
+    private val profileRef = WeakHashMap<DWebProfile, MutableSet<WebView>>()
   }
 
   init {
@@ -248,9 +247,7 @@ class DWebViewEngine internal constructor(
     defaultDownloadListenerRemover = listener?.let { addDownloadListener(it) }
   }
 
-//  private val cookieManager = CookieManager.getInstance()
-
-  val profile: Profile?
+  private val profile: DWebProfile
 
   init {
     debugDWebView("INIT", options)
@@ -259,16 +256,11 @@ class DWebViewEngine internal constructor(
       ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT
     )
     setUA()
-    profile = if (IDWebView.isSupportProfile) {
-      when (val sessionId = options.incognitoSessionId) {
-        null -> profileStore.getOrCreateProfile(remoteMM.mmid)
-        else -> profileStore.getOrCreateProfile("incognito_${sessionId}")
-      }.also { profile ->
-        profileRef.getOrPut(profile) { mutableSetOf() }.add(this)
-        WebViewCompat.setProfile(this, profile.name)
-      }
-    } else {
-      null
+    profile = when (val sessionId = options.incognitoSessionId) {
+      null -> androidWebProfileStore.getOrCreateProfile(this)
+      else -> androidWebProfileStore.getOrCreateProfile(this, "${sessionId}.incognito")
+    }.also { profile ->
+      profileRef.getOrPut(profile) { mutableSetOf() }.add(this)
     }
 
 
@@ -358,13 +350,13 @@ class DWebViewEngine internal constructor(
         super.onDetachedFromWindow()
       }
       super.destroy()
-      if (profile != null) {
-        val isNoRef = profileRef[profile]?.let { webviews ->
-          webviews.remove(this)
-          webviews.isEmpty()
-        } ?: true
-        if (options.incognitoSessionId != null && isNoRef) {
-          profileStore.deleteProfile(profile.name)
+      val isNoRef = profileRef[profile]?.let { webViews ->
+        webViews.remove(this)
+        webViews.isEmpty()
+      } ?: true
+      if (isNoRef && profile.profileName.endsWith(".incognito")) {
+        lifecycleScope.launch {
+          androidWebProfileStore.deleteProfile(profile.profileName)
         }
       }
     }

@@ -10,6 +10,7 @@ import org.dweb_browser.browser.jsProcess.JsProcessNMM
 import org.dweb_browser.browser.mwebview.MultiWebViewNMM
 import org.dweb_browser.browser.nativeui.torch.TorchNMM
 import org.dweb_browser.browser.scan.ScanStdNMM
+import org.dweb_browser.browser.store.StoreNMM
 import org.dweb_browser.browser.web.BrowserNMM
 import org.dweb_browser.browser.zip.ZipNMM
 import org.dweb_browser.core.module.MicroModule
@@ -129,6 +130,7 @@ suspend fun startDwebBrowser(
 
   /// 安装Jmm
   val jmmNMM = JmmNMM().setup()
+  val storeNMM = StoreNMM().setup()
   val deskNMM = DeskNMM().setup()
 
   val browserNMM = BrowserNMM().setup()

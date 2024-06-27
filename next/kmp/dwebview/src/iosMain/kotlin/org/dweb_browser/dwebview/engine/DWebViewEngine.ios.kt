@@ -3,13 +3,10 @@ package org.dweb_browser.dwebview.engine
 import io.ktor.http.URLProtocol
 import io.ktor.http.Url
 import io.ktor.http.hostWithPort
-import io.ktor.utils.io.core.toByteArray
 import kotlinx.cinterop.CValue
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.cValue
 import kotlinx.cinterop.useContents
-import kotlinx.cinterop.usePinned
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
@@ -23,6 +20,7 @@ import org.dweb_browser.core.http.dwebHttpGatewayServer
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.IDWebView
+import org.dweb_browser.dwebview.WKWebViewProfile
 import org.dweb_browser.dwebview.WebBeforeUnloadArgs
 import org.dweb_browser.dwebview.WebDownloadArgs
 import org.dweb_browser.dwebview.WebLoadState
@@ -35,6 +33,7 @@ import org.dweb_browser.dwebview.polyfill.DwebViewIosPolyfill
 import org.dweb_browser.dwebview.polyfill.FaviconPolyfill
 import org.dweb_browser.dwebview.proxy.DwebViewProxy
 import org.dweb_browser.dwebview.toReadyListener
+import org.dweb_browser.dwebview.wkWebsiteDataStore
 import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.JsonLoose
 import org.dweb_browser.helper.Signal
@@ -44,7 +43,6 @@ import org.dweb_browser.helper.toIosUIEdgeInsets
 import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.platform.ios.DwebHelper
 import org.dweb_browser.platform.ios.DwebWKWebView
-import org.dweb_browser.pure.crypto.hash.ccSha256
 import org.dweb_browser.sys.device.DeviceManage
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import platform.CoreGraphics.CGRect
@@ -194,7 +192,7 @@ class DWebViewEngine(
   internal val dwebUIScrollViewDelegate = DWebUIScrollViewDelegate(this)
   private val estimatedProgressObserver = DWebEstimatedProgressObserver(this)
   internal val titleObserver = DWebTitleObserver(this)
-  private val websiteDataStore: WKWebsiteDataStore
+  private val profile: WKWebViewProfile// WKWebsiteDataStore
 
   init {
     /// 启动代理
@@ -203,16 +201,13 @@ class DWebViewEngine(
       configuration, url.host, url.port.toUShort()
     )
 
-    websiteDataStore = when (options.incognitoSessionId) {
+    profile = when (options.incognitoSessionId) {
       // 开启WKWebView数据隔离
-      null -> WKWebsiteDataStore.dataStoreForIdentifier(
-        ccSha256(remoteMM.mmid.toByteArray()).asUByteArray().usePinned {
-          NSUUID(uUIDBytes = it.addressOf(0))
-        })
+      null -> wkWebsiteDataStore.getOrCreateProfile(this)
       // 是否开启无痕模式
-      else -> WKWebsiteDataStore.nonPersistentDataStore()
+      else -> wkWebsiteDataStore.getNoPersistentProfile(this)
     }
-    configuration.setWebsiteDataStore(websiteDataStore)
+    configuration.setWebsiteDataStore(profile.store)
 
     // https://stackoverflow.com/questions/77078328/warning-prints-in-console-when-using-webkit-to-load-youtube-video
     this.allowsLinkPreview = true

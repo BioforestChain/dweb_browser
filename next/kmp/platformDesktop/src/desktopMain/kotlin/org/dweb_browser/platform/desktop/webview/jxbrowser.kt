@@ -19,11 +19,18 @@ import java.nio.file.Path as NioPath
 private const val KEY = "jxbrowser.license.key"
 private const val LICENSE = ""
 
-object WebviewEngine {
+@RequiresOptIn(
+  level = RequiresOptIn.Level.ERROR,
+  message = "This API is low-level in jxBrowserEngine and should be used with caution."
+)
+public annotation class LowLevelWebEngineAPI
+
+object jxBrowserEngine {
   val licenseKey = (System.getenv(KEY) ?: System.getProperty(KEY) ?: LICENSE)
   private val engineLock = SynchronizedObject()
   private val engineMaps = ConcurrentHashMap<String, Engine>()
 
+  val allEngines get() = engineMaps.toMap()
 
   val sandboxChromiumDir = Paths.get(System.getProperty("user.home"))
     .resolve("jxbrowser/chromium/7.39.0")
@@ -42,7 +49,7 @@ object WebviewEngine {
       if (!sandboxChromiumDir.isDirectory()) {
         val sandboxChromiumZip =
           Paths.get(System.getProperty("java.io.tmpdir")).resolve("jxbrowser/7.39.0.zip").toFile()
-        val myChromiumZip = WebviewEngine.javaClass.getResourceAsStream("/jxbrowser-7.39.0.zip")!!
+        val myChromiumZip = jxBrowserEngine.javaClass.getResourceAsStream("/jxbrowser-7.39.0.zip")!!
         myChromiumZip.pipeTo(sandboxChromiumZip.outputStream())
         val tmpChromiumDir =
           sandboxChromiumDir.parent.resolve(sandboxChromiumDir.name + ".tmp").toFile()
@@ -74,6 +81,7 @@ object WebviewEngine {
       }
     }
 
+  @LowLevelWebEngineAPI
   fun hardwareAccelerated(
     dataDir: NioPath,
     optionsBuilder: (EngineOptions.Builder.() -> Unit)? = null,
@@ -93,7 +101,7 @@ object WebviewEngine {
     })
   }
 
-
+  @LowLevelWebEngineAPI
   fun offScreen(
     dataDir: NioPath,
     optionsBuilder: (EngineOptions.Builder.() -> Unit)? = null,

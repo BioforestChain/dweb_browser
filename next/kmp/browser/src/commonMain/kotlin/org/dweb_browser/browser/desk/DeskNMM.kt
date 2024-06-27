@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
+import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.web.debugBrowser
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
@@ -30,6 +31,7 @@ import org.dweb_browser.core.std.http.createHttpDwebServer
 import org.dweb_browser.helper.ChangeState
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.Debugger
+import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.Producer
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.ReasonLock
@@ -54,8 +56,17 @@ val debugDesk = Debugger("desk")
 
 class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
   init {
+    name = BrowserI18nResource.Desk.short_name.text
+    short_name = BrowserI18nResource.Desk.short_name.text
     categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Desktop)
     dweb_protocols = listOf("window.sys.dweb", "window.std.dweb")
+    icons = listOf(
+      ImageResource(
+        src = "file:///sys/browser-icons/desk.browser.dweb.svg",
+        type = "image/svg+xml",
+        // purpose = "monochrome"
+      )
+    )
   }
 
   companion object {
@@ -202,7 +213,8 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       val deskSessionId = randomUUID()
 
       val desktopController = DesktopController.create(this, desktopServer, runningApps)
-      val taskBarController = TaskbarController.create(deskSessionId, this, desktopController, taskbarServer, runningApps)
+      val taskBarController =
+        TaskbarController.create(deskSessionId, this, desktopController, taskbarServer, runningApps)
       val deskControllers = DeskControllers(desktopController, taskBarController, this)
       controllersMap[deskSessionId] = deskControllers
 

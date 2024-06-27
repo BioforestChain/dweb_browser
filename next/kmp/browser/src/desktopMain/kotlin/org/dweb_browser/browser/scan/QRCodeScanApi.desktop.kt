@@ -96,7 +96,7 @@ actual fun openDeepLink(data: String, showBackground: Boolean): Boolean {
       "dweb://search?q=${data.encodeURIComponent()}"
     }
   }
-  DeepLinkHook.deepLinkHook.emitOnInit(deepLink)
+  DeepLinkHook.instance.emitLink(deepLink)
   // Desktop.getDesktop().browse(URI.create(deepLink)) // 走系统 deeplink
   return true
 }

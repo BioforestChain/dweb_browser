@@ -1,0 +1,48 @@
+<svg class="icon" viewBox="0 0 1156 1024" xmlns="http://www.w3.org/2000/svg" width="200" height="200">
+  <style>
+    .fill {
+      fill: rgb(0 150 136)
+    }
+  </style>
+  <defs>
+    <filter id="fgFilter">
+      <feColorMatrix type="saturate" values=".6" />
+      <feComponentTransfer>
+        <feFuncR type="linear" slope="1.4" />
+        <feFuncG type="linear" slope="1.4" />
+        <feFuncB type="linear" slope="1.4" />
+      </feComponentTransfer>
+    </filter>
+    <filter id="blurFilter" x="0" y="0">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="20" />
+    </filter>
+    <path
+      d="M28.307289 184.98092m95.284392-27.88116l441.596875-129.215631q95.284392-27.881159 123.165552 67.403233l166.490351 568.98394q27.881159 95.284392-67.403232 123.165551l-441.596876 129.215632q-95.284392 27.881159-123.165551-67.403233l-166.490352-568.98394q-27.881159-95.284392 67.403233-123.165552Z"
+      id="bg" />
+    <path
+      d="M250.977649 232.598338m141.828255 0l460.941828 0q141.828255 0 141.828255 141.828255l0 507.745152q0 141.828255-141.828255 141.828255l-460.941828 0q-141.828255 0-141.828255-141.828255l0-507.745152q0-141.828255 141.828255-141.828255Z"
+      id="fg" />
+    <path
+      d="M462.301748 425.484765m38.293629 0l92.188366 0q38.293629 0 38.293629 38.293628l0 0q0 38.293629-38.293629 38.293629l-92.188366 0q-38.293629 0-38.293629-38.293629l0 0q0-38.293629 38.293629-38.293628Z"
+      id="symbol-1" />
+    <path
+      d="M462.301748 592.842105m38.293629 0l245.362881 0q38.293629 0 38.293629 38.293629l0 0q0 38.293629-38.293629 38.293629l-245.362881 0q-38.293629 0-38.293629-38.293629l0 0q0-38.293629 38.293629-38.293629Z"
+      id="symbol-2" />
+    <path
+      d="M462.301748 753.108033m38.293629 0l245.362881 0q38.293629 0 38.293629 38.293629l0 0q0 38.293629-38.293629 38.293629l-245.362881 0q-38.293629 0-38.293629-38.293629l0 0q0-38.293629 38.293629-38.293629Z"
+      id="symbol-3" />
+  </defs>
+  <clipPath id="clipPath">
+    <use href="#fg" />
+  </clipPath>
+  <mask id="maskPath">
+    <use href="#bg" fill="#FFF" />
+    <use href="#fg" />
+  </mask>
+  <use href="#bg" class="fill" mask="url(#maskPath)" />
+  <use href="#bg" class="fill" clip-path="url(#clipPath)" filter="url(#blurFilter)" />
+  <use href="#fg" class="fill" filter="url(#fgFilter)" fill-opacity=".4" />
+  <use href="#symbol-1" fill="#FFF" fill-opacity=".8" />
+  <use href="#symbol-2" fill="#FFF" fill-opacity=".8" />
+  <use href="#symbol-3" fill="#FFF" fill-opacity=".8" />
+</svg>

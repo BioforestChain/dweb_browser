@@ -5,6 +5,7 @@ import io.ktor.http.fullPath
 import kotlinx.coroutines.async
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.jmm.JsMicroModule
 import org.dweb_browser.browser.kit.GlobalWebMessageEndpoint
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
@@ -19,6 +20,7 @@ import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.http.DwebHttpServerOptions
 import org.dweb_browser.core.std.http.createHttpDwebServer
 import org.dweb_browser.helper.Debugger
+import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.SafeHashMap
 import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.encodeURI
@@ -32,7 +34,17 @@ val debugJsProcess = Debugger("js-process")
 
 class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
   init {
+    name = BrowserI18nResource.JsProcess.short_name.text
+    short_name = BrowserI18nResource.JsProcess.short_name.text
     categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Process_Service);
+    // 和jmm使用同一个图标
+    icons = listOf(
+      ImageResource(
+        src = "file:///sys/browser-icons/jmm.browser.dweb.svg",
+        type = "image/svg+xml",
+        // purpose = "monochrome"
+      )
+    )
   }
 
   inner class JsProcessRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {

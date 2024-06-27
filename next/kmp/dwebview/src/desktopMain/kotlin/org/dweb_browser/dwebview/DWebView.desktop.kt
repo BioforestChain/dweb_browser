@@ -25,8 +25,8 @@ actual suspend fun IDWebView.Companion.create(
   mm: MicroModule.Runtime, options: DWebViewOptions, viewBox: IPureViewBox?,
 ): IDWebView {
   DWebView.prepare()
-  val dataDir = DWebViewEngine.prepareDataDir(mm, options.subDataDirName)
-  return DWebView(DWebViewEngine(mm, dataDir, options))
+//  val dataDir = DWebViewEngine.prepareDataDir(mm, options.subDataDirName)
+  return DWebView(DWebViewEngine(mm, options))
 }
 
 internal fun IDWebView.Companion.create(engine: DWebViewEngine, initUrl: String?) =

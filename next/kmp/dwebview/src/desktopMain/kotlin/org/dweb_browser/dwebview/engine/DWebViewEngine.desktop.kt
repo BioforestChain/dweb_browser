@@ -12,17 +12,12 @@ import com.teamdev.jxbrowser.dom.event.EventType
 import com.teamdev.jxbrowser.dom.event.MouseEvent
 import com.teamdev.jxbrowser.dom.event.MouseEventParams
 import com.teamdev.jxbrowser.dom.event.UiEventModifierParams
-import com.teamdev.jxbrowser.engine.EngineOptions
 import com.teamdev.jxbrowser.frame.Frame
 import com.teamdev.jxbrowser.js.ConsoleMessageLevel
 import com.teamdev.jxbrowser.js.JsException
 import com.teamdev.jxbrowser.js.JsPromise
 import com.teamdev.jxbrowser.navigation.LoadUrlParams
 import com.teamdev.jxbrowser.net.HttpHeader
-import com.teamdev.jxbrowser.net.HttpStatus
-import com.teamdev.jxbrowser.net.Scheme
-import com.teamdev.jxbrowser.net.UrlRequestJob
-import com.teamdev.jxbrowser.net.callback.InterceptUrlRequestCallback.Response
 import com.teamdev.jxbrowser.net.callback.VerifyCertificateCallback
 import com.teamdev.jxbrowser.net.proxy.CustomProxyConfig
 import com.teamdev.jxbrowser.permission.callback.RequestPermissionCallback
@@ -36,11 +31,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import kotlinx.serialization.encodeToString
-import okio.Path
 import org.dweb_browser.core.module.MicroModule
-import org.dweb_browser.core.std.dns.nativeFetch
-import org.dweb_browser.core.std.file.ext.createDir
-import org.dweb_browser.core.std.file.ext.realPath
 import org.dweb_browser.dwebview.CloseWatcher
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.IDWebView
@@ -51,13 +42,13 @@ import org.dweb_browser.dwebview.proxy.DwebViewProxy
 import org.dweb_browser.dwebview.toReadyListener
 import org.dweb_browser.helper.ENV_SWITCH_KEY
 import org.dweb_browser.helper.JsonLoose
-import org.dweb_browser.helper.ReasonLock
-import org.dweb_browser.helper.encodeURIComponent
 import org.dweb_browser.helper.envSwitch
 import org.dweb_browser.helper.getOrNull
+import org.dweb_browser.helper.platform.getOrCreateIncognitoProfile
+import org.dweb_browser.helper.platform.getOrCreateProfile
 import org.dweb_browser.helper.platform.toImageBitmap
+import org.dweb_browser.helper.platform.webViewEngine
 import org.dweb_browser.helper.trueAlso
-import org.dweb_browser.platform.desktop.webview.WebviewEngine
 import org.dweb_browser.sys.device.DeviceManage
 import java.util.function.Consumer
 import javax.swing.SwingUtilities
@@ -66,110 +57,66 @@ import kotlin.system.exitProcess
 
 class DWebViewEngine internal constructor(
   internal val remoteMM: MicroModule.Runtime,
-  val dataDir: Path,
   val options: DWebViewOptions,
-  internal val browser: Browser = createMainBrowser(remoteMM, dataDir, options),
+  internal val browser: Browser = createMainBrowser(remoteMM, options),
 ) {
   companion object {
-    // userDataDir同一个engine不能多次调用，jxbrowser会弹出异常无法捕获
-    private val userDataDirectoryInUseMicroModuleSet = mutableMapOf<String, okio.Path>()
-    private val userDataDirectoryLocks = ReasonLock()
-
-    internal suspend fun prepareDataDir(remoteMM: MicroModule.Runtime, subDataDirName: String?) =
-      userDataDirectoryLocks.withLock("${remoteMM.mmid}/$subDataDirName") {
-        userDataDirectoryInUseMicroModuleSet.getOrPut("${remoteMM.mmid}/$subDataDirName") {
-          val dirName = when (subDataDirName) {
-            null -> "/data/dwebview"
-            else -> "/data/dwebview-${subDataDirName.encodeURIComponent()}"
-          }
-          remoteMM.createDir(dirName)
-          remoteMM.realPath(dirName)
-        }
-      }
-
     /**
      * 构建一个 main-browser，当 main-browser 销毁， 对应的 WebviewEngine 也会被销毁
      */
     internal fun createMainBrowser(
       remoteMM: MicroModule.Runtime,
-      dataDir: Path,
       options: DWebViewOptions,
-    ): Browser {
-      val optionsBuilder: EngineOptions.Builder.() -> Unit = {
-        // 是否开启无痕模式
-        if (options.incognitoSessionId != null) {
-          enableIncognito()
-        }
-
-        // 拦截dweb deeplink
-        addScheme(Scheme.of("dweb")) { params ->
-          remoteMM.scopeLaunch(cancelable = true) {
-            remoteMM.nativeFetch(params.urlRequest().url())
-            // TODO eval navigator.dweb.dispatchEvent(new CustomEvent("dweb-deeplink"))
-          }
-
-          val job = params.newUrlRequestJob(
-            UrlRequestJob.Options //
-              .newBuilder(HttpStatus.OK) //
-              .addHttpHeader(HttpHeader.of("Access-Control-Allow-Origin", "*")) //
-              .build() //
-          )
-          job.write(byteArrayOf())
-          job.complete()
-          Response.intercept(job)
-        }
-
-        addSwitch("--enable-experimental-web-platform-features")
-      }
-
-      val dataNioDir = dataDir.let {
-        when (val sessionId = options.incognitoSessionId) {
-          null -> it
-          else -> it.resolve(sessionId)
-        }
-      }.toNioPath()
-
-      return if (options.enabledOffScreenRender) {
-        WebviewEngine.offScreen(dataNioDir, optionsBuilder)
+    ): Browser = when {
+      options.enabledOffScreenRender -> webViewEngine.offScreenEngine
+      else -> webViewEngine.hardwareAcceleratedEngine
+    }.let { engine ->
+      val profiles = engine.profiles()
+      val profile = if (options.incognitoSessionId != null) {
+        profiles.getOrCreateIncognitoProfile(remoteMM.mmid + "/" + options.incognitoSessionId)
+      } else if (options.subDataDirName != null) {
+        profiles.getOrCreateProfile(remoteMM.mmid + "/" + options.subDataDirName)
       } else {
-        WebviewEngine.hardwareAccelerated(dataNioDir, optionsBuilder)
-      }.let { engine ->
-        // 设置https代理
-        val proxyRules = "https=${DwebViewProxy.ProxyUrl}"
-        engine.proxy().config(CustomProxyConfig.newInstance(proxyRules))
-        engine.network()
-          .set(VerifyCertificateCallback::class.java, VerifyCertificateCallback { params ->
-            // SSL Certificate to verify.
-            val certificate = params.certificate()
-            // FIXME 这里应该有更加严谨的证书内容判断
-            if (certificate.derEncodedValue().decodeToString().contains(".dweb")) {
-              VerifyCertificateCallback.Response.valid()
-            } else {
-              VerifyCertificateCallback.Response.defaultAction()
-            }
-          });
+        profiles.getOrCreateProfile(remoteMM.mmid)
+      }
+      profile
+    }.let { profile ->
+      // 设置https代理
+      val proxyRules = "https=${DwebViewProxy.ProxyUrl}"
+      profile.proxy().config(CustomProxyConfig.newInstance(proxyRules))
+      profile.network()
+        .set(VerifyCertificateCallback::class.java, VerifyCertificateCallback { params ->
+          // SSL Certificate to verify.
+          val certificate = params.certificate()
+          // FIXME 这里应该有更加严谨的证书内容判断
+          if (certificate.derEncodedValue().decodeToString().contains(".dweb")) {
+            VerifyCertificateCallback.Response.valid()
+          } else {
+            VerifyCertificateCallback.Response.defaultAction()
+          }
+        });
 
-        //TODO 这里是还没做完的桌面端获取地址，改成ip位置？
-        engine.permissions()
-          .set(RequestPermissionCallback::class.java, RequestPermissionCallback { params, tell ->
+      //TODO 这里是还没做完的桌面端获取地址，改成ip位置？
+      profile.permissions()
+        .set(RequestPermissionCallback::class.java, RequestPermissionCallback { params, tell ->
 //        if(params.permissionType() == PermissionType.GEOLOCATION) {
 //          tell.grant()
 //        }
-            tell.grant()
-          })
+          tell.grant()
+        })
 
-        val browser = engine.newBrowser()
-        // 同步销毁
-        browser.on(BrowserClosed::class.java) {
-          userDataDirectoryInUseMicroModuleSet.remove(remoteMM.mmid)
-          engine.browsers().isEmpty().trueAlso {
-            if (!engine.isClosed) {
-              engine.close()
-            }
+      val browser = profile.newBrowser()
+      // 同步销毁
+      browser.on(BrowserClosed::class.java) {
+        profile.browsers().isEmpty().trueAlso {
+          val engine = profile.engine()
+          val isEngineEmptyBrowser = engine.profiles().list().all { it.browsers().isEmpty() }
+          if (isEngineEmptyBrowser) {
+            engine.close()
           }
         }
-        browser
       }
+      browser
     }
   }
 

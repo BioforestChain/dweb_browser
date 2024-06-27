@@ -1,0 +1,40 @@
+<svg class="icon" viewBox="0 0 1288 1024" xmlns="http://www.w3.org/2000/svg" width="200" height="200">
+  <style>
+    .fill {
+      fill: #ce93d8;
+    }
+  </style>
+  <defs>
+    <filter id="fgFilter">
+      <feColorMatrix type="saturate" values=".6" />
+      <feComponentTransfer>
+        <feFuncR type="linear" slope="1.4" />
+        <feFuncG type="linear" slope="1.4" />
+        <feFuncB type="linear" slope="1.4" />
+      </feComponentTransfer>
+    </filter>
+    <filter id="blurFilter" x="0" y="0">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="20" />
+    </filter>
+    <path
+      d="M575.48433 348.040717a18.347584 18.347584 0 0 1 11.726451-11.418151l333.923097-106.896057c31.217319-9.992258 65.279082 1.923211 83.45967 29.196846l194.468244 291.740903a18.349419 18.349419 0 0 1 2.053505 16.239025L1073.783283 930.885735c-13.38724 38.267871-55.259297 58.4359-93.525333 45.050494l-487.056975-170.385892c-38.266036-13.38724-58.4359-55.259297-45.04866-93.527169l127.332015-363.982451z"
+      id="bg" />
+    <path
+      d="M0 365.628559c0-5.756789 2.70314-11.181419 7.300129-14.649806L428.336631 33.349735c26.167054-19.738609 62.24929-19.738609 88.416344 0l421.036502 317.629018a18.35309 18.35309 0 0 1 7.300129 14.649806V950.594982c0 40.539756-32.865262 73.405018-73.405018 73.405018H73.405018c-40.539756 0-73.405018-32.865262-73.405018-73.405018V365.628559z"
+      id="fg" />
+    <path
+      d="M280.774194 772.587814m49.548387 0l286.27957 0q49.548387 0 49.548387 49.548387l0 1.835125q0 49.548387-49.548387 49.548387l-286.27957 0q-49.548387 0-49.548387-49.548387l0-1.835125q0-49.548387 49.548387-49.548387Z"
+      id="symbol" />
+  </defs>
+  <clipPath id="clipPath">
+    <use href="#fg" />
+  </clipPath>
+  <mask id="maskPath">
+    <use href="#bg" fill="#FFF" />
+    <use href="#fg" />
+  </mask>
+  <use href="#bg" class="fill" mask="url(#maskPath)" />
+  <use href="#bg" class="fill" clip-path="url(#clipPath)" filter="url(#blurFilter)" />
+  <use href="#fg" class="fill" filter="url(#fgFilter)" fill-opacity=".4" />
+  <use href="#symbol" fill="#FFF" fill-opacity=".8" />
+</svg>

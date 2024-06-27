@@ -57,12 +57,16 @@ fun Context.getStringSet(key: String, default: Set<String>? = null): Set<String>
   return sp.getStringSet(key, default)
 }
 
-fun Context.remove(key: String? = null, keys: ArrayList<String>? = null) {
+fun Context.removeKey(key: String) {
   val sp = getSharedPreferences(SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE)
-  key?.let {
-    sp.edit { remove(it) }
-  }
-  keys?.forEach {
-    sp.edit { remove(it) }
+  sp.edit { remove(key) }
+}
+
+fun Context.removeKeys(keys: ArrayList<String>) {
+  val sp = getSharedPreferences(SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE)
+  sp.edit {
+    keys.forEach {
+      remove(it)
+    }
   }
 }

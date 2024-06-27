@@ -1,6 +1,7 @@
 package org.dweb_browser.sys.window.core
 
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.material.icons.Icons
@@ -112,6 +113,7 @@ fun WindowContentRenderScope.WindowContentScaffold(
 fun WindowContentRenderScope.WindowContentScaffoldWithTitle(
   modifier: Modifier = Modifier,
   topBarTitle: @Composable (scrollBehavior: TopAppBarScrollBehavior) -> Unit = {},
+  topBarActions: @Composable RowScope.() -> Unit = {},
   content: @Composable (PaddingValues) -> Unit,
 ) {
   val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
@@ -124,6 +126,7 @@ fun WindowContentRenderScope.WindowContentScaffoldWithTitle(
       TopAppBar(
         title = { topBarTitle(scrollBehavior) },
         windowInsets = WindowInsets(0),
+        actions = topBarActions,
         navigationIcon = { win.GoBackButton() },
         scrollBehavior = scrollBehavior,
       )
@@ -137,15 +140,15 @@ fun WindowContentRenderScope.WindowContentScaffoldWithTitle(
 fun WindowContentRenderScope.WindowContentScaffoldWithTitleText(
   modifier: Modifier = Modifier,
   topBarTitleText: String,
+  topBarActions: @Composable RowScope.() -> Unit = {},
   content: @Composable (PaddingValues) -> Unit,
 ) {
   WindowContentScaffoldWithTitle(
     modifier,
     topBarTitle = {
-      Text(
-        topBarTitleText, maxLines = 1, overflow = TextOverflow.Ellipsis
-      )
+      Text(topBarTitleText, maxLines = 1, overflow = TextOverflow.Ellipsis)
     },
+    topBarActions = topBarActions,
     content = content,
   )
 }

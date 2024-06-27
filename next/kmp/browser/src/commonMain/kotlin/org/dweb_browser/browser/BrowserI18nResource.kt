@@ -162,12 +162,17 @@ object BrowserI18nResource {
   val toast_message_download_downloading =
     SimpleI18nResource(Language.ZH to "正在下载中...", Language.EN to "Downloading...")
 
+  object JsProcess {
+    val short_name =
+      SimpleI18nResource(Language.ZH to "程序运行时", Language.EN to "App Runtime")
+  }
+
   object JMM {
     val tab_detail = SimpleI18nResource(Language.ZH to "详情", Language.EN to "Detail")
     val tab_intro = SimpleI18nResource(Language.ZH to "介绍", Language.EN to "Introduction")
     val tab_param = SimpleI18nResource(Language.ZH to "参数", Language.EN to "Parameter")
 
-    val short_name = SimpleI18nResource(Language.ZH to "模块管理", Language.EN to "Module Manager")
+    val short_name = SimpleI18nResource(Language.ZH to "安装管理", Language.EN to "Install Manager")
     val history_tab_installed =
       SimpleI18nResource(Language.ZH to "已安装", Language.EN to "Installed")
     val history_tab_uninstalled =
@@ -198,6 +203,11 @@ object BrowserI18nResource {
         Language.ZH to "网址已失效，请前往官网进行安装！",
         Language.EN to "The website is no longer valid, please go to the official website to install!"
       )
+  }
+
+  object Store {
+    val short_name = SimpleI18nResource(Language.ZH to "数据管理", Language.EN to "Data Manager")
+
   }
 
   object JsMM {
@@ -407,6 +417,13 @@ object BrowserI18nResource {
     val unverified = SimpleI18nResource(
       Language.ZH to "未认证",
       Language.EN to "Unverified"
+    )
+  }
+
+  object Desk {
+    val short_name = SimpleI18nResource(
+      Language.ZH to "我的桌面",
+      Language.EN to "My Desk"
     )
   }
 

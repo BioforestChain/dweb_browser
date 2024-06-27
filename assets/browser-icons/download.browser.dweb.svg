@@ -1,15 +1,37 @@
-<svg class="icon" viewBox="0 0 1293 1024" xmlns="http://www.w3.org/2000/svg" width="252.539"
-  height="200">
-  <path
-    d="M1067.844 152.55H601.552a101.7 101.7 0 0 1-71.698-30.002L436.799 30A101.7 101.7 0 0 0 364.592 0H101.7A101.7 101.7 0 0 0 0 101.7v711.895a152.55 152.55 0 0 0 152.55 152.55h915.294a152.55 152.55 0 0 0 152.549-152.55V305.098a152.55 152.55 0 0 0-152.55-152.549z"
-    fill="#176299" />
-  <path
-    d="M152.55 152.55h915.294q152.549 0 152.549 152.548v508.497q0 152.55-152.55 152.55H152.55Q0 966.144 0 813.594V305.098Q0 152.55 152.55 152.55Z"
-    fill="#0B70DD" />
-  <path
-    d="m770.881 678.843-141.87 141.871a25.425 25.425 0 0 1-36.104 0l-141.87-141.87a25.425 25.425 0 0 1 17.797-43.223h90.513V381.373a50.85 50.85 0 0 1 101.7 0V635.62h91.02a25.425 25.425 0 0 1 18.814 43.222z"
-    fill="#176299" />
-  <path
-    d="m796.306 653.419-141.87 141.87a25.425 25.425 0 0 1-36.104 0l-141.87-141.87a25.425 25.425 0 0 1 17.797-43.223h91.021V355.948a50.85 50.85 0 0 1 101.7 0v254.248H778a25.425 25.425 0 0 1 18.306 43.223z"
-    fill="#3395FF" />
+<svg class="icon" viewBox="0 0 1156 1024" xmlns="http://www.w3.org/2000/svg" width="200" height="200">
+  <style>
+    .fill {
+      fill: rgb(0 150 136)
+    }
+  </style>
+  <defs>
+    <filter id="fgFilter">
+      <feColorMatrix type="saturate" values=".6" />
+      <feComponentTransfer>
+        <feFuncR type="linear" slope="1.4" />
+        <feFuncG type="linear" slope="1.4" />
+        <feFuncB type="linear" slope="1.4" />
+      </feComponentTransfer>
+    </filter>
+    <filter id="blurFilter" x="0" y="0">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="20" />
+    </filter>
+    <path id="bg"
+      d="M564.311 28.08l503.998 162.117q87.296 28.08 59.216 115.376L951.995 851.27q-28.08 87.297-115.376 59.217L332.621 748.369q-87.296-28.08-59.216-115.376l175.53-545.696Q477.014 0 564.31 28.08z" />
+    <path id="fg"
+      d="M379.048 172.556a61.134 61.134 0 0 0-47.79-23.01H93.23c-51.49 0-93.23 41.74-93.23 93.23v657.195c0 68.37 55.426 123.797 123.797 123.797h617.457c67.527 0 122.268-54.743 122.268-122.269v-493.66c0-67.527-54.74-122.268-122.268-122.268h-261.01a22.925 22.925 0 0 1-17.922-8.63l-83.274-104.385z" />
+    <path id="symbol"
+      d="M203.272 782.52H660.25q39.737 0 39.737 39.737t-39.737 39.737H203.27q-39.737 0-39.737-39.737 0-39.738 39.738-39.738z" />
+  </defs>
+  <clipPath id="clipPath">
+    <use href="#fg" />
+  </clipPath>
+  <mask id="maskPath">
+    <use href="#bg" fill="#FFF" />
+    <use href="#fg" />
+  </mask>
+  <use href="#bg" class="fill" mask="url(#maskPath)" />
+  <use href="#bg" class="fill" clip-path="url(#clipPath)" filter="url(#blurFilter)" />
+  <use href="#fg" class="fill" filter="url(#fgFilter)" fill-opacity=".4" />
+  <use href="#symbol" fill="#FFF" fill-opacity=".8" />
 </svg>
