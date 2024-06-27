@@ -4,6 +4,7 @@ import okio.Path.Companion.toOkioPath
 import okio.Path.Companion.toPath
 import org.dweb_browser.platform.desktop.os.dataDir
 import org.dweb_browser.platform.desktop.os.rootDir
+import org.dweb_browser.platform.desktop.os.blobDir
 
 
 /**
@@ -30,4 +31,8 @@ actual fun FileNMM.getCacheVirtualFsDirectory() = commonVirtualFsDirectoryFactor
  */
 actual fun FileNMM.getExternalDownloadVirtualFsDirectory() = commonVirtualFsDirectoryFactory(
   "download", System.getProperty("user.home").toPath(true).resolve("Downloads/dweb-browser")
+)
+
+actual fun FileNMM.getBlobVirtualFsDirectory() = commonVirtualFsDirectoryFactory(
+  "blob", blobDir.toOkioPath(), false
 )

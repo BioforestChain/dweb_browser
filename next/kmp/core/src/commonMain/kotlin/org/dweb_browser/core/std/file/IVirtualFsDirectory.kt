@@ -31,14 +31,18 @@ interface IVirtualFsDirectory {
 /**
  * 一种通用的虚拟文件目录，需要提供真实的物理设备的
  */
-fun commonVirtualFsDirectoryFactory(firstSegmentFlags: String, nativeFsPath: Path) =
+fun commonVirtualFsDirectoryFactory(firstSegmentFlags: String, nativeFsPath: Path, separated: Boolean = true) =
   object : IVirtualFsDirectory {
     override fun isMatch(firstSegment: String) = firstSegment == firstSegmentFlags
     override val fs: FileSystem = SystemFileSystem
     override fun resolveTo(remote: IMicroModuleManifest, virtualFullPath: Path): Path {
       val virtualFirstPath = "${virtualFullPath.root ?: "/"}$firstSegmentFlags".toPath()
       val virtualContentPath = virtualFullPath.relativeTo(virtualFirstPath)
-      return nativeFsPath.resolve(remote.mmid).resolve(virtualContentPath)
+      if (separated) {
+        return nativeFsPath.resolve(remote.mmid).resolve(virtualContentPath)
+      } else {
+        return nativeFsPath.resolve(virtualContentPath)
+      }
     }
   }
 
@@ -79,6 +83,9 @@ expect fun FileNMM.getCacheVirtualFsDirectory(): IVirtualFsDirectory
  * 外部下载文件夹，这里的空间不会被回收
  */
 expect fun FileNMM.getExternalDownloadVirtualFsDirectory(): IVirtualFsDirectory
+
+
+expect fun FileNMM.getBlobVirtualFsDirectory(): IVirtualFsDirectory
 
 class FileDirectoryAdapterManager internal constructor() : AdapterManager<IVirtualFsDirectory>()
 

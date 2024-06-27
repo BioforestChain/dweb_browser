@@ -1,6 +1,7 @@
 package org.dweb_browser.core.std.file
 
 import io.ktor.http.HttpStatusCode
+import io.ktor.utils.io.core.toByteArray
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
@@ -28,6 +29,7 @@ import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.removeWhen
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.helper.trueAlso
+import org.dweb_browser.pure.crypto.hash.sha256
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureStream
 import org.dweb_browser.pure.http.queryAsOrNull
@@ -150,6 +152,7 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
       val getPickerFile = PickerFileSystem::getPickerFile
     }
 
+    @OptIn(ExperimentalStdlibApi::class)
     override suspend fun _bootstrap() {
       /// file:///data/*
       getDataVirtualFsDirectory().also {
@@ -161,6 +164,11 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
       }
       /// file:///download/*
       getExternalDownloadVirtualFsDirectory().also {
+        fileTypeAdapterManager.append(adapter = it).removeWhen(mmScope)
+      }
+
+      /// file:///blob/*
+      getBlobVirtualFsDirectory().also {
         fileTypeAdapterManager.append(adapter = it).removeWhen(mmScope)
       }
 
@@ -391,6 +399,33 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
           }
           path.toString()
         },
+        "/blob/path" bind PureMethod.GET by defineStringResponse {
+          var shaCode = request.queryOrNull("sha256") ?: ""
+          if (shaCode.isEmpty()) return@defineStringResponse ""
+          val vfsPath = getVirtualFsPath(ipc.remote, "/blob/$shaCode")
+          vfsPath.fsFullPath.toString()
+        },
+        "/blob/write" bind PureMethod.POST by defineStringResponse {
+          var shaCode = request.queryOrNull("sha256") ?: ""
+          if (shaCode.isEmpty()) {
+            val mime = request.queryOrNull("mime") ?: "application/octet-stream"
+            shaCode = sha256(mime.toByteArray() + request.body.toPureBinary()).toHexString()
+          }
+          val vfsPath = getVirtualFsPath(ipc.remote, "/blob/$shaCode")
+          touchFile(vfsPath.fsFullPath, vfsPath.fs)
+          val fileSource = vfsPath.fs.sink(vfsPath.fsFullPath, false).buffer()
+          request.body.toPureStream().getReader("blob write to file").copyTo(fileSource)
+          shaCode
+        },
+        "/blob/remove" bind PureMethod.GET by defineBooleanResponse {
+          var shaCode = request.queryOrNull("sha256") ?: ""
+          if (shaCode.isEmpty()) return@defineBooleanResponse false
+          val vfsPath = getVirtualFsPath(ipc.remote, "/blob/$shaCode")
+          runCatching {
+            vfsPath.fs.delete(vfsPath.fsFullPath, false)
+            true
+          }.getOrElse { false }
+        },
       )
     }
 
@@ -446,7 +481,8 @@ class VirtualFsPath(
 }
 
 
-object FileWatchEventNameSerializer : StringEnumSerializer<FileWatchEventName>("FileWatchEventName",
+object FileWatchEventNameSerializer : StringEnumSerializer<FileWatchEventName>(
+  "FileWatchEventName",
   FileWatchEventName.ALL_VALUES,
   { eventName })
 

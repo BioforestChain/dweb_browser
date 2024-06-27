@@ -4,6 +4,7 @@ import okio.Path.Companion.toPath
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.pure.http.IPureBody
+import org.dweb_browser.pure.http.PureBinaryBody
 import org.dweb_browser.pure.http.PureClientRequest
 import org.dweb_browser.pure.http.PureMethod
 
@@ -25,19 +26,17 @@ suspend fun MicroModule.Runtime.existFile(path: String) = nativeFetch(
   "file://file.std.dweb/exist?path=$path"
 ).boolean()
 
-suspend fun MicroModule.Runtime.readFile(path: String, create: Boolean = false) =
-  nativeFetch(
-    "file://file.std.dweb/read?path=$path&create=$create"
-  )
+suspend fun MicroModule.Runtime.readFile(path: String, create: Boolean = false) = nativeFetch(
+  "file://file.std.dweb/read?path=$path&create=$create"
+)
 
 suspend fun MicroModule.Runtime.infoFile(path: String) = nativeFetch(
   "file://file.std.dweb/info?path=$path"
 ).text()
 
-suspend fun MicroModule.Runtime.pickFile(path: String) =
-  nativeFetch(
-    "file://file.std.dweb/picker?path=$path"
-  ).text()
+suspend fun MicroModule.Runtime.pickFile(path: String) = nativeFetch(
+  "file://file.std.dweb/picker?path=$path"
+).text()
 
 suspend fun MicroModule.Runtime.realPath(path: String) = nativeFetch(
   "file://file.std.dweb/realPath?path=$path"
@@ -46,9 +45,7 @@ suspend fun MicroModule.Runtime.realPath(path: String) = nativeFetch(
 suspend fun MicroModule.Runtime.appendFile(path: String, body: IPureBody) {
   nativeFetch(
     PureClientRequest(
-      "file://file.std.dweb/append?path=${path}&create=true",
-      PureMethod.PUT,
-      body = body
+      "file://file.std.dweb/append?path=${path}&create=true", PureMethod.PUT, body = body
     )
   )
 }
@@ -56,9 +53,7 @@ suspend fun MicroModule.Runtime.appendFile(path: String, body: IPureBody) {
 suspend fun MicroModule.Runtime.writeFile(path: String, body: IPureBody) {
   nativeFetch(
     PureClientRequest(
-      "file://file.std.dweb/write?path=${path}&create=true",
-      PureMethod.POST,
-      body = body
+      "file://file.std.dweb/write?path=${path}&create=true", PureMethod.POST, body = body
     )
   )
 }
@@ -68,3 +63,17 @@ suspend fun MicroModule.Runtime.createDir(path: String) =
 
 suspend fun MicroModule.Runtime.listDir(path: String) =
   nativeFetch(PureMethod.POST, "file://file.std.dweb/listDir?path=$path").json<List<String>>()
+
+suspend fun MicroModule.Runtime.blobWrite(mime: String, data: ByteArray) = nativeFetch(
+  PureClientRequest(
+    "file://file.std.dweb/blob/write?mime=$mime", PureMethod.POST, body = PureBinaryBody(data)
+  )
+).text()
+
+suspend fun MicroModule.Runtime.blobPath(sha256: String): String? {
+  val path = nativeFetch(PureMethod.GET, "file://file.std.dweb/blob/path?sha256=${sha256}").text()
+  return path.ifEmpty { null }
+}
+
+suspend fun MicroModule.Runtime.blobRemove(sha256: String) =
+  nativeFetch(PureMethod.GET, "file://file.std.dweb/blob/remove?sha256=${sha256}").boolean()

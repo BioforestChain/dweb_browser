@@ -46,3 +46,19 @@ actual fun FileNMM.getExternalDownloadVirtualFsDirectory() = commonVirtualFsDire
   firstSegmentFlags = "download",
   nativeFsPath = getAppContextUnsafe().getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)!!.absolutePath.toPath()
 )
+
+actual fun FileNMM.getBlobVirtualFsDirectory() = object : IVirtualFsDirectory {
+  override fun isMatch(firstSegment: String) = firstSegment == "blob"
+  override val fs: FileSystem = SystemFileSystem
+  val rootDir = FileNMM.getApplicationRootDir()
+  val basePath = rootDir.resolve("blob")
+  private val basePathStr = basePath.toString()
+  override fun resolveTo(remote: IMicroModuleManifest, virtualFullPath: Path): Path {
+    return when {
+      virtualFullPath.toString().startsWith(basePathStr) -> {
+        virtualFullPath
+      }
+      else -> basePath + (virtualFullPath - "/blob")
+    }
+  }
+}
