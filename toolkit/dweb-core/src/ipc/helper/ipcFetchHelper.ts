@@ -1,6 +1,7 @@
 import type { $PromiseMaybe } from "@dweb-browser/helper/$PromiseMaybe.ts";
 import { isBinary } from "@dweb-browser/helper/fun/binaryHelper.ts";
 import { Ipc, IpcBody, IpcHeaders, IpcResponse, IpcServerRequest } from "../index.ts";
+import { PureRequest } from "../ipc-message/IpcRequest.ts";
 import { $bodyInitToIpcBodyArgs, isWebSocket } from "./ipcRequestHelper.ts";
 
 export type $OnFetchReturn = Response | IpcResponse | $FetchResponse | void;
@@ -259,7 +260,7 @@ export class IpcFetchEvent {
   get searchParams() {
     return this.url.searchParams;
   }
-  #request?: Request;
+  #request?: PureRequest;
   get request() {
     return (this.#request ??= this.ipcRequest.toPureClientRequest());
   }

@@ -213,7 +213,7 @@ export class IpcServerRequest extends IpcRequest {
     if (body instanceof ReadableStream) {
       Reflect.set(request_init, "duplex", "half");
     }
-    const request = new Request(url, request_init);
+    const request = new PureRequest(url, request_init);
 
     if (this.hasDuplex) {
       const serverChannel = this.getChannel();
@@ -221,17 +221,64 @@ export class IpcServerRequest extends IpcRequest {
       const clientChannel = serverChannel.reverse();
       client_headers_pure_channel_wm.set(request.headers, clientChannel);
     }
-
-    // 兼容浏览器不支持的情况chrome < 105
-    if (request_init.body instanceof ReadableStream && request.body != request_init.body) {
-      Object.defineProperty(request, "body", {
-        configurable: true,
-        enumerable: true,
-        writable: false,
-        value: request_init.body,
-      });
-    }
     return request;
+  }
+}
+
+export class PureRequest extends Request implements Body {
+  stream?: BodyInit | null;
+  constructor(input: URL | RequestInfo, init?: RequestInit | undefined) {
+    super(input, init);
+    this.stream = init?.body;
+  }
+
+  override get body() {
+    if (this.stream instanceof ReadableStream) return this.stream;
+    return super.body;
+  }
+
+  override get bodyUsed() {
+    return super.bodyUsed;
+  }
+
+  override async arrayBuffer(): Promise<ArrayBuffer> {
+    if (!this.stream) {
+      return new ArrayBuffer(0);
+    }
+
+    return await new Response(this.stream).arrayBuffer();
+  }
+
+  override async blob(): Promise<Blob> {
+    if (!this.stream) {
+      return new Blob();
+    }
+
+    return await new Response(this.stream).blob();
+  }
+
+  override async formData(): Promise<FormData> {
+    if (!this.stream) {
+      return new FormData();
+    }
+
+    return await new Response(this.stream).formData();
+  }
+
+  // deno-lint-ignore no-explicit-any
+  override async json(): Promise<any> {
+    if (!this.stream) {
+      return null;
+    }
+    return await new Response(this.stream).json();
+  }
+
+  // deno-lint-ignore require-await
+  override async text(): Promise<string> {
+    if (!this.stream) {
+      return "";
+    }
+    return new Response(this.stream).text();
   }
 }
 

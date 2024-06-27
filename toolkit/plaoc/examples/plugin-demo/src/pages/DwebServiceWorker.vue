@@ -30,8 +30,8 @@ const sayHi = async () => {
     search: {
       哈哈哈: "xx",
     },
-    method: "GET",
-    // body: new Blob([`{"xxx":${input.value}}`], { type: "application/json" }),
+    method: "POST",
+    body: new Blob([`{"xxx":${input.value}}`], { type: "application/json" }),
   });
   message.value = await response.text();
   console.log("sayHi return => ", message.value);
@@ -57,6 +57,10 @@ const updateApp = async () => {
   window.open(`dweb://install?url=http://172.30.95.93:8000/metadata.json`);
 };
 
+const clearCache = async () => {
+  dwebServiceWorker.clearCache();
+};
+
 const title = "Dweb Service Worker";
 </script>
 
@@ -80,6 +84,10 @@ const title = "Dweb Service Worker";
         <button class="inline-block rounded-full btn btn-accent" @click="restart">restart</button>
         <v-btn class="inline-block rounded-full btn btn-accent" :loading="loading" @click="updateApp">查看升级</v-btn>
       </div>
+    </article>
+    <article class="card-body">
+      <h2 class="card-title">清空数据</h2>
+      <v-btn color="indigo-darken-3" @click="clearCache">clearCache</v-btn>
     </article>
   </div>
   <div class="divider">LOG</div>
