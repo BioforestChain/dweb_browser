@@ -36,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Job
 import org.dweb_browser.browser.store.StoreController
+import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.helper.compose.ListDetailPaneScaffold
 import org.dweb_browser.helper.compose.rememberListDetailPaneScaffoldNavigator
@@ -48,17 +49,17 @@ import org.dweb_browser.sys.window.render.AppIcon
 import org.dweb_browser.sys.window.render.LocalWindowController
 import org.dweb_browser.sys.window.render.imageFetchHook
 
+class ProfileDetail(val profileName: String, val mm: MicroModule) : IMicroModuleManifest by mm {
+
+}
+
 @Composable
 private fun StoreController.loadProfileDetails(key1: Any? = null, onLoaded: suspend () -> Unit) =
   key(key1) {
     produceState(emptyList()) {
       value = dWebProfileStore.getAllProfileNames().mapNotNull { profileName ->
-        println("QAQ profileName=$profileName mm=${
-          storeNMM.bootstrapContext.dns.queryAll(
-            profileName
-          ).joinToString(",") { it.mmid }
-        }")
         storeNMM.bootstrapContext.dns.queryAll(profileName).firstOrNull { it.mmid == profileName }
+          ?.let { mm -> ProfileDetail(profileName, mm) }
       }
       onLoaded()
     }
@@ -68,24 +69,24 @@ private fun StoreController.loadProfileDetails(key1: Any? = null, onLoaded: susp
 @Composable
 fun StoreController.Render(modifier: Modifier, windowRenderScope: WindowContentRenderScope) {
   val navigator = rememberListDetailPaneScaffoldNavigator()
-  var detailItem by remember { mutableStateOf<MicroModule?>(null) }
-  remember(detailItem) {
-    if (detailItem != null) {
-      navigator.navigateToDetail { detailItem = null }
+  var currentDetailItem by remember { mutableStateOf<ProfileDetail?>(null) }
+  remember(currentDetailItem) {
+    if (currentDetailItem != null) {
+      navigator.navigateToDetail { currentDetailItem = null }
     }
   }
   LocalWindowController.current.navigation.GoBackHandler(enabled = navigator.canNavigateBack()) {
     navigator.backToList {
-      detailItem = null
+      currentDetailItem = null
     }
   }
 
+  var refreshCount by remember { mutableStateOf(0) }
 
   ListDetailPaneScaffold(
     navigator = navigator,
     modifier = modifier.withRenderScope(windowRenderScope),
     listPane = {
-      var refreshCount by remember { mutableStateOf(0) }
       WindowContentRenderScope.Unspecified.WindowContentScaffoldWithTitleText(
         Modifier.fillMaxSize(),
         topBarTitleText = "数据列表",
@@ -120,15 +121,15 @@ fun StoreController.Render(modifier: Modifier, windowRenderScope: WindowContentR
                   }
                 },
                 headlineContent = { Text(item.short_name) },
-                supportingContent = { Text(item.mmid) },
-                modifier = Modifier.clickable { detailItem = item })
+                supportingContent = { Text(item.profileName) },
+                modifier = Modifier.clickable { currentDetailItem = item })
             }
           }
         }
       }
     },
     detailPane = {
-      when (val profileDetail = detailItem) {
+      when (val profileDetail = currentDetailItem) {
         null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
           Text("请选择一项数据")
         }
@@ -138,16 +139,24 @@ fun StoreController.Render(modifier: Modifier, windowRenderScope: WindowContentR
             Modifier.fillMaxSize(),
             topBarTitleText = "数据项详情:${profileDetail.short_name}"
           ) { paddingValues ->
+            val deleteProfile: suspend (ProfileDetail) -> Unit = remember {
+              { detail ->
+                dWebProfileStore.deleteProfile(detail.mmid)
+                refreshCount += 1
+                if (currentDetailItem == detail) {
+                  navigator.backToList()
+                }
+              }
+            }
             Column(Modifier.padding(paddingValues).fillMaxSize()) {
               key(profileDetail) {
-                var forceDeleteProfile by remember { mutableStateOf(false) }
                 var showForceDeleteProfileDialog by remember { mutableStateOf(false) }
                 FilledTonalButton({
                   storeNMM.scopeLaunch(cancelable = false) {
-                    if (!forceDeleteProfile && dWebProfileStore.isUsingProfile(profileDetail.mmid)) {
+                    if (dWebProfileStore.isUsingProfile(profileDetail.mmid)) {
                       showForceDeleteProfileDialog = true
                     } else {
-                      dWebProfileStore.deleteProfile(profileDetail.mmid)
+                      deleteProfile(profileDetail)
                     }
                   }
                 }) {
@@ -165,7 +174,7 @@ fun StoreController.Render(modifier: Modifier, windowRenderScope: WindowContentR
                         {
                           closeJob = storeNMM.scopeLaunch(cancelable = true) {
                             storeNMM.bootstrapContext.dns.close(profileDetail.mmid)
-                            dWebProfileStore.deleteProfile(profileDetail.mmid)
+                            deleteProfile(profileDetail)
                             showForceDeleteProfileDialog = false
                           }
                         },
