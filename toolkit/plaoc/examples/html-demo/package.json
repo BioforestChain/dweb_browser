@@ -7,7 +7,6 @@
   },
   "dependencies": {
     "@plaoc/is-dweb": "workspace:~",
-    "@plaoc/plugins": "workspace:~",
-    "vite": "^4.4.9"
+    "@plaoc/plugins": "workspace:~"
   }
 }

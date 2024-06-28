@@ -70,7 +70,7 @@ export class Server_www extends HttpServer {
           const rawText = await sourceResponse.toResponse().text();
           const installTime = (await this.sessionInfo).installTime;
           const text = `<script>(${setupDB.toString()})("${installTime}",
-          ${this.jsonPlaoc.isClear});</script>${rawText}`;
+          ${this.jsonPlaoc.isClear},${navigator.dweb.patch});</script>${rawText}`;
           const binary = this.encoder.encode(text);
           // fromBinary 会自动添加正确的 ContentLength, 否则在Safari上会异常
           remoteIpcResponse = IpcResponse.fromBinary(

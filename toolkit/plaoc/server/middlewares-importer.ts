@@ -7,9 +7,9 @@ export class MiddlewareImporter {
       return [];
     }
     try {
-      const middleware = await import(join("./middleware", path));
-      console.log("middleware=>", middleware);
-      return (middleware.default as Router).handlers;
+      const middlewares = await import(join("./middlewares", path));
+      console.log("middlewares=>", middlewares);
+      return (middlewares.default as Router).handlers;
     } catch (_e) {
       // console.log("MiddlewareConfig=>", e);
     }

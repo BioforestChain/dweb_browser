@@ -5,14 +5,11 @@
   "scripts": {
     "dev": "vite --open",
     "build": "vite build",
-    "build:watch": "vite build --watch --minify=false",
-    "serve": "vite build  --config ./vite.config.server.ts",
-    "serve:watch": "vite build  --config ./vite.config.server.ts  --watch --minify=false"
+    "build:watch": "vite build --watch --minify=false"
   },
   "dependencies": {
     "@plaoc/is-dweb": "workspace:^",
     "@plaoc/plugins": "workspace:^",
-    "@plaoc/server": "workspace:^",
     "@types/web-bluetooth": "^0.0.17",
     "vite-plugin-vuetify": "^2.0.3",
     "vue": "^3.4.25",
@@ -21,7 +18,6 @@
   },
   "devDependencies": {
     "@mdi/font": "7.0.96",
-    "@types/glob": "^8.1.0",
     "@vitejs/plugin-vue": "^4.6.2",
     "@vue/compiler-sfc": "^3.4.25",
     "autoprefixer": "^10.4.19",

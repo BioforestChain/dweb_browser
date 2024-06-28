@@ -6,7 +6,7 @@ import { Server_www } from "./http-www-server.ts";
 
 import { apply_window, mwebview_open_activate, open_main_window } from "./helper/mwebview-helper.ts";
 import { queue } from "./helper/queue.ts";
-import { MiddlewareImporter } from "./middleware-importer.ts";
+import { MiddlewareImporter } from "./middlewares-importer.ts";
 import { PlaocConfig } from "./plaoc-config.ts";
 
 const main = async () => {

@@ -6,11 +6,11 @@ import { defineConfig } from "vite";
 export default defineConfig({
   plugins: [],
   build: {
-    outDir: "plaoc-dist",
+    target: "esnext",
     lib: {
       entry: Object.fromEntries(
         glob
-          .sync("./server/*.ts")
+          .sync("./middlewares/*.ts")
           .map((file: string) => [
             path.relative("./", file.slice(0, file.length - path.extname(file).length)),
             fileURLToPath(new URL(file, import.meta.url)),

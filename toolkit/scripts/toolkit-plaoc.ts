@@ -21,6 +21,12 @@ const plaocExamples = registryViteBuilder({
   inDir: "./toolkit/plaoc/examples/plugin-demo",
   outDir: "npm/@plaoc__examples/plugin-demo",
 });
+// 可编程后端
+const plaocServerExamples = registryViteBuilder({
+  name: "plaoc:examples:server-demo",
+  inDir: "./toolkit/plaoc/examples/plaoc-server",
+  outDir: "npm/@plaoc__examples/plaoc-server",
+});
 const htmlExamples = registryViteBuilder({
   name: "plaoc:examples:html-demo",
   inDir: "./toolkit/plaoc/examples/html-demo",
@@ -36,6 +42,14 @@ const plaocTasks = [
   plaocIsDweb,
   Object.assign(
     $once(() => plaocExamples(Deno.args.includes("--watch") ? ["--dev"] : [])),
+    {
+      reset() {
+        // 同步复制配置文件
+      },
+    }
+  ),
+  Object.assign(
+    $once(() => plaocServerExamples(Deno.args.includes("--watch") ? ["--dev"] : [])),
     {
       reset() {
         // 同步复制配置文件

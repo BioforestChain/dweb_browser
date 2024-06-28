@@ -1,12 +1,11 @@
 {
-  "isClear": false,
   "defaultConfig": {
     "lang": "en"
   },
   "middlewares": {
-    "www": "server/index.plaoc-www.js",
-    "api": "server/index.plaoc-api.js",
-    "external": "server/index.plaoc-external.js"
+    "www": "middlewares/index.plaoc-www.js",
+    "api": "middlewares/index.plaoc-api.js",
+    "external": "middlewares/index.plaoc-external.js"
   },
   "redirect": []
 }

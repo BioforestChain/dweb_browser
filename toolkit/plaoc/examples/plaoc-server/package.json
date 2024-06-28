@@ -1,0 +1,16 @@
+{
+  "name": "@plaoc/plaoc-demo-server",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "serve": "vite build  --config ./vite.config.server.ts",
+    "serve:watch": "vite build  --config ./vite.config.server.ts  --watch --minify=false"
+  },
+  "dependencies": {
+    "@plaoc/server": "workspace:^"
+  },
+  "devDependencies": {
+    "@types/glob": "^8.1.0",
+    "glob": "^8.1.0"
+  }
+}

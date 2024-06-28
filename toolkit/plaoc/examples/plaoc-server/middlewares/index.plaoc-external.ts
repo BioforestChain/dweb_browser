@@ -1,4 +1,4 @@
-import { Router } from "@plaoc/server/middleware";
+import { Router } from "@plaoc/server";
 
 const app = new Router();
 

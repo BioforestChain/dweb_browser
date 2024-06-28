@@ -12,13 +12,10 @@
     "esModuleInterop": true,
     "noImplicitOverride": true,
     "allowImportingTsExtensions": true,
-    "lib": ["ESNext", "DOM"],
+    "lib": ["ESNext"],
     "skipLibCheck": true,
-    "noEmit": true,
-    "paths": {
-      "@/*": ["src/*"]
-    }
+    "noEmit": true
   },
-  "include": ["server/**/*.ts", "src/**/*.ts", "src/**/*.d.ts", "src/**/*.vue"],
+  "include": ["/**/*.ts"],
   "exclude": ["node_modules"]
 }

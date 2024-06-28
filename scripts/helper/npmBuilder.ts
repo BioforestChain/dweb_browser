@@ -240,9 +240,10 @@ export const registryViteBuilder = (config: {
 
 /**同步一些文件 */
 export const vitePostBuild = (inDir: string, outDir: string) => {
-  for (const filename of ["manifest.json", "LICENSE"]) {
+  for (const filename of ["manifest.json", "plaoc.json", "LICENSE"]) {
     const fromPath = node_path.resolve(inDir, filename);
     if (node_fs.existsSync(fromPath)) {
+      console.log("迁移数据：", fromPath);
       const toPath = node_path.resolve(outDir, filename);
       node_fs.mkdirSync(node_path.dirname(toPath), { recursive: true });
       node_fs.copyFileSync(fromPath, toPath);

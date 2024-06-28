@@ -138,7 +138,7 @@ export class BackendServerGenerator {
     }
     // 可编程后端注入
     if (this.serverFilepaths) {
-      await copyFolder(this.serverFilepaths, "server/middleware");
+      await copyFolder(this.serverFilepaths, "server/middlewares");
     }
     return entries;
   }
