@@ -31,4 +31,10 @@ public class DwebWKWebView: WKWebView {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+
+    deinit {
+        destroy()
+    }
+
+    @objc public func destroy() {}
 }

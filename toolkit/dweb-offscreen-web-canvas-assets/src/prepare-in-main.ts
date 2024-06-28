@@ -56,12 +56,15 @@ export class MokeWorker {
   })();
   readonly toWorkerPort = this.mockChannel[0];
   readonly toMainPort = this.mockChannel[1];
-  constructor(workerUrl: string) {
+  constructor(workerUrl: string, options?: WorkerOptions) {
     const randomId = (Date.now() + Math.random()).toString(36);
     const script = (this.script = document.createElement("script"));
     debugger;
     script.dataset.workerId = randomId;
-    script.type = "module";
+    script.type = options?.type ?? "module";
+    if (options?.name) {
+      script.title = options.name;
+    }
     script.async = true;
     document.head.appendChild(script);
     script.src = workerUrl;
@@ -71,24 +74,11 @@ export class MokeWorker {
   addEventListener = this.toWorkerPort.addEventListener.bind(this.toWorkerPort);
 }
 
-export function prepareInMain(canvas: HTMLCanvasElement) {
-  if (typeof canvas.transferControlToOffscreen !== "function") {
+const supportSvgInWorker = false;
+
+export function transferControlToOffscreen(canvas: HTMLCanvasElement) {
+  if (!supportSvgInWorker || typeof canvas.transferControlToOffscreen !== "function") {
     const offscreencanvas = canvas as unknown as OffscreenCanvas;
-    offscreencanvas.convertToBlob = (options?: ImageEncodeOptions) => {
-      return new Promise<Blob>((resolve, reject) => {
-        canvas.toBlob(
-          (blob) => {
-            if (blob) {
-              resolve(blob);
-            } else {
-              reject();
-            }
-          },
-          options?.type,
-          options?.quality
-        );
-      });
-    };
     let isoffscreen = false;
     canvas.transferControlToOffscreen = () => {
       if (isoffscreen) {
@@ -115,36 +105,5 @@ export function prepareInMain(canvas: HTMLCanvasElement) {
       });
     }
   }
-
-  // const offscreen = canvas.transferControlToOffscreen();
-
-  //   var randomId = "Offscreen" + Math.round(Math.random() * 1000);
-  //   var script = document.createElement("script");
-  //   script.src = workerUrl;
-  //   script.async = true;
-  //   script.dataset.id = randomId;
-
-  //   var connection = { msgs: [], host: listener };
-  //   var api = {
-  //     post: function (data) {
-  //       if (connection.worker) {
-  //         connection.worker({ data: data });
-  //       } else {
-  //         connection.msgs.push(data);
-  //       }
-  //     },
-  //   };
-
-  //   script.onload = function () {
-  //     api.post({
-  //       canvas: canvas,
-  //       width: canvas.clientWidth,
-  //       height: canvas.clientHeight,
-  //     });
-  //   };
-
-  //   document.head.appendChild(script);
-  //   window[randomId] = connection;
-  //   return api;
-  // }
+  return canvas.transferControlToOffscreen();
 }

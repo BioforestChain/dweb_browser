@@ -1,8 +1,8 @@
 import { prepareInWorker } from "./prepare-in-worker.ts";
-import { svgToBlob } from "./svg-rasterization.ts";
 import { HalfFadeCache } from "./util/HalfFadeCache.ts";
 import { withResolvers } from "./util/PromiseWithResolvers.ts";
 import { calcFitSize } from "./util/calcFitSize.ts";
+import { convertToBlob } from "./util/convertToBlob.ts";
 // Move Three.js imports here if you use Three.js
 
 const { toMainChannel } = prepareInWorker(import.meta.url);
@@ -44,31 +44,13 @@ const { toMainChannel } = prepareInWorker(import.meta.url);
   const fetchImage = async (imageUrl: string) => {
     let imgSource: ImageBitmapSource;
     let needFitSize = true;
-    if (typeof Image === "function") {
-      const img = new Image();
-      imgSource = img;
-      img.src = imageUrl;
-      await new Promise<Event>((resolve, reject) => {
-        img.onload = resolve;
-        img.onerror = reject;
-      });
-    } else {
-      const res = await fetch(imageUrl);
-      if (res.status !== 200) {
-        throw new Error(`network error:${res.statusText}\n${await res.text()}`);
-      }
-      if (res.headers.get("Content-Type")?.includes("image/svg+xml")) {
-        return await res.text();
-        // const svgCode = await res.text();
-        // imgSource = await svgToBlob(svgCode, {
-        //   width: containerWidth,
-        //   height: containerHeight,
-        // });
-        // needFitSize = false;
-      } else {
-        imgSource = await res.blob();
-      }
-    }
+    const img = new Image();
+    imgSource = img;
+    img.src = imageUrl;
+    await new Promise<Event>((resolve, reject) => {
+      img.onload = resolve;
+      img.onerror = reject;
+    });
     return { imgSource, needFitSize };
   };
   const imageCache = new HalfFadeCache<string, ReturnType<typeof fetchImage>>();
@@ -79,20 +61,7 @@ const { toMainChannel } = prepareInWorker(import.meta.url);
   const fetchImageBitmap = async (imageUrl: string, containerWidth: number, containerHeight: number) => {
     containerWidth = Math.min(containerWidth, 8192);
     containerHeight = Math.min(containerHeight, 8192);
-    const preImage = await prepareImage(imageUrl);
-    let imgSource: ImageBitmapSource;
-    let needFitSize = true;
-    if (typeof preImage === "string") {
-      imgSource = await svgToBlob(preImage, {
-        width: containerWidth,
-        height: containerHeight,
-      });
-      needFitSize = false;
-    } else {
-      imgSource = preImage.imgSource;
-      needFitSize = preImage.needFitSize;
-    }
-
+    const { imgSource, needFitSize } = await prepareImage(imageUrl);
     let img = await createImageBitmap(imgSource);
     if (needFitSize) {
       const newSize = calcFitSize(img, {
@@ -143,23 +112,7 @@ const { toMainChannel } = prepareInWorker(import.meta.url);
     }
   };
   const canvasToBlob = (canvas: OffscreenCanvas | HTMLCanvasElement, options?: ImageEncodeOptions) => {
-    if ("toBlob" in canvas) {
-      return new Promise<Blob>((resolve, reject) => {
-        canvas.toBlob(
-          (blob) => {
-            if (blob) {
-              resolve(blob);
-            } else {
-              reject("fail to blob");
-            }
-          },
-          options?.type,
-          options?.quality
-        );
-      });
-    } else {
-      return canvas.convertToBlob(options);
-    }
+    return convertToBlob(canvas, options);
   };
   const blobToDataURL = (blob: Blob) =>
     new Promise<string>((resolve, reject) => {

@@ -1,6 +1,5 @@
 package org.dweb_browser.dwebview
 
-import org.dweb_browser.helper.platform.webViewEngine
 import org.dweb_browser.platform.desktop.webview.jxBrowserEngine
 
 class ChromiumWebProfileStore private constructor() : DWebProfileStore {
@@ -9,9 +8,7 @@ class ChromiumWebProfileStore private constructor() : DWebProfileStore {
   }
 
   fun getAllProfiles() = mutableMapOf<String, ChromiumWebProfile>().also { result ->
-    jxBrowserEngine.allEngines.map { (enginePath, engine) ->
-      println("QAQ enginePath=$enginePath")
-      val engineName = webViewEngine.resolveDir(enginePath)
+    jxBrowserEngine.allEngines.values.map { engine ->
       for (profile in engine.profiles().list()) {
         if (profile.isIncognito || profile.isDefault) {
           continue

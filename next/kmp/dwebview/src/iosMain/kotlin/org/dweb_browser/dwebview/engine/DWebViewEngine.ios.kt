@@ -94,8 +94,6 @@ class DWebViewEngine(
   )
   /// 必须在 WKWebView 得到 configuration 之前，就要进行 websiteDataStore 的配置
   configuration.websiteDataStore = profile.store
-
-  println("QAQ setWebsiteDataStore ${remoteMM.mmid} => ${profile.uuid}")
 }) {
   val mainScope = CoroutineScope(mainAsyncExceptionHandler + SupervisorJob())
   val lifecycleScope = CoroutineScope(remoteMM.getRuntimeScope().coroutineContext + SupervisorJob())
@@ -455,8 +453,7 @@ class DWebViewEngine(
   /**
    * 必须在 mainThread 调用这个函数
    */
-  fun destroy() {
-    println("QAQ destroy webview ${remoteMM.mmid}/${configuration.websiteDataStore.identifier}")
+  override fun destroy() {
     estimatedProgressObserver.disconnect()
     configuration.userContentController.apply {
       removeAllUserScripts()

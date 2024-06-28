@@ -18,7 +18,6 @@ import org.dweb_browser.pure.http.PureHeaders
 import org.dweb_browser.pure.http.PureResponse
 import org.dweb_browser.pure.http.PureTextFrame
 import org.jetbrains.compose.resources.ExperimentalResourceApi
-import org.jetbrains.compose.resources.InternalResourceApi
 
 internal suspend fun commonStartPureServer(server: HttpPureServer) = server.start(0u)
 internal expect suspend fun startPureServer(server: HttpPureServer): UShort
@@ -30,7 +29,7 @@ internal class OffscreenWebCanvasMessageChannel {
   val onMessage = onMessageSignal.toListener()
   val proxy = OffscreenWebCanvasFetchProxy()
 
-  @OptIn(InternalResourceApi::class, ExperimentalResourceApi::class)
+  @OptIn(ExperimentalResourceApi::class)
   private val server = HttpPureServer {
     if (it.url.hostWithPort != hostWithPort) {
       return@HttpPureServer null

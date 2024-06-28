@@ -13,7 +13,6 @@ import org.dweb_browser.pure.crypto.hash.ccSha256
 import platform.Foundation.NSDate
 import platform.Foundation.NSUUID
 import platform.WebKit.WKWebsiteDataStore
-import platform.WebKit.WKWebsiteDataTypeIndexedDBDatabases
 
 internal const val DwebProfilesKey = "dweb-profiles"
 
@@ -82,15 +81,12 @@ class WKWebViewProfileStore private constructor() : DWebProfileStore {
   }
 
   private suspend fun removeProfile(store: WKWebsiteDataStore): Boolean = withMainContext {
-    val allDataTypes = setOf(WKWebsiteDataTypeIndexedDBDatabases)
-    WKWebsiteDataStore.allWebsiteDataTypes()
-    println("QAQ allDataTypes=$allDataTypes")
+    val allDataTypes = WKWebsiteDataStore.allWebsiteDataTypes()
     val dataRecords = CompletableDeferred<List<*>?>().also { deferred ->
       store.fetchDataRecordsOfTypes(allDataTypes) {
         deferred.complete(it)
       }
     }.await()
-    println("QAQ fetchDataRecordsOfTypes dataRecords=$dataRecords")
     if (dataRecords != null && dataRecords.isNotEmpty()) {
       CompletableDeferred<Unit>().also { deferred ->
         store.removeDataOfTypes(dataTypes = allDataTypes,
@@ -99,7 +95,6 @@ class WKWebViewProfileStore private constructor() : DWebProfileStore {
             deferred.complete(Unit)
           })
       }.await()
-      println("QAQ removeDataOfTypes forDataRecords okk")
     } else {
       CompletableDeferred<Unit>().also { deferred ->
         store.removeDataOfTypes(dataTypes = allDataTypes,
@@ -108,14 +103,11 @@ class WKWebViewProfileStore private constructor() : DWebProfileStore {
             deferred.complete(Unit)
           })
       }.await()
-      println("QAQ removeDataOfTypes modifiedSince okk")
     }
-    println("QAQ storeUuid=${store.identifier}")
     when (val storeUuid = store.identifier) {
       null -> true
       else -> CompletableDeferred<Boolean>().also { deferred ->
         WKWebsiteDataStore.removeDataStoreForIdentifier(storeUuid) { err ->
-          println("QAQ removeDataStoreForIdentifier err=$err")
           when (err) {
             null -> deferred.complete(true)
             else -> if (err.code == 1L) {

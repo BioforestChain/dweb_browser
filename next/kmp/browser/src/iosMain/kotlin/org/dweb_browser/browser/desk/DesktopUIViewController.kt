@@ -5,10 +5,12 @@ import androidx.compose.foundation.layout.ime
 import androidx.compose.runtime.InternalComposeApi
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalDensity
+import kotlinx.cinterop.ExperimentalForeignApi
 import org.dweb_browser.helper.platform.PureViewController
 import org.dweb_browser.pure.image.compose.rememberOffscreenWebCanvas
 import org.dweb_browser.sys.window.render.LocalWindowsImeVisible
 
+@OptIn(ExperimentalForeignApi::class)
 class DesktopUIViewController(val vc: PureViewController) {
   init {
     DesktopViewControllerCore(vc)
@@ -24,7 +26,10 @@ class DesktopUIViewController(val vc: PureViewController) {
     }
     @OptIn(InternalComposeApi::class)
     vc.addContent {
-      rememberOffscreenWebCanvas()
+      val offscreenWebCanvas = rememberOffscreenWebCanvas()
+      LaunchedEffect(offscreenWebCanvas) {
+        vc.getUiViewController().view.addSubview(offscreenWebCanvas.webview)
+      }
     }
   }
 }
