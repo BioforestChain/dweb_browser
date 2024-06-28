@@ -37,4 +37,7 @@ object AboutI18nResource {
   val percent = SimpleI18nResource(Language.ZH to "百分比", Language.EN to "Percent")
   val version = SimpleI18nResource(Language.ZH to "版本", Language.EN to "Version")
   val patch = SimpleI18nResource(Language.ZH to "补丁", Language.EN to "Patch")
+  val app = SimpleI18nResource(Language.ZH to "应用", Language.EN to "Application")
+  val system = SimpleI18nResource(Language.ZH to "系统", Language.EN to "System")
+  val battery = SimpleI18nResource(Language.ZH to "电池", Language.EN to "Battery")
 }

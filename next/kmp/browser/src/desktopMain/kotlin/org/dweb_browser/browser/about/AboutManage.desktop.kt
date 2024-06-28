@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -19,11 +20,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import org.dweb_browser.helper.UUID
+import org.dweb_browser.helper.compose.hex
 import org.dweb_browser.helper.platform.PureViewController
 import org.dweb_browser.platform.desktop.webview.jxBrowserEngine
 import org.dweb_browser.sys.device.DesktopHardwareInfo
 import org.dweb_browser.sys.device.DeviceManage
 import org.dweb_browser.sys.window.core.windowAdapterManager
+import org.dweb_browser.sys.window.render.LocalWindowControllerTheme
 
 data class DesktopSystemInfo(
   val os: String,
@@ -78,7 +81,13 @@ fun AboutRender(
   desktopHardwareInfo: DesktopHardwareInfo,
   desktopSystemInfo: DesktopSystemInfo
 ) {
-  Box(modifier = modifier.fillMaxSize().background(Color.Gray)) {
+  Box(
+    modifier = modifier.fillMaxSize()
+      .background(
+        if (LocalWindowControllerTheme.current.isDark) Color.Black else (Color.hex("#F5F5FA")
+          ?: Color.Gray)
+      )
+  ) {
     Column(
       modifier = Modifier.verticalScroll(rememberScrollState()),
       horizontalAlignment = Alignment.Start,
@@ -91,7 +100,7 @@ fun AboutRender(
         color = MaterialTheme.colorScheme.onSurface
       )
       AboutAppInfoRender(appInfo)
-      HorizontalDivider()
+      Spacer(Modifier.padding(8.dp))
       Text(
         modifier = Modifier.padding(start = 16.dp, top = 8.dp),
         text = "系统",
@@ -134,7 +143,7 @@ fun AboutRender(
           text = desktopSystemInfo.maximumMemory.toString()
         )
       }
-      HorizontalDivider()
+      Spacer(Modifier.padding(8.dp))
       Text(
         modifier = Modifier.padding(start = 16.dp, top = 8.dp),
         text = "硬件",

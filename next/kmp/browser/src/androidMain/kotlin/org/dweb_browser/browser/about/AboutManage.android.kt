@@ -5,13 +5,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,11 +20,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import org.dweb_browser.helper.UUID
+import org.dweb_browser.helper.compose.hex
 import org.dweb_browser.sys.device.DeviceManage
 import org.dweb_browser.sys.device.model.Battery
 import org.dweb_browser.sys.device.model.DeviceData
 import org.dweb_browser.sys.device.model.DeviceInfo
 import org.dweb_browser.sys.window.core.windowAdapterManager
+import org.dweb_browser.sys.window.render.LocalWindowControllerTheme
 
 data class AndroidSystemInfo(
   val os: String = "Android",
@@ -70,7 +72,13 @@ fun AboutRender(
   deviceData: DeviceData,
   batteryInfo: Battery,
 ) {
-  Box(modifier = modifier.fillMaxSize().background(Color.Gray)) {
+  Box(
+    modifier = modifier.fillMaxSize()
+      .background(
+        if (LocalWindowControllerTheme.current.isDark) Color.Black else (Color.hex("#F5F5FA")
+          ?: Color.Gray)
+      )
+  ) {
     Column(
       modifier = Modifier.verticalScroll(rememberScrollState()),
       horizontalAlignment = Alignment.Start,
@@ -78,15 +86,15 @@ fun AboutRender(
     ) {
       Text(
         modifier = Modifier.padding(start = 16.dp, top = 8.dp),
-        text = "应用",
+        text = AboutI18nResource.app.text,
         style = MaterialTheme.typography.labelMedium,
         color = MaterialTheme.colorScheme.onSurface
       )
       AboutAppInfoRender(appInfo)
-      HorizontalDivider()
+      Spacer(Modifier.padding(8.dp))
       Text(
         modifier = Modifier.padding(start = 16.dp, top = 8.dp),
-        text = "系统",
+        text = AboutI18nResource.system.text,
         style = MaterialTheme.typography.labelMedium,
         color = MaterialTheme.colorScheme.onSurface
       )
@@ -108,10 +116,10 @@ fun AboutRender(
 //          labelName = AboutI18nResource.deviceName.text, text = androidSystemInfo.deviceName
 //        )
       }
-      HorizontalDivider()
+      Spacer(Modifier.padding(8.dp))
       Text(
         modifier = Modifier.padding(start = 16.dp, top = 8.dp),
-        text = "硬件",
+        text = AboutI18nResource.hardware.text,
         style = MaterialTheme.typography.labelMedium,
         color = MaterialTheme.colorScheme.onSurface,
       )
@@ -165,10 +173,10 @@ fun AboutRender(
           text = "${deviceData.storage!!.internalUsageSize}/${deviceData.storage!!.internalTotalSize}"
         )
       }
-      HorizontalDivider()
+      Spacer(Modifier.padding(8.dp))
       Text(
         modifier = Modifier.padding(start = 16.dp, top = 8.dp),
-        text = "电池",
+        text = AboutI18nResource.battery.text,
         style = MaterialTheme.typography.labelMedium,
         color = MaterialTheme.colorScheme.onSurface,
       )
