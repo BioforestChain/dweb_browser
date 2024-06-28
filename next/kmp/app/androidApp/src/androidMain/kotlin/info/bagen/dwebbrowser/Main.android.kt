@@ -1,6 +1,7 @@
 package info.bagen.dwebbrowser
 
 import android.webkit.WebView
+import org.dweb_browser.browser.about.AboutNMM
 import org.dweb_browser.browser.desk.DeskNMM
 import org.dweb_browser.browser.download.DownloadNMM
 import org.dweb_browser.browser.jmm.JmmNMM
@@ -19,7 +20,6 @@ import org.dweb_browser.core.std.file.FileNMM
 import org.dweb_browser.core.std.http.HttpNMM
 import org.dweb_browser.core.std.http.MultipartNMM
 import org.dweb_browser.helper.addDebugTags
-import org.dweb_browser.sys.about.AboutNMM
 import org.dweb_browser.sys.biometrics.BiometricsNMM
 import org.dweb_browser.sys.clipboard.ClipboardNMM
 import org.dweb_browser.sys.configure.ConfigNMM

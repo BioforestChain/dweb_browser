@@ -12,7 +12,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.helper.getAppContextUnsafe
-import kotlin.jvm.Throws
 import kotlin.math.sqrt
 
 @Serializable
@@ -33,7 +32,7 @@ data class DeviceData(
   var screenSizeInches: String = "", // 屏幕尺寸 单位/英寸
   var module: String = "default", // 手机模式(silentMode,doNotDisturb,default)
   var supportAbis: String = "", // 支持的Abis
-  var radio: String = "", // 基带
+  var radio: String = "", // 收音机
 )
 
 object DeviceInfo {
@@ -59,31 +58,26 @@ object DeviceInfo {
 
   val deviceData: DeviceData
     get() {
-      try {
-        val deviceData = DeviceData()
-        deviceData.id = id
-        deviceData.board = board
-        deviceData.brand = brand
-        deviceData.manufacturer = manufacturer
+      val deviceData = DeviceData()
+      deviceData.id = id
+      deviceData.board = board
+      deviceData.brand = brand
+      deviceData.manufacturer = manufacturer
 //        deviceData.deviceName = deviceName
-        deviceData.deviceModel = deviceModel
-        deviceData.resolution = resolution
-        deviceData.screenSizeInches = screenSizeInches
-        deviceData.display = display
-        deviceData.hardware = hardware
-        deviceData.module = module
-        deviceData.supportAbis = supportAbis
-        deviceData.radio = radio
-        deviceData.density = density
-        deviceData.refreshRate = refreshRate
-        val memoryInfo = MemoryInfo()
-        deviceData.memory = memoryInfo.memoryData
-        deviceData.storage = memoryInfo.storageSize
-        return deviceData
-      } catch (e: Throwable) {
-        println("QAQ deviceData ${e.message}")
-        throw e
-      }
+      deviceData.deviceModel = deviceModel
+      deviceData.resolution = resolution
+      deviceData.screenSizeInches = screenSizeInches
+      deviceData.display = display
+      deviceData.hardware = hardware
+      deviceData.module = module
+      deviceData.supportAbis = supportAbis
+      deviceData.radio = radio
+      deviceData.density = density
+      deviceData.refreshRate = refreshRate
+      val memoryInfo = MemoryInfo()
+      deviceData.memory = memoryInfo.memoryData
+      deviceData.storage = memoryInfo.storageSize
+      return deviceData
     }
 
   private lateinit var mTelephonyManager: TelephonyManager
@@ -129,20 +123,22 @@ object DeviceInfo {
     }
 
   val screenSizeInches: String
+    @SuppressLint("DefaultLocale")
     get() {
       val screenWidthDp = displayMetrics.widthPixels / displayMetrics.density
       val screenHeightDp = displayMetrics.heightPixels / displayMetrics.density
       val screenDiagonalDp =
         sqrt((screenWidthDp * screenWidthDp + screenHeightDp * screenHeightDp).toDouble())
       val screenDiagonalInches = screenDiagonalDp / 160 // 1 inch = 160 dp
-      return "$screenDiagonalInches inches"
+      return String.format("%.2f inches", screenDiagonalInches)
     }
 
   val density: String
     get() = "${displayMetrics.densityDpi} dpi"
 
   val refreshRate: String
-    get() = "${(getAppContextUnsafe().getSystemService(Context.WINDOW_SERVICE) as android.view.WindowManager).defaultDisplay.refreshRate} Hz"
+    @SuppressLint("DefaultLocale")
+    get() = "${(getAppContextUnsafe().getSystemService(Context.WINDOW_SERVICE) as android.view.WindowManager).defaultDisplay.refreshRate.toInt()} Hz"
 
   val display: String
     get() {

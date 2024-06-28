@@ -1,4 +1,4 @@
-package org.dweb_browser.sys.about
+package org.dweb_browser.browser.about
 
 import androidx.compose.runtime.Composable
 import org.dweb_browser.helper.UUID

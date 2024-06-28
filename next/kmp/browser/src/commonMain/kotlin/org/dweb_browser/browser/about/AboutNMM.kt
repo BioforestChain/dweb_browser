@@ -1,4 +1,4 @@
-package org.dweb_browser.sys.about
+package org.dweb_browser.browser.about
 
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.module.BootstrapContext
@@ -9,7 +9,7 @@ import org.dweb_browser.sys.window.core.helper.setStateFromManifest
 import org.dweb_browser.sys.window.ext.getMainWindow
 import org.dweb_browser.sys.window.ext.onRenderer
 
-class AboutNMM : NativeMicroModule("about.sys.dweb", "About") {
+class AboutNMM : NativeMicroModule("about.browser.dweb", "About") {
   init {
     short_name = "About"
     categories = listOf(

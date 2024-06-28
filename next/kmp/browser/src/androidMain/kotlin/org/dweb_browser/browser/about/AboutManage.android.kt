@@ -1,4 +1,4 @@
-package org.dweb_browser.sys.about
+package org.dweb_browser.browser.about
 
 import android.webkit.WebView
 import androidx.compose.foundation.background
@@ -143,12 +143,6 @@ fun AboutRender(
         )
         AboutDetailsItem(
           labelName = AboutI18nResource.manufacturer.text, text = deviceData.manufacturer
-        )
-        AboutDetailsItem(
-          labelName = AboutI18nResource.radio.text, text = deviceData.radio
-        )
-        AboutDetailsItem(
-          labelName = AboutI18nResource.radio.text, text = deviceData.radio
         )
         AboutDetailsItem(
           labelName = AboutI18nResource.display.text, text = deviceData.screenSizeInches

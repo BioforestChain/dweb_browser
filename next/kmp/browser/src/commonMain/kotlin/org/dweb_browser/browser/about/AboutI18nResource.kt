@@ -1,10 +1,9 @@
-package org.dweb_browser.sys.about
+package org.dweb_browser.browser.about
 
 import org.dweb_browser.helper.compose.Language
 import org.dweb_browser.helper.compose.SimpleI18nResource
 
 object AboutI18nResource {
-  val aboutTitle = SimpleI18nResource(Language.ZH to "关于", Language.EN to "About")
   val appName = SimpleI18nResource(Language.ZH to "应用名", Language.EN to "App Name")
   val appVersion = SimpleI18nResource(Language.ZH to "应用版本号", Language.EN to "App Version")
   val os = SimpleI18nResource(Language.ZH to "操作系统", Language.EN to "OS")
@@ -25,7 +24,6 @@ object AboutI18nResource {
   val hardware = SimpleI18nResource(Language.ZH to "硬件", Language.EN to "Hardware")
   val supportAbis = SimpleI18nResource(Language.ZH to "支持的Abis", Language.EN to "Support Abis")
   val manufacturer = SimpleI18nResource(Language.ZH to "制造商", Language.EN to "Manufacturer")
-  val radio = SimpleI18nResource(Language.ZH to "基带", Language.EN to "Radio")
   val display = SimpleI18nResource(Language.ZH to "屏幕尺寸", Language.EN to "Display")
   val resolution = SimpleI18nResource(Language.ZH to "屏幕分辨率", Language.EN to "Resolution")
   val density = SimpleI18nResource(Language.ZH to "屏幕像素密度", Language.EN to "DensityDpi")
@@ -37,4 +35,6 @@ object AboutI18nResource {
   val discharging = SimpleI18nResource(Language.ZH to "放电中", Language.EN to "Discharging")
   val health = SimpleI18nResource(Language.ZH to "健康", Language.EN to "Health")
   val percent = SimpleI18nResource(Language.ZH to "百分比", Language.EN to "Percent")
+  val version = SimpleI18nResource(Language.ZH to "版本", Language.EN to "Version")
+  val patch = SimpleI18nResource(Language.ZH to "补丁", Language.EN to "Patch")
 }

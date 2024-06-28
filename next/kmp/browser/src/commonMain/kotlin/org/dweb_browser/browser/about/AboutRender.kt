@@ -1,4 +1,4 @@
-package org.dweb_browser.sys.about
+package org.dweb_browser.browser.about
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import org.dweb_browser.browser.jmm.JsMicroModule
 
 @Composable
 fun AboutDetailsItem(modifier: Modifier = Modifier, labelName: String, text: String) {
@@ -42,8 +43,8 @@ data class AboutAppInfo(
   val appName: String = "Dweb Browser",
   val appVersion : String,
   val webviewVersion: String,
-//  val jmmVersion: Int,
-//  val jmmPatch: Int
+  val jmmVersion: Int = JsMicroModule.VERSION,
+  val jmmPatch: Int = JsMicroModule.PATCH
 )
 
 @Composable
@@ -59,6 +60,12 @@ fun AboutAppInfoRender(appInfo: AboutAppInfo) {
     )
     AboutDetailsItem(
       labelName = AboutI18nResource.webviewVersion.text, text = appInfo.webviewVersion
+    )
+    AboutDetailsItem(
+      labelName = "JMM ${AboutI18nResource.version.text}", text = appInfo.jmmVersion.toString()
+    )
+    AboutDetailsItem(
+      labelName = "JMM ${AboutI18nResource.patch.text}", text = appInfo.jmmPatch.toString()
     )
   }
 }

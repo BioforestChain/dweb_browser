@@ -1,4 +1,4 @@
-package org.dweb_browser.sys.about
+package org.dweb_browser.browser.about
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -20,7 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.platform.PureViewController
-import org.dweb_browser.platform.desktop.webview.WebviewEngine
+import org.dweb_browser.platform.desktop.webview.jxBrowserEngine
 import org.dweb_browser.sys.device.DesktopHardwareInfo
 import org.dweb_browser.sys.device.DeviceManage
 import org.dweb_browser.sys.window.core.windowAdapterManager
@@ -59,7 +59,7 @@ actual suspend fun AboutNMM.AboutRuntime.openAboutPage(id: UUID) {
     )
   }
   val desktopAppInfo = AboutAppInfo(
-    appVersion = DeviceManage.deviceAppVersion(), webviewVersion = WebviewEngine.chromiumVersion
+    appVersion = DeviceManage.deviceAppVersion(), webviewVersion = jxBrowserEngine.chromiumVersion
   )
   windowAdapterManager.provideRender(id) { modifier ->
     AboutRender(
