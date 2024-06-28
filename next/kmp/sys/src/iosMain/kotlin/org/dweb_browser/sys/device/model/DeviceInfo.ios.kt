@@ -1,6 +1,13 @@
 package org.dweb_browser.sys.device.model
 
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.alloc
+import kotlinx.cinterop.memScoped
+import kotlinx.cinterop.ptr
+import kotlinx.cinterop.toKString
 import platform.UIKit.UIDevice
+import platform.posix.uname
+import platform.posix.utsname
 
 data class BatteryInfo(
   val batteryLevel: Float,
@@ -9,8 +16,16 @@ data class BatteryInfo(
 
 
 object DeviceInfo {
+  @OptIn(ExperimentalForeignApi::class)
   val model: String
-    get() = UIDevice.currentDevice.model.also { println("QAQ model=${it}") }
+    get() = memScoped {
+      val systemInfo = alloc<utsname>()
+      if (uname(systemInfo.ptr) == 0) {
+        return@memScoped systemInfo.machine.toKString()
+      } else {
+        UIDevice.currentDevice.model
+      }
+    }
 
   val modelName: String
     get() = modelMatch(model)
@@ -21,11 +36,17 @@ object DeviceInfo {
   val batteryInfo: BatteryInfo
     get() {
       UIDevice.currentDevice.run {
+        // 开启电池电量监听，否则永远是-1.0
+        batteryMonitoringEnabled = true
         return BatteryInfo(batteryLevel, this.batteryState.value != 1L)
       }
     }
 
   private fun modelMatch(model: String): String = when (model) {
+    "iPhone11,2" -> "iPhone XS"
+    "iPhone11,4" -> "iPhone XSMax (China)"
+    "iPhone11,6" -> "iPhone XSMax"
+    "iPhone11,8" -> "iPhone XR"
     "iPhone12,1" -> "iPhone 11"
     "iPhone12,3" -> "iPhone 11 Pro"
     "iPhone12,5" -> "iPhone 11 Pro Max"

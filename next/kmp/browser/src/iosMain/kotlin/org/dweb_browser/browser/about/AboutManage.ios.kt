@@ -19,10 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.alloc
-import kotlinx.cinterop.memScoped
-import kotlinx.cinterop.ptr
-import kotlinx.cinterop.toKString
 import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.compose.hex
 import org.dweb_browser.sys.device.DeviceManage
@@ -32,8 +28,6 @@ import org.dweb_browser.sys.window.core.windowAdapterManager
 import org.dweb_browser.sys.window.render.LocalWindowControllerTheme
 import platform.Foundation.NSBundle
 import platform.UIKit.UIDevice
-import platform.posix.uname
-import platform.posix.utsname
 
 data class IOSSystemInfo(
   val os: String,
@@ -52,20 +46,13 @@ actual suspend fun AboutNMM.AboutRuntime.openAboutPage(id: UUID) {
   val appInfo = AboutAppInfo(
     appVersion = DeviceManage.deviceAppVersion(),
     webviewVersion = NSBundle.bundleWithIdentifier("com.apple.WebKit")
-      ?.objectForInfoDictionaryKey("CFBundleShortVersionString") as String? ?: "Unknown"
+      ?.objectForInfoDictionaryKey("CFBundleVersion") as String? ?: "Unknown"
   )
   val iosSystemInfo = IOSSystemInfo(
     os = "iOS",
     osName = UIDevice.currentDevice.systemName,
     osVersion = UIDevice.currentDevice.systemVersion,
-    arch = memScoped {
-      val systemInfo = alloc<utsname>()
-      if (uname(systemInfo.ptr) == 0) {
-        return@memScoped systemInfo.machine.toKString()
-      } else {
-        "arm64"
-      }
-    }
+    arch = "aarch64"
   )
   val iosHardwareInfo = IOSHardwareInfo(
     deviceName = DeviceInfo.deviceName,
