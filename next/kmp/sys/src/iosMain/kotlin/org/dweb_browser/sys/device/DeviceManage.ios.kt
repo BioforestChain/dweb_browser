@@ -24,28 +24,4 @@ actual object DeviceManage {
   actual fun deviceAppVersion(): String {
     return NSBundle.mainBundle.objectForInfoDictionaryKey("CFBundleShortVersionString") as String
   }
-
-//  @OptIn(ExperimentalForeignApi::class)
-//  actual fun getAboutInfo(): AboutBaseInfo {
-//    val arch = memScoped {
-//      val systemInfo = alloc<utsname>()
-//      if (uname(systemInfo.ptr) == 0) {
-//        return@memScoped systemInfo.machine.toKString()
-//      } else {
-//        "arm64"
-//      }
-//    }
-//
-//    return AboutBaseInfo(
-//      appName = NSBundle.mainBundle.infoDictionary?.get("CFBundleName") as String?
-//        ?: "Dweb Browser",
-//      appVersion = deviceAppVersion(),
-//      platform = "iOS",
-//      arch = arch,
-//      modelName = UIDevice.currentDevice.model,
-//      osVersion = UIDevice.currentDevice.systemVersion,
-//      webviewVersion = NSBundle.bundleWithIdentifier("com.apple.WebKit")
-//        ?.objectForInfoDictionaryKey("CFBundleShortVersionString") as String? ?: "Unknown"
-//    )
-//  }
 }

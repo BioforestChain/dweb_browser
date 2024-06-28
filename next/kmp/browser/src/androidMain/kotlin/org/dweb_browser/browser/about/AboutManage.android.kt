@@ -36,24 +36,18 @@ data class AndroidSystemInfo(
 )
 
 actual suspend fun AboutNMM.AboutRuntime.openAboutPage(id: UUID) {
-  println("QAQ openAboutPage start")
   val deviceData = DeviceInfo.deviceData
-  println("QAQ openAboutPage start 1")
   val batteryInfo = DeviceInfo.getBatteryInfo()
-  println("QAQ openAboutPage start 2")
   val androidSystemInfo = AndroidSystemInfo(
     osVersion = DeviceInfo.osVersion,
 //    deviceName = deviceData.deviceName,
     sdkInt = DeviceInfo.sdkInt
   )
-  println("QAQ openAboutPage start 3")
   val appInfo = AboutAppInfo(
     appVersion = DeviceManage.deviceAppVersion(),
     webviewVersion = WebView.getCurrentWebViewPackage()?.versionName ?: "Unknown"
   )
-  println("QAQ openAboutPage end")
   windowAdapterManager.provideRender(id) { modifier ->
-    println("QAQ openAboutPage render")
     AboutRender(
       modifier = modifier,
       appInfo = appInfo,

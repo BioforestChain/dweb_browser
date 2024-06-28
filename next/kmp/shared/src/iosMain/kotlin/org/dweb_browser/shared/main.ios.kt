@@ -3,6 +3,7 @@
 package org.dweb_browser.shared
 
 //import org.dweb_browser.sys.microphone.MicroPhoneNMM
+import org.dweb_browser.browser.about.AboutNMM
 import org.dweb_browser.browser.desk.DeskNMM
 import org.dweb_browser.browser.download.DownloadNMM
 import org.dweb_browser.browser.jmm.JmmNMM
@@ -128,6 +129,9 @@ suspend fun startDwebBrowser(
   val shortcutNMM = ShortcutNMM().setup()
   val fileChooserNMM = FileChooserNMM().setup()
 
+  /// about
+  val aboutNMM = AboutNMM().setup()
+
   /// 安装Jmm
   val jmmNMM = JmmNMM().setup()
   val storeNMM = StoreNMM().setup()
@@ -145,7 +149,7 @@ suspend fun startDwebBrowser(
       downloadNMM.mmid, // 为了获取下载的数据
       deskNMM.mmid,//
       browserNMM.mmid, // 为了启动后能够顺利加载添加到桌面的哪些数据，不加载browser界面
-
+      aboutNMM.mmid,
     ),
   ).setup()
 

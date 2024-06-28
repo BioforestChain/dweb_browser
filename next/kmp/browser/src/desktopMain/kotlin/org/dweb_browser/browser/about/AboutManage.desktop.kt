@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -95,7 +94,7 @@ fun AboutRender(
     ) {
       Text(
         modifier = Modifier.padding(start = 16.dp, top = 8.dp),
-        text = "应用",
+        text = AboutI18nResource.app.text,
         style = MaterialTheme.typography.labelMedium,
         color = MaterialTheme.colorScheme.onSurface
       )
@@ -103,7 +102,7 @@ fun AboutRender(
       Spacer(Modifier.padding(8.dp))
       Text(
         modifier = Modifier.padding(start = 16.dp, top = 8.dp),
-        text = "系统",
+        text = AboutI18nResource.system.text,
         style = MaterialTheme.typography.labelMedium,
         color = MaterialTheme.colorScheme.onSurface
       )
@@ -146,7 +145,7 @@ fun AboutRender(
       Spacer(Modifier.padding(8.dp))
       Text(
         modifier = Modifier.padding(start = 16.dp, top = 8.dp),
-        text = "硬件",
+        text = AboutI18nResource.hardware.text,
         style = MaterialTheme.typography.labelMedium,
         color = MaterialTheme.colorScheme.onSurface,
       )
