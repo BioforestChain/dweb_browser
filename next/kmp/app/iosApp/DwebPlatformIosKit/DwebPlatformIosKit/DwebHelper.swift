@@ -9,11 +9,11 @@ import Foundation
 import WebKit
 
 @objc open class DwebHelper: NSObject {
-    @objc open func setProxy(configuration: WKWebViewConfiguration, host: String, port: UInt16) {
+    @objc open func setProxy(websiteDataStore: WKWebsiteDataStore, host: String, port: UInt16) {
         let endpoint = NWEndpoint.hostPort(
             host: NWEndpoint.Host(host), port: NWEndpoint.Port(rawValue: port)!)
         let proxyConfig = ProxyConfiguration(httpCONNECTProxy: endpoint, tlsOptions: .none)
-        configuration.websiteDataStore.proxyConfigurations = [proxyConfig]
+        websiteDataStore.proxyConfigurations = [proxyConfig]
     }
 
     @objc open func enableSafeAreaInsets(webView: WKWebView, insets: UIEdgeInsets) {

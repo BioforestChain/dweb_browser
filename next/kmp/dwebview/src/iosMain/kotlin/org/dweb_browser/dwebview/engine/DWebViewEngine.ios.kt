@@ -74,10 +74,28 @@ class DWebViewEngine(
   val remoteMM: MicroModule.Runtime,
   internal val options: DWebViewOptions,
   configuration: WKWebViewConfiguration,
+  private val profile: WKWebViewProfile = when (val sessionId = options.incognitoSessionId) {
+    // 开启WKWebView数据隔离
+    null -> wkWebsiteDataStore.getOrCreateProfile(remoteMM.mmid)
+    // 是否开启无痕模式
+    else -> wkWebsiteDataStore.getOrCreateIncognitoProfile(remoteMM.mmid, sessionId)
+  },
 ) : DwebWKWebView(frame, configuration.also {
   /// 设置scheme，这需要在传入WKWebView之前就要运作
   registryDwebHttpUrlSchemeHandler(remoteMM, it)
   registryDwebSchemeHandler(remoteMM, it)
+
+  // 需要在 websiteDataStore 上设置代理
+  val url = Url(DwebViewProxy.ProxyUrl)
+  dwebHelper.setProxyWithWebsiteDataStore(
+    profile.store,
+    url.host,
+    url.port.toUShort(),
+  )
+  /// 必须在 WKWebView 得到 configuration 之前，就要进行 websiteDataStore 的配置
+  configuration.websiteDataStore = profile.store
+
+  println("QAQ setWebsiteDataStore ${remoteMM.mmid} => ${profile.uuid}")
 }) {
   val mainScope = CoroutineScope(mainAsyncExceptionHandler + SupervisorJob())
   val lifecycleScope = CoroutineScope(remoteMM.getRuntimeScope().coroutineContext + SupervisorJob())
@@ -192,24 +210,9 @@ class DWebViewEngine(
   internal val dwebUIScrollViewDelegate = DWebUIScrollViewDelegate(this)
   private val estimatedProgressObserver = DWebEstimatedProgressObserver(this)
   internal val titleObserver = DWebTitleObserver(this)
-  private val profile: WKWebViewProfile// WKWebsiteDataStore
+//  private val profile: WKWebViewProfile// WKWebsiteDataStore
 
   init {
-    /// 启动代理
-    val url = Url(DwebViewProxy.ProxyUrl)
-    dwebHelper.setProxyWithConfiguration(
-      configuration, url.host, url.port.toUShort()
-    )
-
-    profile = when (val sessionId = options.incognitoSessionId) {
-      // 开启WKWebView数据隔离
-      null -> wkWebsiteDataStore.getOrCreateProfile(this)
-      // 是否开启无痕模式
-      else -> wkWebsiteDataStore.getOrCreateIncognitoProfile(this, sessionId)
-    }
-    configuration.setWebsiteDataStore(profile.store)
-    println("QAQ setWebsiteDataStore ${profile.uuid}")
-
     // https://stackoverflow.com/questions/77078328/warning-prints-in-console-when-using-webkit-to-load-youtube-video
     this.allowsLinkPreview = true
     /// 测试的时候使用
@@ -453,6 +456,7 @@ class DWebViewEngine(
    * 必须在 mainThread 调用这个函数
    */
   fun destroy() {
+    println("QAQ destroy webview ${remoteMM.mmid}/${configuration.websiteDataStore.identifier}")
     estimatedProgressObserver.disconnect()
     configuration.userContentController.apply {
       removeAllUserScripts()

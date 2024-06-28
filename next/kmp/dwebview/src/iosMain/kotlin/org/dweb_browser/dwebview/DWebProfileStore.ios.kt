@@ -5,7 +5,6 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.usePinned
 import kotlinx.coroutines.CompletableDeferred
-import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.helper.SafeHashMap
 import org.dweb_browser.helper.platform.keyValueStore
 import org.dweb_browser.helper.trueAlso
@@ -14,6 +13,7 @@ import org.dweb_browser.pure.crypto.hash.ccSha256
 import platform.Foundation.NSDate
 import platform.Foundation.NSUUID
 import platform.WebKit.WKWebsiteDataStore
+import platform.WebKit.WKWebsiteDataTypeIndexedDBDatabases
 
 internal const val DwebProfilesKey = "dweb-profiles"
 
@@ -27,7 +27,7 @@ class WKWebViewProfileStore private constructor() : DWebProfileStore {
     val instance by lazy { WKWebViewProfileStore() }
   }
 
-  fun getOrCreateProfile(engine: DWebViewEngine, profileName: String = engine.remoteMM.mmid) =
+  fun getOrCreateProfile(profileName: String) =
     WKWebViewProfile(
       profileName, WKWebsiteDataStore.dataStoreForIdentifier(nameToIdentifier(profileName))
     ).also {
@@ -37,9 +37,8 @@ class WKWebViewProfileStore private constructor() : DWebProfileStore {
 
   private val allIncognitoProfile = SafeHashMap<String, WKWebViewProfile>()
   fun getOrCreateIncognitoProfile(
-    engine: DWebViewEngine,
+    profileName: String,
     sessionId: String,
-    profileName: String = engine.remoteMM.mmid,
   ): WKWebViewProfile {
     val incognitoProfileName = "$profileName@$sessionId$IncognitoSuffix"
     return allIncognitoProfile.getOrPut(incognitoProfileName) {
@@ -51,39 +50,40 @@ class WKWebViewProfileStore private constructor() : DWebProfileStore {
 
   private val allProfiles by lazy {
     SafeHashMap(
-      (keyValueStore.getValues("dweb-profiles")
+      (keyValueStore.getValues(DwebProfilesKey)
         ?: setOf()).associateWith { null as WKWebViewProfile? }.toMutableMap()
     )
   }
 
   override suspend fun getAllProfileNames() = allProfiles.keys.toList()
 
-  override suspend fun deleteProfile(name: String): Boolean =
-    when {
-      allIncognitoProfile.containsKey(name) -> {
-        runCatching {
-          removeProfile(allIncognitoProfile[name]!!.store).trueAlso {
-            allIncognitoProfile.remove(name)
-          }
-        }.getOrDefault(false)
-      }
-
-      allProfiles.containsKey(name) -> {
-        runCatching {
-          val store = allProfiles[name]?.store ?: withMainContext {
-            WKWebsiteDataStore.dataStoreForIdentifier(
-              nameToIdentifier(name)
-            )
-          }
-          removeProfile(store)
-        }.getOrDefault(false)
-      }
-
-      else -> false
+  override suspend fun deleteProfile(name: String): Boolean = when {
+    allIncognitoProfile.containsKey(name) -> {
+      runCatching {
+        removeProfile(allIncognitoProfile[name]!!.store).trueAlso {
+          allIncognitoProfile.remove(name)
+        }
+      }.getOrDefault(false)
     }
 
+    allProfiles.containsKey(name) -> {
+      runCatching {
+        val store = allProfiles[name]?.store ?: withMainContext {
+          WKWebsiteDataStore.dataStoreForIdentifier(nameToIdentifier(name))
+        }
+        removeProfile(store).trueAlso {
+          allProfiles.remove(name)
+          keyValueStore.setValues(DwebProfilesKey, allProfiles.keys)
+        }
+      }.getOrDefault(false)
+    }
+
+    else -> false
+  }
+
   private suspend fun removeProfile(store: WKWebsiteDataStore): Boolean = withMainContext {
-    val allDataTypes = WKWebsiteDataStore.allWebsiteDataTypes()
+    val allDataTypes = setOf(WKWebsiteDataTypeIndexedDBDatabases)
+    WKWebsiteDataStore.allWebsiteDataTypes()
     println("QAQ allDataTypes=$allDataTypes")
     val dataRecords = CompletableDeferred<List<*>?>().also { deferred ->
       store.fetchDataRecordsOfTypes(allDataTypes) {
@@ -93,24 +93,20 @@ class WKWebViewProfileStore private constructor() : DWebProfileStore {
     println("QAQ fetchDataRecordsOfTypes dataRecords=$dataRecords")
     if (dataRecords != null && dataRecords.isNotEmpty()) {
       CompletableDeferred<Unit>().also { deferred ->
-        store.removeDataOfTypes(
-          dataTypes = allDataTypes,
+        store.removeDataOfTypes(dataTypes = allDataTypes,
           forDataRecords = dataRecords,
           completionHandler = {
             deferred.complete(Unit)
-          }
-        )
+          })
       }.await()
       println("QAQ removeDataOfTypes forDataRecords okk")
     } else {
       CompletableDeferred<Unit>().also { deferred ->
-        store.removeDataOfTypes(
-          dataTypes = allDataTypes,
+        store.removeDataOfTypes(dataTypes = allDataTypes,
           modifiedSince = NSDate(timeIntervalSinceReferenceDate = 0.0),
           completionHandler = {
             deferred.complete(Unit)
-          }
-        )
+          })
       }.await()
       println("QAQ removeDataOfTypes modifiedSince okk")
     }
@@ -120,10 +116,12 @@ class WKWebViewProfileStore private constructor() : DWebProfileStore {
       else -> CompletableDeferred<Boolean>().also { deferred ->
         WKWebsiteDataStore.removeDataStoreForIdentifier(storeUuid) { err ->
           println("QAQ removeDataStoreForIdentifier err=$err")
-          keyValueStore.setValues(DwebProfilesKey, allProfiles.keys)
           when (err) {
             null -> deferred.complete(true)
-            else -> deferred.completeExceptionally(
+            else -> if (err.code == 1L) {
+              // 数据占用，没关系 Data store is in use
+              deferred.complete(true)
+            } else deferred.completeExceptionally(
               Exception(err.description ?: "removeDataStoreForIdentifier $storeUuid fail.")
             )
           }
