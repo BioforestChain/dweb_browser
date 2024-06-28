@@ -201,13 +201,14 @@ class DWebViewEngine(
       configuration, url.host, url.port.toUShort()
     )
 
-    profile = when (options.incognitoSessionId) {
+    profile = when (val sessionId = options.incognitoSessionId) {
       // 开启WKWebView数据隔离
       null -> wkWebsiteDataStore.getOrCreateProfile(this)
       // 是否开启无痕模式
-      else -> wkWebsiteDataStore.getNoPersistentProfile(this)
+      else -> wkWebsiteDataStore.getOrCreateIncognitoProfile(this, sessionId)
     }
     configuration.setWebsiteDataStore(profile.store)
+    println("QAQ setWebsiteDataStore ${profile.uuid}")
 
     // https://stackoverflow.com/questions/77078328/warning-prints-in-console-when-using-webkit-to-load-youtube-video
     this.allowsLinkPreview = true

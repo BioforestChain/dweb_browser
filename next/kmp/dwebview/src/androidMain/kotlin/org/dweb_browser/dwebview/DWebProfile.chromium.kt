@@ -11,4 +11,6 @@ value class ChromiumWebProfile internal constructor(private val profile: Profile
   override val profileName: String
     @SuppressLint("RequiresFeature")
     get() = profile.name
+  override val isIncognito: Boolean
+    get() = profileName.endsWith(IncognitoSuffix)
 }

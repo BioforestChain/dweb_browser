@@ -18,6 +18,7 @@ import androidx.webkit.UserAgentMetadata.BrandVersion
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -258,8 +259,8 @@ class DWebViewEngine internal constructor(
         webViews.remove(this)
         webViews.isEmpty()
       } ?: true
-      if (isNoRef && profile.profileName.endsWith(".incognito")) {
-        lifecycleScope.launch {
+      if (isNoRef && profile.isIncognito) {
+        lifecycleScope.launch(start = CoroutineStart.UNDISPATCHED) {
           androidWebProfileStore.deleteProfile(profile.profileName)
         }
       }
@@ -276,27 +277,9 @@ class DWebViewEngine internal constructor(
       ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT
     )
     setUA()
-    profile = when (val sessionId = options.incognitoSessionId) {
-      null -> androidWebProfileStore.getOrCreateProfile(this)
-      else -> androidWebProfileStore.getOrCreateProfile(this, "${sessionId}.incognito")
-    }.also { profile ->
-      profileRef.getOrPut(profile) { mutableSetOf() }.add(this)
-    }
 
-
-//    // 是否开启无痕模式
-//    if(options.incognito) {
-//      clearHistory()
-//      clearCache(true)
-//      settings.saveFormData = false
-//      settings.domStorageEnabled = false
-//      settings.databaseEnabled = false
-//      cookieManager.removeAllCookies(null)
-//      cookieManager.flush()
-//    } else {
     settings.domStorageEnabled = true
     settings.databaseEnabled = true
-//    }
 
     settings.javaScriptEnabled = true
     settings.safeBrowsingEnabled = true
@@ -308,6 +291,14 @@ class DWebViewEngine internal constructor(
     settings.allowContentAccess = true
     settings.mediaPlaybackRequiresUserGesture = false
     setLayerType(LAYER_TYPE_HARDWARE, null) // 增加硬件加速，避免滑动时画面出现撕裂
+
+    /// 在settings 之后进行 profile 的设置
+    profile = when (val sessionId = options.incognitoSessionId) {
+      null -> androidWebProfileStore.getOrCreateProfile(this)
+      else -> androidWebProfileStore.getOrCreateIncognitoProfile(this, sessionId)
+    }.also { profile ->
+      profileRef.getOrPut(profile) { mutableSetOf() }.add(this)
+    }
 
     setupKeyboardPolyfill(this)
 

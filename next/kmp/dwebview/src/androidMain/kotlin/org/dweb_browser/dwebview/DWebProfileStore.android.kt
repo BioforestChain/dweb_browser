@@ -11,18 +11,24 @@ import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.helper.SafeHashMap
 import org.dweb_browser.helper.SuspendOnce
-import org.dweb_browser.helper.appKvGetValues
-import org.dweb_browser.helper.appKvRemoveValues
-import org.dweb_browser.helper.appKvSetValues
 import org.dweb_browser.helper.getAppContext
+import org.dweb_browser.helper.platform.keyValueStore
 import org.dweb_browser.helper.saveStringSet
 import org.dweb_browser.helper.toWebUrl
 import org.dweb_browser.helper.withMainContext
 
+internal const val DwebProfilesKey = "dweb-profiles"
 
 interface AndroidWebProfileStore : DWebProfileStore {
+  val isSupportIncognitoProfile: Boolean
   fun getOrCreateProfile(
     engine: DWebViewEngine,
+    profileName: String = engine.remoteMM.mmid,
+  ): DWebProfile
+
+  fun getOrCreateIncognitoProfile(
+    engine: DWebViewEngine,
+    sessionId: String,
     profileName: String = engine.remoteMM.mmid,
   ): DWebProfile
 }
@@ -37,19 +43,38 @@ class CompactDWebProfileStore private constructor() : AndroidWebProfileStore {
     val instance by lazy { CompactDWebProfileStore() }
   }
 
+  override val isSupportIncognitoProfile: Boolean = false
   override fun getOrCreateProfile(
     engine: DWebViewEngine,
     profileName: String,
   ): DWebProfile = allProfiles.getOrPut(profileName) {
     CompactDWebProfile(profileName).also {
-      appKvSetValues("dweb-profiles", allProfiles.keys + profileName)
+      keyValueStore.setValues(DwebProfilesKey, allProfiles.keys + profileName)
     }
   }.also {
     setProfile(it, engine)
   }
 
+  /**
+   * 本身并不支持隐私模式，这里只是强制模拟，禁用了一些数据的写入
+   */
+  override fun getOrCreateIncognitoProfile(
+    engine: DWebViewEngine,
+    sessionId: String,
+    profileName: String,
+  ): CompactDWebProfile {
+    val incognitoProfileName = "$profileName@$sessionId$IncognitoSuffix"
+
+    engine.clearCache(true)
+    engine.settings.saveFormData = false
+    engine.settings.domStorageEnabled = false
+    engine.settings.databaseEnabled = false
+
+    return CompactDWebProfile(incognitoProfileName)
+  }
+
   private val allProfiles by lazy {
-    SafeHashMap((appKvGetValues("dweb-profiles") ?: setOf()).associateWith {
+    SafeHashMap((keyValueStore.getValues(DwebProfilesKey) ?: setOf()).associateWith {
       CompactDWebProfile(it)
     }.toMutableMap())
   }
@@ -61,11 +86,11 @@ class CompactDWebProfileStore private constructor() : AndroidWebProfileStore {
       val job = engine.lifecycleScope.launch(start = CoroutineStart.UNDISPATCHED) {
         val visitedOriginsKey = keyVisitedOrigins(profile.profileName)
         val visitedOrigins = SuspendOnce {
-          appKvGetValues(visitedOriginsKey)?.toMutableSet() ?: mutableSetOf()
+          keyValueStore.getValues(visitedOriginsKey)?.toMutableSet() ?: mutableSetOf()
         }
         val visitedUrlsKey = keyVisitedUrls(profile.profileName)
         val visitedUrls = SuspendOnce {
-          appKvGetValues(visitedUrlsKey)?.toMutableSet() ?: mutableSetOf()
+          keyValueStore.getValues(visitedUrlsKey)?.toMutableSet() ?: mutableSetOf()
         }
         engine.dWebViewClient.loadStateChangeSignal.listen { state ->
           if (state is WebLoadStartState) {
@@ -89,7 +114,6 @@ class CompactDWebProfileStore private constructor() : AndroidWebProfileStore {
 
       profile.bindingJobs += job
       engine.destroyStateSignal.onDestroy {
-        println("QAQ unbindingJobs ${profile.profileName}")
         profile.bindingJobs -= job
       }
     }
@@ -100,11 +124,9 @@ class CompactDWebProfileStore private constructor() : AndroidWebProfileStore {
 
   override suspend fun deleteProfile(name: String) = when {
     name.endsWith(".dweb") -> withMainContext {
-      println("QAQ deleteProfile name=$name")
       var success = false
       val visitedOriginsKey = keyVisitedOrigins(name)
-      appKvGetValues(visitedOriginsKey)?.let { origins ->
-        println("QAQ deleteProfile visitedOrigins=${origins.joinToString(";")}")
+      keyValueStore.getValues(visitedOriginsKey)?.let { origins ->
         success = true
         for (origin in origins) {
           webStorage.deleteOrigin(origin)
@@ -113,17 +135,16 @@ class CompactDWebProfileStore private constructor() : AndroidWebProfileStore {
       }
 
       val visitedUrlsKey = keyVisitedUrls(name)
-      appKvGetValues(visitedUrlsKey)?.let { urls ->
-        println("QAQ deleteProfile visitedUrls=${urls.joinToString(";")}")
+      keyValueStore.getValues(visitedUrlsKey)?.let { urls ->
         success = true
         for (url in urls) {
           cookieManager.setCookie(url, "")
         }
       }
-      appKvRemoveValues(visitedOriginsKey, visitedUrlsKey)
+      keyValueStore.removeKeys(visitedOriginsKey, visitedUrlsKey)
 
       allProfiles.remove(name)
-      appKvSetValues("dweb-profiles", allProfiles.keys)
+      keyValueStore.setValues(DwebProfilesKey, allProfiles.keys)
 
       success
     }
