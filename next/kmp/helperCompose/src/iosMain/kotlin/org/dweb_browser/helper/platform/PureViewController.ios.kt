@@ -30,6 +30,9 @@ import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.platform.ios.BgPlaceholderView
 import platform.UIKit.UIView
 
+actual val IPureViewController.Companion.platform
+  get() = PureViewControllerPlatform.Apple
+
 private var vcIdAcc by SafeInt(0);
 
 class PureViewController(

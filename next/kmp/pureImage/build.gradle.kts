@@ -18,6 +18,7 @@ kotlin {
     dependencies {
       implementation(projects.helper)
       implementation(projects.helperPlatform)
+      implementation(projects.helperCompose)
       implementation(projects.pureIO)
       implementation(projects.pureHttp)
 
