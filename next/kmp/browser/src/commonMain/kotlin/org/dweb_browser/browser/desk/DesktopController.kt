@@ -40,13 +40,13 @@ import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.ChangeableMap
-import org.dweb_browser.helper.ENV_SWITCH_KEY
+import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
 import org.dweb_browser.helper.OffListener
 import org.dweb_browser.helper.SafeHashSet
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.build
 import org.dweb_browser.helper.collectIn
-import org.dweb_browser.helper.envSwitch
+import org.dweb_browser.helper.compose.envSwitch
 import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.helper.platform.IPureViewController
 import org.dweb_browser.helper.platform.from

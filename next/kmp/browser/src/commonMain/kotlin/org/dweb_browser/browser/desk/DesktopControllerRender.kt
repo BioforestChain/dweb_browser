@@ -17,9 +17,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.dwebview.Render
-import org.dweb_browser.helper.ENV_SWITCH_KEY
+import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
 import org.dweb_browser.helper.compose.LocalCompositionChain
-import org.dweb_browser.helper.envSwitch
+import org.dweb_browser.helper.compose.envSwitch
 import org.dweb_browser.helper.platform.SetSystemBarsColor
 import org.dweb_browser.sys.window.core.constant.LocalWindowMM
 import org.dweb_browser.sys.window.render.SceneRender

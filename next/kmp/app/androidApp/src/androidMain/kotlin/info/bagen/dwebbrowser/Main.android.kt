@@ -19,7 +19,9 @@ import org.dweb_browser.core.std.dns.DnsNMM
 import org.dweb_browser.core.std.file.FileNMM
 import org.dweb_browser.core.std.http.HttpNMM
 import org.dweb_browser.core.std.http.MultipartNMM
+import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
 import org.dweb_browser.helper.addDebugTags
+import org.dweb_browser.helper.compose.envSwitch
 import org.dweb_browser.sys.biometrics.BiometricsNMM
 import org.dweb_browser.sys.clipboard.ClipboardNMM
 import org.dweb_browser.sys.configure.ConfigNMM
@@ -139,7 +141,9 @@ suspend fun startDwebBrowser(): DnsNMM {
 
   /// 安装Jmm
   val jmmNMM = JmmNMM().setup()
-  val storeNMM = StoreNMM().setup()
+  if (envSwitch.isEnabled(ENV_SWITCH_KEY.DWEBVIEW_PROFILE)) {
+    val storeNMM = StoreNMM().setup()
+  }
   val deskNMM = DeskNMM().setup()
 
   /// 启动程序

@@ -2,7 +2,7 @@ package org.dweb_browser.pure.image
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import org.dweb_browser.helper.envSwitch
+import org.dweb_browser.helper.compose.envSwitch
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.platform.getOrCreateProfile
 import org.dweb_browser.helper.platform.webViewEngine

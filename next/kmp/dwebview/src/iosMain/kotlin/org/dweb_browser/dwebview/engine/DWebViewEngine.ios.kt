@@ -208,7 +208,6 @@ class DWebViewEngine(
   internal val dwebUIScrollViewDelegate = DWebUIScrollViewDelegate(this)
   private val estimatedProgressObserver = DWebEstimatedProgressObserver(this)
   internal val titleObserver = DWebTitleObserver(this)
-//  private val profile: WKWebViewProfile// WKWebsiteDataStore
 
   init {
     // https://stackoverflow.com/questions/77078328/warning-prints-in-console-when-using-webkit-to-load-youtube-video

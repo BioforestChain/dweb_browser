@@ -23,10 +23,10 @@ import org.dweb_browser.dwebview.WebBeforeUnloadArgs
 import org.dweb_browser.dwebview.WebLoadSuccessState
 import org.dweb_browser.dwebview.create
 import org.dweb_browser.dwebview.debugDWebView
-import org.dweb_browser.helper.ENV_SWITCH_KEY
+import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
-import org.dweb_browser.helper.envSwitch
+import org.dweb_browser.helper.compose.envSwitch
 import org.dweb_browser.helper.globalMainScope
 import org.dweb_browser.helper.mapFindNoNull
 import org.dweb_browser.helper.one

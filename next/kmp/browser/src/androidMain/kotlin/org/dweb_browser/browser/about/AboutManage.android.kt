@@ -1,38 +1,22 @@
 package org.dweb_browser.browser.about
 
 import android.webkit.WebView
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
 import org.dweb_browser.helper.UUID
-import org.dweb_browser.helper.compose.hex
 import org.dweb_browser.sys.device.DeviceManage
 import org.dweb_browser.sys.device.model.Battery
 import org.dweb_browser.sys.device.model.DeviceData
 import org.dweb_browser.sys.device.model.DeviceInfo
-import org.dweb_browser.sys.window.core.windowAdapterManager
-import org.dweb_browser.sys.window.render.LocalWindowControllerTheme
 
 data class AndroidSystemInfo(
   val os: String = "Android",
   val osVersion: String,
 //  val deviceName: String,
-  val sdkInt: Int
+  val sdkInt: Int,
 )
 
 actual suspend fun AboutNMM.AboutRuntime.openAboutPage(id: UUID) {
@@ -47,7 +31,7 @@ actual suspend fun AboutNMM.AboutRuntime.openAboutPage(id: UUID) {
     appVersion = DeviceManage.deviceAppVersion(),
     webviewVersion = WebView.getCurrentWebViewPackage()?.versionName ?: "Unknown"
   )
-  windowAdapterManager.provideRender(id) { modifier ->
+  provideAboutRender(id) { modifier ->
     AboutRender(
       modifier = modifier,
       appInfo = appInfo,
@@ -66,73 +50,48 @@ fun AboutRender(
   deviceData: DeviceData,
   batteryInfo: Battery,
 ) {
-  Box(
-    modifier = modifier.fillMaxSize()
-      .background(
-        if (LocalWindowControllerTheme.current.isDark) Color.Black else (Color.hex("#F5F5FA")
-          ?: Color.Gray)
-      )
+  LazyColumn(
+    modifier = modifier,
+    horizontalAlignment = Alignment.Start,
+    verticalArrangement = Arrangement.Top,
   ) {
-    Column(
-      modifier = Modifier.verticalScroll(rememberScrollState()),
-      horizontalAlignment = Alignment.Start,
-      verticalArrangement = Arrangement.Top
-    ) {
-      Text(
-        modifier = Modifier.padding(start = 16.dp, top = 8.dp),
-        text = AboutI18nResource.app.text,
-        style = MaterialTheme.typography.labelMedium,
-        color = MaterialTheme.colorScheme.onSurface
-      )
+    item("app-info") {
+      AboutTitle(AboutI18nResource.app())
       AboutAppInfoRender(appInfo)
-      Spacer(Modifier.padding(8.dp))
-      Text(
-        modifier = Modifier.padding(start = 16.dp, top = 8.dp),
-        text = AboutI18nResource.system.text,
-        style = MaterialTheme.typography.labelMedium,
-        color = MaterialTheme.colorScheme.onSurface
-      )
-      Column(
-        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp).fillMaxWidth().background(
-          color = MaterialTheme.colorScheme.background, shape = RoundedCornerShape(8.dp)
-        )
-      ) {
+      AboutHorizontalDivider()
+    }
+    item("system-info") {
+      AboutTitle(AboutI18nResource.system())
+      AboutContainer {
         AboutDetailsItem(
-          labelName = AboutI18nResource.os.text, text = androidSystemInfo.os
+          labelName = AboutI18nResource.os(), text = androidSystemInfo.os
         )
         AboutDetailsItem(
-          labelName = AboutI18nResource.osVersion.text, text = androidSystemInfo.osVersion
+          labelName = AboutI18nResource.osVersion(), text = androidSystemInfo.osVersion
         )
         AboutDetailsItem(
-          labelName = AboutI18nResource.sdkInt.text, text = androidSystemInfo.sdkInt.toString()
+          labelName = AboutI18nResource.sdkInt(), text = androidSystemInfo.sdkInt.toString()
         )
 //        AboutDetailsItem(
-//          labelName = AboutI18nResource.deviceName.text, text = androidSystemInfo.deviceName
+//          labelName = AboutI18nResource.deviceName(), text = androidSystemInfo.deviceName
 //        )
       }
-      Spacer(Modifier.padding(8.dp))
-      Text(
-        modifier = Modifier.padding(start = 16.dp, top = 8.dp),
-        text = AboutI18nResource.hardware.text,
-        style = MaterialTheme.typography.labelMedium,
-        color = MaterialTheme.colorScheme.onSurface,
-      )
-      Column(
-        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp).fillMaxWidth().background(
-          color = MaterialTheme.colorScheme.background, shape = RoundedCornerShape(8.dp)
-        )
-      ) {
+      AboutHorizontalDivider()
+    }
+    item("hardware-info") {
+      AboutTitle(AboutI18nResource.hardware())
+      AboutContainer {
         AboutDetailsItem(
-          labelName = AboutI18nResource.brand.text, text = deviceData.brand
+          labelName = AboutI18nResource.brand(), text = deviceData.brand
         )
         AboutDetailsItem(
-          labelName = AboutI18nResource.modelName.text, text = deviceData.deviceModel
+          labelName = AboutI18nResource.modelName(), text = deviceData.deviceModel
         )
         AboutDetailsItem(
-          labelName = AboutI18nResource.hardware.text, text = deviceData.hardware
+          labelName = AboutI18nResource.hardware(), text = deviceData.hardware
         )
         AboutDetailsItem(
-          labelName = AboutI18nResource.supportAbis.text, text = deviceData.supportAbis
+          labelName = AboutI18nResource.supportAbis(), text = deviceData.supportAbis
         )
         AboutDetailsItem(
           labelName = "ID", text = deviceData.id
@@ -144,54 +103,50 @@ fun AboutRender(
           labelName = "BOARD", text = deviceData.board
         )
         AboutDetailsItem(
-          labelName = AboutI18nResource.manufacturer.text, text = deviceData.manufacturer
+          labelName = AboutI18nResource.manufacturer(), text = deviceData.manufacturer
         )
         AboutDetailsItem(
-          labelName = AboutI18nResource.display.text, text = deviceData.screenSizeInches
+          labelName = AboutI18nResource.display(), text = deviceData.screenSizeInches
         )
         AboutDetailsItem(
-          labelName = AboutI18nResource.resolution.text, text = deviceData.resolution
+          labelName = AboutI18nResource.resolution(), text = deviceData.resolution
         )
         AboutDetailsItem(
-          labelName = AboutI18nResource.density.text, text = deviceData.density
+          labelName = AboutI18nResource.density(), text = deviceData.density
         )
         AboutDetailsItem(
-          labelName = AboutI18nResource.refreshRate.text, text = deviceData.refreshRate
+          labelName = AboutI18nResource.refreshRate(), text = deviceData.refreshRate
         )
         AboutDetailsItem(
-          labelName = AboutI18nResource.memory.text,
+          labelName = AboutI18nResource.memory(),
           text = "${deviceData.memory!!.usage}/${deviceData.memory!!.total}"
         )
         AboutDetailsItem(
-          labelName = AboutI18nResource.storage.text,
+          labelName = AboutI18nResource.storage(),
           text = "${deviceData.storage!!.internalUsageSize}/${deviceData.storage!!.internalTotalSize}"
         )
       }
-      Spacer(Modifier.padding(8.dp))
-      Text(
-        modifier = Modifier.padding(start = 16.dp, top = 8.dp),
-        text = AboutI18nResource.battery.text,
-        style = MaterialTheme.typography.labelMedium,
-        color = MaterialTheme.colorScheme.onSurface,
-      )
-      Column(
-        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp).fillMaxWidth().background(
-          color = MaterialTheme.colorScheme.background, shape = RoundedCornerShape(8.dp)
-        )
-      ) {
+      AboutHorizontalDivider()
+    }
+    item("battery-info") {
+      AboutTitle(AboutI18nResource.battery())
+      AboutContainer {
         AboutDetailsItem(
-          labelName = AboutI18nResource.status.text,
-          text = if (batteryInfo.isPhoneCharging) AboutI18nResource.charging.text else AboutI18nResource.discharging.text
+          labelName = AboutI18nResource.status(),
+          text = if (batteryInfo.isPhoneCharging) AboutI18nResource.charging() else AboutI18nResource.discharging()
         )
         AboutDetailsItem(
-          labelName = AboutI18nResource.health.text,
-          text = batteryInfo.batteryHealth ?: "Unknown"
+          labelName = AboutI18nResource.health(), text = batteryInfo.batteryHealth ?: "Unknown"
         )
         AboutDetailsItem(
-          labelName = AboutI18nResource.percent.text,
-          text = "${batteryInfo.batteryPercent}%"
+          labelName = AboutI18nResource.percent(), text = "${batteryInfo.batteryPercent}%"
         )
       }
+      AboutHorizontalDivider()
+    }
+    item("env-switch") {
+      EnvSwitcherRender()
+      AboutHorizontalDivider()
     }
   }
 }

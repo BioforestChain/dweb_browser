@@ -9,11 +9,13 @@ import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.Stable
@@ -22,6 +24,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.style.TextOverflow
 import kotlinx.coroutines.launch
@@ -36,6 +39,8 @@ private fun WindowContentScaffoldWrapper(
   modifier: Modifier = Modifier,
   scrollBehavior: TopAppBarScrollBehavior,
   topBar: @Composable () -> Unit = {},
+  containerColor: Color? = null,
+  contentColor: Color? = null,
   content: @Composable (PaddingValues) -> Unit,
 ) {
   Scaffold(
@@ -46,6 +51,8 @@ private fun WindowContentScaffoldWrapper(
     topBar = {
       topBar()
     },
+    containerColor = containerColor ?: MaterialTheme.colorScheme.background,
+    contentColor = contentColor ?: contentColorFor(MaterialTheme.colorScheme.background),
     content = { innerPadding ->
       content(innerPadding)
     },
@@ -97,6 +104,8 @@ fun WindowContentRenderScope.WindowContentScaffold(
   modifier: Modifier = Modifier,
   scrollBehavior: TopAppBarScrollBehavior,
   topBar: @Composable () -> Unit,
+  containerColor: Color? = null,
+  contentColor: Color? = null,
   content: @Composable (PaddingValues) -> Unit,
 ) {
   WindowContentScaffoldWrapper(
@@ -104,6 +113,8 @@ fun WindowContentRenderScope.WindowContentScaffold(
     modifier,
     scrollBehavior = scrollBehavior,
     topBar = topBar,
+    containerColor = containerColor,
+    contentColor = contentColor,
     content = content,
   )
 }
@@ -114,6 +125,8 @@ fun WindowContentRenderScope.WindowContentScaffoldWithTitle(
   modifier: Modifier = Modifier,
   topBarTitle: @Composable (scrollBehavior: TopAppBarScrollBehavior) -> Unit = {},
   topBarActions: @Composable RowScope.() -> Unit = {},
+  containerColor: Color? = null,
+  contentColor: Color? = null,
   content: @Composable (PaddingValues) -> Unit,
 ) {
   val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
@@ -131,6 +144,8 @@ fun WindowContentRenderScope.WindowContentScaffoldWithTitle(
         scrollBehavior = scrollBehavior,
       )
     },
+    containerColor = containerColor,
+    contentColor = contentColor,
     content = content,
   )
 }
@@ -141,6 +156,8 @@ fun WindowContentRenderScope.WindowContentScaffoldWithTitleText(
   modifier: Modifier = Modifier,
   topBarTitleText: String,
   topBarActions: @Composable RowScope.() -> Unit = {},
+  containerColor: Color? = null,
+  contentColor: Color? = null,
   content: @Composable (PaddingValues) -> Unit,
 ) {
   WindowContentScaffoldWithTitle(
@@ -149,6 +166,8 @@ fun WindowContentRenderScope.WindowContentScaffoldWithTitleText(
       Text(topBarTitleText, maxLines = 1, overflow = TextOverflow.Ellipsis)
     },
     topBarActions = topBarActions,
+    containerColor = containerColor,
+    contentColor = contentColor,
     content = content,
   )
 }

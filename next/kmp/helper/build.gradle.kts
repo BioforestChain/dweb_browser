@@ -62,42 +62,37 @@ allprojects {
   afterEvaluate {
     // 判断编译的时候是否传入了 -PreleaseBuild=true，表示是脚本执行
     val isReleaseBuild = hasProperty("releaseBuild") && property("releaseBuild") == "true"
+    val keyValuePairsCode = when {
+      isReleaseBuild -> ""
+      else -> localProperties.mapNotNull { (key, value) ->
+        val keyStr = key.toString()
+        val valStr = value.toString()
+        // 只针对 dweb- 开头的内容
+        when {
+          keyStr.startsWith("dweb-") && valStr.isNotBlank() -> {
+            """
+              "$keyStr" to "$valStr"
+            """.trimIndent()
+          }
+
+          else -> null
+        }
+      }.joinToString(",\n")
+    }
 
     // 在 gradle sync，或者编译的时候，会执行当前code
     // 这个是创建一个配置文件
-    val content = if (!isReleaseBuild) { // 增加判断，如果是脚本执行会默认增加 -PreleaseBuild=true
-      val stringBuffer = StringBuffer()
-      localProperties.forEach { (key, value) ->
-        if (key.toString().startsWith("dweb-") && value.toString().isNotEmpty()) { // 只针对 dweb- 开头的内容
-          println("QAQ: key = $key, value = $value")
-          stringBuffer.append("\n    \"${key.toString().replace("\\", "\\\\")}\"") // 追加 key
-          stringBuffer.append(" to ")
-          stringBuffer.append("\"${value.toString().replace("\\", "\\\\")}\",") // 追加 value
-        }
-      }
-"""
-package org.dweb_browser.helper
-
-object CommonBuildConfig {
-  val switchMaps: Map<String, String> = mapOf($stringBuffer
-  )
-}
-""".trimIndent()
-    } else {
-"""
-package org.dweb_browser.helper
-
-object CommonBuildConfig {
-  val switchMaps: Map<String, String> = mapOf()
-}
-""".trimIndent()
+    val sourceCode = """
+    package org.dweb_browser.helper
+    
+    object CommonBuildConfig {
+      val switchMaps: Map<String, String> = mapOf($keyValuePairsCode)
     }
-
-
+    """.trimIndent()
 
     file("$buildConfigPath/CommonBuildConfig.kt").also { // 创建父级目录
       if (it.exists()) it.deleteRecursively()
       it.parentFile.mkdirs()
-    }.writeText(content)
+    }.writeText(sourceCode)
   }
 }

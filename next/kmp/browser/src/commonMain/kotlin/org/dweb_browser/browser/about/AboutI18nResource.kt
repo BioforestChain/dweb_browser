@@ -4,6 +4,11 @@ import org.dweb_browser.helper.compose.Language
 import org.dweb_browser.helper.compose.SimpleI18nResource
 
 object AboutI18nResource {
+  val shortName = SimpleI18nResource(Language.ZH to "关于", Language.EN to "About")
+  val pageTitle = SimpleI18nResource(
+    Language.ZH to "设备的信息与设置",
+    Language.EN to "Device Information and Settings",
+  )
   val appName = SimpleI18nResource(Language.ZH to "应用名", Language.EN to "App Name")
   val appVersion = SimpleI18nResource(Language.ZH to "应用版本号", Language.EN to "App Version")
   val os = SimpleI18nResource(Language.ZH to "操作系统", Language.EN to "OS")
@@ -12,11 +17,16 @@ object AboutI18nResource {
   val modelName = SimpleI18nResource(Language.ZH to "型号", Language.EN to "Model")
   val osName = SimpleI18nResource(Language.ZH to "系统名", Language.EN to "OS Name")
   val osVersion = SimpleI18nResource(Language.ZH to "系统版本号", Language.EN to "OS Version")
-  val webviewVersion = SimpleI18nResource(Language.ZH to "WebView 版本", Language.EN to "WebView Version")
-  val cpuCoresNumber = SimpleI18nResource(Language.ZH to "CPU核心数", Language.EN to "CPU Cores Number")
-  val totalMemory = SimpleI18nResource(Language.ZH to "JVM总内存", Language.EN to "JVM Total Memory")
-  val freeMemory = SimpleI18nResource(Language.ZH to "JVM剩余内存", Language.EN to "JVM Free Memory")
-  val maximumMemory = SimpleI18nResource(Language.ZH to "JVM最大内存", Language.EN to "JVM Maximum Memory")
+  val webviewVersion =
+    SimpleI18nResource(Language.ZH to "WebView 版本", Language.EN to "WebView Version")
+  val cpuCoresNumber =
+    SimpleI18nResource(Language.ZH to "CPU核心数", Language.EN to "CPU Cores Number")
+  val totalMemory =
+    SimpleI18nResource(Language.ZH to "JVM总内存", Language.EN to "JVM Total Memory")
+  val freeMemory =
+    SimpleI18nResource(Language.ZH to "JVM剩余内存", Language.EN to "JVM Free Memory")
+  val maximumMemory =
+    SimpleI18nResource(Language.ZH to "JVM最大内存", Language.EN to "JVM Maximum Memory")
   val javaVersion = SimpleI18nResource(Language.ZH to "Java 版本", Language.EN to "Java Version")
   val javaVendor = SimpleI18nResource(Language.ZH to "Java 提供商", Language.EN to "Java Vendor")
   val sdkInt = SimpleI18nResource(Language.ZH to "SDK 版本", Language.EN to "SDK Version")
@@ -28,8 +38,10 @@ object AboutI18nResource {
   val resolution = SimpleI18nResource(Language.ZH to "屏幕分辨率", Language.EN to "Resolution")
   val density = SimpleI18nResource(Language.ZH to "屏幕像素密度", Language.EN to "DensityDpi")
   val refreshRate = SimpleI18nResource(Language.ZH to "屏幕最高帧率", Language.EN to "Refresh Rate")
-  val memory = SimpleI18nResource(Language.ZH to "内存 已用/全部", Language.EN to "Memory Usage/Total")
-  val storage = SimpleI18nResource(Language.ZH to "存储 已用/全部", Language.EN to "Storage Usage/Total")
+  val memory =
+    SimpleI18nResource(Language.ZH to "内存 已用/全部", Language.EN to "Memory Usage/Total")
+  val storage =
+    SimpleI18nResource(Language.ZH to "存储 已用/全部", Language.EN to "Storage Usage/Total")
   val status = SimpleI18nResource(Language.ZH to "状态", Language.EN to "Status")
   val charging = SimpleI18nResource(Language.ZH to "充电中", Language.EN to "Charging")
   val discharging = SimpleI18nResource(Language.ZH to "放电中", Language.EN to "Discharging")
@@ -40,4 +52,9 @@ object AboutI18nResource {
   val app = SimpleI18nResource(Language.ZH to "应用", Language.EN to "Application")
   val system = SimpleI18nResource(Language.ZH to "系统", Language.EN to "System")
   val battery = SimpleI18nResource(Language.ZH to "电池", Language.EN to "Battery")
+  val experimental = SimpleI18nResource(Language.ZH to "实验性功能", Language.EN to "Experimental")
+  val experimentalChangedTip = SimpleI18nResource(
+    Language.ZH to "您的更改将在您下次重新启动 DwebBrowser 时生效。",
+    Language.EN to "Your changes will take effect the next time you relaunch DwebBrowser."
+  )
 }

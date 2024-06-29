@@ -5,7 +5,9 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.usePinned
 import kotlinx.coroutines.CompletableDeferred
+import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
 import org.dweb_browser.helper.SafeHashMap
+import org.dweb_browser.helper.compose.envSwitch
 import org.dweb_browser.helper.platform.keyValueStore
 import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.helper.withMainContext
@@ -26,15 +28,26 @@ class WKWebViewProfileStore private constructor() : DWebProfileStore {
     val instance by lazy { WKWebViewProfileStore() }
   }
 
-  fun getOrCreateProfile(profileName: String) =
-    WKWebViewProfile(
-      profileName, WKWebsiteDataStore.dataStoreForIdentifier(nameToIdentifier(profileName))
-    ).also {
-      allProfiles[profileName] = it
-      keyValueStore.setValues(DwebProfilesKey, allProfiles.keys)
-    }
+  /**
+   * 注意，该函数必须在主线程中使用
+   */
+  fun getOrCreateProfile(profileName: String) = when {
+    envSwitch.isEnabled(ENV_SWITCH_KEY.DWEBVIEW_PROFILE) ->
+      WKWebViewProfile(
+        profileName, WKWebsiteDataStore.dataStoreForIdentifier(nameToIdentifier(profileName))
+      ).also {
+        allProfiles[profileName] = it
+        keyValueStore.setValues(DwebProfilesKey, allProfiles.keys)
+      }
+
+    else -> WKWebViewProfile("*", WKWebsiteDataStore.defaultDataStore())
+  }
 
   private val allIncognitoProfile = SafeHashMap<String, WKWebViewProfile>()
+
+  /**
+   * 注意，该函数必须在主线程中使用
+   */
   fun getOrCreateIncognitoProfile(
     profileName: String,
     sessionId: String,

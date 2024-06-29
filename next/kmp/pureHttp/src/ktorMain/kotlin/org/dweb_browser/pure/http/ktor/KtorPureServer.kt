@@ -29,6 +29,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.helper.Debugger
+import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.commonAsyncExceptionHandler
 import org.dweb_browser.helper.consumeEachArrayRange
 import org.dweb_browser.helper.globalDefaultScope
@@ -125,8 +126,8 @@ open class KtorPureServer<out TEngine : ApplicationEngine, TConfiguration : Appl
       //
       environment = applicationEngineEnvironment {
         parentCoroutineContext = ioAsyncExceptionHandler + CoroutineExceptionHandler { ctx, e ->
-          if (e.message?.contains("NSPOSIXErrorDomain Code=57") == true) {
-            println("QAQ KtorStart 4")
+          if (e.message?.contains("ENOTCONN (57)") == true) {
+            WARNING(e.message)
             globalDefaultScope.launch(start = CoroutineStart.UNDISPATCHED) {
               close()
             }
@@ -151,7 +152,6 @@ open class KtorPureServer<out TEngine : ApplicationEngine, TConfiguration : Appl
           it.start(wait = false)
           serverDeferred.complete(it)
           it.addShutdownHook {
-            println("QAQ KtorStart 3")
             globalDefaultScope.launch(start = CoroutineStart.UNDISPATCHED) {
               close()
             }

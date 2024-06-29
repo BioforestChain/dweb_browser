@@ -25,9 +25,9 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import org.dweb_browser.dwebview.IDWebView
-import org.dweb_browser.helper.ENV_SWITCH_KEY
+import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
 import org.dweb_browser.helper.clamp
-import org.dweb_browser.helper.envSwitch
+import org.dweb_browser.helper.compose.envSwitch
 
 expect suspend fun ITaskbarView.Companion.create(taskbarController: TaskbarController): ITaskbarView
 

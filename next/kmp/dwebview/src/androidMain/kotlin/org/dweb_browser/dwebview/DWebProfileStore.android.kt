@@ -9,8 +9,10 @@ import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.dwebview.engine.DWebViewEngine
+import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
 import org.dweb_browser.helper.SafeHashMap
 import org.dweb_browser.helper.SuspendOnce
+import org.dweb_browser.helper.compose.envSwitch
 import org.dweb_browser.helper.getAppContext
 import org.dweb_browser.helper.platform.keyValueStore
 import org.dweb_browser.helper.saveStringSet
@@ -47,12 +49,16 @@ class CompactDWebProfileStore private constructor() : AndroidWebProfileStore {
   override fun getOrCreateProfile(
     engine: DWebViewEngine,
     profileName: String,
-  ): DWebProfile = allProfiles.getOrPut(profileName) {
-    CompactDWebProfile(profileName).also {
-      keyValueStore.setValues(DwebProfilesKey, allProfiles.keys + profileName)
+  ): DWebProfile = when {
+    envSwitch.isEnabled(ENV_SWITCH_KEY.DWEBVIEW_PROFILE) -> allProfiles.getOrPut(profileName) {
+      CompactDWebProfile(profileName).also {
+        keyValueStore.setValues(DwebProfilesKey, allProfiles.keys + profileName)
+      }
+    }.also {
+      setProfile(it, engine)
     }
-  }.also {
-    setProfile(it, engine)
+
+    else -> CompactDWebProfile("*")
   }
 
   /**

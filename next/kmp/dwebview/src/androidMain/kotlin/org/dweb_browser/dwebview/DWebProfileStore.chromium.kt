@@ -4,6 +4,8 @@ import android.annotation.SuppressLint
 import androidx.webkit.ProfileStore
 import androidx.webkit.WebViewCompat
 import org.dweb_browser.dwebview.engine.DWebViewEngine
+import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
+import org.dweb_browser.helper.compose.envSwitch
 import org.dweb_browser.helper.platform.keyValueStore
 import org.dweb_browser.helper.withMainContext
 
@@ -36,14 +38,18 @@ class ChromiumWebProfileStore(private val profileStore: ProfileStore) : AndroidW
 
   override suspend fun getAllProfileNames() = allProfiles.keys.toList()
   override val isSupportIncognitoProfile: Boolean = true
-  override fun getOrCreateProfile(engine: DWebViewEngine, profileName: String) =
-    (allProfiles[profileName] ?: profileStore.getOrCreateProfile(profileName)).let { profile ->
-      WebViewCompat.setProfile(engine, profileName)
-      ChromiumWebProfile(profile).also {
-        allProfiles[profileName] = it
-        keyValueStore.setValues(DwebProfilesKey, allProfiles.keys)
+  override fun getOrCreateProfile(engine: DWebViewEngine, profileName: String): DWebProfile = when {
+    envSwitch.isEnabled(ENV_SWITCH_KEY.DWEBVIEW_PROFILE) ->
+      (allProfiles[profileName] ?: profileStore.getOrCreateProfile(profileName)).let { profile ->
+        WebViewCompat.setProfile(engine, profileName)
+        ChromiumWebProfile(profile).also {
+          allProfiles[profileName] = it
+          keyValueStore.setValues(DwebProfilesKey, allProfiles.keys)
+        }
       }
-    }
+
+    else -> CompactDWebProfile("*")
+  }
 
   override fun getOrCreateIncognitoProfile(
     engine: DWebViewEngine,

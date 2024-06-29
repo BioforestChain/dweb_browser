@@ -11,7 +11,8 @@ import org.dweb_browser.sys.window.ext.onRenderer
 
 class AboutNMM : NativeMicroModule("about.browser.dweb", "About") {
   init {
-    short_name = "About"
+    name = AboutI18nResource.shortName.text
+    short_name = AboutI18nResource.shortName.text
     categories = listOf(
       MICRO_MODULE_CATEGORY.Application
     )

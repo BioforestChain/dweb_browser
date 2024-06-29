@@ -22,8 +22,10 @@ import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.file.FileNMM
 import org.dweb_browser.core.std.http.HttpNMM
 import org.dweb_browser.core.std.http.MultipartNMM
+import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
 import org.dweb_browser.helper.addDebugTags
 import org.dweb_browser.helper.debugTest
+import org.dweb_browser.helper.compose.envSwitch
 import org.dweb_browser.helper.platform.DeepLinkHook.Companion.deepLinkHook
 import org.dweb_browser.helper.platform.NativeViewController.Companion.nativeViewController
 import org.dweb_browser.pure.http.PureResponse
@@ -58,7 +60,7 @@ suspend fun dnsFetch(url: String): PureResponse {
 
 @Suppress("UNUSED_VARIABLE")
 suspend fun startDwebBrowser(
-  app: UIApplication, debugMode: Boolean, debugTags: List<String> = listOf("/.+/")
+  app: UIApplication, debugMode: Boolean, debugTags: List<String> = listOf("/.+/"),
 ): DnsNMM {
   nativeMicroModuleUIApplication = app;
 
@@ -134,7 +136,9 @@ suspend fun startDwebBrowser(
 
   /// 安装Jmm
   val jmmNMM = JmmNMM().setup()
-  val storeNMM = StoreNMM().setup()
+  if (envSwitch.isEnabled(ENV_SWITCH_KEY.DWEBVIEW_PROFILE)) {
+    val storeNMM = StoreNMM().setup()
+  }
   val deskNMM = DeskNMM().setup()
 
   val browserNMM = BrowserNMM().setup()

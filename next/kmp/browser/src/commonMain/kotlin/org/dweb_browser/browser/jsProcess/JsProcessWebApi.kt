@@ -15,11 +15,11 @@ import org.dweb_browser.core.std.http.HttpDwebServer
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.create
-import org.dweb_browser.helper.ENV_SWITCH_KEY
+import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
 import org.dweb_browser.helper.SafeInt
 import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.build
-import org.dweb_browser.helper.envSwitch
+import org.dweb_browser.helper.compose.envSwitch
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.resolvePath
 import org.dweb_browser.helper.withMainContext

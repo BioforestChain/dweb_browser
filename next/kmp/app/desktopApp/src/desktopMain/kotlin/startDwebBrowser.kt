@@ -19,8 +19,10 @@ import org.dweb_browser.core.std.file.FileNMM
 import org.dweb_browser.core.std.http.HttpNMM
 import org.dweb_browser.core.std.http.MultipartNMM
 import org.dweb_browser.core.std.permission.debugPermission
+import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
 import org.dweb_browser.helper.addDebugTags
 import org.dweb_browser.helper.collectIn
+import org.dweb_browser.helper.compose.envSwitch
 import org.dweb_browser.helper.platform.DeepLinkHook
 import org.dweb_browser.helper.platform.PureViewController
 import org.dweb_browser.sys.biometrics.BiometricsNMM
@@ -158,7 +160,9 @@ suspend fun startDwebBrowser(debugTags: String?, extMM: List<ExtMM> = listOf()):
 
   /// 安装Jmm
   val jmmNMM = JmmNMM().setup()
-  val storeNMM = StoreNMM().setup()
+  if (envSwitch.isEnabled(ENV_SWITCH_KEY.DWEBVIEW_PROFILE)) {
+    val storeNMM = StoreNMM().setup()
+  }
   val deskNMM = DeskNMM().setup()
 
   /// 启动程序

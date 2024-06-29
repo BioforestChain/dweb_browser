@@ -1,10 +1,6 @@
-package org.dweb_browser.helper
+package org.dweb_browser.helper.platform
 
 actual open class EnvSwitchCore {
-  actual fun add(switch: String, value: String) {
-    System.setProperty("dweb-$switch", value)
-  }
-
   private val env = System.getenv()
 
   actual fun isEnabled(switch: String): Boolean {
@@ -17,5 +13,13 @@ actual open class EnvSwitchCore {
     return env[key]
       ?: env[key.replace("-", "_")]
       ?: System.getProperty(key) ?: ""
+  }
+
+  actual fun set(switch: String, value: String) {
+    System.setProperty("dweb-$switch", value)
+  }
+
+  actual fun remove(switch: String) {
+    System.clearProperty(switch)
   }
 }
