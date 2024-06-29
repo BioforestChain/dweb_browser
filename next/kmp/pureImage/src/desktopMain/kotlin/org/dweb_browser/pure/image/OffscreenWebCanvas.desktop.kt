@@ -29,7 +29,9 @@ actual class OffscreenWebCanvas private actual constructor(width: Int, height: I
 
   init {
     CoroutineScope(mainAsyncExceptionHandler).launch {
-      webview.navigation().loadUrl(core.channel.getEntryUrl(width, height))
+      core.channel.entryUrlFlow.collect {
+        webview.navigation().loadUrl(it)
+      }
     }
   }
 

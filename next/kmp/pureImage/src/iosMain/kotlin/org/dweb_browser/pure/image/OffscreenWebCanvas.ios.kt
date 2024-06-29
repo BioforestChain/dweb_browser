@@ -24,12 +24,14 @@ actual class OffscreenWebCanvas private actual constructor(width: Int, height: I
     // 不可为CGRectZero，否则会被直接回收
     frame = CGRectMake(x = .0, y = .0, width = 10.0, height = 10.0),
     configuration = WKWebViewConfiguration().apply { preferences.javaScriptEnabled },
-  ).also {
+  ).also { webview ->
     if (UIDevice.currentDevice.systemVersion.compareTo("16.4", true) >= 0) {
-      it.setInspectable(true)
+      webview.setInspectable(true)
     }
     globalMainScope.launch {
-      it.loadRequest(requestWithURL(URLWithString(core.channel.getEntryUrl(width, height))!!))
+      core.channel.entryUrlFlow.collect { url ->
+        webview.loadRequest(requestWithURL(URLWithString(url)!!))
+      }
     }
   }
 }

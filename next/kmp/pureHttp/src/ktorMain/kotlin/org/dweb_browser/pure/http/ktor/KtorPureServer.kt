@@ -7,6 +7,7 @@ import io.ktor.server.application.install
 import io.ktor.server.engine.ApplicationEngine
 import io.ktor.server.engine.ApplicationEngineEnvironmentBuilder
 import io.ktor.server.engine.ApplicationEngineFactory
+import io.ktor.server.engine.addShutdownHook
 import io.ktor.server.engine.applicationEngineEnvironment
 import io.ktor.server.engine.connector
 import io.ktor.server.engine.embeddedServer
@@ -18,13 +19,19 @@ import io.ktor.utils.io.CancellationException
 import io.ktor.websocket.Frame
 import io.ktor.websocket.close
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.helper.Debugger
+import org.dweb_browser.helper.commonAsyncExceptionHandler
 import org.dweb_browser.helper.consumeEachArrayRange
+import org.dweb_browser.helper.globalDefaultScope
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.pure.http.HttpPureServerOnRequest
 import org.dweb_browser.pure.http.PureChannel
@@ -117,7 +124,16 @@ open class KtorPureServer<out TEngine : ApplicationEngine, TConfiguration : Appl
       factory = serverEngine,
       //
       environment = applicationEngineEnvironment {
-        parentCoroutineContext = ioAsyncExceptionHandler
+        parentCoroutineContext = ioAsyncExceptionHandler + CoroutineExceptionHandler { ctx, e ->
+          if (e.message?.contains("NSPOSIXErrorDomain Code=57") == true) {
+            println("QAQ KtorStart 4")
+            globalDefaultScope.launch(start = CoroutineStart.UNDISPATCHED) {
+              close()
+            }
+          } else {
+            commonAsyncExceptionHandler.handleException(ctx, e)
+          }
+        }
         log = KtorSimpleLogger("pure-server")
         watchPaths = emptyList()
         module(applicationModule)
@@ -128,21 +144,52 @@ open class KtorPureServer<out TEngine : ApplicationEngine, TConfiguration : Appl
     )
   }
 
-  open suspend fun start(port: UShort) = serverLock.withLock {
-    if (!serverDeferred.isCompleted) {
-      createServer {
-        connector {
-          this.port = port.toInt()
-          this.host = "0.0.0.0"
+  protected suspend inline fun startServer(createServer: () -> ApplicationEngine) =
+    serverLock.withLock {
+      if (!serverDeferred.isCompleted) {
+        createServer().also {
+          it.start(wait = false)
+          serverDeferred.complete(it)
+          it.addShutdownHook {
+            println("QAQ KtorStart 3")
+            globalDefaultScope.launch(start = CoroutineStart.UNDISPATCHED) {
+              close()
+            }
+          }
         }
-      }.also {
-        it.start(wait = false)
-        serverDeferred.complete(it)
       }
+      getPort().also { serverStateFlow.value = it }
     }
 
-    getPort()
+  open suspend fun start(port: UShort) = startServer {
+    createServer {
+      connector {
+        this.port = port.toInt()
+        this.host = "0.0.0.0"
+      }
+    }
   }
+//  serverLock.withLock {
+//    if (!serverDeferred.isCompleted) {
+//      createServer {
+//        connector {
+//          this.port = port.toInt()
+//          this.host = "0.0.0.0"
+//        }
+//      }.also {
+//        println("QAQ KtorStart 1")
+//        it.start(wait = false)
+//        println("QAQ KtorStart 2")
+//        serverDeferred.complete(it)
+//        it.addShutdownHook {
+//          println("QAQ KtorStart 3")
+//          serverStateFlow.value = null
+//        }
+//      }
+//    }
+//
+//    getPort().also { serverStateFlow.value = it }
+//  }
 
   protected suspend fun getPort() =
     serverDeferred.await().resolvedConnectors().first().port.toUShort()
@@ -152,6 +199,10 @@ open class KtorPureServer<out TEngine : ApplicationEngine, TConfiguration : Appl
     if (serverDeferred.isCompleted) {
       serverDeferred.getCompleted().stop()
       serverDeferred = CompletableDeferred()
+      serverStateFlow.value = null
     }
   }
+
+  protected val serverStateFlow = MutableStateFlow<UShort?>(null)
+  val stateFlow = serverStateFlow.asStateFlow()
 }

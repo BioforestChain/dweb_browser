@@ -6,6 +6,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.fromFilePath
 import io.ktor.http.hostWithPort
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.helper.Signal
@@ -38,6 +39,7 @@ internal class OffscreenWebCanvasMessageChannel {
     if (pathname == "/channel" && it.hasChannel) {
       it.byChannel {
         val pureChannel = this
+        val dataChannel = this@OffscreenWebCanvasMessageChannel.dataChannel
         lock.withLock {
           if (session != null) {
             freeSession()
@@ -84,13 +86,23 @@ internal class OffscreenWebCanvasMessageChannel {
   }
 
   private var hostWithPort = ""
+  val entryUrlFlow = server.stateFlow.mapNotNull { port ->
+    when (port) {
+      null -> {
+        println("QAQ offscreen web canvas server state == 'stop'~~~")
+        hostWithPort = ""
+        startPureServer(server)
+        null
+      }
 
-  suspend fun getEntryUrl(width: Int, height: Int): String {
-    val port = startPureServer(server)
-    hostWithPort = "localhost:$port"
-    val entry = "http://$hostWithPort/index.html"
-    return "$entry?width=$width&height=$height&channel=${"ws://$hostWithPort/channel".encodeURIComponent()}&proxy=${"http://$hostWithPort/proxy".encodeURIComponent()}"
+      else -> {
+        hostWithPort = "localhost:$port"
+        val entry = "http://$hostWithPort/index.html"
+        "$entry?channel=${"ws://$hostWithPort/channel".encodeURIComponent()}&proxy=${"http://$hostWithPort/proxy".encodeURIComponent()}"
+      }
+    }
   }
+
 
   //  suspend fun postMessage(message: ByteArray) {
 //    val session = this.session ?: dataChannel.await()
@@ -105,17 +117,8 @@ internal class OffscreenWebCanvasMessageChannel {
     session.start().sendText(message)
   }
 
-  suspend fun close() {
-    val session = this.session ?: dataChannel.await()
-    lock.withLock {
-      session.close()
-      freeSession()
-    }
-  }
-
   private fun freeSession() {
     session = null
     dataChannel = CompletableDeferred()
   }
-
 }

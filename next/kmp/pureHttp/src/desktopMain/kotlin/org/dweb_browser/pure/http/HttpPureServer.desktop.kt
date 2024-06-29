@@ -5,7 +5,6 @@ import io.ktor.server.engine.sslConnector
 import io.ktor.server.jetty.Jetty
 import io.ktor.server.jetty.JettyApplicationEngine
 import io.ktor.server.jetty.JettyApplicationEngineBase
-import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.pure.http.ktor.KtorPureServer
 
 actual class HttpPureServer actual constructor(onRequest: HttpPureServerOnRequest) :
@@ -21,32 +20,25 @@ actual class HttpPureServer actual constructor(onRequest: HttpPureServerOnReques
     return start(port, true)
   }
 
-  suspend fun start(port: UShort, https: Boolean) = serverLock.withLock {
-    if (!serverDeferred.isCompleted) {
-      createServer({
-      }) {
-        if (https) {
-          sslConnector(
-            keyStore = SslSettings.keyStore,
-            keyAlias = SslSettings.keyAlias,
-            keyStorePassword = { SslSettings.keyStorePassword.toCharArray() },
-            privateKeyPassword = { SslSettings.privateKeyPassword.toCharArray() }) {
-            this.port = port.toInt()
-            this.keyStorePath = SslSettings.keyStoreFile
-          }
-        } else {
-          connector {
-            this.port = port.toInt()
-            this.host = "0.0.0.0"
-          }
+  suspend fun start(port: UShort, https: Boolean) = startServer {
+    createServer({
+    }) {
+      if (https) {
+        sslConnector(
+          keyStore = SslSettings.keyStore,
+          keyAlias = SslSettings.keyAlias,
+          keyStorePassword = { SslSettings.keyStorePassword.toCharArray() },
+          privateKeyPassword = { SslSettings.privateKeyPassword.toCharArray() }) {
+          this.port = port.toInt()
+          this.keyStorePath = SslSettings.keyStoreFile
         }
-      }.also {
-        it.start(wait = false)
-        serverDeferred.complete(it)
+      } else {
+        connector {
+          this.port = port.toInt()
+          this.host = "0.0.0.0"
+        }
       }
     }
-
-    getPort()
   }
 }
 
