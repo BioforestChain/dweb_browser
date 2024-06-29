@@ -30,6 +30,7 @@ declare global {
     ipc: typeof core;
     http: typeof http;
     versions: { jsMicroModule: string };
+    brands: { brand: string; version: string; fullVersion?: string };
     version: number;
     patch: number;
   }
@@ -516,6 +517,7 @@ export const installEnv = async (metadata: Metadata, gatewayPort: number) => {
 
   const jsMicroModule = metadata.envString("jsMicroModule");
   const [version, patch] = jsMicroModule.split(".").map((v) => parseInt(v));
+  const brands = JSON.parse(metadata.envString("brands") ?? "[]");
 
   const dweb = {
     jsProcess,
@@ -523,6 +525,7 @@ export const installEnv = async (metadata: Metadata, gatewayPort: number) => {
     ipc: core,
     http,
     versions: { jsMicroModule },
+    brands,
     version,
     patch,
   } satisfies DWebCore;

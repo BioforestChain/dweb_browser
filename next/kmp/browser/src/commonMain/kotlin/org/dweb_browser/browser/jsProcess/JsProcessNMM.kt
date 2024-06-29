@@ -19,6 +19,7 @@ import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.http.DwebHttpServerOptions
 import org.dweb_browser.core.std.http.createHttpDwebServer
+import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.SafeHashMap
@@ -239,13 +240,16 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
       }
 
       /// TODO env 允许远端传过来扩展
-      val env = mutableMapOf<String, String>( // ...your envs
+      val env = mutableMapOf<String, String>(
+        // ...your envs
         // 这不是是它代码的请求路径，代码请求路径从 import.meta.url 中读取，这里是用来为开发者提供一个 baseURL 而已
         "host" to httpDwebServer.startResult.urlInfo.host,
         // native环境是否启用调试
         "debug" to debugJsProcess.isEnable.toString(),
         // jmm的版本信息
-        "jsMicroModule" to "${JsMicroModule.VERSION}.${JsMicroModule.PATCH}"
+        "jsMicroModule" to "${JsMicroModule.VERSION}.${JsMicroModule.PATCH}",
+        // web brands
+        "brands" to Json.encodeToString(IDWebView.brands),
       )
 
       /**

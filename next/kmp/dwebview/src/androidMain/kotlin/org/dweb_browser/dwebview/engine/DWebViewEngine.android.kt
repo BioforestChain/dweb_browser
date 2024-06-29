@@ -161,9 +161,8 @@ class DWebViewEngine internal constructor(
 
       IDWebView.brands.forEach {
         brandList.add(
-          BrandVersion.Builder().setBrand(it.brand).setFullVersion(it.version).setMajorVersion(
-            if (it.version.contains(".")) it.version.split(".").first() else it.version
-          ).build()
+          BrandVersion.Builder().setBrand(it.brand).setFullVersion(it.fullVersion)
+            .setMajorVersion(it.version).build()
         )
       }
       brandList.add(

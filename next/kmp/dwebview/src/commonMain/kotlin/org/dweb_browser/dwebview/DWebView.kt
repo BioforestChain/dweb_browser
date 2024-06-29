@@ -54,7 +54,11 @@ abstract class IDWebView(initUrl: String?) {
   abstract val lifecycleScope: CoroutineScope
 
   @Serializable
-  data class UserAgentBrandData(val brand: String, val version: String)
+  data class UserAgentBrandData(
+    val brand: String,
+    val version: String,
+    val fullVersion: String = version,
+  )
 
   @OptIn(DelicateCoroutinesApi::class)
   companion object {

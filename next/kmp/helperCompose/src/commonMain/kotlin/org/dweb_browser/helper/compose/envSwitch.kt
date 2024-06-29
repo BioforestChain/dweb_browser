@@ -22,6 +22,9 @@ val envSwitch = EnvSwitch()
 class ExperimentalKey(
   val title: SimpleI18nResource,
   val description: SimpleI18nResource,
+  val brand: String,
+  val disableVersion: String,
+  val enableVersion: String,
 )
 
 enum class ENV_SWITCH_KEY(
@@ -47,8 +50,11 @@ enum class ENV_SWITCH_KEY(
       ),
       description = SimpleI18nResource(
         Language.ZH to "使用新版桌面，获得更顺畅环保的体验。注意，新版还在持续开发中，效果与体验还未完工，非开发者不建议开启。",
-        Language.EN to "Experience smoother and more eco-friendly operations with the new desktop version. Please note that the new version is still under development, and its performance and user experience are not yet finalized. It is not recommended for non-developers to enable it."
+        Language.EN to "Experience smoother and more eco-friendly operations with the new desktop version. Please note that the new version is still under development, and its performance and user experience are not yet finalized. It is not recommended for non-developers to enable it.",
       ),
+      brand = "dweb-desktop",
+      disableVersion = "1",
+      enableVersion = "2",
     ),
   ),
   DWEBVIEW_PROFILE(
@@ -61,6 +67,9 @@ enum class ENV_SWITCH_KEY(
         Language.ZH to "如若启用该功能，意味着各个的模块将有自己的数据隔离区。请注意，请做好数据备份！一旦启用，模块将离开原先的的数据区域。",
         Language.EN to "Enabling this feature will create separate data isolation zones for every modules. Please note that data backups are essential! Once enabled, modules will be moved out of their original data zones.",
       ),
+      brand = "dweb-module-profile",
+      disableVersion = "0",
+      enableVersion = "1",
     ),
   ),
 }

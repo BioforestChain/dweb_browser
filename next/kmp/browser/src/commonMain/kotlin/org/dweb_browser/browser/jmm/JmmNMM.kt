@@ -31,7 +31,9 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Service") {
     init {
       IDWebView.Companion.brands.add(
         IDWebView.UserAgentBrandData(
-          "jmm.browser.dweb", "${JsMicroModule.VERSION}.${JsMicroModule.PATCH}"
+          "jmm.browser.dweb",
+          "${JsMicroModule.VERSION}",
+          "${JsMicroModule.VERSION}.${JsMicroModule.PATCH}"
         )
       )
     }
@@ -108,10 +110,10 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Service") {
         "/isInstalled" bind PureMethod.GET by defineBooleanResponse {
           val mmid = request.query("app_id")
           debugJMM("isInstalled", mmid)
-           store.getApp(mmid) != null
+          store.getApp(mmid) != null
         },
 
-      ).cors()
+        ).cors()
 
       onRenderer {
         getMainWindow().apply {

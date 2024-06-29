@@ -4,6 +4,7 @@ import type {} from "./user-agent-data.type.ts";
 type Brands = {
   brand: string;
   version: string;
+  fullVersion?: string;
 }[];
 if (!navigator.userAgentData) {
   const getClientHints = (navigator: Navigator) => {
@@ -177,7 +178,10 @@ if (!navigator.userAgentData) {
     readonly _ch: ReturnType<typeof getClientHints>;
     constructor(navigator: Navigator, brands: Brands) {
       this._ch = getClientHints(navigator);
-      this._ch.brands = this._ch.brands.concat(brands);
+      this._ch.brands = this._ch.brands.concat(brands.map((b) => ({ brand: b.brand, version: b.version })));
+      this._ch.fullVersionList = this._ch.fullVersionList.concat(
+        brands.map((b) => ({ brand: b.brand, version: b.fullVersion ?? b.version }))
+      );
       Object.defineProperties(this, {
         _ch: { enumerable: false },
       });
@@ -209,7 +213,7 @@ if (!navigator.userAgentData) {
         uaFullVersion: hintSet.has("uaFullVersion") ? data.uaFullVersion : undefined,
         fullVersionList: hintSet.has("fullVersionList") ? data.fullVersionList : undefined,
       };
-      return obj;
+      return JSON.parse(JSON.stringify(obj));
     }
     toJSON() {
       const data = this._ch;
@@ -233,8 +237,26 @@ if (!navigator.userAgentData) {
   Object.assign(NavigatorUAData, {
     __upsetBrands__(brands: Brands) {
       const uaBrands = navigator.userAgentData!.brands;
+
+      const custom_brands = brands.map((b) => ({ brand: b.brand, version: b.version }));
+      const custom_fullVersionList = brands.map((b) => ({ brand: b.brand, version: b.fullVersion ?? b.version }));
       delete NavigatorUAData.prototype.brands;
-      Object.defineProperty(NavigatorUAData.prototype, "brands", { value: uaBrands.concat(brands) });
+      Object.defineProperty(NavigatorUAData.prototype, "brands", {
+        value: uaBrands.concat(custom_brands),
+      });
+      const getHighEntropyValues_symbol = Symbol.for("getHighEntropyValues");
+      NavigatorUAData.prototype[getHighEntropyValues_symbol] = NavigatorUAData.prototype.getHighEntropyValues;
+      delete NavigatorUAData.prototype.getHighEntropyValues;
+      Object.defineProperty(NavigatorUAData.prototype, "getHighEntropyValues", {
+        value: async function getHighEntropyValues(hints: string[]) {
+          const result = await this[getHighEntropyValues_symbol](hints);
+          result.brands = result.brands.concat(custom_brands);
+          if (result.fullVersionList) {
+            result.fullVersionList = result.fullVersionList.concat(custom_fullVersionList);
+          }
+          return result;
+        },
+      });
     },
   });
 }
