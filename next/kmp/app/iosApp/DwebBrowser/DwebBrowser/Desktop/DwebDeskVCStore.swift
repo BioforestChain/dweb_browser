@@ -13,9 +13,9 @@ import UIKit
 
 class DwebVCData {
     var vc: UIViewController
-    var prop: HelperPlatformDwebUIViewControllerProperty
+    var prop: HelperComposeDwebUIViewControllerProperty
 
-    init(vc: UIViewController, prop: HelperPlatformDwebUIViewControllerProperty) {
+    init(vc: UIViewController, prop: HelperComposeDwebUIViewControllerProperty) {
         self.vc = vc
         self.prop = prop
     }
@@ -49,14 +49,14 @@ class DwebVCData {
         navgationBarVisible = visible.boolValue ? .visible : .hidden
     }
 
-    private func addHook(vc: UIViewController, prop: HelperPlatformDwebUIViewControllerProperty) {
+    private func addHook(vc: UIViewController, prop: HelperComposeDwebUIViewControllerProperty) {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
             Log("vcId=\(prop.vcId) zIndex=\(prop.zIndex) visible=\(prop.visible)")
 
             if let data = self.vcs.first(where: { data in data.vc == vc }) {
                 updateHook(
-                    prop: HelperPlatformDwebUIViewControllerProperty(
+                    prop: HelperComposeDwebUIViewControllerProperty(
                         vcId: data.prop.vcId, zIndex: prop.zIndex, visible: prop.visible))
                 return
             }
@@ -68,7 +68,7 @@ class DwebVCData {
         }
     }
 
-    private func updateHook(prop: HelperPlatformDwebUIViewControllerProperty) {
+    private func updateHook(prop: HelperComposeDwebUIViewControllerProperty) {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
             Log("vcId=\(prop.vcId) zIndex=\(prop.zIndex) visible=\(prop.visible)")
