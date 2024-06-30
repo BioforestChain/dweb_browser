@@ -31,6 +31,11 @@ export const dwebPolyfill = registryNpmBuilder({
   version,
   importMap,
 });
+export const dwebProfile = registryNpmBuilder({
+  packageDir: import.meta.resolve("../dweb-profile/"),
+  version,
+  importMap,
+});
 
 export const dwebCore = registryNpmBuilder({
   packageDir: import.meta.resolve("../dweb-core/"),
@@ -103,7 +108,7 @@ export const doBuildNpm = async () => {
   await dwebHelper();
   await dwebCore();
   await dwebJsProcess();
-  await Promise.all([dwebPolyfill(), plaocServer(), plaocCli(), plaocPlugins(), plaocIsDweb()]);
+  await Promise.all([dwebPolyfill(), dwebProfile(), plaocServer(), plaocCli(), plaocPlugins(), plaocIsDweb()]);
 };
 
 if (import.meta.main) {

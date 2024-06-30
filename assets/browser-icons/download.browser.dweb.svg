@@ -1,7 +1,7 @@
 <svg class="icon" viewBox="0 0 1156 1024" xmlns="http://www.w3.org/2000/svg" width="200" height="200">
   <style>
     .fill {
-      fill: rgb(0 150 136)
+      fill: #3d61ff;
     }
   </style>
   <defs>

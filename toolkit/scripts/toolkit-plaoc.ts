@@ -9,6 +9,7 @@ import {
   dwebHelper,
   dwebJsProcess,
   dwebPolyfill,
+  dwebProfile,
   plaocCli,
   plaocIsDweb,
   plaocPlugins,
@@ -36,6 +37,7 @@ const htmlExamples = registryViteBuilder({
 /// 这里要包含所有的任务，以确保 reset 能正确工作
 const plaocTasks = [
   dwebPolyfill,
+  dwebProfile,
   plaocServer,
   plaocCli,
   plaocPlugins,

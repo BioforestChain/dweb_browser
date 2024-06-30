@@ -32,6 +32,8 @@
     "@dweb-browser/js-process/": "./toolkit/dweb-js-process-assets/worker/",
     "@dweb-browser/polyfill": "./toolkit/dweb-polyfill/index.ts",
     "@dweb-browser/polyfill/": "./toolkit/dweb-polyfill/src/",
+    "@dweb-browser/profile": "./toolkit/dweb-profile/index.ts",
+    "@dweb-browser/profile/": "./toolkit/dweb-profile/src/",
     "@plaoc/cli": "./toolkit/plaoc/cli/plaoc.ts",
     "@plaoc/is-dweb": "./toolkit/plaoc/is-dweb/index.ts",
     "@plaoc/plugins": "./toolkit/plaoc/plugins/index.ts",
@@ -44,6 +46,7 @@
     "canvg": "npm:canvg@^4.0.1",
     "cbor-x": "npm:cbor-x@^1.5.9",
     "deep-object-diff": "npm:deep-object-diff@^1.1.9",
+    "idb": "npm:idb@^8.0.0",
     "jszip": "npm:jszip@^3.10.1",
     "mime": "npm:mime@^4.0.3",
     "glob": "npm:glob@^8.1.0",
@@ -62,6 +65,7 @@
     "npm",
     "toolkit/dweb-desk-assets",
     "toolkit/dweb-offscreen-web-canvas-assets",
+    "toolkit/dweb-profile",
     "toolkit/plaoc/examples/plugin-demo"
   ]
 }

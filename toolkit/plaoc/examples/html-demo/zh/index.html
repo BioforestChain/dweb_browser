@@ -1,36 +1,35 @@
 <!DOCTYPE html>
 <html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>zh!!!!</title>
+  </head>
 
-<head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <link rel="icon" href="data:;base64,iVBORw0KGgo=" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>zh!!!!</title>
-</head>
+  <body>
+    <h2>zh!!!!测试 plaoc/plugins</h2>
+    <div>
+      <h3>app之间通信(默认发送给game)</h3>
+      <input id="input1" />
+      <button onclick="sayHi()">sayHi</button>
+      <button onclick="canOpenUrl()">app是否安装</button>
+    </div>
+    <div>
+      <h3>重启应用</h3>
+      <button onclick="restart()">restart</button>
+    </div>
+    <div>
+      <h3>设置语言</h3>
+      <button onclick="setLang()">setLang</button>
+    </div>
+    <br />
+    <div
+      id="output"
+      style="margin: 10px; padding: 2px; background-color: rgba(144, 234, 10, 0.467); width: 90%; min-height: 20px"
+    ></div>
 
-<body>
-  <h2>zh!!!!测试 plaoc/plugins</h2>
-  <div>
-    <h3>app之间通信(默认发送给game)</h3>
-    <input id="input1">
-    <button onclick="sayHi()">sayHi</button>
-    <button onclick="canOpenUrl()">app是否安装</button>
-  </div>
-  <div>
-    <h3>重启应用</h3>
-    <button onclick="restart()">restart</button>
-  </div>
-  <div>
-    <h3>设置语言</h3>
-    <button onclick="setLang()">setLang</button>
-  </div>
-  <br>
-  <div id="output"
-    style="margin: 10px;padding:2px;background-color: rgba(144, 234, 10, 0.467); width: 90%;min-height: 20px;">
-  </div>
-
-  <script type="module" src="./index.ts"></script>
-</body>
-
+    <script type="module" src="./index.ts"></script>
+  </body>
 </html>

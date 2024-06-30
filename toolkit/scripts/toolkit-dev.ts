@@ -36,6 +36,18 @@ export const toolkitTasks = new ConTasks(
       devAppendArgs: ["--watch"],
       cwd: "../dweb-polyfill",
     },
+    "dweb-profile": {
+      cmd: "npx",
+      args: [
+        `vite`,
+        `build`,
+        `--outDir`,
+        defineAssets(`dwebview-profile`, { type: "linkKmpResFiles", moduleName: "dwebview" }),
+        // `../../next/kmp/dwebview/src/commonMain/composeResources/files/dwebview-polyfill`,
+      ],
+      devAppendArgs: ["--watch"],
+      cwd: "../dweb-profile",
+    },
     "dweb-desk-assets": {
       cmd: "npx",
       args: [

@@ -2,4 +2,5 @@ packages:
   - "npm/*"
   - "toolkit/dweb-offscreen-web-canvas-assets"
   - "toolkit/dweb-desk-assets"
+  - "toolkit/dweb-profile"
   - "toolkit/plaoc/examples/*"

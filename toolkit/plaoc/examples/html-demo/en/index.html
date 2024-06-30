@@ -1,52 +1,50 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>en!!!!</title>
+  </head>
 
-<head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <link rel="icon" href="data:;base64,iVBORw0KGgo=" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>en!!!!</title>
-</head>
-
-<body>
-  <h2>en</h2>
-  <!-- <dweb-status-bar></dweb-status-bar> -->
-  <dweb-barcode-scanning></dweb-barcode-scanning>
-  <!-- <dweb-virtual-keyboard></dweb-virtual-keyboard> -->
-  <dweb-haptics></dweb-haptics>
-  <dweb-device></dweb-device>
-  <dweb-mwebview></dweb-mwebview>
-  <div>
-    <h3>app之间通信(默认发送给game)</h3>
-    <input id="input1">
-    <button onclick="sayHi()">sayHi</button>
-    <button onclick="canOpenUrl()">app是否安装</button>
-  </div>
-  <div>
-    <h3>重启应用</h3>
-    <button onclick="restart()">restart</button>
-  </div>
-  <div>
-    <h3>设置语言</h3>
-    <button onclick="setLang()">setLang</button>
-  </div>
-  <div>
-    <h3>图片识别</h3>
-    <form onsubmit="observerImgUpdate(event)">
-      <input type="file" name="fileToUpload" id="fileToUpload">
-      <input type="submit" value="上传文件">
-    </form>
-  </div>
-  <div>
-    <h3>打开扫码</h3>
-    <button onclick="startScanning()">startScanning</button>
-  </div>
-  <div>
-    <h3>getUUID</h3>
-    <button onclick="getUUID()">getUUID</button>
-  </div>
-  <script type="module" src="./index.ts"></script>
-</body>
-
+  <body>
+    <h2>en</h2>
+    <!-- <dweb-status-bar></dweb-status-bar> -->
+    <dweb-barcode-scanning></dweb-barcode-scanning>
+    <!-- <dweb-virtual-keyboard></dweb-virtual-keyboard> -->
+    <dweb-haptics></dweb-haptics>
+    <dweb-device></dweb-device>
+    <dweb-mwebview></dweb-mwebview>
+    <div>
+      <h3>app之间通信(默认发送给game)</h3>
+      <input id="input1" />
+      <button onclick="sayHi()">sayHi</button>
+      <button onclick="canOpenUrl()">app是否安装</button>
+    </div>
+    <div>
+      <h3>重启应用</h3>
+      <button onclick="restart()">restart</button>
+    </div>
+    <div>
+      <h3>设置语言</h3>
+      <button onclick="setLang()">setLang</button>
+    </div>
+    <div>
+      <h3>图片识别</h3>
+      <form onsubmit="observerImgUpdate(event)">
+        <input type="file" name="fileToUpload" id="fileToUpload" />
+        <input type="submit" value="上传文件" />
+      </form>
+    </div>
+    <div>
+      <h3>打开扫码</h3>
+      <button onclick="startScanning()">startScanning</button>
+    </div>
+    <div>
+      <h3>getUUID</h3>
+      <button onclick="getUUID()">getUUID</button>
+    </div>
+    <script type="module" src="./index.ts"></script>
+  </body>
 </html>
