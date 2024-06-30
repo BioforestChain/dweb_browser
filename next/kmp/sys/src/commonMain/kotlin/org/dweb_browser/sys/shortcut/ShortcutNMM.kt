@@ -25,12 +25,12 @@ import org.dweb_browser.sys.window.ext.onRenderer
 
 val debugShortcut = Debugger("Shortcut")
 
-class ShortcutNMM : NativeMicroModule("shortcut.sys.dweb", "Shortcut") {
+class ShortcutNMM : NativeMicroModule("shortcut.sys.dweb", ShortcutI18nResource.name.text) {
   private val shortcutManage = ShortcutManage()
 
   init {
     dweb_deeplinks = listOf("dweb://shortcutopen")
-    short_name = "Shortcut"
+    short_name = ShortcutI18nResource.name.text
     categories = listOf(
       MICRO_MODULE_CATEGORY.Application,
       MICRO_MODULE_CATEGORY.Service,

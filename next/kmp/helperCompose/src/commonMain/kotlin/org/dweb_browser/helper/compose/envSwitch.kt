@@ -13,7 +13,14 @@ class EnvSwitch : EnvSwitchCore() {
   fun get(switch: ENV_SWITCH_KEY) = get(switch.key)
   fun set(switch: ENV_SWITCH_KEY, value: String) = set(switch.key, value)
   fun enable(switch: ENV_SWITCH_KEY) = set(switch.key, "true")
-  fun disable(switch: ENV_SWITCH_KEY) = remove(switch)
+  fun disable(switch: ENV_SWITCH_KEY) {
+    remove(switch)
+    /// 如果默认值是 true，那么不能用remove，得直接赋值 false
+    if (isEnabled(switch)) {
+      set(switch.key, "false")
+    }
+  }
+
   fun remove(switch: ENV_SWITCH_KEY) = remove(switch.key)
 }
 

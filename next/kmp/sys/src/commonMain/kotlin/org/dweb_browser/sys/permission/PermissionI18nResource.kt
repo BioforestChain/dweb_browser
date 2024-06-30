@@ -4,6 +4,9 @@ import org.dweb_browser.helper.compose.Language
 import org.dweb_browser.helper.compose.SimpleI18nResource
 
 object PermissionI18nResource {
+  val name = SimpleI18nResource(Language.ZH to "权限管理", Language.EN to "Permission Management")
+  val short_name = SimpleI18nResource(Language.ZH to "权限", Language.EN to "Permission")
+
   val no_record =
     SimpleI18nResource(Language.ZH to "暂无授权记录", Language.EN to "No Authorization Record")
   val record_list_title =
@@ -17,10 +20,8 @@ object PermissionI18nResource {
   val request_title =
     SimpleI18nResource(Language.ZH to "申请权限", Language.EN to "Request Permission")
 
-  val request_button_refuse =
-    SimpleI18nResource(Language.ZH to "拒绝", Language.EN to "Refuse")
-  val request_button_confirm =
-    SimpleI18nResource(Language.ZH to "确定", Language.EN to "Confirm")
+  val request_button_refuse = SimpleI18nResource(Language.ZH to "拒绝", Language.EN to "Refuse")
+  val request_button_confirm = SimpleI18nResource(Language.ZH to "确定", Language.EN to "Confirm")
   val request_button_authorize_all =
     SimpleI18nResource(Language.ZH to "授权全部", Language.EN to "Authorize All")
 }

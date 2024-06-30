@@ -63,9 +63,9 @@ import org.dweb_browser.sys.window.ext.onRenderer
 import org.dweb_browser.sys.window.render.AppIcon
 import org.dweb_browser.sys.window.render.imageFetchHook
 
-class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Management") {
+class PermissionNMM : NativeMicroModule("permission.sys.dweb", PermissionI18nResource.name.text) {
   init {
-    short_name = "Permission";
+    short_name = PermissionI18nResource.short_name.text;
     dweb_protocols = listOf("permission.std.dweb")
     categories = listOf(
       MICRO_MODULE_CATEGORY.Application,
