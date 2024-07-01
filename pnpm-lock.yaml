@@ -46,11 +46,7 @@ importers:
         specifier: workspace:~
         version: link:../@dweb-browser__helper
 
-  npm/@dweb-browser__polyfill:
-    dependencies:
-      vite:
-        specifier: ^5.0.10
-        version: 5.2.11(@types/node@20.12.8)(sass@1.76.0)
+  npm/@dweb-browser__polyfill: {}
 
   npm/@plaoc__cli:
     dependencies:
@@ -118,15 +114,6 @@ importers:
       '@types/node':
         specifier: '*'
         version: 20.12.8
-      '@types/web':
-        specifier: ^0.0.143
-        version: 0.0.143
-      deep-object-diff:
-        specifier: ^1.1.9
-        version: 1.1.9
-      is-mobile:
-        specifier: ^4.0.0
-        version: 4.0.0
       tslib:
         specifier: '*'
         version: 2.6.2
@@ -250,7 +237,7 @@ importers:
         specifier: ^3.0.0
         version: 3.2.2(@sveltejs/kit@2.5.18(@sveltejs/vite-plugin-svelte@3.1.1(svelte@5.0.0-next.167)(vite@5.2.11(@types/node@20.12.8)(sass@1.76.0)))(svelte@5.0.0-next.167)(vite@5.2.11(@types/node@20.12.8)(sass@1.76.0)))
       '@sveltejs/kit':
-        specifier: ^2.0.0
+        specifier: ^2.5.18
         version: 2.5.18(@sveltejs/vite-plugin-svelte@3.1.1(svelte@5.0.0-next.167)(vite@5.2.11(@types/node@20.12.8)(sass@1.76.0)))(svelte@5.0.0-next.167)(vite@5.2.11(@types/node@20.12.8)(sass@1.76.0))
       '@sveltejs/vite-plugin-svelte':
         specifier: ^3.1.1
@@ -789,9 +776,6 @@ packages:
   '@types/web-bluetooth@0.0.20':
     resolution: {integrity: sha512-g9gZnnXVq7gM7v3tJCWV/qw7w+KeOlSHAhgF9RytFyifW6AF61hdT2ucrYhPq9hLs5JIryeupHV3qGk95dH9ow==}
 
-  '@types/web@0.0.143':
-    resolution: {integrity: sha512-TazK16/OqeeqfQRB/Tv/NwzJagHbLi/w5g26FLbiFte/8LpPq6BuTyXHO/cpgwJpE6KGgFSNYb6Ap05Tz9XvCA==}
-
   '@types/webfontloader@1.6.38':
     resolution: {integrity: sha512-kUaF72Fv202suFx6yBrwXqeVRMx7hGtJTesyESZgn9sEPCUeDXm2p0SiyS1MTqW74nQP4p7JyrOCwZ7pNFns4w==}
 
@@ -1231,9 +1215,6 @@ packages:
   deep-is@0.1.4:
     resolution: {integrity: sha512-oIPzksmTg4/MriiaYGO+okXDT7ztn/w3Eptv/+gSIdMdKsJo0u4CfYNFJPy+4SKMuCqGw2wxnA+URMg3t8a/bQ==}
 
-  deep-object-diff@1.1.9:
-    resolution: {integrity: sha512-Rn+RuwkmkDwCi2/oXOFS9Gsr5lJZu/yTGpK7wAaAIE75CC+LCGEZHpY6VQJa/RoJcrmaA/docWJZvYohlNkWPA==}
-
   deepmerge@4.3.1:
     resolution: {integrity: sha512-3sUqbMEc77XqpdNO7FRyRog+eW3ph+GYCbj+rK+uYyRMuwsVy0rMiVtPn+QJlKFvWP/1PYpapqYn0Me2knFn+A==}
     engines: {node: '>=0.10.0'}
@@ -1571,9 +1552,6 @@ packages:
   is-glob@4.0.3:
     resolution: {integrity: sha512-xelSayHH36ZgE7ZWhli7pW34hNbNl8Ojv5KVmkJD4hBdD3th8Tfk9vYasLM+mXWOZhFkgZfxhLSnrwRr4elSSg==}
     engines: {node: '>=0.10.0'}
-
-  is-mobile@4.0.0:
-    resolution: {integrity: sha512-mlcHZA84t1qLSuWkt2v0I2l61PYdyQDt4aG1mLIXF5FDMm4+haBCxCPYSr/uwqQNRk1MiTizn0ypEuRAOLRAew==}
 
   is-number@7.0.0:
     resolution: {integrity: sha512-41Cifkg6e8TylSpdtTpeLVMqvSBEVzTttHvERD741+pnZ8ANv0004MRL43QKPDlK9cGvNp6NZWZUBlbGXYxxng==}
@@ -2926,8 +2904,6 @@ snapshots:
 
   '@types/web-bluetooth@0.0.20': {}
 
-  '@types/web@0.0.143': {}
-
   '@types/webfontloader@1.6.38': {}
 
   '@typescript-eslint/eslint-plugin@5.62.0(@typescript-eslint/parser@5.62.0(eslint@8.57.0)(typescript@5.4.5))(eslint@8.57.0)(typescript@5.4.5)':
@@ -3470,8 +3446,6 @@ snapshots:
 
   deep-is@0.1.4: {}
 
-  deep-object-diff@1.1.9: {}
-
   deepmerge@4.3.1: {}
 
   delayed-stream@1.0.0:
@@ -3864,8 +3838,6 @@ snapshots:
   is-glob@4.0.3:
     dependencies:
       is-extglob: 2.1.1
-
-  is-mobile@4.0.0: {}
 
   is-number@7.0.0: {}
 

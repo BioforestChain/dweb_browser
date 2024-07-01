@@ -1,7 +1,8 @@
 {
-  "name": "dweb-profile",
+  "name": "@dweb-browser/profile",
   "version": "0.0.1",
   "scripts": {
+    "postinstall": "svelte-kit sync",
     "dev": "vite dev",
     "build": "vite build",
     "preview": "vite preview",
@@ -15,7 +16,7 @@
     "@fontsource/fira-mono": "^4.5.10",
     "@neoconfetti/svelte": "^1.0.0",
     "@sveltejs/adapter-auto": "^3.0.0",
-    "@sveltejs/kit": "^2.0.0",
+    "@sveltejs/kit": "^2.5.18",
     "@sveltejs/vite-plugin-svelte": "^3.1.1",
     "prettier": "^3.1.1",
     "prettier-plugin-svelte": "^3.1.2",
