@@ -61,21 +61,15 @@ const { toMainChannel } = prepareInWorker(import.meta.url);
   const fetchImageBitmap = async (imageUrl: string, containerWidth: number, containerHeight: number) => {
     containerWidth = Math.min(containerWidth, 8192);
     containerHeight = Math.min(containerHeight, 8192);
-    const { imgSource, needFitSize } = await prepareImage(imageUrl);
-    let img = await createImageBitmap(imgSource);
-    if (needFitSize) {
-      const newSize = calcFitSize(img, {
-        width: containerWidth,
-        height: containerHeight,
-      });
-      if (img.width > newSize.width) {
-        img = await createImageBitmap(img, {
-          resizeWidth: newSize.width,
-          resizeHeight: newSize.height,
-        });
-      }
-    }
-    return img;
+    const { imgSource } = await prepareImage(imageUrl);
+    const newSize = calcFitSize(imgSource, {
+      width: containerWidth,
+      height: containerHeight,
+    });
+    return await createImageBitmap(imgSource, {
+      resizeWidth: newSize.width,
+      resizeHeight: newSize.height,
+    });
   };
 
   const busyCanvasSet = new Set<OffscreenCanvas>();
