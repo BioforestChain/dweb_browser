@@ -21,6 +21,10 @@ object AboutI18nResource {
     SimpleI18nResource(Language.ZH to "WebView 版本", Language.EN to "WebView Version")
   val cpuCoresNumber =
     SimpleI18nResource(Language.ZH to "CPU核心数", Language.EN to "CPU Cores Number")
+  val cpuPerformanceCoresNumber =
+    SimpleI18nResource(Language.ZH to "CPU高效核心数", Language.EN to "CPU Performance Cores Number")
+  val cpuEfficiencyCoresNumber =
+    SimpleI18nResource(Language.ZH to "CPU节能核心数", Language.EN to "CPU Efficiency Cores Number")
   val totalMemory =
     SimpleI18nResource(Language.ZH to "JVM总内存", Language.EN to "JVM Total Memory")
   val freeMemory =
@@ -62,4 +66,5 @@ object AboutI18nResource {
   val dynamicIsland = SimpleI18nResource(Language.ZH to "灵动岛", Language.EN to "Dynamic Island")
   val isTrue = SimpleI18nResource(Language.ZH to "有", Language.EN to "True")
   val isFalse = SimpleI18nResource(Language.ZH to "无", Language.EN to "False")
+  val chip = SimpleI18nResource(Language.ZH to "芯片", Language.EN to "Chip")
 }

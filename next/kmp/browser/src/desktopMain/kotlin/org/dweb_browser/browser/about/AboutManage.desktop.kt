@@ -9,8 +9,8 @@ import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.platform.PureViewController
 import org.dweb_browser.helper.toSpaceSize
 import org.dweb_browser.platform.desktop.webview.jxBrowserEngine
-import org.dweb_browser.sys.device.DesktopHardwareInfo
 import org.dweb_browser.sys.device.DeviceManage
+import org.dweb_browser.sys.device.model.MacHardwareInfoData
 
 data class DesktopSystemInfo(
   val os: String,
@@ -26,7 +26,7 @@ data class DesktopSystemInfo(
 )
 
 actual suspend fun AboutNMM.AboutRuntime.openAboutPage(id: UUID) {
-  val desktopHardwareInfo = DeviceManage.getHardwareInfo()
+  val macHardwareInfo = DeviceManage.getMacHardwareInfo()
   val desktopSystemInfo = Runtime.getRuntime().run {
     DesktopSystemInfo(
       os = when {
@@ -53,7 +53,7 @@ actual suspend fun AboutNMM.AboutRuntime.openAboutPage(id: UUID) {
       modifier = modifier,
       appInfo = desktopAppInfo,
       desktopSystemInfo = desktopSystemInfo,
-      desktopHardwareInfo = desktopHardwareInfo
+      macHardwareInfo = macHardwareInfo
     )
   }
 }
@@ -62,8 +62,8 @@ actual suspend fun AboutNMM.AboutRuntime.openAboutPage(id: UUID) {
 fun AboutRender(
   modifier: Modifier,
   appInfo: AboutAppInfo,
-  desktopHardwareInfo: DesktopHardwareInfo,
   desktopSystemInfo: DesktopSystemInfo,
+  macHardwareInfo: MacHardwareInfoData?,
 ) {
   LazyColumn(
     modifier = modifier,
@@ -111,15 +111,42 @@ fun AboutRender(
       }
       AboutHorizontalDivider()
     }
-    item("hardware-info") {
-      AboutTitle(AboutI18nResource.hardware())
-      AboutContainer {
-        AboutDetailsItem(
-          labelName = AboutI18nResource.modelName(), text = desktopHardwareInfo.modelName
-        )
+    if (macHardwareInfo != null) {
+      item("hardware-info") {
+        AboutTitle(AboutI18nResource.hardware())
+        AboutContainer {
+          AboutDetailsItem(
+            labelName = AboutI18nResource.modelName(), text = macHardwareInfo.modelName
+          )
+          AboutDetailsItem(
+            labelName = AboutI18nResource.chip(), text = macHardwareInfo.chip
+          )
+          AboutDetailsItem(
+            labelName = AboutI18nResource.ram(), text = macHardwareInfo.ram
+          )
+          macHardwareInfo.cpuCoresNumber?.also {
+            AboutDetailsItem(
+              labelName = AboutI18nResource.cpuCoresNumber(),
+              text = macHardwareInfo.cpuCoresNumber!!
+            )
+          }
+          macHardwareInfo.cpuPerformanceCoresNumber?.also {
+            AboutDetailsItem(
+              labelName = AboutI18nResource.cpuPerformanceCoresNumber(),
+              text = macHardwareInfo.cpuPerformanceCoresNumber!!
+            )
+          }
+          macHardwareInfo.cpuEfficiencyCoresNumber?.also {
+            AboutDetailsItem(
+              labelName = AboutI18nResource.cpuEfficiencyCoresNumber(),
+              text = macHardwareInfo.cpuEfficiencyCoresNumber!!
+            )
+          }
+        }
+        AboutHorizontalDivider()
       }
-      AboutHorizontalDivider()
     }
+
     item("env-switch") {
       EnvSwitcherRender()
       AboutHorizontalDivider()

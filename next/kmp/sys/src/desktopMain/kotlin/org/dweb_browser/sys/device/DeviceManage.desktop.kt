@@ -4,6 +4,7 @@ import org.dweb_browser.core.std.file.FileNMM
 import org.dweb_browser.core.std.file.getApplicationRootDir
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.platform.desktop.os.OsType
+import org.dweb_browser.sys.device.model.MacHardwareInfo
 
 data class DesktopHardwareInfo(val modelName: String)
 
@@ -42,5 +43,6 @@ actual object DeviceManage {
     ?: "0.0.0-dev.0"
   }
 
-  fun getHardwareInfo() = DesktopHardwareInfo(modelName = "Unknown")
+
+  fun getMacHardwareInfo() = MacHardwareInfo.getHardwareInfo()
 }
