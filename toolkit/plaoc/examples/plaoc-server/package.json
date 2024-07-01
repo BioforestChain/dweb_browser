@@ -9,8 +9,5 @@
   "dependencies": {
     "@plaoc/server": "workspace:^"
   },
-  "devDependencies": {
-    "@types/glob": "^8.1.0",
-    "glob": "^8.1.0"
-  }
+  "devDependencies": {}
 }

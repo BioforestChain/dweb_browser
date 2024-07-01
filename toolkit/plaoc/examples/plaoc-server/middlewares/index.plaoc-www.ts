@@ -1,4 +1,4 @@
-import { Router } from "@plaoc/server";
+import { Router } from "@plaoc/server/middlewares";
 const app = new Router();
 
 app.use((event) => {

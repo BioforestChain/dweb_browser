@@ -9,7 +9,7 @@ kotlinCompilerExtensionVersion = "1.5.14"
 jvmTarget = "17"
 javaVersion = "VERSION_17" # JavaVersion.VERSION_17
 
-agp = "8.3.2"
+agp = "8.5.0"
 androidx-baselineprofile-version = "1.2.4"
 kotlin-version = "2.0.20-Beta1"
 kotlin-serialization-gradle = "2.0.0"

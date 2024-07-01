@@ -22,7 +22,11 @@
   },
   "exports": {
     "./plaoc.server.dev.js": "./dist/dev/plaoc.server.js",
-    "./plaoc.server.js": "./dist/prod/plaoc.server.js"
+    "./plaoc.server.js": "./dist/prod/plaoc.server.js",
+    "./middlewares": {
+      "import": "./esm/middlewares/index.js",
+      "types": "./src/middlewares/index.ts"
+    }
   },
   "dependencies": {
     "@dweb-browser/core": "workspace:~",
