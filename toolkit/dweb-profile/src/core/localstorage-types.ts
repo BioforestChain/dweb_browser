@@ -1,6 +1,7 @@
 export type Row = { key: string; value: string };
 
 export type BackupV1 = {
-  version: number;
+  dbtype: 'localstorage';
+  version: 1;
   items: Array<Row>;
 };

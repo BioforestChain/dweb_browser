@@ -1,7 +1,11 @@
 import * as $LocalStorageBackup from './localstorage-types.ts';
 
 export const exportLocalStorageV1 = async () => {
-  const export_backup: $LocalStorageBackup.BackupV1 = { version: 1, items: [] };
+  const export_backup: $LocalStorageBackup.BackupV1 = {
+    dbtype: 'localstorage',
+    version: 1,
+    items: [],
+  };
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i)!;
     const value = localStorage.getItem(key)!;

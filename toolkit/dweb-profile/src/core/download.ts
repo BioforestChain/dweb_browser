@@ -1,7 +1,20 @@
 import { decode, encode } from 'cbor-x';
+// require('@bokuweb/zstd-wasm/dist/esm/index.web.js')
+// import { init, compress, decompress } from '@bokuweb/zstd-wasm/dist/esm/index.web.js';
+// import zstd_wasm from './zstd.wasm?init';
+
+export const BACKUP_FILE_EXT = '.dwebackup';
 
 export const encodeToBlob = async (obj: unknown) => {
-  return await new Response(encode(obj)).blob();
+  // 先进行cbor编码
+  const cbor = encode(obj);
+  // //@ts-ignore
+  // const xx= await zstd_wasm()
+  // await init(zstd_wasm_url);
+  // 然后进行压缩
+  // const compressed = compress(cbor, 10);
+
+  return await new Response(cbor).blob();
 };
 
 export const decodeFromBlob = async (blob: Blob) => {

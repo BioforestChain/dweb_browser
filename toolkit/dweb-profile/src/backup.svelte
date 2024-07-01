@@ -1,14 +1,14 @@
 <script lang="ts">
   // logic goes here
   import { exportIndexeddb, importIndexdb, clearIndexeddb } from './core/indexeddb.ts';
-  import { download, encodeToBlob, getDateTimeString } from './core/download.ts';
+  import { BACKUP_FILE_EXT, download, encodeToBlob, getDateTimeString } from './core/download.ts';
   const doBackup = async () => {
     console.log('开始备份');
     const export_backup = await exportIndexeddb();
     console.log('备份完成', export_backup);
     const blob = await encodeToBlob(export_backup);
     console.log('编码完成', blob);
-    download(URL.createObjectURL(blob), getDateTimeString() + '.cbor');
+    download(URL.createObjectURL(blob), getDateTimeString() + BACKUP_FILE_EXT);
   };
   import * as idb from 'idb';
   const keyList: IDBValidKey[] = [
@@ -57,7 +57,8 @@
     100n,
     Infinity,
     -Infinity,
-    NaN,
+    // TODO wait for bug fixed
+    // NaN,
     new Date(10000),
     /./,
     false,

@@ -7,7 +7,11 @@ export const getIndexeddbInfo = async () => {
 };
 
 export const exportIndexeddbV1 = async () => {
-  const export_backup: $IndexeddbBackup.BackupV1 = { version: 1, dbs: [] };
+  const export_backup: $IndexeddbBackup.BackupV1 = {
+    dbtype: 'indexeddb',
+    version: 1,
+    dbs: [],
+  };
   for (const db_info of await indexedDB.databases()) {
     const db = await idb.openDB(db_info.name!);
     const read = await db.transaction(db.objectStoreNames, 'readonly');
@@ -15,7 +19,7 @@ export const exportIndexeddbV1 = async () => {
     const export_db: $IndexeddbBackup.Database = {
       name: db.name,
       version: db.version,
-      stores: []
+      stores: [],
     };
     export_backup.dbs.push(export_db);
 
@@ -26,7 +30,7 @@ export const exportIndexeddbV1 = async () => {
         autoIncrement: storeObject.autoIncrement,
         keyPath: Array.isArray(storeObject.keyPath) ? storeObject.keyPath : [storeObject.keyPath],
         indexs: [],
-        cols: []
+        cols: [],
       };
       export_db.stores.push(export_store);
 
@@ -37,7 +41,7 @@ export const exportIndexeddbV1 = async () => {
           name: index.name,
           keyPath: Array.isArray(index.keyPath) ? index.keyPath : [index.keyPath],
           unique: index.unique,
-          multiEntry: index.multiEntry
+          multiEntry: index.multiEntry,
         });
       }
 
@@ -47,7 +51,7 @@ export const exportIndexeddbV1 = async () => {
         export_store.cols.push({
           key: cursor.key,
           primaryKey: cursor.primaryKey,
-          value: cursor.value
+          value: cursor.value,
         });
         cursor = await cursor.continue();
       }
@@ -82,16 +86,16 @@ export const importIndexdbV1 = async (import_backup: $IndexeddbBackup.BackupV1) 
         for (const import_store of import_db.stores) {
           const store = db.createObjectStore(import_store.name, {
             autoIncrement: import_store.autoIncrement,
-            keyPath: import_store.keyPath
+            keyPath: import_store.keyPath,
           });
           for (const import_index of import_store.indexs) {
             store.createIndex(import_index.name, import_index.keyPath, {
               multiEntry: import_index.multiEntry,
-              unique: import_index.unique
+              unique: import_index.unique,
             });
           }
         }
-      }
+      },
     });
 
     /// 导入数据

@@ -19,6 +19,7 @@ export type Database = {
 };
 
 export type BackupV1 = {
-  version: number;
+  dbtype: 'indexeddb';
+  version: 1;
   dbs: Array<Database>;
 };

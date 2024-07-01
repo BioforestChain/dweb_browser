@@ -1,7 +1,0 @@
-{
-  "name": "@dweb-browser/profile",
-  "version": "0.0.1",
-  "dependencies": {
-    "idb": "^8.0.0"
-  }
-}
