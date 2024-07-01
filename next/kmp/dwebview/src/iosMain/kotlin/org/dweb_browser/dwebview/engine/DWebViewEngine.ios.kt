@@ -94,6 +94,14 @@ class DWebViewEngine(
   )
   /// 必须在 WKWebView 得到 configuration 之前，就要进行 websiteDataStore 的配置
   configuration.websiteDataStore = profile.store
+  val preferences = WKPreferences()
+  preferences.javaScriptEnabled = true
+  preferences.javaScriptCanOpenWindowsAutomatically = false
+  configuration.preferences = preferences
+  configuration.allowsInlineMediaPlayback = true
+  configuration.allowsAirPlayForMediaPlayback = true
+  configuration.allowsPictureInPictureMediaPlayback = true
+  configuration.mediaTypesRequiringUserActionForPlayback = WKAudiovisualMediaTypeNone
 }) {
   val mainScope = CoroutineScope(mainAsyncExceptionHandler + SupervisorJob())
   val lifecycleScope = CoroutineScope(remoteMM.getRuntimeScope().coroutineContext + SupervisorJob())
@@ -218,14 +226,6 @@ class DWebViewEngine(
     setUIDelegate(dwebUIDelegate)
     scrollView.setDelegate(dwebUIScrollViewDelegate)
 
-    val preferences = WKPreferences()
-    preferences.javaScriptEnabled = true
-    preferences.javaScriptCanOpenWindowsAutomatically = false
-    configuration.preferences = preferences
-    configuration.allowsInlineMediaPlayback = true
-    configuration.allowsAirPlayForMediaPlayback = true
-    configuration.allowsPictureInPictureMediaPlayback = true
-    configuration.mediaTypesRequiringUserActionForPlayback = WKAudiovisualMediaTypeNone
     configuration.userContentController.apply {
 //      removeAllScriptMessageHandlers()
 //      removeAllScriptMessageHandlersFromContentWorld(DWebViewWebMessage.webMessagePortContentWorld)
