@@ -1,14 +1,14 @@
 export type StoreRow = { key: IDBValidKey; primaryKey: IDBValidKey; value: unknown };
 export type StoreIndex = {
   name: string;
-  keyPath: string[];
+  keyPath?: string[];
   multiEntry: boolean;
   unique: boolean;
 };
 export type Store = {
   name: string;
   autoIncrement: boolean;
-  keyPath: string[];
+  keyPath?: string[];
   indexs: Array<StoreIndex>;
   cols: Array<StoreRow>;
 };

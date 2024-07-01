@@ -28,7 +28,12 @@ export const exportIndexeddbV1 = async () => {
       const export_store: $IndexeddbBackup.Store = {
         name: storeObject.name,
         autoIncrement: storeObject.autoIncrement,
-        keyPath: Array.isArray(storeObject.keyPath) ? storeObject.keyPath : [storeObject.keyPath],
+        keyPath:
+          storeObject.keyPath !== null
+            ? Array.isArray(storeObject.keyPath)
+              ? storeObject.keyPath
+              : [storeObject.keyPath]
+            : undefined,
         indexs: [],
         cols: [],
       };
@@ -39,7 +44,12 @@ export const exportIndexeddbV1 = async () => {
         const index = await storeObject.index(indexName);
         export_store.indexs.push({
           name: index.name,
-          keyPath: Array.isArray(index.keyPath) ? index.keyPath : [index.keyPath],
+          keyPath:
+            index.keyPath !== null
+              ? Array.isArray(index.keyPath)
+                ? index.keyPath
+                : [index.keyPath]
+              : undefined,
           unique: index.unique,
           multiEntry: index.multiEntry,
         });

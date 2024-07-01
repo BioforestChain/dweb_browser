@@ -36,7 +36,7 @@
     keyList.push([item, item]);
   }
   const valueList: any[] = [
-    new Blob(['aaaaaaaaaa']),
+    // new Blob(['aaaaaaaaaa']),
     new Uint16Array(100),
     new Uint8Array(100),
     new Uint8ClampedArray(100),
