@@ -1,6 +1,11 @@
 plugins {
   id("kmp-compose")
 }
+dependencies {
+  implementation(project(":pureCrypto"))
+  implementation(project(":pureCrypto"))
+  implementation(project(":pureCrypto"))
+}
 
 kotlin {
   kmpCommonTarget(project) {
@@ -31,6 +36,7 @@ kotlin {
     dependencies {
       implementation(libs.accompanist.systemui.controller)
       implementation(libs.google.material)
+      implementation(projects.pureCrypto)
     }
   }
   kmpIosTarget(project) {
