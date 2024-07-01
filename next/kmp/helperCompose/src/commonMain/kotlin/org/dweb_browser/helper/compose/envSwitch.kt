@@ -12,7 +12,18 @@ class EnvSwitch : EnvSwitchCore() {
   fun isEnabled(switch: ENV_SWITCH_KEY) = isEnabled(switch.key)
   fun get(switch: ENV_SWITCH_KEY) = get(switch.key)
   fun set(switch: ENV_SWITCH_KEY, value: String) = set(switch.key, value)
-  fun enable(switch: ENV_SWITCH_KEY) = set(switch.key, "true")
+  fun enable(switch: ENV_SWITCH_KEY) {
+    if (switch.experimental != null) {
+      for (sameBranchSwitchKey in ENV_SWITCH_KEY.entries) {
+        if (sameBranchSwitchKey !== switch && sameBranchSwitchKey.experimental?.brand == switch.experimental.brand) {
+          disable(sameBranchSwitchKey)
+        }
+      }
+    }
+
+    set(switch.key, "true")
+  }
+
   fun disable(switch: ENV_SWITCH_KEY) {
     remove(switch)
     /// 如果默认值是 true，那么不能用remove，得直接赋值 false
