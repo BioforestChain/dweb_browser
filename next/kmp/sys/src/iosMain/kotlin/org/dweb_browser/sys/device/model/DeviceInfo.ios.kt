@@ -5,15 +5,19 @@ import kotlinx.cinterop.alloc
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.ptr
 import kotlinx.cinterop.toKString
+import org.dweb_browser.helper.toFixed
+import org.dweb_browser.helper.toSpaceSize
+import platform.Foundation.NSProcessInfo
+import platform.Metal.MTLCreateSystemDefaultDevice
 import platform.UIKit.UIDevice
+import platform.UIKit.UIScreen
 import platform.posix.uname
 import platform.posix.utsname
 
 data class BatteryInfo(
-  val batteryLevel: Float,
+  val electricity: String,
   val isCharging: Boolean
 )
-
 
 object DeviceInfo {
   @OptIn(ExperimentalForeignApi::class)
@@ -33,12 +37,34 @@ object DeviceInfo {
   val deviceName: String
     get() = UIDevice.currentDevice.name
 
+  val brightness: String
+    get() = "${(UIScreen.mainScreen.brightness * 100).toFixed(1)}%"
+
+  val hasDynamicIsland: Boolean
+    get() = extractNumberFromString(model).toInt() >= 15
+
+  val ram: String
+    get() = NSProcessInfo.processInfo.physicalMemory.toLong().toSpaceSize()
+
+  val gpu: String
+    get() = MTLCreateSystemDefaultDevice()?.name ?: "Unknown"
+
+  val cpuCoresNumber: Int
+    get() = NSProcessInfo.processInfo.processorCount.toInt()
+
   val batteryInfo: BatteryInfo
     get() {
       UIDevice.currentDevice.run {
         // 开启电池电量监听，否则永远是-1.0
         batteryMonitoringEnabled = true
-        return BatteryInfo(batteryLevel, this.batteryState.value != 1L)
+
+        val electricity = if (batteryLevel >= 0) {
+          "${(batteryLevel * 100).toInt()}%"
+        } else {
+          "Unknown"
+        }
+
+        return BatteryInfo(electricity, this.batteryState.value != 1L)
       }
     }
 
@@ -69,5 +95,12 @@ object DeviceInfo {
     "iPhone16,1" -> "iPhone 15 Pro"
     "iPhone16,2" -> "iPhone 15 Pro Max"
     else -> "Unknown"
+  }
+
+  private fun extractNumberFromString(input: String): String {
+    val prefix = input.takeWhile { it.isLetter() }
+    val rest = input.removePrefix(prefix)
+    val firstNumber = rest.takeWhile { it.isDigit() }
+    return firstNumber
   }
 }

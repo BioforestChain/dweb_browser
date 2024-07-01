@@ -40,6 +40,7 @@ object AboutI18nResource {
   val refreshRate = SimpleI18nResource(Language.ZH to "屏幕最高帧率", Language.EN to "Refresh Rate")
   val memory =
     SimpleI18nResource(Language.ZH to "内存 已用/全部", Language.EN to "Memory Usage/Total")
+  val ram = SimpleI18nResource(Language.ZH to "运行内存", Language.EN to "RAM")
   val storage =
     SimpleI18nResource(Language.ZH to "存储 已用/全部", Language.EN to "Storage Usage/Total")
   val status = SimpleI18nResource(Language.ZH to "状态", Language.EN to "Status")
@@ -57,4 +58,8 @@ object AboutI18nResource {
     Language.ZH to "您的更改将在您下次重新启动 DwebBrowser 时生效。",
     Language.EN to "Your changes will take effect the next time you relaunch DwebBrowser."
   )
+  val brightness = SimpleI18nResource(Language.ZH to "亮度", Language.EN to "Brightness")
+  val dynamicIsland = SimpleI18nResource(Language.ZH to "灵动岛", Language.EN to "Dynamic Island")
+  val isTrue = SimpleI18nResource(Language.ZH to "有", Language.EN to "True")
+  val isFalse = SimpleI18nResource(Language.ZH to "无", Language.EN to "False")
 }

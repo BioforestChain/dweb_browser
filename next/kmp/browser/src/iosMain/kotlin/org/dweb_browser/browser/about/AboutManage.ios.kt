@@ -22,6 +22,11 @@ data class IOSSystemInfo(
 data class IOSHardwareInfo(
   val deviceName: String,
   val modelName: String,
+  val brightness: String,
+  val ram: String,
+  val gpu: String,
+  val cpuCoresNumber: Int,
+  val hasDynamicIsLand: Boolean
 )
 
 actual suspend fun AboutNMM.AboutRuntime.openAboutPage(id: UUID) {
@@ -39,6 +44,11 @@ actual suspend fun AboutNMM.AboutRuntime.openAboutPage(id: UUID) {
   val iosHardwareInfo = IOSHardwareInfo(
     deviceName = DeviceInfo.deviceName,
     modelName = DeviceInfo.modelName,
+    brightness = DeviceInfo.brightness,
+    ram = DeviceInfo.ram,
+    gpu = DeviceInfo.gpu,
+    cpuCoresNumber = DeviceInfo.cpuCoresNumber,
+    hasDynamicIsLand = DeviceInfo.hasDynamicIsland
   )
   provideAboutRender(id) { modifier ->
     AboutRender(
@@ -93,6 +103,23 @@ fun AboutRender(
         AboutDetailsItem(
           labelName = AboutI18nResource.modelName(), text = iosHardwareInfo.modelName
         )
+        AboutDetailsItem(
+          labelName = AboutI18nResource.brightness(), text = iosHardwareInfo.brightness
+        )
+        AboutDetailsItem(
+          labelName = AboutI18nResource.ram(), text = iosHardwareInfo.ram
+        )
+        AboutDetailsItem(
+          labelName = AboutI18nResource.cpuCoresNumber(),
+          text = iosHardwareInfo.cpuCoresNumber.toString()
+        )
+        AboutDetailsItem(
+          labelName = "GPU", text = iosHardwareInfo.gpu
+        )
+        AboutDetailsItem(
+          labelName = AboutI18nResource.dynamicIsland(),
+          text = if (iosHardwareInfo.hasDynamicIsLand) AboutI18nResource.isTrue() else AboutI18nResource.isFalse()
+        )
       }
       AboutHorizontalDivider()
     }
@@ -100,7 +127,7 @@ fun AboutRender(
       AboutTitle(AboutI18nResource.battery())
       AboutContainer {
         AboutDetailsItem(
-          labelName = AboutI18nResource.percent(), text = batteryInfo.batteryLevel.toString()
+          labelName = AboutI18nResource.percent(), text = batteryInfo.electricity
         )
         AboutDetailsItem(
           labelName = AboutI18nResource.status(),

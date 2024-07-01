@@ -34,11 +34,6 @@ fun Double.toFixed(digits: Int): String {
 
 fun Float.toFixed(digits: Int) = toDouble().toFixed(digits)
 
-private fun main() {
-  val a = 23634L
-  println("a=$a, result=${a.toSpaceSize()}")
-}
-
 /**
  * 用于对 或 判断的返回
  */

@@ -7,6 +7,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.platform.PureViewController
+import org.dweb_browser.helper.toSpaceSize
 import org.dweb_browser.platform.desktop.webview.jxBrowserEngine
 import org.dweb_browser.sys.device.DesktopHardwareInfo
 import org.dweb_browser.sys.device.DeviceManage
@@ -97,15 +98,15 @@ fun AboutRender(
         )
         AboutDetailsItem(
           labelName = AboutI18nResource.totalMemory(),
-          text = desktopSystemInfo.totalMemory.toString()
+          text = desktopSystemInfo.totalMemory.toSpaceSize()
         )
         AboutDetailsItem(
           labelName = AboutI18nResource.freeMemory(),
-          text = desktopSystemInfo.freeMemory.toString()
+          text = desktopSystemInfo.freeMemory.toSpaceSize()
         )
         AboutDetailsItem(
           labelName = AboutI18nResource.maximumMemory(),
-          text = desktopSystemInfo.maximumMemory.toString()
+          text = desktopSystemInfo.maximumMemory.toSpaceSize()
         )
       }
       AboutHorizontalDivider()
