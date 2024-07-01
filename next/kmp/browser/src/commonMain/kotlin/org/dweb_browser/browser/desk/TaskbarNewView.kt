@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
+import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.pure.image.compose.PureImageLoader
@@ -133,7 +134,11 @@ fun NewTaskbarView(
     ) {
 
       apps.forEach { app ->
-        TaskBarAppIcon(Modifier, app, taskbarController.deskNMM.imageFetchHook, openApp = { mmid ->
+        TaskBarAppIcon(Modifier,
+          app,
+          taskbarController.iconStore,
+          taskbarController.deskNMM,
+          openApp = { mmid ->
           scope.launch {
             taskbarController.open(mmid)
           }
@@ -161,12 +166,12 @@ fun NewTaskbarView(
   }
 }
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
 @Composable
 private fun TaskBarAppIcon(
   modifier: Modifier,
   app: TaskbarAppModel,
-  hook: FetchHook,
+  iconStore: DeskIconStore,
+  microModule: NativeMicroModule.NativeRuntime,
   openApp: (mmid: String) -> Unit,
   quitApp: (mmid: String) -> Unit,
   toggleWindow: (mmid: String) -> Unit,
@@ -216,12 +221,8 @@ private fun TaskBarAppIcon(
         if (iconImage != null) {
           Image(iconImage, contentDescription = null)
         } else {
-          val imageResult = PureImageLoader.SmartLoad(app.icon, maxWidth, maxWidth, hook)
-          if (imageResult.isSuccess) {
-            TaskbarAppModel.setCacheIcon(app.mmid, imageResult.success!!)
-            Image(imageResult.success!!, contentDescription = null)
-          } else {
-            Image(Icons.TwoTone.Image, contentDescription = null)
+          DeskCacheIcon(app.icon, iconStore, microModule, maxWidth, maxHeight) {
+            TaskbarAppModel.setCacheIcon(app.mmid, it)
           }
         }
       }

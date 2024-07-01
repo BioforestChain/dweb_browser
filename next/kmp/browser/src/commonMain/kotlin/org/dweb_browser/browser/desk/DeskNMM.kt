@@ -212,9 +212,10 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       val desktopServer = this.createDesktopWebServer()
       val deskSessionId = randomUUID()
 
-      val desktopController = DesktopController.create(this, desktopServer, runningApps)
+      val iconStore = DeskIconStore(this)
+      val desktopController = DesktopController.create(this, desktopServer, runningApps, iconStore)
       val taskBarController =
-        TaskbarController.create(deskSessionId, this, desktopController, taskbarServer, runningApps)
+        TaskbarController.create(deskSessionId, this, desktopController, taskbarServer, runningApps, iconStore)
       val deskControllers = DeskControllers(desktopController, taskBarController, this)
       controllersMap[deskSessionId] = deskControllers
 

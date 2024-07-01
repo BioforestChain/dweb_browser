@@ -54,7 +54,9 @@ import org.dweb_browser.helper.resolvePath
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.render.NativeBackHandler
 
-open class DesktopAppController constructor(open val deskNMM: DeskNMM.DeskRuntime) {
+abstract class DesktopAppController constructor(open val deskNMM: DeskNMM.DeskRuntime) {
+
+  abstract val iconStore: DeskIconStore
 
   suspend fun open(mmid: String) {
     deskNMM.nativeFetch("file://desk.browser.dweb/openAppOrActivate?app_id=$mmid")
@@ -73,6 +75,7 @@ open class DesktopAppController constructor(open val deskNMM: DeskNMM.DeskRuntim
 @Stable
 open class DesktopController private constructor(
   override val deskNMM: DeskNMM.DeskRuntime,
+  override val iconStore: DeskIconStore,
   private val desktopServer: HttpDwebServer,
   private val runningApps: ChangeableMap<MMID, RunningApp>,
 ): DesktopAppController(deskNMM) {
@@ -164,7 +167,8 @@ open class DesktopController private constructor(
       deskNMM: DeskNMM.DeskRuntime,
       desktopServer: HttpDwebServer,
       runningApps: ChangeableMap<MMID, RunningApp>,
-    ) = DesktopController(deskNMM, desktopServer, runningApps)
+      iconStore: DeskIconStore,
+    ) = DesktopController(deskNMM, iconStore, desktopServer, runningApps)
   }
 
   // 状态更新信号

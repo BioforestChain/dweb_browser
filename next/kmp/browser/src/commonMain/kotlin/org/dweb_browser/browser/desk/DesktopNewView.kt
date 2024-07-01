@@ -48,6 +48,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -55,7 +56,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
@@ -66,6 +66,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
@@ -90,16 +91,18 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.core.std.file.ext.blobRead
+import org.dweb_browser.core.std.file.ext.blobWrite
 import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.compose.clickableWithNoEffect
+import org.dweb_browser.helper.platform.toByteArray
+import org.dweb_browser.helper.platform.toImageBitmap
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.pure.image.compose.PureImageLoader
 import org.dweb_browser.pure.image.compose.SmartLoad
-import org.dweb_browser.pure.image.offscreenwebcanvas.FetchHook
 import org.dweb_browser.sys.window.render.imageFetchHook
 import kotlin.math.min
-
 
 @Composable
 fun NewDesktopView(
@@ -293,8 +296,9 @@ fun NewDesktopView(
                   doShowPopUp(index)
                 }
               ),
-            app = app,
-            hook = microModule.imageFetchHook,
+            app,
+            desktopController,
+            microModule,
           )
         }
       }
@@ -362,7 +366,8 @@ private typealias AppItemAction = (String) -> Unit
 fun AppItem(
   modifier: Modifier,
   app: DesktopAppModel,
-  hook: FetchHook,
+  desktopController: DesktopController,
+  microModule: NativeMicroModule.NativeRuntime,
 ) {
 
   Box(
@@ -375,7 +380,7 @@ fun AppItem(
     ) {
 
       DeskAppIcon(
-        app, hook
+        app, desktopController, microModule,
       )
       Text(
         text = app.name, maxLines = 2, overflow = TextOverflow.Ellipsis, style = TextStyle(
@@ -391,7 +396,9 @@ fun AppItem(
 
 @Composable
 fun DeskAppIcon(
-  app: DesktopAppModel, hook: FetchHook, width: Dp = 50.dp, height: Dp = 50.dp
+  app: DesktopAppModel,
+  desktopController: DesktopController,
+  microModule: NativeMicroModule.NativeRuntime,
 ) {
   val toRuningAnimation = rememberInfiniteTransition()
   val offY by toRuningAnimation.animateFloat(
@@ -408,12 +415,8 @@ fun DeskAppIcon(
     }
 
   ) {
-    val imageResult = PureImageLoader.SmartLoad(app.icon, width, height, hook)
-    if (imageResult.isSuccess) {
-      app.image = imageResult.success
-      Image(imageResult.success!!, contentDescription = null)
-    } else {
-      Image(Icons.TwoTone.Image, contentDescription = null)
+    DeskCacheIcon(app.icon, desktopController.iconStore, microModule) {
+      app.image = it
     }
   }
 }
@@ -652,5 +655,57 @@ data class DesktopAppModel(
 
   override fun toString(): String {
     return "${id}, ${mmid}, ${running}"
+  }
+}
+
+@Composable
+fun DeskCacheIcon(
+  iconUrl: String,
+  iconStore: DeskIconStore,
+  microModule: NativeMicroModule.NativeRuntime,
+  width: Dp = 50.dp,
+  height: Dp = 50.dp,
+  iconLoaded: (ImageBitmap) -> Unit
+) {
+  var checked by remember {
+    mutableStateOf<Pair<Boolean, ImageBitmap?>>(Pair(false, null))
+  }
+
+  val iconStoreKey = iconUrl + "w:$width" + "h:$height"
+
+  LaunchedEffect(iconStoreKey) {
+    var sha256 = iconStore.get(iconStoreKey)
+    var icon: ImageBitmap? = null
+    if (sha256 != null) {
+      icon = microModule.blobRead(sha256).binary().toImageBitmap()
+      //TODO:这边最好再实现一个memory的缓存，避免频繁的从磁盘读取
+    }
+    checked = Pair(true, icon)
+  }
+
+  if (checked.first) {
+    if (checked.second != null) {
+      Image(BitmapPainter(checked.second!!), "")
+      iconLoaded(checked.second!!)
+    } else {
+      val imageResult =
+        PureImageLoader.SmartLoad(iconUrl, width, height, microModule.imageFetchHook)
+      if (imageResult.isSuccess) {
+        val image = imageResult.success!!
+        Image(image, contentDescription = null)
+        iconLoaded(image)
+        LaunchedEffect(iconUrl) {
+          image.toByteArray()?.let {
+            val sha256 = microModule.blobWrite("image/*", it)
+            iconStore.set(iconStoreKey, sha256)
+          }
+        }
+      } else {
+        Image(Icons.TwoTone.Image, contentDescription = null)
+      }
+    }
+  } else {
+    Box(Modifier.background(Color.White))
+//    Image(Icons.TwoTone.Image, contentDescription = null)
   }
 }

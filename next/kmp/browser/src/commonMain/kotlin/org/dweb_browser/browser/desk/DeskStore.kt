@@ -39,3 +39,13 @@ class DaskSortStore(mm: MicroModule.Runtime) {
     store.delete(mmid)
   }
 }
+
+class DeskIconStore(val mm: MicroModule.Runtime) {
+  private val store = mm.createStore("desk_icon", false)
+
+  suspend fun delete(url: String) = store.delete(url)
+
+  suspend fun get(url: String) = store.getOrNull<String>(url)
+
+  suspend fun set(url: String, sha256: String) = store.set(url, sha256)
+}
