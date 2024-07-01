@@ -406,16 +406,19 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
           vfsPath.fsFullPath.toString()
         },
         "/blob/write" bind PureMethod.POST by defineStringResponse {
-          var shaCode = request.queryOrNull("sha256") ?: ""
-          if (shaCode.isEmpty()) {
-            val mime = request.queryOrNull("mime") ?: "application/octet-stream"
-            shaCode = sha256(mime.toByteArray() + request.body.toPureBinary()).toHexString()
-          }
+          val mime = request.queryOrNull("mime") ?: "application/octet-stream"
+          val shaCode = sha256(mime.toByteArray() + request.body.toPureBinary()).toHexString()
           val vfsPath = getVirtualFsPath(ipc.remote, "/blob/$shaCode")
           touchFile(vfsPath.fsFullPath, vfsPath.fs)
           val fileSource = vfsPath.fs.sink(vfsPath.fsFullPath, false).buffer()
           request.body.toPureStream().getReader("blob write to file").copyTo(fileSource)
           shaCode
+        },
+        "/blob/read" bind PureMethod.GET by definePureStreamHandler {
+          var shaCode = request.queryOrNull("sha256") ?: PureStream(ByteArray(0))
+          val vfsPath = getVirtualFsPath(ipc.remote, "/blob/$shaCode")
+          val fileSource = vfsPath.fs.safeSource(vfsPath.fsFullPath).buffer()
+          PureStream(fileSource.toByteReadChannel(mmScope))
         },
         "/blob/remove" bind PureMethod.GET by defineBooleanResponse {
           var shaCode = request.queryOrNull("sha256") ?: ""

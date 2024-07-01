@@ -7,6 +7,7 @@ import org.dweb_browser.pure.http.IPureBody
 import org.dweb_browser.pure.http.PureBinaryBody
 import org.dweb_browser.pure.http.PureClientRequest
 import org.dweb_browser.pure.http.PureMethod
+import org.dweb_browser.pure.http.PureResponse
 
 suspend fun MicroModule.Runtime.copyFile(sourcePath: String, targetPath: String) = nativeFetch(
   "file://file.std.dweb/copy?sourcePath=${sourcePath}&targetPath=${targetPath}"
@@ -70,10 +71,7 @@ suspend fun MicroModule.Runtime.blobWrite(mime: String, data: ByteArray) = nativ
   )
 ).text()
 
-suspend fun MicroModule.Runtime.blobPath(sha256: String): String? {
-  val path = nativeFetch(PureMethod.GET, "file://file.std.dweb/blob/path?sha256=${sha256}").text()
-  return path.ifEmpty { null }
-}
+suspend fun MicroModule.Runtime.blobRead(sha256: String) = nativeFetch("file://file.std.dweb/blob/read/?sha256=$sha256")
 
 suspend fun MicroModule.Runtime.blobRemove(sha256: String) =
   nativeFetch(PureMethod.GET, "file://file.std.dweb/blob/remove?sha256=${sha256}").boolean()
