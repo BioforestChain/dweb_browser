@@ -2,11 +2,10 @@ package org.dweb_browser.sys.device
 
 import org.dweb_browser.core.std.file.FileNMM
 import org.dweb_browser.core.std.file.getApplicationRootDir
+import org.dweb_browser.helper.platform.execCommand
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.platform.desktop.os.OsType
 import org.dweb_browser.sys.device.model.MacHardwareInfo
-
-data class DesktopHardwareInfo(val modelName: String)
 
 actual object DeviceManage {
   private val runtime by lazy { Runtime.getRuntime() }
@@ -14,15 +13,24 @@ actual object DeviceManage {
     runCatching {
       when (OsType.current) {
         OsType.MacOS -> {
-          val cmd = arrayOf(
-            "/bin/sh",
-            "-c",
-            "system_profiler SPHardwareDataType | awk '/UUID/ { print $3; }'"
-          )
-          runtime.exec(cmd)
+          val uuid = execCommand("system_profiler SPHardwareDataType | grep UUID | sed 's/.* //'")
+          if (uuid.isNotEmpty()) {
+            return@lazy uuid
+          } else {
+            throw java.io.IOException()
+          }
         }
 
-        OsType.Windows -> runtime.exec("wmic csproduct get UUID")
+        OsType.Windows -> {
+          try {
+            val uuid =
+              execCommand("wmic csproduct get UUID | Select-String -Pattern '^[0-9A-F-]+' | ForEach-Object { \$_.ToString().Trim() }")
+            return@lazy uuid
+          } catch (_: Exception) {
+            throw java.io.IOException()
+          }
+        }
+
         else -> runtime.exec("cat /sys/class/dmi/id/product_uuid")
       }.inputStream.readAllBytes().decodeToString()
     }.getOrElse {

@@ -3,6 +3,7 @@ package org.dweb_browser.sys.device.model
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.dweb_browser.helper.JsonLoose
+import org.dweb_browser.helper.platform.execCommand
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
@@ -35,17 +36,9 @@ data class MacHardwareInfoData(
 )
 
 object MacHardwareInfo {
-  private fun execCommand(): String {
-    val process =
-      Runtime.getRuntime().exec("system_profiler SPHardwareDataType -detailLevel mini -json")
-    val reader = BufferedReader(InputStreamReader(process.inputStream))
-    return reader.readText().trim()
-  }
-
   fun getHardwareInfo(): MacHardwareInfoData? {
-    val output = execCommand()
+    val output = execCommand("system_profiler SPHardwareDataType -detailLevel mini -json")
     val spHardwareData = JsonLoose.decodeFromString<SPHardwareData>(output)
-    println("QAQ spHardwareData=${spHardwareData.spHardwareDataType.size}")
     if (spHardwareData.spHardwareDataType.isNotEmpty()) {
       val spHardwareDataItem = spHardwareData.spHardwareDataType[0]
       val numberProcessors =
