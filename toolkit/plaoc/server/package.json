@@ -25,7 +25,7 @@
     "./plaoc.server.js": "./dist/prod/plaoc.server.js",
     "./middlewares": {
       "import": "./esm/middlewares/index.js",
-      "types": "./src/middlewares/index.ts"
+      "types": "./esm/middlewares/index.d.ts"
     }
   },
   "dependencies": {
