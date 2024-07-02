@@ -56,7 +56,7 @@ const { toMainChannel } = prepareInWorker(import.meta.url);
   const prepareImage = async (imageUrl: string) => {
     const { ready, ...result } = imageCache.getOrPut(imageUrl, () => fetchImage(imageUrl));
     try {
-      await ready;
+      await ready.promise;
     } catch {
       imageCache.delete(imageUrl);
     }
