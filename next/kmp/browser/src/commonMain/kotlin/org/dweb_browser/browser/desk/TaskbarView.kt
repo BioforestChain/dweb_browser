@@ -144,7 +144,7 @@ abstract class ITaskbarView(private val taskbarController: TaskbarController) {
         .clip(RoundedCornerShape(16.dp))
         .background(Color.Black.copy(alpha = 0.2f))
 
-      if (envSwitch.isEnabled(ENV_SWITCH_KEY.DESKTOP_STYLE_COMPOSE)) {
+      if (remember { envSwitch.isEnabled(ENV_SWITCH_KEY.DESKTOP_STYLE_COMPOSE) }) {
         TaskbarViewRenderNewVersion(draggableHelper, modifier)
       } else {
         TaskbarViewRender(draggableHelper, modifier)

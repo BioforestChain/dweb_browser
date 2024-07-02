@@ -164,9 +164,11 @@ class TaskbarController private constructor(
    *
    * @returns 如果视图发生了真实的改变（不论是否变成说要的结果），则返回 true
    */
+
+  val desktopIsComposeStyle = envSwitch.isEnabled(ENV_SWITCH_KEY.DESKTOP_STYLE_COMPOSE)
   fun resize(reSize: ReSize) {
     //TODO: 临时处理, 用于防止被compose版本的taskbar被web版本的taskbar影响到。后期确定使用compose版本需要再统一删除掉。
-    if (envSwitch.isEnabled(ENV_SWITCH_KEY.DESKTOP_STYLE_COMPOSE)) {
+    if (desktopIsComposeStyle) {
       return
     }
     state.layoutWidth = reSize.width
