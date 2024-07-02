@@ -79,7 +79,7 @@ class DWebView private constructor(
     val prepare = SuspendOnce {
       coroutineScope {
         launch { DwebViewIosPolyfill.prepare(); }
-        DwebViewProxy.prepare();
+        DwebViewProxy.waitReady();
       }
     }
 

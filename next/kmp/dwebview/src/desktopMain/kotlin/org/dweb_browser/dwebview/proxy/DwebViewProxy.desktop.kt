@@ -11,7 +11,7 @@ import org.dweb_browser.pure.http.ReverseProxyServer
 object DwebViewProxy {
   private val reverseProxyServer = ReverseProxyServer()
   val prepare = SuspendOnce {
-    ProxyUrl = globalIoScope.async {
+    proxyUrl = globalIoScope.async {
       debugDWebView("reverse_proxy", "starting")
       val backendServerPort = dwebHttpGatewayServer.startServer().toUShort()
       val proxyPort = reverseProxyServer.start(backendServerPort)
@@ -30,6 +30,6 @@ object DwebViewProxy {
     }
   }
 
-  lateinit var ProxyUrl: String
+  lateinit var proxyUrl: String
     private set
 }

@@ -85,8 +85,9 @@ class DWebViewEngine(
   registryDwebHttpUrlSchemeHandler(remoteMM, it)
   registryDwebSchemeHandler(remoteMM, it)
 
+  // TODO 监听 DwebViewProxy.proxyUrlFlow 变动，自动重启 WKWebView
   // 需要在 websiteDataStore 上设置代理
-  val url = Url(DwebViewProxy.ProxyUrl)
+  val url = Url(DwebViewProxy.proxyUrl)
   dwebHelper.setProxyWithWebsiteDataStore(
     profile.store,
     url.host,

@@ -89,7 +89,6 @@ internal class OffscreenWebCanvasMessageChannel {
   val entryUrlFlow = server.stateFlow.mapNotNull { port ->
     when (port) {
       null -> {
-        println("QAQ offscreen web canvas server state == 'stop'~~~")
         hostWithPort = ""
         startPureServer(server)
         null

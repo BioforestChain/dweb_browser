@@ -1,6 +1,6 @@
 /// <reference path="../node_modules/vite/client.d.ts"/>
 
-import { transferControlToOffscreen as transferControlToOffscreen } from "./prepare-in-main.ts";
+import { transferControlToOffscreen } from "./prepare-in-main.ts";
 import InlineWorker from "./worker.ts?worker";
 
 const canvasList = Array.from({ length: 3 }, () => {

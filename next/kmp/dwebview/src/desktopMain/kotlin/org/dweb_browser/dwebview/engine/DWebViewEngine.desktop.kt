@@ -40,8 +40,8 @@ import org.dweb_browser.dwebview.polyfill.DwebViewDesktopPolyfill
 import org.dweb_browser.dwebview.polyfill.FaviconPolyfill
 import org.dweb_browser.dwebview.proxy.DwebViewProxy
 import org.dweb_browser.dwebview.toReadyListener
-import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
 import org.dweb_browser.helper.JsonLoose
+import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
 import org.dweb_browser.helper.compose.envSwitch
 import org.dweb_browser.helper.getOrNull
 import org.dweb_browser.helper.platform.getOrCreateIncognitoProfile
@@ -82,7 +82,7 @@ class DWebViewEngine internal constructor(
       profile
     }.let { profile ->
       // 设置https代理
-      val proxyRules = "https=${DwebViewProxy.ProxyUrl}"
+      val proxyRules = "https=${DwebViewProxy.proxyUrl}"
       profile.proxy().config(CustomProxyConfig.newInstance(proxyRules))
       profile.network()
         .set(VerifyCertificateCallback::class.java, VerifyCertificateCallback { params ->

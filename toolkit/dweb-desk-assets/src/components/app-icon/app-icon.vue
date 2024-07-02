@@ -8,7 +8,7 @@ import { withLock } from "../../provider/lock.ts";
 import { nativeFetch } from "../../provider/fetch.ts";
 
 const iconStore = createStore("desk", "icon");
-type $IconRow = { blob: Blob; updateTime: number };
+type $IconRow = { blob: Blob | void; updateTime: number };
 
 const props = defineProps({
   size: {
@@ -34,9 +34,18 @@ const props = defineProps({
 
 const mono_css = computed(() => props.icon.monoimage ?? props.icon.monocolor ?? "none");
 
+const fetchCaches = new Map<string, Promise<Blob | void>>();
+
 const setIconRow = async (url: string) => {
   try {
-    const iconBlob = await nativeFetch("/proxy", { search: { url }, responseType: "blob" });
+    let cache = fetchCaches.get(url);
+    if (cache === undefined) {
+      cache = nativeFetch("/proxy", { search: { url }, responseType: "blob" }).catch((err) => {
+        console.warn("fail to fetch error", err);
+      });
+      fetchCaches.set(url, cache);
+    }
+    const iconBlob = await cache;
     const iconRow: $IconRow = {
       blob: iconBlob,
       updateTime: Date.now(),
@@ -49,7 +58,7 @@ const setIconRow = async (url: string) => {
 };
 
 const DAY = 24 * 60 * 60 * 1000;
-const icon_blob_ref = ref<Blob>();
+const icon_blob_ref = ref<Blob | void>();
 const icon_css_map = new Map<string, string>();
 const icon_css = computedAsync<string | undefined>(async () => {
   let cache_icon_css = icon_css_map.get(props.icon.src);

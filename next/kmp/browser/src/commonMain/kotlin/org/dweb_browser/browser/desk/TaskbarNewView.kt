@@ -3,7 +3,6 @@ package org.dweb_browser.browser.desk
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -18,8 +17,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.twotone.Image
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -31,7 +28,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.BlurredEdgeTreatment
 import androidx.compose.ui.draw.blur
@@ -54,10 +50,6 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.compose.clickableWithNoEffect
-import org.dweb_browser.pure.image.compose.PureImageLoader
-import org.dweb_browser.pure.image.compose.SmartLoad
-import org.dweb_browser.pure.image.offscreenwebcanvas.FetchHook
-import org.dweb_browser.sys.window.render.imageFetchHook
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -401,7 +393,7 @@ fun BezGradient(color: Color, modifier: Modifier, style: DrawStyle = Fill, rando
       c0 = points[index]
       c1 = points[index + 1]
       end = bezierEndPoint(c0, c1)
-      path.quadraticBezierTo(c0.x, c0.y, end.x, end.y)
+      path.quadraticTo(c0.x, c0.y, end.x, end.y)
       index++
     }
     val last = points.last()

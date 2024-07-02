@@ -1,9 +1,8 @@
 package org.dweb_browser.pure.image.compose
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.compositionLocalOf
-import androidx.compose.runtime.produceState
-import androidx.compose.runtime.remember
 import coil3.ComponentRegistry
 import coil3.ImageLoader
 import coil3.PlatformContext
@@ -30,6 +29,10 @@ import io.ktor.util.InternalAPI
 import io.ktor.util.date.GMTDate
 import io.ktor.util.flattenEntries
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.buildUrlString
 import org.dweb_browser.helper.globalDefaultScope
@@ -44,6 +47,7 @@ import org.dweb_browser.pure.image.offscreenwebcanvas.FetchHook
 import org.dweb_browser.pure.image.offscreenwebcanvas.FetchHookContext
 import org.dweb_browser.pure.image.removeOriginAndAcceptEncoding
 import kotlin.coroutines.CoroutineContext
+import kotlin.math.min
 import kotlin.time.measureTimedValue
 
 val debugCoilImageLoader = Debugger("coilImageLoader")
@@ -63,8 +67,10 @@ class CoilImageLoader(private val diskCache: DiskCache? = null) : PureImageLoade
     }
   }
 
+  private val scope = globalDefaultScope
 
-  private val caches = LoaderCacheMap<ImageLoadResult>(globalDefaultScope)
+
+  private val caches = LoaderCacheMap<MutableStateFlow<ImageLoadResult>>(scope)
 
 
   @OptIn(ExperimentalCoilApi::class)
@@ -72,24 +78,30 @@ class CoilImageLoader(private val diskCache: DiskCache? = null) : PureImageLoade
   override fun Load(
     task: LoaderTask,
   ): ImageLoadResult {
-    return caches.get(task)?.let {
-      when {
-        it.isSuccess -> it
-        else -> null
-      }
-    } ?: run {
-      val requestHref = remember(task.url) {
-        task.url.replace("{WIDTH}", task.containerWidth.toString())
+    val platformContext = LocalPlatformContext.current
+    val loader = getLoader(platformContext)
+    return load(platformContext, loader, task).collectAsState().value
+  }
+
+  @OptIn(ExperimentalCoilApi::class)
+  fun load(
+    context: PlatformContext,
+    loader: ImageLoader,
+    task: LoaderTask,
+  ): StateFlow<ImageLoadResult> {
+    val cache = caches.get(task)
+    return cache ?: run {
+      val imageResultState = MutableStateFlow(ImageLoadResult.Setup)
+      val cacheItem = CacheItem(task, imageResultState)
+      caches.save(cacheItem)
+      scope.launch {
+        val requestHref = task.url.replace("{WIDTH}", task.containerWidth.toString())
           .replace("{HEIGHT}", task.containerHeight.toString())
-      }
-      /// 这里需要对url进行一次统一的包装，以避免coil的keyer面对file协议的时候异常
-      val wrappedRequestHref = remember(requestHref) {
-        buildUrlString("https://image.std.dweb") {
+        /// 这里需要对url进行一次统一的包装，以避免coil的keyer面对file协议的时候异常
+        val wrappedRequestHref = buildUrlString("https://image.std.dweb") {
           parameters.append("url", requestHref)
         }
-      }
-      val safeHook: FetchHook? = remember(wrappedRequestHref, task.hook) {
-        task.hook?.let { hook ->
+        val safeHook: FetchHook? = task.hook?.let { hook ->
           {
             when (request.href) {
               wrappedRequestHref -> this.copy(request = request.copy(href = requestHref)).hook()
@@ -97,38 +109,42 @@ class CoilImageLoader(private val diskCache: DiskCache? = null) : PureImageLoade
             }
           }
         }
-      }
-
-      if (safeHook != null) {
-        hooks.add(safeHook)
-      }
-
-      val platformContext = LocalPlatformContext.current
-      val loader = getLoader(platformContext)
-
-      produceState(ImageLoadResult.Setup) {
-        value = ImageLoadResult.Loading;
-        val imgReq = ImageRequest.Builder(platformContext).run {
+        if (safeHook != null) {
+          hooks.add(safeHook)
+        }
+        imageResultState.value = ImageLoadResult.Loading;
+        val imgReq = ImageRequest.Builder(context).run {
           size(task.containerWidth, task.containerHeight)
           data(wrappedRequestHref)
           build()
         }
-        value = when (val result = loader.execute(imgReq)) {
-          is ErrorResult -> ImageLoadResult.error(result.throwable)
-          is SuccessResult -> ImageLoadResult.success(
-            result.image.toImageBitmap()
-          )
+        imageResultState.value = when (val result = loader.execute(imgReq)) {
+          is ErrorResult -> ImageLoadResult.error(result.throwable).also { res ->
+
+            val failTimes = PureImageLoader.urlErrorCount.getOrPut(task.url) { 0 } + 1
+            PureImageLoader.urlErrorCount[task.url] = failTimes
+            launch {
+              /// 失败后，定时删除缓存。失败的次数越多，定时越久
+              delay(min(failTimes * failTimes * 1000L, 30000L)) // 1 4 9 16 25 30 30 30
+              if (cacheItem.result.value == res) {
+                caches.delete(task, cacheItem)
+              }
+            }
+          }
+
+          is SuccessResult -> {
+            PureImageLoader.urlErrorCount.remove(task.url)
+            ImageLoadResult.success(
+              result.image.toImageBitmap()
+            )
+          }
         }
+
         if (safeHook != null) {
           hooks.remove(safeHook)
         }
-      }.value.also {
-        if (it.isError) {
-          caches.delete(task)
-        } else {
-          caches.save(CacheItem(task, it))
-        }
       }
+      imageResultState
     }
   }
 

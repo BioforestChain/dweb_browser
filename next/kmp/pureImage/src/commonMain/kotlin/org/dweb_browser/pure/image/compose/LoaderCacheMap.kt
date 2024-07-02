@@ -52,7 +52,11 @@ class LoaderCacheMap<T : Any>(scope: CoroutineScope, cacheSize: Int = 10) {
     map[cache.key] = cache
   }
 
-  fun delete(task: LoaderTask) {
-    map.remove(task.key)
+  fun delete(task: LoaderTask, result: CacheItem<T>? = null) {
+    if (result == null) {
+      map.remove(task.key)
+    } else {
+      map.remove(task.key, result)
+    }
   }
 }

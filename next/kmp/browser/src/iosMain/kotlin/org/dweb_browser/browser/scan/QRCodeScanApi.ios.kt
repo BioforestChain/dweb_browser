@@ -10,10 +10,10 @@ import org.dweb_browser.helper.platform.DeepLinkHook
 import org.dweb_browser.helper.platform.NSDataHelper.toNSData
 import org.dweb_browser.helper.platform.toByteArray
 import org.dweb_browser.helper.toRect
-import kotlin.math.abs
 import platform.CoreImage.CIDetector
 import platform.CoreImage.CIImage
 import platform.CoreImage.CIQRCodeFeature
+import kotlin.math.abs
 
 actual fun beepAudio() {
   WARNING("Not yet implemented beepAudio")
@@ -30,7 +30,10 @@ actual fun decoderImage(
   val detector = CIDetector.detectorOfType("CIDetectorTypeQRCode", null, null)
   detector?.featuresInImage(image = ciImage, options = null)?.let { detectResult ->
     val listRect: MutableList<QRCodeDecoderResult.QRCode> = mutableListOf()
-    (detectResult as List<CIQRCodeFeature>).map { barcode ->
+    for (barcode in detectResult) {
+      if (barcode !is CIQRCodeFeature) {
+        continue
+      }
       listRect.add(
         QRCodeDecoderResult.QRCode(
           org.dweb_browser.helper.PureRect(

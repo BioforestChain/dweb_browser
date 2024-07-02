@@ -95,6 +95,7 @@ data class JmmMetadata(
   var upgradeTime: Long = datetimeNow(),
 ) {
   init {
+    @Suppress("DEPRECATION")
     if (_oldMetadata != null) {
       _manifest = _oldMetadata
     }

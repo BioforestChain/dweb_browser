@@ -13,7 +13,7 @@ actual fun PureImageLoader.Companion.SmartLoad(
     fixUrl = fixUrl.replace("data://localhost/", "data:")
   }
   val task = LoaderTask.from(fixUrl, maxWidth, maxHeight, hook)
-  val result = LocalWebImageLoader.current.LoadCache(task)// 这里的 LoadCache 和 下面的 isError-Load 做配合
+  val result = LocalWebImageLoader.current.getLoadCache(task)// 这里的 LoadCache 和 下面的 isError-Load 做配合
     ?: LocalCoilImageLoader.current.Load(task)
   if (result.isError) {
     return LocalWebImageLoader.current.Load(task)

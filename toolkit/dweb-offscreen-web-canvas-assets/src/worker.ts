@@ -44,12 +44,24 @@ const { toMainChannel } = prepareInWorker(import.meta.url);
   const fetchImage = (imageUrl: string) => {
     let imgSource: ImageBitmapSource;
     let needFitSize = true;
+
     const img = new Image();
     imgSource = img;
-    img.src = imageUrl;
     const ready = withResolvers<Event>();
-    img.onload = ready.resolve;
-    img.onerror = ready.reject;
+    void (async () => {
+      const imageRes = await fetch(imageUrl);
+      if (imageRes.ok) {
+        img.src = URL.createObjectURL(await imageRes.blob());
+        img.onload = ready.resolve;
+        img.onerror = ready.reject;
+      } else {
+        try {
+          ready.reject(`FETCH ERROR:[${imageRes.status}] ${imageRes.statusText}\n${await imageRes.text()}`);
+        } catch (e) {
+          ready.reject(`FETCH ERROR:[${imageRes.status}] ${imageRes.statusText}\n${e}`);
+        }
+      }
+    })();
     return { imgSource, needFitSize, ready };
   };
   const imageCache = new HalfFadeCache<string, ReturnType<typeof fetchImage>>();
@@ -57,8 +69,9 @@ const { toMainChannel } = prepareInWorker(import.meta.url);
     const { ready, ...result } = imageCache.getOrPut(imageUrl, () => fetchImage(imageUrl));
     try {
       await ready.promise;
-    } catch {
+    } catch (e) {
       imageCache.delete(imageUrl);
+      throw e;
     }
     return result;
   };

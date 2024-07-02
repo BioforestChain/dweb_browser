@@ -21,21 +21,31 @@ internal fun PureImageLoader.Companion.NativeSmartLoad(
   }
 
   val task = LoaderTask.from(fixUrl, maxWidth, maxHeight, hook)
-  var preferenceResult: ImageLoadResult? = null
+  var bestResult: ImageLoadResult? = null
   // 如果是 svg，使用 coil-engine 先进行快速渲染，使用 web-engine 来确保正确渲染
   if (fixUrl.endsWith(".svg") || fixUrl.startsWith("data:image/svg+xml;")) {
-    preferenceResult = LocalWebImageLoader.current.Load(task)
-    if (preferenceResult.isSuccess) {
-      return preferenceResult
+    bestResult = LocalWebImageLoader.current.Load(task)
+    if (bestResult.isSuccess) {
+      return bestResult
     }
   }
 
-  val result = LocalWebImageLoader.current.LoadCache(task)// 这里的 LoadCache 和 下面的 isError-Load 做配合
-    ?: LocalCoilImageLoader.current.Load(task)
-  if (result.isError && preferenceResult == null) {
+  val backupResult = LocalCoilImageLoader.current.Load(task)
+  // 如果没有使用 webImageLoader，并且 coilImageLoader 还失败了，那么直接使用 webImageLoader 去加载
+  if (backupResult.isError && bestResult == null) {
     return LocalWebImageLoader.current.Load(task)
   }
-  return result
+  return backupResult
+//  if(backupResult.isError&&bestResult==null){
+//
+//  }
+//
+//  val result = LocalWebImageLoader.current.getLoadCache(task)// 这里的 LoadCache 和 下面的 isError-Load 做配合
+//    ?: LocalCoilImageLoader.current.Load(task)
+//  if (result.isError && bestResult == null) {
+//    return LocalWebImageLoader.current.Load(task)
+//  }
+//  return result
 }
 
 interface PureImageLoader {
@@ -43,6 +53,10 @@ interface PureImageLoader {
   fun Load(task: LoaderTask): ImageLoadResult
 
   companion object
+}
+
+val PureImageLoader.Companion.urlErrorCount by lazy {
+  mutableMapOf<String, Int>()
 }
 
 data class LoaderTask(
