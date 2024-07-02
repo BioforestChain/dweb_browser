@@ -24,7 +24,7 @@ actual object DeviceManage {
         OsType.Windows -> {
           try {
             val uuid =
-              execCommand("wmic csproduct get UUID | Select-String -Pattern '^[0-9A-F-]+' | ForEach-Object { \$_.ToString().Trim() }")
+              execCommand("Get-WmiObject -Class Win32_ComputerSystemProduct | Select-Object -ExpandProperty UUID")
             return@lazy uuid
           } catch (_: Exception) {
             throw java.io.IOException()

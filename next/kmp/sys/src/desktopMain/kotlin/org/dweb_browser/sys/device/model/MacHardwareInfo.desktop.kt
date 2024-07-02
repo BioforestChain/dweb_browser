@@ -3,9 +3,8 @@ package org.dweb_browser.sys.device.model
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.dweb_browser.helper.JsonLoose
+import org.dweb_browser.helper.platform.PureViewController
 import org.dweb_browser.helper.platform.execCommand
-import java.io.BufferedReader
-import java.io.InputStreamReader
 
 @Serializable
 data class SPHardwareData(
@@ -37,6 +36,9 @@ data class MacHardwareInfoData(
 
 object MacHardwareInfo {
   fun getHardwareInfo(): MacHardwareInfoData? {
+    if (!PureViewController.isMacOS) {
+      return null
+    }
     val output = execCommand("system_profiler SPHardwareDataType -detailLevel mini -json")
     val spHardwareData = JsonLoose.decodeFromString<SPHardwareData>(output)
     if (spHardwareData.spHardwareDataType.isNotEmpty()) {

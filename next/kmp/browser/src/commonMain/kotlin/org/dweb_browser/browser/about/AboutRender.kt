@@ -74,6 +74,17 @@ fun AboutDetailsItem(modifier: Modifier = Modifier, labelName: String, text: Str
 }
 
 @Composable
+fun AboutDetailsListItem(modifier: Modifier = Modifier, labelName: String, textList: List<String>) {
+  textList.forEachIndexed { index, text ->
+    if(index == 0) {
+      AboutDetailsItem(labelName = labelName, text = text)
+    } else {
+      AboutDetailsItem(labelName = "", text = text)
+    }
+  }
+}
+
+@Composable
 fun AboutTitle(title: String) {
   Text(
     modifier = Modifier.padding(start = 16.dp, top = 8.dp),

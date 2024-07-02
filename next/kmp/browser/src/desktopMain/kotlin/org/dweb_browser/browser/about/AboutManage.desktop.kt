@@ -17,7 +17,6 @@ data class DesktopSystemInfo(
   val osName: String,
   val osVersion: String,
   val arch: String,
-  val cpuCoresNumber: Int,
   val javaVersion: String,
   val javaVendor: String,
   val totalMemory: Long,
@@ -39,7 +38,6 @@ actual suspend fun AboutNMM.AboutRuntime.openAboutPage(id: UUID) {
       arch = System.getProperty("os.arch"),
       javaVersion = System.getProperty("java.version"),
       javaVendor = System.getProperty("java.vendor"),
-      cpuCoresNumber = availableProcessors(),
       totalMemory = totalMemory(),
       freeMemory = freeMemory(),
       maximumMemory = maxMemory(),
@@ -86,10 +84,6 @@ fun AboutRender(
           labelName = AboutI18nResource.osVersion(), text = desktopSystemInfo.osVersion
         )
         AboutDetailsItem(labelName = AboutI18nResource.arch(), text = desktopSystemInfo.arch)
-        AboutDetailsItem(
-          labelName = AboutI18nResource.cpuCoresNumber(),
-          text = desktopSystemInfo.cpuCoresNumber.toString()
-        )
         AboutDetailsItem(
           labelName = AboutI18nResource.javaVersion(), text = desktopSystemInfo.javaVersion
         )
