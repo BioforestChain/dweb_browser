@@ -41,21 +41,26 @@ const { toMainChannel } = prepareInWorker(import.meta.url);
     proxyedUrl.searchParams.set("url", url);
     return proxyedUrl.href;
   };
-  const fetchImage = async (imageUrl: string) => {
+  const fetchImage = (imageUrl: string) => {
     let imgSource: ImageBitmapSource;
     let needFitSize = true;
     const img = new Image();
     imgSource = img;
     img.src = imageUrl;
-    await new Promise<Event>((resolve, reject) => {
-      img.onload = resolve;
-      img.onerror = reject;
-    });
-    return { imgSource, needFitSize };
+    const ready = withResolvers<Event>();
+    img.onload = ready.resolve;
+    img.onerror = ready.reject;
+    return { imgSource, needFitSize, ready };
   };
   const imageCache = new HalfFadeCache<string, ReturnType<typeof fetchImage>>();
-  const prepareImage = (imageUrl: string) => {
-    return imageCache.getOrPut(imageUrl, () => fetchImage(imageUrl));
+  const prepareImage = async (imageUrl: string) => {
+    const { ready, ...result } = imageCache.getOrPut(imageUrl, () => fetchImage(imageUrl));
+    try {
+      await ready;
+    } catch {
+      imageCache.delete(imageUrl);
+    }
+    return result;
   };
 
   const fetchImageBitmap = async (imageUrl: string, containerWidth: number, containerHeight: number) => {

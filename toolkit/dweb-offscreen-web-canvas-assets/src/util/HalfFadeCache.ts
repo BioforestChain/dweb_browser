@@ -40,6 +40,9 @@ export class HalfFadeCache<K, V> {
     this.set(key, value);
     return value;
   }
+  delete(key: K) {
+    return this.#cache.delete(key);
+  }
   destroy() {
     this.#loop = false;
     this.#cache.clear();
