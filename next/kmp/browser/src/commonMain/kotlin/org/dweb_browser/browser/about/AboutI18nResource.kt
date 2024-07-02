@@ -25,6 +25,7 @@ object AboutI18nResource {
     SimpleI18nResource(Language.ZH to "CPU高效核心数", Language.EN to "CPU Performance Cores Number")
   val cpuEfficiencyCoresNumber =
     SimpleI18nResource(Language.ZH to "CPU节能核心数", Language.EN to "CPU Efficiency Cores Number")
+  val cpuLogicalProcessorsNumber = SimpleI18nResource(Language.ZH to "CPU逻辑处理器数", Language.EN to "CPU Logical Processors Number")
   val totalMemory =
     SimpleI18nResource(Language.ZH to "JVM总内存", Language.EN to "JVM Total Memory")
   val freeMemory =

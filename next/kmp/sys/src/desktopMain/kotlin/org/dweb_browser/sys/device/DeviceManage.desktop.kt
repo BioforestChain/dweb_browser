@@ -24,8 +24,8 @@ actual object DeviceManage {
         OsType.Windows -> {
           try {
             val uuid =
-              execCommand("Get-WmiObject -Class Win32_ComputerSystemProduct | Select-Object -ExpandProperty UUID")
-            return@lazy uuid
+              runtime.exec("wmic csproduct get UUID").inputStream.readAllBytes().decodeToString()
+            return@lazy uuid.replace("UUID", "").trim()
           } catch (_: Exception) {
             throw java.io.IOException()
           }
@@ -53,4 +53,6 @@ actual object DeviceManage {
 
 
   fun getMacHardwareInfo() = MacHardwareInfo.getHardwareInfo()
+
+  fun getWinHardwareInfo() = WinHardwareInfo.getHardwareInfo()
 }

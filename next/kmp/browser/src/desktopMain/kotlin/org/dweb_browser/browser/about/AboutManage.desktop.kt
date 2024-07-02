@@ -11,6 +11,7 @@ import org.dweb_browser.helper.toSpaceSize
 import org.dweb_browser.platform.desktop.webview.jxBrowserEngine
 import org.dweb_browser.sys.device.DeviceManage
 import org.dweb_browser.sys.device.model.MacHardwareInfoData
+import org.dweb_browser.sys.device.model.WinHardwareInfoData
 
 data class DesktopSystemInfo(
   val os: String,
@@ -26,6 +27,7 @@ data class DesktopSystemInfo(
 
 actual suspend fun AboutNMM.AboutRuntime.openAboutPage(id: UUID) {
   val macHardwareInfo = DeviceManage.getMacHardwareInfo()
+  val winHardwareInfo = DeviceManage.getWinHardwareInfo()
   val desktopSystemInfo = Runtime.getRuntime().run {
     DesktopSystemInfo(
       os = when {
@@ -51,7 +53,8 @@ actual suspend fun AboutNMM.AboutRuntime.openAboutPage(id: UUID) {
       modifier = modifier,
       appInfo = desktopAppInfo,
       desktopSystemInfo = desktopSystemInfo,
-      macHardwareInfo = macHardwareInfo
+      macHardwareInfo = macHardwareInfo,
+      winHardwareInfo = winHardwareInfo
     )
   }
 }
@@ -62,6 +65,7 @@ fun AboutRender(
   appInfo: AboutAppInfo,
   desktopSystemInfo: DesktopSystemInfo,
   macHardwareInfo: MacHardwareInfoData?,
+  winHardwareInfo: WinHardwareInfoData?
 ) {
   LazyColumn(
     modifier = modifier,
@@ -134,6 +138,37 @@ fun AboutRender(
             AboutDetailsItem(
               labelName = AboutI18nResource.cpuEfficiencyCoresNumber(),
               text = macHardwareInfo.cpuEfficiencyCoresNumber!!
+            )
+          }
+        }
+        AboutHorizontalDivider()
+      }
+    }
+
+    if (winHardwareInfo != null) {
+      item("hardware-info") {
+        AboutTitle(AboutI18nResource.hardware())
+        AboutContainer {
+          winHardwareInfo.ram?.also {
+            AboutDetailsItem(
+              labelName = AboutI18nResource.ram(), text = winHardwareInfo.ram!!
+            )
+          }
+          winHardwareInfo.chip.also {
+            AboutDetailsItem(
+              labelName = AboutI18nResource.chip(), text = winHardwareInfo.chip!!
+            )
+          }
+          winHardwareInfo.cpuCoresNumber?.also {
+            AboutDetailsItem(
+              labelName = AboutI18nResource.cpuCoresNumber(),
+              text = winHardwareInfo.cpuCoresNumber!!
+            )
+          }
+          winHardwareInfo.cpuLogicalProcessorsNumber?.also {
+            AboutDetailsItem(
+              labelName = AboutI18nResource.cpuLogicalProcessorsNumber(),
+              text = winHardwareInfo.cpuLogicalProcessorsNumber!!
             )
           }
         }
