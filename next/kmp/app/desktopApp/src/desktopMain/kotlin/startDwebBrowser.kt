@@ -19,9 +19,9 @@ import org.dweb_browser.core.std.file.FileNMM
 import org.dweb_browser.core.std.http.HttpNMM
 import org.dweb_browser.core.std.http.MultipartNMM
 import org.dweb_browser.core.std.permission.debugPermission
-import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
 import org.dweb_browser.helper.addDebugTags
 import org.dweb_browser.helper.collectIn
+import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
 import org.dweb_browser.helper.compose.envSwitch
 import org.dweb_browser.helper.platform.DeepLinkHook
 import org.dweb_browser.helper.platform.PureViewController
@@ -112,7 +112,9 @@ suspend fun startDwebBrowser(debugTags: String?, extMM: List<ExtMM> = listOf()):
   val searchNMM = SearchNMM().setup()
   /// 扫码
   val scannerNMM = ScanningNMM().setup()
-  val scanStdNMM = ScanStdNMM().setup()
+  if (envSwitch.isEnabled(ENV_SWITCH_KEY.SCAN_STD)) {
+    val scanStdNMM = ScanStdNMM().setup()
+  }
   ///安装剪切板
   val clipboardNMM = ClipboardNMM().setup()
   ///设备信息
