@@ -4,21 +4,23 @@ import io.ktor.http.content.MultiPartData
 import io.ktor.http.content.PartData
 import io.ktor.http.content.forEachPart
 import io.ktor.utils.io.core.readBytes
+import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CompletableDeferred
 import objcnames.classes.LPLinkMetadata
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.module.getUIApplication
 import org.dweb_browser.helper.toNSString
+import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.sys.scan.toNSData
 import platform.Foundation.NSData
 import platform.Foundation.NSURL
-import platform.Foundation.lastPathComponent
 import platform.LinkPresentation.LPMetadataProvider
 import platform.UIKit.UIActivityItemSourceProtocol
 import platform.UIKit.UIActivityType
 import platform.UIKit.UIActivityViewController
+import platform.UIKit.UIImage
 import platform.darwin.NSObject
 import kotlin.experimental.ExperimentalObjCName
 
@@ -78,7 +80,7 @@ actual suspend fun share(
   }
 }
 
-@OptIn(ExperimentalForeignApi::class, ExperimentalObjCName::class)
+@OptIn(ExperimentalForeignApi::class, ExperimentalObjCName::class, BetaInteropApi::class)
 actual suspend fun share(
   shareOptions: ShareOptions,
   files: List<String>,
@@ -87,24 +89,39 @@ actual suspend fun share(
   return withMainContext {
     val deferred = CompletableDeferred<String>()
     val activityItems = mutableListOf<Any>()
+    var title: String? = null
+    var content = ""
 
-    shareOptions.title?.also { activityItems.add(it.toNSString()) }
-    shareOptions.text?.also { activityItems.add(it.toNSString()) }
-    shareOptions.url?.also { activityItems.add(it.toNSString()) }
-
-    val lpMetadataProvider = LPMetadataProvider()
-    val providerDeferred = CompletableDeferred<Int>()
-    var size = files.size
-    files.forEach {
-      val fileUrl = NSURL.fileURLWithPath(it.replace("file://", ""))
-      lpMetadataProvider.startFetchingMetadataForURL(fileUrl) { metadata, _ ->
-        activityItems.add(FileShareModel(fileUrl, metadata))
-        if (--size == 0) {
-          providerDeferred.complete(size)
-        }
+    shareOptions.title?.also {
+      it.isNotBlank().trueAlso {
+        title = it
+        content += it
       }
     }
-    providerDeferred.await()
+    shareOptions.text?.also { it.isNotBlank().trueAlso { content += it } }
+    shareOptions.url?.also { it.isNotBlank().trueAlso { content += it } }
+
+    val lpMetadataProvider = LPMetadataProvider()
+
+    files.forEachIndexed { index, fileUri ->
+      val filePath = fileUri.replace("file://", "")
+      activityItems.add(UIImage(contentsOfFile = filePath))
+
+      val fileUrl = NSURL.fileURLWithPath(filePath)
+      if (index == 0) {
+        CompletableDeferred<Unit>().also { deferred ->
+          lpMetadataProvider.startFetchingMetadataForURL(fileUrl) { metadata, _ ->
+            when (metadata) {
+              null -> {}
+              else -> {
+                activityItems.add(FileShareModel(title, content, metadata))
+              }
+            }
+            deferred.complete(Unit)
+          }
+        }.await()
+      }
+    }
 
     val controller =
       UIActivityViewController(activityItems = activityItems, applicationActivities = null)
@@ -125,16 +142,25 @@ actual suspend fun share(
 
 @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
 class FileShareModel @OptIn(ExperimentalForeignApi::class) constructor(
-  val url: NSURL, private val lpLinkMetadata: platform.LinkPresentation.LPLinkMetadata? = null
+  val title: String?,
+  val content: String,
+  private val lpLinkMetadata: platform.LinkPresentation.LPLinkMetadata? = null,
 ) : NSObject(), UIActivityItemSourceProtocol {
+  //  override fun activityViewController(
+//    activityViewController: UIActivityViewController, itemForActivityType: UIActivityType,
+//  ): Any {
+//    return url.toString()
+//  }
   override fun activityViewController(
-    activityViewController: UIActivityViewController, itemForActivityType: UIActivityType
+    activityViewController: UIActivityViewController,
+    itemForActivityType: UIActivityType,
   ): String {
-    return url.toString()
+    return content
   }
 
+
   override fun activityViewControllerPlaceholderItem(activityViewController: UIActivityViewController): Any {
-    return lpLinkMetadata?.title ?: url.lastPathComponent ?: url
+    return title ?: lpLinkMetadata?.title ?: ""
   }
 
   @OptIn(ExperimentalForeignApi::class)

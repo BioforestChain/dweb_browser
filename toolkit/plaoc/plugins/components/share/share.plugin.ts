@@ -58,44 +58,27 @@ export class SharePlugin extends BasePlugin {
   }
 
   async #blobToBase64String(file: File, blobOptions: ImageBlobOptions): Promise<string> {
-    const reader = new FileReader();
     const po = new PromiseOut<string>();
 
-    reader.onload = (ev) => {
-      const img = new Image();
-      img.onload = () => {
-        const width = img.width,
-          height = img.height;
+    const img = new Image();
+    img.onload = () => {
+      const width = img.width,
+        height = img.height;
 
-        const canvas = document.createElement("canvas");
-        const ctx = canvas.getContext("2d");
-        canvas.width = width;
-        canvas.height = height;
-        ctx?.drawImage(img, 0, 0, width, height);
-
-        canvas.toBlob(
-          (blob) => {
-            const imgReader = new FileReader();
-
-            imgReader.onloadend = () => {
-              let binary = "";
-              const bytes = new Uint8Array(imgReader.result as ArrayBuffer);
-              for (const byte of bytes) {
-                binary += String.fromCharCode(byte);
-              }
-              po.resolve(btoa(binary));
-            };
-
-            imgReader.readAsArrayBuffer(blob!);
-          },
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d")!;
+      canvas.width = width;
+      canvas.height = height;
+      ctx.drawImage(img, 0, 0, width, height);
+      const base64 = canvas
+        .toDataURL(
           blobOptions.type.startsWith("image/") ? blobOptions.type : "image/jpeg",
           blobOptions.quality > 0 && blobOptions.quality <= 1 ? blobOptions.quality : 0.8
-        );
-      };
-      img.src = ev.target!.result as string;
+        )
+        .split(",")[1];
+      po.resolve(base64);
     };
-
-    reader.readAsDataURL(file);
+    img.src = URL.createObjectURL(file);
 
     return await po.promise;
   }

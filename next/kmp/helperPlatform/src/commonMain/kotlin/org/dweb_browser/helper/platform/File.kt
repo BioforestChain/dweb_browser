@@ -2,7 +2,7 @@ package org.dweb_browser.helper.platform
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.dweb_browser.helper.base64Binary
+import org.dweb_browser.helper.base64UrlBinary
 import org.dweb_browser.helper.utf8Binary
 
 @Serializable
@@ -25,7 +25,7 @@ data class MultiPartFile(
   val binary by lazy {
     when (encoding) {
       MultiPartFileEncode.UTF8 -> data.utf8Binary
-      MultiPartFileEncode.BASE64 -> data.base64Binary
+      MultiPartFileEncode.BASE64 -> data.base64UrlBinary
     }
   }
 }
