@@ -4,7 +4,7 @@ import io.ktor.util.toByteArray
 import io.ktor.utils.io.ByteReadChannel
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import org.dweb_browser.helper.toBase64ByteArray
+import org.dweb_browser.helper.decodeBase64ToByteArray
 
 typealias PureString = String
 typealias PureBase64 = String
@@ -30,7 +30,7 @@ sealed interface IPureBody {
         null -> Empty
         else -> if (value.isEmpty()) Empty else when (encoding) {
           PureStringEncoding.Utf8 -> PureStringBody(value)
-          PureStringEncoding.Base64 -> PureBinaryBody(value.toBase64ByteArray())
+          PureStringEncoding.Base64 -> PureBinaryBody(value.decodeBase64ToByteArray())
         }
       }
 

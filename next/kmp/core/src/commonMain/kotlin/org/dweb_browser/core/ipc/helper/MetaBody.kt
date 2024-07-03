@@ -4,8 +4,8 @@ import kotlinx.serialization.Serializable
 import org.dweb_browser.helper.IntEnumSerializer
 import org.dweb_browser.helper.ProxySerializer
 import org.dweb_browser.helper.UUID
-import org.dweb_browser.helper.toBase64
-import org.dweb_browser.helper.toBase64Url
+import org.dweb_browser.helper.base64
+import org.dweb_browser.helper.base64Url
 import kotlin.random.Random
 
 @Serializable
@@ -100,7 +100,7 @@ data class MetaBody(
     { type })
 
   companion object {
-    private fun randomMetaId() = ByteArray(8).also { Random.nextBytes(it) }.toBase64Url()
+    private fun randomMetaId() = ByteArray(8).also { Random.nextBytes(it) }.base64Url
     fun fromText(
       data: String,
       senderPoolId: UUID,
@@ -144,7 +144,7 @@ data class MetaBody(
   val jsonAble by lazy {
     when (type.encoding) {
       IPC_DATA_ENCODING.BINARY -> fromBase64(
-        (data as ByteArray).toBase64(), senderPoolId, streamId, receiverPoolId
+        (data as ByteArray).base64, senderPoolId, streamId, receiverPoolId
       )
 
       else -> this

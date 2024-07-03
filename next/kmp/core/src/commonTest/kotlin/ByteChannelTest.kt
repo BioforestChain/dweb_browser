@@ -4,9 +4,9 @@ import io.ktor.utils.io.close
 import io.ktor.utils.io.copyTo
 import io.ktor.utils.io.core.ByteReadPacket
 import kotlinx.coroutines.launch
+import org.dweb_browser.helper.base64
 import org.dweb_browser.helper.commonConsumeEachArrayRange
 import org.dweb_browser.helper.createByteChannel
-import org.dweb_browser.helper.toBase64
 import org.dweb_browser.test.runCommonTest
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
@@ -36,6 +36,6 @@ class ByteChannelTest {
   }
 
   companion object {
-    val byteArray = byteArrayOf(1,2,3,4,5,6,7,8,9,10).toBase64().repeat(20000).encodeToByteArray()
+    val byteArray = byteArrayOf(1,2,3,4,5,6,7,8,9,10).base64.repeat(20000).encodeToByteArray()
   }
 }

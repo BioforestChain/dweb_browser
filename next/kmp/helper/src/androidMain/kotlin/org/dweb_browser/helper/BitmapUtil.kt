@@ -167,7 +167,7 @@ object BitmapUtil {
 
   fun saveBase64ToFile(filePath: String, data: String) {
     val fos = FileOutputStream(filePath)
-    fos.write(data.toBase64ByteArray())
+    fos.write(data.decodeBase64ToByteArray())
     fos.flush()
     fos.close()
   }

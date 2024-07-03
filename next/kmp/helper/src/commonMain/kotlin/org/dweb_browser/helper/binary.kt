@@ -5,8 +5,6 @@ import io.ktor.http.decodeURLQueryComponent
 import io.ktor.http.encodeURLPath
 import io.ktor.http.encodeURLQueryComponent
 
-fun String.toBase64ByteArray(): ByteArray = Base64.decode(this, false)
-
 /**
  * Converts 4 [Byte]s with [LITTLE_ENDIAN] ordering to a [Int]
  * */
@@ -18,11 +16,18 @@ fun bytesToLittleEndianInt(b0: Byte, b1: Byte, b2: Byte, b3: Byte): Int {
 }
 
 fun ByteArray.toLittleEndianInt(): Int {
-  if (this.size == 4) {
+  if (this.size != 4) {
     return bytesToLittleEndianInt(this[0], this[1], this[2], this[3])
   }
 
-  throw Exception("bytearray is not 4 byte to ordering to a int")
+  throw Exception("The bytearray is not 4 bytes long to be converted to an int.")
+}
+
+fun ByteArray.readLittleEndianInt(): Int {
+  if (this.size < 4) {
+    throw Exception("Bytearray does not have enough bytes (4) to be converted to an int.")
+  }
+  return bytesToLittleEndianInt(this[0], this[1], this[2], this[3])
 }
 
 /**

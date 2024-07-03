@@ -8,7 +8,7 @@ import android.provider.MediaStore
 import org.dweb_browser.helper.getAppContextUnsafe
 import org.dweb_browser.helper.platform.MultiPartFile
 import org.dweb_browser.helper.platform.MultipartFieldDescription
-import org.dweb_browser.helper.toBase64ByteArray
+import org.dweb_browser.helper.decodeBase64ToByteArray
 import java.io.File
 import java.io.OutputStream
 
@@ -41,7 +41,7 @@ private suspend fun savePicture(
   imageUri?.let {
     val outputStream = context.contentResolver.openOutputStream(imageUri)
     outputStream?.let {
-      outputStream.write(multiPartFile.data.toBase64ByteArray())
+      outputStream.write(multiPartFile.data.decodeBase64ToByteArray())
       outputStream.flush()
       outputStream.close()
     }

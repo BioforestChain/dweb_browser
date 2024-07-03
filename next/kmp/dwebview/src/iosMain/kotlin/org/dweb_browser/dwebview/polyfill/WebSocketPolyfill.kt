@@ -6,8 +6,8 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.core.std.dns.httpFetch
 import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.helper.Debugger
-import org.dweb_browser.helper.toBase64
-import org.dweb_browser.helper.toBase64ByteArray
+import org.dweb_browser.helper.base64
+import org.dweb_browser.helper.decodeBase64ToByteArray
 import org.dweb_browser.helper.toKString
 import org.dweb_browser.helper.toNSString
 import org.dweb_browser.pure.http.PureBinaryFrame
@@ -106,7 +106,8 @@ class DWebViewWebSocketMessageHandler(val engine: DWebViewEngine) : NSObject(),
             "frame-binary" -> {
               wsMap[wsId]!!.run {
                 val fin = (message.objectAtIndex(2u) as NSNumber).boolValue
-                val data = (message.objectAtIndex(3u) as NSString).toKString().toBase64ByteArray()
+                val data =
+                  (message.objectAtIndex(3u) as NSString).toKString().decodeBase64ToByteArray()
                 pureBinaryFinData.append(data, fin)?.also {
                   sendBinary(it)
                 }
@@ -173,7 +174,7 @@ class DWebViewWebSocketMessageHandler(val engine: DWebViewEngine) : NSObject(),
     sendMessage(wsId, "message-text", data)
 
   private suspend fun sendBinaryMessage(wsId: Int, data: ByteArray) =
-    sendMessage(wsId, "message-binary", data.toBase64())
+    sendMessage(wsId, "message-binary", data.base64)
 
 
   override fun userContentController(

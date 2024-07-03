@@ -3,7 +3,7 @@ package org.dweb_browser.core.ipc.helper
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.dweb_browser.helper.OrderBy
-import org.dweb_browser.helper.toBase64
+import org.dweb_browser.helper.base64
 import org.dweb_browser.pure.http.PureBinaryFrame
 import org.dweb_browser.pure.http.PureFrame
 import org.dweb_browser.pure.http.PureTextFrame
@@ -45,7 +45,7 @@ class IpcEvent(
       IpcEvent(name, data, IPC_DATA_ENCODING.BINARY, orderBy)
 
     fun fromBase64(name: String, data: ByteArray, orderBy: Int? = null) =
-      IpcEvent(name, data.toBase64(), IPC_DATA_ENCODING.BASE64, orderBy)
+      IpcEvent(name, data.base64, IPC_DATA_ENCODING.BASE64, orderBy)
 
     fun fromUtf8(name: String, data: ByteArray, orderBy: Int? = null) =
       fromUtf8(name, data.decodeToString(), orderBy)
@@ -78,7 +78,7 @@ class IpcEvent(
     when (encoding) {
       IPC_DATA_ENCODING.BINARY -> IpcEventRawString(
         name,
-        (data as ByteArray).toBase64(),
+        (data as ByteArray).base64,
         IPC_DATA_ENCODING.BASE64,
         order,
       )

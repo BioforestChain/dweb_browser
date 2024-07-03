@@ -9,7 +9,6 @@ dependencies {
 
 kotlin {
   kmpCommonTarget(project) {
-
     @Suppress("OPT_IN_USAGE")
     applyHierarchy {
       common {
@@ -18,6 +17,10 @@ kotlin {
           withDesktopTarget()
         }
       }
+    }
+
+    dependencies {
+      implementation(projects.pureCrypto)
     }
   }
   kmpComposeTarget(project) {
@@ -36,7 +39,6 @@ kotlin {
     dependencies {
       implementation(libs.accompanist.systemui.controller)
       implementation(libs.google.material)
-      implementation(projects.pureCrypto)
     }
   }
   kmpIosTarget(project) {

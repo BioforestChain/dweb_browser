@@ -1,6 +1,6 @@
 package org.dweb_browser.sys.clipboard
 
-import org.dweb_browser.helper.toBase64ByteArray
+import org.dweb_browser.helper.decodeBase64ToByteArray
 
 expect class ClipboardManage() {
 
@@ -33,6 +33,6 @@ internal fun tryWriteClipboard(action: () -> Unit) = runCatching {
 internal fun splitBase64DataUriToFile(base64DataUri: String): Pair<ByteArray, String> {
   val (metadata, base64Content) = base64DataUri.split(",", limit = 2)
   val imageMime = metadata.replace(Regex(".*:(.*?);.*"), "$1")
-  val imageData = base64Content.toBase64ByteArray()
+  val imageData = base64Content.decodeBase64ToByteArray()
   return Pair(imageData, imageMime)
 }

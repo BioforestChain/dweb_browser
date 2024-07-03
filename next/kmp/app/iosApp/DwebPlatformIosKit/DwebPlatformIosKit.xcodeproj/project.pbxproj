@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3D13CB9A2C34F9E800250316 /* DwebKeyChainGenericStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D13CB992C34F9E700250316 /* DwebKeyChainGenericStore.swift */; };
 		3D50D2D92B064BA5008891FC /* DwebPlatformIosKit.h in Headers */ = {isa = PBXBuildFile; fileRef = 3D50D2D82B064BA5008891FC /* DwebPlatformIosKit.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		3DCF04232B19FD6C00A9D3EF /* DwebPlatformIosKit.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DCF04222B19FD6C00A9D3EF /* DwebPlatformIosKit.m */; };
 		46282D682B0B603700A45995 /* DwebHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46282D672B0B603700A45995 /* DwebHelper.swift */; };
@@ -31,6 +32,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		3D13CB992C34F9E700250316 /* DwebKeyChainGenericStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DwebKeyChainGenericStore.swift; sourceTree = "<group>"; };
 		3D50D2D52B064BA5008891FC /* DwebPlatformIosKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = DwebPlatformIosKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3D50D2D82B064BA5008891FC /* DwebPlatformIosKit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DwebPlatformIosKit.h; sourceTree = "<group>"; };
 		3DCF04222B19FD6C00A9D3EF /* DwebPlatformIosKit.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DwebPlatformIosKit.m; sourceTree = "<group>"; };
@@ -89,6 +91,7 @@
 		3D50D2D72B064BA5008891FC /* DwebPlatformIosKit */ = {
 			isa = PBXGroup;
 			children = (
+				3D13CB992C34F9E700250316 /* DwebKeyChainGenericStore.swift */,
 				8146C09C2B64D95F001BC42A /* RecordSound */,
 				48F677002B54C8B800607EAC /* DwebPlatformIosKit.docc */,
 				3D50D2D82B064BA5008891FC /* DwebPlatformIosKit.h */,
@@ -212,6 +215,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				8146C0AC2B64D9D9001BC42A /* Date+format.swift in Sources */,
+				3D13CB9A2C34F9E800250316 /* DwebKeyChainGenericStore.swift in Sources */,
 				81E4C3F42B67410B0070FFBD /* EnvironmentModel.swift in Sources */,
 				8146C0AA2B64D9D9001BC42A /* CustomSliderView.swift in Sources */,
 				46E836332B284F1500281558 /* DwebWKWebView.swift in Sources */,

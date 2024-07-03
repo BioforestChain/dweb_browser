@@ -204,12 +204,12 @@ class DownloadController(private val downloadNMM: DownloadNMM.DownloadRuntime) {
     // 查看是否创建过相同的task,并且相同的task已经下载完成
     val task = DownloadTask(
       id = randomUUID(),
-      url = params.decodeUrl,
+      url = params.url,
       originMmid = originMmid,
       originUrl = params.originUrl,
       openDappUri = params.openDappUri,
       mime = "application/octet-stream",
-      filepath = fileCreateByPath(params.decodeUrl, externalDownload),
+      filepath = fileCreateByPath(params.url, externalDownload),
       status = DownloadStateEvent(total = params.total)
     )
     task.external = externalDownload // 后面有用到这个字段，这边需要在初始化的时候赋值

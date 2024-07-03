@@ -6,7 +6,7 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.collectIn
-import org.dweb_browser.helper.toBase64ByteArray
+import org.dweb_browser.helper.decodeBase64ToByteArray
 import org.dweb_browser.pure.http.IPureBody
 import org.dweb_browser.pure.http.PureStream
 
@@ -85,7 +85,7 @@ class IpcBodyReceiver(
           when (metaBody.type.encoding) {
             IPC_DATA_ENCODING.UTF8 -> (metaBody.data as String).encodeToByteArray()
             IPC_DATA_ENCODING.BINARY -> metaBody.data as ByteArray
-            IPC_DATA_ENCODING.BASE64 -> (metaBody.data as String).toBase64ByteArray()
+            IPC_DATA_ENCODING.BASE64 -> (metaBody.data as String).decodeBase64ToByteArray()
             else -> null
           }?.let { firstData -> controller.background { controller.enqueue(firstData) } }
 

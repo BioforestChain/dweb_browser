@@ -16,7 +16,6 @@ import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.DisplayMode
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.collectIn
-import org.dweb_browser.helper.fromBase64
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.queryAs
@@ -54,7 +53,6 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
     /** 用于接收json中文件大小 */
     val total: Long = 1L,
   ) {
-    val decodeUrl by lazy(LazyThreadSafetyMode.SYNCHRONIZED) { url.fromBase64().decodeToString() }
   }
 
   inner class DownloadRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {

@@ -22,7 +22,7 @@ class DeviceKeyValueStore(
 ) {
   companion object {
     val externalDir by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-      Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS).resolve("dweb")
+      Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS).resolve("dweb-kv")
     }
   }
 

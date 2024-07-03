@@ -1,6 +1,5 @@
 package org.dweb_browser.sys.clipboard
 
-import org.dweb_browser.helper.base64
 import java.awt.Toolkit
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.StringSelection
