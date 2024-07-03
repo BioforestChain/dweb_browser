@@ -1,5 +1,6 @@
 package org.dweb_browser.sys.clipboard
 
+import org.dweb_browser.helper.base64UrlString
 import java.awt.Toolkit
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.StringSelection
@@ -80,7 +81,7 @@ actual class ClipboardManage {
           val baos = ByteArrayOutputStream();
           ImageIO.write(it, "png", baos)
           type = "image/png"
-          value = baos.toByteArray().base64
+          value = baos.toByteArray().base64UrlString
         }
       } as BufferedImage
     }
