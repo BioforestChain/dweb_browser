@@ -1,7 +1,6 @@
 package org.dweb_browser.core.std.file
 
 import io.ktor.http.HttpStatusCode
-import io.ktor.utils.io.core.toByteArray
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
@@ -282,13 +281,11 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
         // 写入文件，一次性写入
         "/write" bind PureMethod.POST by defineEmptyResponse {
           val (filepath, fs) = getPath()
-//          debugFile("/write", filepath)
           val create = request.queryAsOrNull<Boolean>("create") ?: false
           if (create) {
             touchFile(filepath, fs)
           }
           val fileSource = fs.sink(filepath, false).buffer()
-
           request.body.toPureStream().getReader("write to file").copyTo(fileSource)
         },
         // 追加文件，一次性追加
@@ -399,35 +396,22 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
           }
           path.toString()
         },
-        "/blob/path" bind PureMethod.GET by defineStringResponse {
-          var shaCode = request.queryOrNull("sha256") ?: ""
-          if (shaCode.isEmpty()) return@defineStringResponse ""
-          val vfsPath = getVirtualFsPath(ipc.remote, "/blob/$shaCode")
-          vfsPath.fsFullPath.toString()
-        },
         "/blob/write" bind PureMethod.POST by defineStringResponse {
-          val mime = request.queryOrNull("mime") ?: "application/octet-stream"
-          val shaCode = sha256(mime.toByteArray() + request.body.toPureBinary()).toHexString()
-          val vfsPath = getVirtualFsPath(ipc.remote, "/blob/$shaCode")
+          val mime = (request.queryOrNull("mime") ?: request.headers.get("Content-Type"))
+            ?: "application/octet-stream"
+          val ext = request.queryOrNull("ext") ?: ""
+          var encode = request.queryOrNull("encode") ?: ""
+          var ag = request.queryOrNull("ag") ?: ""
+          if (encode.isEmpty()) {
+            encode = sha256(request.body.toPureBinary()).toHexString()
+            ag = "sha256"
+          }
+          val vpath = "/blob/$encode" + if (ext.isNotEmpty()) ".$ext" else ""
+          val vfsPath = getVirtualFsPath(ipc.remote, vpath)
           touchFile(vfsPath.fsFullPath, vfsPath.fs)
           val fileSource = vfsPath.fs.sink(vfsPath.fsFullPath, false).buffer()
           request.body.toPureStream().getReader("blob write to file").copyTo(fileSource)
-          shaCode
-        },
-        "/blob/read" bind PureMethod.GET by definePureStreamHandler {
-          var shaCode = request.queryOrNull("sha256") ?: PureStream(ByteArray(0))
-          val vfsPath = getVirtualFsPath(ipc.remote, "/blob/$shaCode")
-          val fileSource = vfsPath.fs.safeSource(vfsPath.fsFullPath).buffer()
-          PureStream(fileSource.toByteReadChannel(mmScope))
-        },
-        "/blob/remove" bind PureMethod.GET by defineBooleanResponse {
-          var shaCode = request.queryOrNull("sha256") ?: ""
-          if (shaCode.isEmpty()) return@defineBooleanResponse false
-          val vfsPath = getVirtualFsPath(ipc.remote, "/blob/$shaCode")
-          runCatching {
-            vfsPath.fs.delete(vfsPath.fsFullPath, false)
-            true
-          }.getOrElse { false }
+          "file://$vpath?mime=$mime&encode=$encode&ag=$ag"
         },
       )
     }

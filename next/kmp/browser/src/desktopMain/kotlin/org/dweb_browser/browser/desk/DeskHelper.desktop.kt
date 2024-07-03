@@ -61,6 +61,8 @@ actual fun desktopTap(): Dp = 20.dp
 
 actual fun desktopBgCircleCount(): Int = 12
 
+actual fun desktopIconSize(): IntSize = IntSize(100, 100)
+
 actual fun taskBarCloseButtonLineWidth() = 2f
 
 actual fun taskBarCloseButtonUsePopUp() = false

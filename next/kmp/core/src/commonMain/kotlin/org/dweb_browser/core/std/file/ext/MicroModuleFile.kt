@@ -65,13 +65,11 @@ suspend fun MicroModule.Runtime.createDir(path: String) =
 suspend fun MicroModule.Runtime.listDir(path: String) =
   nativeFetch(PureMethod.POST, "file://file.std.dweb/listDir?path=$path").json<List<String>>()
 
-suspend fun MicroModule.Runtime.blobWrite(mime: String, data: ByteArray) = nativeFetch(
-  PureClientRequest(
-    "file://file.std.dweb/blob/write?mime=$mime", PureMethod.POST, body = PureBinaryBody(data)
-  )
-).text()
-
-suspend fun MicroModule.Runtime.blobRead(sha256: String) = nativeFetch("file://file.std.dweb/blob/read/?sha256=$sha256")
-
-suspend fun MicroModule.Runtime.blobRemove(sha256: String) =
-  nativeFetch(PureMethod.GET, "file://file.std.dweb/blob/remove?sha256=${sha256}").boolean()
+suspend fun MicroModule.Runtime.blobWrite(data: ByteArray, mime: String = "", ext: String = "") =
+  nativeFetch(
+    PureClientRequest(
+      "file://file.std.dweb/blob/write?mime=$mime&ext=$ext",
+      PureMethod.POST,
+      body = PureBinaryBody(data)
+    )
+  ).text()

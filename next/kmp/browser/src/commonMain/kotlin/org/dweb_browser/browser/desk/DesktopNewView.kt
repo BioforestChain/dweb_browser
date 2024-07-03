@@ -67,13 +67,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.layout.positionInWindow
@@ -99,17 +96,19 @@ import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.desk.DesktopAppModel.DesktopAppRunStatus
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.module.NativeMicroModule
-import org.dweb_browser.core.std.file.ext.blobRead
-import org.dweb_browser.core.std.file.ext.blobWrite
+import org.dweb_browser.helper.ImageResourcePurposes
+import org.dweb_browser.helper.StrictImageResource
 import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.compose.clickableWithNoEffect
-import org.dweb_browser.helper.platform.toByteArray
-import org.dweb_browser.helper.platform.toImageBitmap
 import org.dweb_browser.helper.randomUUID
+import org.dweb_browser.pure.image.compose.ImageLoadResult
 import org.dweb_browser.pure.image.compose.PureImageLoader
 import org.dweb_browser.pure.image.compose.SmartLoad
-import org.dweb_browser.sys.window.render.imageFetchHook
+import org.dweb_browser.sys.window.core.helper.pickLargest
+import org.dweb_browser.sys.window.core.helper.toStrict
+import org.dweb_browser.sys.window.render.AppIcon
+import org.dweb_browser.sys.window.render.blobFetchHook
 import kotlin.math.min
 
 @Composable
@@ -139,7 +138,7 @@ fun NewDesktopView(
   fun doGetApps() {
     scope.launch {
       val installApps = desktopController.getDesktopApps().map {
-        val icon = it.icons.firstOrNull()?.src ?: ""
+        val icon = it.icons.toStrict().pickLargest()
         val isSystemApp = desktopController.isSystermApp(it.mmid)
 
         val runStatus = if (it.running) {
@@ -251,7 +250,7 @@ fun NewDesktopView(
   }
 
   BoxWithConstraints(
-    modifier = Modifier.fillMaxSize().blur(blurValue.dp),
+    modifier = Modifier.fillMaxSize().blur(blurValue.dp).background(Color.Black),
     contentAlignment = Alignment.TopStart
   ) {
 
@@ -324,9 +323,10 @@ fun NewDesktopView(
       val offX = popUpApp!!.offSet!!.x / density - width / scale * (scale - 1.0f) / 2.0f
       val offY = popUpApp!!.offSet!!.y / density - height / scale * (scale - 1.0f) / 2.0f
 
-      Image(popUpApp!!.image!!,
-        contentDescription = null,
-        contentScale = ContentScale.Inside,
+      AppIcon(
+        popUpApp!!.image,
+        iconMaskable = popUpApp!!.icon!!.purpose.contains(ImageResourcePurposes.Maskable),
+        iconMonochrome = popUpApp!!.icon!!.purpose.contains(ImageResourcePurposes.Monochrome),
         modifier = Modifier
           .size(width = width.dp, height = height.dp)
           .offset(offX.dp, offY.dp)
@@ -338,7 +338,8 @@ fun NewDesktopView(
           .clickableWithNoEffect {
             doOpen(popUpApp!!.mmid)
             doHidePopUp()
-          })
+          }
+      )
 
       val popOffX = min((offX * density).toFloat(), (boxWidth - popSize.width).toFloat()).toInt()
       var popOffY = ((offY + height + 15) * density).toInt()
@@ -443,6 +444,7 @@ fun DeskAppIcon(
     }
   }
 
+  val iconSize = remember { desktopIconSize() }
   Box(contentAlignment = Alignment.Center,
     modifier = Modifier
       .fillMaxSize()
@@ -455,7 +457,7 @@ fun DeskAppIcon(
         app.offSet = it.positionInWindow().toIntOffset(1F)
       }
   ) {
-    DeskCacheIcon(app.icon, desktopController.iconStore, microModule) {
+    DeskCacheIcon(app.icon, microModule, iconSize.width.dp, iconSize.height.dp) {
       app.image = it
     }
   }
@@ -532,6 +534,7 @@ private fun moreAppItemsDisplay(displays: List<MoreAppModel>, dismiss: () -> Uni
 expect fun desktopGridLayout(size: IntSize): GridCells
 expect fun desktopTap(): Dp
 expect fun desktopBgCircleCount(): Int
+expect fun desktopIconSize(): IntSize
 
 @Composable
 expect fun Modifier.DesktopEventDetector(
@@ -658,10 +661,10 @@ fun desktopSearchBar(
 data class DesktopAppModel(
   val name: String,
   val mmid: MMID,
-  val icon: String,
+  val icon: StrictImageResource?,
   val isSystermApp: Boolean,
   var running: DesktopAppRunStatus = DesktopAppRunStatus.NONE,
-  var image: ImageBitmap? = null,
+  var image: ImageLoadResult? = null,
   var size: IntSize? = null,
   var offSet: IntOffset? = null,
   val id: UUID = randomUUID()
@@ -698,52 +701,26 @@ data class DesktopAppModel(
 
 @Composable
 fun DeskCacheIcon(
-  iconUrl: String,
-  iconStore: DeskIconStore,
+  icon: StrictImageResource?,
   microModule: NativeMicroModule.NativeRuntime,
-  width: Dp = 50.dp,
-  height: Dp = 50.dp,
-  iconLoaded: (ImageBitmap) -> Unit
+  width: Dp,
+  height: Dp,
+  iconLoaded: (ImageLoadResult) -> Unit
 ) {
-  var checked by remember {
-    mutableStateOf<Pair<Boolean, ImageBitmap?>>(Pair(false, null))
-  }
-
-  val iconStoreKey = iconUrl + "w:$width" + "h:$height"
-
-  LaunchedEffect(iconStoreKey) {
-    var sha256 = iconStore.get(iconStoreKey)
-    var icon: ImageBitmap? = null
-    if (sha256 != null) {
-      icon = microModule.blobRead(sha256).binary().toImageBitmap()
-      //TODO:这边最好再实现一个memory的缓存，避免频繁的从磁盘读取
-    }
-    checked = Pair(true, icon)
-  }
-
-  if (checked.first) {
-    if (checked.second != null) {
-      Image(BitmapPainter(checked.second!!), "")
-      iconLoaded(checked.second!!)
-    } else {
+  when (icon) {
+    null -> Image(Icons.TwoTone.Image, contentDescription = null)
+    else -> {
       val imageResult =
-        PureImageLoader.SmartLoad(iconUrl, width, height, microModule.imageFetchHook)
+        PureImageLoader.SmartLoad(icon.src, width, height, microModule.blobFetchHook)
+      AppIcon(
+        imageResult,
+        iconMaskable = icon.purpose.contains(ImageResourcePurposes.Maskable),
+        iconMonochrome = icon.purpose.contains(ImageResourcePurposes.Monochrome)
+      )
       if (imageResult.isSuccess) {
-        val image = imageResult.success!!
-        Image(image, contentDescription = null)
-        iconLoaded(image)
-        LaunchedEffect(iconUrl) {
-          image.toByteArray()?.let {
-            val sha256 = microModule.blobWrite("image/*", it)
-            iconStore.set(iconStoreKey, sha256)
-          }
-        }
-      } else {
-        Image(Icons.TwoTone.Image, contentDescription = null)
+        iconLoaded(imageResult)
       }
     }
-  } else {
-    Box(Modifier.background(Color.White))
-//    Image(Icons.TwoTone.Image, contentDescription = null)
   }
+
 }

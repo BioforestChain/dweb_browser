@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.Image
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -48,8 +50,11 @@ import androidx.compose.ui.window.Popup
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.helper.StrictImageResource
 import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.compose.clickableWithNoEffect
+import org.dweb_browser.sys.window.core.helper.pickLargest
+import org.dweb_browser.sys.window.core.helper.toStrict
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -81,11 +86,11 @@ fun NewTaskbarView(
     scope.launch {
       val taskbarApps = taskbarController.getTaskbarAppList(Int.MAX_VALUE).map { new ->
         val oldApp = apps.firstOrNull { old ->
-          old.mmid == new.mmid && old.icon == new.icons.firstOrNull()?.src
+          old.mmid == new.mmid
         }
         TaskbarAppModel(
           new.mmid,
-          new.icons.firstOrNull()?.src ?: "",
+          new.icons.toStrict().pickLargest(),
           new.running,
           oldApp?.isShowClose ?: false,
         )
@@ -128,21 +133,20 @@ fun NewTaskbarView(
       apps.forEach { app ->
         TaskBarAppIcon(Modifier,
           app,
-          taskbarController.iconStore,
           taskbarController.deskNMM,
           openApp = { mmid ->
-          scope.launch {
-            taskbarController.open(mmid)
-          }
-        }, quitApp = { mmid ->
-          scope.launch {
-            taskbarController.quit(mmid)
-          }
-        }, toggleWindow = { mmid ->
-          scope.launch {
-            taskbarController.toggleWindowMaximize(mmid)
-          }
-        })
+            scope.launch {
+              taskbarController.open(mmid)
+            }
+          }, quitApp = { mmid ->
+            scope.launch {
+              taskbarController.quit(mmid)
+            }
+          }, toggleWindow = { mmid ->
+            scope.launch {
+              taskbarController.toggleWindowMaximize(mmid)
+            }
+          })
       }
 
       if (apps.isNotEmpty()) {
@@ -162,7 +166,6 @@ fun NewTaskbarView(
 private fun TaskBarAppIcon(
   modifier: Modifier,
   app: TaskbarAppModel,
-  iconStore: DeskIconStore,
   microModule: NativeMicroModule.NativeRuntime,
   openApp: (mmid: String) -> Unit,
   quitApp: (mmid: String) -> Unit,
@@ -209,12 +212,17 @@ private fun TaskBarAppIcon(
 
     key(app.icon) {
       BoxWithConstraints(Modifier.padding(5.dp).blur(if (showQuit) 1.dp else 0.dp)) {
-        val iconImage = TaskbarAppModel.getCacheIcon(app.icon)
-        if (iconImage != null) {
-          Image(iconImage, contentDescription = null)
-        } else {
-          DeskCacheIcon(app.icon, iconStore, microModule, maxWidth, maxHeight) {
-            TaskbarAppModel.setCacheIcon(app.mmid, it)
+        when (app.icon) {
+          null -> Image(Icons.TwoTone.Image, contentDescription = null)
+          else -> {
+            val iconImage = TaskbarAppModel.getCacheIcon(app.icon.src)
+            if (iconImage != null) {
+              Image(iconImage, contentDescription = null)
+            } else {
+              DeskCacheIcon(app.icon, microModule, maxWidth, maxHeight) {
+                TaskbarAppModel.setCacheIcon(app.mmid, it.success!!)
+              }
+            }
           }
         }
       }
@@ -310,7 +318,7 @@ private fun TaskBarHomeIcon(click: () -> Unit) {
 
 private data class TaskbarAppModel(
   val mmid: String,
-  val icon: String,
+  val icon: StrictImageResource?,
   val running: Boolean,
   var isShowClose: Boolean = false,
 ) {

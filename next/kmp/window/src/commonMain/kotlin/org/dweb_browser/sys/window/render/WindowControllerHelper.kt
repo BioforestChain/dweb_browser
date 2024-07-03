@@ -39,6 +39,8 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
+import org.dweb_browser.core.std.file.ext.MicroModuleStore
+import org.dweb_browser.core.std.file.ext.blobWrite
 import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.Observable
 import org.dweb_browser.helper.PureRect
@@ -752,6 +754,27 @@ val MicroModule.Runtime.imageFetchHook
   get() = MicroModuleFetchHookCache.getOrPut(this) {
     {
       nativeFetch(request.url)
+    }
+  }
+
+private val blobStoreWM = WeakHashMap<MicroModule.Runtime, MicroModuleStore>()
+val MicroModule.Runtime.urlBlobStore
+  get() = blobStoreWM.getOrPut(this) {
+    MicroModuleStore(this, "blob-cache", false)
+  }
+
+private val MicroModuleBlobFetchHookCache = WeakHashMap<MicroModule.Runtime, FetchHook>()
+val MicroModule.Runtime.blobFetchHook
+  get() = MicroModuleBlobFetchHookCache.getOrPut(this) {
+    {
+      val blobUrl = urlBlobStore.getOrPut(request.url.toString()) {
+        val response = nativeFetch(request.url)
+        val mime = response.headers.get("Content-Type") ?: ""
+        val ext = request.url.pathSegments.lastOrNull()?.substringAfterLast(".", "") ?: ""
+        val data = response.body.toPureBinary()
+        blobWrite(data, mime, ext)
+      }
+      nativeFetch(blobUrl)
     }
   }
 

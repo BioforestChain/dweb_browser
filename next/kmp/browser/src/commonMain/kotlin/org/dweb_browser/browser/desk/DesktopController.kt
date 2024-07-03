@@ -56,8 +56,6 @@ import org.dweb_browser.sys.window.render.NativeBackHandler
 
 abstract class DesktopAppController constructor(open val deskNMM: DeskNMM.DeskRuntime) {
 
-  abstract val iconStore: DeskIconStore
-
   suspend fun open(mmid: String) {
     deskNMM.nativeFetch("file://desk.browser.dweb/openAppOrActivate?app_id=$mmid")
   }
@@ -75,7 +73,6 @@ abstract class DesktopAppController constructor(open val deskNMM: DeskNMM.DeskRu
 @Stable
 open class DesktopController private constructor(
   override val deskNMM: DeskNMM.DeskRuntime,
-  override val iconStore: DeskIconStore,
   private val desktopServer: HttpDwebServer,
   private val runningApps: ChangeableMap<MMID, RunningApp>,
 ): DesktopAppController(deskNMM) {
@@ -167,8 +164,7 @@ open class DesktopController private constructor(
       deskNMM: DeskNMM.DeskRuntime,
       desktopServer: HttpDwebServer,
       runningApps: ChangeableMap<MMID, RunningApp>,
-      iconStore: DeskIconStore,
-    ) = DesktopController(deskNMM, iconStore, desktopServer, runningApps)
+    ) = DesktopController(deskNMM, desktopServer, runningApps)
   }
 
   // 状态更新信号

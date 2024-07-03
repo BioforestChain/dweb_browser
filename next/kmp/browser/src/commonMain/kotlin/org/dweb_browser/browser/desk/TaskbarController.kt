@@ -33,7 +33,6 @@ import org.dweb_browser.helper.resolvePath
 
 class TaskbarController private constructor(
   override val deskNMM: DeskNMM.DeskRuntime,
-  override val iconStore: DeskIconStore,
   val deskSessionId: String,
   private val desktopController: DesktopController,
   private val taskbarServer: HttpDwebServer,
@@ -49,9 +48,8 @@ class TaskbarController private constructor(
       desktopController: DesktopController,
       taskbarServer: HttpDwebServer,
       runningApps: ChangeableMap<MMID, RunningApp>,
-      iconStore: DeskIconStore,
     ) = TaskbarController(
-      deskNMM, iconStore, deskSessionId, desktopController, taskbarServer, runningApps
+      deskNMM, deskSessionId, desktopController, taskbarServer, runningApps
     )
   }
 
