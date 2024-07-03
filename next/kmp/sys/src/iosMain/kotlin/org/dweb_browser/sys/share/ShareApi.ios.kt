@@ -98,8 +98,23 @@ actual suspend fun share(
         content += it
       }
     }
-    shareOptions.text?.also { it.isNotBlank().trueAlso { content += it } }
-    shareOptions.url?.also { it.isNotBlank().trueAlso { content += it } }
+    shareOptions.url?.also {
+      it.isNotBlank().trueAlso {
+        if (content.isNotBlank()) {
+          content = "[$content]($it)"
+        } else {
+          content += it
+        }
+      }
+    }
+    shareOptions.text?.also {
+      it.isNotBlank().trueAlso {
+        if (content.isNotBlank()) {
+          content += "\n"
+        }
+        content += it
+      }
+    }
 
     val lpMetadataProvider = LPMetadataProvider()
 
