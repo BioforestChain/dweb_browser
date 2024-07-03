@@ -149,6 +149,12 @@ fun AboutRender(
       item("hardware-info") {
         AboutTitle(AboutI18nResource.hardware())
         AboutContainer {
+          winHardwareInfo.hostName?.also {
+            AboutDetailsItem(
+              labelName = AboutI18nResource.hostName(),
+              text = winHardwareInfo.hostName!!
+            )
+          }
           winHardwareInfo.ram?.also {
             AboutDetailsItem(
               labelName = AboutI18nResource.ram(), text = winHardwareInfo.ram!!

@@ -6,6 +6,7 @@ import org.dweb_browser.helper.platform.execCommand
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.platform.desktop.os.OsType
 import org.dweb_browser.sys.device.model.MacHardwareInfo
+import org.dweb_browser.sys.device.model.WinHardwareInfo
 
 actual object DeviceManage {
   private val runtime by lazy { Runtime.getRuntime() }

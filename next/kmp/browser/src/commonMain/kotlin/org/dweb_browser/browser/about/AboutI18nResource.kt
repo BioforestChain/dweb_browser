@@ -68,4 +68,5 @@ object AboutI18nResource {
   val isTrue = SimpleI18nResource(Language.ZH to "有", Language.EN to "True")
   val isFalse = SimpleI18nResource(Language.ZH to "无", Language.EN to "False")
   val chip = SimpleI18nResource(Language.ZH to "芯片", Language.EN to "Chip")
+  val hostName = SimpleI18nResource(Language.ZH to "主机名", Language.EN to "Host Name")
 }
