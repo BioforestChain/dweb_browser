@@ -8,6 +8,7 @@ import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.PureRect
 import org.dweb_browser.helper.toPoint
 import org.dweb_browser.helper.toRect
+import org.dweb_browser.helper.utf8String
 
 actual class ScanningManager actual constructor() {
 
@@ -28,7 +29,7 @@ actual class ScanningManager actual constructor() {
         task.resolve(barcodes.map {
           val cornerPoints = it.cornerPoints
           BarcodeResult(
-            data = it.rawBytes?.decodeToString() ?: "",
+            data = it.rawBytes?.utf8String ?: "",
             boundingBox = it.boundingBox?.toRect() ?: PureRect.Zero,
             topLeft = cornerPoints?.get(0)?.toPoint() ?: PurePoint.Zero,
             topRight = cornerPoints?.get(0)?.toPoint() ?: PurePoint.Zero,

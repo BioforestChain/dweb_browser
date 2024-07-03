@@ -25,7 +25,7 @@ import org.dweb_browser.core.std.dns.nativeFetchAdaptersManager
 import org.dweb_browser.core.std.http.net.Http1Server
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.SafeHashMap
-import org.dweb_browser.helper.base64Url
+import org.dweb_browser.helper.base64UrlString
 import org.dweb_browser.helper.decodeURIComponent
 import org.dweb_browser.helper.encodeURI
 import org.dweb_browser.helper.falseAlso
@@ -163,7 +163,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
       val serverUrlInfo = getServerUrlInfo(selfIpc, options)
       val listener = Gateway.PortListener(selfIpc, serverUrlInfo.host)
 
-      val token = ByteArray(8).also { Random.nextBytes(it) }.base64Url
+      val token = ByteArray(8).also { Random.nextBytes(it) }.base64UrlString
       val gateway = Gateway(listener, serverUrlInfo, token)
       gatewayMap[serverUrlInfo.host] = gateway
       tokenMap[token] = gateway
@@ -566,7 +566,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
           close(ipc, options)
         }
       }
-      val token = ByteArray(8).also { Random.nextBytes(it) }.base64Url
+      val token = ByteArray(8).also { Random.nextBytes(it) }.base64UrlString
 
       val gateway = Gateway(listener, serverUrlInfo, token)
       gatewayMap[serverUrlInfo.host] = gateway

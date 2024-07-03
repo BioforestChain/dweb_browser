@@ -2,6 +2,7 @@ package org.dweb_browser.core.ipc.helper
 
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.helper.Debugger
+import org.dweb_browser.helper.base64String
 import org.dweb_browser.pure.http.IPureBody
 
 
@@ -36,7 +37,7 @@ abstract class IpcBody {
 
   fun stream() = raw.toPureStream()
 
-  suspend fun base64() = raw.toPureBinary().base64
+  suspend fun base64() = raw.toPureBinary().base64String
 
   suspend fun text() = raw.toPureString()
 

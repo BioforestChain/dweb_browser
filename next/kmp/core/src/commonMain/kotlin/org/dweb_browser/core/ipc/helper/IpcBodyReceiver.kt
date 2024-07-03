@@ -5,8 +5,9 @@ import kotlinx.coroutines.DisposableHandle
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.helper.Debugger
+import org.dweb_browser.helper.base64Binary
 import org.dweb_browser.helper.collectIn
-import org.dweb_browser.helper.decodeBase64ToByteArray
+import org.dweb_browser.helper.utf8Binary
 import org.dweb_browser.pure.http.IPureBody
 import org.dweb_browser.pure.http.PureStream
 
@@ -83,9 +84,9 @@ class IpcBodyReceiver(
           }
           /// 如果有初始帧，直接存起来
           when (metaBody.type.encoding) {
-            IPC_DATA_ENCODING.UTF8 -> (metaBody.data as String).encodeToByteArray()
+            IPC_DATA_ENCODING.UTF8 -> (metaBody.data as String).utf8Binary
             IPC_DATA_ENCODING.BINARY -> metaBody.data as ByteArray
-            IPC_DATA_ENCODING.BASE64 -> (metaBody.data as String).decodeBase64ToByteArray()
+            IPC_DATA_ENCODING.BASE64 -> (metaBody.data as String).base64Binary
             else -> null
           }?.let { firstData -> controller.background { controller.enqueue(firstData) } }
 

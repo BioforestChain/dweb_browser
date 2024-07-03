@@ -1,10 +1,5 @@
 package org.dweb_browser.helper
 
-import io.ktor.http.decodeURLPart
-import io.ktor.http.decodeURLQueryComponent
-import io.ktor.http.encodeURLPath
-import io.ktor.http.encodeURLQueryComponent
-
 /**
  * Converts 4 [Byte]s with [LITTLE_ENDIAN] ordering to a [Int]
  * */
@@ -45,12 +40,3 @@ fun Int.toLittleEndianByteArray(): ByteArray {
     this[3] = b3
   }
 }
-
-
-fun String.encodeURIComponent(): String = this.encodeURLQueryComponent()
-
-fun String.decodeURIComponent(): String = this.decodeURLQueryComponent()
-
-fun String.encodeURI(): String = this.encodeURLPath()
-
-fun String.decodeURI(): String = this.decodeURLPart()

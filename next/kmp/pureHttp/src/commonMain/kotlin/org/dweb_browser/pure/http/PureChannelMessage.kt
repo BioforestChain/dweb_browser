@@ -6,6 +6,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.consumeEachArrayRange
+import org.dweb_browser.helper.utf8Binary
+import org.dweb_browser.helper.utf8String
 
 class PureChannelMessage private constructor(private val source: Any, val isBinary: Boolean) {
 
@@ -26,7 +28,7 @@ class PureChannelMessage private constructor(private val source: Any, val isBina
   init {
     when (source) {
       is PureString -> {
-        binary = SuspendOnce { source.encodeToByteArray() }
+        binary = SuspendOnce { source.utf8Binary }
         text = SuspendOnce { source }
         stream = SuspendOnce { PureStream(binary()) }
         asPureFrames = SuspendOnce { flow { emit(PureTextFrame(source)) } }
@@ -34,14 +36,14 @@ class PureChannelMessage private constructor(private val source: Any, val isBina
 
       is PureBinary -> {
         binary = SuspendOnce { source }
-        text = SuspendOnce { source.decodeToString() }
+        text = SuspendOnce { source.utf8String }
         stream = SuspendOnce { PureStream(source) }
         asPureFrames = SuspendOnce { flow { emit(PureBinaryFrame(source)) } }
       }
 
       is ByteReadChannel -> {
         binary = SuspendOnce { source.toByteArray() }
-        text = SuspendOnce { binary().decodeToString() }
+        text = SuspendOnce { binary().utf8String }
         stream = SuspendOnce { PureStream(source) }
         asPureFrames = SuspendOnce {
           flow {
@@ -54,7 +56,7 @@ class PureChannelMessage private constructor(private val source: Any, val isBina
 
       is PureStream -> {
         binary = SuspendOnce { source.getReader("to binary").toByteArray() }
-        text = SuspendOnce { binary().decodeToString() }
+        text = SuspendOnce { binary().utf8String }
         stream = SuspendOnce { source }
         asPureFrames = SuspendOnce {
           flow {

@@ -49,6 +49,7 @@ import org.dweb_browser.helper.platform.getOrCreateProfile
 import org.dweb_browser.helper.platform.toImageBitmap
 import org.dweb_browser.helper.platform.webViewEngine
 import org.dweb_browser.helper.trueAlso
+import org.dweb_browser.helper.utf8String
 import org.dweb_browser.sys.device.DeviceManage
 import java.util.function.Consumer
 import javax.swing.SwingUtilities
@@ -89,7 +90,7 @@ class DWebViewEngine internal constructor(
           // SSL Certificate to verify.
           val certificate = params.certificate()
           // FIXME 这里应该有更加严谨的证书内容判断
-          if (certificate.derEncodedValue().decodeToString().contains(".dweb")) {
+          if (certificate.derEncodedValue().utf8String.contains(".dweb")) {
             VerifyCertificateCallback.Response.valid()
           } else {
             VerifyCertificateCallback.Response.defaultAction()

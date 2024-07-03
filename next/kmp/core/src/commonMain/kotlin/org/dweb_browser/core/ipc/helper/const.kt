@@ -2,7 +2,9 @@ package org.dweb_browser.core.ipc.helper
 
 import kotlinx.serialization.Serializable
 import org.dweb_browser.helper.IntEnumSerializer
-import org.dweb_browser.helper.decodeBase64ToByteArray
+import org.dweb_browser.helper.base64Binary
+import org.dweb_browser.helper.utf8Binary
+import org.dweb_browser.helper.utf8String
 
 
 const val DEFAULT_BUFFER_SIZE: Int = 8 * 1024
@@ -57,15 +59,15 @@ fun dataToBinary(
   data: Any, /*String or ByteArray*/ encoding: IPC_DATA_ENCODING,
 ) = when (encoding) {
   IPC_DATA_ENCODING.BINARY -> data as ByteArray
-  IPC_DATA_ENCODING.BASE64 -> (data as String).decodeBase64ToByteArray()
-  IPC_DATA_ENCODING.UTF8 -> (data as String).encodeToByteArray()
+  IPC_DATA_ENCODING.BASE64 -> (data as String).base64Binary
+  IPC_DATA_ENCODING.UTF8 -> (data as String).utf8Binary
 }
 
 
 fun dataToText(
   data: Any, /*String or ByteArray*/ encoding: IPC_DATA_ENCODING,
 ) = when (encoding) {
-  IPC_DATA_ENCODING.BINARY -> (data as ByteArray).decodeToString()
-  IPC_DATA_ENCODING.BASE64 -> (data as String).decodeBase64ToByteArray().decodeToString()
+  IPC_DATA_ENCODING.BINARY -> (data as ByteArray).utf8String
+  IPC_DATA_ENCODING.BASE64 -> (data as String).base64Binary.utf8String
   IPC_DATA_ENCODING.UTF8 -> data as String
 }

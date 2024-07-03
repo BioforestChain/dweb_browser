@@ -18,12 +18,12 @@ import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.SafeInt
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.WeakHashMap
+import org.dweb_browser.helper.base64Binary
 import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.consumeEachArrayRange
 import org.dweb_browser.helper.getOrPut
 import org.dweb_browser.helper.globalDefaultScope
 import org.dweb_browser.helper.randomUUID
-import org.dweb_browser.helper.decodeBase64ToByteArray
 import org.dweb_browser.pure.http.IPureBody
 import org.dweb_browser.pure.http.PureBinary
 import org.dweb_browser.pure.http.PureBinaryBody
@@ -100,7 +100,7 @@ class IpcBodySender private constructor(
     fun fromText(raw: PureString, ipc: Ipc) =
       IpcBodySender(MetaBody.fromText(raw, ipc.pool.poolId), IPureBody.from(raw), ipc)
 
-    fun fromBase64(raw: PureString, ipc: Ipc) = fromBinary(raw.decodeBase64ToByteArray(), ipc)
+    fun fromBase64(raw: PureString, ipc: Ipc) = fromBinary(raw.base64Binary, ipc)
 
     fun fromBinary(raw: PureBinary, ipc: Ipc): IpcBodySender {
       val pureBody = IPureBody.from(raw)

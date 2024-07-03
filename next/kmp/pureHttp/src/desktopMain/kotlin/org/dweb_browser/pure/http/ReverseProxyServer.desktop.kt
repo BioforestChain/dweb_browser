@@ -25,6 +25,7 @@ import kotlinx.io.IOException
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.utf8String
 import java.nio.ByteBuffer
 
 val debugReverseProxy = Debugger("ReverseProxy")
@@ -185,7 +186,7 @@ class ConnectRequest(buffer: ByteArray) {
 
   init {
     try {
-      val content = buffer.decodeToString()
+      val content = buffer.utf8String
       for (line in content.splitToSequence(Regex("\n"))) {
         if (!line.startsWith("CONNECT ")) {
           continue

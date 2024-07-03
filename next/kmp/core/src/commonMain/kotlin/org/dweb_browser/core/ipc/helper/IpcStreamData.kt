@@ -3,7 +3,8 @@ package org.dweb_browser.core.ipc.helper
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.dweb_browser.helper.OrderBy
-import org.dweb_browser.helper.base64
+import org.dweb_browser.helper.base64String
+import org.dweb_browser.helper.utf8String
 
 @Serializable()
 @SerialName(IPC_MESSAGE_TYPE_STREAM_DATA)
@@ -63,10 +64,10 @@ data class IpcStreamData(
       IpcStreamData(streamId, IPC_DATA_ENCODING.BINARY, data, order)
 
     fun fromBase64(streamId: String, data: ByteArray, order: Int = streamId.hashCode()) =
-      IpcStreamData(streamId, IPC_DATA_ENCODING.BASE64, data.base64, order)
+      IpcStreamData(streamId, IPC_DATA_ENCODING.BASE64, data.base64String, order)
 
     fun fromUtf8(streamId: String, data: ByteArray, order: Int = streamId.hashCode()) =
-      fromUtf8(streamId, data.decodeToString(), order)
+      fromUtf8(streamId, data.utf8String, order)
 
     fun fromUtf8(streamId: String, data: String, order: Int = streamId.hashCode()) =
       IpcStreamData(streamId, IPC_DATA_ENCODING.UTF8, data, order)
@@ -83,7 +84,7 @@ data class IpcStreamData(
   override val stringAble by lazy {
     when (encoding) {
       IPC_DATA_ENCODING.BINARY -> IpcStreamDataRawString(
-        stream_id, IPC_DATA_ENCODING.BASE64, (data as ByteArray).base64, order
+        stream_id, IPC_DATA_ENCODING.BASE64, (data as ByteArray).base64String, order
       )
 
       IPC_DATA_ENCODING.BASE64, IPC_DATA_ENCODING.UTF8 -> IpcStreamDataRawString(

@@ -1,6 +1,8 @@
 package org.dweb_browser.helper.platform
 
 import android.os.Environment
+import org.dweb_browser.helper.utf8Binary
+import org.dweb_browser.helper.utf8String
 import org.dweb_browser.pure.crypto.hash.jvmSha256
 import java.io.File
 import kotlin.io.encoding.Base64
@@ -22,7 +24,8 @@ class DeviceKeyValueStore(
 ) {
   companion object {
     val externalDir by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-      Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS).resolve("dweb-kv")
+      Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
+        .resolve("dweb-kv")
     }
   }
 
@@ -61,7 +64,7 @@ class DeviceKeyValueStore(
   }
 
   fun setItem(key: String, value: String) =
-    setRawItem(key.encodeToByteArray(), value.encodeToByteArray())
+    setRawItem(key.utf8Binary, value.utf8Binary)
 
   fun setRawItem(key: ByteArray, value: ByteArray) {
     val (keyId, keyDetail) = parseWriteData(key)
@@ -89,7 +92,7 @@ class DeviceKeyValueStore(
     }
   }
 
-  fun getItem(key: String) = getRawItem(key.encodeToByteArray())?.decodeToString()
+  fun getItem(key: String) = getRawItem(key.utf8Binary)?.utf8String
 
   fun getRawItem(key: ByteArray): ByteArray? {
     val keyId = parseReadData(key)
@@ -131,7 +134,7 @@ class DeviceKeyValueStore(
     }
   }.getOrElse { emptyList() }
 
-  fun getKeys() = getRawKeys().map { it.decodeToString() }
+  fun getKeys() = getRawKeys().map { it.utf8String }
 
   fun removeRawKey(key: ByteArray): Boolean {
     val keyId = parseReadData(key)
@@ -139,6 +142,6 @@ class DeviceKeyValueStore(
     return keyDir.deleteRecursively()
   }
 
-  fun removeKey(key: String) = removeRawKey(key.encodeToByteArray())
+  fun removeKey(key: String) = removeRawKey(key.utf8Binary)
 }
 

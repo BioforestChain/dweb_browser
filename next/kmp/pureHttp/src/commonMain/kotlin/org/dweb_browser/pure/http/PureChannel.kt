@@ -19,6 +19,8 @@ import kotlinx.serialization.json.Json
 import org.dweb_browser.helper.DeferredSignal
 import org.dweb_browser.helper.IFrom
 import org.dweb_browser.helper.Once
+import org.dweb_browser.helper.utf8Binary
+import org.dweb_browser.helper.utf8String
 
 
 interface IPureChannel {
@@ -147,7 +149,7 @@ sealed class PureFrame {
 @Serializable
 @SerialName("text")
 class PureTextFrame(override val text: String) : PureFrame() {
-  override val binary get() = text.encodeToByteArray()
+  override val binary get() = text.utf8Binary
   override fun toString(): String {
     return "PureTextFrame(${
       when (val len = text.length) {
@@ -161,7 +163,7 @@ class PureTextFrame(override val text: String) : PureFrame() {
 @Serializable
 @SerialName("binary")
 class PureBinaryFrame(override val binary: ByteArray) : PureFrame() {
-  override val text get() = binary.decodeToString()
+  override val text get() = binary.utf8String
   override fun toString(): String {
     return "PureBinaryFrame(size=${binary.size})"
   }

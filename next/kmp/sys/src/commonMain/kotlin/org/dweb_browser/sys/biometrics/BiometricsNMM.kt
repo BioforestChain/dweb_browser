@@ -6,6 +6,7 @@ import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.toJsonElement
+import org.dweb_browser.helper.utf8Binary
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.queryAs
 import org.dweb_browser.pure.http.queryAsOrNull
@@ -34,7 +35,7 @@ class BiometricsNMM : NativeMicroModule("biometrics.sys.dweb", "biometrics") {
         "/biometrics" bind PureMethod.GET by defineJsonResponse {
           val title = request.queryOrNull("title")
           val subtitle = request.queryOrNull("subtitle")
-          val input = request.queryOrNull("input")?.encodeToByteArray()
+          val input = request.queryOrNull("input")?.utf8Binary
           val mode = request.queryAsOrNull<InputMode>("mode") ?: InputMode.None
           val biometricsResult =
             BiometricsManage.biometricsResultContent(

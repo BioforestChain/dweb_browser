@@ -6,6 +6,8 @@ import org.dweb_browser.helper.platform.NSDataHelper.toNSData
 import org.dweb_browser.helper.readLittleEndianInt
 import org.dweb_browser.helper.toKString
 import org.dweb_browser.helper.toLittleEndianByteArray
+import org.dweb_browser.helper.utf8Binary
+import org.dweb_browser.helper.utf8String
 import org.dweb_browser.platform.ios.DwebKeyChainGenericStore
 import org.dweb_browser.pure.crypto.hash.ccSha256
 import platform.Foundation.NSString
@@ -53,7 +55,7 @@ class DeviceKeyValueStore(
   }
 
   fun setItem(key: String, value: String) {
-    setRawItem(key.encodeToByteArray(), value.encodeToByteArray())
+    setRawItem(key.utf8Binary, value.utf8Binary)
   }
 
   fun getRawItem(key: ByteArray): ByteArray? {
@@ -65,14 +67,14 @@ class DeviceKeyValueStore(
     }
   }
 
-  fun getItem(key: String) = getRawItem(key.encodeToByteArray())
+  fun getItem(key: String) = getRawItem(key.utf8Binary)
 
   fun hasRawItem(key: ByteArray): Boolean {
     val (account, _) = parseKey(key)
     return store.hasItemWithAccount(account = account)
   }
 
-  fun hasItem(key: String) = hasRawItem(key.encodeToByteArray())
+  fun hasItem(key: String) = hasRawItem(key.utf8Binary)
 
   fun getRawKeys() = store.getAllAccounts().mapNotNull { account ->
     val key = (account as NSString).toKString()
@@ -87,12 +89,12 @@ class DeviceKeyValueStore(
     }
   }
 
-  fun getKeys() = getRawKeys().map { it.decodeToString() }
+  fun getKeys() = getRawKeys().map { it.utf8String }
 
   fun deleteRawItem(key: ByteArray): Boolean {
     val (account, _) = parseKey(key)
     return store.deleteItemWithAccount(account)
   }
 
-  fun deleteItem(key: String) = deleteRawItem(key.encodeToByteArray())
+  fun deleteItem(key: String) = deleteRawItem(key.utf8Binary)
 }
