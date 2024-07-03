@@ -14,9 +14,3 @@ val String.base64Binary get() = Base64.decode(this)
 
 @OptIn(ExperimentalEncodingApi::class)
 val String.base64UrlBinary get() = Base64.UrlSafe.decode(this)
-
-@OptIn(ExperimentalEncodingApi::class)
-fun String.decodeBase64ToByteArray(): ByteArray = Base64.decode(this)
-
-@OptIn(ExperimentalEncodingApi::class)
-fun String.decodeBase64UrlToByteArray(): ByteArray = Base64.UrlSafe.decode(this)
