@@ -1,23 +1,10 @@
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+
 plugins {
   id("kmp-compose")
 }
 kotlin {
-  kmpCommonTarget(project) {
-    @Suppress("OPT_IN_USAGE")
-    applyHierarchyTemplate {
-      common {
-        group("mobile") {
-          withAndroidTarget()
-          withIosTarget()
-        }
-        group("jvm") {
-          withDesktopTarget()
-          withAndroidTarget()
-        }
-        withIosTarget()
-      }
-    }
-  }
+  kmpCommonTarget(project)
 
   kmpComposeTarget(project) {
     dependencies {
@@ -73,6 +60,21 @@ kotlin {
       // zxing 解析二维码
       implementation(libs.camera.zxing.code)
       implementation(libs.camera.zxing.javase)
+    }
+  }
+
+  @OptIn(ExperimentalKotlinGradlePluginApi::class)
+  applyDefaultHierarchyTemplate {
+    common {
+      group("mobile") {
+        withAndroidTarget()
+        withIosTarget()
+      }
+      group("jvm") {
+        withDesktopTarget()
+        withAndroidTarget()
+      }
+      withIosTarget()
     }
   }
 }

@@ -1,18 +1,11 @@
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+
 plugins {
   id("kmp-compose")
 }
 
 kotlin {
-  kmpCommonTarget(project) {
-    applyHierarchyTemplate {
-      common {
-        group("mobile") {
-          withAndroidTarget()
-          withIosTarget()
-        }
-      }
-    }
-  }
+  kmpCommonTarget(project)
 
   kmpComposeTarget(project) {
     dependencies {
@@ -42,4 +35,14 @@ kotlin {
   }
   kmpIosTarget(project)
   kmpDesktopTarget(project)
+
+  @OptIn(ExperimentalKotlinGradlePluginApi::class)
+  applyDefaultHierarchyTemplate {
+    common {
+      group("mobile") {
+        withAndroidTarget()
+        withIosTarget()
+      }
+    }
+  }
 }

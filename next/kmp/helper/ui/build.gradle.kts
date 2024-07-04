@@ -3,21 +3,21 @@ plugins {
 }
 
 kotlin {
-  kmpCommonTarget(project) {
-    @Suppress("OPT_IN_USAGE")
-    applyHierarchyTemplate {
-      common {
-        group("commonJs") {
-          withJs()
-        }
-      }
-    }
-  }
+  kmpCommonTarget(project)
   kmpBrowserJsTarget(project) {
     dependencies {
       api(libs.kotlinx.datetime)
       api(libs.ktor.http)
       api(libs.ktor.io)
+    }
+  }
+
+  @OptIn(ExperimentalKotlinGradlePluginApi::class)
+  applyDefaultHierarchyTemplate {
+    common {
+      group("commonJs") {
+        withJs()
+      }
     }
   }
 }

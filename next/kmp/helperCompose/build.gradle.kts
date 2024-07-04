@@ -5,21 +5,7 @@ plugins {
 }
 
 kotlin {
-  kmpCommonTarget(project) {
-    @Suppress("OPT_IN_USAGE")
-    applyHierarchyTemplate {
-      common {
-        group("mobile") {
-          withAndroidTarget()
-          withIosTarget()
-        }
-        group("skiko") {
-          withDesktopTarget()
-          withIosTarget()
-        }
-      }
-    }
-  }
+  kmpCommonTarget(project)
 
   kmpComposeTarget(project) {
     dependencies {
@@ -34,4 +20,18 @@ kotlin {
   }
   kmpIosTarget(project)
   kmpDesktopTarget(project)
+
+  @OptIn(ExperimentalKotlinGradlePluginApi::class)
+  applyDefaultHierarchyTemplate {
+    common {
+      group("mobile") {
+        withAndroidTarget()
+        withIosTarget()
+      }
+      group("skiko") {
+        withDesktopTarget()
+        withIosTarget()
+      }
+    }
+  }
 }

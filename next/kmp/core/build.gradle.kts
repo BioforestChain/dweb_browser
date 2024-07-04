@@ -1,19 +1,11 @@
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+
 plugins {
   id("kmp-compose")
 }
 
 kotlin {
-  kmpCommonTarget(project) {
-    @Suppress("OPT_IN_USAGE")
-    applyHierarchyTemplate {
-      common {
-        group("jvm") {
-          withAndroidTarget()
-          withDesktopTarget()
-        }
-      }
-    }
-  }
+  kmpCommonTarget(project)
   kmpComposeTarget(project) {
     dependencies {
       implementation(projects.helper)
@@ -28,4 +20,14 @@ kotlin {
   kmpAndroidTarget(project)
   kmpIosTarget(project)
   kmpDesktopTarget(project)
+
+  @OptIn(ExperimentalKotlinGradlePluginApi::class)
+  applyDefaultHierarchyTemplate {
+    common {
+      group("jvm") {
+        withAndroidTarget()
+        withDesktopTarget()
+      }
+    }
+  }
 }

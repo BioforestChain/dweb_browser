@@ -10,16 +10,7 @@ kotlin {
 //    languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_0)
 //    apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_0)
 //  }
-  kmpCommonTarget(project) {
-    applyHierarchyTemplate {
-      common {
-        group("mobile") {
-          withAndroidTarget()
-          withIosTarget()
-        }
-      }
-    }
-  }
+  kmpCommonTarget(project)
   val mobileMain by sourceSets.creating {
     dependencies {
       // ssl代理。因为桌面端直接支持 ssl 服务，所以不需要这一层 rust 提供ssl代理转发
@@ -59,5 +50,15 @@ kotlin {
   }
   kmpIosTarget(project)
   kmpDesktopTarget(project)
+
+  @OptIn(ExperimentalKotlinGradlePluginApi::class)
+  applyDefaultHierarchyTemplate {
+    common {
+      group("mobile") {
+        withAndroidTarget()
+        withIosTarget()
+      }
+    }
+  }
 }
 

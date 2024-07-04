@@ -338,16 +338,19 @@ class KmpCommonTargetDsl(kmpe: KotlinMultiplatformExtension) : KmpBaseTargetDsl(
   companion object {
     val defaultConfigure: KmpCommonTargetConfigure = {}
   }
+}
 
-  fun org.jetbrains.kotlin.gradle.plugin.KotlinHierarchyBuilder.withIosTarget() {
-    group("native") {
-      withIos()
-    }
+fun org.jetbrains.kotlin.gradle.plugin.KotlinHierarchyBuilder.withIosTarget() {
+  if (Features.iosApp.disabled || !Platform.isMac) {
+    return
   }
+  group("native") {
+    withIos()
+  }
+}
 
-  fun org.jetbrains.kotlin.gradle.plugin.KotlinHierarchyBuilder.withDesktopTarget() {
-    withJvm()
-  }
+fun org.jetbrains.kotlin.gradle.plugin.KotlinHierarchyBuilder.withDesktopTarget() {
+  withJvm()
 }
 
 fun KotlinMultiplatformExtension.kmpCommonTarget(

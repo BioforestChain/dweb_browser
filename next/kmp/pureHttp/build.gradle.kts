@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+
 plugins {
   id("kmp-library")
 }
@@ -11,16 +13,6 @@ kotlin {
 
       implementation(projects.helper)
       implementation(projects.helperPlatform)
-    }
-    @Suppress("OPT_IN_USAGE")
-    applyHierarchyTemplate {
-      common {
-        group("ktor") {
-          withAndroidTarget()
-          withIosTarget()
-          withDesktopTarget()
-        }
-      }
     }
   }
 
@@ -54,6 +46,17 @@ kotlin {
       implementation(libs.ktor.server.netty)
       implementation(libs.ktor.server.jetty)
       implementation(libs.ktor.network.tls.certificates)
+    }
+  }
+
+  @OptIn(ExperimentalKotlinGradlePluginApi::class)
+  applyDefaultHierarchyTemplate {
+    common {
+      group("ktor") {
+        withAndroidTarget()
+        withIosTarget()
+        withDesktopTarget()
+      }
     }
   }
 }

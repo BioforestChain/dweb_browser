@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import java.util.Properties
 
 plugins {
@@ -15,24 +16,12 @@ if (localPropertiesFile.exists()) {
 }
 
 kotlin {
+
   kmpCommonTarget(project) {
     dependencies {
       api(libs.kotlinx.datetime)
       api(libs.ktor.http)
       api(libs.ktor.io)
-    }
-    @Suppress("OPT_IN_USAGE")
-    applyHierarchyTemplate {
-      common {
-        group("commonJs") {
-          withJs()
-        }
-        group("jvm") {
-          withDesktopTarget()
-          withAndroidTarget()
-        }
-        withIosTarget()
-      }
     }
   }
 
@@ -56,6 +45,19 @@ kotlin {
 
   // 增加
   sourceSets["commonMain"].kotlin.srcDir(buildConfigPath)
+  @OptIn(ExperimentalKotlinGradlePluginApi::class)
+  applyDefaultHierarchyTemplate {
+    common {
+      group("commonJs") {
+        withJs()
+      }
+      group("jvm") {
+        withDesktopTarget()
+        withAndroidTarget()
+      }
+      withIosTarget()
+    }
+  }
 }
 
 allprojects {
