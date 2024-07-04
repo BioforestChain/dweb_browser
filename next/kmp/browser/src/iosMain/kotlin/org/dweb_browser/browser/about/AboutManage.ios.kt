@@ -82,7 +82,7 @@ fun AboutRender(
     }
     item("system-info") {
       AboutTitle(AboutI18nResource.system())
-      AboutContainer {
+      AboutColumnContainer {
         AboutDetailsItem(
           labelName = AboutI18nResource.os(), text = iosSystemInfo.os
         )
@@ -96,7 +96,7 @@ fun AboutRender(
       }
       AboutHorizontalDivider()
       AboutTitle(AboutI18nResource.hardware())
-      AboutContainer {
+      AboutColumnContainer {
         AboutDetailsItem(
           labelName = AboutI18nResource.deviceName(), text = iosHardwareInfo.deviceName
         )
@@ -125,7 +125,7 @@ fun AboutRender(
     }
     item("battery-info") {
       AboutTitle(AboutI18nResource.battery())
-      AboutContainer {
+      AboutColumnContainer {
         AboutDetailsItem(
           labelName = AboutI18nResource.percent(), text = batteryInfo.electricity
         )

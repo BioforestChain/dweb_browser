@@ -79,7 +79,7 @@ fun AboutRender(
     }
     item("system-info") {
       AboutTitle(AboutI18nResource.system())
-      AboutContainer {
+      AboutColumnContainer {
         AboutDetailsItem(
           labelName = AboutI18nResource.os(), text = desktopSystemInfo.os
         )
@@ -112,7 +112,7 @@ fun AboutRender(
     if (macHardwareInfo != null) {
       item("hardware-info") {
         AboutTitle(AboutI18nResource.hardware())
-        AboutContainer {
+        AboutColumnContainer {
           AboutDetailsItem(
             labelName = AboutI18nResource.modelName(), text = macHardwareInfo.modelName
           )
@@ -148,7 +148,7 @@ fun AboutRender(
     if (winHardwareInfo != null) {
       item("hardware-info") {
         AboutTitle(AboutI18nResource.hardware())
-        AboutContainer {
+        AboutColumnContainer {
           winHardwareInfo.hostName?.also {
             AboutDetailsItem(
               labelName = AboutI18nResource.hostName(), text = winHardwareInfo.hostName!!

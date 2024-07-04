@@ -1,5 +1,7 @@
 package org.dweb_browser.sys.window.core
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.Column
@@ -11,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -25,6 +28,7 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.core.help.AdapterManager
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.compose.MetaBallLoadingView
+import org.dweb_browser.helper.compose.SlideNavAnimations
 import org.dweb_browser.helper.defaultAsyncExceptionHandler
 import org.dweb_browser.helper.platform.theme.DwebBrowserAppTheme
 import org.dweb_browser.sys.window.render.LocalWindowController
@@ -123,10 +127,49 @@ class WindowAdapterManager : AdapterManager<CreateWindowAdapter>() {
              * 视图的宽高随着窗口的缩小而缩小，随着窗口的放大而放大，
              * 但这些缩放不是等比的，而是会以一定比例进行换算。
              */
-            render(
-              windowRenderScope,
-              contentModifier,
-            )
+            val win = LocalWindowController.current
+            val navigation = win.navigation
+            val pageRenders = remember {
+              mutableStateMapOf<Int, @Composable (WindowContentRenderScope, Modifier) -> Unit>()
+            }
+            val pushedPages = remember(render, navigation.pageStack.size) {
+              mutableListOf(elements = arrayOf(render) + navigation.pageStack)
+            }
+            println("QAQ pushedPages=${pushedPages.size}")
+            pushedPages.forEachIndexed { index, pageRender ->
+              pageRenders[index] = { windowRenderScope, contentModifier ->
+                val visibleState = remember { MutableTransitionState(index == 0) }
+                visibleState.targetState = true
+
+                /**
+                 * currentPage
+                 */
+                AnimatedVisibility(
+                  visibleState,
+                  modifier = Modifier.fillMaxSize(),
+                  enter = SlideNavAnimations.enterTransition,
+                  exit = SlideNavAnimations.popExitTransition,
+                ) {
+                  navigation.GoBackHandler(navigation.pageStack.size > 0) {
+                    navigation.pageStack.removeLast()
+                    visibleState.targetState = false
+                  }
+                  DisposableEffect(Unit) {
+                    onDispose {
+                      println("QAQ pageRenders-1=${pageRenders.size}")
+                      pageRenders.remove(index)
+                      println("QAQ pageRenders-2=${pageRenders.size}")
+                    }
+                  }
+                  pageRender(windowRenderScope, contentModifier)
+                }
+              }
+
+            }
+            println("QAQ pageRenders-0=${pageRenders.size}")
+            for (pageRender in pageRenders.values) {
+              pageRender(windowRenderScope, contentModifier)
+            }
           }
         }
       }

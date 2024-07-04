@@ -1,15 +1,23 @@
 package org.dweb_browser.browser.about
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -21,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -29,6 +38,7 @@ import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
 import org.dweb_browser.helper.compose.envSwitch
 import org.dweb_browser.helper.compose.hex
+import org.dweb_browser.sys.window.core.WindowContentRenderScope
 import org.dweb_browser.sys.window.core.WindowContentScaffoldWithTitleText
 import org.dweb_browser.sys.window.core.windowAdapterManager
 import org.dweb_browser.sys.window.render.LocalWindowControllerTheme
@@ -37,29 +47,46 @@ internal fun provideAboutRender(
   wid: UUID,
   render: @Composable (modifier: Modifier) -> Unit,
 ) {
-  val darkBg = Color.Black
-  val lightBg = Color.hex("#F5F5FA") ?: Color.Gray
   windowAdapterManager.provideRender(wid) { modifier ->
-    WindowContentScaffoldWithTitleText(
-      modifier = modifier,
-      containerColor = when {
-        LocalWindowControllerTheme.current.isDark -> darkBg
-        else -> lightBg
-      },
-      topBarTitleText = AboutI18nResource.pageTitle(),
-    ) { paddingValues ->
-      render(Modifier.padding(paddingValues))
-    }
+    AboutPage(modifier, AboutI18nResource.pageTitle(), content = render)
   }
+}
+
+private val darkBg = Color.Black
+private val lightBg = Color.hex("#F5F5FA") ?: Color.Gray
+
+@Composable
+internal fun WindowContentRenderScope.AboutPage(
+  modifier: Modifier,
+  title: String,
+  content: @Composable (Modifier) -> Unit,
+) {
+  WindowContentScaffoldWithTitleText(
+    modifier = modifier,
+    containerColor = when {
+      LocalWindowControllerTheme.current.isDark -> darkBg
+      else -> lightBg
+    },
+    topBarTitleText = title,
+  ) { paddingValues ->
+    content(Modifier.padding(paddingValues))
+  }
+}
+
+
+@Composable
+fun AboutDetailsBase(modifier: Modifier = Modifier, content: @Composable RowScope.() -> Unit) {
+  Row(
+    modifier = modifier.fillMaxWidth().padding(8.dp).heightIn(min = 16.dp),
+    horizontalArrangement = Arrangement.SpaceBetween,
+    verticalAlignment = Alignment.CenterVertically,
+    content = content,
+  )
 }
 
 @Composable
 fun AboutDetailsItem(modifier: Modifier = Modifier, labelName: String, text: String) {
-  Row(
-    modifier = modifier.fillMaxWidth().padding(8.dp).height(16.dp),
-    horizontalArrangement = Arrangement.SpaceBetween,
-    verticalAlignment = Alignment.CenterVertically
-  ) {
+  AboutDetailsBase(modifier) {
     Text(
       text = labelName,
       style = MaterialTheme.typography.labelMedium,
@@ -70,6 +97,34 @@ fun AboutDetailsItem(modifier: Modifier = Modifier, labelName: String, text: Str
       softWrap = false,
       overflow = TextOverflow.Ellipsis
     )
+  }
+}
+
+@Composable
+fun AboutDetailsNav(
+  onClick: () -> Unit,
+  modifier: Modifier = Modifier,
+  labelName: String,
+  text: String,
+) {
+  AboutDetailsBase(modifier.clickable(onClick = onClick)) {
+    Text(
+      text = labelName,
+      style = MaterialTheme.typography.labelMedium,
+    )
+    Row(verticalAlignment = Alignment.CenterVertically) {
+      Text(
+        text = text,
+        style = MaterialTheme.typography.bodySmall,
+        softWrap = false,
+        overflow = TextOverflow.Ellipsis
+      )
+      Icon(
+        Icons.AutoMirrored.Filled.ArrowForwardIos,
+        contentDescription = "more",
+        modifier = Modifier.padding(start = 8.dp).height(16.dp),
+      )
+    }
   }
 }
 
@@ -95,12 +150,23 @@ fun AboutTitle(title: String) {
 
 
 @Composable
-fun AboutContainer(content: @Composable ColumnScope.() -> Unit) {
+fun AboutColumnContainer(
+  modifier: Modifier = Modifier,
+  content: @Composable ColumnScope.() -> Unit,
+) {
   Column(
-    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp).fillMaxWidth().background(
-      color = MaterialTheme.colorScheme.background, shape = RoundedCornerShape(8.dp)
-    ),
+    modifier = modifier.padding(horizontal = 16.dp, vertical = 8.dp).fillMaxWidth()
+      .clip(RoundedCornerShape(8.dp)).background(color = MaterialTheme.colorScheme.background),
     content = content,
+  )
+}
+
+@Composable
+fun AboutContainer(modifier: Modifier = Modifier, content: @Composable BoxScope.() -> Unit) {
+  Box(
+    modifier = modifier.padding(horizontal = 16.dp, vertical = 8.dp).fillMaxWidth().background(
+      color = MaterialTheme.colorScheme.background, shape = RoundedCornerShape(8.dp)
+    ), content = content
   )
 }
 
@@ -118,24 +184,28 @@ data class AboutAppInfo(
 )
 
 @Composable
-fun AboutAppInfoRender(appInfo: AboutAppInfo) {
+fun AboutAppInfoRender(
+  appInfo: AboutAppInfo,
+  webViewFeaturesContent: @Composable ColumnScope.() -> Unit = {},
+) {
   Column(
     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp).fillMaxWidth().background(
       color = MaterialTheme.colorScheme.background, shape = RoundedCornerShape(8.dp)
     )
   ) {
-    AboutDetailsItem(labelName = AboutI18nResource.appName.text, text = appInfo.appName)
+    AboutDetailsItem(labelName = AboutI18nResource.appName(), text = appInfo.appName)
     AboutDetailsItem(
-      labelName = AboutI18nResource.appVersion.text, text = appInfo.appVersion
+      labelName = AboutI18nResource.appVersion(), text = appInfo.appVersion
     )
     AboutDetailsItem(
-      labelName = AboutI18nResource.webviewVersion.text, text = appInfo.webviewVersion
+      labelName = AboutI18nResource.webviewVersion(), text = appInfo.webviewVersion
+    )
+    webViewFeaturesContent()
+    AboutDetailsItem(
+      labelName = "JMM ${AboutI18nResource.version()}", text = appInfo.jmmVersion.toString()
     )
     AboutDetailsItem(
-      labelName = "JMM ${AboutI18nResource.version.text}", text = appInfo.jmmVersion.toString()
-    )
-    AboutDetailsItem(
-      labelName = "JMM ${AboutI18nResource.patch.text}", text = appInfo.jmmPatch.toString()
+      labelName = "JMM ${AboutI18nResource.patch()}", text = appInfo.jmmPatch.toString()
     )
   }
 }

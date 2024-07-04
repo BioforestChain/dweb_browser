@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-
 plugins {
   id("kmp-compose")
 }
@@ -31,7 +29,7 @@ kotlin {
   }
   kmpAndroidTarget(project) {
     dependencies {
-      implementation(libs.androidx.webkit)
+      api(libs.androidx.webkit)
       implementation(libs.google.material)
       implementation(libs.accompanist.webview)
       implementation(libs.compose.ui)
