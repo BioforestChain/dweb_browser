@@ -64,7 +64,7 @@ kotlin {
   }
 
   @OptIn(ExperimentalKotlinGradlePluginApi::class)
-  applyHierarchyTemplate {
+  applyHierarchyPlatformTemplate {
     common {
       group("jvm") {
         withDesktopTarget()

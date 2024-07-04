@@ -22,7 +22,7 @@ kotlin {
   kmpDesktopTarget(project)
 
   @OptIn(ExperimentalKotlinGradlePluginApi::class)
-  applyHierarchyTemplate {
+  applyHierarchyPlatformTemplate {
     common {
       group("mobile") {
         withAndroidTarget()
@@ -32,7 +32,7 @@ kotlin {
     }
   }
   @OptIn(ExperimentalKotlinGradlePluginApi::class)
-  applyHierarchyTemplate {
+  applyHierarchyPlatformTemplate {
     common {
       group("skiko") {
         withDesktopTarget()

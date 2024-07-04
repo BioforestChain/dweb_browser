@@ -13,7 +13,7 @@ kotlin {
   }
 
   @OptIn(ExperimentalKotlinGradlePluginApi::class)
-  applyHierarchyTemplate {
+  applyHierarchyPlatformTemplate {
     common {
       group("commonJs") {
         withJs()

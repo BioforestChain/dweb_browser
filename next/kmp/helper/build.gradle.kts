@@ -46,7 +46,7 @@ kotlin {
   // 增加
   sourceSets["commonMain"].kotlin.srcDir(buildConfigPath)
   @OptIn(ExperimentalKotlinGradlePluginApi::class)
-  applyHierarchyTemplate {
+  applyHierarchyPlatformTemplate {
     common {
       group("commonJs") {
         withJs()

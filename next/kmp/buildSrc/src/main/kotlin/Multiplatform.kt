@@ -23,6 +23,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 import org.jetbrains.kotlin.gradle.plugin.KotlinDependencyHandler
+import org.jetbrains.kotlin.gradle.plugin.KotlinHierarchyBuilder
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import org.jetbrains.kotlin.gradle.targets.js.dsl.KotlinJsTargetDsl
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsExec
@@ -340,7 +341,7 @@ class KmpCommonTargetDsl(kmpe: KotlinMultiplatformExtension) : KmpBaseTargetDsl(
   }
 }
 
-fun org.jetbrains.kotlin.gradle.plugin.KotlinHierarchyBuilder.withIosTarget() {
+fun KotlinHierarchyBuilder.withIosTarget() {
   if (Features.iosApp.disabled || !Platform.isMac) {
     return
   }
@@ -349,9 +350,12 @@ fun org.jetbrains.kotlin.gradle.plugin.KotlinHierarchyBuilder.withIosTarget() {
   }
 }
 
-fun org.jetbrains.kotlin.gradle.plugin.KotlinHierarchyBuilder.withDesktopTarget() {
+fun KotlinHierarchyBuilder.withDesktopTarget() {
   withJvm()
 }
+
+fun KotlinMultiplatformExtension.applyHierarchyPlatformTemplate(template: KotlinHierarchyBuilder.Root.() -> Unit) =
+  if (Platform.isMac) applyDefaultHierarchyTemplate(template) else applyHierarchyTemplate(template)
 
 fun KotlinMultiplatformExtension.kmpCommonTarget(
   project: Project,
