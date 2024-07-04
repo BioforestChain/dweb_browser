@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+
 plugins {
   id("kmp-library")
 }
@@ -7,17 +9,6 @@ kotlin {
     dependencies {
       implementation(libs.whyoleg.cryptography.core)
 //      implementation(projects.helper)
-    }
-
-    @Suppress("OPT_IN_USAGE")
-    applyHierarchy {
-      common {
-        group("jvm") {
-          withDesktopTarget()
-          withAndroidTarget()
-        }
-        withIosTarget()
-      }
     }
   }
 
@@ -34,6 +25,17 @@ kotlin {
   kmpDesktopTarget(project) {
     dependencies {
       implementation(libs.whyoleg.cryptography.provider.jdk)
+    }
+  }
+
+  @OptIn(ExperimentalKotlinGradlePluginApi::class)
+  applyHierarchyPlatformTemplate {
+    common {
+      group("jvm") {
+        withDesktopTarget()
+        withAndroidTarget()
+      }
+      withIosTarget()
     }
   }
 }

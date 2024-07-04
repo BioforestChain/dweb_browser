@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+
 plugins {
   id("kmp-library")
 }
@@ -10,22 +12,22 @@ kotlin {
 
       implementation(projects.helper)
     }
-
-    @Suppress("OPT_IN_USAGE")
-    applyHierarchy {
-      common {
-        group("jvm") {
-          withDesktopTarget()
-          withAndroidTarget()
-        }
-        withIosTarget()
-      }
-    }
   }
   kmpAndroidTarget(project) {
   }
   kmpIosTarget(project) {
   }
   kmpDesktopTarget(project) {
+  }
+
+  @OptIn(ExperimentalKotlinGradlePluginApi::class)
+  applyHierarchyPlatformTemplate {
+    common {
+      group("jvm") {
+        withDesktopTarget()
+        withAndroidTarget()
+      }
+      withIosTarget()
+    }
   }
 }
