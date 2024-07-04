@@ -22,7 +22,7 @@ kotlin {
     }
 
     @Suppress("OPT_IN_USAGE")
-    applyHierarchy {
+    applyHierarchyTemplate {
       common {
         group("jvm") {
           withDesktopTarget()

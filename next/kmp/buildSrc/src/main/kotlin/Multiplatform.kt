@@ -19,7 +19,7 @@ import org.gradle.kotlin.dsl.the
 import org.gradle.kotlin.dsl.withType
 import org.jetbrains.compose.ComposePlugin
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-import org.jetbrains.kotlin.gradle.dsl.KotlinCommonOptions
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 import org.jetbrains.kotlin.gradle.plugin.KotlinDependencyHandler
@@ -32,10 +32,11 @@ import java.io.File
 import java.nio.file.Files
 import java.util.Properties
 
-fun KotlinCompilation<KotlinCommonOptions>.configureCompilation() {
-  kotlinOptions {
-    freeCompilerArgs += "-Xexpect-actual-classes"
-    freeCompilerArgs += "-Xcontext-receivers"
+fun KotlinCompilation<*>.configureCompilation() {
+  compileTaskProvider.configure {
+    compilerOptions {
+      freeCompilerArgs.set(listOfNotNull("-Xexpect-actual-classes", "-Xcontext-receivers"))
+    }
   }
 }
 
@@ -191,7 +192,6 @@ fun KotlinMultiplatformExtension.kmpNodeWasmTarget(
   wasmJs {
     // 这里默认就是 useEsModules
     nodejs()
-    applyBinaryen()
     binaries.library()
     dsl.configureJsList.forEach { it() }
   }
@@ -339,10 +339,6 @@ class KmpCommonTargetDsl(kmpe: KotlinMultiplatformExtension) : KmpBaseTargetDsl(
     val defaultConfigure: KmpCommonTargetConfigure = {}
   }
 
-  internal val applyHierarchySets =
-    mutableSetOf<org.jetbrains.kotlin.gradle.plugin.KotlinHierarchyBuilder.Root.() -> Unit>()
-  val applyHierarchy = applyHierarchySets::add
-
   fun org.jetbrains.kotlin.gradle.plugin.KotlinHierarchyBuilder.withIosTarget() {
     group("native") {
       withIos()
@@ -354,7 +350,6 @@ class KmpCommonTargetDsl(kmpe: KotlinMultiplatformExtension) : KmpBaseTargetDsl(
   }
 }
 
-@OptIn(ExperimentalKotlinGradlePluginApi::class)
 fun KotlinMultiplatformExtension.kmpCommonTarget(
   project: Project,
   configure: KmpCommonTargetConfigure = KmpCommonTargetDsl.defaultConfigure,
@@ -387,9 +382,6 @@ fun KotlinMultiplatformExtension.kmpCommonTarget(
     implementation(libs.test.kotlin.coroutines.test)
     implementation(libs.test.kotlin.coroutines.debug)
     implementationPlatform("Test")
-  }
-  applyDefaultHierarchyTemplate {
-    dsl.applyHierarchySets.forEach { it() }
   }
   targets.all {
     compilations.all {
@@ -531,8 +523,10 @@ fun KotlinMultiplatformExtension.kmpAndroidTarget(
   }
   androidTarget {
     compilations.all {
-      kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17.toString()
+      compileTaskProvider.configure {
+        compilerOptions {
+          jvmTarget.set(JvmTarget.JVM_17)
+        }
       }
     }
   }

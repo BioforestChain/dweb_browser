@@ -4,7 +4,7 @@ plugins {
 
 kotlin {
   kmpCommonTarget(project) {
-    applyHierarchy {
+    applyHierarchyTemplate {
       common {
         group("mobile") {
           withAndroidTarget()

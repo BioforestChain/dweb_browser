@@ -5,7 +5,7 @@ plugins {
 kotlin {
   kmpCommonTarget(project) {
     @Suppress("OPT_IN_USAGE")
-    applyHierarchy {
+    applyHierarchyTemplate {
       common {
         group("skiko") {
           withIosTarget()

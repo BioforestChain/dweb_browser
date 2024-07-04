@@ -22,7 +22,7 @@ kotlin {
       api(libs.ktor.io)
     }
     @Suppress("OPT_IN_USAGE")
-    applyHierarchy {
+    applyHierarchyTemplate {
       common {
         group("commonJs") {
           withJs()

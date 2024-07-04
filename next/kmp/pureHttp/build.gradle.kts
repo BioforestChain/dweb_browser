@@ -13,7 +13,7 @@ kotlin {
       implementation(projects.helperPlatform)
     }
     @Suppress("OPT_IN_USAGE")
-    applyHierarchy {
+    applyHierarchyTemplate {
       common {
         group("ktor") {
           withAndroidTarget()

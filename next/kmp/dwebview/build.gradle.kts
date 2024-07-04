@@ -11,7 +11,7 @@ kotlin {
 //    apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_0)
 //  }
   kmpCommonTarget(project) {
-    applyHierarchy {
+    applyHierarchyTemplate {
       common {
         group("mobile") {
           withAndroidTarget()

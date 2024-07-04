@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+
 plugins {
   id("kmp-compose")
 }
@@ -5,7 +7,7 @@ plugins {
 kotlin {
   kmpCommonTarget(project) {
     @Suppress("OPT_IN_USAGE")
-    applyHierarchy {
+    applyHierarchyTemplate {
       common {
         group("mobile") {
           withAndroidTarget()

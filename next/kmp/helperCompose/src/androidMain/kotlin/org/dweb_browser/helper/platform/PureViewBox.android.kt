@@ -7,6 +7,7 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.CoroutineScope
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.android.BaseActivity
+import org.dweb_browser.helper.getOrPut
 
 actual suspend fun IPureViewBox.Companion.from(viewController: IPureViewController): IPureViewBox {
   require(viewController is PureViewController)
