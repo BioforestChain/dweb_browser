@@ -151,31 +151,58 @@ fun AboutRender(
         AboutContainer {
           winHardwareInfo.hostName?.also {
             AboutDetailsItem(
-              labelName = AboutI18nResource.hostName(),
-              text = winHardwareInfo.hostName!!
+              labelName = AboutI18nResource.hostName(), text = winHardwareInfo.hostName!!
             )
           }
-          winHardwareInfo.ram?.also {
-            AboutDetailsItem(
-              labelName = AboutI18nResource.ram(), text = winHardwareInfo.ram!!
-            )
+          winHardwareInfo.cpuInfoList?.also {
+            winHardwareInfo.cpuInfoList!!.forEachIndexed { index, cpuInfo ->
+              AboutDetailsItem(labelName = "CPU ${index + 1}", text = "")
+              AboutDetailsItem(labelName = AboutI18nResource.chip(), text = cpuInfo.name.trim())
+              AboutDetailsItem(
+                labelName = AboutI18nResource.cpuCoresNumber(),
+                text = cpuInfo.cpuCoresNumber.toString()
+              )
+              AboutDetailsItem(
+                labelName = AboutI18nResource.cpuLogicalProcessorsNumber(),
+                text = cpuInfo.cpuLogicalProcessorsNumber.toString()
+              )
+            }
           }
-          winHardwareInfo.chip.also {
-            AboutDetailsItem(
-              labelName = AboutI18nResource.chip(), text = winHardwareInfo.chip!!
-            )
+          winHardwareInfo.gpuInfoList?.also {
+            winHardwareInfo.gpuInfoList!!.forEachIndexed { index, gpuInfo ->
+              AboutDetailsItem(labelName = "GPU ${index + 1}", text = "")
+              AboutDetailsItem(
+                labelName = AboutI18nResource.videoController(), text = gpuInfo.name.trim()
+              )
+              AboutDetailsItem(
+                labelName = AboutI18nResource.adapterRam(), text = gpuInfo.ram.toSpaceSize()
+              )
+            }
           }
-          winHardwareInfo.cpuCoresNumber?.also {
-            AboutDetailsItem(
-              labelName = AboutI18nResource.cpuCoresNumber(),
-              text = winHardwareInfo.cpuCoresNumber!!
-            )
+          winHardwareInfo.memoryInfoList?.also {
+            winHardwareInfo.memoryInfoList!!.forEachIndexed { index, memoryInfo ->
+              AboutDetailsItem(labelName = "RAM ${index + 1}", text = "")
+              AboutDetailsItem(
+                labelName = AboutI18nResource.manufacturer(), text = memoryInfo.manufacturer.trim()
+              )
+              AboutDetailsItem(
+                labelName = AboutI18nResource.capacity(), text = memoryInfo.capacity.toSpaceSize()
+              )
+              AboutDetailsItem(
+                labelName = AboutI18nResource.speed(), text = "${memoryInfo.speed}MT/s"
+              )
+            }
           }
-          winHardwareInfo.cpuLogicalProcessorsNumber?.also {
-            AboutDetailsItem(
-              labelName = AboutI18nResource.cpuLogicalProcessorsNumber(),
-              text = winHardwareInfo.cpuLogicalProcessorsNumber!!
-            )
+          winHardwareInfo.diskInfoList?.also {
+            winHardwareInfo.diskInfoList!!.forEachIndexed { index, diskInfo ->
+              AboutDetailsItem(labelName = "${AboutI18nResource.disk} ${index + 1}", text = "")
+              AboutDetailsItem(
+                labelName = AboutI18nResource.modelName(), text = diskInfo.model.trim()
+              )
+              AboutDetailsItem(
+                labelName = AboutI18nResource.capacity(), text = diskInfo.size.toSpaceSize()
+              )
+            }
           }
         }
         AboutHorizontalDivider()

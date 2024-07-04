@@ -4,15 +4,15 @@ import com.sun.jna.Native
 import com.sun.jna.ptr.IntByReference
 import com.sun.jna.win32.StdCallLibrary
 import com.sun.jna.win32.W32APIOptions
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import org.dweb_browser.helper.JsonLoose
 import org.dweb_browser.helper.platform.PureViewController
-import org.dweb_browser.helper.platform.execCommand
-import org.dweb_browser.helper.toSpaceSize
+import hardware_info.getHardwareInfo as getWinHardwareInfo
 
 interface Kernel32 : StdCallLibrary {
   fun GetComputerNameEx(
-    nameType: Int,
-    lpBuffer: CharArray,
-    nSize: IntByReference
+    nameType: Int, lpBuffer: CharArray, nSize: IntByReference
   ): Boolean
 
   companion object {
@@ -24,60 +24,93 @@ interface Kernel32 : StdCallLibrary {
 
 data class WinHardwareInfoData(
   val hostName: String? = null,
-  val ram: String? = null,
-  var chip: String? = null,
-  var cpuCoresNumber: String? = null,
-  var cpuLogicalProcessorsNumber: String? = null
+  val cpuInfoList: List<WinCpuInfoItem>? = null,
+  val diskInfoList: List<WinDiskInfoItem>? = null,
+  val gpuInfoList: List<WinGpuInfoItem>? = null,
+  val memoryInfoList: List<WinMemoryInfoItem>? = null
+)
+
+@Serializable
+data class WinCpuInfoItem(
+  @SerialName("Name") val name: String,
+  @SerialName("NumberOfCores") val cpuCoresNumber: Int,
+  @SerialName("NumberOfLogicalProcessors") val cpuLogicalProcessorsNumber: Int
+)
+
+@Serializable
+data class WinDiskInfoItem(
+  @SerialName("model") val model: String, @SerialName("Size") val size: Long
+)
+
+@Serializable
+data class WinGpuInfoItem(
+  @SerialName("Name") val name: String, @SerialName("AdapterRam") val ram: Long
+)
+
+@Serializable
+data class WinMemoryInfoItem(
+  @SerialName("Manufacturer") val manufacturer: String,
+  @SerialName("Capacity") val capacity: Long,
+  @SerialName("Speed") val speed: Int
 )
 
 object WinHardwareInfo {
-  val chip by lazy {
-    try {
-      execCommand("Get-WmiObject -Class Win32_Processor | Select-Object -ExpandProperty Name")
-    } catch (_: Exception) {
-      null
-    }
+  val hardwareInfo by lazy {
+    getWinHardwareInfo()
   }
 
-  val cpuCoresNumber by lazy {
-    try {
-      execCommand("Get-WmiObject -Class Win32_Processor | Select-Object -ExpandProperty NumberOfCores")
-    } catch (_: Exception) {
-      null
-    }
-  }
+  val uuid get() = hardwareInfo.uuid
 
-  val cpuLogicalProcessorsNumber by lazy {
-    try {
-      execCommand("Get-WmiObject -Class Win32_Processor | Select-Object -ExpandProperty NumberOfLogicalProcessors")
+  val cpuInfo
+    get() = try {
+      if (hardwareInfo.cpuInfo != null) JsonLoose.decodeFromString<List<WinCpuInfoItem>>(
+        hardwareInfo.cpuInfo!!
+      )
+      else null
     } catch (_: Exception) {
       null
     }
-  }
 
-  val ram by lazy {
-    try {
-      execCommand("Get-WmiObject -Class Win32_PhysicalMemory | Select-Object -ExpandProperty Capacity").let { ramString ->
-        (ramString.split("\\s+".toRegex())
-          .fold(0L) { totalRam, item -> item.toLong() + totalRam }).toSpaceSize()
-      }
+  val diskInfo
+    get() = try {
+      if (hardwareInfo.diskInfo != null) JsonLoose.decodeFromString<List<WinDiskInfoItem>>(
+        hardwareInfo.diskInfo!!
+      )
+      else null
     } catch (_: Exception) {
       null
     }
-  }
+
+  val gpuInfo
+    get() = try {
+      if (hardwareInfo.gpuInfo != null) JsonLoose.decodeFromString<List<WinGpuInfoItem>>(
+        hardwareInfo.gpuInfo!!
+      )
+      else null
+    } catch (_: Exception) {
+      null
+    }
+
+  val memoryInfo
+    get() = try {
+      if (hardwareInfo.memoryInfo != null) JsonLoose.decodeFromString<List<WinMemoryInfoItem>>(
+        hardwareInfo.memoryInfo!!
+      )
+      else null
+    } catch (_: Exception) {
+      null
+    }
 
   private fun getHostName(): String? {
     val nSize = IntByReference(1024)
     val buffer = CharArray(1024)
-    if (Kernel32.INSTANCE.GetComputerNameEx(
-        Kernel32.ComputerNamePhysicalDnsHostname,
-        buffer,
-        nSize
+    return if (Kernel32.INSTANCE.GetComputerNameEx(
+        Kernel32.ComputerNamePhysicalDnsHostname, buffer, nSize
       )
     ) {
-      return String(buffer, 0, nSize.value)
+      String(buffer, 0, nSize.value)
     } else {
-      return null
+      null
     }
   }
 
@@ -88,10 +121,10 @@ object WinHardwareInfo {
 
     return WinHardwareInfoData(
       hostName = getHostName(),
-      ram = ram,
-      chip = chip,
-      cpuCoresNumber = cpuCoresNumber,
-      cpuLogicalProcessorsNumber = cpuLogicalProcessorsNumber
+      cpuInfoList = cpuInfo,
+      diskInfoList = diskInfo,
+      gpuInfoList = gpuInfo,
+      memoryInfoList = memoryInfo
     )
   }
 }

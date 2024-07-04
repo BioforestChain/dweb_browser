@@ -76,10 +76,10 @@ fun AboutDetailsItem(modifier: Modifier = Modifier, labelName: String, text: Str
 @Composable
 fun AboutDetailsListItem(modifier: Modifier = Modifier, labelName: String, textList: List<String>) {
   textList.forEachIndexed { index, text ->
-    if(index == 0) {
-      AboutDetailsItem(labelName = labelName, text = text)
+    if (index == 0) {
+      AboutDetailsItem(modifier = modifier, labelName = labelName, text = text)
     } else {
-      AboutDetailsItem(labelName = "", text = text)
+      AboutDetailsItem(modifier = modifier, labelName = "", text = text)
     }
   }
 }

@@ -24,9 +24,7 @@ actual object DeviceManage {
 
         OsType.Windows -> {
           try {
-            val uuid =
-              runtime.exec("wmic csproduct get UUID").inputStream.readAllBytes().decodeToString()
-            return@lazy uuid.replace("UUID", "").trim()
+            return@lazy WinHardwareInfo.uuid
           } catch (_: Exception) {
             throw java.io.IOException()
           }
