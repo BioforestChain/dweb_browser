@@ -64,12 +64,18 @@ kotlin {
   }
 
   @OptIn(ExperimentalKotlinGradlePluginApi::class)
-  applyDefaultHierarchyTemplate {
+  applyHierarchyTemplate {
     common {
       group("mobile") {
         withAndroidTarget()
         withIosTarget()
       }
+      withDesktopTarget()
+    }
+  }
+  @OptIn(ExperimentalKotlinGradlePluginApi::class)
+  applyHierarchyTemplate {
+    common {
       group("jvm") {
         withDesktopTarget()
         withAndroidTarget()

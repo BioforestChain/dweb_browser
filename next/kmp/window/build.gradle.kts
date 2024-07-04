@@ -37,12 +37,13 @@ kotlin {
   kmpDesktopTarget(project)
 
   @OptIn(ExperimentalKotlinGradlePluginApi::class)
-  applyDefaultHierarchyTemplate {
+  applyHierarchyTemplate {
     common {
       group("mobile") {
         withAndroidTarget()
         withIosTarget()
       }
+      withDesktopTarget()
     }
   }
 }

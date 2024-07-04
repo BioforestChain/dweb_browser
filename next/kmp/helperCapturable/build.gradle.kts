@@ -21,12 +21,13 @@ kotlin {
   kmpDesktopTarget(project)
 
   @OptIn(ExperimentalKotlinGradlePluginApi::class)
-  applyDefaultHierarchyTemplate {
+  applyHierarchyTemplate {
     common {
       group("skiko") {
         withIosTarget()
         withDesktopTarget()
       }
+      withAndroidTarget()
     }
   }
 }

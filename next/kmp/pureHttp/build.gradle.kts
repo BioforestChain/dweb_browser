@@ -50,7 +50,7 @@ kotlin {
   }
 
   @OptIn(ExperimentalKotlinGradlePluginApi::class)
-  applyDefaultHierarchyTemplate {
+  applyHierarchyTemplate {
     common {
       group("ktor") {
         withAndroidTarget()
