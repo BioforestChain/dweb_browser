@@ -8,7 +8,7 @@ export class PlaocConfig {
       const readPlaoc = await jsProcess.nativeRequest(`file:///usr/www/plaoc.json`);
       return new PlaocConfig(JSON.parse(await readPlaoc.body.text()));
     } catch {
-      return new PlaocConfig({ isClear: false, redirect: [], defaultConfig: { lang: "en" } });
+      return new PlaocConfig({ redirect: [], defaultConfig: { lang: "en" } });
     }
   }
 }

@@ -17,17 +17,17 @@
   "server": {
     "buildToRootDir": "./npm/@plaoc__server",
     "name": "@plaoc/server",
-    "version": "0.3.7"
+    "version": "0.3.8"
   },
   "cli": {
     "buildToRootDir": "./npm/@plaoc__cli",
     "name": "@plaoc/cli",
-    "version": "1.0.5"
+    "version": "1.0.6"
   },
   "plugins": {
     "buildToRootDir": "./npm/@plaoc__plugins",
     "name": "@plaoc/plugins",
-    "version": "1.0.5"
+    "version": "1.0.6"
   },
   "is-dweb": {
     "buildToRootDir": "./npm/@plaoc__is-dweb",

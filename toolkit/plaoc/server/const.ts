@@ -11,7 +11,6 @@ export const enum OBSERVE {
 }
 
 export interface $PlaocConfig {
-  isClear: boolean;
   usePublicUrl?: boolean;
   defaultConfig: $DefaultConfig;
   redirect: $Redirect[];
