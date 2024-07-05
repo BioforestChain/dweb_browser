@@ -4,8 +4,8 @@ import io.ktor.http.content.MultiPartData
 import io.ktor.http.content.PartData
 import io.ktor.http.content.forEachPart
 import io.ktor.utils.io.core.readBytes
-import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.ObjCSignatureOverride
 import kotlinx.coroutines.CompletableDeferred
 import objcnames.classes.LPLinkMetadata
 import org.dweb_browser.core.module.MicroModule
@@ -20,9 +20,7 @@ import platform.LinkPresentation.LPMetadataProvider
 import platform.UIKit.UIActivityItemSourceProtocol
 import platform.UIKit.UIActivityType
 import platform.UIKit.UIActivityViewController
-import platform.UIKit.UIImage
 import platform.darwin.NSObject
-import kotlin.experimental.ExperimentalObjCName
 
 actual suspend fun share(
   shareOptions: ShareOptions,
@@ -80,7 +78,6 @@ actual suspend fun share(
   }
 }
 
-@OptIn(ExperimentalForeignApi::class, ExperimentalObjCName::class, BetaInteropApi::class)
 actual suspend fun share(
   shareOptions: ShareOptions,
   files: List<String>,
@@ -95,24 +92,12 @@ actual suspend fun share(
     shareOptions.title?.also {
       it.isNotBlank().trueAlso {
         title = it
-        content += it
+        activityItems.add(it)
       }
     }
     shareOptions.url?.also {
       it.isNotBlank().trueAlso {
-        if (content.isNotBlank()) {
-          content = "[$content]($it)"
-        } else {
-          content += it
-        }
-      }
-    }
-    shareOptions.text?.also {
-      it.isNotBlank().trueAlso {
-        if (content.isNotBlank()) {
-          content += "\n"
-        }
-        content += it
+        activityItems.add(NSURL(string = it))
       }
     }
 
@@ -120,8 +105,6 @@ actual suspend fun share(
 
     files.forEachIndexed { index, fileUri ->
       val filePath = fileUri.replace("file://", "")
-      activityItems.add(UIImage(contentsOfFile = filePath))
-
       val fileUrl = NSURL.fileURLWithPath(filePath)
       if (index == 0) {
         CompletableDeferred<Unit>().also { deferred ->
@@ -135,6 +118,12 @@ actual suspend fun share(
             deferred.complete(Unit)
           }
         }.await()
+      }
+    }
+
+    shareOptions.text?.also {
+      it.isNotBlank().trueAlso {
+        activityItems.add(it)
       }
     }
 
@@ -155,24 +144,18 @@ actual suspend fun share(
   }
 }
 
-@Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
-class FileShareModel @OptIn(ExperimentalForeignApi::class) constructor(
+@Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE", "CONFLICTING_OVERLOADS")
+class FileShareModel constructor(
   val title: String?,
   val content: String,
   private val lpLinkMetadata: platform.LinkPresentation.LPLinkMetadata? = null,
 ) : NSObject(), UIActivityItemSourceProtocol {
-  //  override fun activityViewController(
-//    activityViewController: UIActivityViewController, itemForActivityType: UIActivityType,
-//  ): Any {
-//    return url.toString()
-//  }
+  @ObjCSignatureOverride
   override fun activityViewController(
-    activityViewController: UIActivityViewController,
-    itemForActivityType: UIActivityType,
-  ): String {
-    return content
+    activityViewController: UIActivityViewController, itemForActivityType: UIActivityType?
+  ): Any? {
+    return lpLinkMetadata?.URL
   }
-
 
   override fun activityViewControllerPlaceholderItem(activityViewController: UIActivityViewController): Any {
     return title ?: lpLinkMetadata?.title ?: ""
