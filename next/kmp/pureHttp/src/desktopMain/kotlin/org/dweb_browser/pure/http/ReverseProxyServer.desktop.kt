@@ -12,21 +12,25 @@ import io.ktor.network.sockets.toJavaAddress
 import io.ktor.util.network.port
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.ByteWriteChannel
+import io.ktor.utils.io.close
 import io.ktor.utils.io.copyTo
 import io.ktor.utils.io.readAvailable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.io.IOException
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.WARNING
+import org.dweb_browser.helper.debugTest
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.utf8String
+import java.net.SocketException
 import java.nio.ByteBuffer
+import kotlin.coroutines.CoroutineContext
 
 val debugReverseProxy = Debugger("ReverseProxy")
 
@@ -50,7 +54,7 @@ class ReverseProxyServer {
       val acceptJob = CoroutineScope(ioAsyncExceptionHandler).launch {
         while (!proxyServer.isClosed) {
           val client = proxyServer.accept()
-          launch {
+          launch(ioAsyncExceptionHandler) {
             try {
               val clientReader = client.openReadChannel()
               val clientWriter = client.openWriteChannel(true)
@@ -71,6 +75,7 @@ class ReverseProxyServer {
               }
               when {
                 connectPort != -1 -> tunnelHttps(
+                  this@launch,
                   connectHost,
                   connectPort,
                   client,
@@ -80,7 +85,7 @@ class ReverseProxyServer {
                 )
 
                 else -> {
-                  println("Failed to connect to client or receive request from ${client.remoteAddress}")
+                  WARNING("Failed to connect to client or receive request from ${client.remoteAddress}")
                   // this blocks the coroutine's flow but whatever, it's the end of the coroutine now
                   client.close()
                   cancel()
@@ -122,6 +127,7 @@ class ReverseProxyServer {
 
 
 suspend fun tunnelHttps(
+  scope: CoroutineScope,
   connectHost: String,
   connectPort: Int,
   client: Socket,
@@ -143,41 +149,42 @@ suspend fun tunnelHttps(
     }
     return
   }
-  println("Connected to ${connectHost}:${connectPort}")
+
   val serverReader = server.openReadChannel()
-  val serverWriter = server.openWriteChannel()
+  val serverWriter = server.openWriteChannel(autoFlush = true)
 
   // tell the client that the connection is set and we are tunneling proxy
   val successConnectionString = "HTTP/1.1 200 OK\r\nProxyServer-agent: dweb-pure-http-proxy\r\n\r\n"
   clientWriter.writeAvailable(ByteBuffer.wrap(successConnectionString.toByteArray()))
   clientWriter.flush()
 
-  coroutineScope {
-    launch {
-      try {
-        serverReader.copyTo(clientWriter)
-      } catch (e: IOException) {
-        WARNING("Failed to copy from server to client: ${e.message} [${connectHost}:${connectPort}]")
-        serverReader.cancel(e)
-        clientWriter.close(e)
-        client.close()
-        server.close()
-        throw e
-      }
-    }
-    launch {
-      try {
-        clientReader.copyTo(serverWriter)
-      } catch (e: IOException) {
-        WARNING("Failed to copy from client to server: ${e.message} [${connectHost}:${connectPort}]")
-        clientReader.cancel(e)
-        serverWriter.close(e)
-        client.close()
-        server.close()
-        throw e
-      }
+  // 从server读取并写入client
+  val serverToClientJob = scope.launch {
+    try {
+      serverReader.copyTo(clientWriter)
+    } catch (e: SocketException) {
+      WARNING("Server to Client: ${e.message} :${connectHost}:${connectPort} ")
+    } catch (e: Exception) {
+      e.printStackTrace()
+    } finally {
+      clientWriter.close()
     }
   }
+
+  // 从client读取并写入server
+  val clientToServerJob = scope.launch {
+    try {
+      clientReader.copyTo(serverWriter)
+    } catch (e: SocketException) {
+      WARNING("Client to Server: ${e.message} :${connectHost}:${connectPort}  ")
+    } catch (e: Exception) {
+      e.printStackTrace()
+    } finally {
+      serverWriter.close()
+    }
+  }
+  // 等待两个job完成
+  joinAll(serverToClientJob, clientToServerJob)
 }
 
 class ConnectRequest(buffer: ByteArray) {
