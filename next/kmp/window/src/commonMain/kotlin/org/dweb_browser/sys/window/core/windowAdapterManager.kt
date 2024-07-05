@@ -135,7 +135,6 @@ class WindowAdapterManager : AdapterManager<CreateWindowAdapter>() {
             val pushedPages = remember(render, navigation.pageStack.size) {
               mutableListOf(elements = arrayOf(render) + navigation.pageStack)
             }
-            println("QAQ pushedPages=${pushedPages.size}")
             pushedPages.forEachIndexed { index, pageRender ->
               pageRenders[index] = { windowRenderScope, contentModifier ->
                 val visibleState = remember { MutableTransitionState(index == 0) }
@@ -156,9 +155,7 @@ class WindowAdapterManager : AdapterManager<CreateWindowAdapter>() {
                   }
                   DisposableEffect(Unit) {
                     onDispose {
-                      println("QAQ pageRenders-1=${pageRenders.size}")
                       pageRenders.remove(index)
-                      println("QAQ pageRenders-2=${pageRenders.size}")
                     }
                   }
                   pageRender(windowRenderScope, contentModifier)
@@ -166,7 +163,6 @@ class WindowAdapterManager : AdapterManager<CreateWindowAdapter>() {
               }
 
             }
-            println("QAQ pageRenders-0=${pageRenders.size}")
             for (pageRender in pageRenders.values) {
               pageRender(windowRenderScope, contentModifier)
             }

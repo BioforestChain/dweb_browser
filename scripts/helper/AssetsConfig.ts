@@ -6,8 +6,8 @@ import { emptyDirSync } from "@std/fs/empty-dir";
 import fs from "node:fs";
 import os from "node:os";
 import node_path from "node:path";
-import { createBaseResolveTo } from "./resolveTo.ts";
 import { $ } from "./exec.ts";
+import { createBaseResolveTo } from "./resolveTo.ts";
 
 const rootResolve = createBaseResolveTo(import.meta.resolve("../../"));
 const assetsResolve = createBaseResolveTo(rootResolve("./assets"));
@@ -31,15 +31,16 @@ export type UseAssets =
     };
 export class AssetsConfig {
   static ALL = new Map<string, AssetsConfig>();
-  static createAndSave(assetsName: string, useAssets: UseAssets[]) {
-    const config = new AssetsConfig(assetsName, useAssets);
+  static createAndSave(assetsName: string, useAssets: UseAssets[], assetsDirname: string | undefined) {
+    const config = new AssetsConfig(assetsName, useAssets, assetsDirname);
     AssetsConfig.ALL.set(assetsName, config);
     return config;
   }
-  constructor(readonly assetsName: string, readonly useAssets: UseAssets[]) {
-    this.assetsDirname = assetsResolve(this.assetsName);
-  }
-  readonly assetsDirname: string;
+  constructor(
+    readonly assetsName: string,
+    readonly useAssets: UseAssets[],
+    readonly assetsDirname: string = assetsResolve(assetsName)
+  ) {}
   effect(watch: boolean) {
     fs.mkdirSync(this.assetsDirname, { recursive: true });
     return Promise.all(this.useAssets.map((use) => effectUse(this, use, watch)));
@@ -47,6 +48,7 @@ export class AssetsConfig {
 }
 
 const symlink = (target: string, path: string) => {
+  console.log("symlink", path, "=>", target);
   if (fs.existsSync(path)) {
     if (!fs.statSync(path).isSymbolicLink()) {
       // throw new Error(`symbol link fail, ${path} exists.`);

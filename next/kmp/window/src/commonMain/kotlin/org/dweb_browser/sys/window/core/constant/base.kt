@@ -1,13 +1,13 @@
 package org.dweb_browser.sys.window.core.constant
 
 //import android.annotation.SuppressLint
-import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.compose.compositionChainOf
 
 val debugWindow = Debugger("window")
 
-val LocalWindowMM = compositionChainOf<NativeMicroModule.NativeRuntime>("Window MicroModule")
+val LocalWindowMM = compositionChainOf<MicroModule.Runtime>("Window MicroModule")
 
 //@SuppressLint("ExperimentalAnnotationRetention")
 @RequiresOptIn(

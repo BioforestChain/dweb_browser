@@ -57,6 +57,7 @@ object AboutI18nResource {
   val patch = SimpleI18nResource(Language.ZH to "补丁", Language.EN to "Patch")
   val app = SimpleI18nResource(Language.ZH to "应用", Language.EN to "Application")
   val webview = SimpleI18nResource(Language.ZH to "WebView 特性", Language.EN to "WebView Features")
+  val html5test = SimpleI18nResource(Language.ZH to "HTML5 测试", Language.EN to "HTML5 Test")
   val system = SimpleI18nResource(Language.ZH to "系统", Language.EN to "System")
   val battery = SimpleI18nResource(Language.ZH to "电池", Language.EN to "Battery")
   val experimental = SimpleI18nResource(Language.ZH to "实验性功能", Language.EN to "Experimental")

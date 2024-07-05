@@ -16,6 +16,11 @@ import kotlinx.coroutines.job
  * for alternative try-finally
  */
 suspend fun <T> Deferred<T>.awaitResult() = runCatching { await() }
+@OptIn(ExperimentalCoroutinesApi::class)
+fun <T> Deferred<T>.getCompletedOrNull() = when {
+  isCompleted -> getCompleted()
+  else -> null
+}
 
 /**
  * 一个 Deferred，但是可以用来做回调监听

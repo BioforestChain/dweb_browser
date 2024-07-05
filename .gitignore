@@ -57,6 +57,7 @@ next/kmp/app/androidApp/src/androidMain/generated/baselineProfiles
 /assets/*
 !/assets/browser-icons
 !/assets/browser-drawable
+!/assets/browser-html5test
 !/assets/sys-drawable
 !/assets/sys-icons
 !/assets/window-drawable

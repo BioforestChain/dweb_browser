@@ -45,6 +45,7 @@ import org.dweb_browser.helper.platform.unbindPureViewController
 import org.dweb_browser.helper.toRect
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
 import org.dweb_browser.sys.window.core.WindowController
+import org.dweb_browser.sys.window.core.constant.LocalWindowMM
 import org.dweb_browser.sys.window.core.windowAdapterManager
 
 @Composable
@@ -189,6 +190,7 @@ fun WindowController.WindowRender(modifier: Modifier) {
   LocalCompositionChain.current.Provider(
     LocalWindowFrameStyle provides windowFrameStyle,
     LocalFocusRequester provides win.focusRequester,
+    LocalWindowMM provides (win.state.constants.microModule.value ?: LocalWindowMM.current),
   ) {
     /// 开始绘制窗口
     win.state.safePadding = winPadding.boxSafeAreaInsets

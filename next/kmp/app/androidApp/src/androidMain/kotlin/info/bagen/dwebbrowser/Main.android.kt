@@ -157,7 +157,6 @@ suspend fun startDwebBrowser(): DnsNMM {
       browserNMM.mmid, // 为了启动后能够顺利加载添加到桌面的哪些数据，不加载browser界面
       deskNMM.mmid,// 桌面程序
       shortcutNMM.mmid, // 为了启动时，注入快捷内容
-      aboutNMM.mmid, // 用于显示应用相关信息，便于调试
     )
   ).setup()
 

@@ -193,8 +193,8 @@ fun AboutRender(
 
 @Composable
 fun WindowContentRenderScope.WebViewFeaturesRender(modifier: Modifier) {
-  AboutPage(modifier = modifier, title = AboutI18nResource.webview()) {
-    LazyColumn(it) {
+  AboutPage(modifier = modifier, title = AboutI18nResource.webview()) { pageContentModifier ->
+    LazyColumn(pageContentModifier) {
       items(DWebView.allFeatures.groups) { group ->
         AboutTitle(group.i18n())
         AboutColumnContainer {

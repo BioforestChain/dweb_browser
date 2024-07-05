@@ -10,21 +10,26 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -34,13 +39,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import org.dweb_browser.browser.jmm.JsMicroModule
+import org.dweb_browser.dwebview.Render
 import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
 import org.dweb_browser.helper.compose.envSwitch
 import org.dweb_browser.helper.compose.hex
+import org.dweb_browser.helper.getCompletedOrNull
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
 import org.dweb_browser.sys.window.core.WindowContentScaffoldWithTitleText
+import org.dweb_browser.sys.window.core.constant.LocalWindowMM
 import org.dweb_browser.sys.window.core.windowAdapterManager
+import org.dweb_browser.sys.window.render.LocalWindowController
 import org.dweb_browser.sys.window.render.LocalWindowControllerTheme
 
 internal fun provideAboutRender(
@@ -69,7 +78,7 @@ internal fun WindowContentRenderScope.AboutPage(
     },
     topBarTitleText = title,
   ) { paddingValues ->
-    content(Modifier.padding(paddingValues))
+    content(Modifier.padding(paddingValues).fillMaxSize())
   }
 }
 
@@ -103,11 +112,13 @@ fun AboutDetailsItem(modifier: Modifier = Modifier, labelName: String, text: Str
 @Composable
 fun AboutDetailsNav(
   onClick: () -> Unit,
+  enabled: Boolean = true,
   modifier: Modifier = Modifier,
   labelName: String,
   text: String,
+  icon: (@Composable () -> Unit)? = null,
 ) {
-  AboutDetailsBase(modifier.clickable(onClick = onClick)) {
+  AboutDetailsBase(modifier.clickable(onClick = onClick, enabled = enabled)) {
     Text(
       text = labelName,
       style = MaterialTheme.typography.labelMedium,
@@ -119,11 +130,15 @@ fun AboutDetailsNav(
         softWrap = false,
         overflow = TextOverflow.Ellipsis
       )
-      Icon(
-        Icons.AutoMirrored.Filled.ArrowForwardIos,
-        contentDescription = "more",
-        modifier = Modifier.padding(start = 8.dp).height(16.dp),
-      )
+      when (icon) {
+        null -> Icon(
+          Icons.AutoMirrored.Filled.ArrowForwardIos,
+          contentDescription = "more",
+          modifier = Modifier.padding(start = 8.dp).height(16.dp),
+        )
+
+        else -> icon()
+      }
     }
   }
 }
@@ -201,6 +216,22 @@ fun AboutAppInfoRender(
       labelName = AboutI18nResource.webviewVersion(), text = appInfo.webviewVersion
     )
     webViewFeaturesContent()
+    val nav = LocalWindowController.current.navigation
+    val aboutNMM = LocalWindowMM.current as AboutNMM.AboutRuntime
+    val score by aboutNMM.html5testScore.collectAsState()
+    AboutDetailsNav(
+      onClick = {
+        nav.pushPage { modifier ->
+          Html5TestRender(modifier)
+        }
+      },
+      labelName = AboutI18nResource.webview(),
+      text = score ?: "",
+      icon = when (score) {
+        null -> ({ CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp) })
+        else -> null
+      }
+    )
     AboutDetailsItem(
       labelName = "JMM ${AboutI18nResource.version()}", text = appInfo.jmmVersion.toString()
     )
@@ -265,5 +296,22 @@ fun EnvSwitcherRender() {
       }
     }
 
+  }
+}
+
+@Composable
+fun WindowContentRenderScope.Html5TestRender(modifier: Modifier) {
+  AboutPage(modifier = modifier, title = AboutI18nResource.html5test()) { pageContentModifier ->
+    val aboutNMM = LocalWindowMM.current as AboutNMM.AboutRuntime
+    when (val webview = produceState(aboutNMM.html5testWebView.getCompletedOrNull()) {
+      value = aboutNMM.html5testWebView.await()
+    }.value) {
+      null -> Box(
+        pageContentModifier,
+        contentAlignment = Alignment.Center
+      ) { CircularProgressIndicator(Modifier.size(64.dp)) }
+
+      else -> webview.Render(pageContentModifier)
+    }
   }
 }
