@@ -8,11 +8,11 @@ const val KB = 1024.0 // 定义KB的计算常量
  * 将Long转为带单位的空间值，如1.11 MB
  */
 fun Long.toSpaceSize(): String {
-  return if (this > GB) {
+  return if (this >= GB) {
     "${(this / GB).toFixed(2)} GB";
-  } else if (this > MB) {
+  } else if (this >= MB) {
     "${(this / MB).toFixed(2)} MB";
-  } else if (this > KB) { //如果当前Byte的值大于等于1KB
+  } else if (this >= KB) { //如果当前Byte的值大于等于1KB
     "${(this / KB).toFixed(2)} KB";
   } else {
     "$this B";
