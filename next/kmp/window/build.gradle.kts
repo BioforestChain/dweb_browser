@@ -46,4 +46,12 @@ kotlin {
       withDesktopTarget()
     }
   }
+  @OptIn(ExperimentalKotlinGradlePluginApi::class)
+  applyHierarchyPlatformTemplate {
+    common {
+      withAndroidTarget()
+      withIosTarget()
+      withDesktopTarget()
+    }
+  }
 }
