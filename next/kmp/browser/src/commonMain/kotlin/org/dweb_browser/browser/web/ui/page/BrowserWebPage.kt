@@ -1,9 +1,6 @@
 package org.dweb_browser.browser.web.ui.page
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -11,9 +8,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.TransformOrigin
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalDensity
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.common.toWebColorScheme
 import org.dweb_browser.browser.web.data.WebSiteType
@@ -21,6 +15,7 @@ import org.dweb_browser.browser.web.model.LocalBrowserViewModel
 import org.dweb_browser.browser.web.model.page.BrowserWebPage
 import org.dweb_browser.browser.web.model.toWebSiteInfo
 import org.dweb_browser.dwebview.Render
+import org.dweb_browser.dwebview.UnScaleBox
 import org.dweb_browser.helper.withScope
 import org.dweb_browser.sys.window.render.LocalWindowController
 import org.dweb_browser.sys.window.render.watchedState
@@ -83,27 +78,15 @@ internal fun BrowserWebPage.BrowserWebPageRender(modifier: Modifier) {
   val webPage = this
   webPage.Effect()
   ///
-  BoxWithConstraints(modifier.fillMaxSize()) {
+  UnScaleBox(scale, modifier) { // 对冲缩放
     val win = LocalWindowController.current
     val colorScheme by win.watchedState { colorScheme }
     LaunchedEffect(colorScheme) {
       webView.setPrefersColorScheme(colorScheme.toWebColorScheme())
     }
 
-    val density = LocalDensity.current.density
     /// 同步缩放量
-    webView.setContentScaleUnsafe(scale, maxWidth.value, maxHeight.value, density)
-    val originWidth = maxWidth * scale
-    val originHeight = maxHeight * scale
-    // TODO 由于该模块放于缩放的模块中，导致webview自身缩放冲突了，所以这边进行了反向缩放，让webview的缩放能正常
-    Box(
-      modifier = Modifier.requiredSize(originWidth, originHeight).graphicsLayer(
-        scaleX = 1 / scale,
-        scaleY = 1 / scale,
-        transformOrigin = TransformOrigin(0f, 0f)
-      )
-    ) {
-      webView.Render(Modifier.fillMaxSize())
-    }
+    webView.ScaleRender(scale)
+    webView.Render(Modifier.fillMaxSize())
   }
 }

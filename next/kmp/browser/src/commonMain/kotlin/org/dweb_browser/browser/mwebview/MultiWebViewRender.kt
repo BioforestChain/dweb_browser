@@ -11,7 +11,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalDensity
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.common.toWebColorScheme
 import org.dweb_browser.dwebview.Render
@@ -52,8 +51,7 @@ fun MultiWebViewController.Render(
           viewItem.webView.setPrefersColorScheme(colorScheme.toWebColorScheme())
         }
         /// 为了防止在窗口状态下，webview返回时失真问题。所以在webview加载完成后出发刷新
-        val density = LocalDensity.current.density
-        viewItem.webView.setContentScaleUnsafe(scale, width, height, density)
+        viewItem.webView.ScaleRender(scale)
         viewItem.webView.Render(Modifier.fillMaxSize())
         AfterViewItemRender(viewItem)
       }

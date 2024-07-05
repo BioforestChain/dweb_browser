@@ -1,5 +1,6 @@
 package org.dweb_browser.dwebview
 
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.ImageBitmap
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
@@ -195,10 +196,12 @@ abstract class IDWebView(initUrl: String?) {
   abstract suspend fun setContentScale(scale: Float, width: Float, height: Float, density: Float)
 
   /**
-   * 设置内容缩放，但是不安全，必要时在主线程调用
+   * 设置渲染缩放，但是Compose函数，必要时在主线程调用
    * 该函数的特性在于 sync。如果有动画需求，需要正确地实时地时候才使用该函数
    */
-  abstract fun setContentScaleUnsafe(scale: Float, width: Float, height: Float, density: Float)
+  @Composable
+  abstract fun ScaleRender(scale: Float)
+
   abstract suspend fun setPrefersColorScheme(colorScheme: WebColorScheme)
   abstract suspend fun setVerticalScrollBarVisible(visible: Boolean)
   abstract suspend fun setHorizontalScrollBarVisible(visible: Boolean)

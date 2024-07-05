@@ -3,6 +3,7 @@ package org.dweb_browser.dwebview
 import android.annotation.SuppressLint
 import android.content.Context
 import android.net.Uri
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.webkit.WebMessageCompat
@@ -150,27 +151,31 @@ class DWebView private constructor(internal val engine: DWebViewEngine, initUrl:
       )
     }
 
-  val contentScale = mutableFloatStateOf(1f)
+  private var contentScale = 1f
   override suspend fun setContentScale(scale: Float, width: Float, height: Float, density: Float) =
     withMainContext {
-      setContentScaleUnsafe(scale, width, height, density)
+      if (contentScale != scale) {
+        contentScale = scale
+        effectEngineScale()
+      }
     }
 
-  override fun setContentScaleUnsafe(
-    scale: Float,
-    width: Float,
-    height: Float,
-    density: Float,
-  ) {
-    if (this.contentScale.floatValue != scale) {
-      this.contentScale.floatValue = scale
-      engine.scaleX = scale
-      engine.scaleY = scale
+  private var renderScale = 1f
+  @Composable
+  override fun ScaleRender(scale: Float) {
+    if (renderScale != scale) {
+      renderScale = scale
+      effectEngineScale()
     }
-    //  engine.setInitialScale((scale * density * 100).toInt())
-    //  engine.layoutParams = ViewGroup.LayoutParams(
-    //    (width / scale * density).toInt(), (height / scale * density).toInt()
-    //  )
+  }
+
+  internal val viewScale = mutableFloatStateOf(1f)
+  private fun effectEngineScale() {
+    (renderScale * contentScale).also { s ->
+      viewScale.floatValue = s
+      engine.scaleX = s
+      engine.scaleY = s
+    }
   }
 
   override suspend fun setPrefersColorScheme(colorScheme: WebColorScheme) {

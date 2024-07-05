@@ -31,8 +31,7 @@ suspend fun MultiWebViewNMM.MultiWebViewRuntime.webViewSysProtocol() {
           LaunchedEffect(colorScheme) {
             webView.setPrefersColorScheme(colorScheme.toWebColorScheme())
           }
-          val density = LocalDensity.current.density
-          webView.setContentScaleUnsafe(scale, width, height, density)
+          webView.ScaleRender(scale)
           webView.Render(modifier)
         }.removeWhen(win.lifecycleScope)
       }).cors()

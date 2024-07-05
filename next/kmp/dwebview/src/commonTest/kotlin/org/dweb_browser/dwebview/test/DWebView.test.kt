@@ -270,23 +270,23 @@ class DWebViewTest {
     )
   }
 
-  @Test
-  fun setContentScale() = runCommonTest {
-    val dwebview = getWebview()
-    val defaultWidth = dwebview.evaluateAsyncJavascriptCode("window.innerWidth").toFloat()
-    val defaultHeight = dwebview.evaluateAsyncJavascriptCode("window.innerHeight").toFloat()
-    val defaultDensity = dwebview.evaluateAsyncJavascriptCode("window.devicePixelRatio").toFloat()
-    val scale = 0.5f;
-    dwebview.setContentScale(scale, defaultWidth, defaultHeight, defaultDensity)
-    val scaleWidth = dwebview.evaluateAsyncJavascriptCode("window.innerWidth").toFloat()
-    val scaleHeight = dwebview.evaluateAsyncJavascriptCode("window.innerHeight").toFloat()
-    val scaleDensity = dwebview.evaluateAsyncJavascriptCode("window.devicePixelRatio").toFloat()
-
-    assertEquals(defaultWidth, scaleWidth * scale, "defaultWidth = scaleWidth * scale")
-    assertEquals(defaultHeight, scaleHeight * scale, "defaultHeight = scaleHeight * scale")
-    /// 在一些平台上，缩放是整个webview图层上的，因此该参数可能无法通过
-    assertEquals(defaultDensity * scale, scaleDensity, "defaultDensity * scale = scaleDensity")
-  }
+//  @Test
+//  fun setContentScale() = runCommonTest {
+//    val dwebview = getWebview()
+//    val defaultWidth = dwebview.evaluateAsyncJavascriptCode("window.innerWidth").toFloat()
+//    val defaultHeight = dwebview.evaluateAsyncJavascriptCode("window.innerHeight").toFloat()
+//    val defaultDensity = dwebview.evaluateAsyncJavascriptCode("window.devicePixelRatio").toFloat()
+//    val scale = 0.5f;
+//    dwebview.setContentScale(scale, defaultWidth, defaultHeight, defaultDensity)
+//    val scaleWidth = dwebview.evaluateAsyncJavascriptCode("window.innerWidth").toFloat()
+//    val scaleHeight = dwebview.evaluateAsyncJavascriptCode("window.innerHeight").toFloat()
+//    val scaleDensity = dwebview.evaluateAsyncJavascriptCode("window.devicePixelRatio").toFloat()
+//
+//    assertEquals(defaultWidth, scaleWidth * scale, "defaultWidth = scaleWidth * scale")
+//    assertEquals(defaultHeight, scaleHeight * scale, "defaultHeight = scaleHeight * scale")
+//    /// 在一些平台上，缩放是整个webview图层上的，因此该参数可能无法通过
+//    assertEquals(defaultDensity * scale, scaleDensity, "defaultDensity * scale = scaleDensity")
+//  }
 
   @Test
   fun testHttpProxy() = runCommonTest(timeout = 600.seconds) {

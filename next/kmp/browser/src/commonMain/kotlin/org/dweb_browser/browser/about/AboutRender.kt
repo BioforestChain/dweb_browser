@@ -40,6 +40,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import org.dweb_browser.browser.jmm.JsMicroModule
 import org.dweb_browser.dwebview.Render
+import org.dweb_browser.dwebview.UnScaleBox
 import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
 import org.dweb_browser.helper.compose.envSwitch
@@ -311,7 +312,10 @@ fun WindowContentRenderScope.Html5TestRender(modifier: Modifier) {
         contentAlignment = Alignment.Center
       ) { CircularProgressIndicator(Modifier.size(64.dp)) }
 
-      else -> webview.Render(pageContentModifier)
+      else -> UnScaleBox(scale, pageContentModifier) {
+        webview.ScaleRender(scale)
+        webview.Render(Modifier.fillMaxSize())
+      }
     }
   }
 }

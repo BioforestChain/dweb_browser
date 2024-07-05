@@ -205,16 +205,29 @@ class DWebView private constructor(
     DWebMessageChannel(port1, port2)
   }
 
+  private var contentScale = 1f
   override suspend fun setContentScale(scale: Float, width: Float, height: Float, density: Float) =
     withMainContext {
-      setContentScaleUnsafe(scale, width, height, density)
+      if (contentScale != scale) {
+        contentScale = scale
+        effectEngineScale()
+      }
     }
 
-  private var contentScale = 1f
-  override fun setContentScaleUnsafe(scale: Float, width: Float, height: Float, density: Float) {
-    if (contentScale != scale) {
-      contentScale = scale
-      engine.setScale(scale);
+  private var renderScale = 1f
+  @Composable
+  override fun ScaleRender(scale: Float) {
+    if (renderScale != scale) {
+      renderScale = scale
+      effectEngineScale()
+    }
+  }
+
+  internal val viewScale = mutableFloatStateOf(1f)
+  private fun effectEngineScale() {
+    (renderScale * contentScale).also { s ->
+      viewScale.floatValue = s
+      engine.setScale(s)
     }
   }
 

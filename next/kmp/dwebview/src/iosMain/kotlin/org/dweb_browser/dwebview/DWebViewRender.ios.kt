@@ -22,11 +22,12 @@ actual fun IDWebView.Render(
         }
       }
     },
-    modifier,
+    modifier = Modifier.requiredSize(viewWidth, viewHeight),
     update = {},
     onRelease = {
       onDispose?.also {
         lifecycleScope.launch { onDispose(); }
       }
-    })
+    },
+  )
 }

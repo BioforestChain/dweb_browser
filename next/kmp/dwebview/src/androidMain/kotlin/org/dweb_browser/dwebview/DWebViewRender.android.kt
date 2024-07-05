@@ -35,17 +35,17 @@ actual fun IDWebView.Render(
   val focusRequester = LocalFocusRequester.current
   BoxWithConstraints(
     modifier = when (focusRequester) {
-      null -> Modifier
-      else -> Modifier.focusRequester(focusRequester).onFocusChanged {
+      null -> modifier
+      else -> modifier.focusRequester(focusRequester).onFocusChanged {
         if (it.isFocused) {
           webView.requestFocus()
         }
       }.focusable()
     }
   ) {
-    val contentScale by contentScale
-    val contentWidth = maxWidth / contentScale
-    val contentHeight = maxHeight / contentScale
+    val scale by viewScale
+    val contentWidth = maxWidth / scale
+    val contentHeight = maxHeight / scale
     AccompanistWebView(
       state = state,
       navigator = navigator,
@@ -55,7 +55,7 @@ actual fun IDWebView.Render(
           FrameLayout.LayoutParams.MATCH_PARENT,
         )
       },
-      modifier = modifier.requiredSize(contentWidth, contentHeight),
+      modifier = Modifier.requiredSize(contentWidth, contentHeight),
       factory = remember {
         {
           // 修复 activity 已存在父级时导致的异常
