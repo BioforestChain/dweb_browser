@@ -48,12 +48,15 @@ class DWebOverwriteRequest(val engine: DWebViewEngine) : WebViewClient() {
   }
   /// TODO 因为 Chrome 错误地设置了 InputStream
 
+  private val WebResourceRequest.shouldIntercept
+    get() = engine.options.androidInterceptGetRequest && method == "GET" && url.host?.endsWith(".dweb") == true && url.scheme == "https"
+
   override fun shouldInterceptRequest(
     view: WebView, request: WebResourceRequest,
   ): WebResourceResponse? {
     // 转发请求
     // TODO 可以使用开关来进行拦截
-    if ((request.method == "GET" && ((request.url.host?.endsWith(".dweb") == true)) || (request.url.scheme == "dweb"))) {
+    if (request.url.scheme == "dweb" || request.shouldIntercept) {
       val response = runBlocking(ioAsyncExceptionHandler) {
         engine.remoteMM.nativeFetch(
           PureClientRequest(

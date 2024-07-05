@@ -53,6 +53,12 @@ data class DWebViewOptions(
    * 是否启用无痕模式，如果为null，则不启用，否则，同个sessionId的会共享该模式下的数据，并在结束时销毁这些数据
    */
   val incognitoSessionId: String? = null,
+
+  /**
+   * Android 是否要使用 shouldInterceptRequest 来拦截请求直接响应，而不使用网络代理
+   * 默认启用
+   */
+  val androidInterceptGetRequest: Boolean = true,
 ) {
 
   enum class DetachedStrategy {
