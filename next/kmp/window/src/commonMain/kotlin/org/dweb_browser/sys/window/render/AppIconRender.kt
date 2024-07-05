@@ -46,6 +46,7 @@ fun AppIcon(
   icon: ImageLoadResult?,
   modifier: Modifier = Modifier,
   color: Color = LocalContentColor.current,
+  containerAlpha: Float? = null,
   containerColor: Color? = null,
   iconPlaceholder: Painter? = null,
   iconError: Painter? = null,
@@ -58,6 +59,7 @@ fun AppIcon(
     iconSrc = icon,
     modifier = modifier,
     color = color,
+    containerAlpha = containerAlpha,
     containerColor = containerColor,
     iconPlaceholder = iconPlaceholder,
     iconError = iconError,
@@ -78,6 +80,7 @@ fun AppIcon(
   icon: String?,
   modifier: Modifier = Modifier,
   color: Color = LocalContentColor.current,
+  containerAlpha: Float? = null,
   containerColor: Color? = null,
   iconPlaceholder: Painter? = null,
   iconError: Painter? = null,
@@ -90,6 +93,7 @@ fun AppIcon(
     iconSrc = icon,
     modifier = modifier,
     color = color,
+    containerAlpha = containerAlpha,
     containerColor = containerColor,
     iconPlaceholder = iconPlaceholder,
     iconError = iconError,
@@ -129,6 +133,7 @@ private fun AppIconOuter(
   iconSrc: Any?,
   modifier: Modifier,
   color: Color,
+  containerAlpha: Float? = null,
   containerColor: Color?,
   iconPlaceholder: Painter?,
   iconError: Painter?,
@@ -140,7 +145,9 @@ private fun AppIconOuter(
   var isSuccess by remember { mutableStateOf(false) }
   // 如果没有提供背景色，那么就根据图标颜色进行自适应显示显示黑色或者白色的底色
   val safeContainerColor = containerColor
-    ?: (if (color.luminance() > 0.5f) Color.Black else Color.White).copy(alpha = 0.2f)
+    ?: (if (color.luminance() > 0.5f) Color.Black else Color.White).copy(
+      alpha = containerAlpha ?: 0.2f
+    )
   // 只有加载成功的时候，才会显示背景裁切图
   val containerModifier = if (isSuccess) {
     modifier

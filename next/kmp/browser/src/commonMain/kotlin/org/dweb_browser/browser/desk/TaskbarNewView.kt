@@ -3,7 +3,6 @@ package org.dweb_browser.browser.desk
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -16,9 +15,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.twotone.Image
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -50,6 +46,7 @@ import androidx.compose.ui.window.Popup
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.StrictImageResource
 import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.compose.clickableWithNoEffect
@@ -183,12 +180,17 @@ private fun TaskBarAppIcon(
     }
   }
 
+  fun doHaptics() {
+    scope.launch {
+      microModule.nativeFetch("file://haptics.sys.dweb/vibrateHeavyClick")
+    }
+  }
+
   BoxWithConstraints(contentAlignment = Alignment.Center, modifier = modifier.graphicsLayer {
     scaleX = scaleValue.value
     scaleY = scaleValue.value
   }.padding(start = paddingValue.dp, top = paddingValue.dp, end = paddingValue.dp)
-    .aspectRatio(1.0f).shadow(3.dp, RoundedCornerShape(12.dp))
-    .background(Color.White, RoundedCornerShape(12.dp))
+    .aspectRatio(1.0f)
     .pointerInput(app) {
       detectTapGestures(onPress = {
         doAnimation()
@@ -201,6 +203,7 @@ private fun TaskBarAppIcon(
           openApp(app.mmid)
         }
       }, onLongPress = {
+        doHaptics()
         if (app.running) {
           showQuit = true
         } else {
@@ -209,22 +212,9 @@ private fun TaskBarAppIcon(
       })
     }) {
 
-
     key(app.icon) {
-      BoxWithConstraints(Modifier.padding(5.dp).blur(if (showQuit) 1.dp else 0.dp)) {
-        when (app.icon) {
-          null -> Image(Icons.TwoTone.Image, contentDescription = null)
-          else -> {
-            val iconImage = TaskbarAppModel.getCacheIcon(app.icon.src)
-            if (iconImage != null) {
-              Image(iconImage, contentDescription = null)
-            } else {
-              DeskCacheIcon(app.icon, microModule, maxWidth, maxHeight) {
-                TaskbarAppModel.setCacheIcon(app.mmid, it.success!!)
-              }
-            }
-          }
-        }
+      BoxWithConstraints(Modifier.blur(if (showQuit) 1.dp else 0.dp)) {
+        DeskCacheIcon(app.icon, microModule, maxWidth, maxHeight, )
       }
     }
 

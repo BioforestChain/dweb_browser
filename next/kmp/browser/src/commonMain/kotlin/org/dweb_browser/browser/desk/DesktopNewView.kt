@@ -1,9 +1,9 @@
 package org.dweb_browser.browser.desk
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.EaseInOut
 import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.animateIntOffset
@@ -11,9 +11,6 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.updateTransition
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -24,15 +21,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.safeGestures
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -47,7 +43,6 @@ import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.HighlightOff
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Share
-import androidx.compose.material.icons.twotone.Image
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -61,18 +56,18 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.composed
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
@@ -89,6 +84,7 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
@@ -96,11 +92,14 @@ import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.desk.DesktopAppModel.DesktopAppRunStatus
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.ImageResourcePurposes
 import org.dweb_browser.helper.StrictImageResource
 import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.compose.clickableWithNoEffect
+import org.dweb_browser.helper.compose.div
+import org.dweb_browser.helper.compose.iosTween
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.pure.image.compose.ImageLoadResult
 import org.dweb_browser.pure.image.compose.PureImageLoader
@@ -109,7 +108,6 @@ import org.dweb_browser.sys.window.core.helper.pickLargest
 import org.dweb_browser.sys.window.core.helper.toStrict
 import org.dweb_browser.sys.window.render.AppIcon
 import org.dweb_browser.sys.window.render.blobFetchHook
-import kotlin.math.min
 
 @Composable
 fun NewDesktopView(
@@ -118,18 +116,13 @@ fun NewDesktopView(
 ) {
   val apps = remember { mutableStateListOf<DesktopAppModel>() }
 
-  var popup by remember { mutableStateOf(false) }
-  val blurValue by animateFloatAsState(
-    if (popup) 5f else 0f,
-    animationSpec = tween(300)
-  )
+  var popUpApp by remember { mutableStateOf<DesktopAppModel?>(null) }
 
   val scope = rememberCoroutineScope()
 
   val focusManager = LocalFocusManager.current
   val keyboardController = LocalSoftwareKeyboardController.current
 
-  var popUpApp by remember { mutableStateOf<DesktopAppModel?>(null) }
 
   val toRunningApps by remember { mutableStateOf(mutableSetOf<String>()) }
 
@@ -235,29 +228,31 @@ fun NewDesktopView(
     }
   }
 
+  fun doHaptics() {
+    scope.launch {
+      microModule.nativeFetch("file://haptics.sys.dweb/vibrateHeavyClick")
+    }
+  }
+
   fun doShowPopUp(index: Int) {
-    if (index >= apps.count()) return
-    val app = apps[index]
-    app.image?.let {
-      popUpApp = app
-      popup = true
+    popUpApp = apps.getOrNull(index)?.also {
+      doHaptics()
     }
   }
 
   fun doHidePopUp() {
-    popup = false
-//      popUpApp = null
+    popUpApp = null
   }
 
+  val blurState by animateDpAsState(
+    if (popUpApp != null) 3.dp else 0.dp,
+    animationSpec = iosTween(popUpApp != null)
+  )
+
   BoxWithConstraints(
-    modifier = Modifier.fillMaxSize().blur(blurValue.dp).background(Color.Black),
+    modifier = Modifier.fillMaxSize().background(Color.Black).blur(blurState),
     contentAlignment = Alignment.TopStart
   ) {
-
-    val boxSize = IntSize(constraints.maxWidth, constraints.maxHeight)
-    val layoutStyle by remember(boxSize) {
-      mutableStateOf(desktopGridLayout(boxSize))
-    }
 
     desktopWallpaperView(desktopBgCircleCount(), modifier = Modifier, isTapDoAnimation = false) {
       doHideKeyboard()
@@ -270,18 +265,17 @@ fun NewDesktopView(
         }) {
 
       desktopSearchBar(
-        textWord,
-        Modifier.windowInsetsPadding(WindowInsets.safeGestures).blur(blurValue.dp),
-        ::doSearch,
-        ::doHideKeyboard
+        textWord, Modifier.windowInsetsPadding(WindowInsets.safeGestures),
+        ::doSearch, ::doHideKeyboard
       )
-
+      val layout = desktopGridLayout()
       LazyVerticalGrid(
-        columns = layoutStyle,
-        contentPadding = PaddingValues(5.dp),
+        columns = layout.cells,
+        contentPadding = PaddingValues(layout.contentPadding),
         modifier = Modifier.fillMaxSize(),
+        horizontalArrangement = Arrangement.spacedBy(layout.space),
+        verticalArrangement = Arrangement.spacedBy(layout.space)
       ) {
-
         itemsIndexed(apps) { index, app ->
           AppItem(
             modifier = Modifier.DesktopEventDetector(onClick = {
@@ -290,7 +284,6 @@ fun NewDesktopView(
               doShowPopUp(index)
             }),
             app,
-            desktopController,
             microModule,
           )
         }
@@ -298,68 +291,75 @@ fun NewDesktopView(
     }
   }
 
-  AnimatedVisibility(
-    popup,
-    enter = fadeIn(tween(500)),
-    exit = fadeOut(tween(500)),
-  ) {
+  val iconScale by animateFloatAsState(
+    if (popUpApp != null) 1.05f else 1f,
+    animationSpec = iosTween(popUpApp != null)
+  )
+  val iconContainerAlpha by animateFloatAsState(
+    if (popUpApp != null) 0.8f else 0.2f,
+    animationSpec = iosTween(popUpApp != null)
+  )
+  popUpApp?.also { app ->
     BoxWithConstraints(
-      contentAlignment = Alignment.TopStart,
-      modifier = Modifier
+      Modifier
+        .zIndex(2f)
         .fillMaxSize()
         .clickableWithNoEffect {
           doHidePopUp()
-        }) {
+        },
+      Alignment.TopStart
+    ) {
 
-      var popSize by remember { mutableStateOf(IntSize.Zero) }
-      var popAlpha by remember { mutableStateOf(0f) }
-      val density = LocalDensity.current.density
-      val boxWidth = constraints.maxWidth
-      val boxHeight = constraints.maxHeight
-
-      val scale = 1.05f
-      val width = (popUpApp!!.size!!.width / density) * scale
-      val height = (popUpApp!!.size!!.height / density) * scale
-      val offX = popUpApp!!.offSet!!.x / density - width / scale * (scale - 1.0f) / 2.0f
-      val offY = popUpApp!!.offSet!!.y / density - height / scale * (scale - 1.0f) / 2.0f
-
-      AppIcon(
-        popUpApp!!.image,
-        iconMaskable = popUpApp!!.icon!!.purpose.contains(ImageResourcePurposes.Maskable),
-        iconMonochrome = popUpApp!!.icon!!.purpose.contains(ImageResourcePurposes.Monochrome),
+      DeskAppIcon(
+        app,
+        microModule,
+        containerAlpha = iconContainerAlpha,
         modifier = Modifier
-          .size(width = width.dp, height = height.dp)
-          .offset(offX.dp, offY.dp)
-          .background(color = Color.White, shape = RoundedCornerShape(16.dp))
-          .graphicsLayer {
-            scaleX = scale
-            scaleY = scale
+          .requiredSize(app.size.width.dp, app.size.height.dp)
+          .offset {
+            app.offSet.toIntOffset(1f)
           }
-          .clickableWithNoEffect {
-            doOpen(popUpApp!!.mmid)
-            doHidePopUp()
-          }
+          .scale(iconScale),
       )
 
-      val popOffX = min((offX * density).toFloat(), (boxWidth - popSize.width).toFloat()).toInt()
-      var popOffY = ((offY + height + 15) * density).toInt()
-      if (popOffY + popSize.height + 15 > boxHeight) {
-        popOffY = ((offY - popSize.height - 15) * density).toInt()
+      val moreAppDisplayModels by remember(app) {
+        mutableStateOf(
+          createMoreAppDisplayModels(
+            app,
+            ::doQuit,
+            ::doDetail,
+            ::doUninstall,
+            ::doShare
+          )
+        )
       }
 
-      Box(
-        modifier = Modifier.offset {
+      val itemSize = IntSize(60, 60)
+      val moreAppDisplayMenuWidth = moreAppDisplayModels.size * itemSize.width
+      val moreAppDisplayMenuHeight = itemSize.height
+      val density = LocalDensity.current.density
+
+      val moreAppDisplayOffSet by remember(app.offSet, moreAppDisplayModels) {
+        //此处有坑：在于app.offset, app.size, 取到的数值倍数不一致。。。
+        val minX = app.offSet.x.toInt()
+        val maxY = app.offSet.y.toInt() + app.size.height * density
+        val minY = app.offSet.y.toInt()
+        val space = 5
+        mutableStateOf(
           IntOffset(
-            x = popOffX, y = popOffY
+            if (minX + moreAppDisplayMenuWidth * density < constraints.maxWidth) minX else constraints.maxWidth - space - (moreAppDisplayMenuWidth * density).toInt(),
+            if (maxY + space + moreAppDisplayMenuHeight * density < constraints.maxHeight) maxY.toInt() + space else minY - space - (moreAppDisplayMenuHeight * density).toInt(),
           )
-        }.alpha(popAlpha)
+        )
+      }
+
+      moreAppItemsDisplay(
+        moreAppDisplayModels,
+        Modifier
+          .offset { moreAppDisplayOffSet }
+          .size(moreAppDisplayMenuWidth.dp, moreAppDisplayMenuHeight.dp)
       ) {
-        moreAppDisplay(
-          popUpApp!!, ::doQuit, ::doDetail, ::doUninstall, ::doShare, ::doHidePopUp
-        ) {
-          popSize = it
-          popAlpha = 1f
-        }
+        doHidePopUp()
       }
     }
   }
@@ -371,56 +371,47 @@ private typealias AppItemAction = (String) -> Unit
 fun AppItem(
   modifier: Modifier,
   app: DesktopAppModel,
-  desktopController: DesktopController,
   microModule: NativeMicroModule.NativeRuntime,
 ) {
-
-  Box(
-    modifier = modifier.fillMaxSize(),
-    contentAlignment = Alignment.TopStart,
+  val density = LocalDensity.current.density
+  Column(
+    modifier = modifier,
+    verticalArrangement = Arrangement.Center,
+    horizontalAlignment = Alignment.CenterHorizontally,
   ) {
-    Column(
-      modifier = Modifier.align(Alignment.CenterStart)
-    ) {
-
-      DeskAppIcon(
-        app, desktopController, microModule,
-      )
-      Text(
-        text = app.name, maxLines = 2, overflow = TextOverflow.Ellipsis, style = TextStyle(
-          color = Color.White,
-          fontSize = 12.sp,
-          textAlign = TextAlign.Center,
-          shadow = Shadow(Color.Black, Offset(4f, 4f), 4f)
-        ), modifier = Modifier.fillMaxWidth()
-      )
-    }
+    DeskAppIcon(
+      app,
+      microModule,
+      modifier = Modifier.onGloballyPositioned {
+        app.size = it.size / density
+        app.offSet = it.positionInWindow()
+      }.jump(app.running == DesktopAppRunStatus.TORUNNING)
+    )
+    Text(
+      text = app.name, maxLines = 2, overflow = TextOverflow.Ellipsis, style = TextStyle(
+        color = Color.White,
+        fontSize = 12.sp,
+        textAlign = TextAlign.Center,
+        shadow = Shadow(Color.Black, Offset(4f, 4f), 4f)
+      ), modifier = Modifier.fillMaxWidth()
+    )
   }
 }
 
-@Composable
-fun DeskAppIcon(
-  app: DesktopAppModel,
-  desktopController: DesktopController,
-  microModule: NativeMicroModule.NativeRuntime,
-) {
+fun Modifier.jump(enable: Boolean) = this.composed {
   var animated by remember { mutableStateOf(false) }
-  var animationCount by remember { mutableStateOf(0) }
+  var animationCount by remember { mutableStateOf(1) }
   val toRuningAnimation = rememberInfiniteTransition()
   val animtionDuration = 300
   val infiniteOffY by toRuningAnimation.animateFloat(
-    initialValue = 0F,
-    targetValue = -8F,
-    animationSpec = infiniteRepeatable(
-      animation = tween(animtionDuration, easing = LinearEasing),
-      repeatMode = RepeatMode.Reverse
+    initialValue = 0F, targetValue = -8F, animationSpec = infiniteRepeatable(
+      animation = tween(animtionDuration, easing = EaseInOut), repeatMode = RepeatMode.Reverse
     )
   )
   val backOffY = remember { Animatable(0f) }
 
-  LaunchedEffect(app.running) {
-
-    if (app.running == DesktopAppRunStatus.TORUNNING) {
+  LaunchedEffect(enable) {
+    if (enable) {
       animationCount = 0
       animated = true
 
@@ -430,7 +421,7 @@ fun DeskAppIcon(
           animationCount += 1
         }
       }
-    } else if (app.running == DesktopAppRunStatus.RUNNING && animationCount < 1) {
+    } else if (animationCount < 1) {
       animated = true
       launch {
         delay(animtionDuration.toLong() * 2 * (1 - animationCount))
@@ -439,28 +430,29 @@ fun DeskAppIcon(
         backOffY.animateTo(0f, tween(animtionDuration))
       }
     } else {
-      animationCount = 0
       animated = false
     }
   }
 
-  val iconSize = remember { desktopIconSize() }
-  Box(contentAlignment = Alignment.Center,
-    modifier = Modifier
-      .fillMaxSize()
-      .padding(8.dp)
-      .offset(0.dp, if (animated) infiniteOffY.dp else backOffY.value.dp)
-      .aspectRatio(1.0f)
-      .background(color = Color.White, shape = RoundedCornerShape(16.dp))
-      .onGloballyPositioned {
-        app.size = it.size
-        app.offSet = it.positionInWindow().toIntOffset(1F)
-      }
-  ) {
-    DeskCacheIcon(app.icon, microModule, iconSize.width.dp, iconSize.height.dp) {
-      app.image = it
-    }
-  }
+  this.offset(0.dp, if (animated) infiniteOffY.dp else backOffY.value.dp)
+}
+
+@Composable
+fun DeskAppIcon(
+  app: DesktopAppModel,
+  microModule: NativeMicroModule.NativeRuntime,
+  containerAlpha: Float? = null,
+  modifier: Modifier = Modifier
+) {
+  val iconSize = desktopIconSize()
+  DeskCacheIcon(
+    app.icon,
+    microModule,
+    iconSize.width.dp,
+    iconSize.height.dp,
+    containerAlpha = containerAlpha,
+    modifier.padding(8.dp)
+  )
 }
 
 private data class MoreAppModel(
@@ -505,16 +497,28 @@ private enum class MoreAppModelType {
 }
 
 @Composable
-private fun moreAppItemsDisplay(displays: List<MoreAppModel>, dismiss: () -> Unit) {
+private fun moreAppItemsDisplay(
+  displays: List<MoreAppModel>,
+  modifier: Modifier,
+  dismiss: () -> Unit
+) {
   Row(
-    modifier = Modifier.padding(8.dp), horizontalArrangement = Arrangement.SpaceBetween
+    modifier = modifier
+      .clip(RoundedCornerShape(8.dp))
+      .background(Color.White.copy(alpha = 0.5f)),
+    horizontalArrangement = Arrangement.SpaceBetween,
+    verticalAlignment = Alignment.CenterVertically
   ) {
     displays.forEach {
       Column(
-        modifier = Modifier.width(60.dp).clickable(enabled = it.enable) {
-          it.doAction()
-          dismiss()
-        },
+        modifier = Modifier
+          .padding(4.dp)
+          .fillMaxSize()
+          .weight(1f)
+          .clickable(enabled = it.enable) {
+            it.doAction()
+            dismiss()
+          },
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween
       ) {
@@ -524,14 +528,20 @@ private fun moreAppItemsDisplay(displays: List<MoreAppModel>, dismiss: () -> Uni
           tint = if (it.enable) Color.Black else Color.Gray
         )
         Text(
-          it.type.data.title, fontSize = 12.sp, color = if (it.enable) Color.Black else Color.Gray
+          it.type.data.title,
+          Modifier,
+          fontSize = 12.sp,
+          color = if (it.enable) Color.Black else Color.Gray
         )
       }
     }
   }
 }
 
-expect fun desktopGridLayout(size: IntSize): GridCells
+data class DesktopGridLayout(val cells: GridCells, val contentPadding: Dp, val space: Dp)
+
+expect fun desktopGridLayout(): DesktopGridLayout
+
 expect fun desktopTap(): Dp
 expect fun desktopBgCircleCount(): Int
 expect fun desktopIconSize(): IntSize
@@ -541,18 +551,16 @@ expect fun Modifier.DesktopEventDetector(
   onClick: () -> Unit, onDoubleClick: () -> Unit, onLongClick: () -> Unit
 ): Modifier
 
-@Composable
-fun moreAppDisplay(
+private fun createMoreAppDisplayModels(
   app: DesktopAppModel,
   quit: AppItemAction,
   detail: AppItemAction,
   uninstall: AppItemAction,
   share: AppItemAction,
-  dismiss: () -> Unit,
-  onSize: (IntSize) -> Unit,
-) {
+): List<MoreAppModel> {
 
   val displays = mutableListOf<MoreAppModel>()
+
   displays.add(
     MoreAppModel(
       app.mmid,
@@ -561,19 +569,15 @@ fun moreAppDisplay(
       app.running == DesktopAppRunStatus.RUNNING
     )
   )
+
   if (!app.isSystermApp) {
     displays.add(MoreAppModel(app.mmid, MoreAppModelType.DETAIL, detail, true))
     displays.add(MoreAppModel(app.mmid, MoreAppModelType.UNINSTALL, uninstall, true))
   }
+
   displays.add(MoreAppModel(app.mmid, MoreAppModelType.SHARE, share, false))
 
-  Box(modifier = Modifier.clip(RoundedCornerShape(8.dp))
-    .background(color = Color.White.copy(alpha = 0.6F)).onSizeChanged {
-      onSize(it)
-    }) {
-
-    moreAppItemsDisplay(displays, dismiss)
-  }
+  return displays
 }
 
 @Composable
@@ -665,10 +669,11 @@ data class DesktopAppModel(
   val isSystermApp: Boolean,
   var running: DesktopAppRunStatus = DesktopAppRunStatus.NONE,
   var image: ImageLoadResult? = null,
-  var size: IntSize? = null,
-  var offSet: IntOffset? = null,
   val id: UUID = randomUUID()
 ) {
+
+  var size: Size by mutableStateOf(Size.Zero)
+  var offSet: Offset by mutableStateOf(Offset.Zero)
 
   enum class DesktopAppRunStatus {
     NONE, TORUNNING, RUNNING
@@ -705,22 +710,16 @@ fun DeskCacheIcon(
   microModule: NativeMicroModule.NativeRuntime,
   width: Dp,
   height: Dp,
-  iconLoaded: (ImageLoadResult) -> Unit
+  containerAlpha: Float? = null,
+  modifier: Modifier = Modifier,
 ) {
-  when (icon) {
-    null -> Image(Icons.TwoTone.Image, contentDescription = null)
-    else -> {
-      val imageResult =
-        PureImageLoader.SmartLoad(icon.src, width, height, microModule.blobFetchHook)
-      AppIcon(
-        imageResult,
-        iconMaskable = icon.purpose.contains(ImageResourcePurposes.Maskable),
-        iconMonochrome = icon.purpose.contains(ImageResourcePurposes.Monochrome)
-      )
-      if (imageResult.isSuccess) {
-        iconLoaded(imageResult)
-      }
-    }
-  }
-
+  val imageResult =
+    icon?.let { PureImageLoader.SmartLoad(icon.src, width, height, microModule.blobFetchHook) }
+  AppIcon(
+    imageResult,
+    modifier = modifier.requiredSize(width, height),
+    iconMaskable = icon?.let { icon.purpose.contains(ImageResourcePurposes.Maskable) } ?: false,
+    iconMonochrome = icon?.let { icon.purpose.contains(ImageResourcePurposes.Monochrome) } ?: false,
+    containerAlpha = containerAlpha,
+  )
 }

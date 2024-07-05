@@ -60,13 +60,7 @@ actual suspend fun loadApplicationNewVersion(): NewVersionItem? {
   return loadNewVersion?.createNewVersionItem()
 }
 
-actual fun desktopGridLayout(size: IntSize): GridCells {
-  return if (size.width < size.height) {
-    GridCells.Fixed(4)
-  } else {
-    GridCells.Adaptive(80.dp)
-  }
-}
+actual fun desktopGridLayout(): DesktopGridLayout = DesktopGridLayout(GridCells.Adaptive(80.dp), 0.dp, 4.dp)
 
 actual fun desktopTap(): Dp = 0.dp
 

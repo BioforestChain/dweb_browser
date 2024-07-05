@@ -38,7 +38,9 @@ fun DesktopController.Render(
   ) {
     Box(modifier = Modifier.fillMaxWidth()) {
       if (remember { envSwitch.isEnabled(ENV_SWITCH_KEY.DESKTOP_STYLE_COMPOSE) }) {
-        NewDesktopView(desktopController, microModule)
+        Box(Modifier.fillMaxSize()) {
+          NewDesktopView(desktopController, microModule)
+        }
       } else {
         DesktopView {
           Render(Modifier.fillMaxSize())
