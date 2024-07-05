@@ -48,9 +48,12 @@ export class AssetsConfig {
 }
 
 const symlink = (target: string, path: string) => {
-  console.log("symlink", path, "=>", target);
   if (fs.existsSync(path)) {
-    if (!fs.statSync(path).isSymbolicLink()) {
+    let isSymbolicLink = false;
+    try {
+      isSymbolicLink = fs.statSync(path).isSymbolicLink();
+    } catch {}
+    if (!isSymbolicLink) {
       // throw new Error(`symbol link fail, ${path} exists.`);
       fs.unlinkSync(path);
     } else {
