@@ -120,24 +120,24 @@ fun AboutRender(
             labelName = AboutI18nResource.chip(), text = macHardwareInfo.chip
           )
           AboutDetailsItem(
-            labelName = AboutI18nResource.ram(), text = macHardwareInfo.ram
+            labelName = "", text = "${macHardwareInfo.ram} ${AboutI18nResource.ram()}"
           )
           macHardwareInfo.cpuCoresNumber?.also {
             AboutDetailsItem(
-              labelName = AboutI18nResource.cpuCoresNumber(),
-              text = macHardwareInfo.cpuCoresNumber!!
+              labelName ="",
+              text = "${macHardwareInfo.cpuCoresNumber!!} CPU ${AboutI18nResource.cpuCoresNumber()}"
             )
           }
           macHardwareInfo.cpuPerformanceCoresNumber?.also {
             AboutDetailsItem(
-              labelName = AboutI18nResource.cpuPerformanceCoresNumber(),
-              text = macHardwareInfo.cpuPerformanceCoresNumber!!
+              labelName = "",
+              text = "${macHardwareInfo.cpuPerformanceCoresNumber!!} CPU ${AboutI18nResource.cpuPerformanceCoresNumber()}"
             )
           }
           macHardwareInfo.cpuEfficiencyCoresNumber?.also {
             AboutDetailsItem(
-              labelName = AboutI18nResource.cpuEfficiencyCoresNumber(),
-              text = macHardwareInfo.cpuEfficiencyCoresNumber!!
+              labelName = "",
+              text = "${macHardwareInfo.cpuEfficiencyCoresNumber!!} CPU ${AboutI18nResource.cpuEfficiencyCoresNumber()}"
             )
           }
         }

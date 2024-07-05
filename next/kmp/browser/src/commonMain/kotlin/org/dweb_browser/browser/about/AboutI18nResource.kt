@@ -20,12 +20,12 @@ object AboutI18nResource {
   val webviewVersion =
     SimpleI18nResource(Language.ZH to "WebView 版本", Language.EN to "WebView Version")
   val cpuCoresNumber =
-    SimpleI18nResource(Language.ZH to "CPU核心数", Language.EN to "CPU Cores Number")
+    SimpleI18nResource(Language.ZH to "核心数", Language.EN to "Cores Number")
   val cpuPerformanceCoresNumber =
-    SimpleI18nResource(Language.ZH to "CPU高效核心数", Language.EN to "CPU Performance Cores Number")
+    SimpleI18nResource(Language.ZH to "高效核心数", Language.EN to "Performance Cores Number")
   val cpuEfficiencyCoresNumber =
-    SimpleI18nResource(Language.ZH to "CPU节能核心数", Language.EN to "CPU Efficiency Cores Number")
-  val cpuLogicalProcessorsNumber = SimpleI18nResource(Language.ZH to "CPU逻辑处理器数", Language.EN to "CPU Logical Processors Number")
+    SimpleI18nResource(Language.ZH to "节能核心数", Language.EN to "Efficiency Cores Number")
+  val cpuLogicalProcessorsNumber = SimpleI18nResource(Language.ZH to "逻辑处理器数", Language.EN to "Logical Processors Number")
   val totalMemory =
     SimpleI18nResource(Language.ZH to "JVM总内存", Language.EN to "JVM Total Memory")
   val freeMemory =
