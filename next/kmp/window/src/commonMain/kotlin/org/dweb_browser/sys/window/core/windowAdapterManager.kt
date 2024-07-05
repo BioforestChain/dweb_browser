@@ -1,6 +1,5 @@
 package org.dweb_browser.sys.window.core
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraintsScope
@@ -28,7 +27,6 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.core.help.AdapterManager
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.compose.MetaBallLoadingView
-import org.dweb_browser.helper.compose.SlideNavAnimations
 import org.dweb_browser.helper.defaultAsyncExceptionHandler
 import org.dweb_browser.helper.platform.theme.DwebBrowserAppTheme
 import org.dweb_browser.sys.window.render.LocalWindowController
@@ -143,12 +141,14 @@ class WindowAdapterManager : AdapterManager<CreateWindowAdapter>() {
                 /**
                  * currentPage
                  */
-                AnimatedVisibility(
-                  visibleState,
-                  modifier = Modifier.fillMaxSize(),
-                  enter = SlideNavAnimations.enterTransition,
-                  exit = SlideNavAnimations.popExitTransition,
-                ) {
+//                AnimatedVisibility(
+//                  visibleState,
+//                  modifier = Modifier.fillMaxSize(),
+//                  enter = SlideNavAnimations.enterTransition,
+//                  exit = SlideNavAnimations.popExitTransition,
+//                ) {
+                // AnimatedVisibility 和缩放共用会导致缩放后的位置发生偏移，引起显示内容被键盘覆盖的情况
+                Box(modifier = Modifier.fillMaxSize()) {
                   navigation.GoBackHandler(navigation.pageStack.size > 0) {
                     navigation.pageStack.removeLast()
                     visibleState.targetState = false
@@ -161,7 +161,6 @@ class WindowAdapterManager : AdapterManager<CreateWindowAdapter>() {
                   pageRender(windowRenderScope, contentModifier)
                 }
               }
-
             }
             for (pageRender in pageRenders.values) {
               pageRender(windowRenderScope, contentModifier)
