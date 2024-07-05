@@ -71,7 +71,6 @@ object AboutI18nResource {
   val chip = SimpleI18nResource(Language.ZH to "芯片", Language.EN to "Chip")
   val hostName = SimpleI18nResource(Language.ZH to "主机名", Language.EN to "Host Name")
   val adapterRam = SimpleI18nResource(Language.ZH to "内存容量", Language.EN to "Adapter RAM")
-  val videoController = SimpleI18nResource(Language.ZH to "显卡", Language.EN to "Video Controller")
   val capacity = SimpleI18nResource(Language.ZH to "容量", Language.EN to "Capacity")
   val speed = SimpleI18nResource(Language.ZH to "速度", Language.EN to "Speed")
   val disk = SimpleI18nResource(Language.ZH to "磁盘", Language.EN to "Disk")

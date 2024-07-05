@@ -23,7 +23,6 @@ interface Kernel32 : StdCallLibrary {
 }
 
 data class WinHardwareInfoData(
-  val hostName: String? = null,
   val cpuInfoList: List<WinCpuInfoItem>? = null,
   val diskInfoList: List<WinDiskInfoItem>? = null,
   val gpuInfoList: List<WinGpuInfoItem>? = null,
@@ -39,7 +38,7 @@ data class WinCpuInfoItem(
 
 @Serializable
 data class WinDiskInfoItem(
-  @SerialName("model") val model: String, @SerialName("Size") val size: Long
+  @SerialName("Model") val model: String, @SerialName("Size") val size: Long
 )
 
 @Serializable
@@ -101,7 +100,11 @@ object WinHardwareInfo {
       null
     }
 
-  private fun getHostName(): String? {
+  fun getHostName(): String? {
+    if(!PureViewController.isWindows) {
+      return null
+    }
+
     val nSize = IntByReference(1024)
     val buffer = CharArray(1024)
     return if (Kernel32.INSTANCE.GetComputerNameEx(
@@ -120,7 +123,6 @@ object WinHardwareInfo {
     }
 
     return WinHardwareInfoData(
-      hostName = getHostName(),
       cpuInfoList = cpuInfo,
       diskInfoList = diskInfo,
       gpuInfoList = gpuInfo,

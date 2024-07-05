@@ -11,9 +11,11 @@ import org.dweb_browser.helper.toSpaceSize
 import org.dweb_browser.platform.desktop.webview.jxBrowserEngine
 import org.dweb_browser.sys.device.DeviceManage
 import org.dweb_browser.sys.device.model.MacHardwareInfoData
+import org.dweb_browser.sys.device.model.WinHardwareInfo
 import org.dweb_browser.sys.device.model.WinHardwareInfoData
 
 data class DesktopSystemInfo(
+  val hostName: String? = null,
   val os: String,
   val osName: String,
   val osVersion: String,
@@ -30,6 +32,7 @@ actual suspend fun AboutNMM.AboutRuntime.openAboutPage(id: UUID) {
   val winHardwareInfo = DeviceManage.getWinHardwareInfo()
   val desktopSystemInfo = Runtime.getRuntime().run {
     DesktopSystemInfo(
+      hostName = WinHardwareInfo.getHostName(),
       os = when {
         PureViewController.isMacOS -> "MacOS"
         PureViewController.isWindows -> "Windows"
@@ -80,6 +83,9 @@ fun AboutRender(
     item("system-info") {
       AboutTitle(AboutI18nResource.system())
       AboutColumnContainer {
+        desktopSystemInfo.hostName?.also {
+          AboutDetailsItem(labelName = AboutI18nResource.hostName(), text = desktopSystemInfo.hostName)
+        }
         AboutDetailsItem(
           labelName = AboutI18nResource.os(), text = desktopSystemInfo.os
         )
@@ -149,58 +155,49 @@ fun AboutRender(
       item("hardware-info") {
         AboutTitle(AboutI18nResource.hardware())
         AboutColumnContainer {
-          winHardwareInfo.hostName?.also {
-            AboutDetailsItem(
-              labelName = AboutI18nResource.hostName(), text = winHardwareInfo.hostName!!
-            )
-          }
           winHardwareInfo.cpuInfoList?.also {
             winHardwareInfo.cpuInfoList!!.forEachIndexed { index, cpuInfo ->
-              AboutDetailsItem(labelName = "CPU ${index + 1}", text = "")
-              AboutDetailsItem(labelName = AboutI18nResource.chip(), text = cpuInfo.name.trim())
+              AboutDetailsItem(labelName = "CPU ${index + 1}", text = cpuInfo.name.trim())
               AboutDetailsItem(
-                labelName = AboutI18nResource.cpuCoresNumber(),
-                text = cpuInfo.cpuCoresNumber.toString()
+                labelName = "",
+                text = "${cpuInfo.cpuCoresNumber} CPU ${AboutI18nResource.cpuCoresNumber()}"
               )
               AboutDetailsItem(
-                labelName = AboutI18nResource.cpuLogicalProcessorsNumber(),
-                text = cpuInfo.cpuLogicalProcessorsNumber.toString()
+                labelName = "",
+                text = "${cpuInfo.cpuLogicalProcessorsNumber} CPU ${AboutI18nResource.cpuLogicalProcessorsNumber()}"
               )
             }
           }
           winHardwareInfo.gpuInfoList?.also {
             winHardwareInfo.gpuInfoList!!.forEachIndexed { index, gpuInfo ->
-              AboutDetailsItem(labelName = "GPU ${index + 1}", text = "")
               AboutDetailsItem(
-                labelName = AboutI18nResource.videoController(), text = gpuInfo.name.trim()
+                labelName = "GPU ${index + 1}", text = gpuInfo.name.trim()
               )
               AboutDetailsItem(
-                labelName = AboutI18nResource.adapterRam(), text = gpuInfo.ram.toSpaceSize()
+                labelName = "", text = "${gpuInfo.ram.toSpaceSize()} ${AboutI18nResource.adapterRam()}"
               )
             }
           }
           winHardwareInfo.memoryInfoList?.also {
             winHardwareInfo.memoryInfoList!!.forEachIndexed { index, memoryInfo ->
-              AboutDetailsItem(labelName = "RAM ${index + 1}", text = "")
               AboutDetailsItem(
-                labelName = AboutI18nResource.manufacturer(), text = memoryInfo.manufacturer.trim()
+                labelName = "RAM ${index + 1} ${AboutI18nResource.manufacturer()}", text = memoryInfo.manufacturer.trim()
               )
               AboutDetailsItem(
-                labelName = AboutI18nResource.capacity(), text = memoryInfo.capacity.toSpaceSize()
+                labelName = "", text = "${memoryInfo.capacity.toSpaceSize()} ${AboutI18nResource.capacity()}"
               )
               AboutDetailsItem(
-                labelName = AboutI18nResource.speed(), text = "${memoryInfo.speed}MT/s"
+                labelName = "", text = "${memoryInfo.speed}MT/s ${AboutI18nResource.speed()}"
               )
             }
           }
           winHardwareInfo.diskInfoList?.also {
             winHardwareInfo.diskInfoList!!.forEachIndexed { index, diskInfo ->
-              AboutDetailsItem(labelName = "${AboutI18nResource.disk} ${index + 1}", text = "")
               AboutDetailsItem(
-                labelName = AboutI18nResource.modelName(), text = diskInfo.model.trim()
+                labelName = "${AboutI18nResource.disk()} ${index + 1} ${AboutI18nResource.modelName()}", text = diskInfo.model.trim()
               )
               AboutDetailsItem(
-                labelName = AboutI18nResource.capacity(), text = diskInfo.size.toSpaceSize()
+                labelName = "", text = "${diskInfo.size.toSpaceSize()} ${AboutI18nResource.capacity()}"
               )
             }
           }
