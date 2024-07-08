@@ -369,7 +369,10 @@ object BrowserI18nResource {
 
   object QRCode {
     val short_name = SimpleI18nResource(Language.ZH to "二维码", Language.EN to "QR Code")
-
+    val select_QR_code = SimpleI18nResource(
+      Language.ZH to "选择一张二维码图片",
+      Language.EN to "Select a QR code image"
+    )
     val toast_mismatching = SimpleI18nResource(
       Language.ZH to "无法解析的数据 -> %s",
       Language.EN to "no support data -> %s"

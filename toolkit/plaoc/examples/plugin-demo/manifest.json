@@ -4,7 +4,7 @@
   "short_name": "plugins",
   "dweb_protocols": [],
   "description": "这是一个实例应用，包含了dweb_plugins全部组件的实例。",
-  "logo": "https://www.bfmeta.info/imgs/logo3.webp",
+  "logo": "https://docs.dweb-browser.org/logo.svg",
   "images": [
     "http://qiniu-waterbang.waterbang.top/bfm/cot-home_2058.webp",
     "http://qiniu-waterbang.waterbang.top/bfm/defi.png",

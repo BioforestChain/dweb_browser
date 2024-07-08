@@ -112,9 +112,7 @@ suspend fun startDwebBrowser(debugTags: String?, extMM: List<ExtMM> = listOf()):
   val searchNMM = SearchNMM().setup()
   /// 扫码
   val scannerNMM = ScanningNMM().setup()
-  if (envSwitch.isEnabled(ENV_SWITCH_KEY.SCAN_STD)) {
-    val scanStdNMM = ScanStdNMM().setup()
-  }
+  val scanStdNMM = ScanStdNMM().setup()
   ///安装剪切板
   val clipboardNMM = ClipboardNMM().setup()
   ///设备信息

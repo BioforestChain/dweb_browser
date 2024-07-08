@@ -75,10 +75,10 @@ open class KtorPureClient<out T : HttpClientEngineConfig>(
         // 线程里面的错误需要在线程里捕捉
       } catch (e: Throwable) {
         // TODO 连接超时提示用户
-        debugHttpPureClient("httpFetch error", e.stackTraceToString())
+        debugHttpPureClient("httpFetch error","href:${request.href} ${e.message}")
         val response = PureResponse(
           HttpStatusCode.ServiceUnavailable,
-          body = PureStringBody(request.url.toString() + "\n" + e.stackTraceToString())
+          body = PureStringBody(request.url.toString() + "\n" + e.message)
         )
         responsePo.complete(response)
       }

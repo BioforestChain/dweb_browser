@@ -88,7 +88,7 @@ fun QRCodeScanRender(
       }
     }
 
-    AnimatedContent(targetState = scanModel.state.type, label = "", transitionSpec = {
+    AnimatedContent(targetState = scanModel.state.type, transitionSpec = {
       if (targetState > initialState) {
         // 数字变大时，进入的界面从右向左变深划入，退出的界面从右向左变浅划出
         (slideInHorizontally { fullWidth -> fullWidth } + fadeIn()).togetherWith(
@@ -100,41 +100,88 @@ fun QRCodeScanRender(
       }
     }) { state ->
       when (state) {
-        QRCodeState.Scanning.type -> {
-          CameraPreviewRender(openAlarmResult = { imageBitmap ->
-            scanModel.imageBitmap = imageBitmap
-            scanModel.updateQRCodeStateUI(QRCodeState.AnalyzePhoto)
-          }, onBarcodeDetected = { qrCodeDecoderResult ->
-            if (enableBeep) beepAudio()
-            scanModel.qrCodeDecoderResult = qrCodeDecoderResult
-            scanModel.updateQRCodeStateUI(QRCodeState.CameraCheck)
-          }, maskView = { flashLightSwitch, openAlbum ->
-            DefaultScanningView(flashLightSwitch = flashLightSwitch, openAlbum = openAlbum) {
-              onCancel("Cancel")
-            }
-          }, onCancel = onCancel)
+        QRCodeState.Scanning.type -> {     // 扫码
+          renderCameraPreview(
+            scanModel = scanModel,
+            enableBeep = enableBeep,
+            onCancel = onCancel
+          )
         }
 
-        QRCodeState.AnalyzePhoto.type -> {
-          AnalyzeImageView(onBackHandler = {
-            scanModel.updateQRCodeStateUI(QRCodeState.Scanning)
-          }, onBarcodeDetected = { qrCodeDecoderResult ->
-            if (enableBeep) beepAudio()
-            scanModel.qrCodeDecoderResult = qrCodeDecoderResult
-            scanModel.updateQRCodeStateUI(QRCodeState.AlarmCheck)
-          })
+        QRCodeState.AnalyzePhoto.type -> { // 解析照片
+          renderAnalyzeImageView(
+            scanModel = scanModel,
+            enableBeep = enableBeep,
+          )
         }
 
         QRCodeState.CameraCheck.type, QRCodeState.AlarmCheck.type -> {
-          DefaultScanResultView(
+          renderDefaultScanResultView(
             isAlarm = state == QRCodeState.AlarmCheck.type,
-            onClose = { scanModel.updateQRCodeStateUI(QRCodeState.Scanning) },
-            onDataCallback = { onSuccess(it) }
+            scanModel = scanModel,
+            onSuccess = onSuccess
           )
         }
       }
     }
   }
+}
+
+@Composable
+fun renderCameraPreview(
+  scanModel: QRCodeScanModel,
+  enableBeep: Boolean,
+  onCancel: (reason: String) -> Unit
+) {
+  CameraPreviewRender(
+    openAlarmResult = { imageBitmap ->
+      scanModel.imageBitmap = imageBitmap
+      scanModel.updateQRCodeStateUI(QRCodeState.AnalyzePhoto)
+    },
+    onBarcodeDetected = { qrCodeDecoderResult ->
+      if (enableBeep) beepAudio()
+      scanModel.qrCodeDecoderResult = qrCodeDecoderResult
+      scanModel.updateQRCodeStateUI(QRCodeState.CameraCheck)
+    },
+    maskView = { flashLightSwitch, openAlbum ->
+      DefaultScanningView(flashLightSwitch = flashLightSwitch, openAlbum = openAlbum) {
+        onCancel("Cancel")
+      }
+    },
+    onCancel = onCancel
+  )
+}
+
+/**解析图片*/
+@Composable
+fun renderAnalyzeImageView(
+  scanModel: QRCodeScanModel,
+  enableBeep: Boolean,
+) {
+  AnalyzeImageView(
+    onBackHandler = {
+      // 识别失败，继续调用识别
+      scanModel.updateQRCodeStateUI(QRCodeState.Scanning)
+    },
+    onBarcodeDetected = { qrCodeDecoderResult ->
+      if (enableBeep) beepAudio()
+      scanModel.qrCodeDecoderResult = qrCodeDecoderResult
+      scanModel.updateQRCodeStateUI(QRCodeState.AlarmCheck)
+    },
+  )
+}
+
+@Composable
+fun renderDefaultScanResultView(
+  isAlarm: Boolean,
+  scanModel: QRCodeScanModel,
+  onSuccess: (String) -> Unit
+) {
+  DefaultScanResultView(
+    isAlarm = isAlarm,
+    onClose = { scanModel.updateQRCodeStateUI(QRCodeState.Scanning) },
+    onDataCallback = { onSuccess(it) }
+  )
 }
 
 @Composable
@@ -252,7 +299,8 @@ private fun BoxScope.CloseIcon(onClick: () -> Unit) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AnalyzeImageView(
-  onBackHandler: () -> Unit, onBarcodeDetected: (QRCodeDecoderResult) -> Unit,
+  onBackHandler: () -> Unit,
+  onBarcodeDetected: (QRCodeDecoderResult) -> Unit,
 ) {
   val qrCodeScanModel = LocalQRCodeModel.current
   val imageBitmap = qrCodeScanModel.imageBitmap ?: run {  // 如果为空，直接返回
@@ -265,7 +313,10 @@ fun AnalyzeImageView(
     delay(200)
     decoderImage(imageBitmap = imageBitmap,
       onSuccess = { onBarcodeDetected(it) },
-      onFailure = { alertMsg = "analyze fail" })
+      onFailure = {
+        val err = it.message ?: "analyze fail"
+        alertMsg = err
+      })
   }
   Box(modifier = Modifier.fillMaxSize().background(Color.Black).clickable(false) {}) {
     Image(

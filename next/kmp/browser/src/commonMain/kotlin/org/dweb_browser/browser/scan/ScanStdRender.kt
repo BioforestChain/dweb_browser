@@ -9,7 +9,7 @@ import org.dweb_browser.sys.window.core.withRenderScope
 import org.dweb_browser.sys.window.render.NativeBackHandler
 
 @Composable
-fun ScanStdController.ScanStdRender(
+fun ScanStdController.Render(
   modifier: Modifier, windowContentRenderScope: WindowContentRenderScope
 ) {
   val qrCodeScanModel = remember { QRCodeScanModel() }
@@ -26,8 +26,8 @@ fun ScanStdController.ScanStdRender(
     QRCodeScanRender(
       scanModel = qrCodeScanModel,
       requestPermission = { true },
-      onSuccess = { callScanResult(it) },
-      onCancel = { closeWindow() }
+      onSuccess = { onSuccess(it) },
+      onCancel = { onCancel(it) }
     )
   }
 }

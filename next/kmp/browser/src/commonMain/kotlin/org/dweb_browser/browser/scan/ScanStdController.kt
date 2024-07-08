@@ -1,96 +1,84 @@
 package org.dweb_browser.browser.scan
 
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import org.dweb_browser.browser.BrowserI18nResource
-import org.dweb_browser.helper.Signal
-import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.platform.IPureViewController
 import org.dweb_browser.helper.platform.PureViewControllerPlatform
 import org.dweb_browser.helper.platform.platform
-import org.dweb_browser.sys.permission.SystemPermissionName
-import org.dweb_browser.sys.permission.ext.requestSystemPermission
-import org.dweb_browser.sys.toast.ext.showToast
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.helper.setStateFromManifest
 import org.dweb_browser.sys.window.core.windowAdapterManager
-import org.dweb_browser.sys.window.ext.getWindow
+import org.dweb_browser.sys.window.ext.getMainWindow
+import org.dweb_browser.sys.window.ext.getMainWindowId
+import org.dweb_browser.sys.window.ext.getOrOpenMainWindow
 
 class ScanStdController(private val scanStdNMM: ScanStdNMM.ScanStdRuntime) {
 
-  private var winLock = Mutex(false)
-  private val _scanResult = Signal<String>()
-  private val onScanResult = _scanResult.toListener()
+  private val viewDeferredFlow =
+    MutableStateFlow(CompletableDeferred<WindowController>())
+  private val viewDeferred get() = viewDeferredFlow.value
+  private val winLock = Mutex()
 
   /**
-   * 窗口是单例模式
+   * 创建窗口控制器
    */
-  private var win: WindowController? = null
-  suspend fun renderScanWindow(wid: UUID) = winLock.withLock {
-    scanStdNMM.getWindow(wid).also { newWin ->
-      if (win == newWin) {
-        return@withLock
+  suspend fun getWindowController() = winLock.withLock {
+    if (viewDeferred.isCompleted) {
+      val controller = viewDeferred.getCompleted()
+      if (controller.id == scanStdNMM.getMainWindowId()) {
+        return@withLock controller
       }
-      win = newWin
-      newWin.setStateFromManifest(scanStdNMM)
-
-      /// 移动端默认最大化
-      // TODO 这里应使用屏幕尺寸来判定
+      viewDeferredFlow.value = CompletableDeferred()
+    }
+    scanStdNMM.getMainWindow().also { newController ->
+      viewDeferred.complete(newController)
+      newController.setStateFromManifest(scanStdNMM)
+      newController.state.alwaysOnTop = true // 扫码模块置顶
+      /// 提供渲染适配
+      windowAdapterManager.provideRender(newController.id) { modifier ->
+        Render(modifier, this)
+      }
+      // 适配各个平台样式 移动端默认最大化
       when (IPureViewController.platform) {
         PureViewControllerPlatform.Android,
-
         PureViewControllerPlatform.Apple -> {
-          newWin.maximize()
+          newController.maximize()
         }
 
         else -> {}
       }
-
-      newWin.state.alwaysOnTop = true // 扫码模块置顶
-      /// 提供渲染适配
-      windowAdapterManager.provideRender(wid) { modifier ->
-        ScanStdRender(modifier, this)
-      }
-      newWin.onClose {
-        winLock.withLock {
-          if (newWin == win) {
-            win = null
-          }
-        }
-        _scanResult.emit("")
+      newController.onClose {
+        viewDeferredFlow.value = CompletableDeferred()
       }
     }
   }
 
-  fun callScanResult(result: String) {
-    scanStdNMM.scopeLaunch(cancelable = true) {
-      _scanResult.emit(result)
-      closeWindow()
-    }
+  // 返回扫码结果
+  var saningResult = CompletableDeferred<String>()
+
+  /**扫码成功*/
+  fun onSuccess(result: String) {
+    saningResult.complete(result)
+    saningResult = CompletableDeferred()
+    closeWindow()
   }
+
+  fun onCancel(reason: String) {
+    saningResult.cancel(reason)
+    saningResult = CompletableDeferred()
+    closeWindow()
+  }
+
+  private val canCloseWindow get() = viewDeferred.isCompleted
 
   fun closeWindow() {
     scanStdNMM.scopeLaunch(cancelable = true) {
-      win?.closeRoot()
-    }
-  }
-
-  suspend fun tryShowScanWindow() = win?.let { winController ->
-    winController.show()
-    if (scanStdNMM.requestSystemPermission(
-        title = BrowserI18nResource.QRCode.permission_tip_camera_title.text,
-        description = BrowserI18nResource.QRCode.permission_tip_camera_message.text,
-        name = SystemPermissionName.CAMERA
-      )
-    ) {
-      val scanResult = CompletableDeferred<String>()
-      val off = onScanResult { scanResult.complete(it) }
-      scanResult.await().also { off() }
-    } else {
-      closeWindow()
-      scanStdNMM.showToast(BrowserI18nResource.QRCode.permission_denied.text)
-      null
+      if (canCloseWindow) {
+        scanStdNMM.getOrOpenMainWindow().closeRoot()
+      }
     }
   }
 }

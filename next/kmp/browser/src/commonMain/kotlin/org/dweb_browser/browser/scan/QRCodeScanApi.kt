@@ -14,7 +14,9 @@ typealias FlashLightSwitch = (Boolean) -> Boolean
 typealias OpenAlbum = () -> Unit
 
 /**
- * 扫码时，打开相机内容
+ * 渲染相机窗口内容
+ * 在ios/android 是扫码
+ * 在desktop 为选择图片文件
  * @param openAlarmResult 打开相册返回图片的操作
  * @param onBarcodeDetected 扫码后直接将图片处理的结果
  * @param maskView 上面遮罩层的内容，包括二维码的扫码区间和蓝色移动的横条，以及下面的图标按钮
@@ -24,7 +26,7 @@ expect fun CameraPreviewRender(
   openAlarmResult: (ImageBitmap) -> Unit,
   onBarcodeDetected: (QRCodeDecoderResult) -> Unit,
   maskView: @Composable (FlashLightSwitch, OpenAlbum) -> Unit,
-  onCancel: (String) -> Unit, // 增加该字段，主要是因为 desktop 可能不选择照片，直接返回，需要增加该功能响应事件
+  onCancel: (reason:String) -> Unit, // 取消扫码或者选择图片，直接退出
 )
 
 /**
