@@ -33,7 +33,6 @@ private fun UIView.unsetTransform() = setTransform(1.0, 0.0, 0.0)
 
 @OptIn(ExperimentalForeignApi::class)
 private fun UIView.effectWindowFrameStyle(style: WindowCommonStyle) {
-  println("QAQ effectWindowContentStyle $style")
   style.opacity.toDouble().also { double ->
     if (alpha != double) {
       alpha = double
@@ -67,7 +66,6 @@ fun <T : UIView> T.UIKitViewInWindow(
   accessibilityEnabled: Boolean = true,
 ) {
   remember(style) {
-    println("QAQ style-changed windowContentStyle.frameStyle=${style}");
     superview?.effectWindowFrameStyle(style)
   }
 
@@ -79,12 +77,10 @@ fun <T : UIView> T.UIKitViewInWindow(
     modifier = modifier,
     update = update,
     onResize = { view, rect ->
-      println("QAQ onResize windowContentStyle.frameStyle=${style}");
       superview?.effectWindowFrameStyle(style)
       onResize(this, rect)
     },
     onRelease = {
-      println("QAQ onRelease");
       superview?.unsetTransform()
       onRelease(this)
     },

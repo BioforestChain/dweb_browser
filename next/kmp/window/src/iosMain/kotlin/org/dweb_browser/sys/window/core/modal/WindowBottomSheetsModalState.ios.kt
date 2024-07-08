@@ -99,7 +99,7 @@ internal fun BottomSheetsModalState.RenderImplOld(emitModalVisibilityChange: (st
         pvc.onCreate { params ->
           pvc.addContent {
             val compositionChain by params["compositionChain"] as State<CompositionChain>
-            compositionChain.Provider(LocalCompositionChain.current) {
+            (compositionChain + LocalCompositionChain.current).Provider {
               val winPadding = LocalWindowPadding.current
               Column {
                 /// banner

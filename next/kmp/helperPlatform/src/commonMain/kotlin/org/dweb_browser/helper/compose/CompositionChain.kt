@@ -20,24 +20,23 @@ class CompositionChain(val providerMap: Map<CompositionChainKey<out Any?>, Provi
   constructor(providers: Array<out ProvidedChainValue<*>>) : this(providers.associateBy { it.key })
 
   @Composable
-  fun Provider(
-    vararg values: ProvidedChainValue<*>
-  ): CompositionChain = remember(this, values) {
-    merge(values = values)
-  }
+  fun rememberContact(vararg values: ProvidedChainValue<*>): CompositionChain =
+    remember(keys = (providerMap.values.toTypedArray() + values)) {
+      contact(values = values)
+    }
 
-  fun merge(vararg values: ProvidedChainValue<*>) = if (values.isNotEmpty()) {
+  fun contact(vararg values: ProvidedChainValue<*>) = if (values.isNotEmpty()) {
     CompositionChain(providerMap + values.associateBy { it.key })
   } else {
     this
   }
 
   @Composable
-  fun Provider(otherChain: CompositionChain): CompositionChain = remember(otherChain) {
-    merge(otherChain)
+  operator fun plus(otherChain: CompositionChain): CompositionChain = remember(this, otherChain) {
+    contact(otherChain)
   }
 
-  fun merge(otherChain: CompositionChain) = if (otherChain.providerMap.isEmpty()) {
+  fun contact(otherChain: CompositionChain) = if (otherChain.providerMap.isEmpty()) {
     this
   } else if (providerMap.isEmpty()) {
     otherChain
@@ -50,20 +49,15 @@ class CompositionChain(val providerMap: Map<CompositionChainKey<out Any?>, Provi
   @Composable
   fun Provider(content: @Composable () -> Unit) {
     CompositionLocalProvider(
-      values = arrayOf(LocalCompositionChain provides this),
-      content
+      values = arrayOf(LocalCompositionChain provides this), content
     )
   }
 
   @Composable
   fun Provider(
     vararg values: ProvidedChainValue<*>,
-    content: @Composable () -> Unit
-  ) = Provider(values = values).Provider(content)
-
-  @Composable
-  fun Provider(otherChain: CompositionChain, content: @Composable () -> Unit) =
-    Provider(otherChain = otherChain).Provider(content)
+    content: @Composable () -> Unit,
+  ) = rememberContact(values = values).Provider(content)
 }
 
 val LocalCompositionChain = compositionLocalOf { CompositionChain() }
@@ -78,8 +72,8 @@ internal fun <T> compositionChainOf(name: String, compositionLocal: ProvidableCo
   CompositionChainKey.from(name, compositionLocal)
 
 class CompositionChainKey<T> private constructor(
-  private val name: String,
-  private val compositionLocal: ProvidableCompositionLocal<T>
+  val name: String,
+  private val compositionLocal: ProvidableCompositionLocal<T>,
 ) {
   companion object {
     private val chainKeys = SafeHashMap<ProvidableCompositionLocal<*>, CompositionChainKey<*>>()
@@ -92,10 +86,8 @@ class CompositionChainKey<T> private constructor(
   }
 
   val current: T
-    @Composable
-    get() {
-      @Suppress("UNCHECKED_CAST")
-      return (LocalCompositionChain.current.providerMap[this]?.value as T?)/*.also {
+    @Composable get() {
+      @Suppress("UNCHECKED_CAST") return (LocalCompositionChain.current.providerMap[this]?.value as T?)/*.also {
         if (it == null) {
           println("LocalCompositionChain.current.providerMap no found $name")
           LocalCompositionChain.current.providerMap.forEach { (key, value) ->

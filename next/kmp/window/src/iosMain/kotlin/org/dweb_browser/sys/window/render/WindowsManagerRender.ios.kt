@@ -31,7 +31,7 @@ private class IosWindowNativeView(
     pvc.onCreate { params ->
       @Suppress("UNCHECKED_CAST") pvc.addContent {
         val compositionChain by params["compositionChain"] as State<CompositionChain>
-        compositionChain.Provider(LocalCompositionChain.current)
+        (compositionChain + LocalCompositionChain.current)
           .Provider(LocalWindowsManager provides windowsManager) {
             /// 渲染窗口
             win.WithMaterialTheme {

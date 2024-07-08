@@ -57,4 +57,4 @@ interface IPureViewCreateParams : Map<String, Any?> {
 }
 
 // 视图控制器
-val LocalPureViewController = compositionChainOf<IPureViewController>("LocalPureViewController")
+val LocalPureViewController = compositionChainOf<IPureViewController>("PureViewController")

@@ -35,7 +35,7 @@ internal sealed class ModalViewController<T : ModalState>(
   @Composable
   fun ShowModal(
     emitModalVisibilityChange: (state: EmitModalVisibilityState) -> Boolean,
-    configState: DesktopPureDialogState.() -> Unit = {}
+    configState: DesktopPureDialogState.() -> Unit = {},
   ) {
     val compositionChain = LocalCompositionChain.current
     val pvc = LocalPureViewController.current.asDesktop()
@@ -45,11 +45,11 @@ internal sealed class ModalViewController<T : ModalState>(
         emitModalVisibilityChange(EmitModalVisibilityState.ForceClose)
       }, state = remember(compositionChain, emitModalVisibilityChange) {
         DesktopPureDialogState(
-          chain = compositionChain.merge(LocalEmitModalVisibilityChange provides emitModalVisibilityChange),
+          chain = compositionChain.contact(LocalEmitModalVisibilityChange provides emitModalVisibilityChange),
         )
       }.also(configState)
     ) { dialog ->
-      compositionChain.Provider(LocalCompositionChain.current) {
+      (compositionChain + LocalCompositionChain.current).Provider {
         LocalWindowController.current.WithMaterialTheme {
           if (modal.isShowCloseTip) {
             modal.CommonRenderCloseTip {

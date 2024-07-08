@@ -10,6 +10,7 @@ import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.getOrPut
 import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.platform.PureViewController
 import org.dweb_browser.pure.image.OffscreenWebCanvas
 import org.dweb_browser.pure.image.compose.LoaderTask
 import org.dweb_browser.pure.image.compose.WebImageLoader
@@ -27,11 +28,13 @@ import javax.imageio.ImageIO
 actual val WindowController.canOverlayNavigationBar: Boolean
   get() = false
 
-/**
- * Windows 操作系统背景不透明，所以始终为0
- */
-actual fun getWindowControllerBorderRounded(isMaximize: Boolean) =
-  WindowPadding.CornerRadius.from(0) //始终设置为0，桌面端设置16的圆角不好看
+actual fun getWindowControllerBorderRounded(isMaximize: Boolean) = when {
+  PureViewController.isMacOS -> WindowPadding.CornerRadius.Small
+  /**
+   * Windows 操作系统背景不透明，所以始终为0
+   */
+  else -> WindowPadding.CornerRadius.Zero
+}
 
 // if (isMaximize || PureViewController.isWindows) 0 else 16
 

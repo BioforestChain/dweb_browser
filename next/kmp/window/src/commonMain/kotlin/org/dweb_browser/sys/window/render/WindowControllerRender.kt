@@ -89,7 +89,6 @@ fun WindowController.Prepare(
       LocalWindowControllerTheme provides theme,
       LocalWindowController provides win,
     ) {
-
       /// 显示模态层，模态层不受 isVisible 的控制
       val modal by win.openingModal
       modal?.Render()

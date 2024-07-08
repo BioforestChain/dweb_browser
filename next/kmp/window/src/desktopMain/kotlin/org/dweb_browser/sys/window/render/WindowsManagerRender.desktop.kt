@@ -91,7 +91,8 @@ private class DesktopWindowNativeView(
       // TODO 将Effect中的onChange绑定在这里做初始化
       @Suppress("UNCHECKED_CAST") pvc.addContent {
         val compositionChain by params["compositionChain"] as State<CompositionChain>
-        compositionChain.Provider(LocalCompositionChain.current)
+
+        (compositionChain + LocalCompositionChain.current)
           .Provider(LocalWindowsManager provides windowsManager) {
             /// 注册副作用
             win.WindowControllerEffect()

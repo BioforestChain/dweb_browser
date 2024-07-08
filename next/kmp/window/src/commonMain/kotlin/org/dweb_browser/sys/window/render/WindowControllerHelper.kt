@@ -536,7 +536,11 @@ data class WindowPadding(
         from(topRadius.toFloat(), bottomRadius.toFloat())
 
       val Zero = from(0)
+      val Tiny = from(4)
+      val Small = from(8)
       val Default = from(16)
+      val Medium = from(24)
+      val Large = from(32)
 
     }
   }
@@ -658,11 +662,7 @@ fun WindowController.buildTheme(): WindowControllerTheme {
   val colorScheme by watchedState { colorScheme }
   val isSystemInDark = isSystemInDarkTheme()
   val isDark = remember(colorScheme, isSystemInDark) {
-    when (colorScheme) {
-      WindowColorScheme.Normal -> isSystemInDark
-      WindowColorScheme.Light -> false
-      WindowColorScheme.Dark -> true
-    }
+    colorScheme.isDarkOrNull ?: isSystemInDark
   }
   val lightContent = remember(isDark) {
     if (isDark) md_theme_dark_onSurface else md_theme_light_inverseOnSurface
