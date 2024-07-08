@@ -1,15 +1,14 @@
 package org.dweb_browser.sys.window.core
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
@@ -26,9 +25,12 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.help.AdapterManager
 import org.dweb_browser.helper.ChangeableMap
+import org.dweb_browser.helper.compose.LocalCompositionChain
 import org.dweb_browser.helper.compose.MetaBallLoadingView
+import org.dweb_browser.helper.compose.SlideNavAnimations
 import org.dweb_browser.helper.defaultAsyncExceptionHandler
 import org.dweb_browser.helper.platform.theme.DwebBrowserAppTheme
+import org.dweb_browser.sys.window.render.LocalWindowContentStyle
 import org.dweb_browser.sys.window.render.LocalWindowController
 import org.dweb_browser.sys.window.render.LocalWindowControllerTheme
 import org.dweb_browser.sys.window.render.watchedState
@@ -118,8 +120,9 @@ class WindowAdapterManager : AdapterManager<CreateWindowAdapter>() {
 
         else -> {
           val theme = LocalWindowControllerTheme.current
-          CompositionLocalProvider(
-            LocalContentColor provides theme.themeContentColor,
+          val windowContentStyle = LocalWindowContentStyle.current
+          LocalCompositionChain.current.Provider(
+            LocalWindowContentStyle provides windowContentStyle.copy(contentScale = windowRenderScope.scale)
           ) {
             /**
              * 视图的宽高随着窗口的缩小而缩小，随着窗口的放大而放大，
@@ -137,18 +140,17 @@ class WindowAdapterManager : AdapterManager<CreateWindowAdapter>() {
               pageRenders[index] = { windowRenderScope, contentModifier ->
                 val visibleState = remember { MutableTransitionState(index == 0) }
                 visibleState.targetState = true
+                // Box(modifier = Modifier.fillMaxSize()) {
 
                 /**
                  * currentPage
                  */
-//                AnimatedVisibility(
-//                  visibleState,
-//                  modifier = Modifier.fillMaxSize(),
-//                  enter = SlideNavAnimations.enterTransition,
-//                  exit = SlideNavAnimations.popExitTransition,
-//                ) {
-                // AnimatedVisibility 和缩放共用会导致缩放后的位置发生偏移，引起显示内容被键盘覆盖的情况
-                Box(modifier = Modifier.fillMaxSize()) {
+                AnimatedVisibility(
+                  visibleState,
+                  modifier = Modifier.fillMaxSize(),
+                  enter = SlideNavAnimations.enterTransition,
+                  exit = SlideNavAnimations.popExitTransition,
+                ) {
                   navigation.GoBackHandler(navigation.pageStack.size > 0) {
                     navigation.pageStack.removeLast()
                     visibleState.targetState = false

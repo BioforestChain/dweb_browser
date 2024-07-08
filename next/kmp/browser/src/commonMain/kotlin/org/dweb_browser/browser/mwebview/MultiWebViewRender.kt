@@ -53,7 +53,6 @@ fun MultiWebViewController.Render(
         /// 为了防止在窗口状态下，webview返回时失真问题。所以在webview加载完成后出发刷新
         viewItem.webView.ScaleRender(scale)
         viewItem.webView.Render(Modifier.fillMaxSize())
-        AfterViewItemRender(viewItem)
       }
     }
     list.lastOrNull()?.also { LatestEffect(it, list) }
@@ -86,6 +85,3 @@ private fun MultiWebViewController.LatestEffect(
     }
   }
 }
-
-@Composable
-expect fun MultiWebViewController.AfterViewItemRender(viewItem: MultiWebViewController.MultiViewItem)

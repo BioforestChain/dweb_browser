@@ -1,13 +1,13 @@
 package org.dweb_browser.browser.web
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.interop.UIKitView
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.launch
@@ -25,7 +25,8 @@ import org.dweb_browser.platform.ios_browser.gobackIfCanDo
 import org.dweb_browser.platform.ios_browser.prepareToKmp
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
 import org.dweb_browser.sys.window.render.LocalWindowController
-import org.dweb_browser.sys.window.render.WindowFrameStyleEffect
+import org.dweb_browser.sys.window.render.LocalWindowFrameStyle
+import org.dweb_browser.sys.window.render.UIKitViewInWindow
 import platform.CoreGraphics.CGRectMake
 import kotlin.experimental.ExperimentalNativeApi
 
@@ -39,8 +40,6 @@ actual fun getImageResourceRootPath(): String = ""
 private var iOSViewHolder: DwebWebView? = null
 private var iOSViewDelegateHolder: BrowserIosDelegate? = null
 private var iOSViewDataSourceHolder: BrowserIosDataSource? = null
-@OptIn(ExperimentalForeignApi::class)
-private var iOSBrowserView: DwebWebView? = null
 
 @OptIn(ExperimentalForeignApi::class)
 private var iOSViewHolderDeferred = CompletableDeferred<Unit>()
@@ -117,8 +116,9 @@ actual fun CommonBrowserView(
       iOSDataSource.destory()
     }
   }
+  browserObserver.browserViewModel = viewModel
 
-  iOSBrowserView = remember {
+  val iOSBrowserView = remember {
     when (val webView = iOSViewHolder) {
       null -> DwebWebView(CGRectMake(0.0, 0.0, 0.0, 0.0), iOSDelegate, iOSDataSource).also {
         iOSViewHolder = it
@@ -131,39 +131,21 @@ actual fun CommonBrowserView(
     }
   }
 
-  browserObserver.browserViewModel = viewModel
 
   val win = LocalWindowController.current
   val scope = rememberCoroutineScope()
-
-  fun backHandler() {
-    if (!iOSBrowserView!!.gobackIfCanDo()) {
-      scope.launch {
-        win.tryCloseOrHide()
-      }
+  // 窗口返回按钮
+  win.navigation.GoBackHandler(iOSBrowserView.gobackIfCanDo()) {
+    scope.launch {
+      win.tryCloseOrHide()
     }
   }
 
-  // 窗口返回按钮
-  win.navigation.GoBackHandler { backHandler() }
-
   LaunchedEffect(win.state.colorScheme) {
-    iOSBrowserView!!.colorSchemeChangedWithColor(win.state.colorScheme.ordinal)
+    iOSBrowserView.colorSchemeChangedWithColor(win.state.colorScheme.ordinal)
   }
-
-  Box {
-    UIKitView(
-      factory = {
-        iOSBrowserView!!
-      },
-      onRelease = {
-        println("DwebWebView UIKitView onRelease")
-        iOSBrowserView = null
-      },
-      modifier = modifier,
-    )
-//    iOSView.setScale(windowRenderScope.scale)
-    iOSBrowserView!!.WindowFrameStyleEffect()
+  Box(modifier = modifier) {
+    iOSBrowserView.UIKitViewInWindow(modifier = Modifier.fillMaxSize(), LocalWindowFrameStyle.current)
   }
 }
 

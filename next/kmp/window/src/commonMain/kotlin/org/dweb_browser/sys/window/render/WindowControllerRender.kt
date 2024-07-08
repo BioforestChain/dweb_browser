@@ -187,8 +187,10 @@ fun WindowController.WindowRender(modifier: Modifier) {
   }
 
   val windowFrameStyle = WindowFrameStyle(scale, opacity)
+  val windowContentStyle = WindowContentStyle(windowFrameStyle)
   LocalCompositionChain.current.Provider(
     LocalWindowFrameStyle provides windowFrameStyle,
+    LocalWindowContentStyle provides windowContentStyle,
     LocalFocusRequester provides win.focusRequester,
     LocalWindowMM provides (win.state.constants.microModule.value ?: LocalWindowMM.current),
   ) {

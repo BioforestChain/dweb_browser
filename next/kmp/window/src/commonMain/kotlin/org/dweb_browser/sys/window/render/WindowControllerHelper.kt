@@ -244,10 +244,30 @@ val LocalWindowInResizeAnimation = compositionChainOf<WindowLimits>("WindowInRes
  * 存储窗口样式：
  * 窗口透明度与窗口缩放比例
  * 这些值不在 窗口属性中，属于窗口渲染器直接提供
+ *
+ * 于是在与原生试图进行混合渲染的时候，它们需要知道这些上下文，从而做出相似的配合。
+ * 目前主要是IOS在使用
  */
-val LocalWindowFrameStyle = compositionChainOf("WindowFrameStyle") { WindowFrameStyle(1f, 1f) }
+val LocalWindowFrameStyle = compositionChainOf("WindowFrameStyle") { WindowFrameStyle() }
+val LocalWindowContentStyle =
+  compositionChainOf("WindowContentStyle") { WindowContentStyle(WindowFrameStyle()) }
 
-data class WindowFrameStyle(val scale: Float, val opacity: Float)
+interface WindowCommonStyle {
+  val scale: Float
+  val opacity: Float
+}
+
+data class WindowFrameStyle(override val scale: Float = 1f, override val opacity: Float = 1f) :
+  WindowCommonStyle
+
+data class WindowContentStyle(
+  val frameStyle: WindowFrameStyle,
+  val contentScale: Float = 1f,
+  val contentOpacity: Float = 1f,
+) : WindowCommonStyle {
+  override val scale = contentScale * frameStyle.scale
+  override val opacity = contentOpacity * frameStyle.opacity
+}
 
 data class WindowLimits(
   val minWidth: Float,

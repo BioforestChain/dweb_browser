@@ -225,10 +225,7 @@ fun AboutAppInfoRender(
         nav.pushPage { modifier ->
           Html5TestRender(modifier)
         }
-      },
-      labelName = AboutI18nResource.webview(),
-      text = score ?: "",
-      icon = when (score) {
+      }, labelName = AboutI18nResource.webview(), text = score ?: "", icon = when (score) {
         null -> ({ CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp) })
         else -> null
       }
@@ -302,14 +299,14 @@ fun EnvSwitcherRender() {
 
 @Composable
 fun WindowContentRenderScope.Html5TestRender(modifier: Modifier) {
+
   AboutPage(modifier = modifier, title = AboutI18nResource.html5test()) { pageContentModifier ->
     val aboutNMM = LocalWindowMM.current as AboutNMM.AboutRuntime
     when (val webview = produceState(aboutNMM.html5testWebView.getCompletedOrNull()) {
       value = aboutNMM.html5testWebView.await()
     }.value) {
       null -> Box(
-        pageContentModifier,
-        contentAlignment = Alignment.Center
+        pageContentModifier, contentAlignment = Alignment.Center
       ) { CircularProgressIndicator(Modifier.size(64.dp)) }
 
       else -> UnScaleBox(scale, pageContentModifier) {
