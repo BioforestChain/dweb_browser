@@ -40,6 +40,7 @@ import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.toIosUIEdgeInsets
+import org.dweb_browser.helper.utf8ToBase64UrlString
 import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.platform.ios.DwebHelper
 import org.dweb_browser.platform.ios.DwebWKWebView
@@ -74,11 +75,14 @@ class DWebViewEngine(
   val remoteMM: MicroModule.Runtime,
   internal val options: DWebViewOptions,
   configuration: WKWebViewConfiguration,
-  private val profile: WKWebViewProfile = when (val sessionId = options.incognitoSessionId) {
-    // 开启WKWebView数据隔离
-    null -> wkWebsiteDataStore.getOrCreateProfile(remoteMM.mmid)
-    // 是否开启无痕模式
-    else -> wkWebsiteDataStore.getOrCreateIncognitoProfile(remoteMM.mmid, sessionId)
+
+  private val profile: WKWebViewProfile = "${remoteMM.mmid}/${options.profile.utf8ToBase64UrlString}".let { profileName ->
+    when (val sessionId = options.incognitoSessionId) {
+      // 开启WKWebView数据隔离
+      null -> wkWebsiteDataStore.getOrCreateProfile(profileName)
+      // 是否开启无痕模式
+      else -> wkWebsiteDataStore.getOrCreateIncognitoProfile(profileName, sessionId)
+    }
   },
 ) : DwebWKWebView(frame, configuration.also {
   /// 设置scheme，这需要在传入WKWebView之前就要运作
@@ -150,8 +154,7 @@ class DWebViewEngine(
       WKWebsiteDataStore.removeDataStoreForIdentifier(uuid) { err ->
         if (err != null) {
           debugDWebView(
-            "removeMmidSiteStore",
-            "code: ${err.code} description: ${err.localizedDescription}"
+            "removeMmidSiteStore", "code: ${err.code} description: ${err.localizedDescription}"
           )
         }
       }
@@ -319,7 +322,8 @@ class DWebViewEngine(
   override fun setFrame(frame: CValue<CGRect>) {
     super.setFrame(frame)
     scrollView.contentInset = cValue { UIEdgeInsetsZero };
-    if (!UIEdgeInsetsEqualToEdgeInsets(scrollView.adjustedContentInset,
+    if (!UIEdgeInsetsEqualToEdgeInsets(
+        scrollView.adjustedContentInset,
         cValue { UIEdgeInsetsZero })
     ) {
       val insetToAdjust = scrollView.adjustedContentInset;
@@ -443,8 +447,7 @@ class DWebViewEngine(
     configuration.websiteDataStore.fetchDataRecordsOfTypes(dataTypes) {
       if (it != null) {
         configuration.websiteDataStore.removeDataOfTypes(
-          WKWebsiteDataStore.allWebsiteDataTypes(),
-          it as List<WKWebsiteDataRecord>
+          WKWebsiteDataStore.allWebsiteDataTypes(), it as List<WKWebsiteDataRecord>
         ) {}
       }
     }

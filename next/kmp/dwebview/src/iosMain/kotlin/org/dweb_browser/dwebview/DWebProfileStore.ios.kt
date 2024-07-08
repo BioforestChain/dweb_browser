@@ -5,11 +5,12 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.usePinned
 import kotlinx.coroutines.CompletableDeferred
-import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
 import org.dweb_browser.helper.SafeHashMap
+import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
 import org.dweb_browser.helper.compose.envSwitch
 import org.dweb_browser.helper.platform.keyValueStore
 import org.dweb_browser.helper.trueAlso
+import org.dweb_browser.helper.utf8ToBase64UrlString
 import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.pure.crypto.hash.ccSha256
 import platform.Foundation.NSDate
@@ -52,7 +53,7 @@ class WKWebViewProfileStore private constructor() : DWebProfileStore {
     profileName: String,
     sessionId: String,
   ): WKWebViewProfile {
-    val incognitoProfileName = "$profileName@$sessionId$IncognitoSuffix"
+    val incognitoProfileName = "$profileName@${sessionId.utf8ToBase64UrlString}$IncognitoSuffix"
     return allIncognitoProfile.getOrPut(incognitoProfileName) {
       WKWebViewProfile(
         incognitoProfileName, WKWebsiteDataStore.nonPersistentDataStore()

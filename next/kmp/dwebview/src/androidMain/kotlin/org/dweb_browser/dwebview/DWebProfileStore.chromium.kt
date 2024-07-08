@@ -5,6 +5,7 @@ import androidx.webkit.ProfileStore
 import androidx.webkit.WebViewCompat
 import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.helper.platform.keyValueStore
+import org.dweb_browser.helper.utf8ToBase64UrlString
 import org.dweb_browser.helper.withMainContext
 
 
@@ -49,11 +50,11 @@ class ChromiumWebProfileStore(private val profileStore: ProfileStore) : AndroidW
 
   override fun getOrCreateIncognitoProfile(
     engine: DWebViewEngine,
-    sessionId: String,
     profileName: String,
+    sessionId: String,
   ): ChromiumWebProfile {
     /// 上个版本(240622)的 incognito 模式使用更简单的 prefix 模式，但几乎没有生效过
-    val incognitoProfileName = "$profileName@$sessionId$IncognitoSuffix"
+    val incognitoProfileName = "$profileName@${sessionId.utf8ToBase64UrlString}$IncognitoSuffix"
     return (profileStore.getOrCreateProfile(incognitoProfileName)).let { profile ->
       WebViewCompat.setProfile(engine, incognitoProfileName)
       ChromiumWebProfile(profile)

@@ -230,7 +230,6 @@ class TaskbarController private constructor(
     enabledOffScreenRender = !envSwitch.isEnabled(ENV_SWITCH_KEY.DWEBVIEW_ENABLE_TRANSPARENT_BACKGROUND),
     detachedStrategy = DWebViewOptions.DetachedStrategy.Ignore,
     viewId = 2,
-//    subDataDirName = "taskbar"
   )
 
   @Serializable

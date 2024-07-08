@@ -44,15 +44,19 @@ data class DWebViewOptions(
    * @suppress Desktop Only
    */
   val enabledOffScreenRender: Boolean = false,
-  /**
-   * 子文件夹，默认情况下，数据跟着模块id走。这里提供一个子文件夹名称，可以将同一个模块的多个dwebview分开来存储数据
-   */
-  val subDataDirName: String? = null,
 
   /**
    * 是否启用无痕模式，如果为null，则不启用，否则，同个sessionId的会共享该模式下的数据，并在结束时销毁这些数据
    */
   val incognitoSessionId: String? = null,
+
+  /**
+   * 档案集
+   * 不同的档案之间数据是隔离的
+   *
+   * 但前提是要判定是否原生支持，目前一些国产Android手机对于profile的支持并不好，即便他们Chromium的内核已经不低了
+   */
+  val profile: String = "default",
 
   /**
    * Android 是否要使用 shouldInterceptRequest 来拦截请求直接响应，而不使用网络代理

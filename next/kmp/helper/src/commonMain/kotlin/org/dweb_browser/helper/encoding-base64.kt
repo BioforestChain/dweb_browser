@@ -14,3 +14,7 @@ val String.base64Binary get() = Base64.decode(this)
 
 @OptIn(ExperimentalEncodingApi::class)
 val String.base64UrlBinary get() = Base64.UrlSafe.decode(this)
+
+val String.utf8ToBase64String get() = utf8Binary.base64String
+
+val String.utf8ToBase64UrlString get() = utf8Binary.base64UrlString

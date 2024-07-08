@@ -8,6 +8,7 @@ import com.teamdev.jxbrowser.net.UrlRequestJob
 import com.teamdev.jxbrowser.net.callback.InterceptUrlRequestCallback.Response
 import com.teamdev.jxbrowser.profile.Profile
 import com.teamdev.jxbrowser.profile.Profiles
+import org.dweb_browser.helper.utf8ToBase64UrlString
 import org.dweb_browser.platform.desktop.os.dataDir
 import org.dweb_browser.platform.desktop.webview.LowLevelWebEngineAPI
 import org.dweb_browser.platform.desktop.webview.jxBrowserEngine
@@ -52,8 +53,11 @@ object webViewEngine {
   }
 }
 
-fun Profiles.getOrCreateProfile(name: String): Profile =
-  list().firstOrNull { it.name() == name } ?: newProfile(name)
+fun Profiles.getOrCreateProfile(profileName: String): Profile =
+  list().firstOrNull { it.name() == profileName } ?: newProfile(profileName)
 
-fun Profiles.getOrCreateIncognitoProfile(name: String): Profile =
-  list().firstOrNull { it.name() == name } ?: newIncognitoProfile(name)
+fun Profiles.getOrCreateIncognitoProfile(profileName: String, sessionId: String): Profile =
+  "$profileName@${sessionId.utf8ToBase64UrlString}".let { fullName ->
+    list().firstOrNull { it.name() == fullName }
+      ?: newIncognitoProfile(fullName)
+  }

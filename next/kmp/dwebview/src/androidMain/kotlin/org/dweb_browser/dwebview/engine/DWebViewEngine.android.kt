@@ -44,6 +44,7 @@ import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.getOrPut
 import org.dweb_browser.helper.toAndroidRect
+import org.dweb_browser.helper.utf8ToBase64UrlString
 import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.sys.device.DeviceManage
 
@@ -291,10 +292,19 @@ class DWebViewEngine internal constructor(
     settings.mediaPlaybackRequiresUserGesture = false
     setLayerType(LAYER_TYPE_HARDWARE, null) // 增加硬件加速，避免滑动时画面出现撕裂
 
+    val profileName = "${remoteMM.mmid}/${options.profile.utf8ToBase64UrlString}"
     /// 在settings 之后进行 profile 的设置
     profile = when (val sessionId = options.incognitoSessionId) {
-      null -> androidWebProfileStore.getOrCreateProfile(this)
-      else -> androidWebProfileStore.getOrCreateIncognitoProfile(this, sessionId)
+      null -> androidWebProfileStore.getOrCreateProfile(
+        engine = this,
+        profileName = profileName,
+      )
+
+      else -> androidWebProfileStore.getOrCreateIncognitoProfile(
+        engine = this,
+        profileName = profileName,
+        sessionId = sessionId,
+      )
     }.also { profile ->
       profileRef.getOrPut(profile) { mutableSetOf() }.add(this)
     }

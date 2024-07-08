@@ -111,7 +111,6 @@ open class DesktopController private constructor(
       detachedStrategy = DWebViewOptions.DetachedStrategy.Ignore,
       displayCutoutStrategy = DWebViewOptions.DisplayCutoutStrategy.Default,
       viewId = 1,
-//      subDataDirName = "desktop"
     );
 
     val webView = activity.createDwebView(deskNMM, options)

@@ -9,14 +9,15 @@ import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.dwebview.engine.DWebViewEngine
-import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
 import org.dweb_browser.helper.SafeHashMap
 import org.dweb_browser.helper.SuspendOnce
+import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
 import org.dweb_browser.helper.compose.envSwitch
 import org.dweb_browser.helper.getAppContext
 import org.dweb_browser.helper.platform.keyValueStore
 import org.dweb_browser.helper.saveStringSet
 import org.dweb_browser.helper.toWebUrl
+import org.dweb_browser.helper.utf8ToBase64UrlString
 import org.dweb_browser.helper.withMainContext
 
 internal const val DwebProfilesKey = "dweb-profiles"
@@ -25,13 +26,13 @@ interface AndroidWebProfileStore : DWebProfileStore {
   val isSupportIncognitoProfile: Boolean
   fun getOrCreateProfile(
     engine: DWebViewEngine,
-    profileName: String = engine.remoteMM.mmid,
+    profileName: String,
   ): DWebProfile
 
   fun getOrCreateIncognitoProfile(
     engine: DWebViewEngine,
+    profileName: String,
     sessionId: String,
-    profileName: String = engine.remoteMM.mmid,
   ): DWebProfile
 }
 
@@ -66,10 +67,10 @@ class CompactDWebProfileStore private constructor() : AndroidWebProfileStore {
    */
   override fun getOrCreateIncognitoProfile(
     engine: DWebViewEngine,
-    sessionId: String,
     profileName: String,
+    sessionId: String,
   ): CompactDWebProfile {
-    val incognitoProfileName = "$profileName@$sessionId$IncognitoSuffix"
+    val incognitoProfileName = "$profileName@${sessionId.utf8ToBase64UrlString}$IncognitoSuffix"
 
     engine.clearCache(true)
     engine.settings.saveFormData = false

@@ -50,6 +50,7 @@ import org.dweb_browser.helper.platform.toImageBitmap
 import org.dweb_browser.helper.platform.webViewEngine
 import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.helper.utf8String
+import org.dweb_browser.helper.utf8ToBase64UrlString
 import org.dweb_browser.sys.device.DeviceManage
 import java.util.function.Consumer
 import javax.swing.SwingUtilities
@@ -73,12 +74,10 @@ class DWebViewEngine internal constructor(
       else -> webViewEngine.hardwareAcceleratedEngine
     }.let { engine ->
       val profiles = engine.profiles()
-      val profile = if (options.incognitoSessionId != null) {
-        profiles.getOrCreateIncognitoProfile(remoteMM.mmid + "/" + options.incognitoSessionId)
-      } else if (options.subDataDirName != null) {
-        profiles.getOrCreateProfile(remoteMM.mmid + "/" + options.subDataDirName)
-      } else {
-        profiles.getOrCreateProfile(remoteMM.mmid)
+      val profileName = "${remoteMM.mmid}/${options.profile.utf8ToBase64UrlString}"
+      val profile = when (val sessionId = options.incognitoSessionId) {
+        null -> profiles.getOrCreateProfile(profileName)
+        else -> profiles.getOrCreateIncognitoProfile(profileName, sessionId)
       }
       profile
     }.let { profile ->
