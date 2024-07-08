@@ -1,14 +1,10 @@
 package org.dweb_browser.browser.desk
 
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.EaseInOut
-import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.animateIntOffset
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.background
@@ -85,7 +81,6 @@ import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
@@ -382,10 +377,12 @@ fun AppItem(
     DeskAppIcon(
       app,
       microModule,
-      modifier = Modifier.onGloballyPositioned {
-        app.size = it.size / density
-        app.offSet = it.positionInWindow()
-      }.jump(app.running == DesktopAppRunStatus.TORUNNING)
+      modifier = Modifier
+        .onGloballyPositioned {
+          app.size = it.size / density
+          app.offSet = it.positionInWindow()
+        }
+        .jump(app.running == DesktopAppRunStatus.TORUNNING)
     )
     Text(
       text = app.name, maxLines = 2, overflow = TextOverflow.Ellipsis, style = TextStyle(
@@ -400,41 +397,40 @@ fun AppItem(
 
 fun Modifier.jump(enable: Boolean) = this.composed {
   var animated by remember { mutableStateOf(false) }
-  var animationCount by remember { mutableStateOf(1) }
-  val toRuningAnimation = rememberInfiniteTransition()
-  val animtionDuration = 300
-  val infiniteOffY by toRuningAnimation.animateFloat(
-    initialValue = 0F, targetValue = -8F, animationSpec = infiniteRepeatable(
-      animation = tween(animtionDuration, easing = EaseInOut), repeatMode = RepeatMode.Reverse
-    )
-  )
-  val backOffY = remember { Animatable(0f) }
+  var animationCount by remember { mutableStateOf(Pair(1, false)) }
+  val animationDur = 300
+  var offValue = remember { Animatable(0f) }
 
   LaunchedEffect(enable) {
     if (enable) {
-      animationCount = 0
+      animationCount = Pair(0, false)
       animated = true
 
       launch {
         while (true) {
-          delay(animtionDuration.toLong() * 2)
-          animationCount += 1
+          offValue.animateTo(-8f, tween(durationMillis = animationDur))
+          animationCount = animationCount.copy(animationCount.first, true)
+          offValue.animateTo(0f, tween(durationMillis = animationDur))
+          animationCount = animationCount.copy(animationCount.first + 1, false)
         }
       }
-    } else if (animationCount < 1) {
+    } else if (animationCount.first < 1) {
       animated = true
       launch {
-        delay(animtionDuration.toLong() * 2 * (1 - animationCount))
+        if (!animationCount.second) {
+          val time = (-300 * offValue.value / 8f).toInt()
+          offValue.animateTo(-8f, tween(time))
+        }
+        val time = 300 - (300 * offValue.value / 8f).toInt()
+        offValue.animateTo(0f, tween(time))
         animated = false
-        backOffY.animateTo(infiniteOffY, tween(0))
-        backOffY.animateTo(0f, tween(animtionDuration))
       }
     } else {
       animated = false
     }
   }
 
-  this.offset(0.dp, if (animated) infiniteOffY.dp else backOffY.value.dp)
+  this.offset(0.dp, offValue.value.dp)
 }
 
 @Composable
