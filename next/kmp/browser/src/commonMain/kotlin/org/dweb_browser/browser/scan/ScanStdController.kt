@@ -11,7 +11,6 @@ import org.dweb_browser.helper.platform.platform
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.helper.setStateFromManifest
 import org.dweb_browser.sys.window.core.windowAdapterManager
-import org.dweb_browser.sys.window.ext.getMainWindow
 import org.dweb_browser.sys.window.ext.getMainWindowId
 import org.dweb_browser.sys.window.ext.getOrOpenMainWindow
 
@@ -33,7 +32,7 @@ class ScanStdController(private val scanStdNMM: ScanStdNMM.ScanStdRuntime) {
       }
       viewDeferredFlow.value = CompletableDeferred()
     }
-    scanStdNMM.getMainWindow().also { newController ->
+    scanStdNMM.getOrOpenMainWindow().also { newController ->
       viewDeferred.complete(newController)
       newController.setStateFromManifest(scanStdNMM)
       newController.state.alwaysOnTop = true // 扫码模块置顶

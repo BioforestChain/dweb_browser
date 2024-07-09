@@ -378,8 +378,8 @@ object BrowserI18nResource {
       Language.EN to "no support data -> %s"
     )
     val permission_tip_camera_title = SimpleI18nResource(
-      Language.ZH to "相机权限使用说明",
-      Language.EN to "Camera Permission Instructions"
+      Language.ZH to "授权相机权限",
+      Language.EN to "Authorize camera permissions"
     )
     val permission_tip_camera_message = SimpleI18nResource(
       Language.ZH to "DwebBrowser正在向您获取“相机”权限，同意后，将用于为您提供扫描二维码服务",

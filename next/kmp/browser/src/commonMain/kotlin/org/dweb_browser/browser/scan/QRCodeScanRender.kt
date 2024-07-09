@@ -99,6 +99,7 @@ fun QRCodeScanRender(
           slideOutHorizontally { fullWidth -> fullWidth } + fadeOut())
       }
     }) { state ->
+      println("xxxx _ state=>${state}")
       when (state) {
         QRCodeState.Scanning.type -> {     // 扫码
           renderCameraPreview(

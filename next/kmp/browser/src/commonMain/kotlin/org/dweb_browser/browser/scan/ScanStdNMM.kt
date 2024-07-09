@@ -13,11 +13,11 @@ import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.DisplayMode
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.pure.http.PureMethod
-import org.dweb_browser.sys.location.debugLocation
 import org.dweb_browser.sys.permission.SystemPermissionName
 import org.dweb_browser.sys.permission.SystemPermissionTask
 import org.dweb_browser.sys.permission.ext.requestSystemPermissions
 import org.dweb_browser.sys.window.ext.onRenderer
+import org.dweb_browser.sys.window.ext.openMainWindow
 
 val debugSCAN = Debugger("scan.std")
 
@@ -36,6 +36,7 @@ class ScanStdNMM : NativeMicroModule("scan.std.dweb", "QRCode Scan") {
         pid = "$mmid/open",
         routes = listOf("file://$mmid/open"),
         title = BrowserI18nResource.QRCode.permission_tip_camera_title.text,
+        description = BrowserI18nResource.QRCode.permission_tip_camera_message.text
       )
     )
   }
@@ -44,13 +45,16 @@ class ScanStdNMM : NativeMicroModule("scan.std.dweb", "QRCode Scan") {
     override suspend fun _bootstrap() {
       val scanController = ScanStdController(this)
       onRenderer {
-        // 渲染扫码页面，在桌面端作用为选择图片文件
-        scanController.getWindowController().show()
-        try {
-          val result =  scanController.saningResult.await()
-          openDeepLink(result)
-        } catch (e: CancellationException) {
-          debugSCAN("onRenderer","Deferred was cancelled=> ${e.message}")
+        val isPermission = requestSystemPermission()
+        if (isPermission) {
+          // 渲染扫码页面，在桌面端作用为选择图片文件
+          scanController.getWindowController().show()
+          try {
+            val result = scanController.saningResult.await()
+            openDeepLink(result)
+          } catch (e: CancellationException) {
+            debugSCAN("onRenderer", "Deferred was cancelled=> ${e.message}")
+          }
         }
       }
 
@@ -59,11 +63,11 @@ class ScanStdNMM : NativeMicroModule("scan.std.dweb", "QRCode Scan") {
          * 打开扫码界面，并返回扫码字符串
          */
         "/open" bind PureMethod.GET by defineStringResponse {
-          debugSCAN("open", request.href)
-          val controller = scanController.getWindowController()
           val isPermission = requestSystemPermission()
-          debugSCAN("scan/open", "isPermission=>$isPermission")
+          debugSCAN("scan/open", "${request.href} isPermission=>$isPermission")
           if (isPermission) {
+            // 创建对应的控制器
+            val controller = scanController.getWindowController()
             controller.show()
           } else {
             throwException(
