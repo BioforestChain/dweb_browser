@@ -143,5 +143,12 @@ class DeviceKeyValueStore(
   }
 
   fun removeKey(key: String) = removeRawKey(key.utf8Binary)
+
+  fun hasRawKey(key: ByteArray): Boolean {
+    val keyId = parseReadData(key)
+    return storeDir.resolve("k/$keyId/v").isDirectory
+  }
+
+  fun hasKey(key: String) = hasRawKey(key.utf8Binary)
 }
 

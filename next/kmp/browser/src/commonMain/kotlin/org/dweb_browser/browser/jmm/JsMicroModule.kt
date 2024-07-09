@@ -62,7 +62,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
      * 当前JsMicroModule的版本
      */
     const val VERSION = 3
-    const val PATCH = 1
+    const val PATCH = 2
 
     init {
       val nativeToWhiteList =

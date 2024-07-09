@@ -19,7 +19,6 @@ private fun UIView.setTransform(
   translateY: Double,
 ) {
   transform.useContents {
-    println("$a == $scale && $b == 0.0 && $c == 0.0 && $tx == $translateX && $ty == $translateY")
     a == scale && b == 0.0 && c == 0.0 && tx == translateX && ty == translateY
   }
 

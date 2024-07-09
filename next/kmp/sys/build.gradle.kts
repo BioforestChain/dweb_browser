@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+
 plugins {
   id("kmp-compose")
 }
@@ -37,23 +39,31 @@ kotlin {
     }
   }
 
-//  sourceSets.androidUnitTest {
-//    dependencies {
-//      implementation(libs.androidx.test.core)
-//      implementation(libs.androidx.compose.ui.test)
-//      implementation(libs.androidx.compose.ui.test.junit4)
-//      implementation(libs.androidx.compose.ui.test.manifest)
-//    }
-//  }
   kmpIosTarget(project)
   kmpDesktopTarget(project) {
     dependencies {
-      // 不直接使用 projects.libBiometrics，因为如果 disabled 了 desktop，那么就会解析不过
+      // 不直接使用 projects.*，因为如果 disabled 了 desktop，那么就会解析不过
       implementation(project(":lib_biometrics"))
       implementation(project(":lib_hardware_info"))
       // zxing 解析二维码
       implementation(libs.camera.zxing.code)
       implementation(libs.camera.zxing.javase)
+    }
+  }
+
+  @OptIn(ExperimentalKotlinGradlePluginApi::class)
+  applyHierarchyPlatformTemplate {
+    common {
+      group("nativeJvm") {
+        withIosTarget()
+        withDesktopTarget()
+      }
+    }
+  }
+
+  sourceSets.getByName("nativeJvmMain") {
+    dependencies {
+      implementation(project(":lib_keychainstore"))
     }
   }
 }
