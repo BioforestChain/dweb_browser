@@ -50,6 +50,11 @@ kotlin {
       implementation(libs.camera.zxing.javase)
     }
   }
+  sourceSets.create("nativeJvmMain") {
+    dependencies {
+      implementation(project(":lib_keychainstore"))
+    }
+  }
 
   @OptIn(ExperimentalKotlinGradlePluginApi::class)
   applyHierarchyPlatformTemplate {
@@ -58,12 +63,8 @@ kotlin {
         withIosTarget()
         withDesktopTarget()
       }
+      withAndroidTarget()
     }
   }
 
-  sourceSets.getByName("nativeJvmMain") {
-    dependencies {
-      implementation(project(":lib_keychainstore"))
-    }
-  }
 }
