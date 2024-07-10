@@ -98,7 +98,6 @@ struct BrowserView: View {
 
     func gobackIfCanDo() -> Bool {
         if addressBar.isFocused {
-            addressBar.isFocused = false
             return true
         }
 
@@ -168,7 +167,7 @@ struct BrowserView: View {
         outerSearch = OuterSearch()
         addressBar = AddressBarState()
     }
-    
+
     func destroy() {
         webcacheStore.webWrappers = []
         webcacheStore.caches = []
