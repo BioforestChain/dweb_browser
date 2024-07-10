@@ -1,148 +1,79 @@
 package org.dweb_browser.sys.biometrics
 
-import android.content.Intent
-import android.os.Bundle
+import android.content.Context
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
 import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_WEAK
 import androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
-import androidx.biometric.BiometricPrompt
-import androidx.biometric.auth.AuthPromptCallback
-import androidx.biometric.auth.authenticateWithClass3Biometrics
-import androidx.core.content.ContextCompat
-import androidx.fragment.app.FragmentActivity
-import kotlinx.coroutines.CompletableDeferred
 import org.dweb_browser.core.help.types.MMID
-import org.dweb_browser.core.module.startAppActivity
+import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.helper.getAppContextUnsafe
 import org.dweb_browser.helper.getOrDefault
 import org.dweb_browser.helper.randomUUID
-import org.dweb_browser.helper.withMainContext
-import java.security.KeyStore
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 
+
 actual object BiometricsManage {
 
-  actual suspend fun checkSupportBiometrics() = BiometricCheckResult.ALL_VALUES.getOrDefault(
-    BiometricManager.from(getAppContextUnsafe())
-      .canAuthenticate(BIOMETRIC_STRONG or BIOMETRIC_WEAK or DEVICE_CREDENTIAL),
-    BiometricCheckResult.BIOMETRIC_STATUS_UNKNOWN
-  )
+  actual suspend fun checkSupportBiometrics() = checkSupportBiometricsSync()
+  fun checkSupportBiometricsSync(context: Context = getAppContextUnsafe()) =
+    BiometricCheckResult.ALL_VALUES.getOrDefault(
+      BiometricManager.from(context)
+        .canAuthenticate(BIOMETRIC_STRONG or BIOMETRIC_WEAK or DEVICE_CREDENTIAL),
+      BiometricCheckResult.BIOMETRIC_STATUS_UNKNOWN
+    ).let { result ->
+      if (result == BiometricCheckResult.BIOMETRIC_SUCCESS) {
+        /// 验证一下，用户是不是没有配置
+        val missBiometric = runCatching {
+          KeyGenerator
+            .getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore")
+            .init(
+              KeyGenParameterSpec.Builder(
+                randomUUID(), KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
+              ).setBlockModes(KeyProperties.BLOCK_MODE_CBC)
+                // 要求进行生物识别认证
+                .setUserAuthenticationRequired(true)
+                .build()
+            )
+          /// 如果这段代码跑成功了，说明有配置生物识别技术
+          false
+        }.getOrElse { e ->
+          (e is java.security.InvalidAlgorithmParameterException && e.cause?.message == "At least one biometric must be enrolled to create keys requiring user authentication for every use")
+        }
+        if (missBiometric) {
+          return@let BiometricCheckResult.BIOMETRIC_ERROR_NONE_ENROLLED
+        }
+      }
+      return@let result
+    }
 
   actual suspend fun biometricsResultContent(
-    biometricsNMM: BiometricsNMM,
+    mmRuntime: MicroModule.Runtime,
     remoteMMID: MMID,
     title: String?,
     subtitle: String?,
-    input: ByteArray?,
-    mode: InputMode
   ): BiometricsResult {
-    val resultDeferred = CompletableDeferred<BiometricsResult>()
 
-    val biometricsActivity = CompletableDeferred<BiometricsActivity>().run {
-      val uid = randomUUID()
-      BiometricsActivity.creates[uid] = this
-      invokeOnCompletion { BiometricsActivity.creates.remove(uid) }
-      biometricsNMM.runtime.startAppActivity(BiometricsActivity::class.java) { intent ->
-        intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)
-        intent.putExtras(Bundle().apply {
-          putString("uid", uid)
-        })
-      }
-      await()
+    val biometricsActivity = BiometricsActivity.create(mmRuntime)
+    biometricsActivity.waitSupportOrThrow()
+
+    return runCatching {
+      biometricsActivity.authenticateWithClass3BiometricsDeferred(
+        crypto = null,
+        title = title ?: BiometricsI18nResource.default_title.text,
+        negativeButtonText = BiometricsI18nResource.cancel_button.text,
+        subtitle = subtitle ?: BiometricsI18nResource.default_subtitle.text,
+        description = remoteMMID,
+        confirmationRequired = true,
+      )
+      BiometricsResult(true, "")
+    }.getOrElse {
+      BiometricsResult(false, it.message ?: "authenticateWithClass3Biometrics error")
     }
-
-    resultDeferred.invokeOnCompletion {
-      biometricsActivity.finish()
-    }
-
-//    val crypto = when (mode) {
-//      InputMode.None -> {
-//        null
-//      }
-//
-//      InputMode.ENCRYPT, InputMode.DECRYPT -> {
-//        val secretKey = getSecretKey(biometricsNMM.mmid)
-//        val cipher = getCipher()
-//
-//        cipher.init(
-//          if (mode == InputMode.DECRYPT)
-//            Cipher.DECRYPT_MODE else Cipher.ENCRYPT_MODE, secretKey
-//        )
-//        BiometricPrompt.CryptoObject(cipher)
-//      }
-//    }
-
-    withMainContext {
-      biometricsActivity.authenticateWithClass3Biometrics(null,
-        title ?: BiometricsI18nResource.default_title.text,
-        BiometricsI18nResource.cancel_button.text,
-        subtitle ?: BiometricsI18nResource.default_subtitle.text,
-        remoteMMID,
-        true,
-        ContextCompat.getMainExecutor(biometricsActivity),
-        object : AuthPromptCallback() {
-          // 这个地方不需要resultDeferred.complete，因为失败可以进行多次尝试，不应该直接返回，而应该在多次失败之后直接error再返回
-          override fun onAuthenticationFailed(activity: FragmentActivity?) {
-            super.onAuthenticationFailed(activity)
-          }
-
-          override fun onAuthenticationError(
-            activity: FragmentActivity?, errorCode: Int, errString: CharSequence
-          ) {
-            super.onAuthenticationError(activity, errorCode, errString)
-            resultDeferred.complete(BiometricsResult(false, errString.toString()))
-          }
-
-          override fun onAuthenticationSucceeded(
-            activity: FragmentActivity?, result: BiometricPrompt.AuthenticationResult
-          ) {
-            super.onAuthenticationSucceeded(activity, result)
-            debugBiometrics(
-              "onAuthenticationSucceeded", result.cryptoObject ?: "<no cryptoObject>"
-            )
-//            try {
-//              val cipherResult = if (input != null) {
-//                result.cryptoObject?.cipher?.let { cipher ->
-//                  encryptData(input, cipher)
-//                }
-//              } else null
-//              if (cipherResult == null) {
-//                resultDeferred.complete(BiometricsResult(true, ""))
-//              } else {
-//                resultDeferred.complete(BiometricsResult(true, cipherResult.toBase64(), "base64"))
-//              }
-//            } catch (e: Throwable) {
-//              resultDeferred.complete(BiometricsResult(true, ""))
-//            }
-            resultDeferred.complete(BiometricsResult(true, ""))
-          }
-        })
-    }
-
-    return resultDeferred.await()
-  }
-
-  private fun getCipher(): Cipher {
-    return Cipher.getInstance(
-      KeyProperties.KEY_ALGORITHM_AES + "/" + KeyProperties.BLOCK_MODE_CBC + "/" + KeyProperties.ENCRYPTION_PADDING_PKCS7
-    )
-  }
-
-  private fun getSecretKey(mmid: MMID): SecretKey {
-    debugBiometrics("getSecretKey", mmid)
-    val keyStore = KeyStore.getInstance("AndroidKeyStore")
-
-    // Before the keystore can be accessed, it must be loaded.
-    keyStore.load(null)
-
-    return keyStore.getKey(mmid, null) as SecretKey? ?: generateSecretKey(mmid)
   }
 
   private fun generateSecretKey(mmid: MMID): SecretKey {

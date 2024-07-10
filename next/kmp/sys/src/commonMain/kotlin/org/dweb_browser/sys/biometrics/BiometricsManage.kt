@@ -2,13 +2,14 @@ package org.dweb_browser.sys.biometrics
 
 import kotlinx.serialization.Serializable
 import org.dweb_browser.core.help.types.MMID
+import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.helper.StringEnumSerializer
 
 @Serializable
 data class BiometricsResult(
   val success: Boolean,
   val message: String,
-  val encoding: String = "UTF-8"
+  val encoding: String = "UTF-8",
 )
 
 @Serializable
@@ -40,12 +41,13 @@ enum class BiometricCheckResult(val value: Int) {
   BIOMETRIC_ERROR_NO_HARDWARE(12),
 
   /**用户无法进行身份验证，因为发现一个或多个硬件传感器存在安全漏洞。 在安全更新解决该问题之前，受影响的传感器将不可用。 */
-  BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED(15), ;
+  BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED(15),
+  ;
 
   companion object {
     val ALL_VALUES = entries.associateBy { it.value }
 
-    fun fromValue(value: Int) : BiometricCheckResult? = entries.firstOrNull { it.value == value }
+    fun fromValue(value: Int): BiometricCheckResult? = entries.firstOrNull { it.value == value }
   }
 }
 
@@ -54,12 +56,10 @@ expect object BiometricsManage {
   suspend fun checkSupportBiometrics(): BiometricCheckResult
 
   suspend fun biometricsResultContent(
-    biometricsNMM: BiometricsNMM,
+    mmRuntime: MicroModule.Runtime,
     remoteMMID: MMID,
     title: String?,
     subtitle: String?,
-    input: ByteArray? = null,
-    mode: InputMode = InputMode.None
   ): BiometricsResult
 }
 

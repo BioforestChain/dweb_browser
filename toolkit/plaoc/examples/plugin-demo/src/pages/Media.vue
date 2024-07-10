@@ -16,8 +16,6 @@ const fileChange = ($event: Event) => {
 </script>
 <template>
   <div class="card glass">
-    <h2>{{ title }}</h2>
-
     <article class="card-body">
       <div>
         <h2 class="card-title">保存图片到相册 File</h2>

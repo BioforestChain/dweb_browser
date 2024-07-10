@@ -1,4 +1,4 @@
-import { type $Binary, binaryToU8a } from "./fun/binaryHelper.ts";
+import { binaryToU8a, type $Binary } from "./fun/binaryHelper.ts";
 
 export type $SimpleEncoding = "utf8" | "base64" | "hex";
 const textEncoder = new TextEncoder();
@@ -54,3 +54,12 @@ export const dataUrlFromUtf8 = (utf8_string: string, asBase64: boolean, mime = "
     : `data:${mime};charset=UTF-8,${encodeURIComponent(utf8_string)}`;
   return data_url;
 };
+export function base64ToBytes(base64: string) {
+  const binString = atob(base64);
+  return new Uint8Array(Array.from(binString, (m) => m.codePointAt(0)!));
+}
+
+export function bytesToBase64(bytes: Uint8Array) {
+  const binString = Array.from(bytes, (byte) => String.fromCodePoint(byte)).join("");
+  return btoa(binString);
+}

@@ -30,3 +30,18 @@ fun <T : Activity> MicroModule.Runtime.startAppActivity(
     }
   }
 }
+
+fun MicroModule.Runtime.startAppActivity(intent: Intent) {
+  scopeLaunch(cancelable = false) {
+    lockActivityState.withLock {
+      if (grant?.await() == false) {
+        return@withLock // TODO 用户拒绝协议应该做的事情ØÏ
+      }
+      val (context, optionsBuilder) = getStartActivityOptions() ?: (getAppContext() to null)
+
+      withMainContext {
+        context.startActivity(intent, optionsBuilder?.invoke()) // startActivity 需要放在主线程
+      }
+    }
+  }
+}

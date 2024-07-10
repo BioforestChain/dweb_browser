@@ -32,7 +32,7 @@ import org.dweb_browser.sys.contact.ContactNMM
 import org.dweb_browser.sys.device.DeviceNMM
 import org.dweb_browser.sys.filechooser.FileChooserNMM
 import org.dweb_browser.sys.haptics.HapticsNMM
-import org.dweb_browser.sys.keychain.KeyChainNMM
+import org.dweb_browser.sys.keychain.KeychainNMM
 import org.dweb_browser.sys.location.LocationNMM
 import org.dweb_browser.sys.media.MediaNMM
 import org.dweb_browser.sys.mediacapture.MediaCaptureNMM
@@ -164,7 +164,7 @@ suspend fun startDwebBrowser(debugTags: String?, extMM: List<ExtMM> = listOf()):
   if (envSwitch.isEnabled(ENV_SWITCH_KEY.DWEBVIEW_PROFILE)) {
     val storeNMM = StoreNMM().setup()
   }
-  val keyChainNMM = KeyChainNMM().setup()
+  val keyChainNMM = KeychainNMM().setup()
   val deskNMM = DeskNMM().setup()
 
   /// 启动程序

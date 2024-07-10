@@ -12,6 +12,7 @@ export * from "./device/index.ts";
 export * from "./dweb-service-worker/index.ts";
 export * from "./geolocation/index.ts";
 export * from "./haptics/index.ts";
+export * from "./keychain/index.ts";
 export * from "./media/index.ts";
 export * from "./motionSensors/index.ts";
 export * from "./native-ui/navigation-bar/index.ts";

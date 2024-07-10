@@ -128,7 +128,9 @@ const setBounds = () => {
 <template>
   <dweb-window ref="$window" @statechange="onStatusBarChange($event.detail, 'change')"></dweb-window>
   <div class="card glass">
-    <h2>{{ title }}</h2>
+    <figure class="icon">
+      <div class="swap-on">🪟</div>
+    </figure>
     <article class="card-body">
       <h2 class="card-title">打开窗口操作</h2>
       <v-text-field label="属性描述符" v-model="state.openUrl"></v-text-field>

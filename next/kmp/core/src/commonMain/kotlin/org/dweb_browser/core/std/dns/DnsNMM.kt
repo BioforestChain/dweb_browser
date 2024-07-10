@@ -427,6 +427,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
               // 提示错误信息
               scopeLaunch(cancelable = true) {
                 it.message?.also { msg ->
+                  debugDNS("open", mmpt, it)
                   nativeFetch("file://toast.sys.dweb/show?message=${msg.encodeURIComponent()}")
                 }
               }

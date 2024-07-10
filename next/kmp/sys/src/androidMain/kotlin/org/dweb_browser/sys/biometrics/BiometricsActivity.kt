@@ -1,165 +1,314 @@
 package org.dweb_browser.sys.biometrics
 
+import android.content.ComponentName
+import android.content.Intent
 import android.os.Bundle
+import androidx.activity.compose.setContent
+import androidx.biometric.BiometricManager
+import androidx.biometric.BiometricPrompt
+import androidx.biometric.auth.AuthPromptCallback
+import androidx.biometric.auth.authenticateWithClass3Biometrics
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.Text
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import org.dweb_browser.core.module.MicroModule
+import org.dweb_browser.core.module.startAppActivity
+import org.dweb_browser.helper.falseAlso
+import org.dweb_browser.helper.randomUUID
+import org.dweb_browser.helper.withMainContext
+import java.util.concurrent.Executor
 
 class BiometricsActivity : FragmentActivity() {
   companion object {
     internal val creates = mutableMapOf<String, CompletableDeferred<BiometricsActivity>>()
+    suspend fun create(mmRuntime: MicroModule.Runtime) =
+      CompletableDeferred<BiometricsActivity>().also {
+        val uid = randomUUID()
+        BiometricsActivity.creates[uid] = it
+        it.invokeOnCompletion { BiometricsActivity.creates.remove(uid) }
+        mmRuntime.startAppActivity(BiometricsActivity::class.java) { intent ->
+//        intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+          intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+//        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)
+          intent.putExtras(Bundle().apply {
+            putString("uid", uid)
+          })
+        }
+      }.await()
+
+    private const val SONY = "sony";
+    private const val OPPO = "oppo";
+    private const val HUAWEI = "huawei";
+    private const val HONOR = "honor";
+    private const val XIAOMI = "xiaomi";
+    private const val KNT = "knt";
+    private const val OnePlus = "OnePlus";
+    private const val samsung = "samsung";
+    private const val meizu = "meizu";
+    private const val ZTE = "zte";
+
+    /** * 获得当前手机品牌 * @return 例如：HONOR */
+    private val brand = android.os.Build.BRAND.uppercase()
+
+    /** * 对比两个字符串，并且比较字符串是否包含在其中的，并且忽略大小写 * @param value * @return */
+    private fun compareTextSame(value: String) = value.uppercase().contains(brand)
+    private val fingerprintComponentName by lazy {
+      val pcgName = "com.android.settings"
+      val clsName = when {
+        compareTextSame(SONY) -> "com.android.settings.Settings.FingerprintEnrollSuggestionActivity"
+        compareTextSame(OPPO) -> "com.coloros.settings.feature.fingerprint.ColorFingerprintSettings"
+        compareTextSame(HUAWEI) -> "com.android.settings.fingerprint.FingerprintSettingsActivity"
+        compareTextSame(HONOR) -> "com.android.settings.fingerprint.FingerprintSettingsActivity"
+        compareTextSame(XIAOMI) -> "com.android.settings.NewFingerprintActivity"
+        compareTextSame(OnePlus) -> "com.android.settings.biometrics.fingerprint.FingerprintEnrollIntroduction"
+        compareTextSame(samsung) -> "com.samsung.android.settings.biometrics.BiometricsDisclaimerActivity"
+        compareTextSame(meizu) -> "com.android.settings.Settings.SecurityDashboardActivity"
+        compareTextSame(ZTE) -> "com.android.settings.ChooseLockGeneric"
+        else -> null
+      }
+      clsName?.let { className -> ComponentName(pcgName, className) }
+    }
+
+    /** * 跳转到指纹页面 或 通知用户去指纹录入 */
+    fun startFingerprintActivity(startActivity: (Intent) -> Unit) {
+      when (val componentName = fingerprintComponentName) {
+        null -> startSettingsActivity(startActivity)
+        else -> runCatching {
+          val intent = Intent().apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            action = Intent.ACTION_VIEW
+            component = componentName
+          }
+          startActivity(intent);
+        }.getOrElse {
+          startSettingsActivity(startActivity)
+        }
+      }
+    }
+
+    private fun startSettingsActivity(startActivity: (Intent) -> Unit) {
+      val pcgNamePlace = "com.android.settings";
+      val clsNamePlace = "com.android.settings.Settings";
+      val intent = Intent().apply {
+        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        action = Intent.ACTION_VIEW
+        component = ComponentName(pcgNamePlace, clsNamePlace)
+      }
+      startActivity(intent);
+    }
+  }
+
+  var support by mutableStateOf(false)
+  var settingsRequired by mutableStateOf(false)
+
+  private fun checkSupport() {
+    val status = BiometricsManage.checkSupportBiometricsSync(this)
+    when (status) {
+      BiometricCheckResult.BIOMETRIC_ERROR_NONE_ENROLLED -> {
+        support = true
+        settingsRequired = true
+      }
+
+      BiometricCheckResult.BIOMETRIC_SUCCESS -> {
+        support = true
+        settingsRequired = false
+        supportDeferred.complete(true)
+      }
+
+      else -> {
+        support = false
+        settingsRequired = false
+      }
+    }
+    println("QAQ checkSupport support=$support settingsRequired=$settingsRequired status=$status")
+  }
+
+  private var supportDeferred = CompletableDeferred<Boolean>()
+  suspend fun waitSupport() = supportDeferred.await()
+  suspend fun waitSupportOrThrow(
+    finishOnThrow: Boolean = true,
+    cause: (Exception) -> Exception = { it },
+  ) {
+    supportDeferred.await().falseAlso {
+      if (finishOnThrow) {
+        finish()
+      }
+      throw cause(authenticationError ?: Exception("authenticateWithClass3Biometrics error"))
+    }
+  }
+
+  override fun onResume() {
+    super.onResume()
+    println("QAQ onResume checkSupport")
+    checkSupport()
+  }
+
+  override fun onDestroy() {
+    super.onDestroy()
+    supportDeferred.complete(false)
   }
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
+    setContent {
+      ElevatedCard(Modifier.padding(24.dp)) {
+        Column(Modifier.fillMaxWidth().padding(16.dp)) {
+          when {
+            settingsRequired -> {
+              Text("您需要设置生物识别")
+              Spacer(Modifier.size(16.dp))
+              Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                ElevatedButton({
+                  authenticationError = CancellationException("user cancel biometrics settings")
+                  finish()
+                }) {
+                  Text("取消")
+                }
+                Spacer(Modifier.size(8.dp))
+                ElevatedButton({ startFingerprintActivity { startActivity(it) } }) {
+                  Text("去设置")
+                }
+              }
+            }
+
+            !support -> {
+              Text("您的设备不支持生物识别技术")
+              Spacer(Modifier.size(16.dp))
+              Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                ElevatedButton({
+                  authenticationError = CancellationException("user cancel biometrics settings")
+                  finish()
+                }) {
+                  Text("取消")
+                }
+              }
+            }
+
+            else -> {
+              Text("生物识别技术正在保护您的隐私安全", modifier = Modifier)
+            }
+          }
+        }
+      }
+    }
     intent.getStringExtra("uid")?.also {
       creates[it]?.complete(this)
     }
   }
 
+  var authenticationError: Exception? = null
+  private var authArguments: AuthArguments? = null
+
+  private data class AuthArguments(
+    val crypto: BiometricPrompt.CryptoObject?,
+    val title: CharSequence,
+    val negativeButtonText: CharSequence,
+    val subtitle: CharSequence?,
+    val description: CharSequence?,
+    val confirmationRequired: Boolean,
+    val executor: Executor,
+    val deferred: CompletableDeferred<BiometricPrompt.AuthenticationResult>,
+  )
+
+  private val authCaller = {
+    authArguments?.also { args ->
+      lifecycleScope.launch {
+        authenticateWithClass3BiometricsDeferred(
+          crypto = args.crypto,
+          title = args.title,
+          negativeButtonText = args.negativeButtonText,
+          subtitle = args.subtitle,
+          description = args.description,
+          confirmationRequired = args.confirmationRequired,
+          executor = args.executor,
+          deferred = args.deferred,
+        )
+      }
+    }
+  }
+
+  suspend fun authenticateWithClass3BiometricsDeferred(
+    crypto: BiometricPrompt.CryptoObject?,
+    title: CharSequence,
+    negativeButtonText: CharSequence,
+    subtitle: CharSequence? = null,
+    description: CharSequence? = null,
+    confirmationRequired: Boolean = true,
+    executor: Executor = ContextCompat.getMainExecutor(this),
+    finishOnCompletion: Boolean = true,
+    deferred: CompletableDeferred<BiometricPrompt.AuthenticationResult> = CompletableDeferred(),
+  ): BiometricPrompt.AuthenticationResult = withMainContext {
+    if (finishOnCompletion) {
+      deferred.invokeOnCompletion {
+        if (!isFinishing && lifecycleScope.isActive) {
+          finish()
+        }
+      }
+    }
+    authArguments = AuthArguments(
+      crypto,
+      title,
+      negativeButtonText,
+      subtitle,
+      description,
+      confirmationRequired,
+      executor,
+      deferred,
+    )
+    authenticateWithClass3Biometrics(crypto,
+      title,
+      negativeButtonText,
+      subtitle,
+      description,
+      confirmationRequired,
+      executor,
+      callback = object : AuthPromptCallback() {
+        // 这个地方不需要resultDeferred.complete，因为失败可以进行多次尝试，不应该直接返回，而应该在多次失败之后直接error再返回
+        override fun onAuthenticationFailed(activity: FragmentActivity?) {
+          super.onAuthenticationFailed(activity)
+        }
+
+        override fun onAuthenticationError(
+          activity: FragmentActivity?, errorCode: Int, errString: CharSequence,
+        ) {
+          super.onAuthenticationError(activity, errorCode, errString)
+          Exception("[$errorCode] $errString").also { err ->
+            authenticationError = err
+            if (errorCode == BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED || errorCode == 5/*已经取消*/) {
+              settingsRequired = true
+              authCaller()
+            } else {
+              deferred.completeExceptionally(err)
+            }
+          }
+        }
+
+        override fun onAuthenticationSucceeded(
+          activity: FragmentActivity?, result: BiometricPrompt.AuthenticationResult,
+        ) {
+          super.onAuthenticationSucceeded(activity, result)
+          deferred.complete(result)
+        }
+      })
+    deferred.await()
+  }
 }
-//class BiometricsActivity : FragmentActivity() {
-//
-//  companion object {
-//    var biometrics_promise_out = PromiseOut<BiometricsResult>()
-//  }
-//
-//  private lateinit var executor: Executor
-//  private lateinit var biometricPrompt: BiometricPrompt
-//  private lateinit var promptInfo: BiometricPrompt.PromptInfo
-//
-//  private val mBiometricLaunch =
-//    registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-//      /*if (it.resultCode == RESULT_OK) {
-//      }*/
-//    }
-//  private var mBiometricsData: BiometricsData? = null
-//
-//  override fun onCreate(savedInstanceState: Bundle?) {
-//    super.onCreate(savedInstanceState)
-//    mBiometricsData = intent.getStringExtra("data")?.decodeTo<BiometricsData>()
-//    executor = ContextCompat.getMainExecutor(this)
-//    biometricPrompt = BiometricPrompt(this, executor,
-//      object : BiometricPrompt.AuthenticationCallback() {
-//        // 没有设置识别验证（没有设置密码）
-//        override fun onAuthenticationError(
-//          errorCode: Int,
-//          errString: CharSequence
-//        ) {
-//          super.onAuthenticationError(errorCode, errString)
-//          debugBiometrics("onAuthenticationError", "errString:$errString,errorCode:$errorCode")
-//          biometrics_promise_out.resolve(BiometricsResult(false, errString.toString()))
-//          this@BiometricsActivity.finish()
-//        }
-//
-//        // 识别成功
-//        override fun onAuthenticationSucceeded(
-//          result: BiometricPrompt.AuthenticationResult
-//        ) {
-//          super.onAuthenticationSucceeded(result)
-//          val message = when (result.authenticationType) {
-//            AUTHENTICATION_RESULT_TYPE_BIOMETRIC -> "AUTHENTICATION_RESULT_TYPE_BIOMETRIC"
-//            AUTHENTICATION_RESULT_TYPE_DEVICE_CREDENTIAL -> "AUTHENTICATION_RESULT_TYPE_DEVICE_CREDENTIAL"
-//            else -> "AUTHENTICATION_RESULT_TYPE_UNKNOWN"
-//          }
-//          debugBiometrics(
-//            "onAuthenticationSucceeded",
-//            "result:${result.authenticationType}, msg:$message"
-//          )
-//          biometrics_promise_out.resolve(BiometricsResult(true, message))
-//          this@BiometricsActivity.finish()
-//        }
-//
-//        // 识别失败
-//        override fun onAuthenticationFailed() {
-//          super.onAuthenticationFailed()
-//          debugBiometrics("onAuthenticationFailed", "Authentication failed")
-//          this@BiometricsActivity.finish()
-//        }
-//      })
-//    /**
-//     * setAllowedAuthenticators 单独设置 BIOMETRIC_STRONG/BIOMETRIC_WEAK 必须再设置 setNegativeButtonText
-//     * setAllowedAuthenticators 设置包含 DEVICE_CREDENTIAL               不能再设置 setNegativeButtonText
-//     *
-//     * BIOMETRIC_STRONG   3 类生物识别技术进行身份验证，简单来说就是支持加密密钥使用。
-//     * BIOMETRIC_WEAK     2 类生物识别技术进行身份验证，简单来说就是普通的验证，不需要进行加密。
-//     * DEVICE_CREDENTIAL 密码，图形，PIN
-//     *
-//     */
-//    promptInfo = BiometricPrompt.PromptInfo.Builder().also {
-//      it.setTitle(mBiometricsData?.title ?: "Biometric login for my app")
-//      it.setSubtitle(mBiometricsData?.subtitle ?: "Log in using your biometric credential")
-//      it.setDescription(mBiometricsData?.description ?: "Biometric description")
-//      if (mBiometricsData?.useFallback == true) {
-//        it.setAllowedAuthenticators(BIOMETRIC_WEAK or DEVICE_CREDENTIAL)
-//      } else {
-//        it.setAllowedAuthenticators(BIOMETRIC_WEAK)
-//        it.setNegativeButtonText(mBiometricsData?.negativeButtonText ?: "Cancel")
-//      }
-//    }.build()
-//    biometricsController.activity = this
-//    // biometricPrompt.authenticate(promptInfo)
-//  }
-//
-//  suspend fun biometrics() {
-//    withContext(Dispatchers.Main) {
-//      try {
-//        biometricPrompt.authenticate(promptInfo)
-//      } catch (e: Throwable) {
-//        this@BiometricsActivity.finish()
-//        debugBiometrics("biometrics", "catch", e)
-//        biometrics_promise_out.resolve(BiometricsResult(false, "biometrics has been destroyed"))
-//      }
-//    }
-//  }
-//
-//  fun chuck(): Boolean {
-//    return if (Build.VERSION.SDK_INT > Build.VERSION_CODES.Q) {
-//      val biometricManager = BiometricManager.from(this)
-//      when (val rType = biometricManager.canAuthenticate(BIOMETRIC_WEAK)) {
-//        BiometricManager.BIOMETRIC_SUCCESS -> {
-//          debugBiometrics("MY_APP_TAG", "应用程序可以使用生物识别技术进行身份验证.")
-//          true
-//        }
-//
-//        BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE -> {
-//          debugBiometrics("MY_APP_TAG", "此设备上没有可用的生物识别功能.")
-//          false
-//        }
-//
-//        BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE -> {
-//          debugBiometrics("MY_APP_TAG", "生物识别功能目前不可用.")
-//          false
-//        }
-//
-//        BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> {
-//          debugBiometrics("MY_APP_TAG", "请设置锁屏密码，并同步开启生物识别功能.")
-//          // 提示用户创建您的应用接受的凭据。
-//          mBiometricLaunch.launch(Intent(ACTION_BIOMETRIC_ENROLL).apply {
-//            putExtra(
-//              EXTRA_BIOMETRIC_AUTHENTICATORS_ALLOWED, BIOMETRIC_WEAK
-//            )
-//          })
-//          true
-//        }
-//
-//        else -> {
-//          debugBiometrics("MY_APP_TAG", "未处理的异常 -> $rType.")
-//          false
-//        }
-//      }
-//    } else { // Build.VERSION.SDK_INT > Build.VERSION_CODES.M
-//      val keyguardManager = getSystemService(KEYGUARD_SERVICE) as KeyguardManager
-//      keyguardManager.isDeviceSecure
-//    }
-//  }
-//
-//  override fun onDestroy() {
-//    super.onDestroy()
-//    debugBiometrics("onDestroy", "Biometrics onDestroy .")
-//    biometricsController.activity = null
-//    if (!biometrics_promise_out.isFinished) {
-//      biometrics_promise_out.resolve(BiometricsResult(false, "Authentication failed"))
-//    }
-//  }
-//
-//}

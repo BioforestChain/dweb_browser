@@ -11,16 +11,16 @@ import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.helper.utf8Binary
 import org.dweb_browser.pure.http.PureMethod
 
-class KeyChainNMM : NativeMicroModule("keychain.sys.dweb", KeyChainI18nResource.name.text) {
+class KeychainNMM : NativeMicroModule("keychain.sys.dweb", KeychainI18nResource.name.text) {
 
   init {
-    short_name = KeyChainI18nResource.name.text
+    short_name = KeychainI18nResource.short_name.text
     categories =
       listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Device_Management_Service);
   }
 
   inner class KeyChainRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
-    private val keyChainStore = KeyChainStore()
+    private val keyChainStore = KeychainStore(this)
     override suspend fun _bootstrap() {
       routes(
         "/get" bind PureMethod.GET by definePureBinaryHandler {

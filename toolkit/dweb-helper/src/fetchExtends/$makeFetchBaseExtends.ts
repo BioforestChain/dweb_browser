@@ -18,7 +18,9 @@ export const fetchBaseExtends = $makeFetchExtends({
   async ok() {
     const response = await this;
     if (response.status >= 400) {
-      throw response.statusText || (await response.text());
+      const err = new Error(`[${response.status}] ${response.statusText}`);
+      response.text().then((detail) => (err.cause = detail));
+      throw err;
     } else {
       return response;
     }

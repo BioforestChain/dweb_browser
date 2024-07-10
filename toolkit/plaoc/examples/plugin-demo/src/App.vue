@@ -1,12 +1,18 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import * as PLAOC from "./plugin";
 import { routes } from "./routes";
+import { computed } from "vue";
 
 const router = useRouter();
+const route = useRoute();
 onMounted(() => {
   Object.assign(globalThis, { PLAOC });
+});
+const isHome = computed(() => route.path == "/");
+const routeTitle = computed(() => {
+  return routes.find((r) => r.path == route.path)?.title ?? "Plaoc Plugins Demo";
 });
 // router.push("/shortcut");
 // router.push("/biometrics")
@@ -42,7 +48,7 @@ const drawer_controller = ref(false);
         <input id="my-drawer-controller" type="checkbox" class="drawer-toggle" v-model="drawer_controller" />
         <div class="flex flex-col drawer-content">
           <!-- Navbar -->
-          <div class="navbar">
+          <div class="navbar" v-show="!isHome">
             <div class="flex-none">
               <label for="my-drawer-controller" class="btn btn-square btn-ghost">
                 <svg
@@ -56,24 +62,7 @@ const drawer_controller = ref(false);
               </label>
             </div>
             <div class="flex-1">
-              <h1 class="text-xl">JMM Plugins Demo</h1>
-            </div>
-            <div class="flex-none">
-              <button class="btn btn-square btn-ghost">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  class="inline-block w-5 h-5 stroke-current"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z"
-                  />
-                </svg>
-              </button>
+              <h1 class="text-xl">{{ routeTitle }}</h1>
             </div>
           </div>
           <!-- Page content here -->
@@ -84,7 +73,7 @@ const drawer_controller = ref(false);
           </section>
           <!-- </article> -->
         </div>
-        <div class="drawer-side">
+        <div class="drawer-side" v-show="!isHome">
           <label for="my-drawer-controller" class="drawer-overlay" />
           <ul class="p-4 bg-opacity-50 menu w-80 glass bg-base-100 rounded-r-xl">
             <!-- Sidebar content here -->
