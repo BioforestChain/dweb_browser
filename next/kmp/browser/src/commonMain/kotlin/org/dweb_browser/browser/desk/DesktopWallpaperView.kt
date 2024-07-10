@@ -10,11 +10,15 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.BoxWithConstraintsScope
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -23,8 +27,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -103,7 +107,8 @@ fun desktopWallpaperView(
   }
 
   BoxWithConstraints(
-    modifier
+    contentAlignment = Alignment.Center,
+    modifier = modifier
       .fillMaxSize()
       .clickableWithNoEffect {
         onClick?.let {
@@ -217,10 +222,12 @@ fun BoxWithConstraintsScope.DesktopBgCircle(
   LaunchedEffect(model.offset, model.animationToX, model.animationToY) {
     doBubbleAnimation()
   }
+
   val width = constraints.maxWidth
   val height = constraints.maxHeight
-  Canvas(modifier = Modifier
-    .fillMaxSize()
+  Box(modifier = Modifier
+    .size(width = (model.radius * width / 4).dp, height = (model.radius * width / 4).dp)
+    .aspectRatio(1.0f)
     .offset {
       Offset(
         x = model.offset.x * width / 2,
@@ -234,14 +241,15 @@ fun BoxWithConstraintsScope.DesktopBgCircle(
       translationX = transformXValue.value
       translationY = transformYValue.value
     }
-    .blur(model.blur.dp)
-  ) {
-    drawCircle(
-      color = colorValue.value,
-      model.radius * width / 4f,
+    .background(
+      Brush.radialGradient(
+        0.0f to model.color,
+        model.blur to model.color,
+        1.0f to Color.Transparent
+      ),
+      CircleShape
     )
-  }
-
+  )
 }
 
 
@@ -299,7 +307,7 @@ data class DesktopBgCircleModel(
   var offset: Offset,
   var radius: Float,
   var color: Color,
-  var blur: Int,
+  var blur: Float,
   var animationToX: Float = 0f,
   var animationToY: Float = 0f,
 ) {
@@ -316,13 +324,13 @@ data class DesktopBgCircleModel(
 
       val offset = {
         Offset(
-          Random.nextFloat() * 2f - 1f,
-          Random.nextFloat() * 2f - 1f,
+          random(2f),
+          random(2f),
         )
       }
 
       val radius = {
-        Random.nextFloat()
+        0.2f + Random.nextFloat() * 0.8f
       }
 
       val color = {
@@ -333,7 +341,7 @@ data class DesktopBgCircleModel(
       }
 
       val blur = {
-        Random.nextInt(5) + 1
+        Random.nextInt(11) * 0.01f + 0.9f
       }
 
       (1..count).forEach {
@@ -353,7 +361,7 @@ data class DesktopBgCircleModel(
         it.blur
       }
 
-      return list.reversed()
+      return list
     }
   }
 }
