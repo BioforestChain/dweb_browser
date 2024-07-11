@@ -271,11 +271,12 @@ class ColorPalettes(
   val Shade_800: Color,
   val Shade_900: Color,
 ) {
-  @Composable
-  fun current() = when {
-    isSystemInDarkTheme() -> Shade_800
-    else -> Shade_400
-  }
+
+  val current
+    @Composable get() = when {
+      isSystemInDarkTheme() -> Shade_800
+      else -> Shade_400
+    }
 }
 
 

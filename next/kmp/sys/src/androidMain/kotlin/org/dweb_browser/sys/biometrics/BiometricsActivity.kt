@@ -39,12 +39,12 @@ import java.util.concurrent.Executor
 
 class BiometricsActivity : FragmentActivity() {
   companion object {
-    internal val creates = mutableMapOf<String, CompletableDeferred<BiometricsActivity>>()
+    private val creates = mutableMapOf<String, CompletableDeferred<BiometricsActivity>>()
     suspend fun create(mmRuntime: MicroModule.Runtime) =
       CompletableDeferred<BiometricsActivity>().also {
         val uid = randomUUID()
-        BiometricsActivity.creates[uid] = it
-        it.invokeOnCompletion { BiometricsActivity.creates.remove(uid) }
+        creates[uid] = it
+        it.invokeOnCompletion { creates.remove(uid) }
         mmRuntime.startAppActivity(BiometricsActivity::class.java) { intent ->
 //        intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
           intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -60,7 +60,7 @@ class BiometricsActivity : FragmentActivity() {
     private const val HUAWEI = "huawei";
     private const val HONOR = "honor";
     private const val XIAOMI = "xiaomi";
-    private const val KNT = "knt";
+    private const val VIVO = "vivo";
     private const val OnePlus = "OnePlus";
     private const val samsung = "samsung";
     private const val meizu = "meizu";
@@ -74,11 +74,12 @@ class BiometricsActivity : FragmentActivity() {
     private val fingerprintComponentName by lazy {
       val pcgName = "com.android.settings"
       val clsName = when {
-        compareTextSame(SONY) -> "com.android.settings.Settings.FingerprintEnrollSuggestionActivity"
+        compareTextSame(SONY) -> "com.android.settings.Settings\$FingerprintEnrollSuggestionActivity"
         compareTextSame(OPPO) -> "com.coloros.settings.feature.fingerprint.ColorFingerprintSettings"
         compareTextSame(HUAWEI) -> "com.android.settings.fingerprint.FingerprintSettingsActivity"
         compareTextSame(HONOR) -> "com.android.settings.fingerprint.FingerprintSettingsActivity"
         compareTextSame(XIAOMI) -> "com.android.settings.NewFingerprintActivity"
+        compareTextSame(VIVO) -> "com.android.settings.Settings\$FingerpintAndFaceSettingsActivity"
         compareTextSame(OnePlus) -> "com.android.settings.biometrics.fingerprint.FingerprintEnrollIntroduction"
         compareTextSame(samsung) -> "com.samsung.android.settings.biometrics.BiometricsDisclaimerActivity"
         compareTextSame(meizu) -> "com.android.settings.Settings.SecurityDashboardActivity"

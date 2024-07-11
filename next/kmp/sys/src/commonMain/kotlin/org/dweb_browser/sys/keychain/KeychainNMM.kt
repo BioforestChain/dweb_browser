@@ -6,10 +6,13 @@ import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.base64Binary
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.helper.utf8Binary
 import org.dweb_browser.pure.http.PureMethod
+
+val debugKeychain = Debugger("keychain")
 
 class KeychainNMM : NativeMicroModule("keychain.sys.dweb", KeychainI18nResource.name.text) {
 

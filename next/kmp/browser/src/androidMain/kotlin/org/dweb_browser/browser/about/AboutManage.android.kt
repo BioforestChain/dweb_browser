@@ -234,7 +234,7 @@ fun WindowContentRenderScope.WebViewFeaturesRender(modifier: Modifier) {
                 Icon(
                   if (feature.enabled) Icons.Default.Check else Icons.Default.Close,
                   contentDescription = if (feature.enabled) "enabled" else "disabled",
-                  tint = if (feature.enabled) LocalColorful.current.Green.current() else MaterialTheme.colorScheme.error
+                  tint = if (feature.enabled) LocalColorful.current.Green.current else MaterialTheme.colorScheme.error
                 )
               }
             }

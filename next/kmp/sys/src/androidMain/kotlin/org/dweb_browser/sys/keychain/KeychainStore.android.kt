@@ -12,18 +12,14 @@ import org.dweb_browser.helper.utf8String
 import java.security.KeyStore
 
 internal const val ANDROID_KEY_STORE = "AndroidKeyStore"
+internal const val ANDROID_KEY_PROVIDER = "BC"
 internal val deviceKeyStore = DeviceKeyValueStore(ANDROID_KEY_STORE)
 internal val keyStore = KeyStore.getInstance(ANDROID_KEY_STORE).apply { load(null) }
 
 
 actual class KeychainStore actual constructor(val runtime: MicroModule.Runtime) {
-
-
-  //  private val cryptKey = createKey()
   companion object {
-
-
-    private val getOrRecoveryList = listOf(EncryptKeyV1.getOrRecoveryKey)
+    private val getOrRecoveryList = listOf(EncryptKeyV1.recoveryKey)
     private val currentGenerator = EncryptKeyV1.generateKey
     private suspend fun getOrRecoveryOrCreateKey(runtime: MicroModule.Runtime): EncryptKey {
       for (getter in getOrRecoveryList) {

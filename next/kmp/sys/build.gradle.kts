@@ -13,6 +13,7 @@ kotlin {
       implementation(projects.helperPlatform)
       implementation(projects.pureHttp)
       implementation(projects.pureImage)
+      implementation(projects.pureCrypto)
       implementation(projects.core)
       implementation(projects.window)
     }
