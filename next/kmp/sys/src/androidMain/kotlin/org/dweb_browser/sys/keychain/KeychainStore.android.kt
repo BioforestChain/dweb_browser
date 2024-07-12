@@ -2,13 +2,16 @@ package org.dweb_browser.sys.keychain
 
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.module.MicroModule
-import org.dweb_browser.helper.SuspendOnce
+import org.dweb_browser.helper.SuspendOnce1
 import org.dweb_browser.helper.base64String
 import org.dweb_browser.helper.globalDefaultScope
 import org.dweb_browser.helper.now
 import org.dweb_browser.helper.platform.DeviceKeyValueStore
 import org.dweb_browser.helper.utf8Binary
 import org.dweb_browser.helper.utf8String
+import org.dweb_browser.sys.keychain.core.EncryptKey
+import org.dweb_browser.sys.keychain.core.EncryptKeyV1
+import org.dweb_browser.sys.keychain.core.UseKeyParams
 import java.security.KeyStore
 
 internal const val ANDROID_KEY_STORE = "AndroidKeyStore"
@@ -21,33 +24,35 @@ actual class KeychainStore actual constructor(val runtime: MicroModule.Runtime) 
   companion object {
     private val getOrRecoveryList = listOf(EncryptKeyV1.recoveryKey)
     private val currentGenerator = EncryptKeyV1.generateKey
-    private suspend fun getOrRecoveryOrCreateKey(runtime: MicroModule.Runtime): EncryptKey {
+    private suspend fun getOrRecoveryOrCreateKey(params: UseKeyParams): EncryptKey {
       for (getter in getOrRecoveryList) {
-        getter(runtime)?.also {
+        getter(params)?.also {
           return it
         }
       }
-      return currentGenerator(runtime)
+      return currentGenerator(params)
     }
   }
 
-  private val encryptKey = SuspendOnce { getOrRecoveryOrCreateKey(runtime) }
+  private val encryptKey = SuspendOnce1 { params: UseKeyParams -> getOrRecoveryOrCreateKey(params) }
 
 
   /**
    * 数据加密
    */
   suspend fun encryptData(remoteMmid: String, sourceData: ByteArray): ByteArray {
-    val encryptKey = encryptKey()
-    return encryptKey.encryptData(runtime, remoteMmid, sourceData)
+    val params = UseKeyParams(runtime, remoteMmid)
+    val encryptKey = encryptKey(params)
+    return encryptKey.encryptData(params, sourceData)
   }
 
   /**
    * 数据解密
    */
   suspend fun decryptData(remoteMmid: String, encryptedBytes: ByteArray): ByteArray {
-    val encryptKey = encryptKey()
-    return encryptKey.decryptData(runtime, remoteMmid, encryptedBytes)
+    val params = UseKeyParams(runtime, remoteMmid)
+    val encryptKey = encryptKey(params)
+    return encryptKey.decryptData(params, encryptedBytes)
   }
 
   init {

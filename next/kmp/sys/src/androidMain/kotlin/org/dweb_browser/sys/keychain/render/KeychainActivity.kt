@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeGestures
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material.icons.Icons
@@ -29,6 +30,7 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -45,6 +47,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
@@ -94,7 +97,17 @@ class KeychainActivity : ComponentActivity() {
     viewModelTask.completeExceptionally(CancellationException("User cancel"))
   }
 
-  suspend fun start(): ByteArray = withMainContext {/// nav 相关的操作需要在主线程
+  suspend fun start(
+    title: String? = null,
+    subtitle: String? = null,
+    description: String? = null,
+    background: (@Composable (Modifier) -> Unit)? = null,
+  ): ByteArray = withMainContext {/// nav 相关的操作需要在主线程
+    this.title = title
+    this.subtitle = subtitle
+    this.description = description
+    this.background = background
+
     println("QAQ KeychainActivity start")
     val nav = navControllerFlow.first()
     val route = when (val method = registeredMethod) {
@@ -110,13 +123,17 @@ class KeychainActivity : ComponentActivity() {
         nav.navigate("done") {
           popUpTo("init") { inclusive = true }
         }
-        delay(600)
+        delay(1000)
         finish()
       }
     }
   }
 
   private val navControllerFlow = MutableSharedFlow<NavController>(replay = 1)
+  private var title by mutableStateOf<String?>(null)
+  private var subtitle by mutableStateOf<String?>(null)
+  private var description by mutableStateOf<String?>(null)
+  private var background by mutableStateOf<(@Composable (Modifier) -> Unit)?>(null)
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -127,13 +144,28 @@ class KeychainActivity : ComponentActivity() {
       Box(Modifier.fillMaxSize().padding(WindowInsets.safeGestures.asPaddingValues())) {
         ElevatedCard(
           elevation = CardDefaults.cardElevation(defaultElevation = MaterialTheme.dimens.small),
-          modifier = Modifier.padding(24.dp).align(Alignment.BottomCenter),
+          modifier = Modifier.padding(start = 24.dp, end = 24.dp, bottom = 24.dp)
+            .align(Alignment.BottomCenter),
         ) {
           val navController = rememberNavController()
           LaunchedEffect(navController) {
             navControllerFlow.emit(navController)
           }
-          Column(Modifier.padding(16.dp).animateContentSize()) {
+          CardHeader(background = {
+            background?.also {
+              it(Modifier.fillMaxSize().zIndex(-1f))
+            }
+          }) {
+            Column(Modifier.padding(16.dp)) {
+              title?.also { CardHeaderTitle(it) }
+              subtitle?.also { CardHeaderSubtitle(it) }
+              description?.also { CardHeaderDescription(it) }
+            }
+          }
+          Column(
+            Modifier.padding(16.dp).animateContentSize().sizeIn(minHeight = 220.dp),
+            verticalArrangement = Arrangement.Center
+          ) {
             NavHost(navController, "init") {
               composable("init") {
                 Text(

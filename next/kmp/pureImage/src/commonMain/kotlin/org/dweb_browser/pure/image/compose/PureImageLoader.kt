@@ -11,14 +11,16 @@ expect fun PureImageLoader.Companion.SmartLoad(
   url: String, maxWidth: Dp, maxHeight: Dp, hook: FetchHook? = null,
 ): ImageLoadResult
 
+private fun String.fixUrl() = when {
+  startsWith("data://localhost/") -> replace("data://localhost/", "data:")
+  else -> this
+}
+
 @Composable
-internal fun PureImageLoader.Companion.NativeSmartLoad(
+fun PureImageLoader.Companion.CommonSmartLoad(
   url: String, maxWidth: Dp, maxHeight: Dp, hook: FetchHook? = null,
 ): ImageLoadResult {
-  var fixUrl = url
-  if (fixUrl.startsWith("data://localhost/")) {
-    fixUrl = fixUrl.replace("data://localhost/", "data:")
-  }
+  val fixUrl = url.fixUrl()
 
   val task = LoaderTask.from(fixUrl, maxWidth, maxHeight, hook)
   var bestResult: ImageLoadResult? = null
@@ -36,17 +38,38 @@ internal fun PureImageLoader.Companion.NativeSmartLoad(
     return LocalWebImageLoader.current.Load(task)
   }
   return backupResult
-//  if(backupResult.isError&&bestResult==null){
-//
-//  }
-//
-//  val result = LocalWebImageLoader.current.getLoadCache(task)// 这里的 LoadCache 和 下面的 isError-Load 做配合
-//    ?: LocalCoilImageLoader.current.Load(task)
-//  if (result.isError && bestResult == null) {
-//    return LocalWebImageLoader.current.Load(task)
-//  }
-//  return result
 }
+
+@Composable
+fun PureImageLoader.Companion.StableSmartLoad(
+  url: String, maxWidth: Dp, maxHeight: Dp, hook: FetchHook? = null,
+): ImageLoadResult {
+  val fixUrl = url.fixUrl()
+
+  val task = LoaderTask.from(fixUrl, maxWidth, maxHeight, hook)
+  // 如果是 svg，使用 coil-engine 先进行快速渲染，使用 web-engine 来确保正确渲染
+  if (fixUrl.endsWith(".svg") || fixUrl.startsWith("data:image/svg+xml;")) {
+    return LocalWebImageLoader.current.Load(task)
+  }
+
+  return LocalCoilImageLoader.current.Load(task)
+}
+
+@Composable
+fun PureImageLoader.Companion.FastSmartLoad(
+  url: String, maxWidth: Dp, maxHeight: Dp, hook: FetchHook?,
+): ImageLoadResult {
+  val fixUrl = url.fixUrl()
+
+  val task = LoaderTask.from(fixUrl, maxWidth, maxHeight, hook)
+  val result = LocalWebImageLoader.current.getLoadCache(task)// 这里的 LoadCache 和 下面的 isError-Load 做配合
+    ?: LocalCoilImageLoader.current.Load(task)
+  if (result.isError) {
+    return LocalWebImageLoader.current.Load(task)
+  }
+  return result
+}
+
 
 interface PureImageLoader {
   @Composable

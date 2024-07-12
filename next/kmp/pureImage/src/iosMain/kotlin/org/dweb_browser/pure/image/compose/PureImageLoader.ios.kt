@@ -7,4 +7,4 @@ import org.dweb_browser.pure.image.offscreenwebcanvas.FetchHook
 @Composable
 actual fun PureImageLoader.Companion.SmartLoad(
   url: String, maxWidth: Dp, maxHeight: Dp, hook: FetchHook?,
-): ImageLoadResult = NativeSmartLoad(url, maxWidth, maxHeight, hook)
+): ImageLoadResult = CommonSmartLoad(url, maxWidth, maxHeight, hook)

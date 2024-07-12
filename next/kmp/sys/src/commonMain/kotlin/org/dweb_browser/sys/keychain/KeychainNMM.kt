@@ -7,6 +7,7 @@ import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.helper.Debugger
+import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.base64Binary
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.helper.utf8Binary
@@ -19,7 +20,9 @@ class KeychainNMM : NativeMicroModule("keychain.sys.dweb", KeychainI18nResource.
   init {
     short_name = KeychainI18nResource.short_name.text
     categories =
-      listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Device_Management_Service);
+      listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Device_Management_Service)
+    icons =
+      listOf(ImageResource(src = "file:///sys/browser-icons/$mmid.svg", type = "image/svg+xml"))
   }
 
   inner class KeyChainRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
