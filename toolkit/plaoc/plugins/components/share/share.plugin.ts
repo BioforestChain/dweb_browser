@@ -1,7 +1,7 @@
 import { PromiseOut } from "@dweb-browser/helper/PromiseOut.ts";
 import { encode } from "cbor-x";
 import { bindThis } from "../../helper/bindThis.ts";
-import { FileData, FileDataEncode, normalToBase64String } from "../../util/file.ts";
+import { type FileData, FileDataEncode, normalToBase64String } from "../../util/file.ts";
 import type { BaseResult } from "../../util/response.ts";
 import { BasePlugin } from "../base/base.plugin.ts";
 import type { ImageBlobOptions, ShareOptions } from "./share.type.ts";

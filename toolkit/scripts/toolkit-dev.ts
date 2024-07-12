@@ -3,7 +3,7 @@ import { esbuildTaskFactory } from "../../scripts/helper/ConTasks.helper.ts";
 import { ConTasks } from "../../scripts/helper/ConTasks.ts";
 
 const defineAssets = (assetsName: string, ...useAssets: UseAssets[]) => {
-  return AssetsConfig.createAndSave(assetsName, useAssets).assetsDirname;
+  return AssetsConfig.createAndSave(assetsName, useAssets, undefined).assetsDirname;
 };
 export const toolkitTasks = new ConTasks(
   {

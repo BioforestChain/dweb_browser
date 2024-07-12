@@ -1,6 +1,6 @@
 import { encode } from "cbor-x";
 import { bindThis } from "../../helper/bindThis.ts";
-import { FileData, FileDataEncode, normalToBase64String } from "../../util/file.ts";
+import { type FileData, FileDataEncode, normalToBase64String } from "../../util/file.ts";
 import { BasePlugin } from "../base/base.plugin.ts";
 import type { MediaOption } from "./media.type.ts";
 

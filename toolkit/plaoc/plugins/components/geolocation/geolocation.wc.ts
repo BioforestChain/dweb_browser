@@ -1,6 +1,6 @@
 import { cacheGetter } from "@dweb-browser/helper/cacheGetter.ts";
 import { geolocationPlugin } from "./geolocation.plugin.ts";
-import { $LocationOptions } from "./geolocation.type.ts";
+import type { $LocationOptions } from "./geolocation.type.ts";
 
 export class HTMLGeolocationElement extends HTMLElement {
   static readonly tagName = "dweb-geolocation";

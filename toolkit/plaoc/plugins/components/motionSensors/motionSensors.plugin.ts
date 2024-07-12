@@ -1,7 +1,7 @@
 import { bindThis } from "../../helper/bindThis.ts";
-import { $Coder } from "../../util/StateObserver.ts";
+import type { $Coder } from "../../util/StateObserver.ts";
 import { BasePlugin } from "../base/base.plugin.ts";
-import { $Axis, $MotionSensorsController } from "./motionSensors.type.ts";
+import type { $Axis, $MotionSensorsController } from "./motionSensors.type.ts";
 
 export class MotionSensorsPlugin extends BasePlugin {
   constructor() {

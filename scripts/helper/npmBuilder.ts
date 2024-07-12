@@ -147,7 +147,7 @@ const regMap = new Map<string, ReturnType<typeof $once>>();
  */
 const waitDependencies = async (packageJson: PackageJson) => {
   for (const [key, version] of Object.entries(packageJson.dependencies || {})) {
-    if (version.startsWith("workspace:")) {
+    if (typeof version === "string" && version.startsWith("workspace:")) {
       const depBuilder = regMap.get(key);
       if (!depBuilder) {
         console.warn(`❌ NO-FOUND DEPENDENCY ${key}\t---\t${packageJson.name}`);

@@ -73,12 +73,12 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
       }
     });
     tasks.push(t1.catch(console.error));
-    // @ts-ignore
+    // @ts-ignore: cookieStore
     if (typeof cookieStore === "object") {
-      // @ts-ignore
+      // @ts-ignore: cookieStore
       const t2 = cookieStore.getAll().then((cookies) => {
         for (const c of cookies) {
-          // @ts-ignore
+          // @ts-ignore: cookieStore
           cookieStore.delete(c.name);
         }
       });

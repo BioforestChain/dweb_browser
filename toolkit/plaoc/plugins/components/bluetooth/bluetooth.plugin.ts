@@ -1,7 +1,7 @@
 /// <reference path="./web-bluetooth.d.ts"/>
 import { bindThis } from "../../helper/bindThis.ts";
 import { BasePlugin } from "../base/base.plugin.ts";
-import { $AllWatchControllerItem, $BluetoothPluginListener, $ResponseData } from "./bluetooth.type.ts";
+import type { $AllWatchControllerItem, $BluetoothPluginListener, $ResponseData } from "./bluetooth.type.ts";
 
 export class BluetoothPlugin extends BasePlugin {
   private _ws: WebSocket | undefined;
@@ -12,7 +12,7 @@ export class BluetoothPlugin extends BasePlugin {
   @bindThis
   async open(): Promise<$ResponseData<undefined>> {
     const res = (await this.fetchApi("/open")).json();
-    this._watch();
+    await this._watch();
     return res;
   }
 
@@ -51,8 +51,8 @@ export class BluetoothPlugin extends BasePlugin {
 
   // 创建监听
   // bluetooth 的状态变化全部通过这个 watch 接受
-  private _watch = () => {
-    const ws = this.buildChannel("/watch");
+  private _watch = async () => {
+    const ws = await this.buildChannel("/watch");
     this._ws = ws;
     ws.onerror = (err) => {
       console.error("onerror", err);

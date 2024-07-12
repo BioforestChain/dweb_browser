@@ -1,6 +1,6 @@
 import { bindThis } from "../../helper/bindThis.ts";
-import { BaseEvent, Tkit } from "../base/base-event.ts";
-import { ConnectionStatus, ConnectionType, NetworkStatusMap } from "./network.type.ts";
+import { BaseEvent, type Tkit } from "../base/base-event.ts";
+import type { ConnectionStatus, ConnectionType, NetworkStatusMap } from "./network.type.ts";
 
 declare global {
   interface Navigator {
