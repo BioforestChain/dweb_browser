@@ -81,10 +81,13 @@ import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.desk.DesktopAppModel.DesktopAppRunStatus
+import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
@@ -96,6 +99,7 @@ import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.compose.div
 import org.dweb_browser.helper.compose.iosTween
 import org.dweb_browser.helper.randomUUID
+import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.pure.image.compose.ImageLoadResult
 import org.dweb_browser.pure.image.compose.PureImageLoader
 import org.dweb_browser.pure.image.compose.SmartLoad
@@ -118,7 +122,6 @@ fun NewDesktopView(
   val focusManager = LocalFocusManager.current
   val keyboardController = LocalSoftwareKeyboardController.current
 
-
   val toRunningApps by remember { mutableStateOf(mutableSetOf<String>()) }
 
   var textWord by remember { mutableStateOf("") }
@@ -128,6 +131,9 @@ fun NewDesktopView(
       val installApps = desktopController.getDesktopApps().map {
         val icon = it.icons.toStrict().pickLargest()
         val isSystemApp = desktopController.isSystermApp(it.mmid)
+        //TODO: 临时的处理。等待分拆weblink后再优化。
+        val isWebLink =
+          it.categories.contains(MICRO_MODULE_CATEGORY.Web_Browser) && it.mmid != "web.browser.dweb"
 
         val runStatus = if (it.running) {
           toRunningApps.remove(it.mmid)
@@ -145,6 +151,7 @@ fun NewDesktopView(
         oldApp?.copy(running = runStatus) ?: DesktopAppModel(
           it.short_name.ifEmpty { it.name },
           it.mmid,
+          if (isWebLink) DesktopAppData.WebLink(mmid = it.mmid, url = it.name) else DesktopAppData.App(mmid = it.mmid),
           icon,
           isSystemApp,
           runStatus,
@@ -183,18 +190,27 @@ fun NewDesktopView(
     val index = apps.indexOfFirst {
       it.mmid == mmid
     }
-    if (index != -1) {
-      val oldApp = apps[index]
-      if (oldApp.running == DesktopAppRunStatus.NONE) {
-        apps[index] = oldApp.copy(running = DesktopAppRunStatus.TORUNNING)
-        toRunningApps.add(mmid)
-      }
-    } else {
+
+    if (index == -1) {
       return
     }
 
-    scope.launch {
-      desktopController.open(mmid)
+    val oldApp = apps[index]
+    when (oldApp.data) {
+      is DesktopAppData.App -> {
+        if (oldApp.running == DesktopAppRunStatus.NONE) {
+          apps[index] = oldApp.copy(running = DesktopAppRunStatus.TORUNNING)
+          toRunningApps.add(mmid)
+        }
+        scope.launch {
+          desktopController.open(mmid)
+        }
+      }
+      is DesktopAppData.WebLink -> {
+        scope.launch {
+          desktopController.openWebLink(oldApp.data.url)
+        }
+      }
     }
   }
 
@@ -215,6 +231,11 @@ fun NewDesktopView(
     scope.launch {
       desktopController.uninstall(mmid)
     }
+  }
+
+  fun doDelete(mmid: String) {
+    //TODO: 后期优化
+    doUninstall(mmid)
   }
 
   fun doShare(mmid: String) {
@@ -240,34 +261,43 @@ fun NewDesktopView(
   }
 
   val blurState by animateDpAsState(
-    if (popUpApp != null) 3.dp else 0.dp,
-    animationSpec = iosTween(popUpApp != null)
+    if (popUpApp != null) 3.dp else 0.dp, animationSpec = iosTween(popUpApp != null)
   )
+
+  val channel = remember { Channel<Unit>() }
 
   BoxWithConstraints(
     modifier = Modifier.fillMaxSize().background(Color.Black).blur(blurState),
     contentAlignment = Alignment.TopStart
   ) {
 
-    desktopWallpaperView(desktopBgCircleCount(), modifier = Modifier, isTapDoAnimation = false) {
+    desktopWallpaperView(
+      desktopBgCircleCount(), modifier = Modifier, isTapDoAnimation = true, channel.receiveAsFlow()
+    ) {
       doHideKeyboard()
     }
 
     Column(horizontalAlignment = Alignment.CenterHorizontally,
-      modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeGestures)
+      modifier = Modifier.fillMaxWidth().windowInsetsPadding(WindowInsets.safeGestures)
         .padding(top = desktopTap()).clickableWithNoEffect {
           doHideKeyboard()
+          scope.launch {
+            channel.send(Unit)
+          }
         }) {
 
       desktopSearchBar(
-        textWord, Modifier.windowInsetsPadding(WindowInsets.safeGestures),
-        ::doSearch, ::doHideKeyboard
+        textWord,
+        Modifier.windowInsetsPadding(WindowInsets.safeGestures),
+        ::doSearch,
+        ::doHideKeyboard
       )
+
       val layout = desktopGridLayout()
       LazyVerticalGrid(
         columns = layout.cells,
         contentPadding = PaddingValues(layout.contentPadding),
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(layout.space),
         verticalArrangement = Arrangement.spacedBy(layout.space)
       ) {
@@ -287,46 +317,29 @@ fun NewDesktopView(
   }
 
   val iconScale by animateFloatAsState(
-    if (popUpApp != null) 1.05f else 1f,
-    animationSpec = iosTween(popUpApp != null)
+    if (popUpApp != null) 1.05f else 1f, animationSpec = iosTween(popUpApp != null)
   )
   val iconContainerAlpha by animateFloatAsState(
-    if (popUpApp != null) 0.8f else 0.2f,
-    animationSpec = iosTween(popUpApp != null)
+    if (popUpApp != null) 0.8f else 0.2f, animationSpec = iosTween(popUpApp != null)
   )
   popUpApp?.also { app ->
     BoxWithConstraints(
-      Modifier
-        .zIndex(2f)
-        .fillMaxSize()
-        .clickableWithNoEffect {
-          doHidePopUp()
-        },
-      Alignment.TopStart
+      Modifier.zIndex(2f).fillMaxSize().clickableWithNoEffect {
+        doHidePopUp()
+      }, Alignment.TopStart
     ) {
 
       DeskAppIcon(
         app,
         microModule,
         containerAlpha = iconContainerAlpha,
-        modifier = Modifier
-          .requiredSize(app.size.width.dp, app.size.height.dp)
-          .offset {
-            app.offSet.toIntOffset(1f)
-          }
-          .scale(iconScale),
+        modifier = Modifier.requiredSize(app.size.width.dp, app.size.height.dp).offset {
+          app.offSet.toIntOffset(1f)
+        }.scale(iconScale),
       )
 
       val moreAppDisplayModels by remember(app) {
-        mutableStateOf(
-          createMoreAppDisplayModels(
-            app,
-            ::doQuit,
-            ::doDetail,
-            ::doUninstall,
-            ::doShare
-          )
-        )
+        mutableStateOf(createMoreAppDisplayModels(app))
       }
 
       val itemSize = IntSize(60, 60)
@@ -348,14 +361,19 @@ fun NewDesktopView(
         )
       }
 
-      moreAppItemsDisplay(
-        moreAppDisplayModels,
-        Modifier
-          .offset { moreAppDisplayOffSet }
-          .size(moreAppDisplayMenuWidth.dp, moreAppDisplayMenuHeight.dp)
-      ) {
-        doHidePopUp()
-      }
+      moreAppItemsDisplay(moreAppDisplayModels,
+        Modifier.offset { moreAppDisplayOffSet }
+          .size(moreAppDisplayMenuWidth.dp, moreAppDisplayMenuHeight.dp),
+        dismiss = { doHidePopUp() },
+        action = { type ->
+          when (type) {
+            MoreAppModelType.OFF -> doQuit(app.mmid)
+            MoreAppModelType.DETAIL -> doDetail(app.mmid)
+            MoreAppModelType.UNINSTALL -> doUninstall(app.mmid)
+            MoreAppModelType.DELETE -> doDelete(app.mmid)
+            MoreAppModelType.SHARE -> doShare(app.mmid)
+          }
+        })
     }
   }
 }
@@ -363,7 +381,7 @@ fun NewDesktopView(
 private typealias AppItemAction = (String) -> Unit
 
 @Composable
-fun AppItem(
+private fun AppItem(
   modifier: Modifier,
   app: DesktopAppModel,
   microModule: NativeMicroModule.NativeRuntime,
@@ -374,16 +392,10 @@ fun AppItem(
     verticalArrangement = Arrangement.Center,
     horizontalAlignment = Alignment.CenterHorizontally,
   ) {
-    DeskAppIcon(
-      app,
-      microModule,
-      modifier = Modifier
-        .onGloballyPositioned {
-          app.size = it.size / density
-          app.offSet = it.positionInWindow()
-        }
-        .jump(app.running == DesktopAppRunStatus.TORUNNING)
-    )
+    DeskAppIcon(app, microModule, modifier = Modifier.onGloballyPositioned {
+      app.size = it.size / density
+      app.offSet = it.positionInWindow()
+    }.jump(app.running == DesktopAppRunStatus.TORUNNING))
     Text(
       text = app.name, maxLines = 2, overflow = TextOverflow.Ellipsis, style = TextStyle(
         color = Color.White,
@@ -434,7 +446,7 @@ fun Modifier.jump(enable: Boolean) = this.composed {
 }
 
 @Composable
-fun DeskAppIcon(
+private fun DeskAppIcon(
   app: DesktopAppModel,
   microModule: NativeMicroModule.NativeRuntime,
   containerAlpha: Float? = null,
@@ -451,16 +463,7 @@ fun DeskAppIcon(
   )
 }
 
-private data class MoreAppModel(
-  private val mmid: String,
-  val type: MoreAppModelType,
-  private val action: AppItemAction,
-  val enable: Boolean
-) {
-  fun doAction() {
-    action(mmid)
-  }
-}
+private data class MoreAppModel(val type: MoreAppModelType, val enable: Boolean)
 
 private enum class MoreAppModelType {
   OFF {
@@ -479,12 +482,19 @@ private enum class MoreAppModelType {
 
   UNINSTALL {
     override val data: MoreAppModelTypeData
-      get() = MoreAppModelTypeData(BrowserI18nResource.Desktop.delete.text, Icons.Outlined.Delete)
+      get() = MoreAppModelTypeData(
+        BrowserI18nResource.Desktop.uninstall.text, Icons.Outlined.Delete
+      )
   },
 
   SHARE {
     override val data: MoreAppModelTypeData
       get() = MoreAppModelTypeData(BrowserI18nResource.Desktop.share.text, Icons.Outlined.Share)
+  },
+
+  DELETE {
+    override val data: MoreAppModelTypeData
+      get() = MoreAppModelTypeData(BrowserI18nResource.Desktop.delete.text, Icons.Outlined.Delete)
   };
 
   data class MoreAppModelTypeData(val title: String, val icon: ImageVector)
@@ -496,25 +506,20 @@ private enum class MoreAppModelType {
 private fun moreAppItemsDisplay(
   displays: List<MoreAppModel>,
   modifier: Modifier,
-  dismiss: () -> Unit
+  action: (MoreAppModelType) -> Unit,
+  dismiss: () -> Unit,
 ) {
   Row(
-    modifier = modifier
-      .clip(RoundedCornerShape(8.dp))
-      .background(Color.White.copy(alpha = 0.5f)),
+    modifier = modifier.clip(RoundedCornerShape(8.dp)).background(Color.White.copy(alpha = 0.5f)),
     horizontalArrangement = Arrangement.SpaceBetween,
     verticalAlignment = Alignment.CenterVertically
   ) {
     displays.forEach {
       Column(
-        modifier = Modifier
-          .padding(4.dp)
-          .fillMaxSize()
-          .weight(1f)
-          .clickable(enabled = it.enable) {
-            it.doAction()
-            dismiss()
-          },
+        modifier = Modifier.padding(4.dp).fillMaxSize().weight(1f).clickable(enabled = it.enable) {
+          action(it.type)
+          dismiss()
+        },
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween
       ) {
@@ -548,30 +553,28 @@ expect fun Modifier.DesktopEventDetector(
 ): Modifier
 
 private fun createMoreAppDisplayModels(
-  app: DesktopAppModel,
-  quit: AppItemAction,
-  detail: AppItemAction,
-  uninstall: AppItemAction,
-  share: AppItemAction,
+  app: DesktopAppModel
 ): List<MoreAppModel> {
 
   val displays = mutableListOf<MoreAppModel>()
 
-  displays.add(
-    MoreAppModel(
-      app.mmid,
-      MoreAppModelType.OFF,
-      quit,
-      app.running == DesktopAppRunStatus.RUNNING
-    )
-  )
+  when (app.data) {
+    is DesktopAppData.App -> {
+      displays.add(
+        MoreAppModel(MoreAppModelType.OFF, app.running == DesktopAppRunStatus.RUNNING)
+      )
+      if (!app.isSystermApp) {
+        displays.add(MoreAppModel(MoreAppModelType.DETAIL, true))
+        displays.add(MoreAppModel(MoreAppModelType.UNINSTALL, true))
+      }
+    }
 
-  if (!app.isSystermApp) {
-    displays.add(MoreAppModel(app.mmid, MoreAppModelType.DETAIL, detail, true))
-    displays.add(MoreAppModel(app.mmid, MoreAppModelType.UNINSTALL, uninstall, true))
+    is DesktopAppData.WebLink -> {
+      displays.add(MoreAppModel(MoreAppModelType.DELETE, true))
+    }
   }
 
-  displays.add(MoreAppModel(app.mmid, MoreAppModelType.SHARE, share, false))
+  displays.add(MoreAppModel(MoreAppModelType.SHARE, false))
 
   return displays
 }
@@ -658,9 +661,16 @@ fun desktopSearchBar(
   }
 }
 
-data class DesktopAppModel(
+private sealed class DesktopAppData {
+  abstract val mmid: String
+  data class App(override val mmid: String) : DesktopAppData()
+  data class WebLink(override val mmid: String, val url: String) : DesktopAppData()
+}
+
+private data class DesktopAppModel(
   val name: String,
   val mmid: MMID,
+  val data: DesktopAppData,
   val icon: StrictImageResource?,
   val isSystermApp: Boolean,
   var running: DesktopAppRunStatus = DesktopAppRunStatus.NONE,

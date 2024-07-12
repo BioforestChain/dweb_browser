@@ -296,7 +296,7 @@ private fun TaskBarHomeIcon(click: () -> Unit) {
     scaleY = scaleValue.value
   }.aspectRatio(1.0f).padding(paddingValue.dp)) {
     desktopWallpaperView(
-      5,
+      4,
       modifier = Modifier.blur(1.dp, BlurredEdgeTreatment.Unbounded).clip(CircleShape)
         .shadow(3.dp, CircleShape)
     ) {

@@ -67,6 +67,10 @@ abstract class DesktopAppController constructor(open val deskNMM: DeskNMM.DeskRu
   suspend fun search(words: String) {
     deskNMM.nativeFetch("file://web.browser.dweb/search?q=$words")
   }
+
+  suspend fun openWebLink(url: String) {
+    deskNMM.nativeFetch("file://web.browser.dweb/openinbrowser?url=$url")
+  }
 }
 
 

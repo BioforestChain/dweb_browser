@@ -441,6 +441,11 @@ object BrowserI18nResource {
       Language.EN to "Detail"
     )
 
+    val uninstall = SimpleI18nResource(
+      Language.ZH to "卸载",
+      Language.EN to "Uninstall"
+    )
+
     val delete = SimpleI18nResource(
       Language.ZH to "删除",
       Language.EN to "Delete"

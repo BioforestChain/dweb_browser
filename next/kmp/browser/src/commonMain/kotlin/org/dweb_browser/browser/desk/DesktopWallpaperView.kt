@@ -14,7 +14,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.BoxWithConstraintsScope
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
@@ -35,7 +34,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.sample
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
@@ -46,15 +48,18 @@ import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.compose.hex
 import kotlin.math.PI
 import kotlin.math.cos
+import kotlin.math.min
 import kotlin.math.sin
 import kotlin.random.Random
 
+@OptIn(FlowPreview::class)
 @Composable
 fun desktopWallpaperView(
   circleCount: Int,
   modifier: Modifier,
   isTapDoAnimation: Boolean = true,
-  onClick: (() -> Unit)? = null
+  flow: Flow<Unit>? = null,
+  onClick: (() -> Unit)? = null,
 ) {
 
   val circles = remember {
@@ -80,6 +85,16 @@ fun desktopWallpaperView(
     circles.addAll(newCircles)
   }
 
+  LaunchedEffect(flow) {
+    flow?.let {
+      it
+        .sample(300)
+        .collect {
+          updateCircle()
+        }
+    }
+  }
+
   LaunchedEffect(Unit) {
     suspend fun observerHourChange(action: (Int) -> Unit) {
       val currentMoment: Instant = Clock.System.now()
@@ -92,7 +107,7 @@ fun desktopWallpaperView(
 // 以下为debug代码：用来查看整个壁纸动态效果。
 //    var c_hour = 0
 //    suspend fun observerHourChange(action: (Int) -> Unit) {
-//      delay(10 * 1000)
+//      delay(5 * 1000)
 //      c_hour += 1
 //      c_hour %= 24
 //      action(c_hour)
@@ -151,6 +166,7 @@ fun RotatingLinearGradientBox(hour: Int, modifier: Modifier) {
       fadeIn().togetherWith(fadeOut())
     }
   ) {
+
     Canvas(
       modifier = modifier.fillMaxSize()
     ) {
@@ -176,7 +192,7 @@ fun BoxWithConstraintsScope.DesktopBgCircle(
   val transformXValue = remember { Animatable(1f) }
   val transformYValue = remember { Animatable(1f) }
   val colorValue = remember { Animatable(Color.Transparent) }
-
+  
   fun doBubbleAnimation() {
     scope.launch {
       val scaleAnimationSpec = tween<Float>(
@@ -223,15 +239,13 @@ fun BoxWithConstraintsScope.DesktopBgCircle(
     doBubbleAnimation()
   }
 
-  val width = constraints.maxWidth
-  val height = constraints.maxHeight
+  val radius = min(constraints.maxWidth, constraints.maxHeight) * model.radius
   Box(modifier = Modifier
-    .size(width = (model.radius * width / 4).dp, height = (model.radius * width / 4).dp)
-    .aspectRatio(1.0f)
+    .size(radius.dp)
     .offset {
       Offset(
-        x = model.offset.x * width / 2,
-        y = model.offset.y * height / 2
+        x = model.offset.x * constraints.maxWidth / 2,
+        y = model.offset.y * constraints.maxHeight / 2
       )
         .toIntOffset(1F)
     }
@@ -243,8 +257,8 @@ fun BoxWithConstraintsScope.DesktopBgCircle(
     }
     .background(
       Brush.radialGradient(
-        0.0f to model.color,
-        model.blur to model.color,
+        0.0f to colorValue.value,
+        model.blur to colorValue.value,
         1.0f to Color.Transparent
       ),
       CircleShape
@@ -330,7 +344,7 @@ data class DesktopBgCircleModel(
       }
 
       val radius = {
-        0.2f + Random.nextFloat() * 0.8f
+        (0.1f + Random.nextFloat() * 0.9f) / 4.0f
       }
 
       val color = {
