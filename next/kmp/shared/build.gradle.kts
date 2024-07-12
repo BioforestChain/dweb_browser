@@ -25,6 +25,10 @@ kotlin {
       it.binaries.framework {
         baseName = "DwebShared"
         isStatic = true
+        binaryOptions = mutableMapOf(
+          "bundleId" to "org.dweb_browser.shared",
+          "bundleVersion" to "1.0.0"
+        )
       }
     }
   }
