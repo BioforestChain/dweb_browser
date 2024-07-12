@@ -28,7 +28,9 @@ watch(keychain_key, (keychain_key) => {
 // webComponent 的调用方法
 const getWb = defineLogAction(
   async () => {
-    return await keychain.get(keychain_key.value);
+    const data = await keychain.get(keychain_key.value);
+    const decoder = new TextDecoder();
+    return data && `${decoder.decode(data)} (${data.join(",")})`;
   },
   { name: "get", args: [], logPanel: $logPanel }
 );

@@ -101,8 +101,8 @@ internal fun CardHeaderTitle(
 ) {
   Text(
     text,
-    style = MaterialTheme.typography.headlineMedium,
-    maxLines = 1,
+    style = MaterialTheme.typography.headlineSmall,
+    maxLines = 2,
     overflow = TextOverflow.Ellipsis
   )
 }

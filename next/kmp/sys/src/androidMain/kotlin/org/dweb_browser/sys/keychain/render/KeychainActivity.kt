@@ -17,16 +17,20 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeGestures
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.twotone.ContactSupport
+import androidx.compose.material.icons.rounded.Cancel
 import androidx.compose.material.icons.twotone.Password
 import androidx.compose.material.icons.twotone.Pattern
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
@@ -152,6 +156,12 @@ class KeychainActivity : ComponentActivity() {
             navControllerFlow.emit(navController)
           }
           CardHeader(background = {
+            IconButton(
+              { finish() },
+              Modifier.padding(4.dp).size(32.dp).zIndex(10f).align(Alignment.TopEnd)
+            ) {
+              Icon(Icons.Rounded.Cancel, "cancel")
+            }
             background?.also {
               it(Modifier.fillMaxSize().zIndex(-1f))
             }

@@ -42,9 +42,9 @@ abstract class EncryptKey {
       params: UseKeyParams,
     ): EncryptKey {
       val secretKeyRawBytes = KeychainActivity.create(params.runtime).start(
-        title = params.title,
-        subtitle = params.subtitle,
-        description = params.description,
+        title = params.reason.title,
+        subtitle = params.reason.subtitle,
+        description = params.reason.description,
         background = {
           BoxWithConstraints(
             modifier = Modifier.fillMaxSize().clip(RectangleShape)
@@ -102,10 +102,14 @@ abstract class EncryptKey {
 data class UseKeyParams(
   val runtime: MicroModule.Runtime,
   val remoteMmid: String,
-  val title: String? = null,
-  val subtitle: String? = null,
-  val description: String? = null,
-)
+  val reason: UseKeyParams.UseKeyReason = UseKeyParams.UseKeyReason(),
+) {
+  data class UseKeyReason(
+    val title: String? = null,
+    val subtitle: String? = null,
+    val description: String? = null,
+  )
+}
 typealias RecoveryKey = suspend (params: UseKeyParams) -> EncryptKey?
 typealias GenerateKey = suspend (params: UseKeyParams) -> EncryptKey
 

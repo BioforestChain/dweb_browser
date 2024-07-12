@@ -20,7 +20,15 @@ import javax.crypto.spec.SecretKeySpec
 class EncryptKeyV1(
   val encryptEncoded: ByteArray,
   var encoded: ByteArray? = null,
+  /**
+   * 一个访问名单表
+   */
   val expiredTimeMap: MutableMap<String, Long> = mutableMapOf(),
+  /**
+   * 一个用户自定义的过期时间表
+   * TODO 实现在界面上提供给用户 “10min内始终给予授权” 的选项
+   */
+  val userAllowKeepDurationMap: MutableMap<String, Long> = mutableMapOf(),
 ) : AesEncryptKey(EncryptKeyV1.TRANSFORMATION) {
   companion object {
     const val VERSION = "v1"
@@ -56,7 +64,7 @@ class EncryptKeyV1(
       val encryptKey = EncryptKeyV1(
         rootKey.encryptData(
           params.copy(
-            title = "生成新的密钥，需要用户的授权", subtitle = "", description = ""
+            reason = UseKeyParams.UseKeyReason(title = "生成新的密钥，需要用户的授权"),
           ), secretKey.encoded
         )
       )
@@ -79,8 +87,10 @@ class EncryptKeyV1(
       // 使用根密钥，解密获得 数据密钥，
       rootKey.decryptData(params, encryptEncoded).also {
         encoded = it
-        /// 在10s的时间内，这个密钥的使用不用再询问用户
-        expiredTimeMap[params.remoteMmid] = datetimeNow() + 10000
+        userAllowKeepDurationMap[params.remoteMmid]?.also { duration ->
+          /// 在用户授权的时间内，这个密钥的使用不用再询问用户
+          expiredTimeMap[params.remoteMmid] = datetimeNow() + duration
+        }
       }
     }
     println("QAQ readCryptKey=${key.base64UrlString}")
