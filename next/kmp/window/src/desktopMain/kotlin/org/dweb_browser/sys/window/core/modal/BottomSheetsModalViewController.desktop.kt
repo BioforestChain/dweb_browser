@@ -79,7 +79,7 @@ internal class BottomSheetsModalViewController(modal: BottomSheetsModalState) :
         }
       },
       /// dialog 的布局算法会自己算上安全区域，所以这里不需要做任何的 insets 的注入
-      windowInsets = WindowInsets(0),
+      contentWindowInsets = { WindowInsets(0) },
       scrimColor = Color.Transparent,
       onDismissRequest = { emitModalVisibilityChange(EmitModalVisibilityState.TryClose) }) {
       /// 显示内容

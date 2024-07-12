@@ -226,7 +226,11 @@ internal fun BottomSheetsModalState.CommonRenderImpl(emitModalVisibilityChange: 
   }
   ModalBottomSheet(
     sheetState = sheetState,
-    modifier = Modifier.padding(top = windowInsetTop),
+    modifier = Modifier.padding(
+      // 不能使用windowInsetTop的原因是新版本defaultWindowInsets的top为0，不能使用winPadding.top的原因是winPadding值使用的是JMM窗口的winPadding
+//      top = WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding() // android
+      top = windowInsetTop, // ios
+    ),
     dragHandle = {
       TitleBarWithOnClose({
         if (emitModalVisibilityChange(EmitModalVisibilityState.TryClose)) {
@@ -238,7 +242,7 @@ internal fun BottomSheetsModalState.CommonRenderImpl(emitModalVisibilityChange: 
         BottomSheetDefaults.DragHandle(Modifier.align(Alignment.TopCenter))
       }
     },
-    windowInsets = modalWindowInsets,
+    contentWindowInsets = { modalWindowInsets },
     onDismissRequest = { emitModalVisibilityChange(EmitModalVisibilityState.TryClose) }
   ) {
     /// 显示内容

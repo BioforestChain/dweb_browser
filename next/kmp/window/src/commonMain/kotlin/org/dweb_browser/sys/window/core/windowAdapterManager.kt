@@ -101,7 +101,6 @@ class WindowAdapterManager : AdapterManager<CreateWindowAdapter>() {
     rid: String, windowRenderScope: WindowContentRenderScope, contentModifier: Modifier = Modifier,
   ) {
     val colorScheme by LocalWindowController.current.watchedState { colorScheme }
-    val theme = LocalWindowControllerTheme.current
     DwebBrowserAppTheme(colorScheme.isDarkOrNull) {
       when (val render = windowAdapterManager.rememberRender(rid)) {
         null -> {

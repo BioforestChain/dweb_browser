@@ -76,15 +76,13 @@ fun WindowController.Prepare(
     bottomBarBaseHeight = 24f,
   )
 
-  /**
-   * 窗口边距
-   */
-  val winPadding = win.calcWindowByLimits(limits)
-
   val theme = win.buildTheme();
   CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onPrimary) {
     LocalCompositionChain.current.Provider(
-      LocalWindowPadding provides winPadding,
+      /**
+       * 窗口边距
+       */
+      LocalWindowPadding provides win.calcWindowByLimits(limits),
       LocalWindowLimits provides limits,
       LocalWindowControllerTheme provides theme,
       LocalWindowController provides win,

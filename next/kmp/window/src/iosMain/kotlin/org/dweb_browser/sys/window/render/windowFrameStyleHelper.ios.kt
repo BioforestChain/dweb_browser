@@ -38,11 +38,11 @@ private fun UIView.effectWindowFrameStyle(style: WindowCommonStyle) {
     }
   }
   val scale = style.scale.toDouble()
-  val tx: Double
-  val ty: Double
-  frame.useContents {
-    tx = size.width * (scale - 1) / 2
-    ty = size.height * (scale - 1) / 2
+  val (tx, ty) = frame.useContents {
+    Pair(
+      size.width * (scale - 1) / 2,
+      size.height * (scale - 1) / 2
+    )
   }
 
   setTransform(scale, tx, ty)
