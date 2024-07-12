@@ -27,7 +27,7 @@
       android:exported="true"
       android:theme="@style/Theme.DwebBrowser.Transparent" />
     <activity
-      android:name="org.dweb_browser.sys.keychain.KeychainActivity"
+      android:name="org.dweb_browser.sys.keychain.render.KeychainActivity"
       android:exported="true"
       android:theme="@style/Theme.DwebBrowser.Transparent" />
 

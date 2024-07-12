@@ -1,4 +1,4 @@
-package org.dweb_browser.sys.keychain
+package org.dweb_browser.sys.keychain.render
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -50,7 +50,7 @@ fun RegisterPattern(
   Column(modifier) {
     CardTitle("请设置图案")
     viewModel.tipMessage?.also { tipMessage ->
-      CardTitle(
+      CardDescription(
         tipMessage.tip,
         style = if (tipMessage.isError) TextStyle(color = MaterialTheme.colorScheme.error) else null
       )
@@ -79,8 +79,8 @@ fun RegisterPattern(
 
 @Composable
 fun VerifyPattern(
-  modifier: Modifier,
   viewModel: VerifyPatternViewModel,
+  modifier: Modifier = Modifier,
 ) {
   Column(modifier) {
     CardTitle("请绘制您的图案")
@@ -244,10 +244,8 @@ interface PatternViewModelWrapper {
 
 class TipMessage(val tip: String, val isError: Boolean = false)
 class VerifyPatternViewModel(override val task: CompletableDeferred<ByteArray>) :
-  VerifyViewModelTask(), PatternViewModelWrapper {
-  override val method = KeychainMethod.Pattern
+  VerifyViewModelTask(KeychainMethod.Pattern), PatternViewModelWrapper {
   override val pattern = PatternViewModel()
-
 
   override fun keyTipCallback(keyTip: ByteArray?) {}
 
@@ -257,8 +255,7 @@ class VerifyPatternViewModel(override val task: CompletableDeferred<ByteArray>) 
 }
 
 class RegisterPatternViewModel(override val task: CompletableDeferred<ByteArray>) :
-  RegisterViewModelTask(), PatternViewModelWrapper {
-  override val method = KeychainMethod.Pattern
+  RegisterViewModelTask(KeychainMethod.Pattern), PatternViewModelWrapper {
 
   var tipMessage by mutableStateOf<TipMessage?>(null)
   var firstPassword by mutableStateOf<String?>(null)

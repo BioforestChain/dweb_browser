@@ -1,4 +1,4 @@
-package org.dweb_browser.sys.keychain
+package org.dweb_browser.sys.keychain.render
 
 import android.content.Intent
 import android.os.Build
@@ -25,13 +25,10 @@ import androidx.compose.material.icons.twotone.Password
 import androidx.compose.material.icons.twotone.Pattern
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -42,19 +39,30 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.lifecycleScope
+import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.module.startAppActivity
+import org.dweb_browser.helper.platform.theme.LocalColorful
+import org.dweb_browser.helper.platform.theme.dimens
 import org.dweb_browser.helper.randomUUID
-import org.dweb_browser.helper.trueAlso
-import org.dweb_browser.helper.utf8Binary
-import org.dweb_browser.pure.crypto.hash.jvmSha256
+import org.dweb_browser.helper.withMainContext
+import org.dweb_browser.sys.keychain.deviceKeyStore
 
 class KeychainActivity : ComponentActivity() {
   companion object {
@@ -72,23 +80,44 @@ class KeychainActivity : ComponentActivity() {
       return deferred.await()
     }
 
+    val registeredMethod
+      get() = deviceKeyStore.getItem("root-key-method")?.let { KeychainMethod.ALL[it] }
     val isRegistered
-      get() = deviceKeyStore.getItem("root-key-method")?.let { KeychainMethod.ALL[it] } != null
+      get() = registeredMethod != null
   }
 
-  private var startMode by mutableStateOf<Pair<KeychainMode, CompletableDeferred<ByteArray>>?>(null)
 
-  suspend fun start(): ByteArray {
-    val task = CompletableDeferred<ByteArray>()
-    if (isRegistered) {
-      startMode = KeychainMode.Verify to task
-    } else {
-      startMode = KeychainMode.Register to task
+  private val viewModelTask = CompletableDeferred<ByteArray>()
+
+  override fun onDestroy() {
+    super.onDestroy()
+    viewModelTask.completeExceptionally(CancellationException("User cancel"))
+  }
+
+  suspend fun start(): ByteArray = withMainContext {/// nav 相关的操作需要在主线程
+    println("QAQ KeychainActivity start")
+    val nav = navControllerFlow.first()
+    val route = when (val method = registeredMethod) {
+      null -> KeychainMode.Register.mode
+      else -> "${KeychainMode.Verify.mode}/${method.method}"
     }
-    return task.await().also { finish() }
+    nav.navigate(route) {
+      popUpTo("init") { inclusive = true }
+    }
+
+    viewModelTask.await().also {
+      lifecycleScope.launch {
+        nav.navigate("done") {
+          popUpTo("init") { inclusive = true }
+        }
+        delay(600)
+        finish()
+      }
+    }
   }
 
-  @OptIn(ExperimentalMaterial3Api::class)
+  private val navControllerFlow = MutableSharedFlow<NavController>(replay = 1)
+
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     intent.getStringExtra("uid")?.also {
@@ -97,24 +126,13 @@ class KeychainActivity : ComponentActivity() {
     setContent {
       Box(Modifier.fillMaxSize().padding(WindowInsets.safeGestures.asPaddingValues())) {
         ElevatedCard(
-          elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+          elevation = CardDefaults.cardElevation(defaultElevation = MaterialTheme.dimens.small),
           modifier = Modifier.padding(24.dp).align(Alignment.BottomCenter),
         ) {
           val navController = rememberNavController()
-          var modeTask by remember { mutableStateOf<CompletableDeferred<ByteArray>?>(null); }
-          LaunchedEffect(startMode) {
-            startMode?.also { (mode, task) ->
-              navController.navigate(mode.mode)
-              modeTask?.completeExceptionally(CancellationException())
-              modeTask = task
-            }
+          LaunchedEffect(navController) {
+            navControllerFlow.emit(navController)
           }
-          DisposableEffect(modeTask) {
-            onDispose {
-              modeTask?.completeExceptionally(CancellationException())
-            }
-          }
-
           Column(Modifier.padding(16.dp).animateContentSize()) {
             NavHost(navController, "init") {
               composable("init") {
@@ -127,7 +145,22 @@ class KeychainActivity : ComponentActivity() {
               composable("register") {
                 Column {
                   CardTitle("在${Build.BRAND}(power by Android) 设备上使用钥匙串管理，需要为您的设备初始化一个根密码，从而保护您的数据安全。")
-                  CardSubTitle("请选择一种生成根密码的方式")
+                  CardSubTitle(
+                    buildAnnotatedString {
+                      val parts =
+                        "⚠️ 注意：根密码不会上传到任何服务器，假如您忘记了根密码，保存在设备里的密码都将无法恢复，请务必保存好您的密码".split(
+                          "根密码"
+                        ).toMutableList()
+                      append(parts.removeFirst())
+                      parts.forEach { s ->
+                        withStyle(SpanStyle(textDecoration = TextDecoration.Underline)) {
+                          append("根密码")
+                        }
+                        append(s)
+                      }
+                    }, style = TextStyle(color = LocalColorful.current.DeepOrange.current)
+                  )
+                  CardSubTitle("请选择一种生成根密码的方式：")
                   var registerMethod by remember { mutableStateOf(KeychainMethod.Password) }
                   Column(Modifier.selectableGroup()) {
                     KeychainMethod.entries.forEach { method ->
@@ -163,22 +196,31 @@ class KeychainActivity : ComponentActivity() {
                 }
               }
               composable("register/${KeychainMethod.Password.method}") {
-                modeTask?.also { modeTask ->
-                  val viewModel = remember(modeTask) { RegisterPasswordViewModel(modeTask) }
-                  RegisterPassword(viewModel)
-                }
+                val viewModel = remember { RegisterPasswordViewModel(viewModelTask) }
+                RegisterPassword(viewModel)
               }
               composable("register/${KeychainMethod.Pattern.method}") {
-                modeTask?.also { modeTask ->
-                  val viewModel = remember(modeTask) { RegisterPatternViewModel(modeTask) }
-                  RegisterPattern(viewModel)
-                }
+                val viewModel = remember { RegisterPatternViewModel(viewModelTask) }
+                RegisterPattern(viewModel)
               }
               composable("register/${KeychainMethod.Question.method}") {
-                modeTask?.also { modeTask ->
-                  val viewModel = remember(modeTask) { RegisterQuestionViewModel(modeTask) }
-                  RegisterQuestion(viewModel)
-                }
+                val viewModel = remember { RegisterQuestionViewModel(viewModelTask) }
+                RegisterQuestion(viewModel)
+              }
+              composable("verify/${KeychainMethod.Password.method}") {
+                val viewModel = remember { VerifyPasswordViewModel(viewModelTask) }
+                VerifyPassword(viewModel)
+              }
+              composable("verify/${KeychainMethod.Pattern.method}") {
+                val viewModel = remember { VerifyPatternViewModel(viewModelTask) }
+                VerifyPattern(viewModel)
+              }
+              composable("verify/${KeychainMethod.Question.method}") {
+                val viewModel = remember { VerifyQuestionViewModel(viewModelTask) }
+                VerifyQuestion(viewModel)
+              }
+              composable("done") {
+                KeychainVerified(Modifier.fillMaxWidth(), 128.dp)
               }
             }
           }
@@ -186,7 +228,6 @@ class KeychainActivity : ComponentActivity() {
       }
     }
   }
-
 }
 
 enum class KeychainMode(val mode: String) {
@@ -204,74 +245,4 @@ enum class KeychainMethod(val method: String, val label: String, val icon: Image
   companion object {
     val ALL = entries.associateBy { it.method }
   }
-}
-
-
-sealed interface ViewModelTask {
-  val method: KeychainMethod
-  val task: CompletableDeferred<ByteArray>
-  fun finish(): Boolean
-}
-
-abstract class RegisterViewModelTask : ViewModelTask {
-  protected abstract fun doFinish(keyTipCallback: (ByteArray) -> Unit): ByteArray
-  override fun finish(): Boolean {
-    if (task.isCompleted) {
-      return true
-    }
-    deviceKeyStore.setItem("root-key-method", method.method)
-    val keyRawData = doFinish { keyTip ->
-      deviceKeyStore.setRawItem("root-key-tip".utf8Binary, keyTip)
-    }
-    deviceKeyStore.setRawItem("root-key-verify".utf8Binary, jvmSha256(keyRawData))
-    task.complete(keyRawData)
-    return true
-  }
-}
-
-abstract class VerifyViewModelTask : ViewModelTask {
-  abstract fun keyTipCallback(keyTip: ByteArray?)
-
-  private val keyVerify = deviceKeyStore.getRawItem("root-key-verify".utf8Binary)
-    ?: throw Exception("no found root-key verify")
-
-  init {
-    deviceKeyStore.getItem("root-key-method").also { m ->
-      if (m != method.method) {
-        throw Exception("invalid root-key method, expect=${method.method} actual=$m")
-      }
-    }
-    deviceKeyStore.getRawItem("root-key-tip".utf8Binary).also {
-      keyTipCallback(it)
-    }
-  }
-
-  protected abstract fun doFinish(): ByteArray
-  override fun finish(): Boolean {
-    if (task.isCompleted) {
-      return true
-    }
-    val keyRawData = doFinish()
-    return jvmSha256(keyRawData).contentEquals(keyVerify).trueAlso {
-      task.complete(keyRawData)
-    }
-  }
-}
-
-@Composable
-internal fun CardTitle(text: String, modifier: Modifier = Modifier, style: TextStyle? = null) {
-  Text(
-    text,
-    style = MaterialTheme.typography.titleMedium.merge(style),
-    modifier = modifier.padding(bottom = 8.dp)
-  )
-}
-
-@Composable
-internal fun CardSubTitle(text: String, modifier: Modifier = Modifier, style: TextStyle? = null) {
-  Text(
-    text,
-    style = MaterialTheme.typography.labelMedium.merge(style),
-    modifier = modifier.padding(bottom = 8.dp)
-  )
 }

@@ -14,6 +14,7 @@ import org.dweb_browser.helper.base64UrlString
 import org.dweb_browser.helper.utf8Binary
 import org.dweb_browser.sys.biometrics.BiometricsActivity
 import org.dweb_browser.sys.biometrics.BiometricsI18nResource
+import org.dweb_browser.sys.keychain.render.KeychainActivity
 import javax.crypto.Cipher
 import javax.crypto.SecretKey
 import javax.crypto.SecretKeyFactory

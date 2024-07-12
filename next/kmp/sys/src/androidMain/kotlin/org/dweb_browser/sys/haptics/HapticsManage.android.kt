@@ -5,27 +5,26 @@ import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import org.dweb_browser.helper.getAppContextUnsafe
 
-actual class VibrateManage actual constructor() {
-
-  private var mVibrate: Vibrator
-  private val context = getAppContextUnsafe()
-
-  init {
-    mVibrate = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+object AndroidVibrate {
+  val mVibrate: Vibrator by lazy {
+    val context = getAppContextUnsafe()
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
       val vm =
         context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
       vm.defaultVibrator
     } else {
-      getDeprecatedVibrator(context)
+      context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
     }
   }
+}
 
-  @SuppressWarnings("deprecation")
-  private fun getDeprecatedVibrator(context: Context): Vibrator {
-    return context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-  }
+actual class VibrateManage actual constructor() {
+  internal val mVibrate get() = AndroidVibrate.mVibrate
 
   @SuppressWarnings("deprecation")
   private fun vibratePre26(duration: Long) {
@@ -59,22 +58,14 @@ actual class VibrateManage actual constructor() {
    * 触碰轻质量物体
    */
   actual fun impact(type: HapticsImpactType) {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-      mVibrate.vibrate(VibrationEffect.createWaveform(type.timings, type.amplitudes, -1))
-    } else {
-      vibratePre26(type.oldSDKPattern, -1)
-    }
+    mVibrate.vibrate(VibrationEffect.createWaveform(type.timings, type.amplitudes, -1))
   }
 
   /**
    * 警告分隔的振动通知
    */
   actual fun notification(type: HapticsNotificationType) {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-      mVibrate.vibrate(VibrationEffect.createWaveform(type.timings, type.amplitudes, -1))
-    } else {
-      vibratePre26(type.oldSDKPattern, -1)
-    }
+    mVibrate.vibrate(VibrationEffect.createWaveform(type.timings, type.amplitudes, -1))
   }
 
   /**
@@ -128,4 +119,11 @@ actual class VibrateManage actual constructor() {
       vibratePre26(VibrateType.TICK.oldSDKPattern, -1)
     }
   }
+}
+
+fun Modifier.vibrate(effect: VibrationEffect) = pointerInput(Unit) {
+  val vm = VibrateManage()
+  detectTapGestures(onPress = {
+    vm.mVibrate.vibrate(effect)
+  })
 }
