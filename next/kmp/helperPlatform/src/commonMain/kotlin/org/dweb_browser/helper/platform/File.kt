@@ -33,7 +33,8 @@ data class MultiPartFile(
 enum class MultipartFileType {
   Desc,
   Data,
-  End
+  End,
+  Close
 }
 
 @Serializable

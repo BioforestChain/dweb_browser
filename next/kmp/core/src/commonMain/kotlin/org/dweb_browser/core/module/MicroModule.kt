@@ -191,7 +191,7 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
     /**
      * 内部程序与外部程序通讯的方法
      */
-    private val ipcConnectedProducer = Producer<IpcConnectArgs>("ipcConnect", mmScope);
+    protected val ipcConnectedProducer = Producer<IpcConnectArgs>("ipcConnect", mmScope);
 
     /**
      * 给内部程序自己使用的 onConnect，外部与内部建立连接时使用

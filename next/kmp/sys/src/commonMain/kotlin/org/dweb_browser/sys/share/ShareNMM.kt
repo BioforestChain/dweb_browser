@@ -114,8 +114,11 @@ class ShareNMM : NativeMicroModule("share.sys.dweb", "share") {
                       fieldWritePathMap[packet.fieldIndex]?.also { writePath ->
                         val realPath = realPath(writePath)
                         fileList.add("file://$realPath")
-                        channel.close()
                       }
+                    }
+
+                    MultipartFileType.Close -> {
+                      channel.close()
                     }
                   }
                 }
@@ -162,7 +165,8 @@ class ShareNMM : NativeMicroModule("share.sys.dweb", "share") {
         },
       ).cors()
 
-      onConnect.listen { connectEvent ->
+      // 无法多次使用 onConnect 进行多次 listen，因此改用ipcConnectedProducer.consumer("for-share")
+      ipcConnectedProducer.consumer("for-share").listen { connectEvent ->
         val (ipc) = connectEvent.consume()
         ipc.onEvent("shareLocalFile").collectIn(mmScope) { event ->
           event.consumeFilter { ipcEvent ->

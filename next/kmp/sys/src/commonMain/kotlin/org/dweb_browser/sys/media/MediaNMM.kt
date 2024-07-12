@@ -97,9 +97,12 @@ class MediaNMM : NativeMicroModule("media.file.sys.dweb", "system media") {
                       val packet =
                         Cbor.decodeFromByteArray<MultipartFieldEnd>(multipartFilePackage.chunk)
                       fieldMediaMap[packet.fieldIndex]?.also {
-                        channel.close()
                         it.savePicture()
                       }
+                    }
+
+                    MultipartFileType.Close -> {
+                      channel.close()
                     }
                   }
                 }

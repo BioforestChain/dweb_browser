@@ -11,7 +11,7 @@ fun bytesToLittleEndianInt(b0: Byte, b1: Byte, b2: Byte, b3: Byte): Int {
 }
 
 fun ByteArray.toLittleEndianInt(): Int {
-  if (this.size != 4) {
+  if (this.size == 4) {
     return bytesToLittleEndianInt(this[0], this[1], this[2], this[3])
   }
 

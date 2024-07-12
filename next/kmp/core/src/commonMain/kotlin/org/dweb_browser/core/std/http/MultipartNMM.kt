@@ -3,6 +3,7 @@ package org.dweb_browser.core.std.http
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.cbor.Cbor
@@ -17,6 +18,7 @@ import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.helper.consumeEachArrayRange
 import org.dweb_browser.helper.defaultAsyncExceptionHandler
+import org.dweb_browser.helper.globalIoScope
 import org.dweb_browser.helper.platform.MultipartFieldData
 import org.dweb_browser.helper.platform.MultipartFieldDescription
 import org.dweb_browser.helper.platform.MultipartFieldEnd
@@ -36,7 +38,8 @@ class MultipartNMM : NativeMicroModule("multipart.http.std.dweb", "multipart/for
           code = HttpStatusCode.BadRequest, message = "boundary parser failed"
         )
         val deferred = CompletableDeferred<Int>()
-        val context = CoroutineName("MultipartConsumer") + defaultAsyncExceptionHandler
+        val context =
+          CoroutineName("MultipartConsumer") + defaultAsyncExceptionHandler + globalIoScope.coroutineContext
         val multipartEachArrayRangeCallback = object : MultipartConsumer {
           override fun onOpen(id: Int) {
             deferred.complete(id)
@@ -85,20 +88,21 @@ class MultipartNMM : NativeMicroModule("multipart.http.std.dweb", "multipart/for
 
           override fun onClose(id: Int) {
             runBlocking(context) {
+              emit(MultipartFilePackage(MultipartFileType.Close, ByteArray(0)))
               end()
             }
           }
         }
 
-        scopeLaunch(cancelable = false) {
+        globalIoScope.launch {
           processMultipartOpen(boundary, multipartEachArrayRangeCallback)
         }
         val id = deferred.await()
 
-        scopeLaunch(cancelable = true) {
+        globalIoScope.launch {
           request.body.toPureStream().getReader("multipart/form-data")
-            .consumeEachArrayRange { byteArray, last ->
-              if (!(last && byteArray.isEmpty())) {
+            .consumeEachArrayRange { byteArray, _ ->
+              if (byteArray.isNotEmpty()) {
                 processMultipartWrite(id, byteArray)
               }
             }
