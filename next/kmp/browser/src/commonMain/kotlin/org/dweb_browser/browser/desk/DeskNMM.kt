@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import org.dweb_browser.browser.BrowserI18nResource
+import org.dweb_browser.browser.web.data.WebLinkManifest
 import org.dweb_browser.browser.web.debugBrowser
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
@@ -109,7 +110,6 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       }
     }
 
-
     private suspend fun listenApps() = scopeLaunch(cancelable = true) {
       suspend fun doObserve(urlPath: String, cb: suspend ChangeState<MMID>.() -> Unit) {
         val response = channelRequest(urlPath) {
@@ -128,7 +128,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         debugDesk("doObserve error", response.status)
       }
       // app排序
-      val appSortList = DaskSortStore(this@DeskRuntime)
+      val appSortList = DeskSortStore(this@DeskRuntime)
       launch {
         doObserve("file://dns.std.dweb/observe/install-apps") {
           runningApps.emitChangeBackground(adds, updates, removes)
@@ -370,6 +370,8 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         }
       ).cors()
 
+      createBrowserRoutes(desktopController) // 专门给Browser调用的NMM
+
       onActivity {
         startDesktopView(deskSessionId)
       }
@@ -414,6 +416,31 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         }
         serverIpc.postResponse(ipcServerRequest.reqId, pureResponse)
       }
+  }
+
+  /**
+   * 增加一个专门给 web.browser.dweb 调用的 rooter
+   */
+  private suspend fun NativeRuntime.createBrowserRoutes(desktopController: DesktopController) {
+    desktopController.loadWebLinks() // 加载存储的数据
+    routes(
+      /**
+       * 添加桌面快捷方式
+       */
+      "/addWebLink" bind PureMethod.POST by defineBooleanResponse {
+        debugDesk("addWebLink", "called")
+        val webLinkManifest = Json.decodeFromString<WebLinkManifest>(request.body.toPureString())
+        debugDesk("addWebLink", "webLinkManifest=$webLinkManifest")
+        desktopController.createWebLink(webLinkManifest)
+      },
+      "/removeWebLink" bind PureMethod.GET by defineBooleanResponse {
+        val mmid = request.queryOrNull("app_id") ?: throw ResponseException(
+          HttpStatusCode.BadRequest, "not found app_id"
+        )
+        debugDesk("removeWebLink", "called => mmid=$mmid")
+        desktopController.removeWebLink(mmid)
+      },
+    ).protected(setOf("web.browser.dweb", "desk.browser.dweb"))
   }
 
   override fun createRuntime(bootstrapContext: BootstrapContext) = DeskRuntime(bootstrapContext)

@@ -4,20 +4,27 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.dweb_browser.browser.web.data.AppBrowserTarget
 import org.dweb_browser.browser.web.data.BrowserStore
 import org.dweb_browser.browser.web.data.WebLinkManifest
 import org.dweb_browser.browser.web.data.WebLinkStore
 import org.dweb_browser.browser.web.data.WebSiteInfo
 import org.dweb_browser.browser.web.model.BrowserViewModel
+import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.dwebview.WebDownloadArgs
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.UUID
+import org.dweb_browser.helper.encodeURIComponent
 import org.dweb_browser.helper.platform.IPureViewController
 import org.dweb_browser.helper.platform.PureViewControllerPlatform
 import org.dweb_browser.helper.platform.platform
+import org.dweb_browser.pure.http.IPureBody
+import org.dweb_browser.pure.http.PureClientRequest
+import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.sys.toast.ToastPositionType
 import org.dweb_browser.sys.toast.ext.showToast
 import org.dweb_browser.sys.window.core.WindowController
@@ -38,9 +45,6 @@ class BrowserController(
   val downloadController = BrowserDownloadController(browserNMM, this)
   val viewModel = BrowserViewModel(this, browserNMM)
   private val browserStore = BrowserStore(browserNMM)
-
-  private val addWebLinkSignal = Signal<WebLinkManifest>()
-  val onWebLinkAdded = addWebLinkSignal.toListener()
 
   private var winLock = Mutex(false)
 
@@ -126,23 +130,39 @@ class BrowserController(
   }
 
   /**
+   * 将webLink迁移到desk，迁移完成后，本身数据进行删除
+   */
+  suspend fun loadWebLinkApps() {
+    webLinkStore.getAll().map { (_, webLinkManifest) ->
+      addUrlToDesktop(webLinkManifest)
+    }
+    webLinkStore.clear()
+  }
+
+  /**
    * 浏览器添加webLink到桌面
    */
   suspend fun addUrlToDesktop(title: String, url: String, icon: String): Boolean {
     val linkId = WebLinkManifest.createLinkId(url)
-    val webLinkManifest =
-      WebLinkManifest(id = linkId, title = title, url = url, icons = listOf(ImageResource(icon)))
-    // 先判断是否存在，如果存在就不重复执行
-    val manifest = webLinkStore.get(linkId)
-    return manifest?.let {
-      if (it.icons.isEmpty() || it.icons.first().src != icon) { // 如果图标有不一致，使用新图标
-        addWebLinkSignal.emit(webLinkManifest)
-      }
-      false
-    } ?: run {
-      addWebLinkSignal.emit(webLinkManifest)
-      true
-    }
+    val webLinkManifest = WebLinkManifest(
+      id = linkId,
+      title = title,
+      url = "dweb://openinbrowser?url=${url.encodeURIComponent()}",
+      icons = listOf(ImageResource(icon))
+    )
+
+    return addUrlToDesktop(webLinkManifest)
+  }
+
+  suspend fun addUrlToDesktop(webLinkManifest: WebLinkManifest): Boolean {
+    // TODO 直接调用 DesktopNMM 进行存储管理等
+    return browserNMM.nativeFetch(
+      PureClientRequest(
+        href = "file://desk.browser.dweb/addWebLink",
+        method = PureMethod.POST,
+        body = IPureBody.from(Json.encodeToString(webLinkManifest).toByteArray())
+      )
+    ).boolean()
   }
 
   suspend fun saveStringToStore(key: String, data: String) = browserStore.saveString(key, data)
@@ -154,7 +174,8 @@ class BrowserController(
   suspend fun openDownloadDialog(args: WebDownloadArgs) =
     downloadController.openDownloadDialog(args)
 
-  fun showToastMessage(message: String, position: ToastPositionType? = null) = lifecycleScope.launch {
-    browserNMM.showToast(message = message, position = position)
-  }
+  fun showToastMessage(message: String, position: ToastPositionType? = null) =
+    lifecycleScope.launch {
+      browserNMM.showToast(message = message, position = position)
+    }
 }

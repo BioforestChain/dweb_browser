@@ -42,4 +42,5 @@ class WebLinkStore(microModule: MicroModule.Runtime) {
   suspend fun delete(key: MMID): Boolean {
     return store.delete(key)
   }
+  suspend fun clear() = store.clear()
 }

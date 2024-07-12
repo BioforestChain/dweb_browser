@@ -50,7 +50,7 @@ class BrowserNMM : NativeMicroModule("web.browser.dweb", "Web Browser") {
     val browserController = BrowserController(this)
     override suspend fun _bootstrap() {
       // 由于 WebView创建需要在主线程，所以这边做了 withContext 操作
-      loadWebLinkApps(browserController)
+      browserController.loadWebLinkApps()
 
       onRenderer {
         browserController.renderBrowserWindow(wid)
@@ -71,36 +71,12 @@ class BrowserNMM : NativeMicroModule("web.browser.dweb", "Web Browser") {
         browserController.tryOpenBrowserPage(url = url, target = AppBrowserTarget.SELF)
         true
       }
-      routes("search" bindDwebDeeplink searchBrowser,
+      routes(
+        "search" bindDwebDeeplink searchBrowser,
         "/search" bind PureMethod.GET by searchBrowser,
         "openinbrowser" bindDwebDeeplink openBrowser,
-        "/openinbrowser" bind PureMethod.GET by openBrowser,
-        "/uninstall" bind PureMethod.GET by defineBooleanResponse {
-          debugBrowser("do uninstall", request.href)
-          val mmid = request.query("app_id")
-          bootstrapContext.dns.uninstall(mmid) && webLinkStore.delete(mmid)
-        })
-    }
-
-    /**
-     * 用来加载WebLink数据的，并且监听是否添加到桌面操作
-     */
-    private suspend fun loadWebLinkApps(
-      browserController: BrowserController,
-    ) {
-      val webLinkStore = browserController.webLinkStore
-      webLinkStore.getAll().map { (_, webLinkManifest) ->
-        bootstrapContext.dns.install(WebLinkMicroModule(webLinkManifest))
-      }
-      browserController.onWebLinkAdded { webLinkManifest -> // 监听是否添加到桌面操作
-        // TODO 先存储，再注入到dns
-        webLinkStore.delete(webLinkManifest.id)
-        webLinkStore.set(webLinkManifest.id, webLinkManifest)
-        bootstrapContext.dns.query(webLinkManifest.id)?.let {
-          bootstrapContext.dns.uninstall(webLinkManifest.id)
-        }
-        bootstrapContext.dns.install(WebLinkMicroModule(webLinkManifest))
-      }
+        "/openinbrowser" bind PureMethod.GET by openBrowser
+      )
     }
 
     override suspend fun _shutdown() {

@@ -2,7 +2,6 @@ package org.dweb_browser.browser.desk
 
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.safeContent
-import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
@@ -30,8 +29,9 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.browser.common.createDwebView
 import org.dweb_browser.browser.desk.types.DeskAppMetaData
-import org.dweb_browser.browser.desk.upgrade.NewVersionController
 import org.dweb_browser.browser.desk.upgrade.NewVersionItem
+import org.dweb_browser.browser.web.WebLinkMicroModule
+import org.dweb_browser.browser.web.data.WebLinkManifest
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.std.dns.nativeFetch
@@ -40,12 +40,12 @@ import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.ChangeableMap
-import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
 import org.dweb_browser.helper.OffListener
 import org.dweb_browser.helper.SafeHashSet
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.build
 import org.dweb_browser.helper.collectIn
+import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
 import org.dweb_browser.helper.compose.envSwitch
 import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.helper.platform.IPureViewController
@@ -76,11 +76,34 @@ abstract class DesktopAppController constructor(open val deskNMM: DeskNMM.DeskRu
 
 @Stable
 open class DesktopController private constructor(
-  override val deskNMM: DeskNMM.DeskRuntime,
+  final override val deskNMM: DeskNMM.DeskRuntime,
   private val desktopServer: HttpDwebServer,
   private val runningApps: ChangeableMap<MMID, RunningApp>,
-): DesktopAppController(deskNMM) {
-  val newVersionController = NewVersionController(deskNMM, this)
+) : DesktopAppController(deskNMM) {
+  // val newVersionController = NewVersionController(deskNMM, this)
+  // 针对 WebLink 的管理部分 begin
+  private val webLinkStore = WebLinkStore(deskNMM)
+  suspend fun loadWebLinks() {
+    webLinkStore.getAll().map { (_, webLinkManifest) ->
+      deskNMM.bootstrapContext.dns.install(WebLinkMicroModule(webLinkManifest))
+    }
+  }
+
+  suspend fun createWebLink(webLinkManifest: WebLinkManifest): Boolean {
+    deskNMM.bootstrapContext.dns.query(webLinkManifest.id)?.let { lastWebLink ->
+      deskNMM.bootstrapContext.dns.uninstall(lastWebLink.id)
+    }
+    webLinkStore.set(webLinkManifest.id, webLinkManifest)
+    deskNMM.bootstrapContext.dns.install(WebLinkMicroModule(webLinkManifest))
+    return true
+  }
+
+  suspend fun removeWebLink(id: MMID): Boolean {
+    deskNMM.bootstrapContext.dns.uninstall(id)
+    webLinkStore.delete(id)
+    return true
+  }
+  // 针对 WebLink 的管理部分 end
 
   @OptIn(ExperimentalCoroutinesApi::class)
   var activity: IPureViewController? = null
@@ -208,9 +231,10 @@ open class DesktopController private constructor(
     // TODO: 分享
   }
 
-  suspend fun isSystermApp(mmid: String) = !deskNMM.nativeFetch("file://jmm.browser.dweb/isInstalled?app_id=$mmid").boolean()
+  suspend fun isSystemApp(mmid: String) =
+    !deskNMM.nativeFetch("file://jmm.browser.dweb/isInstalled?app_id=$mmid").boolean()
 
-  private val appSortList = DaskSortStore(deskNMM)
+  private val appSortList = DeskSortStore(deskNMM)
   suspend fun getDesktopApps(): List<DeskAppMetaData> {
     val apps =
       deskNMM.bootstrapContext.dns.search(MICRO_MODULE_CATEGORY.Application).toMutableList()

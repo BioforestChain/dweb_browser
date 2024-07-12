@@ -130,7 +130,7 @@ fun NewDesktopView(
     scope.launch {
       val installApps = desktopController.getDesktopApps().map {
         val icon = it.icons.toStrict().pickLargest()
-        val isSystemApp = desktopController.isSystermApp(it.mmid)
+        val isSystemApp = desktopController.isSystemApp(it.mmid)
         //TODO: 临时的处理。等待分拆weblink后再优化。
         val isWebLink =
           it.categories.contains(MICRO_MODULE_CATEGORY.Web_Browser) && it.mmid != "web.browser.dweb"
