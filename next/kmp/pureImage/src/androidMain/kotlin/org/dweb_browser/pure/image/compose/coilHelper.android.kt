@@ -6,6 +6,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.core.graphics.drawable.toBitmap
 import coil3.Image
 import coil3.annotation.ExperimentalCoilApi
+import coil3.asDrawable
 
 @OptIn(ExperimentalCoilApi::class)
 actual fun Image.toImageBitmap(): ImageBitmap {
