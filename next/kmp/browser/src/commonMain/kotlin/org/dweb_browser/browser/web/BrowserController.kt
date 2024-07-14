@@ -160,7 +160,7 @@ class BrowserController(
       PureClientRequest(
         href = "file://desk.browser.dweb/addWebLink",
         method = PureMethod.POST,
-        body = IPureBody.from(Json.encodeToString(webLinkManifest).toByteArray())
+        body = IPureBody.from(Json.encodeToString(webLinkManifest))
       )
     ).boolean()
   }
