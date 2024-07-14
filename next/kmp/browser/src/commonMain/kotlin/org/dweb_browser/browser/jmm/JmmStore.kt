@@ -216,7 +216,7 @@ enum class JmmTabs(
 ) {
   NoInstall(
     index = 0,
-    title = BrowserI18nResource.JMM.history_tab_uninstalled,
+    title = JmmI18nResource.history_tab_uninstalled,
     vector = Icons.Default.DeleteForever,
     listFilter = { list ->
       list.filter { it.state.state != JmmStatus.INSTALLED }.sortedBy { it.upgradeTime }
@@ -224,7 +224,7 @@ enum class JmmTabs(
   ),
   Installed(
     index = 1,
-    title = BrowserI18nResource.JMM.history_tab_installed,
+    title = JmmI18nResource.history_tab_installed,
     vector = Icons.Default.InstallMobile,
     listFilter = { list ->
       list.filter { it.state.state == JmmStatus.INSTALLED }.sortedBy { it.installTime }

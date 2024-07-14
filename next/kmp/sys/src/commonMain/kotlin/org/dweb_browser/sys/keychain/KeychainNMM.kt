@@ -12,6 +12,11 @@ import org.dweb_browser.helper.base64Binary
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.helper.utf8Binary
 import org.dweb_browser.pure.http.PureMethod
+import org.dweb_browser.sys.keychain.render.Render
+import org.dweb_browser.sys.window.core.helper.setStateFromManifest
+import org.dweb_browser.sys.window.core.windowAdapterManager
+import org.dweb_browser.sys.window.ext.getMainWindow
+import org.dweb_browser.sys.window.ext.onRenderer
 
 val debugKeychain = Debugger("keychain")
 
@@ -20,7 +25,11 @@ class KeychainNMM : NativeMicroModule("keychain.sys.dweb", KeychainI18nResource.
   init {
     short_name = KeychainI18nResource.short_name.text
     categories =
-      listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Device_Management_Service)
+      listOf(
+        MICRO_MODULE_CATEGORY.Application,
+        MICRO_MODULE_CATEGORY.Service,
+        MICRO_MODULE_CATEGORY.Device_Management_Service,
+      )
     icons =
       listOf(ImageResource(src = "file:///sys/browser-icons/$mmid.svg", type = "image/svg+xml"))
   }
@@ -33,6 +42,9 @@ class KeychainNMM : NativeMicroModule("keychain.sys.dweb", KeychainI18nResource.
           keyChainStore.getItem(ipc.remote.mmid, request.query("key")) ?: throwException(
             HttpStatusCode.NotFound
           )
+        },
+        "/keys" bind PureMethod.GET by defineJsonResponse {
+          keyChainStore.keys(ipc.remote.mmid).toJsonElement()
         },
         "/has" bind PureMethod.GET by defineBooleanResponse {
           keyChainStore.hasItem(ipc.remote.mmid, request.query("key"))
@@ -60,7 +72,19 @@ class KeychainNMM : NativeMicroModule("keychain.sys.dweb", KeychainI18nResource.
           keyChainStore.keys(ipc.remote.mmid).toJsonElement()
         },
       ).cors()
+
+
+      onRenderer {
+        getMainWindow().apply {
+          setStateFromManifest(manifest)
+          windowAdapterManager.provideRender(id) { modifier ->
+            keychainManager.Render(modifier, this)
+          }
+        }
+      }
     }
+
+    private val keychainManager = KeychainManager(this, keyChainStore)
 
     override suspend fun _shutdown() {
 

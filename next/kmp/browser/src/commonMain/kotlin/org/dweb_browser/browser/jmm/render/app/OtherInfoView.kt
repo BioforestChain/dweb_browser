@@ -25,6 +25,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import org.dweb_browser.browser.BrowserI18nResource
+import org.dweb_browser.browser.jmm.JmmI18nResource
 import org.dweb_browser.browser.jmm.LocalJmmDetailController
 import org.dweb_browser.browser.jmm.render.HorizontalPadding
 import org.dweb_browser.browser.jmm.render.VerticalPadding
@@ -45,7 +46,7 @@ internal fun OtherInfoView(
 ) {
   Column(modifier = modifier.padding(horizontal = HorizontalPadding, vertical = VerticalPadding)) {
     Text(
-      text = BrowserI18nResource.JMM.tab_param(),
+      text = JmmI18nResource.tab_param(),
       style = MaterialTheme.typography.titleMedium,
     )
     Spacer(Modifier.size(16.dp))
@@ -54,7 +55,7 @@ internal fun OtherInfoView(
       verticalAlignment = Alignment.CenterVertically,
       horizontalArrangement = Arrangement.SpaceBetween,
     ) {
-      Label(BrowserI18nResource.JMM.install_mmid())
+      Label(JmmI18nResource.install_mmid())
 
       Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -72,11 +73,11 @@ internal fun OtherInfoView(
     }
     HorizontalDivider()
     OtherItemView(
-      type = BrowserI18nResource.JMM.install_version(), content = jmmAppInstallManifest.version
+      type = JmmI18nResource.install_version(), content = jmmAppInstallManifest.version
     )
     HorizontalDivider()
     OtherItemView(
-      type = BrowserI18nResource.JMM.install_info_dev(),
+      type = JmmI18nResource.install_info_dev(),
       content = jmmAppInstallManifest.author.joinToString(", ")
     )
     HorizontalDivider()
@@ -89,24 +90,24 @@ internal fun OtherInfoView(
             controller.closeBottomSheet()
           }
         },
-        type = BrowserI18nResource.JMM.install_info_homepage(),
+        type = JmmI18nResource.install_info_homepage(),
         content = homepage_url,
         contentTextStyle = TextStyle(color = MaterialTheme.colorScheme.primary)
       )
     }
     HorizontalDivider()
     OtherItemView(
-      type = BrowserI18nResource.JMM.install_info_size(),
+      type = JmmI18nResource.install_info_size(),
       content = jmmAppInstallManifest.bundle_size.toSpaceSize()
     )
     HorizontalDivider()
     OtherItemView(
-      type = BrowserI18nResource.JMM.install_info_type(),
+      type = JmmI18nResource.install_info_type(),
       content = jmmAppInstallManifest.categories.print()
     )
     HorizontalDivider()
     OtherItemView(
-      type = BrowserI18nResource.JMM.install_info_copyright(),
+      type = JmmI18nResource.install_info_copyright(),
       content = jmmAppInstallManifest.author.firstOrNull() ?: jmmAppInstallManifest.name
     )
   }

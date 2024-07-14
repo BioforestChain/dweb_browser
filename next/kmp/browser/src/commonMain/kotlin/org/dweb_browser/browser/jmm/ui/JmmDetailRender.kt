@@ -27,8 +27,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.launch
-import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.jmm.JmmDetailController
+import org.dweb_browser.browser.jmm.JmmI18nResource
 import org.dweb_browser.browser.jmm.LocalJmmDetailController
 import org.dweb_browser.browser.jmm.render.AppBottomHeight
 import org.dweb_browser.browser.jmm.render.BottomDownloadButton
@@ -48,13 +48,13 @@ import org.dweb_browser.sys.window.render.watchedState
 
 enum class JmmDetailTabs(val i18n: SimpleI18nResource) {
   /** 参数信息 */
-  Param(BrowserI18nResource.JMM.tab_param),
+  Param(JmmI18nResource.tab_param),
 
   /** 详情 */
-  Detail(BrowserI18nResource.JMM.tab_detail),
+  Detail(JmmI18nResource.tab_detail),
 
   /** 介绍 */
-  Intro(BrowserI18nResource.JMM.tab_intro),
+  Intro(JmmI18nResource.tab_intro),
   ;
 
   companion object {
@@ -135,7 +135,7 @@ fun JmmDetailController.Render(modifier: Modifier, renderScope: WindowContentRen
                     }
                   },
                 ) {
-                  Text(tab.i18n(), modifier = Modifier.padding(10.dp))
+                  Text(tab.i18n(), modifier = Modifier.padding(8.dp))
                 }
               }
             }

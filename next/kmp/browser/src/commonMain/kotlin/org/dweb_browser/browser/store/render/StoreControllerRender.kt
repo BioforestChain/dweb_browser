@@ -48,7 +48,7 @@ import org.dweb_browser.sys.window.core.helper.toStrict
 import org.dweb_browser.sys.window.core.withRenderScope
 import org.dweb_browser.sys.window.render.AppIcon
 import org.dweb_browser.sys.window.render.LocalWindowController
-import org.dweb_browser.sys.window.render.imageFetchHook
+import org.dweb_browser.sys.window.render.blobFetchHook
 
 class ProfileDetail(val profileName: String, val mm: MicroModule) : IMicroModuleManifest by mm {
 
@@ -117,7 +117,7 @@ fun StoreController.Render(modifier: Modifier, windowRenderScope: WindowContentR
                   }) {
                     null -> Icon(Icons.TwoTone.Image, contentDescription = "", Modifier.size(32.dp))
                     else -> Box(Modifier.size(32.dp)) {
-                      AppIcon(applicantIcon, iconFetchHook = storeNMM.imageFetchHook)
+                      AppIcon(applicantIcon, iconFetchHook = storeNMM.blobFetchHook)
                     }
                   }
                 },

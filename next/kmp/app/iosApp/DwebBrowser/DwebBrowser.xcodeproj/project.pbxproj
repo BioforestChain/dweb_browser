@@ -72,6 +72,7 @@
 
 /* Begin PBXFileReference section */
 		1A0D7C84CC71A12D5FCBBF78 /* DwebBrowserApp.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DwebBrowserApp.swift; sourceTree = "<group>"; };
+		3D037B8C2C4392FB00AF8A00 /* DwebBrowser.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DwebBrowser.entitlements; sourceTree = "<group>"; };
 		48001B9C2B8ED4CB00F47669 /* DwebBrowserUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DwebBrowserUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		48001B9E2B8ED4CB00F47669 /* DwebBrowserUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DwebBrowserUITests.swift; sourceTree = "<group>"; };
 		48001BA02B8ED4CB00F47669 /* DwebBrowserUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DwebBrowserUITestsLaunchTests.swift; sourceTree = "<group>"; };
@@ -244,6 +245,7 @@
 		7555FF7D242A565900829871 /* DwebBrowser */ = {
 			isa = PBXGroup;
 			children = (
+				3D037B8C2C4392FB00AF8A00 /* DwebBrowser.entitlements */,
 				1A0D7C84CC71A12D5FCBBF78 /* DwebBrowserApp.swift */,
 				487D7FCA2B6A24DC00DA8162 /* DwebLifeStatusCenter.swift */,
 				4876C7172AFDD94E00CDF8BF /* DwebBrowserAppDelegate.swift */,
@@ -702,6 +704,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = DwebBrowser/DwebBrowser.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -748,6 +751,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = DwebBrowser/DwebBrowser.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;

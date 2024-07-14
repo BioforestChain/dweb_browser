@@ -48,6 +48,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import org.dweb_browser.browser.BrowserI18nResource
+import org.dweb_browser.browser.jmm.JmmI18nResource
 import org.dweb_browser.browser.jmm.JmmMetadata
 import org.dweb_browser.browser.jmm.JmmRenderController
 import org.dweb_browser.browser.jmm.JmmStatus
@@ -100,7 +101,7 @@ internal fun JmmRenderController.CommonRender(
     listPane = {
       WindowContentRenderScope.Unspecified.WindowContentScaffoldWithTitleText(
         modifier = Modifier.fillMaxSize(),
-        topBarTitleText = BrowserI18nResource.top_bar_title_install(),
+        topBarTitleText = JmmI18nResource.top_bar_title_install(),
       ) { innerPadding ->
         JmmListView(Modifier.padding(innerPadding))
       }
@@ -108,7 +109,7 @@ internal fun JmmRenderController.CommonRender(
     detailPane = {
       when (val detail = detailController) {
         null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-          Text("未选择要展示的详情")
+          Text(JmmI18nResource.no_select_detail())
         }
 
         else -> BoxWithConstraints {
@@ -297,14 +298,14 @@ fun JmmViewItem(
       if (jmmMetadata.state.state == JmmStatus.INSTALLED) {
         rowItems += {
           TextButton(onClick = uninstall) {
-            Text(text = BrowserI18nResource.JMM.history_uninstall())
+            Text(text = JmmI18nResource.history_uninstall())
           }
         }
       }
       if (showDetailButton) {
         rowItems += {
           TextButton(onClick = detail) {
-            Text(text = BrowserI18nResource.JMM.history_details())
+            Text(text = JmmI18nResource.history_details())
           }
         }
       }

@@ -11,7 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import org.dweb_browser.browser.BrowserI18nResource
+import org.dweb_browser.browser.jmm.JmmI18nResource
 import org.dweb_browser.browser.jmm.render.HorizontalPadding
 import org.dweb_browser.browser.jmm.render.VerticalPadding
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
@@ -23,7 +23,7 @@ import org.dweb_browser.core.help.types.JmmAppInstallManifest
 internal fun AppIntroductionView(jmmAppInstallManifest: JmmAppInstallManifest) {
   Column(modifier = Modifier.padding(horizontal = HorizontalPadding, vertical = VerticalPadding)) {
     Text(
-      text = BrowserI18nResource.JMM.install_introduction(),
+      text = JmmI18nResource.install_introduction(),
       style = MaterialTheme.typography.titleMedium,
     )
     Spacer(Modifier.size(16.dp))

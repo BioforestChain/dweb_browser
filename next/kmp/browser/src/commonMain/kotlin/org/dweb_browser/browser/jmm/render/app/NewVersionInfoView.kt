@@ -10,7 +10,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import org.dweb_browser.browser.BrowserI18nResource
+import org.dweb_browser.browser.jmm.JmmI18nResource
 import org.dweb_browser.browser.jmm.render.HorizontalPadding
 import org.dweb_browser.browser.jmm.render.VerticalPadding
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
@@ -28,12 +28,12 @@ internal fun NewVersionInfoView(
       .animateContentSize()
   ) {
     Text(
-      text = BrowserI18nResource.JMM.install_info(),
+      text = JmmI18nResource.install_info(),
       style = MaterialTheme.typography.titleMedium,
     )
     Spacer(Modifier.size(16.dp))
     Text(
-      text = BrowserI18nResource.JMM.install_version() + " ${jmmAppInstallManifest.version}",
+      text = JmmI18nResource.install_version() + " ${jmmAppInstallManifest.version}",
       style = MaterialTheme.typography.labelSmall,
     )
     Text(
@@ -46,7 +46,7 @@ internal fun NewVersionInfoView(
 //      .animateContentSize().clickable { expanded.value = !expanded.value }) {
 //    Column(Modifier.padding(horizontal = HorizontalPadding, vertical = VerticalPadding)) {
 //      Text(
-//        text = BrowserI18nResource.JMM.install_update_log(),
+//        text = JmmI18nResource.install_update_log(),
 //        style = MaterialTheme.typography.labelMedium,
 //        modifier = Modifier.padding(vertical = 6.dp)
 //      )

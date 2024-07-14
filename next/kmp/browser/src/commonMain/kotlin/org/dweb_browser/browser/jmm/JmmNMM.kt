@@ -2,7 +2,6 @@ package org.dweb_browser.browser.jmm
 
 import okio.FileSystem
 import okio.Path
-import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
@@ -40,8 +39,8 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Service") {
   }
 
   init {
-    name = BrowserI18nResource.JMM.short_name.text
-    short_name = BrowserI18nResource.JMM.short_name.text
+    name = JmmI18nResource.short_name.text
+    short_name = JmmI18nResource.short_name.text
     categories = listOf(
       MICRO_MODULE_CATEGORY.Application,
       MICRO_MODULE_CATEGORY.Service,

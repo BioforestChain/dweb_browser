@@ -244,7 +244,7 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
     }
   } catch (e: ResponseException) {
     val message = if (e.code == HttpStatusCode.NotFound) {
-      BrowserI18nResource.JMM.url_invalid.text
+      JmmI18nResource.url_invalid.text
     } else {
       "${e.code.value} >> ${e.code.description}"
     }
