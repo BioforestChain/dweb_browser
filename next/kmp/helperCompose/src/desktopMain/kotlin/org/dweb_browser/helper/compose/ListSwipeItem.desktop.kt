@@ -57,9 +57,9 @@ actual fun CommonSwipeDismiss(
       onDismissRequest = { showDropMenu = false },
       offset = DpOffset((offset.x / density).dp, (offset.y / density).dp - 86.dp) // 锚点偏移量
     ) {
-      DropdownMenuItem(text = { Text(text = SwipeI18nResource.delete()) }, leadingIcon = {
+      DropdownMenuItem(text = { Text(text = CommonI18n.delete()) }, leadingIcon = {
         Icon(
-          imageVector = Icons.Default.Delete, contentDescription = SwipeI18nResource.delete()
+          imageVector = Icons.Default.Delete, contentDescription = CommonI18n.delete()
         )
       }, onClick = onRemove
       )

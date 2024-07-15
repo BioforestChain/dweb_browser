@@ -34,7 +34,7 @@ actual fun CommonSwipeDismiss(
   modifier: Modifier,
   background: @Composable RowScope.() -> Unit,
   onRemove: () -> Unit,
-  content: @Composable RowScope.() -> Unit
+  content: @Composable RowScope.() -> Unit,
 ) {
   AnchoredDragBox(
     modifier = modifier,
@@ -53,7 +53,7 @@ actual fun CommonSwipeDismiss(
       ) {
         Text(
           modifier = Modifier.offset { IntOffset(x = (72.dp.toPx() * newProgress).toInt(), y = 0) },
-          text = SwipeI18nResource.delete(),
+          text = CommonI18n.delete(),
           color = MaterialTheme.colorScheme.background,
           textAlign = TextAlign.Center
         )

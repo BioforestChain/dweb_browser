@@ -8,9 +8,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 
-object SwipeI18nResource {
-  val delete = SimpleI18nResource(Language.ZH to "删除", Language.EN to "Delete")
-}
 
 // TODO 由于版本androidx.compose 升级为 1.2.0-beta1 但是jetpack-compose版本没有出来，临时增加
 @Composable
@@ -28,9 +25,10 @@ fun ListSwipeItem(
   background: @Composable RowScope.() -> Unit = {
     Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background))
   },
-  content: @Composable RowScope.() -> Unit
+  content: @Composable RowScope.() -> Unit,
 ) {
   CommonSwipeDismiss(
     modifier, background, onRemove, content
   )
 }
+

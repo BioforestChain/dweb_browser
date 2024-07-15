@@ -57,7 +57,7 @@ actual fun CommonSwipeDismiss(
         contentAlignment = Alignment.Center
       ) {
         Text(
-          text = SwipeI18nResource.delete(),
+          text = CommonI18n.delete(),
           color = MaterialTheme.colorScheme.background,
           textAlign = TextAlign.Center
         )
