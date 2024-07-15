@@ -43,6 +43,7 @@ import org.dweb_browser.helper.compose.ListDetailPaneScaffold
 import org.dweb_browser.helper.compose.rememberListDetailPaneScaffoldNavigator
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
 import org.dweb_browser.sys.window.core.WindowContentScaffoldWithTitleText
+import org.dweb_browser.sys.window.core.WindowSurface
 import org.dweb_browser.sys.window.core.helper.pickLargest
 import org.dweb_browser.sys.window.core.helper.toStrict
 import org.dweb_browser.sys.window.core.withRenderScope
@@ -131,8 +132,10 @@ fun StoreController.Render(modifier: Modifier, windowRenderScope: WindowContentR
     },
     detailPane = {
       when (val profileDetail = currentDetailItem) {
-        null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-          Text("请选择一项数据")
+        null -> WindowContentRenderScope.Unspecified.WindowSurface {
+          Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text("请选择一项数据")
+          }
         }
 
         else ->

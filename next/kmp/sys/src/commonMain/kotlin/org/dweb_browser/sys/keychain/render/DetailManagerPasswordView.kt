@@ -46,6 +46,7 @@ import org.dweb_browser.helper.base64String
 import org.dweb_browser.helper.base64UrlBinary
 import org.dweb_browser.helper.base64UrlString
 import org.dweb_browser.helper.compose.SimpleI18nResource
+import org.dweb_browser.helper.compose.hoverCursor
 import org.dweb_browser.helper.hexBinary
 import org.dweb_browser.helper.hexString
 import org.dweb_browser.helper.utf8Binary
@@ -130,7 +131,7 @@ internal fun KeychainManager.DetailManager.PasswordView(
       }
     }
 
-    Box(Modifier.weight(1f).padding(8.dp)) {
+    Box(Modifier.weight(1f, false).padding(8.dp)) {
       var passwordBinaryValue by remember { mutableStateOf(passwordSource) }
       var passwordTextValue by remember { mutableStateOf("") }
       var urlMode by remember { mutableStateOf(false) }
@@ -143,14 +144,18 @@ internal fun KeychainManager.DetailManager.PasswordView(
           PasswordReadWriteMode.Readonly -> {
             val success = remember { Animatable(0f) }
             val clipboardManager = LocalClipboardManager.current
-            Button({
-              clipboardManager.setText(AnnotatedString(passwordTextValue))
-              scope.launch {
-                success.animateTo(1f, spring(Spring.DampingRatioLowBouncy))
-                delay(1000)
-                success.animateTo(0f)
-              }
-            }, contentPadding = ButtonDefaults.ButtonWithIconContentPadding) {
+            Button(
+              {
+                clipboardManager.setText(AnnotatedString(passwordTextValue))
+                scope.launch {
+                  success.animateTo(1f, spring(Spring.DampingRatioLowBouncy))
+                  delay(1000)
+                  success.animateTo(0f)
+                }
+              },
+              modifier = Modifier.hoverCursor(),
+              contentPadding = ButtonDefaults.ButtonWithIconContentPadding
+            ) {
               Box(contentAlignment = Alignment.Center) {
                 Icon(Icons.TwoTone.ContentCopy, "copy", Modifier.alpha(1f - success.value))
                 Icon(Icons.TwoTone.Check, "success", Modifier.graphicsLayer {
@@ -202,7 +207,7 @@ internal fun KeychainManager.DetailManager.PasswordView(
             onValueChange = { bin, txt -> passwordBinaryValue = bin;passwordTextValue = txt },
             decoder = { it.utf8String },
             encoder = { it.utf8Binary })
-          Row(Modifier.align(Alignment.End)) {
+          Row(Modifier.align(Alignment.End).padding(vertical = 8.dp)) {
             PasswordActions()
           }
         }
@@ -214,7 +219,10 @@ internal fun KeychainManager.DetailManager.PasswordView(
             decoder = if (urlMode) ({ it.base64UrlString }) else ({ it.base64String }),
             encoder = if (urlMode) ({ it.base64UrlBinary }) else ({ it.base64Binary }),
           )
-          Row(Modifier.align(Alignment.End), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+          Row(
+            Modifier.align(Alignment.End).padding(vertical = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+          ) {
             CheckboxWithLabel(checked = urlMode, onCheckedChange = { urlMode = it }) {
               Text(text = KeychainI18nResource.password_base64_url_mode())
             }
@@ -232,7 +240,10 @@ internal fun KeychainManager.DetailManager.PasswordView(
               it.split(",").map { b -> b.toByte() }.toByteArray()
             }),
           )
-          Row(Modifier.align(Alignment.End), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+          Row(
+            Modifier.align(Alignment.End).padding(vertical = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+          ) {
             CheckboxWithLabel(checked = hexMode, onCheckedChange = { hexMode = it }) {
               Text(text = KeychainI18nResource.password_binary_hex_mode())
             }

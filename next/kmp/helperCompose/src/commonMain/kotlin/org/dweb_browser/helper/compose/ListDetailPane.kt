@@ -24,11 +24,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
-
-
-expect fun Modifier.cursorForHorizontalResize(): Modifier
 
 @Composable
 fun ListDetailPaneScaffold(
@@ -61,7 +59,7 @@ fun ListDetailPaneScaffold(
                   dragging -> MaterialTheme.colorScheme.surfaceTint
                   else -> MaterialTheme.colorScheme.surfaceBright
                 }, shape = RoundedCornerShape(3.dp)
-              ).cursorForHorizontalResize().draggable(
+              ).hoverCursor(PointerIcon.Move).draggable(
                 orientation = Orientation.Horizontal,
                 state = rememberDraggableState { delta ->
                   listWidth += (delta / density).dp

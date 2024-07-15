@@ -26,6 +26,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.compose.CommonI18n
+import org.dweb_browser.helper.compose.hoverCursor
 import org.dweb_browser.sys.keychain.KeychainI18nResource
 import org.dweb_browser.sys.keychain.KeychainManager
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
@@ -66,7 +67,7 @@ internal fun KeychainManager.ListView(
           else -> LazyColumn(Modifier.fillMaxSize()) {
             items(mmList, { it.mmid }) { mm ->
               ListItem(
-                modifier = Modifier.clickable {
+                modifier = Modifier.hoverCursor().clickable {
                   openDetail(mm)
                 },
                 leadingContent = {

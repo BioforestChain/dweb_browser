@@ -30,6 +30,7 @@ import androidx.compose.ui.zIndex
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.compose.CommonI18n
 import org.dweb_browser.helper.compose.SwipeToViewBox
+import org.dweb_browser.helper.compose.hoverCursor
 import org.dweb_browser.helper.compose.rememberSwipeToViewBoxState
 import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.sys.keychain.KeychainI18nResource
@@ -55,7 +56,7 @@ fun KeychainManager.DetailManager.KeyItemView(
       Row {
         TextButton({
           passwordDeleteAlert = true
-        }, Modifier.fillMaxHeight().background(MaterialTheme.colorScheme.error)) {
+        }, Modifier.fillMaxHeight().hoverCursor().background(MaterialTheme.colorScheme.error)) {
           Text(
             KeychainI18nResource.password_action_delete(), color = MaterialTheme.colorScheme.onError
           )
@@ -65,7 +66,7 @@ fun KeychainManager.DetailManager.KeyItemView(
             passwordRwMode = PasswordReadWriteMode.ReadWrite
             password = getPassword(key)
           }
-        }, Modifier.fillMaxHeight().background(MaterialTheme.colorScheme.primary)) {
+        }, Modifier.fillMaxHeight().hoverCursor().background(MaterialTheme.colorScheme.primary)) {
           Text(
             KeychainI18nResource.password_action_edit(), color = MaterialTheme.colorScheme.onPrimary
           )
@@ -75,7 +76,7 @@ fun KeychainManager.DetailManager.KeyItemView(
             passwordRwMode = PasswordReadWriteMode.Readonly
             password = getPassword(key)
           }
-        }, Modifier.fillMaxHeight().background(MaterialTheme.colorScheme.secondary)) {
+        }, Modifier.fillMaxHeight().hoverCursor().background(MaterialTheme.colorScheme.secondary)) {
           Text(
             KeychainI18nResource.password_action_view(),
             color = MaterialTheme.colorScheme.onSecondary
@@ -83,21 +84,25 @@ fun KeychainManager.DetailManager.KeyItemView(
         }
         TextButton(
           { closeSwipe() },
-          Modifier.fillMaxHeight().background(MaterialTheme.colorScheme.tertiary)
+          Modifier.fillMaxHeight().hoverCursor().background(MaterialTheme.colorScheme.tertiary)
         ) {
           Text(CommonI18n.cancel(), color = MaterialTheme.colorScheme.onTertiary)
         }
       }
     }) {
-    ListItem(leadingContent = {
-      Icon(Icons.TwoTone.Key, null)
-    }, headlineContent = { Text(key) }, trailingContent = {
-      IconButton({
-        scope.launch { swapState.toggle() }
-      }) {
-        Icon(Icons.Default.MoreHoriz, "more")
-      }
-    })
+    ListItem(
+      leadingContent = {
+        Icon(Icons.TwoTone.Key, null)
+      },
+      headlineContent = { Text(key) },
+      trailingContent = {
+        IconButton({
+          scope.launch { swapState.toggle() }
+        }, modifier = Modifier.hoverCursor()) {
+          Icon(Icons.Default.MoreHoriz, "more")
+        }
+      },
+    )
   }
   password?.also { passwordSource ->
     BasicAlertDialog({

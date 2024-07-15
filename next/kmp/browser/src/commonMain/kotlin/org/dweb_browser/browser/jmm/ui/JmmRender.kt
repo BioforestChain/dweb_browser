@@ -66,6 +66,7 @@ import org.dweb_browser.pure.image.compose.PureImageLoader
 import org.dweb_browser.pure.image.compose.SmartLoad
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
 import org.dweb_browser.sys.window.core.WindowContentScaffoldWithTitleText
+import org.dweb_browser.sys.window.core.WindowSurface
 import org.dweb_browser.sys.window.core.withRenderScope
 import org.dweb_browser.sys.window.render.LocalWindowController
 
@@ -108,8 +109,10 @@ internal fun JmmRenderController.CommonRender(
     },
     detailPane = {
       when (val detail = detailController) {
-        null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-          Text(JmmI18nResource.no_select_detail())
+        null -> WindowContentRenderScope.Unspecified.WindowSurface {
+          Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text(JmmI18nResource.no_select_detail())
+          }
         }
 
         else -> BoxWithConstraints {

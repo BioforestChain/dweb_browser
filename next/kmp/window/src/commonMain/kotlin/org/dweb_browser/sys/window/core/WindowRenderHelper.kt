@@ -1,5 +1,6 @@
 package org.dweb_browser.sys.window.core
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
@@ -11,6 +12,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -27,6 +29,8 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.sys.window.render.LocalWindowController
@@ -97,6 +101,27 @@ fun WindowController.GoBackButton() {
   }
 }
 
+
+@Composable
+fun WindowContentRenderScope.WindowSurface(
+  modifier: Modifier = Modifier,
+  tonalElevation: Dp = 0.dp,
+  shadowElevation: Dp = 0.dp,
+  color: Color? = null,
+  contentColor: Color? = null,
+  border: BorderStroke? = null,
+  content: @Composable () -> Unit,
+) {
+  Surface(
+    modifier = modifier,
+    tonalElevation = tonalElevation,
+    shadowElevation = shadowElevation,
+    color = color ?: MaterialTheme.colorScheme.background,
+    contentColor = contentColor ?: contentColorFor(MaterialTheme.colorScheme.background),
+    border = border,
+    content = content,
+  )
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

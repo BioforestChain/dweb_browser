@@ -1,5 +1,7 @@
 package org.dweb_browser.helper.compose
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -10,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.input.pointer.PointerIcon
 
 @Composable
 fun FocusableBox(
@@ -26,8 +29,14 @@ fun FocusableBox(
         isFocus = it.isFocused
       }
   ) {
-    FocusableBoxScope(focusRequester, isFocus).content()
+    Box(Modifier.hoverCursor(PointerIcon.Default)) {
+      FocusableBoxScope(focusRequester, isFocus, this).content()
+    }
   }
 }
 
-class FocusableBoxScope(val focusRequester: FocusRequester, val isFocused: Boolean)
+class FocusableBoxScope(
+  val focusRequester: FocusRequester,
+  val isFocused: Boolean,
+  boxScope: BoxScope,
+) : BoxScope by boxScope

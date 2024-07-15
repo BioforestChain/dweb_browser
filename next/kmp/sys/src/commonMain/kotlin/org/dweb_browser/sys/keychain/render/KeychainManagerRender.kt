@@ -14,6 +14,7 @@ import org.dweb_browser.helper.compose.rememberListDetailPaneScaffoldNavigator
 import org.dweb_browser.sys.keychain.KeychainI18nResource
 import org.dweb_browser.sys.keychain.KeychainManager
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
+import org.dweb_browser.sys.window.core.WindowSurface
 import org.dweb_browser.sys.window.core.withRenderScope
 import org.dweb_browser.sys.window.render.LocalWindowController
 
@@ -46,8 +47,10 @@ fun KeychainManager.Render(
     },
     detailPane = {
       when (val detail = detailController) {
-        null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-          Text(KeychainI18nResource.no_select_detail())
+        null -> WindowContentRenderScope.Unspecified.WindowSurface {
+          Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text(KeychainI18nResource.no_select_detail())
+          }
         }
 
         else -> BoxWithConstraints {
