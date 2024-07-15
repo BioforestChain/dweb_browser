@@ -1,6 +1,8 @@
 package org.dweb_browser.helper.compose
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.text.intl.Locale
 import org.dweb_browser.helper.Debugger
 
@@ -57,6 +59,19 @@ class SimpleI18nResource(
    * 这个值不能用于Compose界面显示，目前仅用于实时获取的文本。
    */
   val text get() = valuesMap[Language.current] ?: i18nValues.firstOrNull()?.second ?: "Undefined"
+}
+
+open class I18n {
+  companion object {
+    fun zh(zh: String, en: String) = SimpleI18nResource(Language.ZH to zh, Language.EN to en)
+    fun zh1(zh: State<String>.() -> String, en: State<String>.() -> String) =
+      OneParamI18nResource({ mutableStateOf("") }, Language.ZH to zh, Language.EN to en)
+
+    data class Zh2(var value1: String, var value2: String)
+
+    fun zh2(zh: Zh2.() -> String, en: Zh2.() -> String) =
+      OneParamI18nResource({ Zh2("", "") }, Language.ZH to zh, Language.EN to en)
+  }
 }
 
 typealias OneParam<T> = T.() -> String
