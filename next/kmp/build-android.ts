@@ -153,16 +153,25 @@ const upgradeVersionInfo = async (filePath: string, forceUpdate = false) => {
   }
 };
 
+enum ANDROID_CHANNEL {
+  DEV = "dev",
+  BETA = "beta",
+  RC = "rc",
+  STABLE = "stable"
+}
+
 if (import.meta.main) {
-  // 发布版本的时候，升级下版本信息 versionCode和versionName
-  const version = await upgradeVersionInfo(resolveTo("gradle/libs.versions.toml"), Deno.args.includes("--new"));
+  const channel = <ANDROID_CHANNEL>cliArgs.channel ?? ANDROID_CHANNEL.STABLE;
+  
+  // // // 发布版本的时候，升级下版本信息 versionCode和versionName
+  const version = await upgradeVersionInfo(resolveTo("gradle/libs.versions.toml"), cliArgs.new);
   if (cliArgs.clean) {
     await doCleanBuildDIR(); // 清空编译目录
   }
   await doBundle();
   const dirpath = await doCopy(version);
 
-  const uploadArgs: $UploadReleaseParams = [`android-${version}`, dirpath, "*.apk"];
+  const uploadArgs: $UploadReleaseParams = [`android-${channel == ANDROID_CHANNEL.STABLE ? "" : `${channel}-`}${version}`, dirpath, "*.apk"];
   await recordUploadRelease(uploadArgs[0], uploadArgs);
   if (cliArgs.upload) {
     await doUploadRelease(...uploadArgs);
