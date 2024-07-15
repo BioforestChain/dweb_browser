@@ -129,11 +129,11 @@ export async function deleteApp(id: string) {
 }
 
 export function deleteWebLink(mmid: string) {
-  return nativeFetch<Response>("/uninstall", {
+  return nativeFetch<Response>("/removeWebLink", {
     search: {
       app_id: mmid,
     },
-    mmid: "web.browser.dweb",
+    mmid: "desk.browser.dweb",
   });
 }
 
