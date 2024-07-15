@@ -19,4 +19,6 @@ object CommonI18n : I18n() {
 
   val close = zh("关闭", "Close")
   val open = zh("打开", "Open")
+
+  val no_data = zh("暂无数据", "No Data")
 }

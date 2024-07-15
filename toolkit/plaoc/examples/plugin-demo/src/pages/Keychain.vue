@@ -3,7 +3,6 @@ import { onMounted, ref } from "vue";
 import LogPanel, { defineLogAction, toConsole } from "../components/LogPanel.vue";
 import FieldLabel from "../components/FieldLabel.vue";
 import { HTMLDwebKeychainElement, keychainPlugin } from "@plaoc/plugins";
-import { computed } from "vue";
 import { watch } from "vue";
 const $logPanel = ref<typeof LogPanel>();
 let console: Console;
@@ -19,10 +18,19 @@ onMounted(async () => {
 
 const keychain_key = ref(localStorage.getItem("keychain-key") || "account-id");
 const keychain_value = ref(localStorage.getItem("keychain-value") || "some-password");
+const debounce_symbol = Symbol.for("debounce");
+type $DebounceFn = {
+  [debounce_symbol]?: any;
+} & (() => void);
+const $debounce = (fn: $DebounceFn, ms: number) => {
+  clearTimeout(fn[debounce_symbol]);
+  fn[debounce_symbol] = setTimeout(fn, ms);
+};
 
 watch(keychain_key, (keychain_key) => {
-  localStorage.setItem("keychain-key", keychain_key);
-  console.info("keychain-key saved to localStorage");
+  $debounce(() => {
+    localStorage.setItem("keychain-key", keychain_key);
+  }, 200);
 });
 
 // webComponent 的调用方法

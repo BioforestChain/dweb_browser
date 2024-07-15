@@ -16,8 +16,19 @@ class KeychainManager(
       keysState.value = keychainStore.keys(manifest.mmid)
     }
 
+    var password by mutableStateOf<ByteArray?>(null)
+
     suspend fun getPassword(key: String) =
       keychainStore.getItem(manifest.mmid, key)
+
+    suspend fun updatePassword(key: String, value: ByteArray) {
+      keychainStore.setItem(manifest.mmid, key, value)
+      password = value
+    }
+
+    suspend fun deletePassword(key: String) {
+      keychainStore.deleteItem(manifest.mmid, key)
+    }
 
     init {
       keychainRuntime.scopeLaunch(cancelable = true) {
