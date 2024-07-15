@@ -63,14 +63,6 @@ abstract class DesktopAppController constructor(open val deskNMM: DeskNMM.DeskRu
   suspend fun quit(mmid: String) {
     deskNMM.nativeFetch("file://desk.browser.dweb/closeApp?app_id=$mmid")
   }
-
-  suspend fun search(words: String) {
-    deskNMM.nativeFetch("file://web.browser.dweb/search?q=$words")
-  }
-
-  suspend fun openWebLink(url: String) {
-    deskNMM.nativeFetch("file://web.browser.dweb/openinbrowser?url=$url")
-  }
 }
 
 
@@ -102,6 +94,10 @@ open class DesktopController private constructor(
     deskNMM.bootstrapContext.dns.uninstall(id)
     webLinkStore.delete(id)
     return true
+  }
+
+  suspend fun openWebLink(url: String) {
+    deskNMM.nativeFetch("file://web.browser.dweb/openinbrowser?url=$url")
   }
   // 针对 WebLink 的管理部分 end
 
@@ -229,6 +225,10 @@ open class DesktopController private constructor(
 
   suspend fun share(mmid: String) {
     // TODO: 分享
+  }
+
+  suspend fun search(words: String) {
+    deskNMM.nativeFetch("file://web.browser.dweb/search?q=$words")
   }
 
   suspend fun isSystemApp(mmid: String) =

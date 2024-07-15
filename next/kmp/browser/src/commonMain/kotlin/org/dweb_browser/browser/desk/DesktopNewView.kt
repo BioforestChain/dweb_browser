@@ -1,5 +1,6 @@
 package org.dweb_browser.browser.desk
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloat
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -25,6 +27,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.safeGestures
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -39,8 +42,11 @@ import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.HighlightOff
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material3.BasicAlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -99,7 +105,6 @@ import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.compose.div
 import org.dweb_browser.helper.compose.iosTween
 import org.dweb_browser.helper.randomUUID
-import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.pure.image.compose.ImageLoadResult
 import org.dweb_browser.pure.image.compose.PureImageLoader
 import org.dweb_browser.pure.image.compose.SmartLoad
@@ -108,6 +113,7 @@ import org.dweb_browser.sys.window.core.helper.toStrict
 import org.dweb_browser.sys.window.render.AppIcon
 import org.dweb_browser.sys.window.render.blobFetchHook
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NewDesktopView(
   desktopController: DesktopController,
@@ -116,6 +122,8 @@ fun NewDesktopView(
   val apps = remember { mutableStateListOf<DesktopAppModel>() }
 
   var popUpApp by remember { mutableStateOf<DesktopAppModel?>(null) }
+  var showMoreMenu by remember { mutableStateOf(false) }
+  var showDeleteDialog by remember { mutableStateOf(false) }
 
   val scope = rememberCoroutineScope()
 
@@ -151,7 +159,10 @@ fun NewDesktopView(
         oldApp?.copy(running = runStatus) ?: DesktopAppModel(
           it.short_name.ifEmpty { it.name },
           it.mmid,
-          if (isWebLink) DesktopAppData.WebLink(mmid = it.mmid, url = it.name) else DesktopAppData.App(mmid = it.mmid),
+          if (isWebLink) DesktopAppData.WebLink(
+            mmid = it.mmid,
+            url = it.name
+          ) else DesktopAppData.App(mmid = it.mmid),
           icon,
           isSystemApp,
           runStatus,
@@ -206,6 +217,7 @@ fun NewDesktopView(
           desktopController.open(mmid)
         }
       }
+
       is DesktopAppData.WebLink -> {
         scope.launch {
           desktopController.openWebLink(oldApp.data.url)
@@ -233,9 +245,11 @@ fun NewDesktopView(
     }
   }
 
-  fun doDelete(mmid: String) {
-    //TODO: 后期优化
-    doUninstall(mmid)
+
+  fun doWebLinkDelete(mmid: String) {
+    scope.launch {
+      desktopController.removeWebLink(mmid)
+    }
   }
 
   fun doShare(mmid: String) {
@@ -253,10 +267,13 @@ fun NewDesktopView(
   fun doShowPopUp(index: Int) {
     popUpApp = apps.getOrNull(index)?.also {
       doHaptics()
+      showMoreMenu = true
     }
   }
 
   fun doHidePopUp() {
+    showMoreMenu = false
+    showDeleteDialog = false
     popUpApp = null
   }
 
@@ -316,69 +333,126 @@ fun NewDesktopView(
     }
   }
 
+
   val iconScale by animateFloatAsState(
     if (popUpApp != null) 1.05f else 1f, animationSpec = iosTween(popUpApp != null)
   )
   val iconContainerAlpha by animateFloatAsState(
     if (popUpApp != null) 0.8f else 0.2f, animationSpec = iosTween(popUpApp != null)
   )
-  popUpApp?.also { app ->
-    BoxWithConstraints(
-      Modifier.zIndex(2f).fillMaxSize().clickableWithNoEffect {
-        doHidePopUp()
-      }, Alignment.TopStart
-    ) {
 
-      DeskAppIcon(
-        app,
-        microModule,
-        containerAlpha = iconContainerAlpha,
-        modifier = Modifier.requiredSize(app.size.width.dp, app.size.height.dp).offset {
-          app.offSet.toIntOffset(1f)
-        }.scale(iconScale),
-      )
+  if (showMoreMenu) {
+    popUpApp?.also { app ->
+      BoxWithConstraints(
+        Modifier.zIndex(2f).fillMaxSize().clickableWithNoEffect {
+          doHidePopUp()
+        }, Alignment.TopStart
+      ) {
 
-      val moreAppDisplayModels by remember(app) {
-        mutableStateOf(createMoreAppDisplayModels(app))
-      }
-
-      val itemSize = IntSize(60, 60)
-      val moreAppDisplayMenuWidth = moreAppDisplayModels.size * itemSize.width
-      val moreAppDisplayMenuHeight = itemSize.height
-      val density = LocalDensity.current.density
-
-      val moreAppDisplayOffSet by remember(app.offSet, moreAppDisplayModels) {
-        //此处有坑：在于app.offset, app.size, 取到的数值倍数不一致。。。
-        val minX = app.offSet.x.toInt()
-        val maxY = app.offSet.y.toInt() + app.size.height * density
-        val minY = app.offSet.y.toInt()
-        val space = 5
-        mutableStateOf(
-          IntOffset(
-            if (minX + moreAppDisplayMenuWidth * density < constraints.maxWidth) minX else constraints.maxWidth - space - (moreAppDisplayMenuWidth * density).toInt(),
-            if (maxY + space + moreAppDisplayMenuHeight * density < constraints.maxHeight) maxY.toInt() + space else minY - space - (moreAppDisplayMenuHeight * density).toInt(),
-          )
+        DeskAppIcon(
+          app,
+          microModule,
+          containerAlpha = iconContainerAlpha,
+          modifier = Modifier.requiredSize(app.size.width.dp, app.size.height.dp).offset {
+            app.offSet.toIntOffset(1f)
+          }.scale(iconScale),
         )
-      }
 
-      moreAppItemsDisplay(moreAppDisplayModels,
-        Modifier.offset { moreAppDisplayOffSet }
-          .size(moreAppDisplayMenuWidth.dp, moreAppDisplayMenuHeight.dp),
-        dismiss = { doHidePopUp() },
-        action = { type ->
-          when (type) {
-            MoreAppModelType.OFF -> doQuit(app.mmid)
-            MoreAppModelType.DETAIL -> doDetail(app.mmid)
-            MoreAppModelType.UNINSTALL -> doUninstall(app.mmid)
-            MoreAppModelType.DELETE -> doDelete(app.mmid)
-            MoreAppModelType.SHARE -> doShare(app.mmid)
+        val moreAppDisplayModels by remember(app) {
+          mutableStateOf(createMoreAppDisplayModels(app))
+        }
+
+        val itemSize = IntSize(60, 60)
+        val moreAppDisplayMenuWidth = moreAppDisplayModels.size * itemSize.width
+        val moreAppDisplayMenuHeight = itemSize.height
+        val density = LocalDensity.current.density
+
+        val moreAppDisplayOffSet by remember(app.offSet, moreAppDisplayModels) {
+          //此处有坑：在于app.offset, app.size, 取到的数值倍数不一致。。。
+          val minX = app.offSet.x.toInt()
+          val maxY = app.offSet.y.toInt() + app.size.height * density
+          val minY = app.offSet.y.toInt()
+          val space = 5
+          mutableStateOf(
+            IntOffset(
+              if (minX + moreAppDisplayMenuWidth * density < constraints.maxWidth) minX else constraints.maxWidth - space - (moreAppDisplayMenuWidth * density).toInt(),
+              if (maxY + space + moreAppDisplayMenuHeight * density < constraints.maxHeight) maxY.toInt() + space else minY - space - (moreAppDisplayMenuHeight * density).toInt(),
+            )
+          )
+        }
+
+        moreAppItemsDisplay(moreAppDisplayModels,
+          Modifier.offset { moreAppDisplayOffSet }
+            .size(moreAppDisplayMenuWidth.dp, moreAppDisplayMenuHeight.dp),
+          action = { type ->
+            when (type) {
+              MoreAppModelType.OFF -> doHidePopUp().also { doQuit(app.mmid) }
+              MoreAppModelType.DETAIL -> doHidePopUp().also { doDetail(app.mmid) }
+              MoreAppModelType.SHARE -> doHidePopUp().also { doShare(app.mmid) }
+              MoreAppModelType.UNINSTALL, MoreAppModelType.DELETE -> {
+                showMoreMenu = false
+                showDeleteDialog = true
+              }
+            }
+          })
+      }
+    }
+  }
+
+  AnimatedVisibility(showDeleteDialog) {
+    popUpApp?.let { app ->
+      DeleteAlert(app, microModule, onDismissRequest = ::doHidePopUp, confirm = {
+        doHidePopUp().also {
+          when (app.data) {
+            is DesktopAppData.App -> doUninstall(app.mmid)
+            is DesktopAppData.WebLink -> doWebLinkDelete(app.mmid)
           }
-        })
+        }
+      })
     }
   }
 }
 
-private typealias AppItemAction = (String) -> Unit
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun DeleteAlert(
+  app: DesktopAppModel,
+  microModule: NativeMicroModule.NativeRuntime,
+  onDismissRequest: () -> Unit,
+  confirm: () -> Unit
+) {
+  BasicAlertDialog(
+    onDismissRequest = onDismissRequest
+  ) {
+    Column(
+      Modifier
+        .clip(RoundedCornerShape(10))
+        .background(Color.White.copy(alpha = 0.8f))
+        .padding(20.dp),
+      horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+
+      DeskAppIcon(app, microModule, containerAlpha = 1f)
+
+      when (app.data) {
+        is DesktopAppData.App -> {
+          Text("${BrowserI18nResource.Desktop.uninstall.text}: \"${app.name}\"", color = Color.Black)
+          Text(BrowserI18nResource.Desktop.uninstallAlert.text, color = Color.Black)
+        }
+
+        is DesktopAppData.WebLink -> {
+          Text("${BrowserI18nResource.Desktop.delete.text}: \"${app.name}\"", color = Color.Black)
+        }
+      }
+
+      Row {
+        TextButton(onDismissRequest) { Text(BrowserI18nResource.button_name_cancel.text , color = Color.Black) }
+        Spacer(Modifier.width(50.dp))
+        TextButton(confirm) { Text(BrowserI18nResource.button_name_confirm.text, color = Color.Red) }
+      }
+    }
+  }
+}
 
 @Composable
 private fun AppItem(
@@ -507,7 +581,6 @@ private fun moreAppItemsDisplay(
   displays: List<MoreAppModel>,
   modifier: Modifier,
   action: (MoreAppModelType) -> Unit,
-  dismiss: () -> Unit,
 ) {
   Row(
     modifier = modifier.clip(RoundedCornerShape(8.dp)).background(Color.White.copy(alpha = 0.5f)),
@@ -518,7 +591,6 @@ private fun moreAppItemsDisplay(
       Column(
         modifier = Modifier.padding(4.dp).fillMaxSize().weight(1f).clickable(enabled = it.enable) {
           action(it.type)
-          dismiss()
         },
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween
@@ -663,6 +735,7 @@ fun desktopSearchBar(
 
 private sealed class DesktopAppData {
   abstract val mmid: String
+
   data class App(override val mmid: String) : DesktopAppData()
   data class WebLink(override val mmid: String, val url: String) : DesktopAppData()
 }

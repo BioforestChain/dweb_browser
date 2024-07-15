@@ -416,5 +416,10 @@ object BrowserI18nResource {
       Language.EN to "Share"
     )
 
+    val uninstallAlert = SimpleI18nResource(
+      Language.ZH to "其所有数据也将被删除",
+      Language.EN to "All its data will also be deleted!"
+    )
+
   }
 }
