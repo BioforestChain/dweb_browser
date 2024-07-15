@@ -134,7 +134,11 @@ class BrowserController(
    */
   suspend fun loadWebLinkApps() {
     webLinkStore.getAll().map { (_, webLinkManifest) ->
-      addUrlToDesktop(webLinkManifest)
+      addUrlToDesktop(
+        webLinkManifest.copy(
+          url = "dweb://openinbrowser?url=${webLinkManifest.url.encodeURIComponent()}"
+        )
+      )
     }
     webLinkStore.clear()
   }

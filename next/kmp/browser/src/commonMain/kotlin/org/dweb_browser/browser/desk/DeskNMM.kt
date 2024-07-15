@@ -433,6 +433,9 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         debugDesk("addWebLink", "webLinkManifest=$webLinkManifest")
         desktopController.createWebLink(webLinkManifest)
       },
+      /**
+       * 移除桌面快捷方式
+       */
       "/removeWebLink" bind PureMethod.GET by defineBooleanResponse {
         val mmid = request.queryOrNull("app_id") ?: throw ResponseException(
           HttpStatusCode.BadRequest, "not found app_id"
@@ -440,7 +443,20 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         debugDesk("removeWebLink", "called => mmid=$mmid")
         desktopController.removeWebLink(mmid)
       },
-    ).protected(setOf("web.browser.dweb", "desk.browser.dweb"))
+      /**
+       * 打开桌面快捷方式
+       */
+      "/openBrowser" bind PureMethod.GET by defineBooleanResponse {
+        val url = request.queryOrNull("url")
+          ?: throw ResponseException(HttpStatusCode.BadRequest, "not found url")
+        debugDesk("openBrowser", "called => url=$url")
+        try {
+          nativeFetch(url).boolean()
+        } catch (e: Exception) {
+          throw ResponseException(HttpStatusCode.ExpectationFailed, "err=>${e.message}")
+        }
+      },
+    ).cors()
   }
 
   override fun createRuntime(bootstrapContext: BootstrapContext) = DeskRuntime(bootstrapContext)

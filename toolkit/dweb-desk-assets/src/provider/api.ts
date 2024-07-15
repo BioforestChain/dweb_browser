@@ -77,11 +77,11 @@ export async function detailApp(id: string) {
 }
 
 export function openBrowser(url: string) {
-  return nativeFetch<boolean>("/openinbrowser", {
+  return nativeFetch<boolean>("/openBrowser", {
     search: {
       url: url,
     },
-    mmid: "web.browser.dweb",
+    mmid: "desk.browser.dweb",
   });
 }
 
