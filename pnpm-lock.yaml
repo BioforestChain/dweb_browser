@@ -48,58 +48,6 @@ importers:
 
   npm/@dweb-browser__polyfill: {}
 
-  npm/@dweb-browser__profile:
-    dependencies:
-      '@dweb-browser/zstd-wasm':
-        specifier: ^0.0.2
-        version: 0.0.2
-      cbor-x:
-        specifier: ^1.5.9
-        version: 1.5.9
-      idb:
-        specifier: ^8.0.0
-        version: 8.0.0
-    devDependencies:
-      '@fontsource/fira-mono':
-        specifier: ^4.5.10
-        version: 4.5.10
-      '@neoconfetti/svelte':
-        specifier: ^1.0.0
-        version: 1.0.0
-      '@sveltejs/adapter-auto':
-        specifier: ^3.0.0
-        version: 3.2.2(@sveltejs/kit@2.5.18(@sveltejs/vite-plugin-svelte@3.1.1(svelte@5.0.0-next.167)(vite@5.2.11(@types/node@20.12.8)(sass@1.76.0)))(svelte@5.0.0-next.167)(vite@5.2.11(@types/node@20.12.8)(sass@1.76.0)))
-      '@sveltejs/kit':
-        specifier: ^2.5.18
-        version: 2.5.18(@sveltejs/vite-plugin-svelte@3.1.1(svelte@5.0.0-next.167)(vite@5.2.11(@types/node@20.12.8)(sass@1.76.0)))(svelte@5.0.0-next.167)(vite@5.2.11(@types/node@20.12.8)(sass@1.76.0))
-      '@sveltejs/vite-plugin-svelte':
-        specifier: ^3.1.1
-        version: 3.1.1(svelte@5.0.0-next.167)(vite@5.2.11(@types/node@20.12.8)(sass@1.76.0))
-      prettier:
-        specifier: ^3.1.1
-        version: 3.2.5
-      prettier-plugin-svelte:
-        specifier: ^3.1.2
-        version: 3.2.5(prettier@3.2.5)(svelte@5.0.0-next.167)
-      svelte:
-        specifier: ^5.0.0-next.1
-        version: 5.0.0-next.167
-      svelte-check:
-        specifier: ^3.6.0
-        version: 3.8.4(postcss-load-config@4.0.2(postcss@8.4.38))(postcss@8.4.38)(sass@1.76.0)(svelte@5.0.0-next.167)
-      tslib:
-        specifier: ^2.4.1
-        version: 2.6.2
-      typescript:
-        specifier: ^5.0.0
-        version: 5.4.5
-      vite:
-        specifier: ^5.0.3
-        version: 5.2.11(@types/node@20.12.8)(sass@1.76.0)
-      vitest:
-        specifier: ^1.2.0
-        version: 1.5.3(@types/node@20.12.8)(happy-dom@14.10.2)(jsdom@24.0.0)(sass@1.76.0)
-
   npm/@plaoc__cli:
     dependencies:
       '@deno/shim-deno':
@@ -119,7 +67,7 @@ importers:
         version: 3.10.1
       mime:
         specifier: ^4.0.3
-        version: 4.0.3
+        version: 4.0.4
       webdav-server:
         specifier: ^2.6.2
         version: 2.6.2
@@ -1724,8 +1672,8 @@ packages:
     resolution: {integrity: sha512-ZDY+bPm5zTTF+YpCrAU9nK0UgICYPT0QtT1NZWFv4s++TNkcgVaT0g6+4R2uI4MjQjzysHB1zxuWL50hzaeXiw==}
     engines: {node: '>= 0.6'}
 
-  mime@4.0.3:
-    resolution: {integrity: sha512-KgUb15Oorc0NEKPbvfa0wRU+PItIEZmiv+pyAO2i0oTIVTJhlzMclU7w4RXWQrSOVH5ax/p/CkIO7KI4OyFJTQ==}
+  mime@4.0.4:
+    resolution: {integrity: sha512-v8yqInVjhXyqP6+Kw4fV3ZzeMRqEW6FotRsKXjRS5VMTNIuXsdRoAvklpoRgSqXm6o9VNH4/C0mgedko9DdLsQ==}
     engines: {node: '>=16'}
     hasBin: true
 
@@ -3979,7 +3927,7 @@ snapshots:
     dependencies:
       mime-db: 1.52.0
 
-  mime@4.0.3: {}
+  mime@4.0.4: {}
 
   mimic-fn@4.0.0: {}
 
