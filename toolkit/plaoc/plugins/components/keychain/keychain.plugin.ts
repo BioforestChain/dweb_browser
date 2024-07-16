@@ -9,6 +9,10 @@ export class KeyChainPlugin extends BasePlugin {
   }
 
   @bindThis
+  async keys(): Promise<string[]> {
+    return await this.fetchApi("/keys").object<string[]>();
+  }
+  @bindThis
   async get(key: string): Promise<Uint8Array | undefined> {
     const res = await this.fetchApi("/get", { search: { key } });
     if (res.status === 404) {
