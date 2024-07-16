@@ -32,6 +32,13 @@ watch(keychain_key, (keychain_key) => {
     localStorage.setItem("keychain-key", keychain_key);
   }, 200);
 });
+const keysWb = defineLogAction(
+  async () => {
+    const keys = await keychain.keys();
+    return keys;
+  },
+  { name: "keys", args: [], logPanel: $logPanel }
+);
 
 // webComponent 的调用方法
 const getWb = defineLogAction(
@@ -82,6 +89,7 @@ const title = "KeychainManager";
         <input type="text" id="keychain-value" v-model="keychain_value" />
       </FieldLabel>
       <div class="justify-end card-actions btn-group">
+        <button class="inline-block rounded-full btn btn-accent" @click="keysWb">keys</button>
         <button class="inline-block rounded-full btn btn-accent" @click="getWb">get</button>
         <button class="inline-block rounded-full btn btn-accent" @click="hasWb">has</button>
         <button class="inline-block rounded-full btn btn-accent" @click="deleteWb">delete</button>

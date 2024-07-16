@@ -1,11 +1,11 @@
 package org.dweb_browser.sys.biometrics
 
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.coroutines.CompletableDeferred
-import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.module.MicroModule
 import platform.LocalAuthentication.LAContext
 import platform.LocalAuthentication.LAPolicyDeviceOwnerAuthentication
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 actual object BiometricsManage {
 
@@ -21,25 +21,36 @@ actual object BiometricsManage {
     }
 
 
-  actual suspend fun biometricsResultContent(
+  actual suspend fun biometricsAuthInRuntime(
     mmRuntime: MicroModule.Runtime,
-    remoteMMID: MMID,
     title: String?,
     subtitle: String?,
+    description: String?,
   ): BiometricsResult {
-    val result = CompletableDeferred<BiometricsResult>()
+    return biometricsAuthInGlobal(title, subtitle, description)
+  }
+
+  actual suspend fun biometricsAuthInGlobal(
+    title: String?,
+    subtitle: String?,
+    description: String?,
+  ): BiometricsResult {
     val safeTitle = title ?: BiometricsI18nResource.default_title.text
     val safeSubtitle = subtitle ?: BiometricsI18nResource.default_subtitle.text
+    val reason = listOfNotNull(safeTitle, safeSubtitle, description).joinToString("\n")
+    return startLocalAuthentication(reason)
+  }
+
+  suspend fun startLocalAuthentication(reason: String) = suspendCoroutine { continuation ->
     LAContext().evaluatePolicy(
-      LAPolicyDeviceOwnerAuthentication, "$safeTitle\n $safeSubtitle\n $remoteMMID"
+      LAPolicyDeviceOwnerAuthentication, reason
     ) { success, error ->
       var message = ""
       if (!success) {
         message = error?.localizedDescription ?: BiometricsI18nResource.authentication_failed.text
       }
 
-      result.complete(BiometricsResult(success, message))
+      continuation.resume(BiometricsResult(success, message))
     }
-    return result.await()
   }
 }

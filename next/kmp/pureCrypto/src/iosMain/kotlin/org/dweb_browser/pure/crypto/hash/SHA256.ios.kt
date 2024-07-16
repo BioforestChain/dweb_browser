@@ -16,6 +16,7 @@ import platform.CoreCrypto.CC_SHA256_Update
 
 actual suspend fun sha256(data: ByteArray) = common_sha256(data)
 actual suspend fun sha256(data: String) = common_sha256(data)
+actual fun sha256Sync(data: ByteArray) = ccSha256(data)
 
 
 @OptIn(ExperimentalForeignApi::class)

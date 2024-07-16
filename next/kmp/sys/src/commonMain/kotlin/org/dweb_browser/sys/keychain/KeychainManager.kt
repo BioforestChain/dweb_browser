@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.dweb_browser.core.help.types.IMicroModuleManifest
+import org.dweb_browser.helper.trueAlso
 
 class KeychainManager(
   val keychainRuntime: KeychainNMM.KeyChainRuntime,
@@ -22,12 +23,15 @@ class KeychainManager(
       keychainStore.getItem(manifest.mmid, key)
 
     suspend fun updatePassword(key: String, value: ByteArray) {
-      keychainStore.setItem(manifest.mmid, key, value)
-      password = value
+      keychainStore.setItem(manifest.mmid, key, value).trueAlso {
+        password = value
+      }
     }
 
     suspend fun deletePassword(key: String) {
-      keychainStore.deleteItem(manifest.mmid, key)
+      keychainStore.deleteItem(manifest.mmid, key).trueAlso {
+        refresh()
+      }
     }
 
     init {

@@ -8,6 +8,7 @@ private val shaLock = Mutex()
 
 actual suspend fun sha256(data: ByteArray) = shaLock.withLock { common_sha256(data) }
 actual suspend fun sha256(data: String) = shaLock.withLock { common_sha256(data) }
+actual fun sha256Sync(data: ByteArray) = jvmSha256(data)
 
 fun jvmSha256(data: ByteArray): ByteArray {
   val sha256Digest = MessageDigest.getInstance("SHA-256")

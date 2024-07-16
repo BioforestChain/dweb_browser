@@ -8,9 +8,8 @@ import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
 import org.dweb_browser.helper.base64UrlString
 import org.dweb_browser.helper.datetimeNow
-import org.dweb_browser.helper.utf8Binary
 import org.dweb_browser.sys.keychain.debugKeychain
-import org.dweb_browser.sys.keychain.deviceKeyStore
+import org.dweb_browser.sys.keychain.render.keychainMetadataStore
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.SecretKeySpec
@@ -44,7 +43,7 @@ class EncryptKeyV1(
     @OptIn(ExperimentalSerializationApi::class)
     internal val recoveryKey: RecoveryKey = { params ->
       runCatching {
-        deviceKeyStore.getRawItem(alias.utf8Binary)?.let {
+        keychainMetadataStore.getItem(alias)?.let {
           EncryptCbor.decodeFromByteArray<EncryptKeyV1>(it)
         }
       }.getOrElse {
@@ -70,8 +69,8 @@ class EncryptKeyV1(
       )
 
       // 使用根密钥来加密随机密钥
-      deviceKeyStore.setRawItem(
-        alias.utf8Binary, EncryptCbor.encodeToByteArray<EncryptKeyV1>(encryptKey)
+      keychainMetadataStore.setItem(
+        alias, EncryptCbor.encodeToByteArray<EncryptKeyV1>(encryptKey)
       )
       encryptKey
     }

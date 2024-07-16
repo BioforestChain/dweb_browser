@@ -37,15 +37,17 @@ import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.withMainContext
 import java.util.concurrent.Executor
 
+typealias StartAppBiometricsActivity = suspend (cls: Class<BiometricsActivity>, onIntent: (intent: Intent) -> Unit) -> Unit
+
 class BiometricsActivity : FragmentActivity() {
   companion object {
     private val creates = mutableMapOf<String, CompletableDeferred<BiometricsActivity>>()
-    suspend fun create(mmRuntime: MicroModule.Runtime) =
+    suspend fun create(startAppActivity: StartAppBiometricsActivity) =
       CompletableDeferred<BiometricsActivity>().also {
         val uid = randomUUID()
         creates[uid] = it
         it.invokeOnCompletion { creates.remove(uid) }
-        mmRuntime.startAppActivity(BiometricsActivity::class.java) { intent ->
+        startAppActivity(BiometricsActivity::class.java) { intent ->
 //        intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
           intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 //        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)
@@ -54,6 +56,10 @@ class BiometricsActivity : FragmentActivity() {
           })
         }
       }.await()
+
+    suspend fun create(mmRuntime: MicroModule.Runtime) = create { cls, onIntent ->
+      mmRuntime.startAppActivity(cls, onIntent)
+    }
 
     private const val SONY = "sony";
     private const val OPPO = "oppo";

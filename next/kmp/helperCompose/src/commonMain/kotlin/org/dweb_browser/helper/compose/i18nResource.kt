@@ -1,8 +1,6 @@
 package org.dweb_browser.helper.compose
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.text.intl.Locale
 import org.dweb_browser.helper.Debugger
 
@@ -64,8 +62,11 @@ class SimpleI18nResource(
 open class I18n {
   companion object {
     fun zh(zh: String, en: String) = SimpleI18nResource(Language.ZH to zh, Language.EN to en)
-    fun zh1(zh: State<String>.() -> String, en: State<String>.() -> String) =
-      OneParamI18nResource({ mutableStateOf("") }, Language.ZH to zh, Language.EN to en)
+
+    data class Zh1(var value: String,)
+
+    fun zh1(zh: Zh1.() -> String, en: Zh1.() -> String) =
+      OneParamI18nResource({ Zh1("") }, Language.ZH to zh, Language.EN to en)
 
     data class Zh2(var value1: String, var value2: String)
 

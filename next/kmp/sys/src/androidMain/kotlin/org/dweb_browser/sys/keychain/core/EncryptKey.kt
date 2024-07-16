@@ -23,10 +23,13 @@ import kotlinx.serialization.modules.subclass
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.platform.theme.LocalColorful
+import org.dweb_browser.helper.utf8Binary
+import org.dweb_browser.helper.utf8String
 import org.dweb_browser.pure.image.compose.PureImageLoader
 import org.dweb_browser.pure.image.compose.StableSmartLoad
-import org.dweb_browser.sys.keychain.deviceKeyStore
 import org.dweb_browser.sys.keychain.render.KeychainActivity
+import org.dweb_browser.sys.keychain.render.KeychainAuthentication.Companion.ROOT_KEY_VERSION
+import org.dweb_browser.sys.keychain.render.keychainMetadataStore
 import org.dweb_browser.sys.toast.ext.showToast
 import org.dweb_browser.sys.window.core.helper.pickLargest
 import org.dweb_browser.sys.window.core.helper.toStrict
@@ -74,13 +77,13 @@ abstract class EncryptKey {
           }
         },
       )
-      val version = deviceKeyStore.getItem("root-key-version") ?: run {
-        deviceKeyStore.setItem("root-key-version", RootKeyV1.VERSION)
+      val version = keychainMetadataStore.getItem(ROOT_KEY_VERSION)?.utf8String ?: run {
+        keychainMetadataStore.setItem(ROOT_KEY_VERSION, RootKeyV1.VERSION.utf8Binary)
       }
       return when (version) {
         RootKeyV1.VERSION -> RootKeyV1(secretKeyRawBytes)
         else -> {
-          WARNING("invalid root-key-version: $version")
+          WARNING("invalid $ROOT_KEY_VERSION: $version")
           params.runtime.showToast("您的钥匙串数据可能已经遭到损坏")
           RootKeyV1(secretKeyRawBytes)
         }

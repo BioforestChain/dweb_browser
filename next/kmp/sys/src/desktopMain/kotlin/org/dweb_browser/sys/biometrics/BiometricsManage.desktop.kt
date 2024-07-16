@@ -1,6 +1,5 @@
 package org.dweb_browser.sys.biometrics
 
-import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.module.MicroModule
 
 
@@ -14,15 +13,24 @@ actual object BiometricsManage {
     BiometricCheckResult.fromValue(biometrics.checkSupportBiometrics().toInt())
       ?: BiometricCheckResult.BIOMETRIC_STATUS_UNKNOWN
 
-  actual suspend fun biometricsResultContent(
+  actual suspend fun biometricsAuthInRuntime(
     mmRuntime: MicroModule.Runtime,
-    remoteMMID: MMID,
     title: String?,
     subtitle: String?,
+    description: String?,
   ): BiometricsResult {
-    val result = biometrics.biometricsResultContent(
-      title ?: subtitle ?: BiometricsI18nResource.default_subtitle.text
-    )
+    return biometricsAuthInGlobal(title, subtitle, description)
+  }
+
+  actual suspend fun biometricsAuthInGlobal(
+    title: String?,
+    subtitle: String?,
+    description: String?,
+  ): BiometricsResult {
+    val safeTitle = title ?: BiometricsI18nResource.default_title.text
+    val safeSubtitle = subtitle ?: BiometricsI18nResource.default_subtitle.text
+    val reason = listOfNotNull(safeTitle, safeSubtitle, description).joinToString("\n")
+    val result = biometrics.biometricsResultContent(reason)
 
     if (!result.success && result.message.isBlank()) {
       return BiometricsResult(result.success, BiometricsI18nResource.authentication_failed.text)

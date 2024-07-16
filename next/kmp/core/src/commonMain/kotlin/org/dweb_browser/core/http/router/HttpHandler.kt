@@ -15,9 +15,9 @@ interface IHandlerContext {
   val ipc: Ipc
   fun throwException(
     code: HttpStatusCode = HttpStatusCode.InternalServerError,
-    message: String = code.description,
+    message: String? = null,
     cause: Throwable? = null,
-  ): Nothing = throw ResponseException(code, message, cause)
+  ): Nothing = throw ResponseException(code, message ?: code.description, cause)
 }
 
 open class HandlerContext(override val request: PureServerRequest, override val ipc: Ipc) :
@@ -65,7 +65,7 @@ class HttpHandlerChain(val handler: HttpHandler) {
       }
     } catch (e: ResponseException) {
       WARNING("HttpHandlerChain=> $e")
-     return PureResponse(e.code, body = IPureBody.from(e.message))
+      return PureResponse(e.code, body = IPureBody.from(e.message))
     } catch (ex: Exception) {
       debugRoute("HttpHandlerChain-Error", ctx.request.href, ex)
       return PureResponse(

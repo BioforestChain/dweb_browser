@@ -9,6 +9,7 @@ import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_WEAK
 import androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.module.MicroModule
+import org.dweb_browser.core.module.startAppActivity
 import org.dweb_browser.helper.getAppContextUnsafe
 import org.dweb_browser.helper.getOrDefault
 import org.dweb_browser.helper.randomUUID
@@ -51,29 +52,51 @@ actual object BiometricsManage {
       return@let result
     }
 
-  actual suspend fun biometricsResultContent(
+  actual suspend fun biometricsAuthInRuntime(
     mmRuntime: MicroModule.Runtime,
-    remoteMMID: MMID,
     title: String?,
     subtitle: String?,
+    description: String?,
   ): BiometricsResult {
-
     val biometricsActivity = BiometricsActivity.create(mmRuntime)
     biometricsActivity.waitSupportOrThrow()
+    return biometricsActivity.startAuthenticate(
+      title = title,
+      subtitle = subtitle,
+      description = description
+    )
+  }
 
-    return runCatching {
-      biometricsActivity.authenticateWithClass3BiometricsDeferred(
-        crypto = null,
-        title = title ?: BiometricsI18nResource.default_title.text,
-        negativeButtonText = BiometricsI18nResource.cancel_button.text,
-        subtitle = subtitle ?: BiometricsI18nResource.default_subtitle.text,
-        description = remoteMMID,
-        confirmationRequired = true,
-      )
-      BiometricsResult(true, "")
-    }.getOrElse {
-      BiometricsResult(false, it.message ?: "authenticateWithClass3Biometrics error")
-    }
+  actual suspend fun biometricsAuthInGlobal(
+    title: String?,
+    subtitle: String?,
+    description: String?,
+  ): BiometricsResult {
+    val biometricsActivity = BiometricsActivity.create(MicroModule::startAppActivity)
+    biometricsActivity.waitSupportOrThrow()
+    return biometricsActivity.startAuthenticate(
+      title = title,
+      subtitle = subtitle,
+      description = description
+    )
+  }
+
+  private suspend fun BiometricsActivity.startAuthenticate(
+    title: String?,
+    subtitle: String?,
+    description: String?,
+  ) = runCatching {
+    authenticateWithClass3BiometricsDeferred(
+      crypto = null,
+      title = title ?: BiometricsI18nResource.default_title.text,
+      negativeButtonText = BiometricsI18nResource.cancel_button.text,
+      subtitle = subtitle ?: BiometricsI18nResource.default_subtitle.text,
+      description = description,
+      confirmationRequired = true,
+    )
+    BiometricsResult(true, "")
+  }.getOrElse {
+    BiometricsResult(false, it.message ?: "authenticateWithClass3Biometrics error")
   }
 
   private fun generateSecretKey(mmid: MMID): SecretKey {

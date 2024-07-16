@@ -1,7 +1,6 @@
 package org.dweb_browser.sys.biometrics
 
 import kotlinx.serialization.Serializable
-import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.helper.StringEnumSerializer
 
@@ -55,11 +54,17 @@ expect object BiometricsManage {
 
   suspend fun checkSupportBiometrics(): BiometricCheckResult
 
-  suspend fun biometricsResultContent(
+  suspend fun biometricsAuthInRuntime(
     mmRuntime: MicroModule.Runtime,
-    remoteMMID: MMID,
-    title: String?,
-    subtitle: String?,
+    title: String? = null,
+    subtitle: String? = null,
+    description: String? = null,
+  ): BiometricsResult
+
+  suspend fun biometricsAuthInGlobal(
+    title: String? = null,
+    subtitle: String? = null,
+    description: String? = null,
   ): BiometricsResult
 }
 

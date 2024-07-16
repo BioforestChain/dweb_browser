@@ -3,19 +3,12 @@ package org.dweb_browser.sys.keychain
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.helper.SuspendOnce1
-import org.dweb_browser.helper.platform.DeviceKeyValueStore
 import org.dweb_browser.helper.trueAlso
-import org.dweb_browser.helper.utf8Binary
 import org.dweb_browser.sys.keychain.core.EncryptKey
 import org.dweb_browser.sys.keychain.core.EncryptKeyV1
 import org.dweb_browser.sys.keychain.core.UseKeyParams
-import java.security.KeyStore
 
 internal const val ANDROID_KEY_STORE = "AndroidKeyStore"
-internal const val ANDROID_KEY_PROVIDER = "BC"
-internal val deviceKeyStore = DeviceKeyValueStore(ANDROID_KEY_STORE)
-internal val keyStore = KeyStore.getInstance(ANDROID_KEY_STORE).apply { load(null) }
-
 
 actual class KeychainStore actual constructor(val runtime: MicroModule.Runtime) {
   companion object {
@@ -88,12 +81,12 @@ actual class KeychainStore actual constructor(val runtime: MicroModule.Runtime) 
 
   actual suspend fun getItem(remoteMmid: MMID, key: String): ByteArray? {
     val store = storeManager.getStore(remoteMmid)
-    return store.getRawItem(key.utf8Binary)?.let {
+    return store.getItem(key)?.let {
       decryptData(
         it, remoteMmid, buildUseKeyReason(
           remoteMmid = remoteMmid,
-          title = "应用想要访问您的钥匙串中保存的密钥",
-          description = "读取钥匙: $key"
+          title = KeychainI18nResource.keychain_get_title.text,
+          description = KeychainI18nResource.keychain_get_description.text { value = key }
         )
       )
     }
@@ -102,12 +95,12 @@ actual class KeychainStore actual constructor(val runtime: MicroModule.Runtime) 
   actual suspend fun setItem(remoteMmid: MMID, key: String, value: ByteArray): Boolean {
     val store = storeManager.getStore(remoteMmid)
     return runCatching {
-      store.setRawItem(
-        key.utf8Binary, encryptData(
+      store.setItem(
+        key, encryptData(
           value, remoteMmid, buildUseKeyReason(
             remoteMmid = remoteMmid,
-            title = "应用想要使用您的钥匙串保存密钥",
-            description = "保存钥匙: $key"
+            title = KeychainI18nResource.keychain_set_title.text,
+            description = KeychainI18nResource.keychain_set_description.text { this.value = key }
           )
         )
       )
@@ -118,19 +111,23 @@ actual class KeychainStore actual constructor(val runtime: MicroModule.Runtime) 
 
   actual suspend fun hasItem(remoteMmid: MMID, key: String): Boolean {
     val store = storeManager.getStore(remoteMmid)
-    return store.hasKey(key)
+    return store.hasItem(key)
   }
 
   actual suspend fun deleteItem(remoteMmid: MMID, key: String): Boolean {
     val store = storeManager.getStore(remoteMmid)
+    if (!hasItem(remoteMmid, key)) {
+      return false
+    }
+    /// 这里只是要获得用户的授权
     EncryptKey.getRootKey(
       buildUseKeyParams(
         remoteMmid = remoteMmid,
-        title = "应用想要删除您的钥匙串保存密钥",
-        description = "删除钥匙: $key"
+        title = KeychainI18nResource.keychain_delete_title.text,
+        description = KeychainI18nResource.keychain_delete_description.text { value = key }
       )
     )
-    return store.removeKey(key).trueAlso {
+    return store.deleteItem(key).trueAlso {
       keysManager.removeKey(remoteMmid, key)
     }
   }
@@ -146,6 +143,14 @@ actual class KeychainStore actual constructor(val runtime: MicroModule.Runtime) 
     )
 
   actual suspend fun keys(remoteMmid: MMID): List<String> {
+//    /// 这里只是要获得用户的授权
+//    EncryptKey.getRootKey(
+//      buildUseKeyParams(
+//        remoteMmid = remoteMmid,
+//        title = "应用想要了解您的钥匙串的存储概况",
+//        description = "仅查看钥匙串的名称，不会读取密钥内容"
+//      )
+//    )
     return keysManager.getKeys(remoteMmid).toList()
   }
 

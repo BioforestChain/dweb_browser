@@ -6,7 +6,6 @@ import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.helper.platform.DeviceKeyValueStore
-import org.dweb_browser.helper.utf8Binary
 
 class AndroidDeviceKeyValueStoreManager {
   private val storeMaps = mutableMapOf<MMID, DeviceKeyValueStore>()
@@ -18,7 +17,7 @@ internal class AndroidKeysManager(val storeManager: AndroidDeviceKeyValueStoreMa
   KeysManager(AndroidMmidsManager()) {
   override fun initKeys(remoteMmid: MMID): MutableSet<String> {
     val store = storeManager.getStore(remoteMmid)
-    return store.getKeys().toMutableSet()
+    return store.keys().toMutableSet()
   }
 
   override fun saveKeys(remoteMmid: MMID, keys: Set<String>) {
@@ -29,11 +28,11 @@ internal class AndroidKeysManager(val storeManager: AndroidDeviceKeyValueStoreMa
 internal class AndroidMmidsManager : MmidsManager() {
   private val store = DeviceKeyValueStore(METADATA)
   override fun initMmids(): MutableSet<String> {
-    return store.getRawItem(MMIDS.utf8Binary)?.let { Cbor.decodeFromByteArray(it) }
+    return store.getItem(MMIDS)?.let { Cbor.decodeFromByteArray(it) }
       ?: mutableSetOf()
   }
 
   override fun saveMmid() {
-    store.setRawItem(MMIDS.utf8Binary, Cbor.encodeToByteArray(mmids))
+    store.setItem(MMIDS, Cbor.encodeToByteArray(mmids))
   }
 }

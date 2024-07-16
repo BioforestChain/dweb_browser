@@ -37,6 +37,11 @@ kotlin {
   }
   kmpDesktopTarget(project) {
   }
+  sourceSets.create("skikoMain") {
+    dependencies {
+      implementation(projects.libKeychainstore)
+    }
+  }
 
   @OptIn(ExperimentalKotlinGradlePluginApi::class)
   applyHierarchyPlatformTemplate {

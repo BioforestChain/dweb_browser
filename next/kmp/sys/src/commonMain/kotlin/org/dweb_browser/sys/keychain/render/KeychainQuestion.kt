@@ -28,7 +28,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -38,7 +37,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.launch
@@ -49,21 +47,7 @@ import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.helper.utf8Binary
 import org.dweb_browser.helper.utf8String
-import org.dweb_browser.pure.crypto.hash.jvmSha256
-
-@Preview
-@Composable
-fun RegisterQuestionPreview() {
-  val viewModel = remember { RegisterQuestionViewModel(CompletableDeferred()) }
-  RegisterQuestion(viewModel)
-}
-
-@Preview
-@Composable
-fun VerifyQuestionPreview() {
-  val viewModel = remember { VerifyQuestionViewModel(CompletableDeferred()) }
-  VerifyQuestion(viewModel)
-}
+import org.dweb_browser.pure.crypto.hash.sha256Sync
 
 @Composable
 fun RegisterQuestion(viewModel: RegisterQuestionViewModel, modifier: Modifier = Modifier) {
@@ -116,6 +100,7 @@ fun RegisterQuestion(viewModel: RegisterQuestionViewModel, modifier: Modifier = 
       }
     }
     CardActions(Modifier.align(Alignment.End).wrapContentHeight()) {
+      val scope = rememberCoroutineScope()
       OutlinedButton(
         {
           viewModel.addItem()
@@ -128,7 +113,10 @@ fun RegisterQuestion(viewModel: RegisterQuestionViewModel, modifier: Modifier = 
         Icon(Icons.TwoTone.AddCircle, null)
         Text("添加条目")
       }
-      Button({ viewModel.confirm() }, enabled = viewModel.canConfirm) {
+      Button(
+        { scope.launch { viewModel.confirm() } },
+        enabled = viewModel.canConfirm && !viewModel.registering
+      ) {
         Text("确定")
       }
     }
@@ -189,7 +177,7 @@ class RegisterQuestionViewModel(override val task: CompletableDeferred<ByteArray
       return true
     }
 
-  fun confirm() {
+  suspend fun confirm() {
     /// 整理数据
     qaList.toMutableList().forEach {
       it.question = it.question.trim()
@@ -227,7 +215,11 @@ fun VerifyQuestion(viewModel: VerifyQuestionViewModel, modifier: Modifier = Modi
       }
     }
     Row(Modifier.align(Alignment.End).padding(vertical = 8.dp)) {
-      FilledTonalButton({ viewModel.confirm() }, enabled = viewModel.canConfirm) {
+      val scope = rememberCoroutineScope()
+      FilledTonalButton(
+        { scope.launch { viewModel.confirm() } },
+        enabled = viewModel.canConfirm && !viewModel.verifying
+      ) {
         Text("确定")
       }
     }
@@ -254,7 +246,7 @@ class VerifyQuestionViewModel(override val task: CompletableDeferred<ByteArray>)
   }
 
   val canConfirm get() = qaList.all { it.answer.isNotEmpty() }
-  fun confirm() {
+  suspend fun confirm() {
     qaList.forEach {
       it.answer = it.answer
     }
@@ -268,7 +260,7 @@ class VerifyQuestionViewModel(override val task: CompletableDeferred<ByteArray>)
       it.answer = it.answer.trim()
     }
     val answerList = qaList.map { it.answer }
-    val keyRawData = jvmSha256(Json.encodeToString(answerList).utf8Binary)
+    val keyRawData = sha256Sync(Json.encodeToString(answerList).utf8Binary)
     return keyRawData
   }
 }

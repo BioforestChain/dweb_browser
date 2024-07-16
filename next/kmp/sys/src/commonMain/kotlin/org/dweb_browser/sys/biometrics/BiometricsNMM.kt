@@ -34,11 +34,11 @@ class BiometricsNMM : NativeMicroModule("biometrics.sys.dweb", "biometrics") {
           val title = request.queryOrNull("title")
           val subtitle = request.queryOrNull("subtitle")
           val biometricsResult =
-            BiometricsManage.biometricsResultContent(
+            BiometricsManage.biometricsAuthInRuntime(
               this@BiometricsRuntime,
-              ipc.remote.mmid,
               title,
               subtitle,
+              ipc.remote.mmid,
             )
           debugBiometrics("biometrics", biometricsResult.toJsonElement())
           return@defineJsonResponse biometricsResult.toJsonElement()
@@ -48,11 +48,11 @@ class BiometricsNMM : NativeMicroModule("biometrics.sys.dweb", "biometrics") {
           val subtitle = request.queryOrNull("subtitle")
 
           val biometricsResult =
-            BiometricsManage.biometricsResultContent(
+            BiometricsManage.biometricsAuthInRuntime(
               this@BiometricsRuntime,
-              ipc.remote.mmid,
               title,
               subtitle,
+              ipc.remote.mmid,
             )
           debugBiometrics("biometrics", biometricsResult.toJsonElement())
           return@defineJsonResponse biometricsResult.toJsonElement()

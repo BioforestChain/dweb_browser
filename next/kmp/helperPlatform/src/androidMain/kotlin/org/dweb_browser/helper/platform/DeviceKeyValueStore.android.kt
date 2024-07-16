@@ -4,7 +4,6 @@ import android.os.Environment
 import org.dweb_browser.helper.utf8Binary
 import org.dweb_browser.helper.utf8String
 import org.dweb_browser.pure.crypto.hash.jvmSha256
-import java.io.File
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
@@ -14,13 +13,12 @@ import kotlin.io.encoding.ExperimentalEncodingApi
  * 使用文件夹名称来保存数据，而不是文件本身
  */
 @OptIn(ExperimentalEncodingApi::class)
-class DeviceKeyValueStore(
+actual class DeviceKeyValueStore actual constructor(
   val storeName: String,
-  baseDir: File = externalDir,
   /**
    * 压缩算法
    */
-  val compressAlgorithm: String? = null,
+  val compressAlgorithm: String?,
 ) {
   companion object {
     val externalDir by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
@@ -36,7 +34,8 @@ class DeviceKeyValueStore(
     }
   }
 
-  val storeDir = baseDir.resolve(storeName)
+  private val storeDir = externalDir.resolve(storeName)
+  actual val supportEnumKeys = true
 
   private fun parseReadData(data: ByteArray): String {
     val str = Base64.UrlSafe.encode(data)
@@ -63,10 +62,12 @@ class DeviceKeyValueStore(
     return "A$str" to emptyList()
   }
 
-  fun setItem(key: String, value: String) =
-    setRawItem(key.utf8Binary, value.utf8Binary)
+  actual fun setItem(key: String, value: ByteArray): Boolean {
+    setRawItem(key.utf8Binary, value)
+    return true
+  }
 
-  fun setRawItem(key: ByteArray, value: ByteArray) {
+  private fun setRawItem(key: ByteArray, value: ByteArray) {
     val (keyId, keyDetail) = parseWriteData(key)
     val (valueId, valueDetail) = parseWriteData(value)
     val keyDir = storeDir.resolve("k/$keyId")
@@ -92,9 +93,9 @@ class DeviceKeyValueStore(
     }
   }
 
-  fun getItem(key: String) = getRawItem(key.utf8Binary)?.utf8String
+  actual fun getItem(key: String): ByteArray? = getRawItem(key.utf8Binary)
 
-  fun getRawItem(key: ByteArray): ByteArray? {
+  private fun getRawItem(key: ByteArray): ByteArray? {
     val keyId = parseReadData(key)
     val keyDir = storeDir.resolve("k/$keyId")
     return runCatching {
@@ -113,7 +114,7 @@ class DeviceKeyValueStore(
     }.getOrNull()
   }
 
-  fun getRawKeys() = runCatching {
+  private fun getRawKeys() = runCatching {
     storeDir.resolve("k").list()!!.mapNotNull { keyId ->
       when {
         keyId.startsWith("A") -> Base64.UrlSafe.decode(keyId.substring(1))
@@ -134,21 +135,21 @@ class DeviceKeyValueStore(
     }
   }.getOrElse { emptyList() }
 
-  fun getKeys() = getRawKeys().map { it.utf8String }
+  actual fun keys() = getRawKeys().map { it.utf8String }
 
-  fun removeRawKey(key: ByteArray): Boolean {
+  private fun deleteRawKey(key: ByteArray): Boolean {
     val keyId = parseReadData(key)
     val keyDir = storeDir.resolve("k/$keyId")
     return keyDir.deleteRecursively()
   }
 
-  fun removeKey(key: String) = removeRawKey(key.utf8Binary)
+  actual fun deleteItem(key: String) = deleteRawKey(key.utf8Binary)
 
-  fun hasRawKey(key: ByteArray): Boolean {
+  private fun hasRawKey(key: ByteArray): Boolean {
     val keyId = parseReadData(key)
     return storeDir.resolve("k/$keyId/v").isDirectory
   }
 
-  fun hasKey(key: String) = hasRawKey(key.utf8Binary)
+  actual fun hasItem(key: String) = hasRawKey(key.utf8Binary)
 }
 

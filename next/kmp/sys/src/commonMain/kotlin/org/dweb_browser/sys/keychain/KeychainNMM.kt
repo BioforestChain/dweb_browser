@@ -24,12 +24,11 @@ class KeychainNMM : NativeMicroModule("keychain.sys.dweb", KeychainI18nResource.
 
   init {
     short_name = KeychainI18nResource.short_name.text
-    categories =
-      listOf(
-        MICRO_MODULE_CATEGORY.Application,
-        MICRO_MODULE_CATEGORY.Service,
-        MICRO_MODULE_CATEGORY.Device_Management_Service,
-      )
+    categories = listOf(
+      MICRO_MODULE_CATEGORY.Application,
+      MICRO_MODULE_CATEGORY.Service,
+      MICRO_MODULE_CATEGORY.Device_Management_Service,
+    )
     icons =
       listOf(ImageResource(src = "file:///sys/browser-icons/$mmid.svg", type = "image/svg+xml"))
   }
@@ -39,7 +38,9 @@ class KeychainNMM : NativeMicroModule("keychain.sys.dweb", KeychainI18nResource.
     override suspend fun _bootstrap() {
       routes(
         "/get" bind PureMethod.GET by definePureBinaryHandler {
-          keyChainStore.getItem(ipc.remote.mmid, request.query("key")) ?: throwException(
+          runCatching {
+            keyChainStore.getItem(ipc.remote.mmid, request.query("key"))
+          }.getOrElse { throwException(HttpStatusCode.Forbidden, cause = it) } ?: throwException(
             HttpStatusCode.NotFound
           )
         },
@@ -61,8 +62,7 @@ class KeychainNMM : NativeMicroModule("keychain.sys.dweb", KeychainI18nResource.
                 "base64" -> value.base64Binary
                 "utf8", "utf-8", null -> value.utf8Binary
                 else -> throwException(
-                  HttpStatusCode.InternalServerError,
-                  "invalid value encoding:${encoding}"
+                  HttpStatusCode.InternalServerError, "invalid value encoding:${encoding}"
                 )
               }
             },

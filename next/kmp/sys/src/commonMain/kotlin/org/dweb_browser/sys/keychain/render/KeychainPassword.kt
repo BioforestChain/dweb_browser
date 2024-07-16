@@ -21,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,29 +30,14 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.launch
 import org.dweb_browser.helper.compose.animation.headShake
-import org.dweb_browser.helper.falseAlso
 import org.dweb_browser.helper.platform.theme.LocalColorful
 import org.dweb_browser.helper.utf8Binary
 import org.dweb_browser.helper.utf8String
-import org.dweb_browser.pure.crypto.hash.jvmSha256
-
-@Preview
-@Composable
-fun RegisterPasswordPreview() {
-  val viewModel = remember { RegisterPasswordViewModel(CompletableDeferred()) }
-  RegisterPassword(viewModel)
-}
-
-@Preview
-@Composable
-fun VerifyPasswordPreview() {
-  val viewModel = remember { VerifyPasswordViewModel(CompletableDeferred()) }
-  VerifyPassword(viewModel)
-}
+import org.dweb_browser.pure.crypto.hash.sha256Sync
 
 @Composable
 fun RegisterPassword(viewModel: RegisterPasswordViewModel, modifier: Modifier = Modifier) {
@@ -106,9 +92,12 @@ fun RegisterPassword(viewModel: RegisterPasswordViewModel, modifier: Modifier = 
       }
     }
     CardActions(Modifier.align(Alignment.End)) {
+      val scope = rememberCoroutineScope()
       FilledTonalButton({
-        viewModel.confirm()
-      }, enabled = viewModel.canConfirm) {
+        scope.launch {
+          viewModel.confirm()
+        }
+      }, enabled = viewModel.canConfirm && !viewModel.registering) {
         Text("确定")
       }
     }
@@ -163,13 +152,13 @@ class RegisterPasswordViewModel(override val task: CompletableDeferred<ByteArray
   var secondPassword by mutableStateOf("")
   var tip by mutableStateOf("")
   val canConfirm get() = firstPassword.isNotEmpty() && firstPassword == secondPassword
-  fun confirm() {
+  suspend fun confirm() {
     finish()
   }
 
   override fun doFinish(keyTipCallback: (ByteArray) -> Unit): ByteArray {
     keyTipCallback(tip.trim().utf8Binary)
-    return jvmSha256(firstPassword.utf8Binary)
+    return sha256Sync(firstPassword.utf8Binary)
   }
 }
 
@@ -196,13 +185,14 @@ fun VerifyPassword(viewModel: VerifyPasswordViewModel, modifier: Modifier = Modi
       }
     }
     CardActions(Modifier.align(Alignment.End)) {
+      val scope = rememberCoroutineScope()
       Button(
         onClick = {
-          viewModel.confirm().falseAlso {
-            isError = true
+          scope.launch {
+            isError = !viewModel.confirm()
           }
         },
-        enabled = viewModel.canConfirm,
+        enabled = viewModel.canConfirm && !viewModel.verifying,
       ) {
         Text("确定")
       }
@@ -223,12 +213,12 @@ class VerifyPasswordViewModel(
   }
 
   override fun doFinish(): ByteArray {
-    return jvmSha256(password.utf8Binary)
+    return sha256Sync(password.utf8Binary)
   }
 
   val canConfirm get() = password.isNotEmpty()
 
-  fun confirm(): Boolean {
+  suspend fun confirm(): Boolean {
     return finish()
   }
 }

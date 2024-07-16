@@ -27,6 +27,15 @@ object KeychainI18nResource : I18n() {
 
   val password_delete_tip =
     zh1({ "确定要删除密码项： $value" }, { "Confirm the deletion of the password entry: $value" })
-  val password_encode_error = zh("密码的编码错误","Failed password encoding")
-  val password_decode_error = zh("密码的解码失败","Failed password decoding")
+  val password_encode_error = zh("密码的编码错误", "Failed password encoding")
+  val password_decode_error = zh("密码的解码失败", "Failed password decoding")
+
+
+  val keychain_get_title = zh("应用想要访问您的钥匙串中保存的密钥", "The app will read your keychain.")
+  val keychain_get_description = zh1({ "读取钥匙: $value" }, { "read by key: $value" })
+  val keychain_set_title = zh("应用想要使用您的钥匙串保存密钥", "The app will write your keychain.")
+  val keychain_set_description = zh1({ "保存钥匙: $value" }, { "write by key: $value" })
+  val keychain_delete_title =
+    zh("应用想要删除您的钥匙串保存密钥", "The app will delete your keychain.")
+  val keychain_delete_description = zh1({ "删除钥匙: $value" }, { "delete by key: $value" })
 }
