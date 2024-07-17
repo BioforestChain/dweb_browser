@@ -18,19 +18,16 @@ import io.ktor.utils.io.readAvailable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.io.IOException
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.WARNING
-import org.dweb_browser.helper.debugTest
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.utf8String
+import java.io.IOException
 import java.net.SocketException
 import java.nio.ByteBuffer
-import kotlin.coroutines.CoroutineContext
 
 val debugReverseProxy = Debugger("ReverseProxy")
 
@@ -164,6 +161,8 @@ suspend fun tunnelHttps(
       serverReader.copyTo(clientWriter)
     } catch (e: SocketException) {
       WARNING("Server to Client: ${e.message} :${connectHost}:${connectPort} ")
+    } catch (e: IOException) {
+      WARNING("Failed to copy from server to client: ${e.message} [${connectHost}:${connectPort}]")
     } catch (e: Exception) {
       e.printStackTrace()
     } finally {
@@ -177,6 +176,8 @@ suspend fun tunnelHttps(
       clientReader.copyTo(serverWriter)
     } catch (e: SocketException) {
       WARNING("Client to Server: ${e.message} :${connectHost}:${connectPort}  ")
+    } catch (e: IOException) {
+      WARNING("Failed to copy from client to server: ${e.message} [${connectHost}:${connectPort}]")
     } catch (e: Exception) {
       e.printStackTrace()
     } finally {
