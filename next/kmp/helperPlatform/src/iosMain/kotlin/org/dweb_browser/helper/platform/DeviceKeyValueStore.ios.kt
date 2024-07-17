@@ -20,18 +20,20 @@ import kotlin.io.encoding.ExperimentalEncodingApi
  * 使用文件夹名称来保存数据，而不是文件本身
  */
 @OptIn(ExperimentalEncodingApi::class, ExperimentalForeignApi::class)
-class DeviceKeyValueStore(
-  val storeName: String,
+actual class DeviceKeyValueStore actual constructor(
+  storeName: String,
   /**
    * 压缩算法
    */
-  val compressAlgorithm: String? = null,
+  compressAlgorithm: String?,
 ) {
   init {
     if (compressAlgorithm != null) {
       throw Exception("no yet support compress algorithm: '$compressAlgorithm'")
     }
   }
+
+  actual val supportEnumKeys = true
 
   private val store = DwebKeyChainGenericStore(service = storeName)
 
@@ -54,11 +56,12 @@ class DeviceKeyValueStore(
     )
   }
 
-  fun setItem(key: String, value: String) {
-    setRawItem(key.utf8Binary, value.utf8Binary)
+  actual fun setItem(key: String, value: ByteArray): Boolean {
+    setRawItem(key.utf8Binary, value)
+    return true
   }
 
-  fun getRawItem(key: ByteArray): ByteArray? {
+  private fun getRawItem(key: ByteArray): ByteArray? {
     val (account, isKey) = parseKey(key)
     val rawValue = store.loadItemWithAccount(account = account)?.toByteArray() ?: return null
     return when {
@@ -67,16 +70,16 @@ class DeviceKeyValueStore(
     }
   }
 
-  fun getItem(key: String) = getRawItem(key.utf8Binary)
+  actual fun getItem(key: String) = getRawItem(key.utf8Binary)
 
-  fun hasRawItem(key: ByteArray): Boolean {
+  private fun hasRawItem(key: ByteArray): Boolean {
     val (account, _) = parseKey(key)
     return store.hasItemWithAccount(account = account)
   }
 
-  fun hasItem(key: String) = hasRawItem(key.utf8Binary)
+  actual fun hasItem(key: String) = hasRawItem(key.utf8Binary)
 
-  fun getRawKeys() = store.getAllAccounts().mapNotNull { account ->
+  private fun getRawKeys() = store.getAllAccounts().mapNotNull { account ->
     val key = (account as NSString).toKString()
     when {
       key.startsWith("A") -> Base64.UrlSafe.decode(key.substring(1))
@@ -89,12 +92,12 @@ class DeviceKeyValueStore(
     }
   }
 
-  fun getKeys() = getRawKeys().map { it.utf8String }
+  actual fun keys() = getRawKeys().map { it.utf8String }
 
-  fun deleteRawItem(key: ByteArray): Boolean {
+  private fun deleteRawItem(key: ByteArray): Boolean {
     val (account, _) = parseKey(key)
     return store.deleteItemWithAccount(account)
   }
 
-  fun deleteItem(key: String) = deleteRawItem(key.utf8Binary)
+  actual fun deleteItem(key: String) = deleteRawItem(key.utf8Binary)
 }
