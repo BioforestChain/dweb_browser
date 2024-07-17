@@ -16,7 +16,7 @@ import java.nio.file.Paths
 import kotlin.io.path.name
 
 object webViewEngine {
-  val webviewDir = dataDir.parent.resolve("webview")
+  val webviewDir = dataDir.parent.resolve("dwebview")
 
   private val dwebviewEngineOptionsBuilder: (EngineOptions.Builder.() -> Unit) = {
     // 拦截dweb deeplink
