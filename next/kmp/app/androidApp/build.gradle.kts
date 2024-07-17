@@ -117,6 +117,16 @@ android {
       applicationIdSuffix = null
       versionNameSuffix = null
     }
+    create("beta") {
+      // signingConfig = signingConfigs.getByName("debug") // 如果是测试benchmark需要使用debug
+      signingConfig = signingConfigs.getByName("release")
+      isMinifyEnabled = true // 开启代码混淆
+      setProguardFiles(listOf("proguard-rules.pro"))
+      isShrinkResources = true // 移除无用的resource
+      resValue("string", "appName", "Dweb Browser Beta")
+      applicationIdSuffix = ".beta"
+      versionNameSuffix = "-beta"
+    }
     getByName("debug") {
       signingConfig = signingConfigs.getByName("debug")
       val userName = keystoreProperties.getProperty("debugApk", null)
@@ -155,12 +165,12 @@ android {
   androidComponents {
     beforeVariants { variantBuilder ->
       // 只有 release 模式只需要输出 arm64 以外的变体
-      if (variantBuilder.buildType != "release") {
+      if (variantBuilder.buildType != "release" && variantBuilder.buildType != "beta") {
         if (!variantBuilder.productFlavors.contains("abi" to "forArm64")) {
           variantBuilder.enable = false
         }
       }
-      if (variantBuilder.buildType != "debug" && variantBuilder.buildType != "release") {
+      if (variantBuilder.buildType != "debug" && variantBuilder.buildType != "release" && variantBuilder.buildType != "beta") {
         variantBuilder.enable = true
       }
       /// bundleRelease 模式下，只打 forAll 的包

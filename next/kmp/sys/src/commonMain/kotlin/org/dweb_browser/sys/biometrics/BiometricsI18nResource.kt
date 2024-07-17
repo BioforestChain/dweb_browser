@@ -12,4 +12,6 @@ object BiometricsI18nResource {
   val cancel_button = SimpleI18nResource(Language.ZH to "取消", Language.EN to "Cancel")
   val authentication_failed =
     SimpleI18nResource(Language.ZH to "认证失败", Language.EN to "Authentication failed")
+  val authentication_success =
+    SimpleI18nResource(Language.ZH to "认证成功", Language.EN to "Authentication success")
 }

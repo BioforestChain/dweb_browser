@@ -32,10 +32,15 @@ actual object BiometricsManage {
     val reason = listOfNotNull(safeTitle, safeSubtitle, description).joinToString("\n")
     val result = biometrics.biometricsResultContent(reason)
 
-    if (!result.success && result.message.isBlank()) {
-      return BiometricsResult(result.success, BiometricsI18nResource.authentication_failed.text)
-    }
+    return BiometricsResult(
+      result.success, when {
+        result.message.isBlank() -> when {
+          result.success -> BiometricsI18nResource.authentication_success.text
+          else -> BiometricsI18nResource.authentication_failed.text
+        }
 
-    return BiometricsResult(result.success, result.message)
+        else -> result.message
+      }
+    )
   }
 }

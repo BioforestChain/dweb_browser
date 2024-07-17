@@ -37,6 +37,10 @@ suspend inline fun <T> withMainContextCommon(crossinline block: suspend () -> T)
   }
 }
 
+suspend inline fun <T> withIoContext(crossinline block: suspend () -> T): T {
+  return withContext(ioAsyncExceptionHandler) { block() }
+}
+
 suspend inline fun <T> withScope(
   scope: CoroutineScope,
   noinline block: suspend CoroutineScope.() -> T,

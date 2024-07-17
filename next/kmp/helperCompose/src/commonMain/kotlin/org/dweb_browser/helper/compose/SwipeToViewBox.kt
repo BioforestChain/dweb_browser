@@ -201,8 +201,8 @@ fun SwipeToViewBox(
         }
       }
     }
-    LaunchedEffect(isFocused) {
-      if (!isFocused) {
+    LaunchedEffect(hasFocus) {
+      if (!hasFocus) {
         state.close()
       }
     }

@@ -18,11 +18,12 @@ actual class KeychainStore actual constructor(val runtime: MicroModule.Runtime) 
     }
   }
 
+  @Throws(Exception::class)
   actual suspend fun getItem(remoteMmid: MMID, key: String): ByteArray? {
     if (!hasItem(remoteMmid, key)) {
       return null
     }
-    openAuthView(
+    tryThrowUserRejectAuth(
       runtime = runtime,
       remoteMmid = remoteMmid,
       title = KeychainI18nResource.keychain_get_title.text,
@@ -36,12 +37,15 @@ actual class KeychainStore actual constructor(val runtime: MicroModule.Runtime) 
     key: String,
     value: ByteArray,
   ): Boolean {
-    openAuthView(
-      runtime = runtime,
-      remoteMmid = remoteMmid,
-      title = KeychainI18nResource.keychain_set_title.text,
-      description = KeychainI18nResource.keychain_set_description.text { this.value = key },
-    )
+    runCatching {
+      tryThrowUserRejectAuth(
+        runtime = runtime,
+        remoteMmid = remoteMmid,
+        title = KeychainI18nResource.keychain_set_title.text,
+        description = KeychainI18nResource.keychain_set_description.text { this.value = key },
+      )
+    }.getOrElse { return false }
+
     return keychainSetItem("Dweb $remoteMmid", key, value).trueAlso {
       enumKeys.addKey(remoteMmid, key)
     }
@@ -56,12 +60,15 @@ actual class KeychainStore actual constructor(val runtime: MicroModule.Runtime) 
     if (!hasItem(remoteMmid, key)) {
       return false
     }
-    openAuthView(
-      runtime = runtime,
-      remoteMmid = remoteMmid,
-      title = KeychainI18nResource.keychain_delete_title.text,
-      description = KeychainI18nResource.keychain_delete_description.text { value = key },
-    )
+    runCatching {
+      tryThrowUserRejectAuth(
+        runtime = runtime,
+        remoteMmid = remoteMmid,
+        title = KeychainI18nResource.keychain_delete_title.text,
+        description = KeychainI18nResource.keychain_delete_description.text { value = key },
+      )
+    }.getOrElse { return false }
+
     return keychainDeleteItem("Dweb $remoteMmid", key).trueAlso {
       enumKeys.removeKey(remoteMmid, key)
     }
@@ -77,7 +84,10 @@ actual class KeychainStore actual constructor(val runtime: MicroModule.Runtime) 
 
 }
 
-expect suspend fun openAuthView(
+/**
+ * 尝试抛出用户拒绝认证的信息
+ */
+expect suspend fun tryThrowUserRejectAuth(
   runtime: MicroModule.Runtime,
   remoteMmid: MMID,
   title: String,

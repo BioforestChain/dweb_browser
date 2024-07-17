@@ -15,6 +15,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.compose.CommonI18n
+import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.sys.keychain.KeychainI18nResource
 import org.dweb_browser.sys.keychain.KeychainManager
 
@@ -40,9 +41,10 @@ fun KeychainManager.DetailManager.PasswordDeleteView(
       Button(
         {
           scope.launch {
+            deleting = true
             runCatching {
-              deleting = true
               deletePassword(key)
+            }.getOrDefault(false).trueAlso {
               onDismissRequest()
             }
             deleting = false

@@ -79,15 +79,14 @@ actual class KeychainStore actual constructor(val runtime: MicroModule.Runtime) 
   private val storeManager = AndroidDeviceKeyValueStoreManager()
   private val keysManager = AndroidKeysManager(storeManager)
 
+  @Throws(Exception::class)
   actual suspend fun getItem(remoteMmid: MMID, key: String): ByteArray? {
     val store = storeManager.getStore(remoteMmid)
     return store.getItem(key)?.let {
       decryptData(
-        it, remoteMmid, buildUseKeyReason(
-          remoteMmid = remoteMmid,
+        it, remoteMmid, buildUseKeyReason(remoteMmid = remoteMmid,
           title = KeychainI18nResource.keychain_get_title.text,
-          description = KeychainI18nResource.keychain_get_description.text { value = key }
-        )
+          description = KeychainI18nResource.keychain_get_description.text { value = key })
       )
     }
   }
@@ -97,11 +96,9 @@ actual class KeychainStore actual constructor(val runtime: MicroModule.Runtime) 
     return runCatching {
       store.setItem(
         key, encryptData(
-          value, remoteMmid, buildUseKeyReason(
-            remoteMmid = remoteMmid,
+          value, remoteMmid, buildUseKeyReason(remoteMmid = remoteMmid,
             title = KeychainI18nResource.keychain_set_title.text,
-            description = KeychainI18nResource.keychain_set_description.text { this.value = key }
-          )
+            description = KeychainI18nResource.keychain_set_description.text { this.value = key })
         )
       )
       keysManager.addKey(remoteMmid, key)
@@ -120,13 +117,13 @@ actual class KeychainStore actual constructor(val runtime: MicroModule.Runtime) 
       return false
     }
     /// 这里只是要获得用户的授权
-    EncryptKey.getRootKey(
-      buildUseKeyParams(
-        remoteMmid = remoteMmid,
-        title = KeychainI18nResource.keychain_delete_title.text,
-        description = KeychainI18nResource.keychain_delete_description.text { value = key }
+    runCatching {
+      EncryptKey.getRootKey(
+        buildUseKeyParams(remoteMmid = remoteMmid,
+          title = KeychainI18nResource.keychain_delete_title.text,
+          description = KeychainI18nResource.keychain_delete_description.text { value = key }),
       )
-    )
+    }.getOrElse { return false }
     return store.deleteItem(key).trueAlso {
       keysManager.removeKey(remoteMmid, key)
     }
@@ -143,14 +140,6 @@ actual class KeychainStore actual constructor(val runtime: MicroModule.Runtime) 
     )
 
   actual suspend fun keys(remoteMmid: MMID): List<String> {
-//    /// 这里只是要获得用户的授权
-//    EncryptKey.getRootKey(
-//      buildUseKeyParams(
-//        remoteMmid = remoteMmid,
-//        title = "应用想要了解您的钥匙串的存储概况",
-//        description = "仅查看钥匙串的名称，不会读取密钥内容"
-//      )
-//    )
     return keysManager.getKeys(remoteMmid).toList()
   }
 

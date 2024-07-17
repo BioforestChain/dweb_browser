@@ -56,6 +56,7 @@ fun KeychainManager.DetailManager.KeyItemView(
       Row {
         TextButton({
           passwordDeleteAlert = true
+          closeSwipe()
         }, Modifier.fillMaxHeight().hoverCursor().background(MaterialTheme.colorScheme.error)) {
           Text(
             KeychainI18nResource.password_action_delete(), color = MaterialTheme.colorScheme.onError
@@ -63,8 +64,10 @@ fun KeychainManager.DetailManager.KeyItemView(
         }
         TextButton({
           scope.launch {
-            passwordRwMode = PasswordReadWriteMode.ReadWrite
-            password = getPassword(key)
+            password = getPassword(key)?.also {
+              passwordRwMode = PasswordReadWriteMode.ReadWrite
+              closeSwipe()
+            }
           }
         }, Modifier.fillMaxHeight().hoverCursor().background(MaterialTheme.colorScheme.primary)) {
           Text(
@@ -73,8 +76,10 @@ fun KeychainManager.DetailManager.KeyItemView(
         }
         TextButton({
           scope.launch {
-            passwordRwMode = PasswordReadWriteMode.Readonly
-            password = getPassword(key)
+            password = getPassword(key)?.also {
+              passwordRwMode = PasswordReadWriteMode.Readonly
+              closeSwipe()
+            }
           }
         }, Modifier.fillMaxHeight().hoverCursor().background(MaterialTheme.colorScheme.secondary)) {
           Text(
