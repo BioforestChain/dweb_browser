@@ -33,7 +33,7 @@ kotlin {
   }
 }
 
-val appVersion = "3.6.1200"
+val appVersion = "3.7.1700"
 
 compose.desktop {
   val properties = localProperties()

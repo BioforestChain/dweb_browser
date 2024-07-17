@@ -18,9 +18,5 @@
     <true/>
     <key>com.apple.security.network.server</key>
     <true/>
-    <key>keychain-access-groups</key>
-    <array>
-        <string>$(AppIdentifierPrefix)com.instinct.bfexplorer</string>
-    </array>
 </dict>
 </plist>
