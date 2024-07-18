@@ -47,6 +47,15 @@ object WindowsSingleInstance {
         portFile.createNewFile()
         val portContent = "$port"
         portFile.writeText(portContent)
+
+        // 添加应用关闭删除端口文件，减少因为其它程序占用该端口导致应用无法启动几率
+        Runtime.getRuntime().addShutdownHook(Thread {
+          try {
+            portFile.delete()
+          } catch (e: Throwable) {
+            //
+          }
+        })
       }
     } else {
       val port = portFile.readText().toInt()
