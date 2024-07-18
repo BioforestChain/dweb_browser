@@ -14,7 +14,6 @@ actual suspend fun tryThrowUserRejectAuth(
   val subtitle =
     runtime.bootstrapContext.dns.query(remoteMmid)?.name?.let { "$it($remoteMmid)" } ?: remoteMmid
   val result = BiometricsManage.biometricsAuthInGlobal(title, subtitle, description)
-  println("QAQ tryThrowUserRejectAuth ${result.success} ${result.message}")
   if (!result.success) {
     throw Exception(result.message)
   }

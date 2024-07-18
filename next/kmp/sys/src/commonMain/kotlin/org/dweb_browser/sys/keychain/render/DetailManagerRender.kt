@@ -59,7 +59,7 @@ internal fun KeychainManager.DetailManager.Render(
 
           else -> LazyColumn(Modifier.fillMaxSize()) {
             items(keys, { key -> key }) { key ->
-              KeyItemView(key)
+              key.KeyItemView()
               HorizontalDivider()
             }
           }

@@ -37,12 +37,10 @@ fun Modifier.headShake(play: Boolean, onPlayEnd: () -> Unit) = this.composed {
   val rotateY = remember { Animatable(0f) }
   LaunchedEffect(play) {
     if (play) {
-      println("QAQ start")
       translationX.snapTo(7f)
       rotateY.snapTo(10f)
       launch { translationX.animateTo(0f, translationXSpec) }
       rotateY.animateTo(0f, rotateYSpec)
-      println("QAQ end")
       onPlayEnd()
     }
   }

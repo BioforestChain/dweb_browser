@@ -56,8 +56,7 @@ import org.dweb_browser.sys.keychain.KeychainManager
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun KeychainManager.DetailManager.PasswordView(
-  key: String,
+internal fun KeychainManager.DetailManager.KeyManager.PasswordView(
   passwordSource: ByteArray,
   rwMode: PasswordReadWriteMode,
   modifier: Modifier = Modifier,
@@ -171,6 +170,7 @@ internal fun KeychainManager.DetailManager.PasswordView(
           PasswordReadWriteMode.ReadWrite -> {
             val success = remember { Animatable(0f) }
             var saving by remember { mutableStateOf(false) }
+            hasModify = !passwordBinaryValue.contentEquals(passwordSource)
             Button(
               {
                 scope.launch {
@@ -185,7 +185,7 @@ internal fun KeychainManager.DetailManager.PasswordView(
                 }
               },
               contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
-              enabled = !saving && !passwordBinaryValue.contentEquals(passwordSource),
+              enabled = !saving && hasModify,
             ) {
               Box(contentAlignment = Alignment.Center) {
                 Icon(Icons.TwoTone.Save, "save", Modifier.alpha(1f - success.value))

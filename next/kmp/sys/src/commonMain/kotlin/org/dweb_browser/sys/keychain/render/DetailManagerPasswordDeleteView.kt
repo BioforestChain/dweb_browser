@@ -20,8 +20,7 @@ import org.dweb_browser.sys.keychain.KeychainI18nResource
 import org.dweb_browser.sys.keychain.KeychainManager
 
 @Composable
-fun KeychainManager.DetailManager.PasswordDeleteView(
-  key: String,
+fun KeychainManager.DetailManager.KeyManager.PasswordDeleteView(
   modifier: Modifier = Modifier,
   onDismissRequest: () -> Unit,
 ) {

@@ -146,7 +146,6 @@ class BiometricsActivity : FragmentActivity() {
         settingsRequired = false
       }
     }
-    println("QAQ checkSupport support=$support settingsRequired=$settingsRequired status=$status")
   }
 
   private var supportDeferred = CompletableDeferred<Boolean>()
@@ -165,7 +164,6 @@ class BiometricsActivity : FragmentActivity() {
 
   override fun onResume() {
     super.onResume()
-    println("QAQ onResume checkSupport")
     checkSupport()
   }
 

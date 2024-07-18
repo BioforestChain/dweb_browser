@@ -72,8 +72,6 @@ actual class DeviceKeyValueStore actual constructor(
     val (valueId, valueDetail) = parseWriteData(value)
     val keyDir = storeDir.resolve("k/$keyId")
     val valueDir = keyDir.resolve("v/$valueId")
-    println("QAQ keyId=$keyId, keyDetail=$keyDetail")
-    println("QAQ valueId=$valueId, valueDetail=$valueDetail")
     // 删除原本存储的数据，包括如果key的hash冲突，也会删除原本的冲突的数据
     keyDir.deleteRecursively()
     // 写入数据

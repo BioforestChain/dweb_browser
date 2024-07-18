@@ -26,6 +26,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.zIndex
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.compose.CommonI18n
@@ -38,8 +39,7 @@ import org.dweb_browser.sys.keychain.KeychainManager
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun KeychainManager.DetailManager.KeyItemView(
-  key: String,
+fun KeychainManager.DetailManager.KeyManager.KeyItemView(
   modifier: Modifier = Modifier,
 ) {
   val scope = rememberCoroutineScope()
@@ -110,21 +110,28 @@ fun KeychainManager.DetailManager.KeyItemView(
     )
   }
   password?.also { passwordSource ->
-    BasicAlertDialog({
-      password = null
-    }, Modifier.wrapContentSize()) {
+    BasicAlertDialog(
+      {
+        password = null
+      },
+      properties = DialogProperties(
+        dismissOnClickOutside = !hasModify,
+        dismissOnBackPress = !hasModify
+      ),
+      modifier = Modifier.wrapContentSize()
+    ) {
       ElevatedCard {
         Box(Modifier.zIndex(2f).align(Alignment.End)) {
           IconButton({ password = null }) {
             Icon(Icons.Default.Close, "close dialog")
           }
         }
-        PasswordView(key, passwordSource, passwordRwMode)
+        PasswordView(passwordSource, passwordRwMode)
       }
     }
   }
   passwordDeleteAlert.trueAlso {
-    PasswordDeleteView(key) {
+    PasswordDeleteView {
       passwordDeleteAlert = false
     }
   }

@@ -12,25 +12,28 @@ class KeychainManager(
   val keychainStore: KeychainStore,
 ) {
   inner class DetailManager(val manifest: IMicroModuleManifest) {
-    val keysState = MutableStateFlow<List<String>?>(null)
+    val keysState = MutableStateFlow<List<KeyManager>?>(null)
     suspend fun refresh() {
-      keysState.value = keychainStore.keys(manifest.mmid)
+      keysState.value = keychainStore.keys(manifest.mmid).map { KeyManager(it) }
     }
 
-    var password by mutableStateOf<ByteArray?>(null)
+    inner class KeyManager(val key: String) {
+      var password by mutableStateOf<ByteArray?>(null)
+      var hasModify by mutableStateOf(false)
 
-    suspend fun getPassword(key: String) =
-      runCatching { keychainStore.getItem(manifest.mmid, key) }.getOrNull()
+      suspend fun getPassword(key: String) =
+        runCatching { keychainStore.getItem(manifest.mmid, key) }.getOrNull()
 
-    suspend fun updatePassword(key: String, value: ByteArray) =
-      keychainStore.setItem(manifest.mmid, key, value).trueAlso {
-        password = value
-      }
+      suspend fun updatePassword(key: String, value: ByteArray) =
+        keychainStore.setItem(manifest.mmid, key, value).trueAlso {
+          password = value
+        }
 
-    suspend fun deletePassword(key: String) =
-      keychainStore.deleteItem(manifest.mmid, key).trueAlso {
-        refresh()
-      }
+      suspend fun deletePassword(key: String) =
+        keychainStore.deleteItem(manifest.mmid, key).trueAlso {
+          refresh()
+        }
+    }
 
     init {
       keychainRuntime.scopeLaunch(cancelable = true) {
