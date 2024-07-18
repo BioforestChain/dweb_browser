@@ -314,9 +314,15 @@ fun WindowController.WindowRender(modifier: Modifier) {
             )
           }
           /// 显示内容
-          windowAdapterManager.Renderer(
-            win.state.constants.wid, windowRenderScope, Modifier.fillMaxSize()
-          )
+          Column {
+            /// 使用 flex 布局，确保 viewPort 稳定
+            Box(Modifier.weight(1f)) {
+              windowAdapterManager.Renderer(
+                win.state.constants.wid, windowRenderScope, Modifier.fillMaxSize()
+              )
+            }
+            Box(Modifier.fillMaxWidth().height(paddingBottom.dp))
+          }
         }
         /// 显示底部控制条
         WindowBottomBar(win,
