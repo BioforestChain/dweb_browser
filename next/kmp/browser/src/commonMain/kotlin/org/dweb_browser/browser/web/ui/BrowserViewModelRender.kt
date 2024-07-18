@@ -7,10 +7,8 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,8 +23,7 @@ import org.dweb_browser.helper.compose.IosLeaveEasing
 import org.dweb_browser.helper.compose.LocalCompositionChain
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
-import org.dweb_browser.sys.window.core.withFillMaxSize
-import org.dweb_browser.sys.window.core.withRenderScope
+import org.dweb_browser.sys.window.core.WindowSurface
 import org.dweb_browser.sys.window.render.LocalWindowController
 
 internal val dimenTextFieldFontSize = 16.sp
@@ -49,10 +46,10 @@ fun BrowserViewModalRender(
 ) {
   LocalCompositionChain.current.Provider(LocalBrowserViewModel provides viewModel) {
     viewModel.ViewModelEffect(windowRenderScope)
-    Surface(Modifier.withRenderScope(windowRenderScope)) {
+    windowRenderScope.WindowSurface {
       // 搜索界面考虑到窗口和全屏问题，显示的问题，需要控制modifier
-      if (BrowserPreviewPanel(Modifier.fillMaxSize().zIndex(2f))) return@Surface
-      if (BrowserSearchPanel(Modifier.withFillMaxSize(windowRenderScope).zIndex(2f))) return@Surface
+      if (BrowserPreviewPanel(Modifier.fillMaxSize().zIndex(2f))) return@WindowSurface
+      if (BrowserSearchPanel(Modifier.fillMaxSize().zIndex(2f))) return@WindowSurface
 
       BrowserPagePanel(Modifier.fillMaxSize(), windowRenderScope.scale)
     }

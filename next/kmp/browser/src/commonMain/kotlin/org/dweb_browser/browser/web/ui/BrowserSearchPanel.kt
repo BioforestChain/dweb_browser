@@ -1,5 +1,8 @@
 package org.dweb_browser.browser.web.ui
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -65,9 +68,16 @@ import org.dweb_browser.sys.window.render.LocalWindowsImeVisible
 @Composable
 fun BrowserSearchPanel(modifier: Modifier = Modifier): Boolean {
   val viewModel = LocalBrowserViewModel.current
-  val showSearchPage = viewModel.showSearchPage ?: return false
-
-  Box {
+  val showSearchPage = viewModel.showSearchPage
+  AnimatedVisibility(
+    visible = showSearchPage != null,
+    modifier = modifier,
+    enter = remember { slideInVertically(enterAnimationSpec()) { it } },
+    exit = remember { slideOutVertically(exitAnimationSpec()) { it } },
+  ) {
+    if (showSearchPage == null) {
+      return@AnimatedVisibility
+    }
     val focusManager = LocalFocusManager.current
     val hide = {
       focusManager.clearFocus()
@@ -85,7 +95,7 @@ fun BrowserSearchPanel(modifier: Modifier = Modifier): Boolean {
     }
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     Scaffold(
-      modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+      modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
       contentWindowInsets = WindowInsets(0),
       topBar = {
         BrowserTopBar(
@@ -202,7 +212,7 @@ fun BrowserSearchPanel(modifier: Modifier = Modifier): Boolean {
     }
 
   }
-  return true
+  return showSearchPage != null
 }
 
 /**

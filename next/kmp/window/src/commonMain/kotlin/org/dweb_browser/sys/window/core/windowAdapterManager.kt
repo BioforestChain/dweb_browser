@@ -140,7 +140,6 @@ class WindowAdapterManager : AdapterManager<CreateWindowAdapter>() {
               pageRenders[index] = { windowRenderScope, contentModifier ->
                 val visibleState = remember { MutableTransitionState(index == 0) }
                 visibleState.targetState = true
-                // Box(modifier = Modifier.fillMaxSize()) {
 
                 /**
                  * currentPage
@@ -160,7 +159,10 @@ class WindowAdapterManager : AdapterManager<CreateWindowAdapter>() {
                       pageRenders.remove(index)
                     }
                   }
-                  pageRender(windowRenderScope, contentModifier)
+                  /// 这加一层 Box TopStart 的布局对齐，是因为 AnimatedVisibility 会将内容居中
+                  Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopStart) {
+                    pageRender(windowRenderScope, contentModifier)
+                  }
                 }
               }
             }
