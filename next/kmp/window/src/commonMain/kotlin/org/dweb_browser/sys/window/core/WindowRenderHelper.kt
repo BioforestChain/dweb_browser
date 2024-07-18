@@ -4,7 +4,9 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -67,7 +69,26 @@ private fun WindowContentScaffoldWrapper(
 fun Modifier.withRenderScope(renderScope: WindowContentRenderScope) = when (renderScope) {
   WindowContentRenderScope.Unspecified -> this
   else -> renderScope.run {
-    this@withRenderScope.requiredSize(widthDp / scale, heightDp / scale).scale(scale)// 原始大小
+    if (scale == 1f) {
+      this@withRenderScope
+    } else {
+      this@withRenderScope.requiredSize(widthDp / scale, heightDp / scale).scale(scale)// 原始大小
+    }
+  }
+}
+
+/**
+ * 由于显示键盘时，窗口缩放（withRenderScope）导致的显示问题修复方案
+ */
+@Stable
+fun Modifier.withFillMaxSize(renderScope: WindowContentRenderScope) = when (renderScope) {
+  WindowContentRenderScope.Unspecified -> this
+  else -> renderScope.run {
+    if (scale == 1f) {
+      this@withFillMaxSize.size(widthDp, heightDp) // 全屏状态时，显示的大小直接根据窗口大小显示
+    } else {
+      this@withFillMaxSize.fillMaxSize()
+    }
   }
 }
 

@@ -1,8 +1,5 @@
 package org.dweb_browser.browser.web.ui
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -68,16 +65,9 @@ import org.dweb_browser.sys.window.render.LocalWindowsImeVisible
 @Composable
 fun BrowserSearchPanel(modifier: Modifier = Modifier): Boolean {
   val viewModel = LocalBrowserViewModel.current
-  val showSearchPage = viewModel.showSearchPage
+  val showSearchPage = viewModel.showSearchPage ?: return false
 
-  AnimatedVisibility(
-    visible = showSearchPage != null,
-    enter = remember { slideInVertically(enterAnimationSpec()) { it } },
-    exit = remember { slideOutVertically(exitAnimationSpec()) { it } },
-  ) {
-    if (showSearchPage == null) {
-      return@AnimatedVisibility
-    }
+  Box {
     val focusManager = LocalFocusManager.current
     val hide = {
       focusManager.clearFocus()
@@ -212,7 +202,7 @@ fun BrowserSearchPanel(modifier: Modifier = Modifier): Boolean {
     }
 
   }
-  return showSearchPage != null
+  return true
 }
 
 /**
