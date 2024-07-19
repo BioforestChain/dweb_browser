@@ -2,12 +2,14 @@ package org.dweb_browser.browser.desk
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.animateIntOffset
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.updateTransition
+import androidx.compose.animation.splineBasedDecay
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -48,13 +50,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -68,6 +69,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInWindow
@@ -88,6 +90,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
@@ -100,7 +103,6 @@ import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.ImageResourcePurposes
 import org.dweb_browser.helper.StrictImageResource
 import org.dweb_browser.helper.UUID
-import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.compose.div
 import org.dweb_browser.helper.compose.iosTween
@@ -112,6 +114,8 @@ import org.dweb_browser.sys.window.core.helper.pickLargest
 import org.dweb_browser.sys.window.core.helper.toStrict
 import org.dweb_browser.sys.window.render.AppIcon
 import org.dweb_browser.sys.window.render.blobFetchHook
+import squircleshape.CornerSmoothing
+import squircleshape.SquircleShape
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -119,7 +123,6 @@ fun NewDesktopView(
   desktopController: DesktopController,
   microModule: NativeMicroModule.NativeRuntime,
 ) {
-  val apps = remember { mutableStateListOf<DesktopAppModel>() }
 
   var popUpApp by remember { mutableStateOf<DesktopAppModel?>(null) }
   var showMoreMenu by remember { mutableStateOf(false) }
@@ -134,9 +137,9 @@ fun NewDesktopView(
 
   var textWord by remember { mutableStateOf("") }
 
-  fun doGetApps() {
-    scope.launch {
-      val installApps = desktopController.getDesktopApps().map {
+  val apps by produceState(mutableListOf<DesktopAppModel>()) {
+    desktopController.onUpdate.filter { it != "bounds" }.collect {
+      value = desktopController.getDesktopApps().map {
         val icon = it.icons.toStrict().pickLargest()
         val isSystemApp = desktopController.isSystemApp(it.mmid)
         //TODO: 临时的处理。等待分拆weblink后再优化。
@@ -152,7 +155,7 @@ fun NewDesktopView(
           DesktopAppRunStatus.NONE
         }
 
-        val oldApp = apps.find { oldApp ->
+        val oldApp = value.find { oldApp ->
           oldApp.mmid == it.mmid
         }
 
@@ -167,21 +170,7 @@ fun NewDesktopView(
           isSystemApp,
           runStatus,
         )
-      }
-      apps.clear()
-      apps.addAll(installApps)
-    }
-  }
-
-  DisposableEffect(Unit) {
-    val job = desktopController.onUpdate.run {
-      filter { it != "bounds" }
-    }.collectIn(scope) {
-      doGetApps()
-    }
-
-    onDispose {
-      job.cancel()
+      }.toMutableList()
     }
   }
 
@@ -436,7 +425,10 @@ private fun DeleteAlert(
 
       when (app.data) {
         is DesktopAppData.App -> {
-          Text("${BrowserI18nResource.Desktop.uninstall.text}: \"${app.name}\"", color = Color.Black)
+          Text(
+            "${BrowserI18nResource.Desktop.uninstall.text}: \"${app.name}\"",
+            color = Color.Black
+          )
           Text(BrowserI18nResource.Desktop.uninstallAlert.text, color = Color.Black)
         }
 
@@ -446,9 +438,19 @@ private fun DeleteAlert(
       }
 
       Row {
-        TextButton(onDismissRequest) { Text(BrowserI18nResource.button_name_cancel.text , color = Color.Black) }
+        TextButton(onDismissRequest) {
+          Text(
+            BrowserI18nResource.button_name_cancel.text,
+            color = Color.Black
+          )
+        }
         Spacer(Modifier.width(50.dp))
-        TextButton(confirm) { Text(BrowserI18nResource.button_name_confirm.text, color = Color.Red) }
+        TextButton(confirm) {
+          Text(
+            BrowserI18nResource.button_name_confirm.text,
+            color = Color.Red
+          )
+        }
       }
     }
   }
@@ -481,42 +483,37 @@ private fun AppItem(
   }
 }
 
-fun Modifier.jump(enable: Boolean) = this.composed {
-  var animated by remember { mutableStateOf(false) }
-  var animationCount by remember { mutableStateOf(Pair(1, false)) }
-  val animationDur = 300
-  var offValue = remember { Animatable(0f) }
+fun Modifier.jump(
+  enable: Boolean,
+  velocity: Float = 680f,
+  internal: Long = (velocity / 4).toLong()
+) = this.composed {
+  val aniState = rememberUpdatedState(enable)
+  val offsetAni = remember { Animatable(0f) }
+  val density = LocalDensity.current
+  val scope = rememberCoroutineScope()
 
-  LaunchedEffect(enable) {
-    if (enable) {
-      animationCount = Pair(0, false)
-      animated = true
-
-      launch {
-        while (true) {
-          offValue.animateTo(-8f, tween(durationMillis = animationDur))
-          animationCount = animationCount.copy(animationCount.first, true)
-          offValue.animateTo(0f, tween(durationMillis = animationDur))
-          animationCount = animationCount.copy(animationCount.first + 1, false)
-        }
+  val startAni = remember {
+    suspend {
+      while (aniState.value) {
+        offsetAni.animateDecay(velocity, splineBasedDecay(density))
+        offsetAni.animateTo(
+          0f,
+          spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessVeryLow
+          )
+        )
+        delay(internal)
       }
-    } else if (animationCount.first < 1) {
-      animated = true
-      launch {
-        if (!animationCount.second) {
-          val time = (-300 * offValue.value / 8f).toInt()
-          offValue.animateTo(-8f, tween(time))
-        }
-        val time = 300 - (300 * offValue.value / 8f).toInt()
-        offValue.animateTo(0f, tween(time))
-        animated = false
-      }
-    } else {
-      animated = false
     }
   }
-
-  this.offset(0.dp, offValue.value.dp)
+  remember(enable) {
+    if (enable) {
+      scope.launch { startAni() }
+    }
+  }
+  graphicsLayer { translationY = -offsetAni.value }
 }
 
 @Composable
@@ -795,10 +792,11 @@ fun DeskCacheIcon(
   val imageResult =
     icon?.let { PureImageLoader.SmartLoad(icon.src, width, height, microModule.blobFetchHook) }
   AppIcon(
-    imageResult,
+    icon = imageResult,
     modifier = modifier.requiredSize(width, height),
+    iconShape = SquircleShape(30, CornerSmoothing.Small),
     iconMaskable = icon?.let { icon.purpose.contains(ImageResourcePurposes.Maskable) } ?: false,
     iconMonochrome = icon?.let { icon.purpose.contains(ImageResourcePurposes.Monochrome) } ?: false,
-    containerAlpha = containerAlpha,
+    containerAlpha = containerAlpha ?: 0.8f,
   )
 }

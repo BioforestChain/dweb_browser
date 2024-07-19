@@ -813,7 +813,7 @@ fun WindowController.IconRender(
   val iconMonochrome by watchedState { iconMonochrome }
   val microModule by state.constants.microModule
   AppIcon(
-    icon = iconUrl,
+    iconUrl = iconUrl,
     modifier,
     color = primaryColor,
     containerColor = primaryContainerColor,

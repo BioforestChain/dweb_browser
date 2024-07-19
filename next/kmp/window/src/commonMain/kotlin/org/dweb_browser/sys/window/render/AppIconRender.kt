@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.painter.Painter
 import org.dweb_browser.helper.ImageResourcePurposes
@@ -48,6 +49,7 @@ fun AppIcon(
   color: Color = LocalContentColor.current,
   containerAlpha: Float? = null,
   containerColor: Color? = null,
+  iconShape: Shape? = null,
   iconPlaceholder: Painter? = null,
   iconError: Painter? = null,
   iconMaskable: Boolean = false,
@@ -61,6 +63,7 @@ fun AppIcon(
     color = color,
     containerAlpha = containerAlpha,
     containerColor = containerColor,
+    iconShape = iconShape,
     iconPlaceholder = iconPlaceholder,
     iconError = iconError,
     iconMaskable = iconMaskable,
@@ -77,11 +80,12 @@ fun AppIcon(
  */
 @Composable
 fun AppIcon(
-  icon: String?,
+  iconUrl: String?,
   modifier: Modifier = Modifier,
   color: Color = LocalContentColor.current,
   containerAlpha: Float? = null,
   containerColor: Color? = null,
+  iconShape: Shape? = null,
   iconPlaceholder: Painter? = null,
   iconError: Painter? = null,
   iconMaskable: Boolean = false,
@@ -90,11 +94,12 @@ fun AppIcon(
   iconFetchHook: FetchHook? = null,
 ) {
   AppIconOuter(
-    iconSrc = icon,
+    iconSrc = iconUrl,
     modifier = modifier,
     color = color,
     containerAlpha = containerAlpha,
     containerColor = containerColor,
+    iconShape = iconShape,
     iconPlaceholder = iconPlaceholder,
     iconError = iconError,
     iconMaskable = iconMaskable,
@@ -109,6 +114,7 @@ fun AppIcon(
   iconResource: StrictImageResource, modifier: Modifier = Modifier,
   color: Color = LocalContentColor.current,
   containerColor: Color? = null,
+  iconShape: Shape? = null,
   iconPlaceholder: Painter? = null,
   iconError: Painter? = null,
   iconDescription: String = "icon",
@@ -119,6 +125,7 @@ fun AppIcon(
     modifier = modifier,
     color = color,
     containerColor = containerColor,
+    iconShape = iconShape,
     iconPlaceholder = iconPlaceholder,
     iconError = iconError,
     iconMaskable = iconResource.purpose.contains(ImageResourcePurposes.Maskable),
@@ -135,6 +142,7 @@ private fun AppIconOuter(
   color: Color,
   containerAlpha: Float? = null,
   containerColor: Color?,
+  iconShape: Shape? = null,
   iconPlaceholder: Painter?,
   iconError: Painter?,
   iconMaskable: Boolean,
@@ -151,7 +159,7 @@ private fun AppIconOuter(
   // 只有加载成功的时候，才会显示背景裁切图
   val containerModifier = if (isSuccess) {
     modifier
-      .clip(SquircleShape())
+      .clip(iconShape ?: SquircleShape())
       .background(safeContainerColor)
   } else {
     modifier

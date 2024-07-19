@@ -207,10 +207,10 @@ open class DesktopController private constructor(
       }
     }
     close()
-  }.shareIn(deskNMM.getRuntimeScope(), started = SharingStarted.Eagerly)
+  }.shareIn(deskNMM.getRuntimeScope(), started = SharingStarted.Eagerly, replay = 1)
 
   init {
-    runningApps.onChange { map ->
+    runningApps.onChange {
       updateFlow.emit("apps")
     }
   }
