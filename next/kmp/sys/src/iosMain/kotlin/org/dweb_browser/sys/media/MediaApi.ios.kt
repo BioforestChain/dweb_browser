@@ -3,7 +3,7 @@ package org.dweb_browser.sys.media
 import kotlinx.cinterop.ExperimentalForeignApi
 import org.dweb_browser.helper.platform.MultiPartFile
 import org.dweb_browser.helper.platform.MultipartFieldDescription
-import org.dweb_browser.sys.scan.toNSData
+import org.dweb_browser.helper.platform.NSDataHelper.toNSData
 import platform.Foundation.NSMutableData
 import platform.Foundation.appendData
 import platform.UIKit.UIImage
@@ -24,7 +24,7 @@ private fun savePicture(file: MultiPartFile) {
 @OptIn(ExperimentalForeignApi::class)
 fun saveImageToPhotosAlbum(image: UIImage) {
 
-  debugMedia("ios ","saveImageToPhotosAlbum ${image.images?.size}")
+  debugMedia("ios ", "saveImageToPhotosAlbum ${image.images?.size}")
   UIImageWriteToSavedPhotosAlbum(
     image,
     null,
@@ -33,9 +33,13 @@ fun saveImageToPhotosAlbum(image: UIImage) {
   )
 }
 
-actual fun MediaPicture.Companion.create(saveLocation: String, desc: MultipartFieldDescription): MediaPicture = MediaPictureImpl(saveLocation, desc)
+actual fun MediaPicture.Companion.create(
+  saveLocation: String,
+  desc: MultipartFieldDescription
+): MediaPicture = MediaPictureImpl(saveLocation, desc)
 
-class MediaPictureImpl(saveLocation: String, desc: MultipartFieldDescription) : MediaPicture(saveLocation, desc) {
+class MediaPictureImpl(saveLocation: String, desc: MultipartFieldDescription) :
+  MediaPicture(saveLocation, desc) {
   val data = NSMutableData()
   override suspend fun consumePictureChunk(chunk: ByteArray) {
     data.appendData(chunk.toNSData())

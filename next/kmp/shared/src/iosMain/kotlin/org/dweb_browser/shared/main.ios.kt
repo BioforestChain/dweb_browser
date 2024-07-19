@@ -10,7 +10,7 @@ import org.dweb_browser.browser.jmm.JmmNMM
 import org.dweb_browser.browser.jsProcess.JsProcessNMM
 import org.dweb_browser.browser.mwebview.MultiWebViewNMM
 import org.dweb_browser.browser.nativeui.torch.TorchNMM
-import org.dweb_browser.browser.scan.ScanStdNMM
+import org.dweb_browser.browser.scan.SmartScanNMM
 import org.dweb_browser.browser.store.StoreNMM
 import org.dweb_browser.browser.web.BrowserNMM
 import org.dweb_browser.browser.zip.ZipNMM
@@ -45,7 +45,6 @@ import org.dweb_browser.sys.notification.NotificationNMM
 import org.dweb_browser.sys.permission.PermissionApplicantTMM
 import org.dweb_browser.sys.permission.PermissionNMM
 import org.dweb_browser.sys.permission.PermissionProviderTNN
-import org.dweb_browser.sys.scan.ScanningNMM
 import org.dweb_browser.sys.share.ShareNMM
 import org.dweb_browser.sys.shortcut.ShortcutNMM
 import org.dweb_browser.sys.toast.ToastNMM
@@ -93,10 +92,7 @@ suspend fun startDwebBrowser(
 
   val mediaCaptureNMM = MediaCaptureNMM().setup()
   /// 扫码
-  val scannerNMM = ScanningNMM().setup()
-  if (envSwitch.isEnabled(ENV_SWITCH_KEY.SCAN_STD)) {
-    val scanStdNMM = ScanStdNMM().setup()
-  }
+  val smartScanNMM = SmartScanNMM().setup()
   ///安装剪切板
   val clipboardNMM = ClipboardNMM().setup()
   ///设备信息

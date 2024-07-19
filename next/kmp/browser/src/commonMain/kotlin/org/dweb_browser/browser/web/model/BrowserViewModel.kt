@@ -613,7 +613,7 @@ class BrowserViewModel(
 
   fun showQRCodePanelUI() {
     browserNMM.scopeLaunch(cancelable = true) {
-      val response = browserNMM.nativeFetch("file://scan.std.dweb/open")
+      val response = browserNMM.nativeFetch("file://scan.browser.dweb/open")
       if (response.isOk) {
         openDeepLink(response.text())
       } else {

@@ -89,20 +89,20 @@ enum class ENV_SWITCH_KEY(
       disableVersion = "0",
       enableVersion = "1",
     ),
-  ),
-  SCAN_STD(
-    "lens-nmm",
-    experimental = ExperimentalKey(
-      title = SimpleI18nResource(
-        Language.ZH to "智能镜头", Language.EN to "Lens"
-      ),
-      description = SimpleI18nResource(
-        Language.ZH to "扫码、扫描、智能视觉模块.",
-        Language.EN to "Code scanning, visual scanning, and smart vision modules.",
-      ),
-      brand = "dweb-lens",
-      disableVersion = "0",
-      enableVersion = "1",
-    ),
-  ),
+  )
+//  SCAN_STD(
+//    "lens-nmm",
+//    experimental = ExperimentalKey(
+//      title = SimpleI18nResource(
+//        Language.ZH to "智能镜头", Language.EN to "Lens"
+//      ),
+//      description = SimpleI18nResource(
+//        Language.ZH to "扫码、扫描、智能视觉模块.",
+//        Language.EN to "Code scanning, visual scanning, and smart vision modules.",
+//      ),
+//      brand = "dweb-lens",
+//      disableVersion = "0",
+//      enableVersion = "1",
+//    ),
+//  ),
 }

@@ -10,10 +10,10 @@ import kotlinx.coroutines.CompletableDeferred
 import objcnames.classes.LPLinkMetadata
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.module.getUIApplication
+import org.dweb_browser.helper.platform.NSDataHelper.toNSData
 import org.dweb_browser.helper.toNSString
 import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.helper.withMainContext
-import org.dweb_browser.sys.scan.toNSData
 import platform.Foundation.NSData
 import platform.Foundation.NSURL
 import platform.LinkPresentation.LPMetadataProvider

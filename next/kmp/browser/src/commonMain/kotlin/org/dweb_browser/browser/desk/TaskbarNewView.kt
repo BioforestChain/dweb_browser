@@ -395,7 +395,7 @@ fun BezGradient(color: Color, modifier: Modifier, style: DrawStyle = Fill, rando
       index++
     }
     val last = points.last()
-    path.quadraticBezierTo(last.x, last.y, start.x, start.y)
+    path.quadraticTo(last.x, last.y, start.x, start.y)
     path.close()
 
     return path

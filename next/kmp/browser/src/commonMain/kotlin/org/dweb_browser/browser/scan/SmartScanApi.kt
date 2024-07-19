@@ -1,13 +1,15 @@
-package org.dweb_browser.sys.scan
+package org.dweb_browser.browser.scan
 
 import kotlinx.serialization.Serializable
 import org.dweb_browser.helper.PurePoint
 import org.dweb_browser.helper.PureRect
 
+/**二维码解析管理器*/
 expect class ScanningManager() {
   fun stop()
 
-  suspend fun recognize(img: ByteArray, rotation: Int): List<BarcodeResult>
+  /**解析二维码*/
+  suspend fun recognize(data: Any,rotation:Int): List<BarcodeResult>
 }
 
 
@@ -20,3 +22,8 @@ class BarcodeResult(
   val bottomLeft: PurePoint,
   val bottomRight: PurePoint,
 )
+
+/**
+ * 打开扫码的结果
+ */
+expect fun openDeepLink(data: String, showBackground: Boolean = false): Boolean

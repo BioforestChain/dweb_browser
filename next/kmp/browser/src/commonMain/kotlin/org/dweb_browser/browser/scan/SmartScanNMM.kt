@@ -17,11 +17,10 @@ import org.dweb_browser.sys.permission.SystemPermissionName
 import org.dweb_browser.sys.permission.SystemPermissionTask
 import org.dweb_browser.sys.permission.ext.requestSystemPermissions
 import org.dweb_browser.sys.window.ext.onRenderer
-import org.dweb_browser.sys.window.ext.openMainWindow
 
-val debugSCAN = Debugger("scan.std")
+val debugSCAN = Debugger("scan.browser")
 
-class ScanStdNMM : NativeMicroModule("scan.std.dweb", "QRCode Scan") {
+class SmartScanNMM : NativeMicroModule("scan.browser.dweb", "Smart Scan") {
   init {
     short_name = BrowserI18nResource.QRCode.short_name.text
     categories = listOf(
@@ -41,14 +40,18 @@ class ScanStdNMM : NativeMicroModule("scan.std.dweb", "QRCode Scan") {
     )
   }
 
-  inner class ScanStdRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
+  inner class ScanRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
     override suspend fun _bootstrap() {
-      val scanController = ScanStdController(this)
+      val scanningManager = ScanningManager()
+      // 实现barcodeScanning协议
+      barcodeScanning(scanningManager)
+      val scanController = SmartScanController(this,scanningManager)
       onRenderer {
         val isPermission = requestSystemPermission()
         if (isPermission) {
+          val controller = scanController.getWindowController()
           // 渲染扫码页面，在桌面端作用为选择图片文件
-          scanController.getWindowController().show()
+          controller.show()
           try {
             val result = scanController.saningResult.await()
             openDeepLink(result)
@@ -96,6 +99,6 @@ class ScanStdNMM : NativeMicroModule("scan.std.dweb", "QRCode Scan") {
   }
 
   override fun createRuntime(bootstrapContext: BootstrapContext): Runtime {
-    return ScanStdRuntime(bootstrapContext)
+    return ScanRuntime(bootstrapContext)
   }
 }

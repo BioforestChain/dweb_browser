@@ -34,10 +34,8 @@ var lastDirectory = mutableStateOf<String?>(null)
  */
 @Composable
 actual fun CameraPreviewRender(
-  openAlarmResult: (ImageBitmap) -> Unit,
-  onBarcodeDetected: (QRCodeDecoderResult) -> Unit,
-  maskView: @Composable (FlashLightSwitch, OpenAlbum) -> Unit,
-  onCancel: (reason: String) -> Unit,
+  modifier: Modifier,
+  controller: SmartScanController
 ) {
   // 创建渲染动画
   var startAnimation by remember { mutableStateOf(false) }
@@ -60,10 +58,10 @@ actual fun CameraPreviewRender(
       fileChooser.addActionListener { event ->
         if (event.actionCommand == JFileChooser.APPROVE_SELECTION) {
           lastDirectory.value = fileChooser.currentDirectory.absolutePath
-          val bufferedImage = ImageIO.read(fileChooser.selectedFile)
-          openAlarmResult(bufferedImage.toComposeImageBitmap())
+          val byteArray = fileChooser.selectedFile.readBytes()
+          controller.imageCaptureFlow.tryEmit(byteArray)
         } else {
-          onCancel(event.actionCommand)
+          controller.onCancel(event.actionCommand)
         }
       }
       fileChooser

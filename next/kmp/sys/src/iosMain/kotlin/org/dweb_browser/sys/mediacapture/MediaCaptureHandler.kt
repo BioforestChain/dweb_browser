@@ -1,7 +1,7 @@
 package org.dweb_browser.sys.mediacapture
 
 import kotlinx.cinterop.ExperimentalForeignApi
-import org.dweb_browser.sys.scan.toByteArray
+import org.dweb_browser.helper.platform.NSDataHelper.toByteArray
 import platform.CoreServices.kUTTypeMovie
 import platform.Foundation.NSURL
 import platform.UIKit.UIApplication

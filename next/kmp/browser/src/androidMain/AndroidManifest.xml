@@ -9,7 +9,8 @@
 
   <uses-feature android:name="android.hardware.camera.any" />
 
-  <application
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <application
     android:enableOnBackInvokedCallback="true"
     android:resizeableActivity="true"
     tools:targetApi="tiramisu">

@@ -6,11 +6,19 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import java.io.ByteArrayOutputStream
+import java.nio.ByteBuffer
 
 actual fun ByteArray.toImageBitmap(): ImageBitmap = toAndroidBitmap().asImageBitmap()
 
 fun ByteArray.toAndroidBitmap(): Bitmap {
   return BitmapFactory.decodeByteArray(this, 0, size)
+}
+
+fun ByteBuffer.toByteArray(): ByteArray {
+  rewind()    // Rewind the buffer to zero
+  val data = ByteArray(remaining())
+  get(data)   // Copy the buffer into a byte array
+  return data // Return the byte array
 }
 
 actual fun ImageBitmap.toByteArray(): ByteArray? {

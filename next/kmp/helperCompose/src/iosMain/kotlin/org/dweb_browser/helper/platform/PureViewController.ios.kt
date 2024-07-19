@@ -28,6 +28,7 @@ import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.platform.NativeViewController.Companion.nativeViewController
 import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.platform.ios.BgPlaceholderView
+import platform.UIKit.UIDevice
 import platform.UIKit.UIView
 
 actual val IPureViewController.Companion.platform
@@ -38,6 +39,9 @@ private var vcIdAcc by SafeInt(0);
 class PureViewController(
   val createParams: PureViewCreateParams = PureViewCreateParams(mapOf())
 ) : IPureViewController {
+  companion object{
+    val isSimulator = UIDevice.currentDevice.model == "iPhone Simulator" || UIDevice.currentDevice.model == "iPad Simulator"
+  }
   constructor(params: Map<String, Any?>) : this(PureViewCreateParams(params))
 
   var prop = DwebUIViewControllerProperty(vcIdAcc++, -1, false)

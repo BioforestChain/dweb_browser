@@ -328,7 +328,7 @@ object BrowserI18nResource {
   }
 
   object QRCode {
-    val short_name = SimpleI18nResource(Language.ZH to "二维码", Language.EN to "QR Code")
+    val short_name = SimpleI18nResource(Language.ZH to "智能扫码", Language.EN to "Smart Scan")
     val select_QR_code = SimpleI18nResource(
       Language.ZH to "选择一张二维码图片",
       Language.EN to "Select a QR code image"
@@ -359,6 +359,11 @@ object BrowserI18nResource {
     val recognizing = SimpleI18nResource(
       Language.ZH to "正在识别中...",
       Language.EN to "Recognizing..."
+    )
+
+    val emptyResult = SimpleI18nResource(
+      Language.ZH to "没有识别到条形码",
+      Language.EN to "No barcode recognized"
     )
 
     val confirm = SimpleI18nResource(

@@ -1,6 +1,7 @@
 package org.dweb_browser.helper
 
 import kotlinx.cinterop.ExperimentalForeignApi
+import platform.UIKit.UIDevice
 
 
 @OptIn(ExperimentalForeignApi::class)
@@ -11,4 +12,3 @@ actual fun eprintln(message: String) {
   platform.posix.fprintf(STDERR, "%s\n", message)
   platform.posix.fflush(STDERR)
 }
-

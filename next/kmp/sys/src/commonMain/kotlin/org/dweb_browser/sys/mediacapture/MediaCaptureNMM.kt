@@ -16,7 +16,6 @@ import org.dweb_browser.sys.permission.ext.requestSystemPermission
 val debugMediaCapture = Debugger("MediaCapture")
 
 class MediaCaptureNMM : NativeMicroModule("media-capture.sys.dweb", "MediaCapture") {
-  private val mediaCaptureManage = MediaCaptureManage()
 
   init {
     categories = listOf(
@@ -26,6 +25,9 @@ class MediaCaptureNMM : NativeMicroModule("media-capture.sys.dweb", "MediaCaptur
 
   inner class MediaCaptureRuntime(override val bootstrapContext: BootstrapContext) :
     NativeRuntime() {
+
+    private val mediaCaptureManage = MediaCaptureManage()
+
     override suspend fun _bootstrap() {
       routes(/**
        * /capture?mime=* 提供相应的系统选择器，目前支持：音频、视频、照片 三种媒体捕捉
