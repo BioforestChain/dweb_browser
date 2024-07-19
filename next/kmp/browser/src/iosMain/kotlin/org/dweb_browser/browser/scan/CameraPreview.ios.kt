@@ -105,6 +105,7 @@ private fun RealDeviceCamera(
       cameraController.stop()
     }
   }
+  cameraController.initCaptureDelegate()
   val scale by controller.scaleFlow.collectAsState()
   UnScaleBox(scale, modifier) {
     uiView.UIKitViewInWindow(
@@ -159,6 +160,14 @@ class CameraControllerImpl(
       }
     }
 
+  // 创建相机预览层
+  private val cameraPreviewLayer: AVCaptureVideoPreviewLayer =
+    AVCaptureVideoPreviewLayer(session = captureSession).apply {
+      // 设置预览图层的视频重力属性
+      videoGravity = AVLayerVideoGravityResizeAspectFill
+      uiView.layer.addSublayer(this)
+    }
+
   // 从相机流中拿内容
   private val photoCaptureDelegate: AVCapturePhotoCaptureDelegateProtocol =
     object : NSObject(), AVCapturePhotoCaptureDelegateProtocol {
@@ -173,12 +182,9 @@ class CameraControllerImpl(
         }
         val photoData = didFinishProcessingPhoto.fileDataRepresentation()
         if (photoData != null) {
+          println("xxxxxx=> $photoData")
           // 回调到二维码识别
-          try {
-            controller.imageCaptureFlow.tryEmit(photoData)
-          } catch (e: Exception) {
-            WARNING("Error emitting photo data: ${e.message}")
-          }
+          controller.imageCaptureFlow.tryEmit(photoData)
         } else {
           WARNING("Photo data is null")
         }
@@ -213,9 +219,7 @@ class CameraControllerImpl(
       }
     }
 
-  private val cameraPreviewLayer: AVCaptureVideoPreviewLayer
-
-  init {
+  fun initCaptureDelegate() {
     // 创建照片设置，指定照片格式为 JPEG
     val photoSettings = AVCapturePhotoSettings.photoSettingsWithFormat(
       format = mapOf(AVVideoCodecKey to AVVideoCodecTypeJPEG)
@@ -225,12 +229,6 @@ class CameraControllerImpl(
       settings = photoSettings,
       delegate = photoCaptureDelegate
     )
-    // 创建相机预览层
-    cameraPreviewLayer = AVCaptureVideoPreviewLayer(session = captureSession).apply {
-      // 设置预览图层的视频重力属性
-      videoGravity = AVLayerVideoGravityResizeAspectFill
-      uiView.layer.addSublayer(this)
-    }
   }
 
   fun start() {

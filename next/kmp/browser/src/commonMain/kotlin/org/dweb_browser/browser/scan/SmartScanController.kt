@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.sync.Mutex
@@ -22,7 +21,7 @@ import org.dweb_browser.sys.window.ext.getMainWindowId
 import org.dweb_browser.sys.window.ext.getOrOpenMainWindow
 
 class SmartScanController(
-  private val smartScanNMM: SmartScanNMM.ScanRuntime, private val scanningManager: ScanningManager
+  private val smartScanNMM: SmartScanNMM.ScanRuntime, private val scanningController: ScanningController
 ) {
 
   private val viewDeferredFlow = MutableStateFlow(CompletableDeferred<WindowController>())
@@ -119,7 +118,7 @@ class SmartScanController(
   /**解码二维码*/
   private suspend fun decodeQrCode(data: Any): List<BarcodeResult> {
     val result = try {
-      scanningManager.recognize(data, 0)
+      scanningController.recognize(data, 0)
     } catch (e: Throwable) {
       WARNING("decode error=>${e.message}")
       emptyList()

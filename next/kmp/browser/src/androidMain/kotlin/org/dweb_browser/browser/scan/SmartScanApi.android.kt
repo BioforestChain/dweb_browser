@@ -28,7 +28,7 @@ import org.dweb_browser.sys.haptics.AndroidVibrate
 import org.dweb_browser.sys.haptics.VibrateType
 
 
-actual class ScanningManager actual constructor() {
+actual class ScanningController actual constructor() {
 
   private val barcodeScanner = BarcodeScanning.getClient()
   actual fun stop() {

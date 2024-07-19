@@ -9,7 +9,7 @@ import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureTextFrame
 
 
-suspend fun SmartScanNMM.ScanRuntime.barcodeScanning(scanningManager: ScanningManager) {
+suspend fun SmartScanNMM.ScanRuntime.barcodeScanning(scanningController: ScanningController) {
   protocol("barcode-scanning.sys.dweb") {
 
     routes(
@@ -26,7 +26,7 @@ suspend fun SmartScanNMM.ScanRuntime.barcodeScanning(scanningManager: ScanningMa
             is PureBinaryFrame -> {
               debugSCAN("process=>byChannel", "PureBinaryFrame($time) $rotation")
               val result = try {
-                scanningManager.recognize(frame.binary, rotation)
+                scanningController.recognize(frame.binary, rotation)
               } catch (e: Throwable) {
                 debugSCAN("process=>byChannel", null, e)
                 emptyList()
@@ -48,7 +48,7 @@ suspend fun SmartScanNMM.ScanRuntime.barcodeScanning(scanningManager: ScanningMa
         val imgBitArray = request.body.toPureBinary()
         debugSCAN("process=>POST", "rotation=$rotation,size=${imgBitArray.size}")
         val result = try {
-          scanningManager.recognize(imgBitArray, rotation)
+          scanningController.recognize(imgBitArray, rotation)
         } catch (e: Throwable) {
           debugSCAN("process=>POST", null, e)
           emptyList()
@@ -60,7 +60,7 @@ suspend fun SmartScanNMM.ScanRuntime.barcodeScanning(scanningManager: ScanningMa
       // 停止处理
       "/stop" bind PureMethod.GET by defineBooleanResponse {
         debugSCAN("/stop", ipc.remote.mmid)
-        scanningManager.stop()
+        scanningController.stop()
         return@defineBooleanResponse true
       },
     ).cors()

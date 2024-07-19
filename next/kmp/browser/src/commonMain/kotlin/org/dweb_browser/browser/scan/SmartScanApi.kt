@@ -5,13 +5,12 @@ import org.dweb_browser.helper.PurePoint
 import org.dweb_browser.helper.PureRect
 
 /**二维码解析管理器*/
-expect class ScanningManager() {
+expect class ScanningController() {
   fun stop()
 
   /**解析二维码*/
   suspend fun recognize(data: Any,rotation:Int): List<BarcodeResult>
 }
-
 
 @Serializable
 class BarcodeResult(

@@ -18,12 +18,12 @@ import javax.imageio.ImageIO
 import kotlin.math.abs
 
 
-actual class ScanningManager actual constructor() {
+actual class ScanningController actual constructor() {
   actual fun stop() {
   }
 
   // TODO 使用 openCV 来实现图像识别
-  actual suspend fun recognize(data: Any): List<BarcodeResult> {
+  actual suspend fun recognize(data: Any, rotation: Int): List<BarcodeResult> {
     val task = PromiseOut<List<BarcodeResult>>()
     if (data is ByteArray) {
       try {

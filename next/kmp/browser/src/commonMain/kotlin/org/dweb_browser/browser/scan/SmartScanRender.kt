@@ -42,7 +42,6 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -70,31 +69,12 @@ import androidx.compose.ui.unit.sp
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.compose.div
-import org.dweb_browser.sys.window.core.WindowContentRenderScope
 
-
-@Composable
-fun WindowContentRenderScope.RenderBarcodeScanning(
-  modifier: Modifier,
-  controller: SmartScanController
-) {
-  val viewScope = rememberCoroutineScope()
-  val isOpenAlbum = mutableStateOf(false)
-
-  // 视图切换,如果扫描到了二维码
-  Box(modifier) {
-    CameraPreviewRender(
-      modifier = modifier,
-      controller = controller
-    )
-    controller.DefaultScanningView(modifier)
-    controller.RenderScanResultView(modifier)
-  }
-}
 
 /**渲染识别后的图片*/
 @Composable
 internal fun SmartScanController.RenderScanResultView(modifier: Modifier) {
+  // 框出二维码框框的动画效果
   val infiniteTransition = rememberInfiniteTransition()
   val animatedOffset by infiniteTransition.animateFloat(
     initialValue = 0f,
@@ -108,11 +88,13 @@ internal fun SmartScanController.RenderScanResultView(modifier: Modifier) {
   Box(modifier = modifier) {
     val resultList by barcodeResultFlow.collectAsState()
     val density = LocalDensity.current.density
+    // 画出框框
     Canvas(modifier = modifier.matchParentSize()) {
       for (result in resultList) {
         drawAnimatedBoundingBox(result, animatedOffset)
       }
     }
+    // 画出识别到的内容
     for (result in resultList) {
       key(result.data) {
         var textSize by remember { mutableStateOf(Size.Zero) }
@@ -223,8 +205,9 @@ private fun RenderEmptyResult(controller: SmartScanController) {
   }
 }
 
+/**扫码节目中的扫描线，灯光按钮等UI*/
 @Composable
-private fun SmartScanController.DefaultScanningView(modifier: Modifier = Modifier) {
+fun SmartScanController.DefaultScanningView(modifier: Modifier = Modifier) {
   Box(modifier = Modifier.fillMaxSize()) {
     ScannerLine() // 添加扫描线
     CloseIcon { onCancel("close") } // 关闭按钮
