@@ -3,7 +3,7 @@ import fs from "node:fs";
 import http from "node:http";
 import os from "node:os";
 import { generate, QRErrorCorrectLevel } from "npm:ts-qrcode-terminal";
-import { colors, Command, EnumType } from "./deps/cliffy.ts";
+import { colors, Command, EnumType, NumberPrompt } from "./deps/cliffy.ts";
 import { SERVE_MODE, type $ServeOptions } from "./helper/const.ts";
 import {
   BackendServerGenerator,
@@ -113,21 +113,34 @@ export const doServe = async (flags: $ServeOptions) => {
         );
       }
     })
-    .listen(port, () => {
+    .listen(port, async () => {
+      const map: string[] = [];
+      let index = 0;
       for (const info of Object.values(os.networkInterfaces())
         .flat()
         .filter((info) => info?.family === "IPv4")) {
         console.log(
-          `${colors.green("metadata")}: \t${
+          `${colors.green(`${index++}:`)} \t ${
             colors.dim("dweb://install?url=") +
             colors.blue(colors.underline(`http://${info?.address}:${port}/${nameFlagHelper.metadataName}`))
           }`
         );
-        generate(`dweb://install?url=http://${info?.address}:${port}/${nameFlagHelper.metadataName}`, {
+        map.push(`dweb://install?url=http://${info?.address}:${port}/${nameFlagHelper.metadataName}`);
+        // console.log(`package: \thttp://${info?.address}:${port}/${nameFlagHelper.bundleName}`)
+      }
+
+      const selectNumber = await NumberPrompt.prompt({
+        message: "Enter the corresponding number to generate a QR code.",
+        default: 0,
+      });
+
+      const link = map[selectNumber];
+
+      if (link) {
+        generate(link, {
           small: true,
           qrErrorCorrectLevel: QRErrorCorrectLevel.L,
         });
-        // console.log(`package: \thttp://${info?.address}:${port}/${nameFlagHelper.bundleName}`)
       }
     });
   // .on("close", () => {
