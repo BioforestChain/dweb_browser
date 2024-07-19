@@ -1,6 +1,7 @@
 package org.dweb_browser.browser.scan
 
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.Modifier
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
@@ -14,6 +15,7 @@ import org.dweb_browser.helper.platform.IPureViewController
 import org.dweb_browser.helper.platform.PureViewControllerPlatform
 import org.dweb_browser.helper.platform.platform
 import org.dweb_browser.sys.window.core.WindowController
+import org.dweb_browser.sys.window.core.WindowSurface
 import org.dweb_browser.sys.window.core.helper.setStateFromManifest
 import org.dweb_browser.sys.window.core.windowAdapterManager
 import org.dweb_browser.sys.window.core.withRenderScope
@@ -21,7 +23,8 @@ import org.dweb_browser.sys.window.ext.getMainWindowId
 import org.dweb_browser.sys.window.ext.getOrOpenMainWindow
 
 class SmartScanController(
-  private val smartScanNMM: SmartScanNMM.ScanRuntime, private val scanningController: ScanningController
+  private val smartScanNMM: SmartScanNMM.ScanRuntime,
+  private val scanningController: ScanningController
 ) {
 
   private val viewDeferredFlow = MutableStateFlow(CompletableDeferred<WindowController>())
@@ -52,10 +55,12 @@ class SmartScanController(
       windowAdapterManager.provideRender(newController.id) { modifier ->
         // 智能扫码
         this@SmartScanController.scaleFlow.value = scale
-        RenderBarcodeScanning(
-          modifier = modifier.withRenderScope(this).fillMaxSize(),
-          controller = this@SmartScanController
-        )
+        WindowSurface(modifier){
+          RenderBarcodeScanning(
+            modifier = Modifier.fillMaxSize(),
+            controller = this@SmartScanController
+          )
+        }
         // AI识物
       }
 
@@ -80,11 +85,13 @@ class SmartScanController(
   var saningResult = CompletableDeferred<String>()
 
   // 监听相机来的图片流
-  val imageCaptureFlow = MutableSharedFlow<Any>(extraBufferCapacity = 1).also { flow ->
+  val imageCaptureFlow = MutableSharedFlow<Any?>(extraBufferCapacity = 1).also { flow ->
     flow.collectIn(scope = smartScanNMM.getRuntimeScope()) { byteArray ->
-      val result = decodeQrCode(byteArray)
-//      debugSCAN("decodeQrCode=>${result.size}", "size=>${byteArray}")
-      barcodeResultFlow.emit(result)
+      byteArray?.let {
+        val result = decodeQrCode(it)
+//      debugSCAN("decodeQrCode=>${result.size}", "size=>${it}")
+        barcodeResultFlow.emit(result)
+      }
     }
   }
 

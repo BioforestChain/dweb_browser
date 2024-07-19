@@ -1,9 +1,12 @@
 package org.dweb_browser.browser.scan
 
+import androidx.compose.animation.Animatable
 import androidx.compose.animation.animateColor
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
@@ -14,10 +17,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
@@ -28,6 +33,7 @@ import androidx.compose.material.icons.filled.FlashlightOn
 import androidx.compose.material.icons.filled.Photo
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.BasicAlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
@@ -36,6 +42,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -46,6 +53,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -66,6 +74,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.delay
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.compose.div
@@ -84,29 +93,48 @@ internal fun SmartScanController.RenderScanResultView(modifier: Modifier) {
       repeatMode = RepeatMode.Restart
     )
   )
-
-  Box(modifier = modifier) {
-    val resultList by barcodeResultFlow.collectAsState()
-    val density = LocalDensity.current.density
+  val density = LocalDensity.current.density
+  val resultList by barcodeResultFlow.collectAsState()
+  BoxWithConstraints(modifier = modifier.clipToBounds()) {
     // 画出框框
-    Canvas(modifier = modifier.matchParentSize()) {
+    Canvas(modifier = Modifier.fillMaxSize()) {
       for (result in resultList) {
         drawAnimatedBoundingBox(result, animatedOffset)
       }
     }
+    LaunchedEffect(resultList){
+      resultList.firstOrNull()?.also {result->
+        println("QAQ result.boundingBox=${result.boundingBox}")
+      }
+    }
+//    val countAni = remember { androidx.compose.animation.core.Animatable(0f) }
+//    LaunchedEffect(Unit){
+//      while (true){
+//        countAni.animateTo(10f, tween(3000))
+//        delay(500)
+//        countAni.animateTo(0f, tween(3000))
+//        delay(500)
+//      }
+//    }
+//    for (i in 0..countAni.value.toInt()){
+//      Text(i.toString())
+//    }
     // 画出识别到的内容
     for (result in resultList) {
+      var textSize by remember { mutableStateOf(Size.Zero) }
+      val width by animateFloatAsState((result.boundingBox.width / density))
+      val height by animateFloatAsState((result.boundingBox.height / density))
+      val offsetX by animateFloatAsState(result.boundingBox.x + width - textSize.width)
+      val offsetY by animateFloatAsState(result.boundingBox.y + height - textSize.height)
       key(result.data) {
-        var textSize by remember { mutableStateOf(Size.Zero) }
-        val width = (result.boundingBox.width / density).toInt()
-        val height = (result.boundingBox.height / density).toInt()
         FilledTonalButton(
           { onSuccess(result.data) },
-          modifier = Modifier.width(width.dp).graphicsLayer {
-            translationX = result.boundingBox.x + width - textSize.width
-            translationY = result.boundingBox.y + height - textSize.height
+          modifier = Modifier.requiredWidth(width.dp).graphicsLayer {
+            translationX = offsetX
+            translationY = offsetY
           }.onGloballyPositioned { textSize = it.size.div(density) },
-          colors = ButtonDefaults.filledTonalButtonColors(containerColor = Color.White),
+          colors = ButtonDefaults.filledTonalButtonColors()
+            .run { copy(containerColor = containerColor.copy(alpha = 0.5f)) },
           border = BorderStroke(width = 0.5.dp, brush = SolidColor(Color.White)),
           contentPadding = PaddingValues(horizontal = 4.dp, vertical = 3.dp)
         ) {

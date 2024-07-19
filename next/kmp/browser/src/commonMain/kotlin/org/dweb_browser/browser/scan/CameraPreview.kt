@@ -1,10 +1,15 @@
 package org.dweb_browser.browser.scan
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.zIndex
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
 
 @Composable
@@ -18,11 +23,11 @@ fun WindowContentRenderScope.RenderBarcodeScanning(
   // 视图切换,如果扫描到了二维码
   Box(modifier) {
     CameraPreviewRender(
-      modifier = modifier,
+      modifier = Modifier.fillMaxSize(),
       controller = controller
     )
-    controller.DefaultScanningView(modifier)
-    controller.RenderScanResultView(modifier)
+    controller.DefaultScanningView(Modifier.fillMaxSize().zIndex(2f))
+    controller.RenderScanResultView(Modifier.matchParentSize().zIndex(3f))
   }
 }
 
