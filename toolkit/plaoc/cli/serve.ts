@@ -2,7 +2,8 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import http from "node:http";
 import os from "node:os";
-import { Command, EnumType, colors } from "./deps/cliffy.ts";
+import { generate, QRErrorCorrectLevel } from "npm:ts-qrcode-terminal";
+import { colors, Command, EnumType } from "./deps/cliffy.ts";
 import { SERVE_MODE, type $ServeOptions } from "./helper/const.ts";
 import {
   BackendServerGenerator,
@@ -122,6 +123,10 @@ export const doServe = async (flags: $ServeOptions) => {
             colors.blue(colors.underline(`http://${info?.address}:${port}/${nameFlagHelper.metadataName}`))
           }`
         );
+        generate(`dweb://install?url=http://${info?.address}:${port}/${nameFlagHelper.metadataName}`, {
+          small: true,
+          qrErrorCorrectLevel: QRErrorCorrectLevel.L,
+        });
         // console.log(`package: \thttp://${info?.address}:${port}/${nameFlagHelper.bundleName}`)
       }
     });

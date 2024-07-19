@@ -68,6 +68,9 @@ importers:
       mime:
         specifier: ^4.0.3
         version: 4.0.4
+      ts-qrcode-terminal:
+        specifier: '*'
+        version: 1.0.0
       webdav-server:
         specifier: ^2.6.2
         version: 2.6.2
@@ -2237,6 +2240,9 @@ packages:
 
   ts-interface-checker@0.1.13:
     resolution: {integrity: sha512-Y/arvbn+rrz3JCKl9C4kVNfTfSm2/mEp5FSz5EsZSANGPSlQrpRI5M4PKF+mJnE52jOO90PnPSc3Ur3bTQw0gA==}
+
+  ts-qrcode-terminal@1.0.0:
+    resolution: {integrity: sha512-HfZBBN5RDJQ3EdGxbAeWp1tVxQk/0WJAAjyGGWTEUVcPhh5qsUM5KHffIRU6a7bA2tU3Nz/GLGoTJQxLEfCuIg==}
 
   tslib@1.14.1:
     resolution: {integrity: sha512-Xni35NKzjgMrwevysHTCArtLDpPvye8zV/0E4EyYn43P7/7qvQwPh9BGkHewbMulVntbigmcT7rdX3BNo9wRJg==}
@@ -4477,6 +4483,10 @@ snapshots:
     optional: true
 
   ts-interface-checker@0.1.13: {}
+
+  ts-qrcode-terminal@1.0.0:
+    dependencies:
+      tslib: 2.6.2
 
   tslib@1.14.1: {}
 
