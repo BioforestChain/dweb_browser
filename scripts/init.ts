@@ -16,28 +16,40 @@ export const doInit = async (args: string[]) => {
   void doInitAssets(args.includes("--watch") || args.includes("--dev"));
 };
 
-AssetsConfig.createAndSave("sys-drawable", [
-  {
-    type: "copyKmpResDrawable",
-    moduleName: "sys",
-    ignoreSharedFix: true,
-    moduleTarget: "desktopMain",
-  },
-]);
-AssetsConfig.createAndSave("sys-icons", [
-  {
-    type: "linkKmpResFiles",
-    moduleName: "sys",
-    ignoreSharedFix: true,
-    moduleTarget: "desktopMain",
-  },
-]);
-AssetsConfig.createAndSave("browser-drawable", [
-  {
-    type: "copyKmpResDrawable",
-    moduleName: "browser",
-  },
-]);
+AssetsConfig.createAndSave(
+  "sys-drawable",
+  [
+    {
+      type: "copyKmpResDrawable",
+      moduleName: "sys",
+      ignoreSharedFix: true,
+      moduleTarget: "desktopMain",
+    },
+  ],
+  undefined
+);
+AssetsConfig.createAndSave(
+  "sys-icons",
+  [
+    {
+      type: "linkKmpResFiles",
+      moduleName: "sys",
+      ignoreSharedFix: true,
+      moduleTarget: "desktopMain",
+    },
+  ],
+  undefined
+);
+AssetsConfig.createAndSave(
+  "browser-drawable",
+  [
+    {
+      type: "copyKmpResDrawable",
+      moduleName: "browser",
+    },
+  ],
+  undefined
+);
 AssetsConfig.createAndSave(
   "browser-html5test",
   [
@@ -48,18 +60,26 @@ AssetsConfig.createAndSave(
   ],
   rootResolve("./toolkit/dweb_html5test")
 );
-AssetsConfig.createAndSave("browser-icons", [
-  {
-    type: "linkKmpResFiles",
-    moduleName: "browser",
-  },
-]);
-AssetsConfig.createAndSave("window-drawable", [
-  {
-    type: "copyKmpResDrawable",
-    moduleName: "window",
-  },
-]);
+AssetsConfig.createAndSave(
+  "browser-icons",
+  [
+    {
+      type: "linkKmpResFiles",
+      moduleName: "browser",
+    },
+  ],
+  undefined
+);
+AssetsConfig.createAndSave(
+  "window-drawable",
+  [
+    {
+      type: "copyKmpResDrawable",
+      moduleName: "window",
+    },
+  ],
+  undefined
+);
 
 export const doInitAssets = $once(async (watch: boolean) => {
   /// 这里是为了让 toolkitTasks 将 AssetsConfig 写满

@@ -93,7 +93,8 @@ const effectUse = async (assetConfig: AssetsConfig, use: UseAssets, watch: boole
         kmpResolve(`${use.moduleName}/src/${moduleTarget}/composeResources/files/${filesDirName}`)
       );
       // desktop 需要 把文件放一份在 resource 中，否则单元测试需要文件的时候，无法找到
-      symlink(assetConfig.assetsDirname, kmpResolve(`${use.moduleName}/src/${moduleTarget}/resources/${filesDirName}`));
+      symlink(assetConfig.assetsDirname, kmpResolve(`${use.moduleName}/src/${moduleTarget}/resources/files/${filesDirName}`));
+      symlink(assetConfig.assetsDirname, kmpResolve(`${use.moduleName}/src/androidMain/resources/files/${filesDirName}`));
 
       // link 到 shared/ios 中
       // TODO 目前只有 ios 存在这个 composeResources 不能多模块的问题，未来可以移除掉
@@ -114,6 +115,10 @@ const effectUse = async (assetConfig: AssetsConfig, use: UseAssets, watch: boole
         copyDir(
           assetConfig.assetsDirname,
           kmpResolve(`${use.moduleName}/src/${moduleTarget}/composeResources/drawable/`)
+        );
+        copyDir(
+          assetConfig.assetsDirname,
+          kmpResolve(`${use.moduleName}/src/androidMain/resources/drawable/`)
         );
         // copy 到 shared 中
         // TODO 目前只有 ios 存在这个 composeResources 不能多模块的问题，未来可以移除掉

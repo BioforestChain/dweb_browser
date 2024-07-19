@@ -230,5 +230,5 @@ internal fun BottomSheetsModalState.RenderImplOld(emitModalVisibilityChange: (st
 @Composable
 internal actual fun BottomSheetsModalState.RenderImpl(emitModalVisibilityChange: (state: EmitModalVisibilityState) -> Boolean) {
 //  if(compose-multiplatform.version < 1.7) RenderImplOld else
-  CommonRenderImpl(emitModalVisibilityChange)
+  RenderImplOld(emitModalVisibilityChange)
 }
