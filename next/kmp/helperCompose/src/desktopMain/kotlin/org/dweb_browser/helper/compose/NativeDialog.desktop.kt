@@ -1,5 +1,6 @@
 package org.dweb_browser.helper.compose
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.runtime.Composable
@@ -34,8 +35,6 @@ actual fun NativeDialog(
   val dialog = remember {
     ComposeDialog(fromWindow, Dialog.ModalityType.MODELESS).apply {
       preferredSize = fromWindow.size
-      minimumSize = Dimension(DialogMinWidth.value.toInt(), DialogMinHeight.value.toInt())
-      maximumSize = Dimension(DialogMaxWidth.value.toInt(), DialogMaxHeight.value.toInt())
       /// 禁用默认的关闭按钮的行为
       defaultCloseOperation = JDialog.DO_NOTHING_ON_CLOSE
       addWindowListener(object : WindowAdapter() {
@@ -48,14 +47,33 @@ actual fun NativeDialog(
       })
     }
   }
+  val isDark = properties.darkTheme ?: isSystemInDarkTheme()
+  remember(isDark) {
+    dialog.background = when {
+      isDark -> java.awt.Color.GRAY
+      else -> java.awt.Color.WHITE
+    }
+  }
+  remember(
+    properties.minWidth,
+    properties.minHeight,
+    properties.maxWidth,
+    properties.maxHeight
+  ) {
+    dialog.minimumSize =
+      Dimension(properties.minWidth.value.toInt(), properties.minHeight.value.toInt())
+    dialog.maximumSize =
+      Dimension(properties.maxWidth.value.toInt(), properties.maxHeight.value.toInt())
+  }
 
   dialog.title = properties.title ?: fromWindow.title
 
   // 模态框，但是不能用 dialog.isModal = properties.modal ，否则父窗口的事件循环就卡组了
   dialog.isAlwaysOnTop = properties.modal
 
-
-  dialog.setIconImage(properties.icon?.toAwtImage() ?: fromWindow.iconImage)
+  remember(properties.icon) {
+    dialog.setIconImage(properties.icon?.toAwtImage() ?: fromWindow.iconImage)
+  }
   dialog.compositionLocalContext = currentCompositionLocalContext
   remember(setContent, onCloseRequest) {
     dialog.setContent {

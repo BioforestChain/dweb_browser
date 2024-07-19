@@ -99,7 +99,7 @@ fun RegisterQuestion(viewModel: RegisterQuestionViewModel, modifier: Modifier = 
         }
       }
     }
-    CardActions(Modifier.align(Alignment.End).wrapContentHeight()) {
+    CardActions(Modifier.align(Alignment.End)) {
       val scope = rememberCoroutineScope()
       OutlinedButton(
         {

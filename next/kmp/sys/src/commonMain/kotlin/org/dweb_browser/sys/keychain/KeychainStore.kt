@@ -1,9 +1,8 @@
 package org.dweb_browser.sys.keychain
 
 import org.dweb_browser.core.help.types.MMID
-import org.dweb_browser.core.module.MicroModule
 
-expect class KeychainStore(runtime: MicroModule.Runtime) {
+expect class KeychainStore(runtime: KeychainNMM.KeyChainRuntime) {
   @Throws(Exception::class)
   suspend fun getItem(remoteMmid: MMID, key: String): ByteArray?
   suspend fun setItem(remoteMmid: MMID, key: String, value: ByteArray): Boolean

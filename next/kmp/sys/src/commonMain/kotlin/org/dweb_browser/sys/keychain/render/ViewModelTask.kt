@@ -15,6 +15,9 @@ import org.dweb_browser.sys.keychain.render.KeychainAuthentication.Companion.ROO
 sealed class ViewModelTask(val method: KeychainMethod) {
   abstract val task: CompletableDeferred<ByteArray>
   abstract suspend fun finish(): Boolean
+  fun refuse(reason: Throwable) {
+    task.completeExceptionally(reason)
+  }
 }
 
 abstract class RegisterViewModelTask(method: KeychainMethod) :

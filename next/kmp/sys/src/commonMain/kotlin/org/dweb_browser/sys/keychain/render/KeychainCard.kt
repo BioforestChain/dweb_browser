@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.AnnotatedString
@@ -69,8 +70,9 @@ internal fun CardDescription(
 @Composable
 internal fun CardActions(modifier: Modifier = Modifier, content: @Composable RowScope.() -> Unit) {
   Row(
-    modifier.padding(vertical = 8.dp),
+    modifier.padding(vertical = 16.dp),
     horizontalArrangement = Arrangement.spacedBy(8.dp),
+    verticalAlignment = Alignment.CenterVertically,
   ) {
     content()
   }
@@ -83,8 +85,8 @@ internal fun CardHeader(
   content: @Composable ColumnScope.() -> Unit,
 ) {
   Box(
-    modifier.fillMaxWidth().height(200.dp).background(MaterialTheme.colorScheme.tertiary)
-      .shadow(MaterialTheme.dimens.verySmall)
+    modifier.fillMaxWidth().height(200.dp).shadow(MaterialTheme.dimens.verySmall)
+      .background(MaterialTheme.colorScheme.tertiary)
   ) {
     background()
     Column(Modifier.padding(16.dp)) {

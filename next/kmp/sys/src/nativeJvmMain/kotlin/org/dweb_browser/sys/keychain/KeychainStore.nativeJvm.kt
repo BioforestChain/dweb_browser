@@ -6,10 +6,9 @@ import keychainstore.keychainHasItem
 import keychainstore.keychainSetItem
 import keychainstore.keychainSupportEnumKeys
 import org.dweb_browser.core.help.types.MMID
-import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.helper.trueAlso
 
-actual class KeychainStore actual constructor(val runtime: MicroModule.Runtime) {
+actual class KeychainStore actual constructor(val runtime: KeychainNMM.KeyChainRuntime) {
   companion object {
     private val supportEnumKeys = keychainSupportEnumKeys()
     private val enumKeys = when {
@@ -88,7 +87,7 @@ actual class KeychainStore actual constructor(val runtime: MicroModule.Runtime) 
  * 尝试抛出用户拒绝认证的信息
  */
 expect suspend fun tryThrowUserRejectAuth(
-  runtime: MicroModule.Runtime,
+  runtime: KeychainNMM.KeyChainRuntime,
   remoteMmid: MMID,
   title: String,
   description: String,

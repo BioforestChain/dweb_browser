@@ -84,11 +84,13 @@ class KeychainNMM : NativeMicroModule("keychain.sys.dweb", KeychainI18nResource.
       }
     }
 
-    private val keychainManager = KeychainManager(this, keyChainStore)
+
+    internal val keychainManager = KeychainManager(this, keyChainStore)
 
     override suspend fun _shutdown() {
 
     }
+
 
   }
 

@@ -30,7 +30,11 @@ class KeychainActivity : ComponentActivity() {
     }
   }
 
-  private val auth = KeychainAuthentication(lifecycleScope) { finish() }
+  private val auth = KeychainAuthentication(
+    onAuthRequestDismiss = { finish() },
+    lifecycleScope = lifecycleScope,
+  )
+
   suspend fun start(
     title: String? = null,
     subtitle: String? = null,

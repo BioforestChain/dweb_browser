@@ -1,7 +1,6 @@
 package org.dweb_browser.sys.keychain
 
 import org.dweb_browser.core.help.types.MMID
-import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.helper.SuspendOnce1
 import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.sys.keychain.core.EncryptKey
@@ -10,7 +9,7 @@ import org.dweb_browser.sys.keychain.core.UseKeyParams
 
 internal const val ANDROID_KEY_STORE = "AndroidKeyStore"
 
-actual class KeychainStore actual constructor(val runtime: MicroModule.Runtime) {
+actual class KeychainStore actual constructor(val runtime: KeychainNMM.KeyChainRuntime) {
   companion object {
     private val getOrRecoveryList = listOf(EncryptKeyV1.recoveryKey)
     private val currentGenerator = EncryptKeyV1.generateKey

@@ -72,5 +72,4 @@ class KeychainManager(
   fun closeDetail() {
     detailController = null
   }
-
 }

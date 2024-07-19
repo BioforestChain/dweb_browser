@@ -10,6 +10,7 @@ object CommonI18n : I18n() {
   val cancel = zh("取消", "Cancel")
   val ok = zh("好的", "Ok")
   val agree = zh("同意", "Agree")
+  val refuse = zh("拒绝", "Refuse")
 
   val copy = zh("复制", "Copy")
   val paste = zh("粘贴", "Paste")

@@ -83,7 +83,10 @@ internal fun getCustomRegisteredMethod() =
 
 internal val keychainMetadataStore = DeviceKeyValueStore(KeychainAuthentication.KEYCHAIN_METADATA)
 
-class KeychainAuthentication(val lifecycleScope: CoroutineScope, val finishCallback: () -> Unit) {
+class KeychainAuthentication(
+  val onAuthRequestDismiss: () -> Unit,
+  val lifecycleScope: CoroutineScope,
+) {
   companion object {
     internal const val KEYCHAIN_METADATA = "Dweb-Keychain-Metadata"
     internal const val ROOT_KEY_METHOD = "root-key-method"
@@ -92,7 +95,20 @@ class KeychainAuthentication(val lifecycleScope: CoroutineScope, val finishCallb
     internal const val ROOT_KEY_VERSION = "root-key-version"
   }
 
-  internal val viewModelTask = CompletableDeferred<ByteArray>()
+  internal val viewModelTask = CompletableDeferred<ByteArray>().also {
+    it.invokeOnCompletion { throwable ->
+      lifecycleScope.launch {
+        if (throwable == null) {
+          val nav = navControllerFlow.first()
+          nav.navigate("done") {
+            popUpTo("init") { inclusive = true }
+          }
+          delay(1000)
+        }
+        onAuthRequestDismiss()
+      }
+    }
+  }
   private val supportMethods = mutableStateListOf<KeychainMethod>()
 
   suspend fun start(
@@ -119,15 +135,7 @@ class KeychainAuthentication(val lifecycleScope: CoroutineScope, val finishCallb
       popUpTo("init") { inclusive = true }
     }
 
-    viewModelTask.await().also {
-      lifecycleScope.launch {
-        nav.navigate("done") {
-          popUpTo("init") { inclusive = true }
-        }
-        delay(1000)
-        finishCallback()
-      }
-    }
+    viewModelTask.await()
   }
 
   private val navControllerFlow = MutableSharedFlow<NavController>(replay = 1)
@@ -136,136 +144,146 @@ class KeychainAuthentication(val lifecycleScope: CoroutineScope, val finishCallb
   private var description by mutableStateOf<String?>(null)
   private var background by mutableStateOf<(@Composable (Modifier) -> Unit)?>(null)
 
+
   @Composable
-  fun Render(isDark: Boolean = isSystemInDarkTheme()) {
+  fun ContentRender(closeBoolean: Boolean, modifier: Modifier = Modifier) {
+    val navController = rememberNavController()
+    LaunchedEffect(navController) {
+      navControllerFlow.emit(navController)
+    }
+    Column(modifier) {
+      CardHeader(background = {
+        if (closeBoolean) {
+          IconButton(
+            { onAuthRequestDismiss() },
+            Modifier.padding(4.dp).size(32.dp).zIndex(10f).align(Alignment.TopEnd)
+          ) {
+            Icon(Icons.Rounded.Cancel, "cancel")
+          }
+        }
+        background?.also {
+          it(Modifier.fillMaxSize().zIndex(-1f))
+        }
+      }) {
+        Column(Modifier.padding(16.dp)) {
+          title?.also { CardHeaderTitle(it) }
+          subtitle?.also { CardHeaderSubtitle(it) }
+          description?.also { CardHeaderDescription(it) }
+        }
+      }
+      Column(
+        Modifier.padding(16.dp).animateContentSize().sizeIn(minHeight = 220.dp).weight(1f),
+        verticalArrangement = Arrangement.Center
+      ) {
+        val scope = rememberCoroutineScope()
+        NavHost(navController, "init") {
+          composable("init") {
+            Text(
+              "Loading...",
+              style = MaterialTheme.typography.bodySmall,
+              modifier = Modifier.alpha(0.8f)
+            )
+          }
+          composable("register") {
+            Column {
+              CardTitle("在 ${getDeviceName()} 设备上使用钥匙串管理，需要为您的设备初始化一个根密码，从而保护您的数据安全。")
+              CardSubTitle(
+                buildAnnotatedString {
+                  val parts =
+                    "⚠️ 注意：根密码不会上传到任何服务器，假如您忘记了根密码，保存在设备里的密码都将无法恢复，请务必保存好您的密码".split(
+                      "根密码"
+                    ).toMutableList()
+                  append(parts.removeFirst())
+                  parts.forEach { s ->
+                    withStyle(SpanStyle(textDecoration = TextDecoration.Underline)) {
+                      append("根密码")
+                    }
+                    append(s)
+                  }
+                }, style = TextStyle(color = LocalColorful.current.DeepOrange.current)
+              )
+              CardSubTitle("请选择一种生成根密码的方式：")
+              var registerMethod by remember { mutableStateOf(supportMethods.first()) }
+              Column(Modifier.selectableGroup()) {
+                supportMethods.forEach { method ->
+                  val selected = registerMethod == method
+                  Row(
+                    Modifier.fillMaxWidth().height(56.dp).selectable(
+                      selected = selected,
+                      onClick = { registerMethod = method },
+                      role = Role.RadioButton
+                    ).padding(horizontal = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                  ) {
+                    RadioButton(
+                      selected = selected,
+                      onClick = null // null recommended for accessibility with screenreaders
+                    )
+                    Text(
+                      text = method.label,
+                      style = MaterialTheme.typography.bodyLarge,
+                      modifier = Modifier.padding(start = 16.dp)
+                    )
+                  }
+                }
+              }
+
+              Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                FilledTonalButton({
+                  navController.navigate("register/${registerMethod.method}")
+                }) {
+                  Text("下一步")
+                }
+              }
+            }
+          }
+          composable("register/${KeychainMethod.Password.method}") {
+            val viewModel = remember { RegisterPasswordViewModel(viewModelTask) }
+            RegisterPassword(viewModel)
+          }
+          composable("register/${KeychainMethod.Pattern.method}") {
+            val viewModel = remember { RegisterPatternViewModel(viewModelTask) }
+            RegisterPattern(viewModel)
+          }
+          composable("register/${KeychainMethod.Question.method}") {
+            val viewModel = remember { RegisterQuestionViewModel(viewModelTask) }
+            RegisterQuestion(viewModel)
+          }
+          composable("verify/${KeychainMethod.Password.method}") {
+            val viewModel = remember { VerifyPasswordViewModel(viewModelTask) }
+            VerifyPassword(viewModel)
+          }
+          composable("verify/${KeychainMethod.Pattern.method}") {
+            val viewModel = remember { VerifyPatternViewModel(scope, viewModelTask) }
+            VerifyPattern(viewModel)
+          }
+          composable("verify/${KeychainMethod.Question.method}") {
+            val viewModel = remember { VerifyQuestionViewModel(viewModelTask) }
+            VerifyQuestion(viewModel)
+          }
+          composable("verify/${KeychainMethod.Biometrics.method}") {
+            val viewModel = remember { VerifyBiometricsViewModel(viewModelTask) }
+            VerifyBiometrics(viewModel)
+          }
+          composable("done") {
+            KeychainVerified(Modifier.fillMaxWidth(), 128.dp)
+          }
+        }
+      }
+    }
+  }
+
+  @Composable
+  fun Render(isDark: Boolean = isSystemInDarkTheme(), modifier: Modifier = Modifier) {
     DwebBrowserAppTheme(isDark) {
-      Surface(color = Color.Transparent) {
+      Surface(color = Color.Transparent, modifier = modifier) {
         Box(Modifier.fillMaxSize().padding(WindowInsets.safeGestures.asPaddingValues())) {
           ElevatedCard(
             elevation = CardDefaults.cardElevation(defaultElevation = MaterialTheme.dimens.small),
             modifier = Modifier.padding(start = 24.dp, end = 24.dp, bottom = 24.dp)
               .align(Alignment.BottomCenter),
           ) {
-            val navController = rememberNavController()
-            LaunchedEffect(navController) {
-              navControllerFlow.emit(navController)
-            }
-            CardHeader(background = {
-              IconButton(
-                { finishCallback() },
-                Modifier.padding(4.dp).size(32.dp).zIndex(10f).align(Alignment.TopEnd)
-              ) {
-                Icon(Icons.Rounded.Cancel, "cancel")
-              }
-              background?.also {
-                it(Modifier.fillMaxSize().zIndex(-1f))
-              }
-            }) {
-              Column(Modifier.padding(16.dp)) {
-                title?.also { CardHeaderTitle(it) }
-                subtitle?.also { CardHeaderSubtitle(it) }
-                description?.also { CardHeaderDescription(it) }
-              }
-            }
-            Column(
-              Modifier.padding(16.dp).animateContentSize().sizeIn(minHeight = 220.dp),
-              verticalArrangement = Arrangement.Center
-            ) {
-              val scope = rememberCoroutineScope()
-              NavHost(navController, "init") {
-                composable("init") {
-                  Text(
-                    "Loading...",
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.alpha(0.8f)
-                  )
-                }
-                composable("register") {
-                  Column {
-                    CardTitle("在 ${getDeviceName()} 设备上使用钥匙串管理，需要为您的设备初始化一个根密码，从而保护您的数据安全。")
-                    CardSubTitle(
-                      buildAnnotatedString {
-                        val parts =
-                          "⚠️ 注意：根密码不会上传到任何服务器，假如您忘记了根密码，保存在设备里的密码都将无法恢复，请务必保存好您的密码".split(
-                            "根密码"
-                          ).toMutableList()
-                        append(parts.removeFirst())
-                        parts.forEach { s ->
-                          withStyle(SpanStyle(textDecoration = TextDecoration.Underline)) {
-                            append("根密码")
-                          }
-                          append(s)
-                        }
-                      }, style = TextStyle(color = LocalColorful.current.DeepOrange.current)
-                    )
-                    CardSubTitle("请选择一种生成根密码的方式：")
-                    var registerMethod by remember { mutableStateOf(supportMethods.first()) }
-                    Column(Modifier.selectableGroup()) {
-                      supportMethods.forEach { method ->
-                        val selected = registerMethod == method
-                        Row(
-                          Modifier.fillMaxWidth().height(56.dp).selectable(
-                            selected = selected,
-                            onClick = { registerMethod = method },
-                            role = Role.RadioButton
-                          ).padding(horizontal = 16.dp),
-                          verticalAlignment = Alignment.CenterVertically
-                        ) {
-                          RadioButton(
-                            selected = selected,
-                            onClick = null // null recommended for accessibility with screenreaders
-                          )
-                          Text(
-                            text = method.label,
-                            style = MaterialTheme.typography.bodyLarge,
-                            modifier = Modifier.padding(start = 16.dp)
-                          )
-                        }
-                      }
-                    }
-
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                      FilledTonalButton({
-                        navController.navigate("register/${registerMethod.method}")
-                      }) {
-                        Text("下一步")
-                      }
-                    }
-                  }
-                }
-                composable("register/${KeychainMethod.Password.method}") {
-                  val viewModel = remember { RegisterPasswordViewModel(viewModelTask) }
-                  RegisterPassword(viewModel)
-                }
-                composable("register/${KeychainMethod.Pattern.method}") {
-                  val viewModel = remember { RegisterPatternViewModel(viewModelTask) }
-                  RegisterPattern(viewModel)
-                }
-                composable("register/${KeychainMethod.Question.method}") {
-                  val viewModel = remember { RegisterQuestionViewModel(viewModelTask) }
-                  RegisterQuestion(viewModel)
-                }
-                composable("verify/${KeychainMethod.Password.method}") {
-                  val viewModel = remember { VerifyPasswordViewModel(viewModelTask) }
-                  VerifyPassword(viewModel)
-                }
-                composable("verify/${KeychainMethod.Pattern.method}") {
-                  val viewModel = remember { VerifyPatternViewModel(scope, viewModelTask) }
-                  VerifyPattern(viewModel)
-                }
-                composable("verify/${KeychainMethod.Question.method}") {
-                  val viewModel = remember { VerifyQuestionViewModel(viewModelTask) }
-                  VerifyQuestion(viewModel)
-                }
-                composable("verify/${KeychainMethod.Biometrics.method}") {
-                  val viewModel = remember { VerifyBiometricsViewModel(viewModelTask) }
-                  VerifyBiometrics(viewModel)
-                }
-                composable("done") {
-                  KeychainVerified(Modifier.fillMaxWidth(), 128.dp)
-                }
-              }
-            }
+            ContentRender(closeBoolean = true)
           }
         }
       }
