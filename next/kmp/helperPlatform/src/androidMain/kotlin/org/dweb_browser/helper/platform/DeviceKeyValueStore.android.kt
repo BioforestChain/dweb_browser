@@ -1,6 +1,7 @@
 package org.dweb_browser.helper.platform
 
 import android.os.Environment
+import org.dweb_browser.helper.getAppContextUnsafe
 import org.dweb_browser.helper.utf8Binary
 import org.dweb_browser.helper.utf8String
 import org.dweb_browser.pure.crypto.hash.jvmSha256
@@ -23,7 +24,8 @@ actual class DeviceKeyValueStore actual constructor(
   companion object {
     val externalDir by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
       Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
-        .resolve("dweb-kv")
+        .resolve("dweb-kv/${getAppContextUnsafe().packageName}")
+        .also { println("QAQ DeviceKeyValueStore.externalDir=$it") }
     }
   }
 

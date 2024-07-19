@@ -172,7 +172,7 @@ class KeychainAuthentication(
         }
       }
       Column(
-        Modifier.padding(16.dp).animateContentSize().sizeIn(minHeight = 220.dp).weight(1f),
+        Modifier.padding(16.dp).animateContentSize().sizeIn(minHeight = 220.dp),
         verticalArrangement = Arrangement.Center
       ) {
         val scope = rememberCoroutineScope()
