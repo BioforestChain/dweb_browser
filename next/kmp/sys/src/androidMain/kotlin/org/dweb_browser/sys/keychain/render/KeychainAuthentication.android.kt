@@ -8,5 +8,5 @@ internal actual fun getDeviceName() = "${Build.BRAND}(power by Android)"
  * 获取已经注册的认证方案
  */
 internal actual fun getRegisteredMethod(): KeychainMethod? = getCustomRegisteredMethod()
-internal actual suspend fun getSupportMethods(): List<KeychainMethod> =
+internal actual fun getSupportMethods(): List<KeychainMethod> =
   listOf(KeychainMethod.Password)

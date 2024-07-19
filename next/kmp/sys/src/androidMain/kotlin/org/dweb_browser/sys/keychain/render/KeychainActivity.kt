@@ -4,14 +4,13 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.module.startAppActivity
 import org.dweb_browser.helper.randomUUID
+import org.dweb_browser.sys.keychain.KeychainNMM
 
 class KeychainActivity : ComponentActivity() {
   companion object {
@@ -36,17 +35,23 @@ class KeychainActivity : ComponentActivity() {
   )
 
   suspend fun start(
+    runtime: KeychainNMM.KeyChainRuntime,
     title: String? = null,
     subtitle: String? = null,
     description: String? = null,
-    background: (@Composable (Modifier) -> Unit)? = null,
-  ) = auth.start(title, subtitle, description, background)
+  ) = auth.start(runtime, title, subtitle, description)
+
+  private var uid = ""
+
+  override fun onResume() {
+    super.onResume()
+    uid = intent.getStringExtra("uid") ?: return finish()
+    creates[uid]?.complete(this)
+  }
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    intent.getStringExtra("uid")?.also {
-      creates[it]?.complete(this)
-    }
+
     setContent {
       auth.Render()
     }

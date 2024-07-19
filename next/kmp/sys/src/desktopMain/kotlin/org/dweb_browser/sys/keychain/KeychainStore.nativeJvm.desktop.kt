@@ -64,13 +64,19 @@ actual suspend fun tryThrowUserRejectAuth(
         // 设置渲染
         setContent {
           val scope = rememberCoroutineScope()
-          val auth = remember { KeychainAuthentication({ reject("window close") }, scope) }
+          val auth = remember {
+            KeychainAuthentication(
+              onAuthRequestDismiss = { reject("User cancel") },
+              lifecycleScope = scope,
+            )
+          }
+
           auth.ContentRender(closeBoolean = false, Modifier.fillMaxSize())
           LaunchedEffect(Unit) {
             val subtitle =
               runtime.bootstrapContext.dns.query(remoteMmid)?.name?.let { "$it($remoteMmid)" }
                 ?: remoteMmid
-            auth.start(title, subtitle, description)
+            auth.start(runtime, title, subtitle, description)
             deferred.complete(Unit)
 
             // 关闭窗口

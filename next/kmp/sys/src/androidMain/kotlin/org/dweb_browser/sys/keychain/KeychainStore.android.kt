@@ -23,7 +23,13 @@ actual class KeychainStore actual constructor(val runtime: KeychainNMM.KeyChainR
     }
   }
 
-  private val encryptKey = SuspendOnce1 { params: UseKeyParams -> getOrRecoveryOrCreateKey(params) }
+  private val encryptKey = SuspendOnce1({
+    runCatching {
+      getResult()
+    }.getOrElse {
+      reset(doCancel = false)
+    }
+  }) { params: UseKeyParams -> getOrRecoveryOrCreateKey(params) }
 
 
   /**
