@@ -9,7 +9,7 @@ import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureTextFrame
 
 
-suspend fun SmartScanNMM.ScanRuntime.barcodeScanning(scanningManager:ScanningManager) {
+suspend fun SmartScanNMM.ScanRuntime.barcodeScanning(scanningManager: ScanningManager) {
   protocol("barcode-scanning.sys.dweb") {
 
     routes(
@@ -45,9 +45,8 @@ suspend fun SmartScanNMM.ScanRuntime.barcodeScanning(scanningManager:ScanningMan
       // 处理二维码图像
       "/process" bind PureMethod.POST by defineJsonResponse {
         val rotation = request.queryOrNull("rotation")?.toIntOrNull() ?: 0
-        debugSCAN("process=>POST", "rotation=$rotation, ${request.body.contentLength}")
-
         val imgBitArray = request.body.toPureBinary()
+        debugSCAN("process=>POST", "rotation=$rotation,size=${imgBitArray.size}")
         val result = try {
           scanningManager.recognize(imgBitArray, rotation)
         } catch (e: Throwable) {
@@ -60,6 +59,7 @@ suspend fun SmartScanNMM.ScanRuntime.barcodeScanning(scanningManager:ScanningMan
 
       // 停止处理
       "/stop" bind PureMethod.GET by defineBooleanResponse {
+        debugSCAN("/stop", ipc.remote.mmid)
         scanningManager.stop()
         return@defineBooleanResponse true
       },

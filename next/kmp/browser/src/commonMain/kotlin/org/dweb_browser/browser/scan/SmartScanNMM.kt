@@ -26,6 +26,7 @@ class SmartScanNMM : NativeMicroModule("scan.browser.dweb", "Smart Scan") {
     categories = listOf(
       MICRO_MODULE_CATEGORY.Application,
     )
+    dweb_protocols = listOf("barcode-scanning.sys.dweb")
     icons = listOf(
       ImageResource(src = "file:///sys/browser-icons/$mmid.svg", type = "image/svg+xml")
     )

@@ -97,8 +97,8 @@ class IpcBodyReceiver(
               when (ipcStream) {
                 is IpcStreamData -> {
                   debugIpcBodyReceiver(
-                    "receiver/StreamData/$ipc/${controller.stream}", ipcStream
-                  )
+                    "receiver/StreamData/$ipc/${controller.stream}"
+                  ) { ipcStream }
                   controller.enqueue(ipcStream.binary)
                 }
 
