@@ -86,12 +86,10 @@ fun desktopWallpaperView(
   }
 
   LaunchedEffect(flow) {
-    flow?.let {
-      it
-        .sample(300)
-        .collect {
-          updateCircle()
-        }
+    flow?.apply {
+      sample(300).collect {
+        updateCircle()
+      }
     }
   }
 
@@ -99,8 +97,8 @@ fun desktopWallpaperView(
     suspend fun observerHourChange(action: (Int) -> Unit) {
       val currentMoment: Instant = Clock.System.now()
       val datetimeInSystemZone = currentMoment.toLocalDateTime(TimeZone.currentSystemDefault())
-      val triggleSeconds = (60 - datetimeInSystemZone.minute) * 60 - datetimeInSystemZone.second
-      delay(triggleSeconds.toLong() * 1000)
+      val toggleSeconds = (60 - datetimeInSystemZone.minute) * 60 - datetimeInSystemZone.second
+      delay(toggleSeconds.toLong() * 1000)
       action(datetimeInSystemZone.hour)
     }
 
@@ -121,19 +119,15 @@ fun desktopWallpaperView(
     }
   }
 
-  BoxWithConstraints(
-    contentAlignment = Alignment.Center,
-    modifier = modifier
-      .fillMaxSize()
-      .clickableWithNoEffect {
+  BoxWithConstraints(contentAlignment = Alignment.Center,
+    modifier = modifier.fillMaxSize().clickableWithNoEffect {
         onClick?.let {
           if (isTapDoAnimation) {
             updateCircle()
           }
           onClick()
         }
-      }
-  ) {
+      }) {
     RotatingLinearGradientBox(hour, modifier = Modifier.zIndex(-1f))
     circles.forEach {
       DesktopBgCircle(it)
@@ -148,24 +142,19 @@ fun RotatingLinearGradientBox(hour: Int, modifier: Modifier) {
   val angleRad = angle * PI / 180
 
   val start = Offset(
-    x = 0.5f + 0.5f * cos(angleRad).toFloat(),
-    y = 0.5f - 0.5f * sin(angleRad).toFloat()
+    x = 0.5f + 0.5f * cos(angleRad).toFloat(), y = 0.5f - 0.5f * sin(angleRad).toFloat()
   )
   val end = Offset(
-    x = 0.5f - 0.5f * cos(angleRad).toFloat(),
-    y = 0.5f + 0.5f * sin(angleRad).toFloat()
+    x = 0.5f - 0.5f * cos(angleRad).toFloat(), y = 0.5f + 0.5f * sin(angleRad).toFloat()
   )
 
   val bgColors = desktopBgPrimaryColorStrings(hour).map {
     Color.hex(it)!!
   }
 
-  AnimatedContent(bgColors,
-    modifier = modifier.fillMaxSize(),
-    transitionSpec = {
-      fadeIn().togetherWith(fadeOut())
-    }
-  ) {
+  AnimatedContent(bgColors, modifier = modifier.fillMaxSize(), transitionSpec = {
+    fadeIn().togetherWith(fadeOut())
+  }) {
 
     Canvas(
       modifier = modifier.fillMaxSize()
@@ -192,19 +181,15 @@ fun BoxWithConstraintsScope.DesktopBgCircle(
   val transformXValue = remember { Animatable(1f) }
   val transformYValue = remember { Animatable(1f) }
   val colorValue = remember { Animatable(Color.Transparent) }
-  
+
   fun doBubbleAnimation() {
     scope.launch {
       val scaleAnimationSpec = tween<Float>(
-        durationMillis = 500,
-        delayMillis = 0,
-        easing = FastOutSlowInEasing
+        durationMillis = 500, delayMillis = 0, easing = FastOutSlowInEasing
       )
 
       val transformAnimationSpec = tween<Float>(
-        durationMillis = 2000,
-        delayMillis = 0,
-        easing = FastOutSlowInEasing
+        durationMillis = 2000, delayMillis = 0, easing = FastOutSlowInEasing
       )
 
       launch {
@@ -240,30 +225,21 @@ fun BoxWithConstraintsScope.DesktopBgCircle(
   }
 
   val radius = min(constraints.maxWidth, constraints.maxHeight) * model.radius
-  Box(modifier = Modifier
-    .size(radius.dp)
-    .offset {
+  Box(modifier = Modifier.size(radius.dp).offset {
       Offset(
         x = model.offset.x * constraints.maxWidth / 2,
         y = model.offset.y * constraints.maxHeight / 2
-      )
-        .toIntOffset(1F)
-    }
-    .graphicsLayer {
+      ).toIntOffset(1F)
+    }.graphicsLayer {
       scaleX = scaleXValue.value
       scaleY = scaleYValue.value
       translationX = transformXValue.value
       translationY = transformYValue.value
-    }
-    .background(
+    }.background(
       Brush.radialGradient(
-        0.0f to colorValue.value,
-        model.blur to colorValue.value,
-        1.0f to Color.Transparent
-      ),
-      CircleShape
-    )
-  )
+        0.0f to colorValue.value, model.blur to colorValue.value, 1.0f to Color.Transparent
+      ), CircleShape
+    ))
 }
 
 
@@ -361,12 +337,7 @@ data class DesktopBgCircleModel(
       (1..count).forEach {
         list.add(
           DesktopBgCircleModel(
-            offset(),
-            radius(),
-            color(),
-            blur(),
-            random(0.4f),
-            random(0.4f)
+            offset(), radius(), color(), blur(), random(0.4f), random(0.4f)
           )
         )
       }

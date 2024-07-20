@@ -17,6 +17,7 @@ import androidx.compose.ui.window.WindowPlacement
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.dweb_browser.browser.desk.render.NewTaskbarView
 import org.dweb_browser.core.std.file.ext.store
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.asDesktop

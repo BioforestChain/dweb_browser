@@ -8,12 +8,12 @@ import org.dweb_browser.browser.R
 import org.dweb_browser.dwebview.Render
 import org.dweb_browser.dwebview.asAndroidWebView
 import org.dweb_browser.helper.android.ActivityBlurHelper
+import org.dweb_browser.helper.compose.NativeBackHandler
 import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.helper.platform.PureViewBox
 import org.dweb_browser.helper.platform.PureViewController
 import org.dweb_browser.helper.platform.from
 import org.dweb_browser.helper.platform.theme.DwebBrowserAppTheme
-import org.dweb_browser.sys.window.render.NativeBackHandler
 
 @SuppressLint("ClickableViewAccessibility", "UseCompatLoadingForDrawables")
 class TaskbarActivity : PureViewController() {

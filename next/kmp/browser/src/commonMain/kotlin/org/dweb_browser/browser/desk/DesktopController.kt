@@ -29,7 +29,6 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.browser.common.createDwebView
 import org.dweb_browser.browser.desk.types.DeskAppMetaData
-import org.dweb_browser.browser.desk.upgrade.NewVersionItem
 import org.dweb_browser.browser.web.WebLinkMicroModule
 import org.dweb_browser.browser.web.data.WebLinkManifest
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
@@ -46,13 +45,13 @@ import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.build
 import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
+import org.dweb_browser.helper.compose.NativeBackHandler
 import org.dweb_browser.helper.compose.envSwitch
 import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.helper.platform.IPureViewController
 import org.dweb_browser.helper.platform.from
 import org.dweb_browser.helper.resolvePath
 import org.dweb_browser.sys.window.core.WindowController
-import org.dweb_browser.sys.window.render.NativeBackHandler
 
 abstract class DesktopAppController constructor(open val deskNMM: DeskNMM.DeskRuntime) {
 
@@ -72,6 +71,8 @@ open class DesktopController private constructor(
   private val desktopServer: HttpDwebServer,
   private val runningApps: ChangeableMap<MMID, RunningApp>,
 ) : DesktopAppController(deskNMM) {
+  internal val toRunningApps = mutableSetOf<MMID>()
+
   // val newVersionController = NewVersionController(deskNMM, this)
   // 针对 WebLink 的管理部分 begin
   private val webLinkStore = WebLinkStore(deskNMM)
@@ -231,9 +232,6 @@ open class DesktopController private constructor(
     deskNMM.nativeFetch("file://web.browser.dweb/search?q=$words")
   }
 
-  suspend fun isSystemApp(mmid: String) =
-    !deskNMM.nativeFetch("file://jmm.browser.dweb/isInstalled?app_id=$mmid").boolean()
-
   private val appSortList = DeskSortStore(deskNMM)
   suspend fun getDesktopApps(): List<DeskAppMetaData> {
     val apps =
@@ -327,8 +325,3 @@ open class DesktopController private constructor(
     alertMessages.add(AlertMessage(title, message))
   }
 }
-
-/**
- * 获取当前版本，存储的版本，以及在线加载最新版本
- */
-expect suspend fun loadApplicationNewVersion(): NewVersionItem?

@@ -1,4 +1,4 @@
-package org.dweb_browser.sys.window.render
+package org.dweb_browser.helper.compose
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect

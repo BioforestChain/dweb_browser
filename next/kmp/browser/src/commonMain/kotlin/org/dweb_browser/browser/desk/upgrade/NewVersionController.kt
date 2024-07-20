@@ -4,7 +4,6 @@ import androidx.compose.runtime.mutableStateOf
 import org.dweb_browser.browser.desk.DeskNMM
 import org.dweb_browser.browser.desk.DesktopController
 import org.dweb_browser.browser.desk.debugDesk
-import org.dweb_browser.browser.desk.loadApplicationNewVersion
 import org.dweb_browser.browser.download.DownloadState
 import org.dweb_browser.browser.download.ext.createDownloadTask
 import org.dweb_browser.browser.download.ext.downloadProgressFlow
@@ -14,8 +13,6 @@ import org.dweb_browser.browser.download.ext.removeDownload
 import org.dweb_browser.browser.download.ext.startDownload
 import org.dweb_browser.browser.web.openFileByPath
 import org.dweb_browser.helper.SuspendOnce
-import org.dweb_browser.helper.compose.Language
-import org.dweb_browser.helper.compose.SimpleI18nResource
 import org.dweb_browser.helper.falseAlso
 import org.dweb_browser.helper.isGreaterThan
 import org.dweb_browser.sys.device.ext.getDeviceAppVersion
@@ -23,35 +20,11 @@ import org.dweb_browser.sys.permission.SystemPermissionName
 import org.dweb_browser.sys.permission.ext.requestSystemPermission
 import org.dweb_browser.sys.toast.ext.showToast
 
-object NewVersionI18nResource {
-  val toast_message_download_fail =
-    SimpleI18nResource(Language.ZH to "下载失败", Language.EN to "Download Fail")
 
-  val toast_message_storage_fail = SimpleI18nResource(
-    Language.ZH to "文件存储失败，请重新下载",
-    Language.EN to "File storage failed, please download again"
-  )
-
-  val toast_message_permission_fail =
-    SimpleI18nResource(Language.ZH to "授权失败", Language.EN to "authorization failed")
-
-  val request_permission_title_install = SimpleI18nResource(
-    Language.ZH to "请求安装应用权限",
-    Language.EN to "Request permission to install the application"
-  )
-  val request_permission_message_install = SimpleI18nResource(
-    Language.ZH to "安装应用需要请求安装应用权限，请手动设置",
-    Language.EN to "To install an application, you need to request the permission to install the application"
-  )
-
-  val request_permission_title_storage = SimpleI18nResource(
-    Language.ZH to "请求外部存储权限", Language.EN to "Request external storage permissions"
-  )
-  val request_permission_message_storage = SimpleI18nResource(
-    Language.ZH to "DwebBrowser正在向您获取“存储”权限，同意后，将用于存储下载的应用",
-    Language.EN to "DwebBrowser is asking you to \"store\" permission, if you agree, it will be used to store the downloaded application"
-  )
-}
+/**
+ * 获取当前版本，存储的版本，以及在线加载最新版本
+ */
+expect suspend fun loadApplicationNewVersion(): NewVersionItem?
 
 enum class NewVersionType {
   Hide, NewVersion, Download, Install;

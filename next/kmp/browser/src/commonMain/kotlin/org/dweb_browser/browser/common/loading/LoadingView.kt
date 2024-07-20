@@ -18,8 +18,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.unit.dp
+import org.dweb_browser.helper.compose.NativeBackHandler
 import org.dweb_browser.helper.compose.rememberScreenSize
-import org.dweb_browser.sys.window.render.NativeBackHandler
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin

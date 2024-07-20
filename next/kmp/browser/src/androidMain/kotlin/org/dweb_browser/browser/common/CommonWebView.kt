@@ -30,7 +30,7 @@ import org.dweb_browser.dwebview.AccompanistWebViewClient
 import org.dweb_browser.dwebview.LoadingState
 import org.dweb_browser.dwebview.WebContent
 import org.dweb_browser.dwebview.WebViewState
-import org.dweb_browser.sys.window.render.NativeBackHandler
+import org.dweb_browser.helper.compose.NativeBackHandler
 
 
 @OptIn(ExperimentalMaterial3Api::class)

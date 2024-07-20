@@ -12,11 +12,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalDensity
 import androidx.core.view.WindowCompat
 import com.qiniu.android.storage.UploadManager
+import org.dweb_browser.helper.compose.NativeBackHandler
 import org.dweb_browser.helper.datetimeNow
 import org.dweb_browser.helper.platform.PureViewController
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.sys.window.render.LocalWindowsImeVisible
-import org.dweb_browser.sys.window.render.NativeBackHandler
 
 @OptIn(ExperimentalLayoutApi::class)
 class DesktopActivity : PureViewController() {
