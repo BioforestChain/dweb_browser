@@ -25,7 +25,6 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,7 +34,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.sample
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
@@ -43,7 +48,10 @@ import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.dweb_browser.browser.desk.toIntOffset
+import org.dweb_browser.helper.SimplexNoise
 import org.dweb_browser.helper.compose.hex
+import org.dweb_browser.helper.globalDefaultScope
+import org.dweb_browser.helper.rand
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.min
@@ -58,7 +66,7 @@ class DesktopWallpaper {
   var circleCount by mutableIntStateOf(3)
 
   private val circles = mutableStateListOf<DesktopBgCircleModel>().apply {
-    addAll(DesktopBgCircleModel.randomCircle(circleCount))
+    addAll(randomCircle(circleCount))
   }
 
   var hour by mutableStateOf(0).apply {
@@ -76,10 +84,14 @@ class DesktopWallpaper {
     circles.addAll(newCircles)
   }
 
+  private val animationDoneFlow = MutableSharedFlow<Unit>()
+
+  @OptIn(FlowPreview::class)
+  val onAnimationStopFlow =
+    animationDoneFlow.sample(100).shareIn(globalDefaultScope, SharingStarted.Eagerly)
+
   @Composable
   fun Render(modifier: Modifier = Modifier) {
-
-
     LaunchedEffect(Unit) {
       suspend fun observerHourChange(action: (Int) -> Unit) {
         val currentMoment: Instant = Clock.System.now()
@@ -111,62 +123,107 @@ class DesktopWallpaper {
       modifier = modifier.fillMaxSize(),
     ) {
       RotatingLinearGradientBox(hour, modifier = Modifier.zIndex(-1f))
-      circles.forEach {
-        DesktopBgCircle(it)
+      for (circle in circles) {
+        circle.Render(this)
       }
     }
   }
-}
 
-@Composable
-fun RotatingLinearGradientBox(hour: Int, modifier: Modifier) {
+  @Composable
+  fun RotatingLinearGradientBox(hour: Int, modifier: Modifier) {
 
-  val angle = hour.toFloat() / 24f * 360f + 90f //添加90度的偏移
-  val angleRad = angle * PI / 180
+    val angle = hour.toFloat() / 24f * 360f + 90f //添加90度的偏移
+    val angleRad = angle * PI / 180
 
-  val start = Offset(
-    x = 0.5f + 0.5f * cos(angleRad).toFloat(), y = 0.5f - 0.5f * sin(angleRad).toFloat()
-  )
-  val end = Offset(
-    x = 0.5f - 0.5f * cos(angleRad).toFloat(), y = 0.5f + 0.5f * sin(angleRad).toFloat()
-  )
+    val start = Offset(
+      x = 0.5f + 0.5f * cos(angleRad).toFloat(), y = 0.5f - 0.5f * sin(angleRad).toFloat()
+    )
+    val end = Offset(
+      x = 0.5f - 0.5f * cos(angleRad).toFloat(), y = 0.5f + 0.5f * sin(angleRad).toFloat()
+    )
 
-  val bgColors = desktopBgPrimaryColorStrings(hour).map {
-    Color.hex(it)!!
-  }
+    val bgColors = desktopBgPrimaryColorStrings(hour).map {
+      Color.hex(it)!!
+    }
 
-  AnimatedContent(bgColors, modifier = modifier.fillMaxSize(), transitionSpec = {
-    fadeIn().togetherWith(fadeOut())
-  }) {
-
-    Canvas(
-      modifier = modifier.fillMaxSize()
-    ) {
-      drawRect(
-        brush = Brush.linearGradient(
-          colors = bgColors,
-          start = Offset(size.width * start.x, size.height * start.y),
-          end = Offset(size.width * end.x, size.height * end.y)
+    AnimatedContent(bgColors, modifier = modifier.fillMaxSize(), transitionSpec = {
+      fadeIn().togetherWith(fadeOut())
+    }) {
+      Canvas(
+        modifier = modifier.fillMaxSize()
+      ) {
+        drawRect(
+          brush = Brush.linearGradient(
+            colors = bgColors,
+            start = Offset(size.width * start.x, size.height * start.y),
+            end = Offset(size.width * end.x, size.height * end.y)
+          )
         )
-      )
+      }
     }
   }
-}
+
+  private fun randomCircle(count: Int): List<DesktopBgCircleModel> {
+    val offset = {
+      Offset(
+        random(2f),
+        random(2f),
+      )
+    }
+
+    val radius = {
+      (0.1f + Random.nextFloat() * 0.9f) / 4.0f
+    }
+
+    val color = {
+      val currentMoment: Instant = Clock.System.now()
+      val datetimeInSystemZone: LocalDateTime =
+        currentMoment.toLocalDateTime(TimeZone.currentSystemDefault())
+      desktopBgPrimaryRandomColor(datetimeInSystemZone.hour)
+    }
+
+    val blur = {
+      Random.nextInt(11) * 0.01f + 0.9f
+    }
+
+    val list = List(count) {
+      DesktopBgCircleModel(
+        offset(), radius(), color(), blur(), random(0.4f), random(0.4f)
+      )
+    }.sortedBy { it.blur }
+
+    return list
+  }
+
+  private inner class DesktopBgCircleModel(
+    val offset: Offset,
+    val radius: Float,
+    val color: Color,
+    val blur: Float,
+    val animationToX: Float = 0f,
+    val animationToY: Float = 0f,
+    val seed: Int = rand(0, 10000)
+  ) {
+    val noise = SimplexNoise(seed)
+
+    fun randomUpdate(hour: Int? = null) = DesktopBgCircleModel(
+      offset = offset,
+      radius = radius,
+      color = desktopBgPrimaryRandomColor(hour),
+      blur = blur,
+      animationToX = random(0.5f),
+      animationToY = random(0.5f),
+      seed = seed,
+    )
 
 
-@Composable
-private fun BoxWithConstraintsScope.DesktopBgCircle(
-  model: DesktopBgCircleModel,
-) {
-  val scope = rememberCoroutineScope()
-  val scaleXValue = remember { Animatable(1f) }
-  val scaleYValue = remember { Animatable(1f) }
-  val transformXValue = remember { Animatable(1f) }
-  val transformYValue = remember { Animatable(1f) }
-  val colorValue = remember { Animatable(Color.Transparent) }
+    val scaleXAni = Animatable(1f)
+    val scaleYValue = Animatable(1f)
+    val transformXValue = Animatable(1f)
+    val transformYValue = Animatable(1f)
+    val colorValue = Animatable(Color.Transparent)
 
-  fun doBubbleAnimation() {
-    scope.launch {
+    suspend fun doBubbleAnimation(width: Int, height: Int) = coroutineScope {
       val scaleAnimationSpec = tween<Float>(
         durationMillis = 500, delayMillis = 0, easing = FastOutSlowInEasing
       )
@@ -176,10 +233,10 @@ private fun BoxWithConstraintsScope.DesktopBgCircle(
       )
 
       launch {
-        scaleXValue.animateTo(1.05f, scaleAnimationSpec)
-        scaleXValue.animateTo(0.95f, scaleAnimationSpec)
-        scaleXValue.animateTo(1.03f, scaleAnimationSpec)
-        scaleXValue.animateTo(1.0f, scaleAnimationSpec)
+        scaleXAni.animateTo(1.05f, scaleAnimationSpec)
+        scaleXAni.animateTo(0.95f, scaleAnimationSpec)
+        scaleXAni.animateTo(1.03f, scaleAnimationSpec)
+        scaleXAni.animateTo(1.0f, scaleAnimationSpec)
       }
 
       launch {
@@ -190,42 +247,51 @@ private fun BoxWithConstraintsScope.DesktopBgCircle(
       }
 
       launch {
-        transformXValue.animateTo(model.animationToX * maxWidth.value, transformAnimationSpec)
+        transformXValue.animateTo(animationToX * width, transformAnimationSpec)
       }
 
       launch {
-        transformYValue.animateTo(model.animationToY * maxWidth.value, transformAnimationSpec)
+        transformYValue.animateTo(animationToY * height, transformAnimationSpec)
       }
 
       launch {
-        colorValue.animateTo(model.color, tween(1000, 0, LinearEasing))
+        colorValue.animateTo(color, tween(1000, 0, LinearEasing))
       }
     }
-  }
 
-  LaunchedEffect(model.offset, model.animationToX, model.animationToY) {
-    doBubbleAnimation()
-  }
+    @Composable
+    fun Render(box: BoxWithConstraintsScope) {
+      val model = this@DesktopBgCircleModel
+      val maxWidthPx = box.constraints.maxWidth
+      val maxHeightPx = box.constraints.maxHeight
+      val maxWidth = box.maxWidth
+      val maxHeight = box.maxHeight
 
-  val radius = min(constraints.maxWidth, constraints.maxHeight) * model.radius
-  Box(modifier = Modifier.size(radius.dp).offset {
-    Offset(
-      x = model.offset.x * constraints.maxWidth / 2,
-      y = model.offset.y * constraints.maxHeight / 2
-    ).toIntOffset(1F)
-  }.graphicsLayer {
-    scaleX = scaleXValue.value
-    scaleY = scaleYValue.value
-    translationX = transformXValue.value
-    translationY = transformYValue.value
-  }.background(
-    Brush.radialGradient(
-      0.0f to colorValue.value, model.blur to colorValue.value, 1.0f to Color.Transparent
-    ), CircleShape
-  )
-  )
+      LaunchedEffect(model.offset, model.animationToX, model.animationToY) {
+        doBubbleAnimation(maxWidthPx, maxHeightPx)
+        animationDoneFlow.emit(Unit)
+      }
+
+      val radius = min(maxWidthPx, maxHeightPx) * model.radius
+      Box(Modifier.size(radius.dp).offset {
+        Offset(
+          x = model.offset.x * maxWidthPx / 2,
+          y = model.offset.y * maxHeightPx / 2
+        ).toIntOffset(1F)
+      }.graphicsLayer {
+        scaleX = scaleXAni.value
+        scaleY = scaleYValue.value
+        translationX = transformXValue.value
+        translationY = transformYValue.value
+      }.background(
+        Brush.radialGradient(
+          0.0f to colorValue.value, model.blur to colorValue.value, 1.0f to Color.Transparent
+        ), CircleShape
+      )
+      )
+    }
+  }
 }
-
 
 private fun random(times: Float = 1f) = (Random.nextFloat() - 0.5f) * times
 
@@ -251,9 +317,6 @@ internal fun desktopBgPrimaryColorStrings(hour: Int? = null): List<ColorString> 
   }
 }
 
-internal fun desktopBgPrimaryColors(our: Int? = null) = desktopBgPrimaryColorStrings(null).map {
-  Color.hex(it)!!
-}
 
 fun desktopBgPrimaryRandomColor(hour: Int? = null): Color {
   val colors = desktopBgPrimaryColorStrings(hour)
@@ -276,61 +339,3 @@ fun desktopBgPrimaryRandomColor(hour: Int? = null): Color {
   return color
 }
 
-
-private data class DesktopBgCircleModel(
-  val offset: Offset,
-  val radius: Float,
-  val color: Color,
-  val blur: Float,
-  val animationToX: Float = 0f,
-  val animationToY: Float = 0f,
-) {
-  companion object {
-    fun randomCircle(count: Int): List<DesktopBgCircleModel> {
-      val list = mutableListOf<DesktopBgCircleModel>()
-
-      val offset = {
-        Offset(
-          random(2f),
-          random(2f),
-        )
-      }
-
-      val radius = {
-        (0.1f + Random.nextFloat() * 0.9f) / 4.0f
-      }
-
-      val color = {
-        val currentMoment: Instant = Clock.System.now()
-        val datetimeInSystemZone: LocalDateTime =
-          currentMoment.toLocalDateTime(TimeZone.currentSystemDefault())
-        desktopBgPrimaryRandomColor(datetimeInSystemZone.hour)
-      }
-
-      val blur = {
-        Random.nextInt(11) * 0.01f + 0.9f
-      }
-
-      (1..count).forEach {
-        list.add(
-          DesktopBgCircleModel(
-            offset(), radius(), color(), blur(), random(0.4f), random(0.4f)
-          )
-        )
-      }
-
-      list.sortBy {
-        it.blur
-      }
-
-      return list
-    }
-  }
-
-
-  fun randomUpdate(hour: Int? = null) = copy(
-    color = desktopBgPrimaryRandomColor(hour),
-    animationToX = random(0.5f),
-    animationToY = random(0.5f)
-  )
-}
