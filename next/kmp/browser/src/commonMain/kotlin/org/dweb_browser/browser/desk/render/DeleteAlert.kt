@@ -28,7 +28,7 @@ internal fun DeleteAlert(
   app: DesktopAppModel,
   microModule: NativeMicroModule.NativeRuntime,
   onDismissRequest: () -> Unit,
-  confirm: () -> Unit
+  onConfirm: () -> Unit
 ) {
   BasicAlertDialog(
     onDismissRequest = onDismissRequest
@@ -65,7 +65,7 @@ internal fun DeleteAlert(
           )
         }
         Spacer(Modifier.width(50.dp))
-        TextButton(confirm) {
+        TextButton(onConfirm) {
           Text(
             BrowserI18nResource.button_name_confirm.text,
             color = Color.Red

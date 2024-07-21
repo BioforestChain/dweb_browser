@@ -31,6 +31,8 @@ fun DeskCacheIcon(
     iconShape = SquircleShape(30, CornerSmoothing.Small),
     iconMaskable = icon?.let { icon.purpose.contains(ImageResourcePurposes.Maskable) } ?: false,
     iconMonochrome = icon?.let { icon.purpose.contains(ImageResourcePurposes.Monochrome) } ?: false,
-    containerAlpha = containerAlpha ?: 0.8f,
+    containerAlpha = containerAlpha ?: deskIconAlpha,
   )
 }
+
+internal const val deskIconAlpha = 0.8f

@@ -19,10 +19,8 @@ fun DesktopSearchBarPreview() {
     Modifier.background(Brush.linearGradient(listOf(Color.Cyan, Color.Blue))).fillMaxSize(),
     contentAlignment = Alignment.TopCenter
   ) {
-    DesktopSearchBar(
-      "xix", { println("") }, Modifier.padding(
-        vertical = 100.dp,
-      )
+    rememberDesktopSearchBar().Render(
+      Modifier.padding(vertical = 100.dp)
     )
   }
 }

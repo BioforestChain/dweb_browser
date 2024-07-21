@@ -19,15 +19,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.dweb_browser.browser.desk.model.AppMenuModel
 import org.dweb_browser.browser.desk.model.AppMenuType
+import squircleshape.SquircleShape
 
 @Composable
-internal fun AppMoreRender(
+internal fun AppMenu(
   displays: List<AppMenuModel>,
   modifier: Modifier,
   action: (AppMenuType) -> Unit,
 ) {
   Row(
-    modifier = modifier.clip(RoundedCornerShape(8.dp)).background(Color.White.copy(alpha = 0.5f)),
+    modifier = modifier.clip(RoundedCornerShape(8.dp)).background(Color.White.copy(alpha = 0.5f),
+      SquircleShape()
+    ),
     horizontalArrangement = Arrangement.SpaceBetween,
     verticalAlignment = Alignment.CenterVertically
   ) {

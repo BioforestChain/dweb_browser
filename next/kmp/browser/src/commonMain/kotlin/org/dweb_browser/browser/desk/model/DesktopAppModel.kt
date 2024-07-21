@@ -23,7 +23,7 @@ internal data class DesktopAppModel(
 ) {
 
   var size: Size by mutableStateOf(Size.Zero)
-  var offSet: Offset by mutableStateOf(Offset.Zero)
+  var offset: Offset by mutableStateOf(Offset.Zero)
 
   enum class DesktopAppRunStatus {
     NONE, TORUNNING, RUNNING

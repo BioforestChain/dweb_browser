@@ -7,7 +7,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 
 @Composable
-fun Modifier.clickableWithNoEffect(onClick: () -> Unit) = clickable(indication = null,
+fun Modifier.clickableWithNoEffect(enabled: Boolean = true, onClick: () -> Unit) = clickable(
+  indication = null,
+  enabled = enabled,
   onClick = onClick,
-  interactionSource = remember { MutableInteractionSource() }
+  interactionSource = remember { MutableInteractionSource() },
 )

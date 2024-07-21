@@ -13,7 +13,7 @@ import androidx.compose.ui.unit.dp
 
 
 actual fun desktopGridLayout(): DesktopGridLayout =
-  DesktopGridLayout(GridCells.Adaptive(100.dp), 20.dp, 40.dp)
+  DesktopGridLayout(GridCells.Adaptive(100.dp), 24.dp, 8.dp, 16.dp)
 
 actual fun desktopTap(): Dp = 20.dp
 
@@ -27,12 +27,12 @@ actual fun taskBarCloseButtonUsePopUp() = false
 
 @Composable
 @OptIn(ExperimentalFoundationApi::class)
-actual fun Modifier.desktopAppItemActions(onTap: () -> Unit, onMenu: () -> Unit) =
+actual fun Modifier.desktopAppItemActions(onOpenApp: () -> Unit, onOpenAppMenu: () -> Unit) =
   this.onClick(
     matcher = PointerMatcher.mouse(PointerButton.Primary),
-    onClick = onTap,
-    onLongClick = onMenu,
+    onClick = onOpenApp,
+    onLongClick = onOpenAppMenu,
   ).onClick(
     matcher = PointerMatcher.mouse(PointerButton.Secondary),
-    onClick = onMenu,
+    onClick = onOpenAppMenu,
   )

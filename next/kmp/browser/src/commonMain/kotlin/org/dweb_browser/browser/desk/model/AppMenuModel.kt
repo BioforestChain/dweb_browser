@@ -46,18 +46,14 @@ internal enum class AppMenuType {
   abstract val data: MoreAppModelTypeData
 }
 
-internal fun createAppMenuDisplays(
-  app: DesktopAppModel
-): List<AppMenuModel> {
-
+internal fun DesktopAppModel.getAppMenuDisplays(): List<AppMenuModel> {
   val displays = mutableListOf<AppMenuModel>()
-
-  when (app.data) {
+  when (data) {
     is DesktopAppData.App -> {
       displays.add(
-        AppMenuModel(AppMenuType.OFF, app.running == DesktopAppModel.DesktopAppRunStatus.RUNNING)
+        AppMenuModel(AppMenuType.OFF, running == DesktopAppModel.DesktopAppRunStatus.RUNNING)
       )
-      if (!app.isSystemApp) {
+      if (!isSystemApp) {
         displays.add(AppMenuModel(AppMenuType.DETAIL, true))
         displays.add(AppMenuModel(AppMenuType.UNINSTALL, true))
       }
