@@ -13,7 +13,7 @@ import androidx.compose.ui.unit.dp
 
 
 actual fun desktopGridLayout(): DesktopGridLayout =
-  DesktopGridLayout(GridCells.Adaptive(72.dp), 16.dp, 8.dp)
+  DesktopGridLayout(GridCells.Adaptive(64.dp), 16.dp, 8.dp)
 
 actual fun desktopTap(): Dp = 0.dp
 

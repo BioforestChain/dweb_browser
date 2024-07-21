@@ -7,10 +7,8 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeGestures
 import androidx.compose.foundation.layout.windowInsetsPadding
@@ -27,6 +25,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.desk.DesktopController
@@ -35,6 +34,7 @@ import org.dweb_browser.browser.desk.model.DesktopAppModel.DesktopAppRunStatus
 import org.dweb_browser.browser.desk.toIntOffset
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.helper.compose.clickableWithNoEffect
+import kotlin.math.max
 
 @Composable
 fun NewDesktopView(
@@ -90,35 +90,39 @@ fun NewDesktopView(
       searchBar.close()
       desktopWallpaper.play()
     })
-    val density = LocalDensity.current.density
+    val density = LocalDensity.current
+    val d = density.density
+    val layout = desktopGridLayout()
+    val containerPadding = WindowInsets.safeGestures
     Column(
       horizontalAlignment = Alignment.CenterHorizontally,
-      modifier = Modifier.fillMaxWidth().windowInsetsPadding(WindowInsets.safeGestures)
+      modifier = Modifier.fillMaxWidth().windowInsetsPadding(containerPadding)
         .padding(top = desktopTap())
         .onGloballyPositioned {
-          val pos = it.positionInWindow().toIntOffset(density)
+          val pos = it.positionInWindow().toIntOffset(d)
           appMenuPanel.safeAreaInsets = WindowInsets(
             top = pos.y,
             left = pos.x,
-            right = ((maxWidth.value * density) - pos.x - it.size.width).toInt(),
+            right = pos.x,//((maxWidth.value * d) - pos.x - it.size.width).toInt(),
             bottom = 0
-          )
+          ).also {
+            println("QAQ safeAreaInsets = $it")
+          }
         }
     ) {
-      searchBar.Render(
-        Modifier.windowInsetsPadding(WindowInsets.safeGestures.only(WindowInsetsSides.Top))
-      )
+      searchBar.Render(Modifier.padding(vertical = 16.dp))
       LaunchedEffect(Unit) {
         searchBar.onSearchFlow.collect {
           desktopController.search(it)
         }
       }
+      val innerPadding =
+        layout.contentPadding.value - (containerPadding.getLeft(density, LayoutDirection.Ltr) / d)
 
-      val layout = desktopGridLayout()
       LazyVerticalGrid(
         columns = layout.cells,
-        contentPadding = PaddingValues(layout.contentPadding),
-        modifier = Modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(max(0f, innerPadding).dp),
+        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(layout.horizontalSpace),
         verticalArrangement = Arrangement.spacedBy(layout.verticalSpace)
       ) {

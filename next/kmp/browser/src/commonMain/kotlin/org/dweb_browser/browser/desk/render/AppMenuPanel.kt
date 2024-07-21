@@ -185,19 +185,19 @@ internal class AppMenuPanel(
           },
         )
 
-        val safeWindowBounds =
-          remember(WindowInsets.safeDrawing, safeAreaInsets, density, layoutDirection) {
-            val safeInsets = WindowInsets.safeDrawing.union(safeAreaInsets)
-            PureIntBounds(
-              left = safeInsets.getLeft(density, layoutDirection),
-              //
-              right = safeInsets.getRight(density, layoutDirection),
-              top = safeInsets.getTop(density),
-              bottom = safeInsets.getBottom(density),
-            ).also {
-              println("QAQ safeWindowBounds=$it")
-            }
+        val safeDrawing = WindowInsets.safeDrawing
+        val safeWindowBounds = remember(safeDrawing, safeAreaInsets, density, layoutDirection) {
+          val safeInsets = safeDrawing.union(safeAreaInsets)
+          PureIntBounds(
+            left = safeInsets.getLeft(density, layoutDirection),
+            //
+            right = safeInsets.getRight(density, layoutDirection),
+            top = safeInsets.getTop(density),
+            bottom = safeInsets.getBottom(density),
+          ).also {
+            println("QAQ safeWindowBounds=$it")
           }
+        }
 
         var appMenuIntSize by remember { mutableStateOf(IntSize.Zero) }
         val appBounds = remember(app.offset, app.size) {
@@ -218,11 +218,11 @@ internal class AppMenuPanel(
               h = safeWindowBounds.top + safeWindowBounds.bottom,
             )
             val anchorBounds = appBounds.toPureRect().toRect().timesToInt(d).minus(
-                l = safeWindowBounds.left,
-                t = safeWindowBounds.top,
-                b = safeWindowBounds.top,
-                r = safeWindowBounds.left,
-              )
+              l = safeWindowBounds.left,
+              t = safeWindowBounds.top,
+              b = safeWindowBounds.top,
+              r = safeWindowBounds.left,
+            )
             positionProvider.calculatePosition(
               anchorBounds = anchorBounds,
               windowSize = windowSize,
