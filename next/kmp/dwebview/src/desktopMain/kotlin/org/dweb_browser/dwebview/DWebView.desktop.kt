@@ -17,7 +17,7 @@ import org.dweb_browser.dwebview.messagePort.DWebMessageChannel
 import org.dweb_browser.dwebview.messagePort.DWebMessagePort
 import org.dweb_browser.dwebview.polyfill.DwebViewDesktopPolyfill
 import org.dweb_browser.dwebview.proxy.DwebViewProxy
-import org.dweb_browser.helper.Bounds
+import org.dweb_browser.helper.PureBounds
 import org.dweb_browser.helper.RememberLazy
 import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.globalIoScope
@@ -150,7 +150,7 @@ class DWebView(
     return viewEngine.evaluateAsyncJavascriptCode(script, afterEval)
   }
 
-  override suspend fun setSafeAreaInset(bounds: Bounds) {
+  override suspend fun setSafeAreaInset(bounds: PureBounds) {
     // 不需要实现该功能，chromium还没放出桌面端的safeArea，只有Safari的WKWebView需要设置这个
   }
 

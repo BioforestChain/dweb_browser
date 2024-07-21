@@ -11,8 +11,6 @@ import org.dweb_browser.pure.image.compose.PureImageLoader
 import org.dweb_browser.pure.image.compose.SmartLoad
 import org.dweb_browser.sys.window.render.AppIcon
 import org.dweb_browser.sys.window.render.blobFetchHook
-import squircleshape.CornerSmoothing
-import squircleshape.SquircleShape
 
 @Composable
 fun DeskCacheIcon(
@@ -28,7 +26,7 @@ fun DeskCacheIcon(
   AppIcon(
     icon = imageResult,
     modifier = modifier.requiredSize(width, height),
-    iconShape = SquircleShape(30, CornerSmoothing.Small),
+    iconShape = deskSquircleShape(),
     iconMaskable = icon?.let { icon.purpose.contains(ImageResourcePurposes.Maskable) } ?: false,
     iconMonochrome = icon?.let { icon.purpose.contains(ImageResourcePurposes.Monochrome) } ?: false,
     containerAlpha = containerAlpha ?: deskIconAlpha,

@@ -16,8 +16,8 @@ import androidx.compose.ui.unit.IntSize
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.compose.CompositionChain
-import org.dweb_browser.helper.compose.timesToInt
 import org.dweb_browser.helper.compose.toIntSize
+import org.dweb_browser.helper.compose.timesToInt
 import org.dweb_browser.platform.desktop.os.WindowsSystemInfo
 import java.awt.Dialog
 import javax.swing.JDialog

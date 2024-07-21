@@ -35,7 +35,7 @@ internal fun AppItem(
   ) {
     DeskAppIcon(app, microModule, modifier = Modifier.onGloballyPositioned {
       app.size = it.size / density
-      app.offset = it.positionInWindow()
+      app.offset = it.positionInWindow() / density
     }.jump(app.running == DesktopAppModel.DesktopAppRunStatus.TORUNNING))
     Text(
       text = app.name, maxLines = 2, overflow = TextOverflow.Ellipsis, style = TextStyle(

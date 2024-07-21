@@ -25,7 +25,7 @@ import org.dweb_browser.dwebview.DWebMessagePort.Companion.into
 import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.dwebview.polyfill.DwebViewAndroidPolyfill
 import org.dweb_browser.dwebview.proxy.DwebViewProxyOverride
-import org.dweb_browser.helper.Bounds
+import org.dweb_browser.helper.PureBounds
 import org.dweb_browser.helper.RememberLazy
 import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.getAppContextUnsafe
@@ -244,7 +244,7 @@ class DWebView private constructor(internal val engine: DWebViewEngine, initUrl:
   override suspend fun getIconBitmap() =
     engine.iconBitmapFlow.value ?: withMainContext { engine.favicon?.asImageBitmap() }
 
-  override suspend fun setSafeAreaInset(bounds: Bounds) = withMainContext {
+  override suspend fun setSafeAreaInset(bounds: PureBounds) = withMainContext {
     engine.safeArea = bounds
   }
 

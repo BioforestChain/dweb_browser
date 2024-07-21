@@ -34,7 +34,7 @@ import org.dweb_browser.dwebview.polyfill.FaviconPolyfill
 import org.dweb_browser.dwebview.proxy.DwebViewProxy
 import org.dweb_browser.dwebview.toReadyListener
 import org.dweb_browser.dwebview.wkWebsiteDataStore
-import org.dweb_browser.helper.Bounds
+import org.dweb_browser.helper.PureBounds
 import org.dweb_browser.helper.JsonLoose
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
@@ -422,7 +422,7 @@ class DWebViewEngine(
    * css.env(safe-area-inset-*)
    * https://github.com/WebKit/WebKit/blob/a544a2189b62dab2a7b73034a3f298508619c448/Source/WebKit/UIProcess/API/ios/WKWebViewIOS.mm#L794
    */
-  var safeArea: Bounds? = null
+  var safeArea: PureBounds? = null
     set(value) {
       field = value
       when (options.displayCutoutStrategy) {

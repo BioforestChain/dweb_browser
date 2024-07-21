@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.mutableStateListOf
@@ -13,6 +14,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.desk.ITaskbarView
@@ -75,13 +77,15 @@ fun NewTaskbarView(
     }
   }
 
+  val taskBarHomeButton = rememberTaskBarHomeButton();
   Box(
     modifier.pointerInput(draggableHelper) {
       detectDragGestures(onDragEnd = draggableHelper.onDragEnd,
         onDragCancel = draggableHelper.onDragEnd,
-        onDragStart = draggableHelper.onDragStart,
+        onDragStart = { draggableHelper.onDragStart(it) },
         onDrag = { _, dragAmount ->
           draggableHelper.onDrag(dragAmount.div(density))
+          taskBarHomeButton.isPressed = false
         })
     }, contentAlignment = Alignment.Center
   ) {
@@ -115,11 +119,11 @@ fun NewTaskbarView(
         TaskBarDivider()
       }
 
-      TaskBarHomeIcon() {
+      taskBarHomeButton.Render({
         scope.launch {
           taskbarController.toggleDesktopView()
         }
-      }
+      }, Modifier.padding(paddingValue.dp))
     }
   }
 }

@@ -41,7 +41,7 @@ import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.file.ext.MicroModuleStore
 import org.dweb_browser.core.std.file.ext.blobWrite
-import org.dweb_browser.helper.Bounds
+import org.dweb_browser.helper.PureBounds
 import org.dweb_browser.helper.Observable
 import org.dweb_browser.helper.PureRect
 import org.dweb_browser.helper.WARNING
@@ -392,8 +392,8 @@ private fun WindowController.calcWindowPaddingByLimits(
   val rightWidth: Float
   val borderRounded: WindowPadding.CornerRadius
   val contentRounded: WindowPadding.CornerRadius
-  val boxSafeAreaInsets: Bounds
-  val contentSafeAreaInsets: Bounds
+  val boxSafeAreaInsets: PureBounds
+  val contentSafeAreaInsets: PureBounds
 
   /// 一些共有的计算
   val windowFrameSize = if (maximize) 3f else 5f
@@ -454,7 +454,7 @@ private fun WindowController.calcWindowPaddingByLimits(
       getCornerRadiusBottom(platformViewController, density, 16f)
     )
 
-    boxSafeAreaInsets = Bounds.Zero.copy(bottom = max(safeGesturesPaddingBottom - bottomHeight, 0f))
+    boxSafeAreaInsets = PureBounds.Zero.copy(bottom = max(safeGesturesPaddingBottom - bottomHeight, 0f))
   } else {
     borderRounded = getWindowControllerBorderRounded(false)
     contentRounded = borderRounded / sqrt(2f)
@@ -463,7 +463,7 @@ private fun WindowController.calcWindowPaddingByLimits(
     leftWidth = windowFrameSize
     rightWidth = windowFrameSize
 
-    boxSafeAreaInsets = Bounds.Zero
+    boxSafeAreaInsets = PureBounds.Zero
   }
   return WindowPadding(
     top = topHeight,
@@ -503,7 +503,7 @@ data class WindowPadding(
   /**
    * 边框的安全绘制区域
    */
-  val boxSafeAreaInsets: Bounds,
+  val boxSafeAreaInsets: PureBounds,
 ) {
   val left
     @Composable get() = when {

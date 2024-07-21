@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.desk
+package org.dweb_browser.browser.desk.render
 
 import androidx.compose.animation.Animatable
 import androidx.compose.animation.AnimatedContent
@@ -21,6 +21,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,17 +35,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.sample
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import org.dweb_browser.helper.compose.clickableWithNoEffect
+import org.dweb_browser.browser.desk.toIntOffset
 import org.dweb_browser.helper.compose.hex
 import kotlin.math.PI
 import kotlin.math.cos
@@ -52,55 +50,44 @@ import kotlin.math.min
 import kotlin.math.sin
 import kotlin.random.Random
 
-@OptIn(FlowPreview::class)
 @Composable
-fun desktopWallpaperView(
-  circleCount: Int,
-  modifier: Modifier,
-  isTapDoAnimation: Boolean = true,
-  flow: Flow<Unit>? = null,
-  onClick: (() -> Unit)? = null,
-) {
+fun rememberDesktopWallpaper() = remember { DesktopWallpaper() }
 
-  val circles = remember {
-    mutableStateListOf<DesktopBgCircleModel>().apply {
-      addAll(DesktopBgCircleModel.randomCircle(circleCount))
-    }
+class DesktopWallpaper {
+  //  var isTapDoAnimation by mutableStateOf(true)
+  var circleCount by mutableIntStateOf(3)
+
+  private val circles = mutableStateListOf<DesktopBgCircleModel>().apply {
+    addAll(DesktopBgCircleModel.randomCircle(circleCount))
   }
 
-  var hour by remember {
-    mutableStateOf(0).apply {
-      val currentMoment: Instant = Clock.System.now()
-      val datetimeInSystemZone: LocalDateTime =
-        currentMoment.toLocalDateTime(TimeZone.currentSystemDefault())
-      value = datetimeInSystemZone.hour
-    }
+  var hour by mutableStateOf(0).apply {
+    val currentMoment: Instant = Clock.System.now()
+    val datetimeInSystemZone: LocalDateTime =
+      currentMoment.toLocalDateTime(TimeZone.currentSystemDefault())
+    value = datetimeInSystemZone.hour
   }
 
-  fun updateCircle() {
+  fun play() {
     val newCircles = circles.map {
-      DesktopBgCircleModel.randomUpdate(it, hour)
+      it.randomUpdate(hour)
     }
     circles.clear()
     circles.addAll(newCircles)
   }
 
-  LaunchedEffect(flow) {
-    flow?.apply {
-      sample(300).collect {
-        updateCircle()
-      }
-    }
-  }
+  @Composable
+  fun Render(modifier: Modifier = Modifier) {
 
-  LaunchedEffect(Unit) {
-    suspend fun observerHourChange(action: (Int) -> Unit) {
-      val currentMoment: Instant = Clock.System.now()
-      val datetimeInSystemZone = currentMoment.toLocalDateTime(TimeZone.currentSystemDefault())
-      val toggleSeconds = (60 - datetimeInSystemZone.minute) * 60 - datetimeInSystemZone.second
-      delay(toggleSeconds.toLong() * 1000)
-      action(datetimeInSystemZone.hour)
-    }
+
+    LaunchedEffect(Unit) {
+      suspend fun observerHourChange(action: (Int) -> Unit) {
+        val currentMoment: Instant = Clock.System.now()
+        val datetimeInSystemZone = currentMoment.toLocalDateTime(TimeZone.currentSystemDefault())
+        val toggleSeconds = (60 - datetimeInSystemZone.minute) * 60 - datetimeInSystemZone.second
+        delay(toggleSeconds.toLong() * 1000)
+        action(datetimeInSystemZone.hour)
+      }
 
 // 以下为debug代码：用来查看整个壁纸动态效果。
 //    var c_hour = 0
@@ -111,26 +98,22 @@ fun desktopWallpaperView(
 //      action(c_hour)
 //    }
 
-    while (true) {
-      observerHourChange { toHour ->
-        hour = toHour
-        updateCircle()
+      while (true) {
+        observerHourChange { toHour ->
+          hour = toHour
+          play()
+        }
       }
     }
-  }
 
-  BoxWithConstraints(contentAlignment = Alignment.Center,
-    modifier = modifier.fillMaxSize().clickableWithNoEffect {
-        onClick?.let {
-          if (isTapDoAnimation) {
-            updateCircle()
-          }
-          onClick()
-        }
-      }) {
-    RotatingLinearGradientBox(hour, modifier = Modifier.zIndex(-1f))
-    circles.forEach {
-      DesktopBgCircle(it)
+    BoxWithConstraints(
+      contentAlignment = Alignment.Center,
+      modifier = modifier.fillMaxSize(),
+    ) {
+      RotatingLinearGradientBox(hour, modifier = Modifier.zIndex(-1f))
+      circles.forEach {
+        DesktopBgCircle(it)
+      }
     }
   }
 }
@@ -172,8 +155,8 @@ fun RotatingLinearGradientBox(hour: Int, modifier: Modifier) {
 
 
 @Composable
-fun BoxWithConstraintsScope.DesktopBgCircle(
-  model: DesktopBgCircleModel
+private fun BoxWithConstraintsScope.DesktopBgCircle(
+  model: DesktopBgCircleModel,
 ) {
   val scope = rememberCoroutineScope()
   val scaleXValue = remember { Animatable(1f) }
@@ -226,20 +209,21 @@ fun BoxWithConstraintsScope.DesktopBgCircle(
 
   val radius = min(constraints.maxWidth, constraints.maxHeight) * model.radius
   Box(modifier = Modifier.size(radius.dp).offset {
-      Offset(
-        x = model.offset.x * constraints.maxWidth / 2,
-        y = model.offset.y * constraints.maxHeight / 2
-      ).toIntOffset(1F)
-    }.graphicsLayer {
-      scaleX = scaleXValue.value
-      scaleY = scaleYValue.value
-      translationX = transformXValue.value
-      translationY = transformYValue.value
-    }.background(
-      Brush.radialGradient(
-        0.0f to colorValue.value, model.blur to colorValue.value, 1.0f to Color.Transparent
-      ), CircleShape
-    ))
+    Offset(
+      x = model.offset.x * constraints.maxWidth / 2,
+      y = model.offset.y * constraints.maxHeight / 2
+    ).toIntOffset(1F)
+  }.graphicsLayer {
+    scaleX = scaleXValue.value
+    scaleY = scaleYValue.value
+    translationX = transformXValue.value
+    translationY = transformYValue.value
+  }.background(
+    Brush.radialGradient(
+      0.0f to colorValue.value, model.blur to colorValue.value, 1.0f to Color.Transparent
+    ), CircleShape
+  )
+  )
 }
 
 
@@ -293,22 +277,15 @@ fun desktopBgPrimaryRandomColor(hour: Int? = null): Color {
 }
 
 
-data class DesktopBgCircleModel(
-  var offset: Offset,
-  var radius: Float,
-  var color: Color,
-  var blur: Float,
-  var animationToX: Float = 0f,
-  var animationToY: Float = 0f,
+private data class DesktopBgCircleModel(
+  val offset: Offset,
+  val radius: Float,
+  val color: Color,
+  val blur: Float,
+  val animationToX: Float = 0f,
+  val animationToY: Float = 0f,
 ) {
   companion object {
-
-    fun randomUpdate(origin: DesktopBgCircleModel, hour: Int? = null) = origin.copy(
-      color = desktopBgPrimaryRandomColor(hour),
-      animationToX = random(0.5f),
-      animationToY = random(0.5f)
-    )
-
     fun randomCircle(count: Int): List<DesktopBgCircleModel> {
       val list = mutableListOf<DesktopBgCircleModel>()
 
@@ -349,4 +326,11 @@ data class DesktopBgCircleModel(
       return list
     }
   }
+
+
+  fun randomUpdate(hour: Int? = null) = copy(
+    color = desktopBgPrimaryRandomColor(hour),
+    animationToX = random(0.5f),
+    animationToY = random(0.5f)
+  )
 }

@@ -18,7 +18,7 @@ import org.dweb_browser.dwebview.messagePort.DWebMessagePort
 import org.dweb_browser.dwebview.messagePort.DWebViewWebMessage
 import org.dweb_browser.dwebview.polyfill.DwebViewIosPolyfill
 import org.dweb_browser.dwebview.proxy.DwebViewProxy
-import org.dweb_browser.helper.Bounds
+import org.dweb_browser.helper.PureBounds
 import org.dweb_browser.helper.RememberLazy
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SuspendOnce
@@ -310,7 +310,7 @@ class DWebView private constructor(
 
   override suspend fun getIconBitmap(): ImageBitmap? = engine.iconBitmapFlow.value
 
-  override suspend fun setSafeAreaInset(bounds: Bounds) {
+  override suspend fun setSafeAreaInset(bounds: PureBounds) {
     engine.safeArea = bounds
   }
 

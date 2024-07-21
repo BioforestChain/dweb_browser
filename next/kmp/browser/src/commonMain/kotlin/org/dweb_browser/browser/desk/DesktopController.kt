@@ -37,7 +37,7 @@ import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.http.HttpDwebServer
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.IDWebView
-import org.dweb_browser.helper.Bounds
+import org.dweb_browser.helper.PureBounds
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.OffListener
 import org.dweb_browser.helper.SafeHashSet
@@ -164,7 +164,7 @@ open class DesktopController private constructor(
       val layoutDirection = LocalLayoutDirection.current
       LaunchedEffect(safeContent, density, layoutDirection) {
         view.setSafeAreaInset(
-          Bounds(
+          PureBounds(
             left = safeContent.getLeft(density, layoutDirection) / density.density,
             top = safeContent.getTop(density) / density.density,
             right = safeContent.getRight(density, layoutDirection) / density.density,

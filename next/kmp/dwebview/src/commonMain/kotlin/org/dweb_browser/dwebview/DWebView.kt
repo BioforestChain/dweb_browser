@@ -26,7 +26,7 @@ import org.dweb_browser.core.ipc.helper.IWebMessageChannel
 import org.dweb_browser.core.ipc.helper.IWebMessagePort
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.module.NativeMicroModule
-import org.dweb_browser.helper.Bounds
+import org.dweb_browser.helper.PureBounds
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.RememberLazy
 import org.dweb_browser.helper.Signal
@@ -216,7 +216,7 @@ abstract class IDWebView(initUrl: String?) {
     script: String, afterEval: suspend () -> Unit = {},
   ): String
 
-  abstract suspend fun setSafeAreaInset(bounds: Bounds)
+  abstract suspend fun setSafeAreaInset(bounds: PureBounds)
 
   abstract val onDestroy: Signal.Listener<Unit>
   abstract val onLoadStateChange: Signal.Listener<WebLoadState>

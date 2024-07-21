@@ -1,7 +1,9 @@
 package org.dweb_browser.helper.compose
 
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
 
@@ -20,6 +22,16 @@ fun Rect.timesToInt(value: Float) =
 fun Size.timesToInt(value: Float) =
   IntSize((width * value).toInt(), (height * value).toInt())
 
+operator fun Size.minus(value: Size) = Size(width - value.width, height - value.height)
+operator fun IntSize.minus(value: IntSize) = IntSize(width - value.width, height - value.height)
+fun IntSize.minus(w: Int = 0, h: Int = 0) = IntSize(width - w, height - h)
+
+fun IntRect.minus(l: Int = 0, t: Int = 0, r: Int = 0, b: Int = 0) = IntRect(
+  left = left - l, top = top - t, right = right - r, bottom = bottom - b,
+)
 
 fun Rect.toSize() = Size(width, height)
 fun IntRect.toIntSize() = IntSize(width, height)
+
+fun IntOffset.divToFloat(value: Float) = Offset(x / value, y / value)
+fun IntOffset.plus(x: Int, y: Int = 0) = IntOffset(this.x + x, this.y + y)

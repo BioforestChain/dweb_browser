@@ -37,7 +37,7 @@ import org.dweb_browser.dwebview.debugDWebView
 import org.dweb_browser.dwebview.polyfill.DwebViewAndroidPolyfill
 import org.dweb_browser.dwebview.polyfill.FaviconPolyfill
 import org.dweb_browser.dwebview.polyfill.setupKeyboardPolyfill
-import org.dweb_browser.helper.Bounds
+import org.dweb_browser.helper.PureBounds
 import org.dweb_browser.helper.JsonLoose
 import org.dweb_browser.helper.Remover
 import org.dweb_browser.helper.Signal
@@ -431,7 +431,7 @@ class DWebViewEngine internal constructor(
     }
     null
   }
-  var safeArea = Bounds.Zero
+  var safeArea = PureBounds.Zero
     set(value) {
       field = value
       setDisplayCutoutSafeArea?.invoke(value.toAndroidRect())

@@ -8,7 +8,7 @@ import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.serializer
-import org.dweb_browser.helper.Bounds
+import org.dweb_browser.helper.PureBounds
 import org.dweb_browser.helper.Observable
 import org.dweb_browser.helper.PureRect
 import org.dweb_browser.helper.UUID
@@ -128,7 +128,7 @@ open class WindowPropertyField<T : Any> private constructor(
       mapOf(),
       serializer = MapSerializer(String.serializer(), ModalState.serializer())
     )
-    val SafePadding = required(WindowPropertyKeys.SafePadding, Bounds.Zero)
+    val SafePadding = required(WindowPropertyKeys.SafePadding, PureBounds.Zero)
   }
 
 }

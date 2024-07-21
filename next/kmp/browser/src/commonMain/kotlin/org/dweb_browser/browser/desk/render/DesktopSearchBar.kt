@@ -8,6 +8,7 @@ import androidx.compose.animation.core.spring
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -41,6 +42,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
@@ -69,10 +71,12 @@ class DesktopSearchBar {
   val onSearchFlow = MutableSharedFlow<String>()
 
   fun open() {
+    println("QAQ searchBar open")
     isFocused = true
   }
 
   fun close() {
+    println("QAQ searchBar close")
     isFocused = false
   }
 
@@ -81,14 +85,15 @@ class DesktopSearchBar {
 
   @Composable
   fun Render(modifier: Modifier = Modifier) {
-//    val focusManager = LocalFocusManager.current
+    val focusManager = LocalFocusManager.current
     LaunchedEffect(isFocused) {
       if (isFocused) {
         searchValue = TextFieldValue(searchValue.text, TextRange(0, searchValue.text.length))
-        focusRequester.requestFocus()
+        focusRequester.captureFocus()
+//        focusRequester.requestFocus()
       } else {
         focusRequester.freeFocus()
-//        focusManager.clearFocus()
+        focusManager.clearFocus()
       }
       bgColorAni.animateTo(
         when {
@@ -111,6 +116,7 @@ class DesktopSearchBar {
           .border(1.dp, color = Color.White, shape = outlineShape).animateContentSize(aniSpec())
           // 行为
           .focusRequester(focusRequester)
+          .focusable()
           .onFocusChanged {
             isFocused = it.isFocused
           },

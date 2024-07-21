@@ -28,13 +28,13 @@ data class PureRect(
     fun toImmutable() = PureRect(x, y, width, height)
   }
 
-  fun toBounds() = Bounds(top = y, left = x, bottom = y + height, right = x + width)
+  fun toPureBounds() = PureBounds(top = y, left = x, bottom = y + height, right = x + width)
 
   fun timesToInt(times: Float) = PureIntRect(
-    (x * times).toInt(),
-    (y * times).toInt(),
-    (width * times).toInt(),
-    (height * times).toInt()
+    x = (x * times).toInt(),
+    y = (y * times).toInt(),
+    width = (width * times).toInt(),
+    height = (height * times).toInt(),
   )
 }
 
@@ -44,4 +44,11 @@ data class PureIntRect(
   val y: Int,
   val width: Int,
   val height: Int,
-)
+) {
+  fun divToFloat(times: Float) = PureRect(
+    x = x / times,
+    y = y / times,
+    width = width / times,
+    height = height / times,
+  )
+}

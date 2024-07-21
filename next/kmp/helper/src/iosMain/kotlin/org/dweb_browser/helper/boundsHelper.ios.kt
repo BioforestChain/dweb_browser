@@ -5,7 +5,7 @@ import platform.UIKit.UIEdgeInsetsMake
 
 
 @OptIn(ExperimentalForeignApi::class)
-fun Bounds.toIosUIEdgeInsets() = UIEdgeInsetsMake(
+fun PureBounds.toIosUIEdgeInsets() = UIEdgeInsetsMake(
   top = top.toDouble(),
   left = left.toDouble(),
   bottom = bottom.toDouble(),
