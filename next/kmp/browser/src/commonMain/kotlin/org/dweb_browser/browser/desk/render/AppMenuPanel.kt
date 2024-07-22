@@ -156,7 +156,7 @@ internal class AppMenuPanel(
 
   @Composable
   fun Render(modifier: Modifier = Modifier) {
-    LaunchedEffect(isOpenMenu) {
+    LaunchedEffect(isOpen) {
       menuLayerVisibility = true
       if (isOpen) {
         menuProgressAni.animateTo(1f, deskAniSpec())

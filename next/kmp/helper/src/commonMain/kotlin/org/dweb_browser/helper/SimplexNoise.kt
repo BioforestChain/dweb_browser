@@ -72,9 +72,18 @@ class SimplexNoise(private val seed: Int = 0) {  // Simplex noise in 2D, 3D and 
       Grad(-1.0, -1.0, -1.0, 0.0)
     )
 
-    private val p =
-      "97a0895b5a0f830dc95f6035c2e907e18c24671e458e086325f0150a17be0694f778ea4b001ac53e5efcdbcb75230b2039b12158ed953857ae147d88aba844af4aa547868b301ba64d929ee7536fe57a3cd385e6dc695c29372ef528f4668f3641193fa101d85049d14c84bbd05912a9c8c4878274bc9f56a4646dc6adba034034d9e2fa7c7b05ca2693767eff5255d4cfce3be32f103a11b6bd1c2adfb7aad577f898022c9aa346dd99659ba72bac09811627fd13626c6e4f71e0e8b2b97068daf661e4fb22f2c1eed2900cbfb3a2f1513391ebf90eef6b31c0d61fb5c76a9db854ccb07379322d7f0496fe8aeccd5dde72431d1848f38d80c34e42d73d9cb4".hexBinary.map { it.toShort() }
-
+    private val p = shortArrayOf(151, 160, 137, 91, 90, 15, 131, 13, 201, 95, 96, 53, 194, 233, 7, 225, 140, 36, 103,
+            30, 69, 142, 8, 99, 37, 240, 21, 10, 23, 190, 6, 148, 247, 120, 234, 75, 0, 26, 197, 62, 94, 252, 219, 203,
+            117, 35, 11, 32, 57, 177, 33, 88, 237, 149, 56, 87, 174, 20, 125, 136, 171, 168, 68, 175, 74, 165, 71, 134,
+            139, 48, 27, 166, 77, 146, 158, 231, 83, 111, 229, 122, 60, 211, 133, 230, 220, 105, 92, 41, 55, 46, 245,
+            40, 244, 102, 143, 54, 65, 25, 63, 161, 1, 216, 80, 73, 209, 76, 132, 187, 208, 89, 18, 169, 200, 196, 135,
+            130, 116, 188, 159, 86, 164, 100, 109, 198, 173, 186, 3, 64, 52, 217, 226, 250, 124, 123, 5, 202, 38, 147,
+            118, 126, 255, 82, 85, 212, 207, 206, 59, 227, 47, 16, 58, 17, 182, 189, 28, 42, 223, 183, 170, 213, 119,
+            248, 152, 2, 44, 154, 163, 70, 221, 153, 101, 155, 167, 43, 172, 9, 129, 22, 39, 253, 19, 98, 108, 110, 79,
+            113, 224, 232, 178, 185, 112, 104, 218, 246, 97, 228, 251, 34, 242, 193, 238, 210, 144, 12, 191, 179, 162,
+            241, 81, 51, 145, 235, 249, 14, 239, 107, 49, 192, 214, 31, 181, 199, 106, 157, 184, 84, 204, 176, 115, 121,
+            50, 45, 127, 4, 150, 254, 138, 236, 205, 93, 222, 114, 67, 29, 24, 72, 243, 141, 128, 195, 78, 66, 215, 61,
+            156, 180)
     // To remove the need for index wrapping, double the permutation table length
     private val perm = ShortArray(512)
     private val permMod12 = ShortArray(512)
@@ -93,6 +102,7 @@ class SimplexNoise(private val seed: Int = 0) {  // Simplex noise in 2D, 3D and 
         permMod12[i] = (perm[i] % 12).toShort()
       }
     }
+
     // This method is a *lot* faster than using (int)floor(x)
     private fun fastfloor(x: Double): Int {
       val xi = x.toInt()
@@ -118,6 +128,7 @@ class SimplexNoise(private val seed: Int = 0) {  // Simplex noise in 2D, 3D and 
   fun n1d(xin: Double): Double = n2d(xin, 0.0)
 
   fun n2d(xin: Int, yin: Int): Double = n2d(xin.toDouble(), yin.toDouble())
+  fun n2d(xin: Float, yin: Float): Double = n2d(xin.toDouble(), yin.toDouble())
 
   // 2D simplex noise
   fun n2d(xin: Double, yin: Double): Double {
@@ -251,6 +262,8 @@ class SimplexNoise(private val seed: Int = 0) {  // Simplex noise in 2D, 3D and 
     return toSingleUnitDecimal(32.0 * (n0 + n1 + n2 + n3))
   }
 
+  fun rand(n: Double, start: Float, end: Float) = ((n + 1) / 2 * (end - start) + start).toFloat()
+
   /**
    * SimplexNoise normally hits +&- 0.8679777777778225
    * Transform this to a double in the range [0..1]
@@ -282,3 +295,4 @@ class SimplexNoise(private val seed: Int = 0) {  // Simplex noise in 2D, 3D and 
     }
   }
 }
+

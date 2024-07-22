@@ -32,15 +32,11 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.sample
-import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
@@ -49,8 +45,6 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.dweb_browser.helper.SimplexNoise
 import org.dweb_browser.helper.compose.hex
-import org.dweb_browser.helper.compose.timesIntOffset
-import org.dweb_browser.helper.globalDefaultScope
 import org.dweb_browser.helper.rand
 import kotlin.math.PI
 import kotlin.math.cos
@@ -83,12 +77,6 @@ class DesktopWallpaper {
     circles.clear()
     circles.addAll(newCircles)
   }
-
-  private val animationDoneFlow = MutableSharedFlow<Unit>()
-
-  @OptIn(FlowPreview::class)
-  val onAnimationStopFlow =
-    animationDoneFlow.sample(100).shareIn(globalDefaultScope, SharingStarted.Eagerly)
 
   @Composable
   fun Render(modifier: Modifier = Modifier) {
@@ -164,12 +152,6 @@ class DesktopWallpaper {
   }
 
   private fun randomCircle(count: Int): List<DesktopBgCircleModel> {
-    val offset = {
-      Offset(
-        random(2f),
-        random(2f),
-      )
-    }
 
     val radius = {
       (0.1f + Random.nextFloat() * 0.9f) / 4.0f
@@ -186,9 +168,9 @@ class DesktopWallpaper {
       Random.nextInt(11) * 0.01f + 0.9f
     }
 
-    val list = List(count) {
+    val list = List(count) { index ->
       DesktopBgCircleModel(
-        offset(), radius(), color(), blur(), random(0.4f), random(0.4f)
+        radius(), color(), blur(), index,
       )
     }.sortedBy { it.blur }
 
@@ -196,34 +178,31 @@ class DesktopWallpaper {
   }
 
   private inner class DesktopBgCircleModel(
-    val offset: Offset,
     val radius: Float,
     val color: Color,
     val blur: Float,
-    val animationToX: Float = 0f,
-    val animationToY: Float = 0f,
-    val seed: Int = rand(0, 10000)
+//    val animationToX: Float = 0f,
+//    val animationToY: Float = 0f,
+    val seed: Int = rand(0, 10000),
+    initProgress: Float = 0f,
   ) {
     val noise = SimplexNoise(seed)
 
     fun randomUpdate(hour: Int? = null) = DesktopBgCircleModel(
-      offset = offset,
       radius = radius,
       color = desktopBgPrimaryRandomColor(hour),
       blur = blur,
-      animationToX = random(0.5f),
-      animationToY = random(0.5f),
       seed = seed,
+      initProgress = progressAni.value,
     )
 
+    val progressAni = Animatable(initProgress);
 
     val scaleXAni = Animatable(1f)
     val scaleYValue = Animatable(1f)
-    val transformXValue = Animatable(1f)
-    val transformYValue = Animatable(1f)
     val colorValue = Animatable(Color.Transparent)
 
-    suspend fun doBubbleAnimation(width: Int, height: Int) = coroutineScope {
+    suspend fun doBubbleAnimation() = coroutineScope {
       val scaleAnimationSpec = tween<Float>(
         durationMillis = 500, delayMillis = 0, easing = FastOutSlowInEasing
       )
@@ -245,13 +224,9 @@ class DesktopWallpaper {
         scaleYValue.animateTo(0.97f, scaleAnimationSpec)
         scaleYValue.animateTo(1.00f, scaleAnimationSpec)
       }
-
       launch {
-        transformXValue.animateTo(animationToX * width, transformAnimationSpec)
-      }
-
-      launch {
-        transformYValue.animateTo(animationToY * height, transformAnimationSpec)
+        progressAni.animateTo(progressAni.value + 1f, transformAnimationSpec)
+        println("QAQ progressAni.value=${progressAni.value}")
       }
 
       launch {
@@ -267,27 +242,32 @@ class DesktopWallpaper {
       val maxWidth = box.maxWidth
       val maxHeight = box.maxHeight
 
-      LaunchedEffect(model.offset, model.animationToX, model.animationToY) {
-        doBubbleAnimation(maxWidthPx, maxHeightPx)
-        animationDoneFlow.emit(Unit)
+      LaunchedEffect(this, Unit) {
+        doBubbleAnimation()
       }
 
       val radius = min(maxWidthPx, maxHeightPx) * model.radius
-      Box(Modifier.size(radius.dp).offset {
-        Offset(
-          x = model.offset.x * maxWidthPx / 2,
-          y = model.offset.y * maxHeightPx / 2
-        ).timesIntOffset(1F)
-      }.graphicsLayer {
-        scaleX = scaleXAni.value
-        scaleY = scaleYValue.value
-        translationX = transformXValue.value
-        translationY = transformYValue.value
-      }.background(
-        Brush.radialGradient(
-          0.0f to colorValue.value, model.blur to colorValue.value, 1.0f to Color.Transparent
-        ), CircleShape
-      )
+      Box(
+        Modifier.size(radius.dp).offset {
+          val progress = progressAni.value.toDouble()
+          val nx = noise.n2d(progress / 10, 200.0)
+          val ny = noise.n2d(100.0, progress / 10)
+          println("QAQ nx=$nx ny=$ny")
+          val animationToX = nx
+          val animationToY = ny
+          println("QAQ animationToX=$animationToX animationToY=$animationToY")
+          val translationX = animationToX * maxWidthPx / density
+          val translationY = animationToY * maxHeightPx / density
+          IntOffset(translationX.toInt(), translationY.toInt())
+//          IntOffset(200,400)
+        }.graphicsLayer {
+//          scaleX = scaleXAni.value
+//          scaleY = scaleYValue.value
+        }.background(
+          Brush.radialGradient(
+            0.0f to colorValue.value, model.blur to colorValue.value, 1.0f to Color.Transparent
+          ), CircleShape
+        )
       )
     }
   }
