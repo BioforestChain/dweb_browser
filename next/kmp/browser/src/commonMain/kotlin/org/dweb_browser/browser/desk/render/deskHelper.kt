@@ -12,11 +12,17 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import squircleshape.CornerSmoothing
 import squircleshape.SquircleShape
+import kotlin.math.max
 
 internal fun <T> deskAniSpec() = spring<T>(Spring.DampingRatioLowBouncy, Spring.StiffnessLow)
-internal fun <T> deskAniSpec1() = tween<T>(5000)
+internal fun <T> deskAniSpec1() = tween<T>(3000)
 
 internal fun deskSquircleShape() = SquircleShape(30, CornerSmoothing.Small)
+
+/**
+ * 透明度不能太小，否则会引起渲染异常，图层会会某名奇妙永远消失
+ */
+fun safeAlpha(alpha: Float) = max(alpha, 0.01f)
 
 data class DesktopGridLayout(
   val cells: GridCells, val insets: WindowInsets,
@@ -30,9 +36,9 @@ data class DesktopGridLayout(
 expect fun desktopGridLayout(): DesktopGridLayout
 
 expect fun desktopTap(): Dp
+expect fun canSupportModifierBlur(): Boolean
 expect fun desktopBgCircleCount(): Int
 expect fun desktopIconSize(): IntSize
-
 
 expect fun taskBarCloseButtonLineWidth(): Float
 expect fun taskBarCloseButtonUsePopUp(): Boolean

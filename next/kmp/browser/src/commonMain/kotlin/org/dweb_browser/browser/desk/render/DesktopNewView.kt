@@ -1,6 +1,7 @@
 package org.dweb_browser.browser.desk.render
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
@@ -21,9 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInWindow
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.desk.DesktopController
 import org.dweb_browser.browser.desk.model.DesktopAppData
@@ -35,6 +34,7 @@ import org.dweb_browser.helper.compose.clickableWithNoEffect
 fun NewDesktopView(
   desktopController: DesktopController,
   microModule: NativeMicroModule.NativeRuntime,
+  modifier: Modifier = Modifier,
 ) {
   val appMenuPanel = rememberAppMenuPanel(desktopController, microModule)
   val scope = rememberCoroutineScope()
@@ -72,63 +72,72 @@ fun NewDesktopView(
 
   val searchBar = rememberDesktopSearchBar()
   val desktopWallpaper = rememberDesktopWallpaper()
-  BoxWithConstraints(
-    modifier = Modifier.fillMaxSize().blur(20.dp * appMenuPanel.visibilityProgress),
-    contentAlignment = Alignment.TopStart
-  ) {
-    desktopWallpaper.Render(Modifier.clickableWithNoEffect {
-      searchBar.close()
-      desktopWallpaper.play()
-    })
-    val density = LocalDensity.current
-    val layout = desktopGridLayout()
-    val containerPadding = WindowInsets.safeGestures
-    Column(
-      horizontalAlignment = Alignment.CenterHorizontally,
-      modifier = Modifier.fillMaxWidth().windowInsetsPadding(containerPadding)
-        .padding(top = desktopTap())
-    ) {
-      searchBar.Render(Modifier.padding(vertical = 16.dp))
-      LaunchedEffect(Unit) {
-        searchBar.onSearchFlow.collect {
-          desktopController.search(it)
+  Box(modifier) {
+    BoxWithConstraints(
+      modifier = Modifier.fillMaxSize().then(
+        when {
+          canSupportModifierBlur() -> Modifier.blur(20.dp * appMenuPanel.visibilityProgress)
+          else -> Modifier
         }
-      }
-      val innerInsets = layout.insets.exclude(WindowInsets.safeGestures)
-
-      LazyVerticalGrid(
-        columns = layout.cells,
-        contentPadding = innerInsets.asPaddingValues(),
-        modifier = Modifier.fillMaxWidth().padding(top = 8.dp).onGloballyPositioned {
-          val pos = it.positionInWindow()//.toIntOffset(d)
-          appMenuPanel.safeAreaInsets = WindowInsets(
-            top = pos.y.toInt(),
-            left = pos.x.toInt(),
-            right = pos.x.toInt(),//((maxWidth.value * d) - pos.x - it.size.width).toInt(),
-            bottom = 0
-          )
-        },
-        horizontalArrangement = Arrangement.spacedBy(layout.horizontalSpace),
-        verticalArrangement = Arrangement.spacedBy(layout.verticalSpace)
+      ),
+      contentAlignment = Alignment.TopStart,
+    ) {
+      desktopWallpaper.Render(Modifier.clickableWithNoEffect {
+        if (searchBar.isOpened) {
+          searchBar.close()
+        } else {
+          desktopWallpaper.play()
+        }
+      })
+      val layout = desktopGridLayout()
+      val containerPadding = WindowInsets.safeGestures
+      Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.fillMaxWidth().windowInsetsPadding(containerPadding)
+          .padding(top = desktopTap())
       ) {
-        itemsIndexed(apps) { index, app ->
-          AppItem(
-            modifier = Modifier.desktopAppItemActions(onOpenApp = {
-              doOpen(app.mmid)
-              searchBar.close()
-              desktopWallpaper.play()
-            }, onOpenAppMenu = {
-              apps.getOrNull(index)?.also {
-                appMenuPanel.show(it)
-              }
-            }),
-            app,
-            microModule,
-          )
+        searchBar.Render(Modifier.padding(vertical = 16.dp))
+        LaunchedEffect(Unit) {
+          searchBar.onSearchFlow.collect {
+            desktopController.search(it)
+          }
+        }
+        val innerInsets = layout.insets.exclude(WindowInsets.safeGestures)
+
+        LazyVerticalGrid(
+          columns = layout.cells,
+          contentPadding = innerInsets.asPaddingValues(),
+          modifier = Modifier.fillMaxWidth().padding(top = 8.dp).onGloballyPositioned {
+            val pos = it.positionInWindow()//.toIntOffset(d)
+            appMenuPanel.safeAreaInsets = WindowInsets(
+              top = pos.y.toInt(),
+              left = pos.x.toInt(),
+              right = pos.x.toInt(),//((maxWidth.value * d) - pos.x - it.size.width).toInt(),
+              bottom = 0
+            )
+          },
+          horizontalArrangement = Arrangement.spacedBy(layout.horizontalSpace),
+          verticalArrangement = Arrangement.spacedBy(layout.verticalSpace)
+        ) {
+          itemsIndexed(apps) { index, app ->
+            AppItem(
+              modifier = Modifier.desktopAppItemActions(onOpenApp = {
+                doOpen(app.mmid)
+                searchBar.close()
+                desktopWallpaper.play()
+              }, onOpenAppMenu = {
+                apps.getOrNull(index)?.also {
+                  appMenuPanel.show(it)
+                }
+              }),
+              app,
+              microModule,
+            )
+          }
         }
       }
     }
-  }
 
-  appMenuPanel.Render(Modifier.fillMaxSize().zIndex(3f))
+    appMenuPanel.Render(Modifier.matchParentSize())
+  }
 }

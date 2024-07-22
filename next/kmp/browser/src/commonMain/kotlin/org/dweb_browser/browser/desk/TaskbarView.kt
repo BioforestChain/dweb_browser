@@ -20,13 +20,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import org.dweb_browser.browser.desk.render.NewTaskbarView
 import org.dweb_browser.dwebview.IDWebView
-import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
 import org.dweb_browser.helper.clamp
+import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
 import org.dweb_browser.helper.compose.envSwitch
 
 expect suspend fun ITaskbarView.Companion.create(taskbarController: TaskbarController): ITaskbarView
@@ -161,6 +160,3 @@ abstract class ITaskbarView(private val taskbarController: TaskbarController) {
   @Composable
   abstract fun FloatWindow()
 }
-
-
-fun Offset.toIntOffset(density: Float) = IntOffset((density * x).toInt(), (density * y).toInt())

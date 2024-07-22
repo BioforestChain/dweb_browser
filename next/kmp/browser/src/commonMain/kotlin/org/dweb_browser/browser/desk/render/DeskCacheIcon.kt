@@ -33,4 +33,7 @@ fun DeskCacheIcon(
   )
 }
 
-internal const val deskIconAlpha = 0.8f
+internal val deskIconAlpha = when {
+  canSupportModifierBlur() -> 0.8f
+  else -> 1f
+}

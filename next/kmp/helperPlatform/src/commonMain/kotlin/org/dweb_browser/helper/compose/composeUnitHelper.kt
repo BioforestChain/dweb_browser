@@ -33,5 +33,6 @@ fun IntRect.minus(l: Int = 0, t: Int = 0, r: Int = 0, b: Int = 0) = IntRect(
 fun Rect.toSize() = Size(width, height)
 fun IntRect.toIntSize() = IntSize(width, height)
 
+fun Offset.timesIntOffset(value: Float) = IntOffset((value * x).toInt(), (value * y).toInt())
 fun IntOffset.divToFloat(value: Float) = Offset(x / value, y / value)
 fun IntOffset.plus(x: Int, y: Int = 0) = IntOffset(this.x + x, this.y + y)

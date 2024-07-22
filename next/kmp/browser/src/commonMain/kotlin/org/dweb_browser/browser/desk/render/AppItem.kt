@@ -7,9 +7,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalDensity
@@ -42,7 +40,7 @@ internal fun AppItem(
         color = Color.White,
         fontSize = 12.sp,
         textAlign = TextAlign.Center,
-        shadow = Shadow(Color.Black, Offset(4f, 4f), 4f)
+//        shadow = Shadow(Color.Black, Offset(0f, 4f), 4f)
       ), modifier = Modifier.fillMaxWidth()
     )
   }

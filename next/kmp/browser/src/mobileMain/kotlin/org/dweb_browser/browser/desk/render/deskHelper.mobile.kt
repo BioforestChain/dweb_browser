@@ -17,7 +17,8 @@ actual fun desktopGridLayout(): DesktopGridLayout =
   DesktopGridLayout(
     cells = GridCells.Adaptive(64.dp),
     insets = WindowInsets(left = 28.dp, right = 28.dp),
-    space = 8.dp
+    horizontalSpace = 8.dp,
+    verticalSpace = 16.dp,
   )
 
 actual fun desktopTap(): Dp = 0.dp

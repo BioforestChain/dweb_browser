@@ -3,7 +3,6 @@ package org.dweb_browser.browser.desk.render
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -12,6 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.safeDrawing
@@ -31,9 +31,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
@@ -55,6 +55,7 @@ import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.compose.hoverCursor
 import org.dweb_browser.helper.compose.minus
 import org.dweb_browser.helper.compose.plus
+import org.dweb_browser.helper.compose.timesIntOffset
 import org.dweb_browser.helper.compose.timesToInt
 import org.dweb_browser.helper.toRect
 
@@ -139,6 +140,20 @@ internal class AppMenuPanel(
    */
   private var menuLayerVisibility by mutableStateOf(false)
 
+
+  companion object {
+    val appMenuLayerBgAlpha = when {
+      canSupportModifierBlur() -> 0.12f
+      else -> 0.6f
+    }
+
+    val appMenuAlpha = when {
+      canSupportModifierBlur() -> 0.5f
+      else -> 1f
+    }
+  }
+
+
   @Composable
   fun Render(modifier: Modifier = Modifier) {
     LaunchedEffect(isOpenMenu) {
@@ -177,13 +192,13 @@ internal class AppMenuPanel(
     val d = density.density
     val p = visibilityProgress
 
-    val backgroundAlpha = 0.12f * p
     BoxWithConstraints(
-      modifier.fillMaxSize().background(Color.Black.copy(backgroundAlpha)).composed {
-        // 这里要做到事件穿透，所以不能用 enabled
-        if (isOpenMenu) {
-          clickableWithNoEffect { hide() }
-        } else this
+      modifier.fillMaxSize().background(Color.Black.copy(appMenuLayerBgAlpha * p)).composed {
+        // 这里要做到事件穿透，所以不能用 enabled 来控制
+        when {
+          isOpenMenu -> clickableWithNoEffect { hide() }
+          else -> this
+        }
       },
       Alignment.TopStart,
     ) {
@@ -191,17 +206,20 @@ internal class AppMenuPanel(
       val p2 = if (p >= 0.5f) (p - 0.5f) * 2 else 0f
       val iconScaleDiff = 0.1f
       val iconScale = 1f + iconScaleDiff * p2
-      val iconAlpha = p1
-      println("QAQ p=$p p1=$p1 p2=$p2")
+      val iconAlpha = safeAlpha(p1)
       DeskAppIcon(
         app, microModule,
-        modifier = Modifier.requiredSize(app.size.width.dp, app.size.height.dp).graphicsLayer {
-          translationX = app.offset.x * d
-          translationY = app.offset.y * d
-          scaleX = iconScale
-          scaleY = iconScale
-          alpha = iconAlpha
-        },
+        modifier = Modifier.requiredSize(
+          app.size.width.dp,
+          app.size.height.dp
+        )// 不要用 translationXY 去做变换，会有消失不见的问题
+          .offset(app.offset.x.dp, app.offset.y.dp).graphicsLayer {
+//          translationX = app.offset.x * d
+//          translationY = app.offset.y * d
+            scaleX = iconScale
+            scaleY = iconScale
+            alpha = iconAlpha
+          },
       )
 
       val safeDrawing = WindowInsets.safeDrawing
@@ -212,9 +230,7 @@ internal class AppMenuPanel(
           right = safeInsets.getRight(density, layoutDirection),
           top = safeInsets.getTop(density),
           bottom = safeInsets.getBottom(density),
-        ).also {
-          println("QAQ safeWindowBounds=$it")
-        }
+        )
       }
 
       val appBounds = remember(app.offset, app.size) {
@@ -225,6 +241,7 @@ internal class AppMenuPanel(
           height = app.size.height,
         ).toPureBounds().centerScale(1f + iconScaleDiff)
       }
+      var appMenuIntSizeReady by remember { mutableStateOf(false) }
       var appMenuIntSize by remember {
         mutableStateOf(
           Size(
@@ -236,6 +253,9 @@ internal class AppMenuPanel(
       val positionProvider = TooltipDefaults.rememberRichTooltipPositionProvider()
       val appMenuIntOffset =
         remember(appMenuIntSize, appBounds, safeWindowBounds, layoutDirection) {
+          if (!appMenuIntSizeReady) {
+            return@remember Offset(appBounds.left, appBounds.top).timesIntOffset(d)
+          }
           println("QAQ --------")
           val windowSize = IntSize(constraints.maxWidth, constraints.maxHeight).minus(
             w = safeWindowBounds.left + safeWindowBounds.right,
@@ -263,32 +283,37 @@ internal class AppMenuPanel(
           }
         }
 
-      val menuAlpha = p
+      val menuAlpha = safeAlpha(p)
       val p3 = 0.9f + p * 0.1f
       val startIntX = appBounds.left * d
       val startIntY = appBounds.top * d
       val endIntX = appMenuIntOffset.x
       val endIntY = appMenuIntOffset.y
-      val aniTranslationX by animateFloatAsState(startIntX + (endIntX - startIntX) * p3)
-      val aniTranslationY by animateFloatAsState(startIntY + (endIntY - startIntY) * p3)
+      val aniTranslationX = startIntX + (endIntX - startIntX) * p3
+      val aniTranslationY = startIntY + (endIntY - startIntY) * p3
 
       val startScaleX = app.size.width / (appMenuIntSize.width / d)
       val startScaleY = app.size.height / (appMenuIntSize.height / d)
-      val aniScaleX by animateFloatAsState(startScaleX + (1f - startScaleX) * p3)
-      val aniScaleY by animateFloatAsState(startScaleY + (1f - startScaleY) * p3)
+      val aniScaleX = startScaleX + (1f - startScaleX) * p3
+      val aniScaleY = startScaleY + (1f - startScaleY) * p3
 
       AppMenu(
         displays = remember(app) { app.getAppMenuDisplays() },
-        modifier = Modifier.graphicsLayer {
-          transformOrigin = TransformOrigin(0f, 0f)
-          translationX = aniTranslationX
-          translationY = aniTranslationY
-          scaleX = aniScaleX
-          scaleY = aniScaleY
-          alpha = menuAlpha
-        }.onGloballyPositioned {
-          appMenuIntSize = it.size
-        },
+        modifier = Modifier.offset(
+          (aniTranslationX / d).dp,
+          (aniTranslationY / d).dp
+        )// 不要用 translationXY 去做变换，会有消失不见的问题
+          .graphicsLayer {
+//            transformOrigin = TransformOrigin(0f, 0f)
+//            translationX = aniTranslationX
+//            translationY = aniTranslationY
+            scaleX = aniScaleX
+            scaleY = aniScaleY
+            alpha = menuAlpha
+          }.onGloballyPositioned {
+            appMenuIntSizeReady = true
+            appMenuIntSize = it.size
+          },
         action = { type ->
           when (type) {
             AppMenuType.OFF -> hide().also { doQuit(app.mmid) }
@@ -310,7 +335,7 @@ internal class AppMenuPanel(
     modifier: Modifier,
     action: (AppMenuType) -> Unit,
   ) {
-    Box(modifier.background(Color.White.copy(alpha = 0.5f), deskSquircleShape())) {
+    Box(modifier.background(Color.White.copy(alpha = appMenuAlpha), deskSquircleShape())) {
       Row(
         modifier = Modifier.padding(8.dp),
         horizontalArrangement = Arrangement.SpaceBetween,

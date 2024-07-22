@@ -42,3 +42,5 @@ actual fun Modifier.desktopAppItemActions(onOpenApp: () -> Unit, onOpenAppMenu: 
     matcher = PointerMatcher.mouse(PointerButton.Secondary),
     onClick = onOpenAppMenu,
   )
+
+actual fun canSupportModifierBlur(): Boolean = true

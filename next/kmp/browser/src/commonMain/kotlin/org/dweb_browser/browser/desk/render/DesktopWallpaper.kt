@@ -47,9 +47,9 @@ import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import org.dweb_browser.browser.desk.toIntOffset
 import org.dweb_browser.helper.SimplexNoise
 import org.dweb_browser.helper.compose.hex
+import org.dweb_browser.helper.compose.timesIntOffset
 import org.dweb_browser.helper.globalDefaultScope
 import org.dweb_browser.helper.rand
 import kotlin.math.PI
@@ -277,7 +277,7 @@ class DesktopWallpaper {
         Offset(
           x = model.offset.x * maxWidthPx / 2,
           y = model.offset.y * maxHeightPx / 2
-        ).toIntOffset(1F)
+        ).timesIntOffset(1F)
       }.graphicsLayer {
         scaleX = scaleXAni.value
         scaleY = scaleYValue.value

@@ -14,11 +14,11 @@ import org.dweb_browser.sys.window.core.WindowsManagerState.Companion.windowImeO
 import org.dweb_browser.sys.window.core.constant.debugWindow
 
 @Composable
-actual fun <T : WindowController> WindowsManager<T>.SceneRender() {
+actual fun <T : WindowController> WindowsManager<T>.SceneRender(modifier: Modifier) {
   LocalCompositionChain.current.Provider(
     LocalWindowsManager provides this,
   ) {
-    BoxWithConstraints {
+    BoxWithConstraints(modifier) {
       WindowsManagerEffect()
 
       /// 普通层级的窗口
