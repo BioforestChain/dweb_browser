@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -32,8 +33,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastRoundToInt
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.desk.DesktopController
-import org.dweb_browser.browser.desk.model.DesktopAppData
-import org.dweb_browser.browser.desk.model.DesktopAppModel.DesktopAppRunStatus
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 
@@ -46,36 +45,7 @@ fun NewDesktopView(
   val appMenuPanel = rememberAppMenuPanel(desktopController, microModule)
   val scope = rememberCoroutineScope()
 
-  val apps = rememberDesktopApps(desktopController)
-
-  fun doOpen(mmid: String) {
-    val index = apps.indexOfFirst {
-      it.mmid == mmid
-    }
-
-    if (index == -1) {
-      return
-    }
-
-    val oldApp = apps[index]
-    when (oldApp.data) {
-      is DesktopAppData.App -> {
-        if (oldApp.running == DesktopAppRunStatus.NONE) {
-          apps[index] = oldApp.copy(running = DesktopAppRunStatus.TORUNNING)
-          desktopController.toRunningApps.add(mmid)
-        }
-        scope.launch {
-          desktopController.open(mmid)
-        }
-      }
-
-      is DesktopAppData.WebLink -> {
-        scope.launch {
-          desktopController.openWebLink(oldApp.data.url)
-        }
-      }
-    }
-  }
+  val apps = desktopController.appsFlow.collectAsState().value
 
   val searchBar = rememberDesktopSearchBar()
   val desktopWallpaper = rememberDesktopWallpaper()
@@ -113,7 +83,10 @@ fun NewDesktopView(
       }
       Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.fillMaxWidth().padding(outerPadding)
+        modifier = Modifier.fillMaxWidth().padding(outerPadding).clickableWithNoEffect {
+          searchBar.close()
+          desktopWallpaper.play()
+        }
       ) {
         searchBar.Render(Modifier.padding(vertical = 16.dp))
         LaunchedEffect(Unit) {
@@ -146,17 +119,22 @@ fun NewDesktopView(
         ) {
           itemsIndexed(apps) { index, app ->
             AppItem(
-              modifier = Modifier.desktopAppItemActions(onOpenApp = {
-                doOpen(app.mmid)
-                searchBar.close()
-                desktopWallpaper.play()
-              }, onOpenAppMenu = {
-                apps.getOrNull(index)?.also {
-                  appMenuPanel.show(it)
-                }
-              }),
-              app,
-              microModule,
+              app = app,
+              microModule = microModule,
+              modifier = Modifier.desktopAppItemActions(
+                onOpenApp = {
+                  scope.launch {
+                    desktopController.open(app.mmid)
+                  }
+//                  searchBar.close()
+//                  desktopWallpaper.play()
+                },
+                onOpenAppMenu = {
+                  apps.getOrNull(index)?.also {
+                    appMenuPanel.show(it)
+                  }
+                },
+              ),
             )
           }
         }

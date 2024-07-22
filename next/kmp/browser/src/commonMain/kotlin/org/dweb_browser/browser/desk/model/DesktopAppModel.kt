@@ -7,26 +7,21 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.helper.StrictImageResource
-import org.dweb_browser.helper.UUID
-import org.dweb_browser.helper.randomUUID
-import org.dweb_browser.pure.image.compose.ImageLoadResult
 
-internal data class DesktopAppModel(
+internal class DesktopAppModel(
   val name: String,
   val mmid: MMID,
   val data: DesktopAppData,
   val icon: StrictImageResource?,
   val isSystemApp: Boolean,
-  var running: DesktopAppRunStatus = DesktopAppRunStatus.NONE,
-  var image: ImageLoadResult? = null,
-  val id: UUID = randomUUID()
+  running: DesktopAppRunStatus = DesktopAppRunStatus.Close,
 ) {
-
-  var size: Size by mutableStateOf(Size.Zero)
-  var offset: Offset by mutableStateOf(Offset.Zero)
+  var running by mutableStateOf(running)
+  var size by mutableStateOf(Size.Zero)
+  var offset by mutableStateOf(Offset.Zero)
 
   enum class DesktopAppRunStatus {
-    NONE, TORUNNING, RUNNING
+    Close, Opening, Opened
   }
 
   override fun equals(other: Any?): Boolean {
@@ -50,6 +45,6 @@ internal data class DesktopAppModel(
   }
 
   override fun toString(): String {
-    return "$id, $mmid, $running"
+    return "$mmid, $running"
   }
 }

@@ -21,9 +21,9 @@ import org.dweb_browser.helper.compose.div
 
 @Composable
 internal fun AppItem(
-  modifier: Modifier,
   app: DesktopAppModel,
   microModule: NativeMicroModule.NativeRuntime,
+  modifier: Modifier,
 ) {
   val density = LocalDensity.current.density
   Column(
@@ -34,7 +34,7 @@ internal fun AppItem(
     DeskAppIcon(app, microModule, modifier = Modifier.onGloballyPositioned {
       app.size = it.size / density
       app.offset = it.positionInWindow() / density
-    }.jump(app.running == DesktopAppModel.DesktopAppRunStatus.TORUNNING))
+    }.jump(app.running == DesktopAppModel.DesktopAppRunStatus.Opening))
     Text(
       text = app.name, maxLines = 2, overflow = TextOverflow.Ellipsis, style = TextStyle(
         color = Color.White,

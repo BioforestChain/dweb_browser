@@ -60,7 +60,7 @@ internal fun DesktopAppModel.getAppMenuDisplays(): List<AppMenuModel> {
   when (data) {
     is DesktopAppData.App -> {
       displays.add(
-        AppMenuModel(AppMenuType.OFF, running == DesktopAppModel.DesktopAppRunStatus.RUNNING)
+        AppMenuModel(AppMenuType.OFF, running == DesktopAppModel.DesktopAppRunStatus.Opened)
       )
       if (!isSystemApp) {
         displays.add(AppMenuModel(AppMenuType.DETAIL, true))

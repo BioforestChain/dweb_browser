@@ -99,7 +99,6 @@ internal class AppMenuPanel(
   }
 
   fun doQuit(mmid: String) {
-    desktopController.toRunningApps.remove(mmid)
     microModule.scopeLaunch(cancelable = true) {
       desktopController.quit(mmid)
     }

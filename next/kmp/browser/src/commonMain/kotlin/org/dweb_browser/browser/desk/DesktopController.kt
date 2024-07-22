@@ -19,15 +19,19 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.browser.common.createDwebView
+import org.dweb_browser.browser.desk.model.DesktopAppData
+import org.dweb_browser.browser.desk.model.DesktopAppModel
 import org.dweb_browser.browser.desk.types.DeskAppMetaData
 import org.dweb_browser.browser.web.WebLinkMicroModule
 import org.dweb_browser.browser.web.data.WebLinkManifest
@@ -37,9 +41,9 @@ import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.http.HttpDwebServer
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.IDWebView
-import org.dweb_browser.helper.PureBounds
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.OffListener
+import org.dweb_browser.helper.PureBounds
 import org.dweb_browser.helper.SafeHashSet
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.build
@@ -52,14 +56,16 @@ import org.dweb_browser.helper.platform.IPureViewController
 import org.dweb_browser.helper.platform.from
 import org.dweb_browser.helper.resolvePath
 import org.dweb_browser.sys.window.core.WindowController
+import org.dweb_browser.sys.window.core.helper.pickLargest
+import org.dweb_browser.sys.window.core.helper.toStrict
 
 abstract class DesktopAppController constructor(open val deskNMM: DeskNMM.DeskRuntime) {
 
-  suspend fun open(mmid: String) {
+  open suspend fun open(mmid: MMID) {
     deskNMM.nativeFetch("file://desk.browser.dweb/openAppOrActivate?app_id=$mmid")
   }
 
-  suspend fun quit(mmid: String) {
+  open suspend fun quit(mmid: MMID) {
     deskNMM.nativeFetch("file://desk.browser.dweb/closeApp?app_id=$mmid")
   }
 }
@@ -71,7 +77,30 @@ open class DesktopController private constructor(
   private val desktopServer: HttpDwebServer,
   private val runningApps: ChangeableMap<MMID, RunningApp>,
 ) : DesktopAppController(deskNMM) {
-  internal val toRunningApps = mutableSetOf<MMID>()
+  private val openingApps = mutableSetOf<MMID>()
+  internal val appsFlow = MutableStateFlow(emptyList<DesktopAppModel>())
+
+  override suspend fun open(mmid: MMID) {
+    val app = appsFlow.value.find { it.mmid == mmid } ?: return
+    when (app.data) {
+      is DesktopAppData.App -> {
+        if (app.running == DesktopAppModel.DesktopAppRunStatus.Close) {
+          app.running = DesktopAppModel.DesktopAppRunStatus.Opening
+          openingApps.add(mmid)
+          super.open(mmid)
+        }
+      }
+
+      is DesktopAppData.WebLink -> {
+        openWebLink(app.data.url)
+      }
+    }
+  }
+
+  override suspend fun quit(mmid: MMID) {
+    openingApps.remove(mmid)
+    super.quit(mmid)
+  }
 
   // val newVersionController = NewVersionController(deskNMM, this)
   // 针对 WebLink 的管理部分 begin
@@ -213,6 +242,44 @@ open class DesktopController private constructor(
   init {
     runningApps.onChange {
       updateFlow.emit("apps")
+    }
+    onUpdate.filter { it != "bounds" }.collectIn(deskNMM.getRuntimeScope()) {
+      println("QAQ onUpdate $it")
+      appsFlow.value = getDesktopApps().map { appMetaData ->
+        val icon = appMetaData.icons.toStrict().pickLargest()
+
+        val isSystemApp = appMetaData.targetType == "nmm"
+        //TODO: 临时的处理。等待分拆weblink后再优化。
+        val isWebLink =
+          appMetaData.categories.contains(MICRO_MODULE_CATEGORY.Web_Browser) && appMetaData.mmid != "web.browser.dweb"
+
+        val runStatus = if (appMetaData.running) {
+          openingApps.remove(appMetaData.mmid)
+          DesktopAppModel.DesktopAppRunStatus.Opened
+        } else if (openingApps.contains(appMetaData.mmid)) {
+          DesktopAppModel.DesktopAppRunStatus.Opening
+        } else {
+          DesktopAppModel.DesktopAppRunStatus.Close
+        }
+
+        appsFlow.value.find { oldApp ->
+          oldApp.mmid == appMetaData.mmid
+        }?.also { it.running = runStatus } ?: DesktopAppModel(
+          name = appMetaData.short_name.ifEmpty { appMetaData.name },
+          mmid = appMetaData.mmid,
+          data = when {
+            isWebLink -> DesktopAppData.WebLink(
+              mmid = appMetaData.mmid,
+              url = appMetaData.name
+            )
+
+            else -> DesktopAppData.App(mmid = appMetaData.mmid)
+          },
+          icon = icon,
+          isSystemApp = isSystemApp,
+          running = runStatus,
+        )
+      }
     }
   }
 
