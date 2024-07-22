@@ -3,10 +3,11 @@ package org.dweb_browser.sys.share
 import io.ktor.http.content.MultiPartData
 import io.ktor.http.content.PartData
 import io.ktor.http.content.forEachPart
-import io.ktor.utils.io.core.readBytes
+import io.ktor.utils.io.InternalAPI
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.ObjCSignatureOverride
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.io.readByteArray
 import objcnames.classes.LPLinkMetadata
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.module.getUIApplication
@@ -22,6 +23,7 @@ import platform.UIKit.UIActivityType
 import platform.UIKit.UIActivityViewController
 import platform.darwin.NSObject
 
+@OptIn(InternalAPI::class)
 actual suspend fun share(
   shareOptions: ShareOptions,
   multiPartData: MultiPartData?,
@@ -34,7 +36,7 @@ actual suspend fun share(
       multiPartData.forEachPart { partData ->
         val r = when (partData) {
           is PartData.FileItem -> {
-            partData.provider.invoke().readBytes()
+            partData.provider.invoke().readBuffer.readByteArray()
           }
 
           else -> {

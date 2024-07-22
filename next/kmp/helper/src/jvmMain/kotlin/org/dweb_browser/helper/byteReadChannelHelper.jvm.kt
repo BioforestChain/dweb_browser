@@ -1,28 +1,26 @@
 package org.dweb_browser.helper
 
 import io.ktor.utils.io.ByteReadChannel
-import io.ktor.utils.io.bits.copyTo
+import io.ktor.utils.io.availableForRead
 import io.ktor.utils.io.read
 
 actual suspend inline fun ByteReadChannel.consumeEachArrayRange(
-  visitor: ConsumeEachArrayVisitor,
+  crossinline visitor: ConsumeEachArrayVisitor,
 ) {
   val controller = ChannelConsumeEachController()
   do {
     var lastChunkReported = false
     read { source, start, endExclusive ->
       val nioBuffer: ByteArray = when {
-        endExclusive > start -> source.slice(start, endExclusive - start).run {
-          val remaining = (endExclusive - start).toInt()
-          val res = ByteArray(remaining)
-          copyTo(res, start, remaining)
-          res
+        endExclusive > start -> source.sliceArray(IntRange(start, endExclusive - start)).run {
+          val remaining = (endExclusive - start)
+          copyOfRange(start, remaining)
         }
 
         else -> ByteArray(0)
       }
 
-      lastChunkReported = availableForRead == 0 && isClosedForWrite
+      lastChunkReported = availableForRead == 0
       controller.visitor(nioBuffer, lastChunkReported)
 
       nioBuffer.size

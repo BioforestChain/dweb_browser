@@ -1,7 +1,7 @@
 package org.dweb_browser.core.ipc
 
 import io.ktor.utils.io.ByteReadChannel
-import io.ktor.utils.io.readIntLittleEndian
+import io.ktor.utils.io.readPacket
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.ipc.helper.EndpointProtocol
@@ -12,6 +12,7 @@ import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.Once1
 import org.dweb_browser.helper.canRead
 import org.dweb_browser.helper.readByteArray
+import org.dweb_browser.helper.readIntLittleEndian
 import org.dweb_browser.pure.http.PureStream
 
 val debugStreamEndpoint = Debugger("streamEndpoint")

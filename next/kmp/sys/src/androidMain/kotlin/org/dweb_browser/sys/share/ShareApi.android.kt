@@ -5,6 +5,7 @@ import io.ktor.http.content.PartData
 import io.ktor.http.content.forEachPart
 import io.ktor.http.content.streamProvider
 import io.ktor.util.asStream
+import io.ktor.utils.io.jvm.javaio.toInputStream
 import kotlinx.coroutines.flow.asFlow
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.helper.PromiseOut
@@ -19,12 +20,11 @@ actual suspend fun share(
     when (partData) {
       is PartData.FileItem -> {
         partData.provider.asFlow().collect {
-          it.asStream()
-
+          it.toInputStream()
         }
         partData.originalFileName?.also { filename ->
           val url = CacheFilePlugin.writeFile(
-            filename, EFileType.Cache, partData.streamProvider(), false
+            filename, EFileType.Cache, partData.provider().toInputStream(), false
           )
           files.add(url)
         }

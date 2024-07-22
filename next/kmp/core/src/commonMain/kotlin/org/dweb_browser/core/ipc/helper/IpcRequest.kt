@@ -1,7 +1,7 @@
 package org.dweb_browser.core.ipc.helper
 
 import io.ktor.http.Url
-import io.ktor.util.InternalAPI
+import io.ktor.utils.io.InternalAPI
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.DelicateCoroutinesApi

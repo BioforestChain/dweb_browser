@@ -21,8 +21,7 @@ actual class HttpPureServer actual constructor(onRequest: HttpPureServerOnReques
   }
 
   suspend fun start(port: UShort, https: Boolean) = startServer {
-    createServer({
-    }) {
+    createServer(config = {
       if (https) {
         sslConnector(
           keyStore = SslSettings.keyStore,
@@ -38,7 +37,7 @@ actual class HttpPureServer actual constructor(onRequest: HttpPureServerOnReques
           this.host = "0.0.0.0"
         }
       }
-    }
+    }, envBuilder = {}).engine
   }
 }
 

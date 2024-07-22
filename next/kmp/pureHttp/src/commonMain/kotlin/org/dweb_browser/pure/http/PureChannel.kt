@@ -1,7 +1,7 @@
 package org.dweb_browser.pure.http
 
 import io.ktor.http.HttpStatusCode
-import io.ktor.util.InternalAPI
+import io.ktor.utils.io.InternalAPI
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.CompletableDeferred
@@ -52,7 +52,8 @@ class PureChannelContext internal constructor(
 
 
   @OptIn(InternalAPI::class)
-  suspend fun sendBinary(data: ByteArray) = runCatching { outgoingChannel.send(PureBinaryFrame(data)) }
+  suspend fun sendBinary(data: ByteArray) =
+    runCatching { outgoingChannel.send(PureBinaryFrame(data)) }
 
 
   @OptIn(ExperimentalSerializationApi::class)

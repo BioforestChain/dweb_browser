@@ -1,6 +1,6 @@
 package org.dweb_browser.core.ipc.helper
 
-import io.ktor.util.InternalAPI
+import io.ktor.utils.io.InternalAPI
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.launch

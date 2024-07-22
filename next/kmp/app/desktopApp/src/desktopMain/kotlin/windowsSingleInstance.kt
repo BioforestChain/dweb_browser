@@ -27,7 +27,7 @@ object WindowsSingleInstance {
             }
           }
         })
-      }.start(wait = false).resolvedConnectors().first().port
+      }.start(wait = false).engine.resolvedConnectors().first().port
     } catch (e: BindException) {
       0
     } catch (e: Throwable) {

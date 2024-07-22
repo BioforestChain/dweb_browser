@@ -1,14 +1,17 @@
 package org.dweb_browser.pure.http.ktor
 
+import io.ktor.events.Events
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
+import io.ktor.server.application.applicationProperties
 import io.ktor.server.application.createApplicationPlugin
 import io.ktor.server.application.install
 import io.ktor.server.engine.ApplicationEngine
-import io.ktor.server.engine.ApplicationEngineEnvironmentBuilder
 import io.ktor.server.engine.ApplicationEngineFactory
+import io.ktor.server.engine.ApplicationEnvironmentBuilder
+import io.ktor.server.engine.EmbeddedServer
 import io.ktor.server.engine.addShutdownHook
-import io.ktor.server.engine.applicationEngineEnvironment
+import io.ktor.server.engine.applicationEnvironment
 import io.ktor.server.engine.connector
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.response.respond
@@ -51,8 +54,8 @@ open class KtorPureServer<out TEngine : ApplicationEngine, TConfiguration : Appl
   protected val serverLock = Mutex()
   protected fun createServer(
     config: TConfiguration.() -> Unit = {},
-    envBuilder: ApplicationEngineEnvironmentBuilder.() -> Unit,
-  ): ApplicationEngine {
+    envBuilder: ApplicationEnvironmentBuilder.() -> Unit,
+  ): EmbeddedServer<@UnsafeVariance TEngine, TConfiguration> {
     val applicationModule: Application.() -> Unit = {
       install(WebSockets)
       install(createApplicationPlugin("dweb-gateway") {
@@ -121,10 +124,15 @@ open class KtorPureServer<out TEngine : ApplicationEngine, TConfiguration : Appl
         }
       })
     }
+
+
+
     return embeddedServer(
       factory = serverEngine,
-      //
-      environment = applicationEngineEnvironment {
+      applicationProperties = applicationProperties(applicationEnvironment {
+        log = KtorSimpleLogger("pure-server")
+        envBuilder()
+      }) {
         parentCoroutineContext = ioAsyncExceptionHandler + CoroutineExceptionHandler { ctx, e ->
           if (e.message?.contains("ENOTCONN (57)") == true) {
             WARNING(e.message)
@@ -135,12 +143,9 @@ open class KtorPureServer<out TEngine : ApplicationEngine, TConfiguration : Appl
             commonAsyncExceptionHandler.handleException(ctx, e)
           }
         }
-        log = KtorSimpleLogger("pure-server")
         watchPaths = emptyList()
         module(applicationModule)
-        envBuilder()
       },
-      // configuration script for the engine
       configure = config
     )
   }
@@ -151,7 +156,7 @@ open class KtorPureServer<out TEngine : ApplicationEngine, TConfiguration : Appl
         createServer().also {
           it.start(wait = false)
           serverDeferred.complete(it)
-          it.addShutdownHook {
+          it.addShutdownHook(monitor = Events()) {
             globalDefaultScope.launch(start = CoroutineStart.UNDISPATCHED) {
               close()
             }
@@ -162,12 +167,12 @@ open class KtorPureServer<out TEngine : ApplicationEngine, TConfiguration : Appl
     }
 
   open suspend fun start(port: UShort) = startServer {
-    createServer {
+    createServer(config = {
       connector {
         this.port = port.toInt()
         this.host = "0.0.0.0"
       }
-    }
+    }, envBuilder = {}).engine
   }
 //  serverLock.withLock {
 //    if (!serverDeferred.isCompleted) {

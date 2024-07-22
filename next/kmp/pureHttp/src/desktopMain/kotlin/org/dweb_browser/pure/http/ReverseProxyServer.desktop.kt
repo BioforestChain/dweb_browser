@@ -12,9 +12,11 @@ import io.ktor.network.sockets.toJavaAddress
 import io.ktor.util.network.port
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.ByteWriteChannel
+import io.ktor.utils.io.availableForRead
 import io.ktor.utils.io.close
 import io.ktor.utils.io.copyTo
 import io.ktor.utils.io.readAvailable
+import io.ktor.utils.io.writeAvailable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel

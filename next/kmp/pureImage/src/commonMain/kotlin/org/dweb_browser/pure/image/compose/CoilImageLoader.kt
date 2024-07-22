@@ -25,9 +25,9 @@ import io.ktor.client.request.HttpResponseData
 import io.ktor.http.Headers
 import io.ktor.http.HttpProtocolVersion
 import io.ktor.http.content.OutgoingContent
-import io.ktor.util.InternalAPI
 import io.ktor.util.date.GMTDate
 import io.ktor.util.flattenEntries
+import io.ktor.utils.io.InternalAPI
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -186,6 +186,7 @@ class CoilImageLoader(private val diskCache: DiskCache? = null) : PureImageLoade
                         is OutgoingContent.ProtocolUpgrade -> throw Exception("no support ProtocolUpgrade")
                         is OutgoingContent.ReadChannelContent -> IPureBody.from(PureStream(body.readFrom()))
                         is OutgoingContent.WriteChannelContent -> throw Exception("no support WriteChannelContent")
+                        is OutgoingContent.ContentWrapper -> throw Exception("no support ContentWrapper")
                       }
                     ),
                   )

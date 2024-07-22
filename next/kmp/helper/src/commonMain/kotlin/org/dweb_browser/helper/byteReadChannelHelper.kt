@@ -1,17 +1,19 @@
 package org.dweb_browser.helper
 
 import io.ktor.utils.io.ByteReadChannel
-import io.ktor.utils.io.core.EOFException
-import io.ktor.utils.io.core.readBytes
+import io.ktor.utils.io.InternalAPI
+import io.ktor.utils.io.availableForRead
 import io.ktor.utils.io.readAvailable
+import io.ktor.utils.io.readPacket
 import io.ktor.utils.io.readUTF8Line
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
+import kotlinx.io.EOFException
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.json.Json
 
-val ByteReadChannel.canRead get() = !(availableForRead == 0 && isClosedForWrite && isClosedForRead)
+val ByteReadChannel.canRead get() = !(availableForRead == 0 && isClosedForRead)
 suspend fun ByteReadChannel.canReadContent(): Boolean {
   do {
     if (availableForRead > 0) {
@@ -33,7 +35,7 @@ suspend fun ByteReadChannel.readAvailableByteArray() =
  * The provided buffer should be never captured outside of the visitor block otherwise resource leaks, crashes and
  * data corruptions may occur. The visitor block may be invoked multiple times, once or never.
  */
-expect suspend inline fun ByteReadChannel.consumeEachArrayRange(visitor: ConsumeEachArrayVisitor)
+expect suspend inline fun ByteReadChannel.consumeEachArrayRange(crossinline visitor: ConsumeEachArrayVisitor)
 
 suspend inline fun ByteReadChannel.commonConsumeEachArrayRange(
   visitor: ConsumeEachArrayVisitor,
@@ -42,11 +44,11 @@ suspend inline fun ByteReadChannel.commonConsumeEachArrayRange(
   try {
     do {
       awaitContent()
-      val lastChunkReported = availableForRead == 0 && isClosedForWrite
+      val lastChunkReported = availableForRead == 0
       if (lastChunkReported) {
         controller.visitor(byteArrayOf(), true)
       } else {
-        val bytes = readPacket(availableForRead).readBytes()
+        val bytes = readPacket(availableForRead).readByteArray()
         controller.visitor(bytes, false)
       }
       /// 这个要在 isClosedForRead 属性之前，否则会出问题
@@ -67,7 +69,7 @@ suspend inline fun ByteReadChannel.commonConsumeEachArrayRange(
  * Visitor function that is invoked for every available buffer (or chunk) of a channel.
  * The last parameter shows that the buffer is known to be the last.
  */
-typealias ConsumeEachArrayVisitor = ChannelConsumeEachController. (byteArray: ByteArray, last: Boolean) -> Unit
+typealias ConsumeEachArrayVisitor = suspend ChannelConsumeEachController. (byteArray: ByteArray, last: Boolean) -> Unit
 
 class ChannelConsumeEachController() {
   var continueFlag = true
@@ -105,4 +107,15 @@ suspend inline fun ByteReadChannel.consumeEachByteArrayPacket(visitor: ChannelCo
   } catch (e: EOFException) {
     // closed
   }
+}
+
+
+@OptIn(InternalAPI::class)
+suspend fun ByteReadChannel.readIntLittleEndian(): Int {
+  while (availableForRead < 4 && awaitContent()) {
+  }
+
+  if (availableForRead < 4) throw EOFException("Not enough data available")
+
+  return readBuffer.readIntLittleEndian()
 }
