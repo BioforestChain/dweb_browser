@@ -4,14 +4,16 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.exclude
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeGestures
-import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.runtime.Composable
@@ -22,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInWindow
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.desk.DesktopController
@@ -90,11 +93,14 @@ fun NewDesktopView(
         }
       })
       val layout = desktopGridLayout()
-      val containerPadding = WindowInsets.safeGestures
+      val desktopPadding = layout.insets.union(WindowInsets.safeGestures).asPaddingValues()
+      val outerPadding = PaddingValues(
+        top = desktopPadding.calculateTopPadding(),
+        bottom = desktopPadding.calculateBottomPadding(),
+      )
       Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.fillMaxWidth().windowInsetsPadding(containerPadding)
-          .padding(top = desktopTap())
+        modifier = Modifier.fillMaxWidth().padding(outerPadding)
       ) {
         searchBar.Render(Modifier.padding(vertical = 16.dp))
         LaunchedEffect(Unit) {
@@ -102,18 +108,22 @@ fun NewDesktopView(
             desktopController.search(it)
           }
         }
-        val innerInsets = layout.insets.exclude(WindowInsets.safeGestures)
+        val layoutDirection = LocalLayoutDirection.current
+        val innerPadding = PaddingValues(
+          start = desktopPadding.calculateStartPadding(layoutDirection),
+          end = desktopPadding.calculateEndPadding(layoutDirection)
+        )
 
         LazyVerticalGrid(
           columns = layout.cells,
-          contentPadding = innerInsets.asPaddingValues(),
+          contentPadding = innerPadding,
           modifier = Modifier.fillMaxWidth().padding(top = 8.dp).onGloballyPositioned {
-            val pos = it.positionInWindow()//.toIntOffset(d)
+            val pos = it.positionInWindow()
             appMenuPanel.safeAreaInsets = WindowInsets(
               top = pos.y.toInt(),
-              left = pos.x.toInt(),
-              right = pos.x.toInt(),//((maxWidth.value * d) - pos.x - it.size.width).toInt(),
-              bottom = 0
+              left = 0,
+              right = 0,
+              bottom = 0,
             )
           },
           horizontalArrangement = Arrangement.spacedBy(layout.horizontalSpace),

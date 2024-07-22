@@ -35,7 +35,6 @@ data class DesktopGridLayout(
 
 expect fun desktopGridLayout(): DesktopGridLayout
 
-expect fun desktopTap(): Dp
 expect fun canSupportModifierBlur(): Boolean
 expect fun desktopBgCircleCount(): Int
 expect fun desktopIconSize(): IntSize

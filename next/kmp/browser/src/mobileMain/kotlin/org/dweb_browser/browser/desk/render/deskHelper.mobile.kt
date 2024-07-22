@@ -8,7 +8,6 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 
@@ -20,8 +19,6 @@ actual fun desktopGridLayout(): DesktopGridLayout =
     horizontalSpace = 8.dp,
     verticalSpace = 16.dp,
   )
-
-actual fun desktopTap(): Dp = 0.dp
 
 actual fun desktopBgCircleCount(): Int = 8
 

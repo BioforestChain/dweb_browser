@@ -8,7 +8,6 @@ import androidx.compose.foundation.onClick
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerButton
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 
@@ -16,12 +15,10 @@ import androidx.compose.ui.unit.dp
 actual fun desktopGridLayout(): DesktopGridLayout =
   DesktopGridLayout(
     cells = GridCells.Adaptive(100.dp),
-    insets = WindowInsets(left = 24.dp, right = 24.dp),
+    insets = WindowInsets(top = 24.dp, left = 24.dp, right = 24.dp),
     horizontalSpace = 8.dp,
     verticalSpace = 16.dp,
   )
-
-actual fun desktopTap(): Dp = 20.dp
 
 actual fun desktopBgCircleCount(): Int = 12
 
