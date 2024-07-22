@@ -9,26 +9,31 @@ import androidx.compose.runtime.setValue
 import io.ktor.http.Url
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.serialization.Serializable
+import org.dweb_browser.browser.desk.model.TaskbarAppModel
 import org.dweb_browser.browser.desk.types.DeskAppMetaData
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.std.http.HttpDwebServer
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.helper.ChangeableMap
-import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.SafeHashSet
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.build
 import org.dweb_browser.helper.collectIn
+import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
 import org.dweb_browser.helper.compose.envSwitch
 import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.helper.resolvePath
+import org.dweb_browser.sys.window.core.helper.pickLargest
+import org.dweb_browser.sys.window.core.helper.toStrict
 
 
 class TaskbarController private constructor(
@@ -37,8 +42,21 @@ class TaskbarController private constructor(
   private val desktopController: DesktopController,
   private val taskbarServer: HttpDwebServer,
   private val runningApps: ChangeableMap<MMID, RunningApp>,
-): DesktopAppController(deskNMM) {
+) : DesktopAppController(deskNMM) {
   internal val state = TaskbarState();
+  internal val appsFlow = MutableStateFlow(emptyList<TaskbarAppModel>())
+  private suspend fun upsetApps() {
+    appsFlow.value = getTaskbarAppList(Int.MAX_VALUE).map { new ->
+      appsFlow.value.find { it.mmid == new.mmid }?.also { it.running = new.running }
+        ?: TaskbarAppModel(
+          mmid = new.mmid,
+          icon = new.icons.toStrict().pickLargest(),
+          running = new.running,
+          isShowClose = false,
+        )
+    }
+//    updateTaskBarSize(taskbarApps.count())
+  }
 
   companion object {
 
@@ -263,5 +281,12 @@ class TaskbarController private constructor(
     return if (toggle) openTaskbarActivity() else closeTaskbarActivity()
   }
 
-  suspend fun toggleWindowMaximize(mmid: MMID) = desktopController.getDesktopWindowsManager().toggleMaximize(mmid)
+  suspend fun toggleWindowMaximize(mmid: MMID) =
+    desktopController.getDesktopWindowsManager().toggleMaximize(mmid)
+
+  init {
+    onUpdate.filter { it != "bounds" }.collectIn(deskNMM.getRuntimeScope()) {
+      upsetApps()
+    }
+  }
 }

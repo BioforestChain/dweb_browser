@@ -7,22 +7,17 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.desk.ITaskbarView
 import org.dweb_browser.browser.desk.TaskbarController
-import org.dweb_browser.browser.desk.model.TaskbarAppModel
-import org.dweb_browser.helper.collectIn
-import org.dweb_browser.sys.window.core.helper.pickLargest
-import org.dweb_browser.sys.window.core.helper.toStrict
 
 internal const val paddingValue = 6
 internal const val taskBarWidth = 55f
@@ -34,46 +29,15 @@ fun NewTaskbarView(
   draggableHelper: ITaskbarView.DraggableHelper,
   modifier: Modifier,
 ) {
-
-  val apps = remember { mutableStateListOf<TaskbarAppModel>() }
+  val apps by taskbarController.appsFlow.collectAsState()
   val scope = rememberCoroutineScope()
 
-  fun updateTaskBarSize(appCount: Int) {
+  val appCount = apps.size
+  remember(appCount) {
     taskbarController.state.layoutWidth = taskBarWidth
     taskbarController.state.layoutHeight = when (appCount) {
       0 -> taskBarWidth
       else -> appCount * (taskBarWidth - paddingValue) + taskBarDividerHeight + taskBarWidth
-    }
-  }
-
-  fun doGetApps() {
-    scope.launch {
-      val taskbarApps = taskbarController.getTaskbarAppList(Int.MAX_VALUE).map { new ->
-        val oldApp = apps.firstOrNull { old ->
-          old.mmid == new.mmid
-        }
-        TaskbarAppModel(
-          new.mmid,
-          new.icons.toStrict().pickLargest(),
-          new.running,
-          oldApp?.isShowClose ?: false,
-        )
-      }
-      apps.clear()
-      apps.addAll(taskbarApps)
-      updateTaskBarSize(taskbarApps.count())
-    }
-  }
-
-  DisposableEffect(Unit) {
-    val job = taskbarController.onUpdate.run {
-      filter { it != "bounds" }
-    }.collectIn(scope) {
-      doGetApps()
-    }
-
-    onDispose {
-      job.cancel()
     }
   }
 

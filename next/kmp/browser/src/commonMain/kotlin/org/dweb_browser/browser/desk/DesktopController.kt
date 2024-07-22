@@ -79,6 +79,37 @@ open class DesktopController private constructor(
 ) : DesktopAppController(deskNMM) {
   private val openingApps = mutableSetOf<MMID>()
   internal val appsFlow = MutableStateFlow(emptyList<DesktopAppModel>())
+  private suspend fun upsetApps() {
+    appsFlow.value = getDesktopApps().map { appMetaData ->
+      val runStatus = if (appMetaData.running) {
+        openingApps.remove(appMetaData.mmid)
+        DesktopAppModel.DesktopAppRunStatus.Opened
+      } else if (openingApps.contains(appMetaData.mmid)) {
+        DesktopAppModel.DesktopAppRunStatus.Opening
+      } else {
+        DesktopAppModel.DesktopAppRunStatus.Close
+      }
+
+      appsFlow.value.find { oldApp ->
+        oldApp.mmid == appMetaData.mmid
+      }?.also { it.running = runStatus } ?: DesktopAppModel(
+        name = appMetaData.short_name.ifEmpty { appMetaData.name },
+        mmid = appMetaData.mmid,
+        data = when {
+          // isWebLink TODO 临时的处理。等待分拆weblink后再优化。
+          appMetaData.categories.contains(MICRO_MODULE_CATEGORY.Web_Browser) && appMetaData.mmid != "web.browser.dweb" -> DesktopAppData.WebLink(
+            mmid = appMetaData.mmid,
+            url = appMetaData.name
+          )
+
+          else -> DesktopAppData.App(mmid = appMetaData.mmid)
+        },
+        icon = appMetaData.icons.toStrict().pickLargest(),
+        isSystemApp = appMetaData.targetType == "nmm",
+        running = runStatus,
+      )
+    }
+  }
 
   override suspend fun open(mmid: MMID) {
     val app = appsFlow.value.find { it.mmid == mmid } ?: return
@@ -87,8 +118,9 @@ open class DesktopController private constructor(
         if (app.running == DesktopAppModel.DesktopAppRunStatus.Close) {
           app.running = DesktopAppModel.DesktopAppRunStatus.Opening
           openingApps.add(mmid)
-          super.open(mmid)
         }
+        // 不论如何都进行 open，因为这本质是 openAppOrActivate
+        super.open(mmid)
       }
 
       is DesktopAppData.WebLink -> {
@@ -239,50 +271,6 @@ open class DesktopController private constructor(
     close()
   }.shareIn(deskNMM.getRuntimeScope(), started = SharingStarted.Eagerly, replay = 1)
 
-  init {
-    runningApps.onChange {
-      updateFlow.emit("apps")
-    }
-    onUpdate.filter { it != "bounds" }.collectIn(deskNMM.getRuntimeScope()) {
-      println("QAQ onUpdate $it")
-      appsFlow.value = getDesktopApps().map { appMetaData ->
-        val icon = appMetaData.icons.toStrict().pickLargest()
-
-        val isSystemApp = appMetaData.targetType == "nmm"
-        //TODO: 临时的处理。等待分拆weblink后再优化。
-        val isWebLink =
-          appMetaData.categories.contains(MICRO_MODULE_CATEGORY.Web_Browser) && appMetaData.mmid != "web.browser.dweb"
-
-        val runStatus = if (appMetaData.running) {
-          openingApps.remove(appMetaData.mmid)
-          DesktopAppModel.DesktopAppRunStatus.Opened
-        } else if (openingApps.contains(appMetaData.mmid)) {
-          DesktopAppModel.DesktopAppRunStatus.Opening
-        } else {
-          DesktopAppModel.DesktopAppRunStatus.Close
-        }
-
-        appsFlow.value.find { oldApp ->
-          oldApp.mmid == appMetaData.mmid
-        }?.also { it.running = runStatus } ?: DesktopAppModel(
-          name = appMetaData.short_name.ifEmpty { appMetaData.name },
-          mmid = appMetaData.mmid,
-          data = when {
-            isWebLink -> DesktopAppData.WebLink(
-              mmid = appMetaData.mmid,
-              url = appMetaData.name
-            )
-
-            else -> DesktopAppData.App(mmid = appMetaData.mmid)
-          },
-          icon = icon,
-          isSystemApp = isSystemApp,
-          running = runStatus,
-        )
-      }
-    }
-  }
-
   suspend fun detail(mmid: String) {
     deskNMM.nativeFetch("file://jmm.browser.dweb/detail?app_id=$mmid")
   }
@@ -325,6 +313,7 @@ open class DesktopController private constructor(
    * 窗口管理器
    */
   suspend fun getDesktopWindowsManager() = wmLock.withLock {
+    _desktopView.await()
     val vc = this.activity!!
     DesktopWindowsManager.getOrPutInstance(vc, IPureViewBox.from(vc)) { dwm ->
       val watchWindows = mutableMapOf<WindowController, OffListener<*>>()
@@ -390,5 +379,15 @@ open class DesktopController private constructor(
     val title = reason.cause?.message ?: "异常"
     val message = reason.message ?: "未知原因"
     alertMessages.add(AlertMessage(title, message))
+  }
+
+
+  init {
+    runningApps.onChange {
+      updateFlow.emit("apps")
+    }
+    onUpdate.filter { it != "bounds" }.collectIn(deskNMM.getRuntimeScope()) {
+      upsetApps()
+    }
   }
 }

@@ -1,19 +1,15 @@
 package org.dweb_browser.browser.desk.model
 
-import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import org.dweb_browser.helper.StrictImageResource
 
-internal data class TaskbarAppModel(
+internal class TaskbarAppModel(
   val mmid: String,
   val icon: StrictImageResource?,
-  val running: Boolean,
+  running: Boolean,
   var isShowClose: Boolean = false,
 ) {
-  companion object {
-    internal val iconCache = mutableMapOf<String, ImageBitmap>()
-    fun getCacheIcon(mmid: String) = iconCache[mmid]
-    fun setCacheIcon(mmid: String, image: ImageBitmap) {
-      iconCache[mmid] = image
-    }
-  }
+  var running by mutableStateOf(running)
 }
