@@ -3,6 +3,7 @@ package org.dweb_browser.browser.desk.render
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -13,7 +14,11 @@ import androidx.compose.ui.unit.dp
 
 
 actual fun desktopGridLayout(): DesktopGridLayout =
-  DesktopGridLayout(GridCells.Adaptive(64.dp), 16.dp, 8.dp)
+  DesktopGridLayout(
+    cells = GridCells.Adaptive(64.dp),
+    insets = WindowInsets(left = 28.dp, right = 28.dp),
+    space = 8.dp
+  )
 
 actual fun desktopTap(): Dp = 0.dp
 

@@ -71,12 +71,10 @@ class DesktopSearchBar {
   val onSearchFlow = MutableSharedFlow<String>()
 
   fun open() {
-    println("QAQ searchBar open")
     isFocused = true
   }
 
   fun close() {
-    println("QAQ searchBar close")
     isFocused = false
   }
 

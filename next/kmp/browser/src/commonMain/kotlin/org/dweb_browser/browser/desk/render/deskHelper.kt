@@ -4,6 +4,7 @@ package org.dweb_browser.browser.desk.render
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -18,11 +19,11 @@ internal fun <T> deskAniSpec1() = tween<T>(5000)
 internal fun deskSquircleShape() = SquircleShape(30, CornerSmoothing.Small)
 
 data class DesktopGridLayout(
-  val cells: GridCells, val contentPadding: Dp,
+  val cells: GridCells, val insets: WindowInsets,
   val horizontalSpace: Dp, val verticalSpace: Dp,
 ) {
-  constructor(cells: GridCells, contentPadding: Dp, space: Dp) : this(
-    cells, contentPadding, space, space
+  constructor(cells: GridCells, insets: WindowInsets, space: Dp) : this(
+    cells, insets, space, space
   )
 }
 
