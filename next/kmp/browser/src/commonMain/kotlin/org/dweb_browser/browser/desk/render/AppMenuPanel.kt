@@ -15,13 +15,14 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.union
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TooltipDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -250,37 +251,29 @@ internal class AppMenuPanel(
           ).timesToInt(d)
         )
       }
-      val positionProvider = TooltipDefaults.rememberRichTooltipPositionProvider()
+
+      val positionProvider = rememberMenuTooltipPositionProvider()
       val appMenuIntOffset =
         remember(appMenuIntSize, appBounds, safeWindowBounds, layoutDirection) {
           if (!appMenuIntSizeReady) {
             return@remember Offset(appBounds.left, appBounds.top).timesIntOffset(d)
           }
-          println("QAQ --------")
           val windowSize = IntSize(constraints.maxWidth, constraints.maxHeight).minus(
             w = safeWindowBounds.left + safeWindowBounds.right,
             h = safeWindowBounds.top + safeWindowBounds.bottom,
-          ).also {
-            println("QAQ windowSize=$it")
-          }
+          )
           val anchorBounds = appBounds.toPureRect().toRect().timesToInt(d).minus(
             l = safeWindowBounds.left,
             t = safeWindowBounds.top,
             b = safeWindowBounds.top,
             r = safeWindowBounds.left,
-          ).also {
-            println("QAQ anchorBounds=$it")
-          }
+          )
           positionProvider.calculatePosition(
             anchorBounds = anchorBounds,
             windowSize = windowSize,
             layoutDirection = layoutDirection,
-            popupContentSize = appMenuIntSize.also {
-              println("QAQ appMenuIntSize=$it")
-            }
-          ).plus(x = safeWindowBounds.left, y = safeWindowBounds.top).also {
-            println("QAQ appMenuIntOffset=$it")
-          }
+            popupContentSize = appMenuIntSize
+          ).plus(x = safeWindowBounds.left, y = safeWindowBounds.top)
         }
 
       val menuAlpha = safeAlpha(p)
@@ -349,9 +342,20 @@ internal class AppMenuPanel(
             enabled = display.enable,
             shape = deskSquircleShape(),
             modifier = Modifier.hoverCursor(),
+            colors = ButtonDefaults.textButtonColors().run {
+              remember {
+                copy(
+                  contentColor = display.type.data.color.copy(alpha = 0.9f),
+                  disabledContentColor = Color.Black.copy(alpha = 0.4f),
+                )
+              }
+            }
           ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-              Icon(display.type.data.icon, null)
+            Column(
+              horizontalAlignment = Alignment.CenterHorizontally,
+              verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+              Icon(display.type.data.icon, null, modifier = Modifier.size(24.dp))
               Text(display.type.data.title, style = MaterialTheme.typography.bodySmall)
             }
           }

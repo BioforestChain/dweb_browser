@@ -402,8 +402,8 @@ object BrowserI18nResource {
     )
 
     val detail = SimpleI18nResource(
-      Language.ZH to "详情",
-      Language.EN to "Detail"
+      Language.ZH to "应用详情",
+      Language.EN to "App Info"
     )
 
     val uninstall = SimpleI18nResource(
