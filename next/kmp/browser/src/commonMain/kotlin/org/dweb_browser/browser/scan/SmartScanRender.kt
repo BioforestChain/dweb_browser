@@ -74,7 +74,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.delay
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.compose.div
@@ -102,23 +101,7 @@ internal fun SmartScanController.RenderScanResultView(modifier: Modifier) {
         drawAnimatedBoundingBox(result, animatedOffset)
       }
     }
-    LaunchedEffect(resultList){
-      resultList.firstOrNull()?.also {result->
-        println("QAQ result.boundingBox=${result.boundingBox}")
-      }
-    }
-//    val countAni = remember { androidx.compose.animation.core.Animatable(0f) }
-//    LaunchedEffect(Unit){
-//      while (true){
-//        countAni.animateTo(10f, tween(3000))
-//        delay(500)
-//        countAni.animateTo(0f, tween(3000))
-//        delay(500)
-//      }
-//    }
-//    for (i in 0..countAni.value.toInt()){
-//      Text(i.toString())
-//    }
+
     // 画出识别到的内容
     for (result in resultList) {
       var textSize by remember { mutableStateOf(Size.Zero) }

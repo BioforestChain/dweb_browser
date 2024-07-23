@@ -52,8 +52,8 @@ actual fun CameraPreviewRender(
       FrameLayout.LayoutParams.MATCH_PARENT,
       FrameLayout.LayoutParams.MATCH_PARENT,
     )
+    // 设置显示模式为兼容，防止页面抖动
     previewView.implementationMode = PreviewView.ImplementationMode.COMPATIBLE
-
     previewView
   }, modifier = modifier)
 }

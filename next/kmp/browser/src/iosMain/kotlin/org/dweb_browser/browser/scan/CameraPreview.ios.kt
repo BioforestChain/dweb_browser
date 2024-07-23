@@ -10,19 +10,24 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.interop.LocalUIViewController
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
 import kotlinx.cinterop.CValue
 import kotlinx.cinterop.ExperimentalForeignApi
 import org.dweb_browser.dwebview.UnScaleBox
+import org.dweb_browser.helper.PurePoint
+import org.dweb_browser.helper.PureRect
 import org.dweb_browser.helper.WARNING
-import org.dweb_browser.helper.compose.toUIColor
 import org.dweb_browser.helper.platform.NSDataHelper.toByteArray
 import org.dweb_browser.helper.platform.PureViewController
+import org.dweb_browser.helper.times
+import org.dweb_browser.helper.toPoint
+import org.dweb_browser.helper.toRect
 import org.dweb_browser.sys.window.render.LocalWindowContentStyle
 import org.dweb_browser.sys.window.render.UIKitViewInWindow
+import platform.AVFoundation.AVCaptureConnection
 import platform.AVFoundation.AVCaptureDevice
 import platform.AVFoundation.AVCaptureDeviceDiscoverySession.Companion.discoverySessionWithDeviceTypes
-import platform.AVFoundation.AVCaptureDeviceInput
 import platform.AVFoundation.AVCaptureDeviceInput.Companion.deviceInputWithDevice
 import platform.AVFoundation.AVCaptureDevicePositionBack
 import platform.AVFoundation.AVCaptureDeviceTypeBuiltInDualCamera
@@ -30,10 +35,9 @@ import platform.AVFoundation.AVCaptureDeviceTypeBuiltInDualWideCamera
 import platform.AVFoundation.AVCaptureDeviceTypeBuiltInDuoCamera
 import platform.AVFoundation.AVCaptureDeviceTypeBuiltInUltraWideCamera
 import platform.AVFoundation.AVCaptureDeviceTypeBuiltInWideAngleCamera
-import platform.AVFoundation.AVCapturePhoto
-import platform.AVFoundation.AVCapturePhotoCaptureDelegateProtocol
-import platform.AVFoundation.AVCapturePhotoOutput
-import platform.AVFoundation.AVCapturePhotoSettings
+import platform.AVFoundation.AVCaptureMetadataOutput
+import platform.AVFoundation.AVCaptureMetadataOutputObjectsDelegateProtocol
+import platform.AVFoundation.AVCaptureOutput
 import platform.AVFoundation.AVCaptureSession
 import platform.AVFoundation.AVCaptureSessionPresetPhoto
 import platform.AVFoundation.AVCaptureTorchModeOff
@@ -41,13 +45,14 @@ import platform.AVFoundation.AVCaptureTorchModeOn
 import platform.AVFoundation.AVCaptureVideoPreviewLayer
 import platform.AVFoundation.AVLayerVideoGravityResizeAspectFill
 import platform.AVFoundation.AVMediaTypeVideo
-import platform.AVFoundation.AVVideoCodecKey
-import platform.AVFoundation.AVVideoCodecTypeJPEG
-import platform.AVFoundation.fileDataRepresentation
+import platform.AVFoundation.AVMetadataMachineReadableCodeObject
+import platform.AVFoundation.AVMetadataObjectTypeQRCode
 import platform.AVFoundation.hasTorch
 import platform.AVFoundation.torchMode
+import platform.CoreGraphics.CGPointMake
 import platform.CoreGraphics.CGRect
-import platform.Foundation.NSError
+import platform.Foundation.NSDictionary
+import platform.Foundation.NSNumber
 import platform.PhotosUI.PHPickerConfiguration
 import platform.PhotosUI.PHPickerResult
 import platform.PhotosUI.PHPickerViewController
@@ -58,6 +63,7 @@ import platform.UIKit.UIView
 import platform.UIKit.UIViewController
 import platform.UniformTypeIdentifiers.UTTypeImage
 import platform.darwin.NSObject
+import platform.darwin.dispatch_get_main_queue
 
 
 @Composable
@@ -90,22 +96,22 @@ private fun RealDeviceCamera(
   controller: SmartScanController
 ) {
   val uiViewController = LocalUIViewController.current
+  val density = LocalDensity.current.density
   // 创建一个 UIView 作为相机预览的容器
-  val uiView = remember { UIView().apply { backgroundColor = Color.Red.toUIColor() } }
+  val uiView = remember { UIView() }
   // 创建相机控制器
   val cameraController = remember(uiViewController) {
-    val c = CameraControllerImpl(controller, uiViewController, uiView)
+    val c = CameraControllerImpl(controller, uiViewController, uiView, density)
     controller.cameraController?.stop()
     controller.cameraController = c // 赋值
     c
   }
   DisposableEffect(Unit) {
-    cameraController.start()
     onDispose {
       cameraController.stop()
     }
   }
-  cameraController.initCaptureDelegate()
+  cameraController.triggerCapture()
   val scale by controller.scaleFlow.collectAsState()
   UnScaleBox(scale, modifier) {
     uiView.UIKitViewInWindow(
@@ -123,7 +129,8 @@ private fun RealDeviceCamera(
 class CameraControllerImpl(
   private val controller: SmartScanController,
   private val uiViewController: UIViewController,
-  private val uiView: UIView
+  private val uiView: UIView,
+  private val density: Float
 ) : CameraController {
   //  设备类型
   private val deviceTypes = listOf(
@@ -135,7 +142,7 @@ class CameraControllerImpl(
   )
 
   // 创建输出
-  private val photoOutput = AVCapturePhotoOutput()
+  private val metadataOutput = AVCaptureMetadataOutput()
 
   // 创建相机
   private val camera: AVCaptureDevice =
@@ -146,19 +153,21 @@ class CameraControllerImpl(
     ).devices.firstOrNull() as AVCaptureDevice
 
   // 创建一个相机会话
-  private val captureSession =
-    AVCaptureSession().also { captureSession ->
-      // 配置相机设备
-      captureSession.sessionPreset = AVCaptureSessionPresetPhoto
-      val deviceInput: AVCaptureDeviceInput =
-        deviceInputWithDevice(device = camera, error = null)!!
-      captureSession.addInput(deviceInput)
-      if (captureSession.canAddOutput(photoOutput)) {
-        captureSession.addOutput(photoOutput)
-      } else {
-        WARNING("Could not add photo output to capture session")
+  private val captureSession = AVCaptureSession().also { captureSession ->
+    // 配置相机设备
+    captureSession.sessionPreset = AVCaptureSessionPresetPhoto
+    val deviceInput = deviceInputWithDevice(device = camera, error = null)
+    deviceInput?.let {
+      if (captureSession.canAddInput(it)) {
+        captureSession.addInput(it)
       }
     }
+    if (captureSession.canAddOutput(metadataOutput)) {
+      captureSession.addOutput(metadataOutput)
+    } else {
+      WARNING("Could not add photo output to capture session")
+    }
+  }
 
   // 创建相机预览层
   private val cameraPreviewLayer: AVCaptureVideoPreviewLayer =
@@ -169,25 +178,44 @@ class CameraControllerImpl(
     }
 
   // 从相机流中拿内容
-  private val photoCaptureDelegate: AVCapturePhotoCaptureDelegateProtocol =
-    object : NSObject(), AVCapturePhotoCaptureDelegateProtocol {
+  private val metaDelegate: AVCaptureMetadataOutputObjectsDelegateProtocol =
+    object : NSObject(), AVCaptureMetadataOutputObjectsDelegateProtocol {
       override fun captureOutput(
-        output: AVCapturePhotoOutput,
-        didFinishProcessingPhoto: AVCapturePhoto,
-        error: NSError?
+        output: AVCaptureOutput,
+        didOutputMetadataObjects: List<*>,
+        fromConnection: AVCaptureConnection
       ) {
-        if (error != null) {
-          WARNING("Error capturing photo: ${error.localizedDescription}")
-          return
+        val barcodes =
+          didOutputMetadataObjects.filterIsInstance<AVMetadataMachineReadableCodeObject>()
+        val results = mutableListOf<BarcodeResult>()
+        for (barcode in barcodes) {
+          val barcodeValue = barcode.stringValue
+          val barcodeBounds =
+            cameraPreviewLayer.transformedMetadataObjectForMetadataObject(barcode)?.bounds?.toRect()
+              ?.times(density)
+          val corners = (cameraPreviewLayer.transformedMetadataObjectForMetadataObject(barcode)
+              as? AVMetadataMachineReadableCodeObject)?.corners?.mapNotNull {
+            if (it is NSDictionary) {
+              val x = (it.objectForKey("X") as? NSNumber)?.doubleValue ?: return@mapNotNull null
+              val y = (it.objectForKey("Y") as? NSNumber)?.doubleValue ?: return@mapNotNull null
+              CGPointMake(x * density, y * density)
+            } else {
+              null
+            }
+          }
+          barcodeValue?.let {
+            val result = BarcodeResult(
+              data = barcodeValue,
+              boundingBox = barcodeBounds ?: PureRect(0f, 0f),
+              topLeft = corners?.get(2)?.toPoint() ?: PurePoint(0f, 0f),
+              topRight = corners?.get(3)?.toPoint() ?: PurePoint(0f, 0f),
+              bottomLeft = corners?.get(1)?.toPoint() ?: PurePoint(0f, 0f),
+              bottomRight = corners?.get(0)?.toPoint() ?: PurePoint(0f, 0f),
+            )
+            results.add(result)
+          }
         }
-        val photoData = didFinishProcessingPhoto.fileDataRepresentation()
-        if (photoData != null) {
-          println("xxxxxx=> $photoData")
-          // 回调到二维码识别
-          controller.imageCaptureFlow.tryEmit(photoData)
-        } else {
-          WARNING("Photo data is null")
-        }
+        controller.barcodeResultFlow.tryEmit(results)
       }
     }
 
@@ -219,16 +247,10 @@ class CameraControllerImpl(
       }
     }
 
-  fun initCaptureDelegate() {
-    // 创建照片设置，指定照片格式为 JPEG
-    val photoSettings = AVCapturePhotoSettings.photoSettingsWithFormat(
-      format = mapOf(AVVideoCodecKey to AVVideoCodecTypeJPEG)
-    )
-    // 捕获照片，使用指定的设置和委托
-    photoOutput.capturePhotoWithSettings(
-      settings = photoSettings,
-      delegate = photoCaptureDelegate
-    )
+  fun triggerCapture() {
+    start()
+    metadataOutput.setMetadataObjectsDelegate(metaDelegate, queue = dispatch_get_main_queue())
+    metadataOutput.metadataObjectTypes = listOf(AVMetadataObjectTypeQRCode)
   }
 
   fun start() {

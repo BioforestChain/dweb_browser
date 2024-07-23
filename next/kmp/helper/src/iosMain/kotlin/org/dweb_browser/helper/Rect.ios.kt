@@ -17,5 +17,17 @@ fun CValue<CGRect>.toRect() = useContents {
   )
 }
 
+// 定义乘法扩展操作符
+operator fun PureRect.times(density: Float): PureRect {
+  return PureRect(
+    x = this.x * density,
+    y = this.y * density,
+    width = this.width * density,
+    height = this.height * density
+  )
+}
+
+
 @OptIn(ExperimentalForeignApi::class)
-fun PureRect.toIosRect() = CGRectMake(x.toDouble(), y.toDouble(), width.toDouble(), height.toDouble())
+fun PureRect.toIosRect() =
+  CGRectMake(x.toDouble(), y.toDouble(), width.toDouble(), height.toDouble())
