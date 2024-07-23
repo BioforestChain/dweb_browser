@@ -88,9 +88,7 @@ actual suspend fun tryThrowUserRejectAuth(
         reject = { reason ->
           if (!deferred.isCompleted) {
             @Suppress("ThrowableNotThrown") deferred.completeExceptionally(
-              CancellationException(
-                reason
-              )
+              CancellationException(reason)
             )
           }
           isVisible = false
