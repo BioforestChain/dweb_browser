@@ -11,7 +11,7 @@ import org.dweb_browser.platform.desktop.os.rootDir
  */
 actual fun FileNMM.Companion.getApplicationRootDir() = rootDir.toOkioPath(true)
 actual fun FileNMM.Companion.getApplicationCacheDir() =
-  rootDir.toOkioPath(true).resolve("dweb-browser")
+  System.getProperty("java.io.tmpdir").toPath(true).resolve("dweb-browser")
 
 /**
  * 持久化数据

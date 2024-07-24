@@ -52,6 +52,7 @@ import org.dweb_browser.browser.jmm.JmmRenderController
 import org.dweb_browser.browser.jmm.JmmStatus
 import org.dweb_browser.browser.jmm.JmmTabs
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
+import org.dweb_browser.core.std.file.ext.blobFetchHook
 import org.dweb_browser.helper.compose.LazySwipeColumn
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.compose.produceEvent
@@ -61,7 +62,6 @@ import org.dweb_browser.helper.toSpaceSize
 import org.dweb_browser.pure.image.compose.PureImageLoader
 import org.dweb_browser.pure.image.compose.SmartLoad
 import org.dweb_browser.sys.window.core.constant.LocalWindowMM
-import org.dweb_browser.core.std.file.ext.blobFetchHook
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -121,17 +121,17 @@ fun JmmRenderController.JmmListView(modifier: Modifier, showDetailButton: Boolea
 fun JmmAppInstallManifest.IconRender(size: Dp = 36.dp) {
   key(logo) {
     val modifier = remember(size) { Modifier.size(size).clip(RoundedCornerShape(size / 5)) }
-    PureImageLoader.SmartLoad(logo, size, size, LocalWindowMM.current.blobFetchHook).with(onBusy = {
+    PureImageLoader.SmartLoad(logo, size, size, LocalWindowMM.current.blobFetchHook).with(onBusy = { reason ->
       Image(
         imageVector = Icons.TwoTone.Image,
-        contentDescription = it,
+        contentDescription = reason,
         modifier = modifier,
         alpha = 0.5f
       )
     }, onError = {
       Image(
         imageVector = Icons.TwoTone.BrokenImage,
-        contentDescription = "icon load error",
+        contentDescription = "icon load error: ${it.message}",
         modifier = modifier,
       )
     }) {

@@ -3,6 +3,7 @@ package org.dweb_browser.pure.image.compose
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.compositionLocalOf
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -11,11 +12,12 @@ import org.dweb_browser.helper.platform.toImageBitmap
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureServerRequest
 import org.dweb_browser.pure.http.defaultHttpPureClient
-import org.dweb_browser.pure.http.fetch
 import org.dweb_browser.pure.http.ext.FetchHookContext
+import org.dweb_browser.pure.http.fetch
 import resvg_render.FitMode
 import resvg_render.RenderOptions
 import resvg_render.svgToPng
+import kotlin.math.min
 
 val LocalResvgImageLoader = compositionLocalOf { ResvgImageLoader.defaultInstance }
 
@@ -66,7 +68,18 @@ class ResvgImageLoader : PureImageLoader {
           )
           imageResultState.emit(ImageLoadResult.success(pngData.toImageBitmap()))
         }.getOrElse {
-          imageResultState.emit(ImageLoadResult.error(it))
+          val failTimes = PureImageLoader.urlErrorCount.getOrPut(task.url) { 0 } + 1
+          PureImageLoader.urlErrorCount[task.url] = failTimes
+
+          imageResultState.emit(ImageLoadResult.error(it).also { res ->
+            launch {
+              /// 失败后，定时删除缓存。失败的次数越多，定时越久
+              delay(min(failTimes * failTimes * 1000L, 30000L)) // 1 4 9 16 25 30 30 30
+              if (cacheItem.result.value == res) {
+                caches.delete(task, cacheItem)
+              }
+            }
+          })
         }
       }
 

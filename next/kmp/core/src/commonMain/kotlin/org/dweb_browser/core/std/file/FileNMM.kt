@@ -1,5 +1,6 @@
 package org.dweb_browser.core.std.file
 
+import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
@@ -13,7 +14,6 @@ import okio.buffer
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.http.router.IChannelHandlerContext
 import org.dweb_browser.core.http.router.IHandlerContext
-import org.dweb_browser.core.http.router.ResponseException
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.byChannel
 import org.dweb_browser.core.module.BootstrapContext
@@ -31,6 +31,7 @@ import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.pure.crypto.hash.sha256
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureStream
+import org.dweb_browser.pure.http.ext.mime
 import org.dweb_browser.pure.http.queryAsOrNull
 import org.dweb_browser.pure.io.SystemFileSystem
 import org.dweb_browser.pure.io.copyTo
@@ -167,9 +168,7 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
       }
 
       /// file:///blob/*
-      getBlobVirtualFsDirectory().also {
-        fileTypeAdapterManager.append(adapter = it).removeWhen(mmScope)
-      }
+      fileTypeAdapterManager.append(adapter = blobReadonlyVirtualFsDirectory).removeWhen(mmScope)
 
       /// file:///sys/*
       fileTypeAdapterManager.append(adapter = sysFileSystem).removeWhen(mmScope)
@@ -396,25 +395,49 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
           }
           path.toString()
         },
-        "/blob/write" bind PureMethod.POST by defineStringResponse {
-          val mime = (request.queryOrNull("mime") ?: request.headers.get("Content-Type"))
-            ?: "application/octet-stream"
-          val ext = request.queryOrNull("ext") ?: ""
-          var encode = request.queryOrNull("encode") ?: ""
-          var ag = request.queryOrNull("ag") ?: ""
-          if (encode.isEmpty()) {
-            encode = sha256(request.body.toPureBinary()).toHexString()
-            ag = "sha256"
+        "/blob/create" bind PureMethod.POST by defineStringResponse {
+          /// 根据 content-type 来写入数据
+          val mime = (request.queryOrNull("mime")
+            ?: request.headers.get("Content-Type"))?.let { contentType ->
+            ContentType.parse(contentType).mime
+          } ?: run {
+            // 如果没有提供
+            request.queryOrNull("ext")?.let { ext ->
+              if (ext.contains(".") || filenameBanChars.any { ext.contains(it) } || ext.length > 64) {
+                throwException(HttpStatusCode.Forbidden, "invalid ext: $ext")
+              }
+              ContentType.parse(ext).mime
+            }
+          } ?: "application/octet-stream"
+
+          /// 获取文件名算法
+          val ag = (request.queryOrNull("ag")?.lowercase() ?: "sha256").let { ag ->
+            BlobAlgorithm.ALL[ag] ?: throwException(
+              HttpStatusCode.Forbidden,
+              "invalid ag: $ag"
+            )
           }
-          val vpath = "/blob/$encode" + if (ext.isNotEmpty()) ".$ext" else ""
-          val vfsPath = getVirtualFsPath(ipc.remote, vpath)
-          touchFile(vfsPath.fsFullPath, vfsPath.fs)
-          val fileSource = vfsPath.fs.sink(vfsPath.fsFullPath, false).buffer()
-          request.body.toPureStream().getReader("blob write to file").copyTo(fileSource)
-          "file://$vpath?mime=$mime&encode=$encode&ag=$ag"
+
+          /// 根据算法生成文件名
+          val data = request.body.toPureBinary()
+          val vPath = when (ag) {
+            BlobAlgorithm.Sha256 -> sha256(data).toHexString()
+              .let { hash -> "/blob/v1/$mime/$hash" }
+          }
+
+          val vfsPath = blobReadWriteVirtualFsDirectory.resolveTo(ipc.remote, vPath.toPath())
+          touchFile(vfsPath, blobReadWriteVirtualFsDirectory.fs)
+          val fileSource = blobReadWriteVirtualFsDirectory.fs.sink(vfsPath, false).buffer()
+          fileSource.write(data)
+          fileSource.flush()
+          fileSource.close()
+
+          "file://$vPath".also { debugFile("create/blob", it) }
         },
       )
     }
+
+    private val filenameBanChars = setOf('/', '"', '*', '<', '>', '?', '\\', '|', ':')
 
     override suspend fun _shutdown() {
     }
@@ -425,46 +448,13 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
 
 }
 
+enum class BlobAlgorithm(val ag: String) {
+  Sha256("sha256"),
+  ;
 
-/**
- * 虚拟的路径映射
- */
-class VirtualFsPath(
-  context: IMicroModuleManifest,
-  virtualPathString: String,
-  findVfsDirectory: (firstSegment: String) -> IVirtualFsDirectory?,
-) {
-  private val virtualFullPath = virtualPathString.toPath(true).also {
-    if (!it.isAbsolute) {
-      throw ResponseException(
-        HttpStatusCode.BadRequest, "File path should be absolute path"
-      )
-    }
-    if (it.segments.isEmpty()) {
-      throw ResponseException(
-        HttpStatusCode.BadRequest, "File path required one segment at least"
-      )
-    }
+  companion object {
+    val ALL = entries.associateBy { it.ag }
   }
-  private val virtualFirstSegment = virtualFullPath.segments.first()
-  private val vfsDirectory = findVfsDirectory(virtualFirstSegment) ?: throw ResponseException(
-    HttpStatusCode.NotFound, "No found top-folder: $virtualFirstSegment"
-  )
-  val fsFullPath = vfsDirectory.resolveTo(context, virtualFullPath)
-  val fs = vfsDirectory.fs
-
-  private val virtualFirstPath by lazy {
-    virtualFullPath.first
-  }
-  private val fsFirstPath by lazy {
-    vfsDirectory.resolveTo(context, virtualFirstPath)
-  }
-
-  /**
-   *  virtualFirstPath.resolve(fsPath.relativeTo(fsFirstPath))
-   */
-  fun toVirtualPath(fsPath: Path) = virtualFirstPath + (fsPath - fsFirstPath)
-  fun toVirtualPathString(fsPath: Path) = toVirtualPath(fsPath).toString()
 }
 
 
@@ -491,7 +481,8 @@ enum class FileWatchEventName(val eventName: String) {
   Unlink("unlink"),
 
   /** 文件夹被移除*/
-  UnlinkDir("unlinkDir"), ;
+  UnlinkDir("unlinkDir"),
+  ;
 
   companion object {
     val ALL_VALUES = entries.associateBy { it.eventName }

@@ -5,18 +5,26 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import org.dweb_browser.core.help.types.MMID
-import org.dweb_browser.helper.StrictImageResource
+import org.dweb_browser.browser.desk.types.DeskAppMetaData
+import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
+import org.dweb_browser.sys.window.core.helper.pickLargest
+import org.dweb_browser.sys.window.core.helper.toStrict
 
 internal class DesktopAppModel(
-  val name: String,
-  val mmid: MMID,
-  val data: DesktopAppData,
-  val icon: StrictImageResource?,
-  val isSystemApp: Boolean,
-  running: DesktopAppRunStatus = DesktopAppRunStatus.Close,
+  val appMetaData: DeskAppMetaData,
+  initRunningState: DesktopAppRunStatus = DesktopAppRunStatus.Close,
 ) {
-  var running by mutableStateOf(running)
+  val name by lazy { appMetaData.short_name.ifEmpty { appMetaData.name } }
+  val mmid get() = appMetaData.mmid
+  val webLink by lazy {
+    if (appMetaData.categories.contains(MICRO_MODULE_CATEGORY.Web_Browser) && appMetaData.mmid != "web.browser.dweb" && appMetaData.homepage_url.isNullOrEmpty()) {
+      appMetaData.homepage_url
+    } else null
+  }
+  val isWebLink get() = webLink != null
+  val icon by lazy { appMetaData.icons.toStrict().pickLargest() }
+  val isSystemApp get() = appMetaData.targetType == "nmm"
+  var running by mutableStateOf(initRunningState)
   var size by mutableStateOf(Size.Zero)
   var offset by mutableStateOf(Offset.Zero)
 

@@ -4,10 +4,8 @@ import okio.Path.Companion.toPath
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.pure.http.IPureBody
-import org.dweb_browser.pure.http.PureBinaryBody
 import org.dweb_browser.pure.http.PureClientRequest
 import org.dweb_browser.pure.http.PureMethod
-import org.dweb_browser.pure.http.PureResponse
 
 suspend fun MicroModule.Runtime.copyFile(sourcePath: String, targetPath: String) = nativeFetch(
   "file://file.std.dweb/copy?sourcePath=${sourcePath}&targetPath=${targetPath}"
@@ -64,12 +62,3 @@ suspend fun MicroModule.Runtime.createDir(path: String) =
 
 suspend fun MicroModule.Runtime.listDir(path: String) =
   nativeFetch(PureMethod.POST, "file://file.std.dweb/listDir?path=$path").json<List<String>>()
-
-suspend fun MicroModule.Runtime.blobWrite(data: ByteArray, mime: String = "", ext: String = "") =
-  nativeFetch(
-    PureClientRequest(
-      "file://file.std.dweb/blob/write?mime=$mime&ext=$ext",
-      PureMethod.POST,
-      body = PureBinaryBody(data)
-    )
-  ).text()

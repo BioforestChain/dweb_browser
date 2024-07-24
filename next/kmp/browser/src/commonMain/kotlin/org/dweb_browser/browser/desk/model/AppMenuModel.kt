@@ -57,8 +57,12 @@ internal enum class AppMenuType {
 
 internal fun DesktopAppModel.getAppMenuDisplays(): List<AppMenuModel> {
   val displays = mutableListOf<AppMenuModel>()
-  when (data) {
-    is DesktopAppData.App -> {
+  when {
+    isWebLink -> {
+      displays.add(AppMenuModel(AppMenuType.DELETE, true))
+    }
+
+    else -> {
       displays.add(
         AppMenuModel(AppMenuType.OFF, running == DesktopAppModel.DesktopAppRunStatus.Opened)
       )
@@ -66,10 +70,6 @@ internal fun DesktopAppModel.getAppMenuDisplays(): List<AppMenuModel> {
         displays.add(AppMenuModel(AppMenuType.DETAIL, true))
         displays.add(AppMenuModel(AppMenuType.UNINSTALL, true))
       }
-    }
-
-    is DesktopAppData.WebLink -> {
-      displays.add(AppMenuModel(AppMenuType.DELETE, true))
     }
   }
 

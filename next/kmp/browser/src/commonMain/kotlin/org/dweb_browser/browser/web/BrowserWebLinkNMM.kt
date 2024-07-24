@@ -8,11 +8,12 @@ import org.dweb_browser.core.module.NativeMicroModule
 /**
  * 仅用于添加到桌面后，能够点击打开 web
  */
-class WebLinkMicroModule(webLink: WebLinkManifest) : NativeMicroModule(webLink.id, webLink.url) {
+class WebLinkMicroModule(webLink: WebLinkManifest) : NativeMicroModule(webLink.id, webLink.title) {
   init {
     short_name = webLink.title
     categories = listOf(MICRO_MODULE_CATEGORY.Application, MICRO_MODULE_CATEGORY.Web_Browser)
     icons = webLink.icons
+    homepage_url = webLink.url
   }
 
   inner class WebLinkRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {

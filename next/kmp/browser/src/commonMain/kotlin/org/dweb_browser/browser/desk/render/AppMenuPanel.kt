@@ -44,7 +44,6 @@ import androidx.compose.ui.unit.dp
 import org.dweb_browser.browser.desk.DesktopController
 import org.dweb_browser.browser.desk.model.AppMenuModel
 import org.dweb_browser.browser.desk.model.AppMenuType
-import org.dweb_browser.browser.desk.model.DesktopAppData
 import org.dweb_browser.browser.desk.model.DesktopAppModel
 import org.dweb_browser.browser.desk.model.getAppMenuDisplays
 import org.dweb_browser.core.module.NativeMicroModule
@@ -173,9 +172,9 @@ internal class AppMenuPanel(
       AnimatedVisibility(isOpenDeleteDialog) {
         DeleteAlert(app, microModule, onDismissRequest = { hide() }, onConfirm = {
           hide()
-          when (app.data) {
-            is DesktopAppData.App -> doUninstall(app.mmid)
-            is DesktopAppData.WebLink -> doWebLinkDelete(app.mmid)
+          when  {
+            app.isWebLink -> doWebLinkDelete(app.mmid)
+            else -> doUninstall(app.mmid)
           }
         })
       }

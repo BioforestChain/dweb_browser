@@ -30,7 +30,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.browser.common.createDwebView
-import org.dweb_browser.browser.desk.model.DesktopAppData
 import org.dweb_browser.browser.desk.model.DesktopAppModel
 import org.dweb_browser.browser.desk.types.DeskAppMetaData
 import org.dweb_browser.browser.web.WebLinkMicroModule
@@ -56,8 +55,6 @@ import org.dweb_browser.helper.platform.IPureViewController
 import org.dweb_browser.helper.platform.from
 import org.dweb_browser.helper.resolvePath
 import org.dweb_browser.sys.window.core.WindowController
-import org.dweb_browser.sys.window.core.helper.pickLargest
-import org.dweb_browser.sys.window.core.helper.toStrict
 
 abstract class DesktopAppController constructor(open val deskNMM: DeskNMM.DeskRuntime) {
 
@@ -93,28 +90,15 @@ open class DesktopController private constructor(
       appsFlow.value.find { oldApp ->
         oldApp.mmid == appMetaData.mmid
       }?.also { it.running = runStatus } ?: DesktopAppModel(
-        name = appMetaData.short_name.ifEmpty { appMetaData.name },
-        mmid = appMetaData.mmid,
-        data = when {
-          // isWebLink TODO 临时的处理。等待分拆weblink后再优化。
-          appMetaData.categories.contains(MICRO_MODULE_CATEGORY.Web_Browser) && appMetaData.mmid != "web.browser.dweb" -> DesktopAppData.WebLink(
-            mmid = appMetaData.mmid,
-            url = appMetaData.name
-          )
-
-          else -> DesktopAppData.App(mmid = appMetaData.mmid)
-        },
-        icon = appMetaData.icons.toStrict().pickLargest(),
-        isSystemApp = appMetaData.targetType == "nmm",
-        running = runStatus,
+        appMetaData = appMetaData, initRunningState = runStatus
       )
     }
   }
 
   override suspend fun open(mmid: MMID) {
     val app = appsFlow.value.find { it.mmid == mmid } ?: return
-    when (app.data) {
-      is DesktopAppData.App -> {
+    when (val webLink = app.webLink) {
+      null -> {
         if (app.running == DesktopAppModel.DesktopAppRunStatus.Close) {
           app.running = DesktopAppModel.DesktopAppRunStatus.Opening
           openingApps.add(mmid)
@@ -123,8 +107,9 @@ open class DesktopController private constructor(
         super.open(mmid)
       }
 
-      is DesktopAppData.WebLink -> {
-        openWebLink(app.data.url)
+      else -> {
+        deskNMM.nativeFetch(webLink)
+//        deskNMM.connect(app.mmid).request(PureClientRequest(webLink, PureMethod.GET))
       }
     }
   }
@@ -156,10 +141,6 @@ open class DesktopController private constructor(
     deskNMM.bootstrapContext.dns.uninstall(id)
     webLinkStore.delete(id)
     return true
-  }
-
-  suspend fun openWebLink(url: String) {
-    deskNMM.nativeFetch("file://web.browser.dweb/openinbrowser?url=$url")
   }
   // 针对 WebLink 的管理部分 end
 

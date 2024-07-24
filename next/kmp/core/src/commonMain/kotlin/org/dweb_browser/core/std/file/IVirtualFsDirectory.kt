@@ -35,10 +35,11 @@ fun commonVirtualFsDirectoryFactory(
   firstSegmentFlags: String,
   nativeFsPath: Path,
   separated: Boolean = true,
+  fs: FileSystem = SystemFileSystem,
 ) =
   object : IVirtualFsDirectory {
     override fun isMatch(firstSegment: String) = firstSegment == firstSegmentFlags
-    override val fs: FileSystem = SystemFileSystem
+    override val fs: FileSystem = fs
     override fun resolveTo(remote: IMicroModuleManifest, virtualFullPath: Path): Path {
       val virtualFirstPath = "${virtualFullPath.root ?: "/"}$firstSegmentFlags".toPath()
       val virtualContentPath = virtualFullPath.relativeTo(virtualFirstPath)
@@ -95,12 +96,6 @@ expect fun FileNMM.getCacheVirtualFsDirectory(): IVirtualFsDirectory
  */
 expect fun FileNMM.getExternalDownloadVirtualFsDirectory(): IVirtualFsDirectory
 
-
-fun FileNMM.getBlobVirtualFsDirectory() = commonVirtualFsDirectoryFactory(
-  firstSegmentFlags = "blob",
-  nativeFsPath = FileNMM.Companion.getApplicationCacheDir().resolve("blob"),
-  separated = false
-)
 
 class FileDirectoryAdapterManager internal constructor() : AdapterManager<IVirtualFsDirectory>()
 

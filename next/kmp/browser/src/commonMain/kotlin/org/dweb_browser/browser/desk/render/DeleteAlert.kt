@@ -18,7 +18,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import org.dweb_browser.browser.BrowserI18nResource
-import org.dweb_browser.browser.desk.model.DesktopAppData
 import org.dweb_browser.browser.desk.model.DesktopAppModel
 import org.dweb_browser.core.module.NativeMicroModule
 
@@ -28,7 +27,7 @@ internal fun DeleteAlert(
   app: DesktopAppModel,
   microModule: NativeMicroModule.NativeRuntime,
   onDismissRequest: () -> Unit,
-  onConfirm: () -> Unit
+  onConfirm: () -> Unit,
 ) {
   BasicAlertDialog(
     onDismissRequest = onDismissRequest
@@ -43,17 +42,17 @@ internal fun DeleteAlert(
 
       DeskAppIcon(app, microModule, containerAlpha = 1f)
 
-      when (app.data) {
-        is DesktopAppData.App -> {
+      when {
+        app.isWebLink -> {
+          Text("${BrowserI18nResource.Desktop.delete.text}: \"${app.name}\"", color = Color.Black)
+        }
+
+        else -> {
           Text(
             "${BrowserI18nResource.Desktop.uninstall.text}: \"${app.name}\"",
             color = Color.Black
           )
           Text(BrowserI18nResource.Desktop.uninstallAlert.text, color = Color.Black)
-        }
-
-        is DesktopAppData.WebLink -> {
-          Text("${BrowserI18nResource.Desktop.delete.text}: \"${app.name}\"", color = Color.Black)
         }
       }
 
