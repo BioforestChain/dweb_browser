@@ -16,6 +16,8 @@ import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.DisplayMode
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.collectIn
+import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
+import org.dweb_browser.helper.compose.envSwitch
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.queryAs
@@ -30,9 +32,12 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
   init {
     short_name = BrowserI18nResource.download_shore_name.text
     categories = listOf(
-//      MICRO_MODULE_CATEGORY.Application,
       MICRO_MODULE_CATEGORY.Network_Service,
-    )
+    ).let {
+      if (envSwitch.isEnabled(ENV_SWITCH_KEY.BROWSER_DOWNLOAD)) {
+        it + MICRO_MODULE_CATEGORY.Application
+      } else it
+    }
     display = DisplayMode.Fullscreen
     icons =
       listOf(ImageResource(src = "file:///sys/browser-icons/$mmid.svg", type = "image/svg+xml"))

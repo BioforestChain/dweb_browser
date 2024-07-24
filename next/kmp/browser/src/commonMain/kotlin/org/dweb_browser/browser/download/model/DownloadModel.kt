@@ -7,7 +7,9 @@ import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.FileOpen
 import androidx.compose.material.icons.filled.Photo
 import androidx.compose.material.icons.filled.VideoFile
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.vector.ImageVector
 import kotlinx.datetime.LocalDate
 import org.dweb_browser.browser.BrowserI18nResource
@@ -25,9 +27,8 @@ enum class DownloadTab(val id: Int, val title: SimpleI18nResource, val vector: I
 }
 
 class DownloadModel(val downloadController: DownloadController) {
-  val tabIndex = mutableIntStateOf(0)
+  var tabIndex by mutableIntStateOf(0)
   val tabItems = DownloadTab.entries.toTypedArray()
-
   suspend fun startDownload(downloadTask: DownloadTask) =
     downloadController.startDownload(downloadTask)
 

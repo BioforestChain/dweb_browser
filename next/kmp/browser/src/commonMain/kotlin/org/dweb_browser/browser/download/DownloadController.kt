@@ -22,8 +22,8 @@ import kotlinx.serialization.json.Json
 import org.dweb_browser.browser.download.model.ChangeableMutableMap
 import org.dweb_browser.browser.download.model.ChangeableType
 import org.dweb_browser.browser.download.model.DownloadModel
-import org.dweb_browser.browser.download.ui.DecompressModel
-import org.dweb_browser.browser.download.ui.lastPath
+import org.dweb_browser.browser.download.render.DecompressModel
+import org.dweb_browser.browser.download.render.lastPath
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.file.FileMetadata
@@ -148,7 +148,7 @@ class DownloadController(private val downloadNMM: DownloadNMM.DownloadRuntime) {
   private val downloadStore = DownloadStore(downloadNMM)
   val downloadTaskMaps: ChangeableMutableMap<TaskId, DownloadTask> =
     ChangeableMutableMap() // 用于监听下载列表
-  val downloadList: MutableList<DownloadTask> = mutableStateListOf()
+  val downloadList = mutableStateListOf<DownloadTask>()
   private var winLock = Mutex(false)
   val downloadModel = DownloadModel(this)
   val decompressModel = DecompressModel(this)

@@ -89,6 +89,21 @@ enum class ENV_SWITCH_KEY(
       disableVersion = "0",
       enableVersion = "1",
     ),
+  ),
+  BROWSER_DOWNLOAD(
+    "browser-download",
+    experimental = ExperimentalKey(
+      title = SimpleI18nResource(
+        Language.ZH to "下载管理", Language.EN to "Download Manager"
+      ),
+      description = SimpleI18nResource(
+        Language.ZH to "管理下载的内容",
+        Language.EN to "Manage downloaded contents",
+      ),
+      brand = "dweb-browser-download",
+      disableVersion = "0",
+      enableVersion = "1",
+    ),
   )
 //  SCAN_STD(
 //    "lens-nmm",

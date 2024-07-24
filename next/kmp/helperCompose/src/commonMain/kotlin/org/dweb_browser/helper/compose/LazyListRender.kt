@@ -58,33 +58,6 @@ fun <T> LazyReorderColumn(
   }
 }
 
-@Deprecated("use SwipeToViewBox")
-@Composable
-fun <T> LazySwipeColumn(
-  items: List<T>,
-  key: (item: T) -> Any,
-  onRemove: (item: T) -> Unit,
-  modifier: Modifier = Modifier,
-  noDataValue: String = "No Data",
-  noDataContent: @Composable (() -> Unit)? = null,
-  background: @Composable RowScope.() -> Unit = { DeleteBackground() },
-  content: @Composable RowScope.(item: T) -> Unit,
-) {
-  if (items.isEmpty()) {
-    noDataContent?.let { it() } ?: NoDataRender(noDataValue)
-    return
-  }
-  LazyColumn(modifier = Modifier.fillMaxSize()) {
-    items(items, key = { item -> key(item) }) { item ->
-      ListSwipeItem(
-        modifier = modifier,
-        onRemove = { onRemove(item) },
-        background = background,
-        content = { Row(modifier = Modifier.fillMaxSize()) { content(item) } }
-      )
-    }
-  }
-}
 
 /**
  * 可以左右滑动删除和上下拖动排序

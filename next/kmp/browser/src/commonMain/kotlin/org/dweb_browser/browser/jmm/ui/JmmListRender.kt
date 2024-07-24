@@ -33,7 +33,7 @@ fun JmmRenderController.JmmListView(modifier: Modifier, showDetailButton: Boolea
     modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)
   ) {
     SingleChoiceSegmentedButtonRow(
-      modifier = Modifier.fillMaxWidth().padding(horizontal = MaterialTheme.dimens.medium)
+      modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
     ) {
       JmmTabs.entries.forEachIndexed { index, jmmTab ->
         val selected = curTab == jmmTab

@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.download.ui
+package org.dweb_browser.browser.download.render
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -56,8 +56,7 @@ class DecompressModel(private val downloadController: DownloadController) {
 }
 
 @Composable
-fun DecompressView(modifier: Modifier) {
-  val decompressModel = LocalDecompressModel.current
+fun DownloadController.DecompressView(modifier: Modifier) {
   if (decompressModel.downloadTask.value != null) {
     LocalWindowController.current.navigation.GoBackHandler {
       decompressModel.hide()
