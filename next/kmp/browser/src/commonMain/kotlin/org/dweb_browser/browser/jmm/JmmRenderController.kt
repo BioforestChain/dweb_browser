@@ -1,5 +1,7 @@
 package org.dweb_browser.browser.jmm
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -14,7 +16,8 @@ import org.dweb_browser.sys.window.ext.getMainWindow
 class JmmRenderController(
   internal val jmmNMM: JmmNMM.JmmRuntime, private val jmmController: JmmController,
 ) {
-  fun getHistoryMetadataMap() = jmmController.historyMetadataMaps
+  @Composable
+  fun historyMetadataMap() = jmmController.historyMetadataMapsFlow.collectAsState()
 
   suspend fun hideView() {
     jmmNMM.getMainWindow().hide()
@@ -26,28 +29,6 @@ class JmmRenderController(
       Render(modifier = modifier, windowRenderScope = this)
     }
     win.show()
-  }
-
-  suspend fun buttonClick(historyMetadata: JmmMetadata) {
-    when (historyMetadata.state.state) {
-      JmmStatus.INSTALLED -> {
-        // jmmNMM.bootstrapContext.dns.open(historyMetadata.metadata.id)
-        jmmController.openApp(historyMetadata.manifest.id)
-      }
-
-      JmmStatus.Paused -> {
-        jmmController.startDownloadTask(historyMetadata)
-      }
-
-      JmmStatus.Downloading -> {
-        jmmController.pause(historyMetadata)
-      }
-
-      JmmStatus.Completed -> {}
-      else -> {
-        jmmController.startDownloadTaskByUrl(historyMetadata.originUrl, historyMetadata.referrerUrl)
-      }
-    }
   }
 
   var detailController by mutableStateOf<JmmDetailController?>(null)

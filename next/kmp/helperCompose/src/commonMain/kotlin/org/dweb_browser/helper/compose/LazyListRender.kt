@@ -58,6 +58,7 @@ fun <T> LazyReorderColumn(
   }
 }
 
+@Deprecated("use SwipeToViewBox")
 @Composable
 fun <T> LazySwipeColumn(
   items: List<T>,

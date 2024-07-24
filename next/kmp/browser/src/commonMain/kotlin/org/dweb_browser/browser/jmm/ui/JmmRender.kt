@@ -75,15 +75,3 @@ internal fun JmmRenderController.CommonRender(
     },
   )
 }
-
-@Composable
-internal fun JmmStatus.showText() = when (this) {
-  JmmStatus.Downloading -> BrowserI18nResource.install_button_downloading()
-  JmmStatus.Paused -> BrowserI18nResource.install_button_paused()
-  JmmStatus.Failed -> BrowserI18nResource.install_button_retry2()
-  JmmStatus.Init, JmmStatus.Canceled -> BrowserI18nResource.install_button_install()
-  JmmStatus.Completed -> BrowserI18nResource.install_button_installing()
-  JmmStatus.INSTALLED -> BrowserI18nResource.install_button_open()
-  JmmStatus.NewVersion -> BrowserI18nResource.install_button_update()
-  JmmStatus.VersionLow -> BrowserI18nResource.install_button_open() // 理论上历史列表应该不存在这状态
-}

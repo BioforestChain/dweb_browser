@@ -39,8 +39,10 @@ object JmmI18nResource {
   val install_info_homepage =
     SimpleI18nResource(Language.ZH to "应用主页", Language.EN to "Home Page")
   val history_details = SimpleI18nResource(Language.ZH to "详情", Language.EN to "Details")
-  val history_uninstall =
+  val uninstall =
     SimpleI18nResource(Language.ZH to "卸载", Language.EN to "Uninstall")
+  val remove_record =
+    SimpleI18nResource(Language.ZH to "删除记录", Language.EN to "Delete Record")
   val url_invalid =
     SimpleI18nResource(
       Language.ZH to "网址已失效，请前往官网进行安装！",

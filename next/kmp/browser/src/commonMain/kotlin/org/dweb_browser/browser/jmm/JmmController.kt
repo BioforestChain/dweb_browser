@@ -1,7 +1,7 @@
 package org.dweb_browser.browser.jmm
 
-import androidx.compose.runtime.mutableStateMapOf
 import io.ktor.http.HttpStatusCode
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Serializable
@@ -45,7 +45,7 @@ import org.dweb_browser.sys.window.core.WindowController
 class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore: JmmStore) {
 
   // 构建jmm历史记录
-  val historyMetadataMaps: MutableMap<String, JmmMetadata> = mutableStateMapOf()
+  val historyMetadataMapsFlow = MutableStateFlow(mapOf<String, JmmMetadata>())
 
   // 构建历史的controller
   private val renderController = JmmRenderController(jmmNMM, this)
@@ -55,7 +55,8 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
 
   suspend fun loadHistoryMetadataUrl() {
     val loadMap = jmmStore.getAllHistory()
-    historyMetadataMaps.clear()
+    val historyMetadataMaps = mutableMapOf<String, JmmMetadata>()
+//    historyMetadataMaps.clear()
     if (loadMap.filter { (key, value) -> key != value.manifest.id }.isNotEmpty()) {
       // 为了替换掉旧数据，旧数据使用originUrl来保存的，现在改为mmid，add by 240201
       val saveMap = mutableMapOf<String, MutableList<JmmMetadata>>()
@@ -90,6 +91,7 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
         jmmStore.saveHistory(key, historyMetadata)
       }
     }
+    historyMetadataMapsFlow.value = historyMetadataMaps
   }
 
   private val installViews = SafeHashMap<String, JmmDetailController>()
@@ -215,7 +217,7 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
   /**只有需要存储的时候才存起来*/
   private suspend fun saveMetadata(differentMetadata: JmmMetadata) {
     debugJMM("saveMetadata", differentMetadata)
-    historyMetadataMaps[differentMetadata.manifest.id] = differentMetadata
+    historyMetadataMapsFlow.value += differentMetadata.manifest.id to differentMetadata
     jmmStore.saveHistory(
       differentMetadata.manifest.id, differentMetadata
     )
@@ -229,7 +231,11 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
     jmmNMM.removeFile("/data/apps/${mmid}-${data.installManifest.version}")
     // 从磁盘中移除整个
     jmmStore.deleteApp(mmid)
-    historyMetadataMaps[mmid]?.initState(jmmStore) // 恢复成Init状态
+    // 恢复成Init状态
+    historyMetadataMapsFlow.value[mmid]?.also { item ->
+      item.initState(jmmStore)
+      historyMetadataMapsFlow.value += mmid to item
+    }
     return true
   }
 
@@ -394,7 +400,7 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
 
 
   suspend fun removeHistoryMetadata(historyMetadata: JmmMetadata) {
-    historyMetadataMaps.remove(historyMetadata.manifest.id)
+    historyMetadataMapsFlow.value -= historyMetadata.manifest.id
     historyMetadata.downloadTask?.id?.let { taskId -> jmmNMM.removeDownload(taskId) }
     jmmStore.deleteHistory(historyMetadata.manifest.id)
   }

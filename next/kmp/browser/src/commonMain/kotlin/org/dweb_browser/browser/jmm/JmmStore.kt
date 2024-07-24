@@ -8,7 +8,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.vector.ImageVector
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.download.DownloadState
 import org.dweb_browser.browser.download.DownloadStateEvent
 import org.dweb_browser.browser.download.DownloadTask
@@ -95,8 +94,7 @@ data class JmmMetadata(
   var upgradeTime: Long = datetimeNow(),
 ) {
   init {
-    @Suppress("DEPRECATION")
-    if (_oldMetadata != null) {
+    @Suppress("DEPRECATION") if (_oldMetadata != null) {
       _manifest = _oldMetadata
     }
   }
@@ -212,8 +210,16 @@ enum class JmmTabs(
   val index: Int,
   val title: SimpleI18nResource,
   val vector: ImageVector,
-  val listFilter: (Iterable<JmmMetadata>) -> List<JmmMetadata>
+  val listFilter: (Iterable<JmmMetadata>) -> List<JmmMetadata>,
 ) {
+  Installed(
+    index = 1,
+    title = JmmI18nResource.history_tab_installed,
+    vector = Icons.Default.InstallMobile,
+    listFilter = { list ->
+      list.filter { it.state.state == JmmStatus.INSTALLED }.sortedBy { it.installTime }
+    },
+  ),
   NoInstall(
     index = 0,
     title = JmmI18nResource.history_tab_uninstalled,
@@ -222,12 +228,5 @@ enum class JmmTabs(
       list.filter { it.state.state != JmmStatus.INSTALLED }.sortedBy { it.upgradeTime }
     },
   ),
-  Installed(
-    index = 1,
-    title = JmmI18nResource.history_tab_installed,
-    vector = Icons.Default.InstallMobile,
-    listFilter = { list ->
-      list.filter { it.state.state == JmmStatus.INSTALLED }.sortedBy { it.installTime }
-    },
-  ), ;
+  ;
 }
