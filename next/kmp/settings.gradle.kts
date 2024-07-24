@@ -100,14 +100,14 @@ class FeaturesFactory {
   val iosApp = Bool(platform.isMac && !disabled.contains("ios"));
   val desktopApp = Bool(!disabled.contains("desktop"));
   val electronApp = Bool(enabled.contains("electron"));
-  val libs = Bool(androidApp.enabled || iosApp.enabled || desktopApp.enabled)
+  val extlibs = Bool(androidApp.enabled || iosApp.enabled || desktopApp.enabled)
 
   init {
     println("androidApp.enabled=${androidApp.enabled}")
     println("iosApp.enabled=${iosApp.enabled}")
     println("desktopApp.enabled=${desktopApp.enabled}")
     println("electronApp.enabled=${electronApp.enabled}")
-    println("libs.enabled=${libs.enabled}")
+    println("libs.enabled=${extlibs.enabled}")
   }
 }
 
@@ -142,7 +142,7 @@ if (features.desktopApp.enabled) {
   include(":platformDesktop")
 }
 
-if (features.libs.enabled) {
+if (features.extlibs.enabled) {
   include(":helper")
   include(":helperCompose")
   include(":helperCapturable")
@@ -179,7 +179,7 @@ if (features.desktopApp.enabled) {
   includeApp("desktopApp")
 }
 
-if (features.libs.enabled) {
+if (features.extlibs.enabled) {
   File(
     rootDir,
     "../../toolkit/dweb_browser_libs/rust_library"

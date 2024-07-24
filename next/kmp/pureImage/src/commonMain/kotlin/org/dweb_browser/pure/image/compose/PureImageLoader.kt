@@ -26,7 +26,7 @@ fun PureImageLoader.Companion.CommonSmartLoad(
   var bestResult: ImageLoadResult? = null
   // 如果是 svg，使用 coil-engine 先进行快速渲染，使用 web-engine 来确保正确渲染
   if (fixUrl.endsWith(".svg") || fixUrl.startsWith("data:image/svg+xml;")) {
-    bestResult = LocalWebImageLoader.current.Load(task)
+    bestResult = LocalResvgImageLoader.current.Load(task)
     if (bestResult.isSuccess) {
       return bestResult
     }
@@ -35,7 +35,7 @@ fun PureImageLoader.Companion.CommonSmartLoad(
   val backupResult = LocalCoilImageLoader.current.Load(task)
   // 如果没有使用 webImageLoader，并且 coilImageLoader 还失败了，那么直接使用 webImageLoader 去加载
   if (backupResult.isError && bestResult == null) {
-    return LocalWebImageLoader.current.Load(task)
+    return LocalResvgImageLoader.current.Load(task)
   }
   return backupResult
 }
@@ -49,10 +49,14 @@ fun PureImageLoader.Companion.StableSmartLoad(
   val task = LoaderTask.from(fixUrl, maxWidth, maxHeight, hook)
   // 如果是 svg，使用 coil-engine 先进行快速渲染，使用 web-engine 来确保正确渲染
   if (fixUrl.endsWith(".svg") || fixUrl.startsWith("data:image/svg+xml;")) {
-    return LocalWebImageLoader.current.Load(task)
+    return LocalResvgImageLoader.current.Load(task)
   }
 
-  return LocalCoilImageLoader.current.Load(task)
+  val result = LocalCoilImageLoader.current.Load(task)
+  if (result.isError) {
+    return LocalWebImageLoader.current.Load(task)
+  }
+  return result
 }
 
 @Composable
@@ -62,8 +66,9 @@ fun PureImageLoader.Companion.FastSmartLoad(
   val fixUrl = url.fixUrl()
 
   val task = LoaderTask.from(fixUrl, maxWidth, maxHeight, hook)
-  val result = LocalWebImageLoader.current.getLoadCache(task)// 这里的 LoadCache 和 下面的 isError-Load 做配合
-    ?: LocalCoilImageLoader.current.Load(task)
+  val result =
+    LocalResvgImageLoader.current.getLoadCache(task)// 这里的 LoadCache 和 下面的 isError-Load 做配合
+      ?: LocalCoilImageLoader.current.Load(task)
   if (result.isError) {
     return LocalWebImageLoader.current.Load(task)
   }

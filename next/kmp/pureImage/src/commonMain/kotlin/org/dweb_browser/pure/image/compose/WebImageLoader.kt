@@ -16,7 +16,7 @@ import org.dweb_browser.pure.image.setHook
 import kotlin.math.min
 
 
-val LocalWebImageLoader = compositionChainOf("ImageLoader") { WebImageLoader.defaultInstance }
+val LocalWebImageLoader = compositionChainOf("WebImageLoader") { WebImageLoader.defaultInstance }
 
 @Composable
 @InternalComposeApi
@@ -33,9 +33,7 @@ class WebImageLoader : PureImageLoader {
   @OptIn(InternalComposeApi::class)
   @Composable
   override fun Load(task: LoaderTask): ImageLoadResult {
-    return load(
-      rememberOffscreenWebCanvas(), task
-    ).collectAsState().value
+    return load(rememberOffscreenWebCanvas(), task).collectAsState().value
   }
 
 
