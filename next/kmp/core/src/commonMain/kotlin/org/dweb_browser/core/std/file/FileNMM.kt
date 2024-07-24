@@ -177,7 +177,7 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
       /// file:///picker/*
       fileTypeAdapterManager.append(adapter = pickerFileSystem).removeWhen(mmScope)
 
-      /// nativeFetch 适配 file:///*/** 的请求
+      /// nativeFetch 适配 file:///*/** 的读取请求
       nativeFetchAdaptersManager.append(order = 2) { fromMM, request ->
         return@append request.respondLocalFile {
           debugFile("read file", "$fromMM => ${request.href}")

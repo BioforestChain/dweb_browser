@@ -39,10 +39,8 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
-import org.dweb_browser.core.std.file.ext.MicroModuleStore
-import org.dweb_browser.core.std.file.ext.blobWrite
-import org.dweb_browser.helper.PureBounds
 import org.dweb_browser.helper.Observable
+import org.dweb_browser.helper.PureBounds
 import org.dweb_browser.helper.PureRect
 import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.WeakHashMap
@@ -60,7 +58,7 @@ import org.dweb_browser.helper.platform.theme.md_theme_dark_surface
 import org.dweb_browser.helper.platform.theme.md_theme_light_inverseOnSurface
 import org.dweb_browser.helper.platform.theme.md_theme_light_onSurface
 import org.dweb_browser.helper.platform.theme.md_theme_light_surface
-import org.dweb_browser.pure.image.offscreenwebcanvas.FetchHook
+import org.dweb_browser.pure.http.ext.FetchHook
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.WindowState
 import org.dweb_browser.sys.window.core.WindowsManager
@@ -454,7 +452,8 @@ private fun WindowController.calcWindowPaddingByLimits(
       getCornerRadiusBottom(platformViewController, density, 16f)
     )
 
-    boxSafeAreaInsets = PureBounds.Zero.copy(bottom = max(safeGesturesPaddingBottom - bottomHeight, 0f))
+    boxSafeAreaInsets =
+      PureBounds.Zero.copy(bottom = max(safeGesturesPaddingBottom - bottomHeight, 0f))
   } else {
     borderRounded = getWindowControllerBorderRounded(false)
     contentRounded = borderRounded / sqrt(2f)
@@ -774,27 +773,6 @@ val MicroModule.Runtime.imageFetchHook
   get() = MicroModuleFetchHookCache.getOrPut(this) {
     {
       nativeFetch(request.url)
-    }
-  }
-
-private val blobStoreWM = WeakHashMap<MicroModule.Runtime, MicroModuleStore>()
-val MicroModule.Runtime.urlBlobStore
-  get() = blobStoreWM.getOrPut(this) {
-    MicroModuleStore(this, "blob-cache", false)
-  }
-
-private val MicroModuleBlobFetchHookCache = WeakHashMap<MicroModule.Runtime, FetchHook>()
-val MicroModule.Runtime.blobFetchHook
-  get() = MicroModuleBlobFetchHookCache.getOrPut(this) {
-    {
-      val blobUrl = urlBlobStore.getOrPut(request.url.toString()) {
-        val response = nativeFetch(request.url)
-        val mime = response.headers.get("Content-Type") ?: ""
-        val ext = request.url.pathSegments.lastOrNull()?.substringAfterLast(".", "") ?: ""
-        val data = response.body.toPureBinary()
-        blobWrite(data, mime, ext)
-      }
-      nativeFetch(blobUrl)
     }
   }
 

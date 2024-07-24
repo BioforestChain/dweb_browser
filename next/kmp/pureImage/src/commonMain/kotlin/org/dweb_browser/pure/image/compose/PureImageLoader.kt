@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
-import org.dweb_browser.pure.image.offscreenwebcanvas.FetchHook
+import org.dweb_browser.pure.http.ext.FetchHook
 
 @Composable
 expect fun PureImageLoader.Companion.SmartLoad(

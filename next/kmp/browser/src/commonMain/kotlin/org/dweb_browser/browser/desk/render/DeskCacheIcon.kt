@@ -10,7 +10,7 @@ import org.dweb_browser.helper.StrictImageResource
 import org.dweb_browser.pure.image.compose.PureImageLoader
 import org.dweb_browser.pure.image.compose.SmartLoad
 import org.dweb_browser.sys.window.render.AppIcon
-import org.dweb_browser.sys.window.render.blobFetchHook
+import org.dweb_browser.core.std.file.ext.blobFetchHook
 
 @Composable
 fun DeskCacheIcon(

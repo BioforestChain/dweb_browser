@@ -85,7 +85,7 @@ import org.dweb_browser.pure.image.compose.StableSmartLoad
 import org.dweb_browser.sys.keychain.KeychainNMM
 import org.dweb_browser.sys.window.core.helper.pickLargest
 import org.dweb_browser.sys.window.core.helper.toStrict
-import org.dweb_browser.sys.window.render.blobFetchHook
+import org.dweb_browser.core.std.file.ext.blobFetchHook
 
 internal expect fun getDeviceName(): String
 

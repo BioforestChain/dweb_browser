@@ -11,6 +11,9 @@ import org.dweb_browser.pure.io.SystemFileSystem
 actual fun FileNMM.Companion.getApplicationRootDir() =
   getAppContextUnsafe().dataDir.absolutePath.toPath()
 
+actual fun FileNMM.Companion.getApplicationCacheDir() =
+  getAppContextUnsafe().cacheDir.absolutePath.toPath()
+
 /**
  * 持久化数据
  */
@@ -36,7 +39,7 @@ actual fun FileNMM.getDataVirtualFsDirectory() = object : IVirtualFsDirectory {
  * 缓存文件夹，这里的空间会被按需回收
  */
 actual fun FileNMM.getCacheVirtualFsDirectory() = commonVirtualFsDirectoryFactory(
-  "cache", getAppContextUnsafe().cacheDir.absolutePath.toPath()
+  "cache", FileNMM.Companion.getApplicationCacheDir()
 )
 
 /**
@@ -46,19 +49,3 @@ actual fun FileNMM.getExternalDownloadVirtualFsDirectory() = commonVirtualFsDire
   firstSegmentFlags = "download",
   nativeFsPath = getAppContextUnsafe().getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)!!.absolutePath.toPath()
 )
-
-actual fun FileNMM.getBlobVirtualFsDirectory() = object : IVirtualFsDirectory {
-  override fun isMatch(firstSegment: String) = firstSegment == "blob"
-  override val fs: FileSystem = SystemFileSystem
-  val rootDir = FileNMM.getApplicationRootDir()
-  val basePath = rootDir.resolve("blob")
-  private val basePathStr = basePath.toString()
-  override fun resolveTo(remote: IMicroModuleManifest, virtualFullPath: Path): Path {
-    return when {
-      virtualFullPath.toString().startsWith(basePathStr) -> {
-        virtualFullPath
-      }
-      else -> basePath + (virtualFullPath - "/blob")
-    }
-  }
-}

@@ -12,7 +12,7 @@ import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureServerRequest
 import org.dweb_browser.pure.http.defaultHttpPureClient
 import org.dweb_browser.pure.http.fetch
-import org.dweb_browser.pure.image.offscreenwebcanvas.FetchHookContext
+import org.dweb_browser.pure.http.ext.FetchHookContext
 import resvg_render.FitMode
 import resvg_render.RenderOptions
 import resvg_render.svgToPng

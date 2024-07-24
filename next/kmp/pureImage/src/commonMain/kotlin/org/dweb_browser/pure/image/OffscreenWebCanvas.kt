@@ -1,6 +1,6 @@
 package org.dweb_browser.pure.image
 
-import org.dweb_browser.pure.image.offscreenwebcanvas.FetchHook
+import org.dweb_browser.pure.http.ext.FetchHook
 import org.dweb_browser.pure.image.offscreenwebcanvas.OffscreenWebCanvasCore
 
 

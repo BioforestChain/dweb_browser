@@ -29,7 +29,7 @@ import org.dweb_browser.helper.compose.rememberVectorPainterWithTint
 import org.dweb_browser.pure.image.compose.ImageLoadResult
 import org.dweb_browser.pure.image.compose.PureImageLoader
 import org.dweb_browser.pure.image.compose.SmartLoad
-import org.dweb_browser.pure.image.offscreenwebcanvas.FetchHook
+import org.dweb_browser.pure.http.ext.FetchHook
 import squircleshape.SquircleShape
 
 data class AppIconOptions(

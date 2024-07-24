@@ -31,7 +31,11 @@ interface IVirtualFsDirectory {
 /**
  * 一种通用的虚拟文件目录，需要提供真实的物理设备的
  */
-fun commonVirtualFsDirectoryFactory(firstSegmentFlags: String, nativeFsPath: Path, separated: Boolean = true) =
+fun commonVirtualFsDirectoryFactory(
+  firstSegmentFlags: String,
+  nativeFsPath: Path,
+  separated: Boolean = true,
+) =
   object : IVirtualFsDirectory {
     override fun isMatch(firstSegment: String) = firstSegment == firstSegmentFlags
     override val fs: FileSystem = SystemFileSystem
@@ -46,6 +50,10 @@ fun commonVirtualFsDirectoryFactory(firstSegmentFlags: String, nativeFsPath: Pat
     }
   }
 
+fun commonVirtualFsDirectoryFactory(firstSegment: String, nativeFsPath: String) =
+  commonVirtualFsDirectoryFactory(firstSegment, nativeFsPath.toPath())
+
+
 val Path.first get() = "${root ?: " / "}${segments.first()}".toPath()
 
 operator fun Path.plus(path: Path) = resolve(path)
@@ -53,8 +61,6 @@ operator fun Path.plus(path: String) = resolve(path.toPath())
 operator fun Path.minus(path: Path) = relativeTo(path)
 operator fun Path.minus(path: String) = relativeTo(path.toPath())
 
-fun commonVirtualFsDirectoryFactory(firstSegment: String, nativeFsPath: String) =
-  commonVirtualFsDirectoryFactory(firstSegment, nativeFsPath.toPath())
 
 //
 //class CommonVirtualFsDirectory(val firstSegment: String, val nativeFsPath: Path) : IVirtualFsDirectory {
@@ -67,6 +73,11 @@ fun commonVirtualFsDirectoryFactory(firstSegment: String, nativeFsPath: String) 
  * 获取应用内部目录
  */
 expect fun FileNMM.Companion.getApplicationRootDir(): Path
+
+/**
+ * 获取应用缓存目录
+ */
+expect fun FileNMM.Companion.getApplicationCacheDir(): Path
 
 /**
  * 持久化数据
@@ -85,7 +96,11 @@ expect fun FileNMM.getCacheVirtualFsDirectory(): IVirtualFsDirectory
 expect fun FileNMM.getExternalDownloadVirtualFsDirectory(): IVirtualFsDirectory
 
 
-expect fun FileNMM.getBlobVirtualFsDirectory(): IVirtualFsDirectory
+fun FileNMM.getBlobVirtualFsDirectory() = commonVirtualFsDirectoryFactory(
+  firstSegmentFlags = "blob",
+  nativeFsPath = FileNMM.Companion.getApplicationCacheDir().resolve("blob"),
+  separated = false
+)
 
 class FileDirectoryAdapterManager internal constructor() : AdapterManager<IVirtualFsDirectory>()
 

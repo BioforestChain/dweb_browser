@@ -34,7 +34,7 @@ import org.dweb_browser.sys.window.core.WindowContentScaffoldWithTitleText
 import org.dweb_browser.sys.window.core.helper.pickLargest
 import org.dweb_browser.sys.window.core.helper.toStrict
 import org.dweb_browser.sys.window.render.AppIcon
-import org.dweb_browser.sys.window.render.blobFetchHook
+import org.dweb_browser.core.std.file.ext.blobFetchHook
 
 @Composable
 internal fun KeychainManager.ListView(

@@ -49,7 +49,7 @@ import org.dweb_browser.sys.window.core.helper.toStrict
 import org.dweb_browser.sys.window.core.withRenderScope
 import org.dweb_browser.sys.window.render.AppIcon
 import org.dweb_browser.sys.window.render.LocalWindowController
-import org.dweb_browser.sys.window.render.blobFetchHook
+import org.dweb_browser.core.std.file.ext.blobFetchHook
 
 class ProfileDetail(val profileName: String, val mm: MicroModule) : IMicroModuleManifest by mm {
 

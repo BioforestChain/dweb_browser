@@ -43,8 +43,8 @@ import org.dweb_browser.pure.http.PureServerRequest
 import org.dweb_browser.pure.http.PureStream
 import org.dweb_browser.pure.http.defaultHttpPureClient
 import org.dweb_browser.pure.http.ktor.KtorPureClient
-import org.dweb_browser.pure.image.offscreenwebcanvas.FetchHook
-import org.dweb_browser.pure.image.offscreenwebcanvas.FetchHookContext
+import org.dweb_browser.pure.http.ext.FetchHook
+import org.dweb_browser.pure.http.ext.FetchHookContext
 import org.dweb_browser.pure.image.removeOriginAndAcceptEncoding
 import kotlin.coroutines.CoroutineContext
 import kotlin.math.min

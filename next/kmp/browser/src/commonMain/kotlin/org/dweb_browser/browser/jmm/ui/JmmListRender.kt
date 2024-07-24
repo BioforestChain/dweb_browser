@@ -61,7 +61,7 @@ import org.dweb_browser.helper.toSpaceSize
 import org.dweb_browser.pure.image.compose.PureImageLoader
 import org.dweb_browser.pure.image.compose.SmartLoad
 import org.dweb_browser.sys.window.core.constant.LocalWindowMM
-import org.dweb_browser.sys.window.render.blobFetchHook
+import org.dweb_browser.core.std.file.ext.blobFetchHook
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
