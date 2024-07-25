@@ -4,3 +4,6 @@
 [submodule "toolkit/dweb_html5test"]
 	path = toolkit/dweb_html5test
 	url = https://github.com/BioforestChain/dweb_html5test.git
+[submodule "toolkit/dweb_material_icons"]
+	path = toolkit/dweb_material_icons
+	url = https://github.com/BioforestChain/dweb_material_icons.git

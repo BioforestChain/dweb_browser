@@ -39,6 +39,16 @@ AssetsConfig.createAndSave("browser-drawable", [
   },
 ]);
 AssetsConfig.createAndSave(
+  "browser-download-icons",
+  [
+    {
+      type: "linkKmpResFiles",
+      moduleName: "browser",
+    },
+  ],
+  rootResolve("./toolkit/dweb_material_icons/build")
+);
+AssetsConfig.createAndSave(
   "browser-html5test",
   [
     {

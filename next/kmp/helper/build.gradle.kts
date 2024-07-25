@@ -22,6 +22,7 @@ kotlin {
       api(libs.kotlinx.datetime)
       api(libs.ktor.http)
       api(libs.ktor.io)
+      api(projects.libCompression)
     }
   }
 

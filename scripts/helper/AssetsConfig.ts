@@ -5,7 +5,7 @@ import { copySync } from "@std/fs/copy";
 import { emptyDirSync } from "@std/fs/empty-dir";
 import fs from "node:fs";
 import os from "node:os";
-import node_path from "node:path";
+import { default as node_path } from "node:path";
 import { $ } from "./exec.ts";
 import { createBaseResolveTo } from "./resolveTo.ts";
 
@@ -31,7 +31,7 @@ export type UseAssets =
     };
 export class AssetsConfig {
   static ALL = new Map<string, AssetsConfig>();
-  static createAndSave(assetsName: string, useAssets: UseAssets[], assetsDirname: string | undefined) {
+  static createAndSave(assetsName: string, useAssets: UseAssets[], assetsDirname?: string) {
     const config = new AssetsConfig(assetsName, useAssets, assetsDirname);
     AssetsConfig.ALL.set(assetsName, config);
     return config;
@@ -47,27 +47,30 @@ export class AssetsConfig {
   }
 }
 
-const symlink = (target: string, path: string) => {
-  if (fs.existsSync(path)) {
+const symlink = (target: string, dest: string) => {
+  console.log("symlink", target, dest);
+
+  if (fs.existsSync(dest)) {
     let isSymbolicLink = false;
     try {
-      isSymbolicLink = fs.statSync(path).isSymbolicLink();
+      isSymbolicLink = fs.statSync(dest).isSymbolicLink();
     } catch {}
     if (!isSymbolicLink) {
       // throw new Error(`symbol link fail, ${path} exists.`);
-      fs.unlinkSync(path);
+      fs.unlinkSync(dest);
     } else {
-      fs.rmSync(path, { recursive: true }); // 删除文件夹以及其内容
+      fs.rmSync(dest, { recursive: true }); // 删除文件夹以及其内容
     }
   } else {
-    fs.mkdirSync(node_path.dirname(path), { recursive: true });
+    fs.mkdirSync(node_path.dirname(dest), { recursive: true });
   }
 
+  console.log("symlink", fs.existsSync(dest));
   // windows系统需要使用junction模式，否则会有权限问题
   if (os.platform() === "win32") {
-    fs.symlinkSync(target, path, "junction");
+    fs.symlinkSync(target, dest, "junction");
   } else {
-    fs.symlinkSync(target, path);
+    fs.symlinkSync(target, dest);
   }
 };
 const drawableEmptyer = new Map<string, ReturnType<typeof $once>>();
