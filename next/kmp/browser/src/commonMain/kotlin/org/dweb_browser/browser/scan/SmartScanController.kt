@@ -2,6 +2,7 @@ package org.dweb_browser.browser.scan
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ImageBitmap
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
@@ -18,7 +19,6 @@ import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.WindowSurface
 import org.dweb_browser.sys.window.core.helper.setStateFromManifest
 import org.dweb_browser.sys.window.core.windowAdapterManager
-import org.dweb_browser.sys.window.core.withRenderScope
 import org.dweb_browser.sys.window.ext.getMainWindowId
 import org.dweb_browser.sys.window.ext.getOrOpenMainWindow
 
@@ -48,6 +48,8 @@ class SmartScanController(
     }
 
     smartScanNMM.getOrOpenMainWindow().also { newController ->
+      // 禁止 resize
+      newController.state.resizable = false
       viewDeferred.complete(newController)
       newController.setStateFromManifest(smartScanNMM)
       newController.state.alwaysOnTop = true // 扫码模块置顶
@@ -55,7 +57,7 @@ class SmartScanController(
       windowAdapterManager.provideRender(newController.id) { modifier ->
         // 智能扫码
         this@SmartScanController.scaleFlow.value = scale
-        WindowSurface(modifier){
+        WindowSurface(modifier) {
           RenderBarcodeScanning(
             modifier = Modifier.fillMaxSize(),
             controller = this@SmartScanController
@@ -89,7 +91,7 @@ class SmartScanController(
     flow.collectIn(scope = smartScanNMM.getRuntimeScope()) { byteArray ->
       byteArray?.let {
         val result = decodeQrCode(it)
-//      debugSCAN("decodeQrCode=>${result.size}", "size=>${it}")
+        debugSCAN("decodeQrCode=>${result.size}", "size=>${it}")
         barcodeResultFlow.emit(result)
       }
     }
@@ -97,6 +99,9 @@ class SmartScanController(
 
   // 拿到的解码流
   val barcodeResultFlow = MutableStateFlow<List<BarcodeResult>>(emptyList())
+
+  // 相册选中的图片
+  val albumImageFlow = MutableSharedFlow<ImageBitmap?>(extraBufferCapacity = 1)
 
   /**识别成功*/
   fun onSuccess(result: String) {

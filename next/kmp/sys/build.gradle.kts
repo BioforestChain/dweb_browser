@@ -46,9 +46,6 @@ kotlin {
       // 不直接使用 projects.*，因为如果 disabled 了 desktop，那么就会解析不过
       implementation(project(":lib_biometrics"))
       implementation(project(":lib_hardware_info"))
-      // zxing 解析二维码
-      implementation(libs.camera.zxing.code)
-      implementation(libs.camera.zxing.javase)
     }
   }
   sourceSets.create("nativeJvmMain") {

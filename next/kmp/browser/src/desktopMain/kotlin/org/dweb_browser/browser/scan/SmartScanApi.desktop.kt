@@ -4,6 +4,7 @@ import com.google.zxing.BinaryBitmap
 import com.google.zxing.client.j2se.BufferedImageLuminanceSource
 import com.google.zxing.common.HybridBinarizer
 import com.google.zxing.multi.qrcode.QRCodeMultiReader
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.withContext
 import org.dweb_browser.browser.util.regexDeepLink
 import org.dweb_browser.helper.PromiseOut
@@ -18,30 +19,32 @@ import javax.imageio.ImageIO
 import kotlin.math.abs
 
 
-actual class ScanningController actual constructor() {
+actual class ScanningController actual constructor(mmScope: CoroutineScope) {
   actual fun stop() {
   }
 
   // TODO 使用 openCV 来实现图像识别
   actual suspend fun recognize(data: Any, rotation: Int): List<BarcodeResult> {
-    val task = PromiseOut<List<BarcodeResult>>()
     if (data is ByteArray) {
+      val task = PromiseOut<List<BarcodeResult>>()
       try {
         // 从byte array获取图片
         val bufferedImage = withContext(ioAsyncExceptionHandler) {
           ImageIO.read(ByteArrayInputStream(data))
         }
         val source = BufferedImageLuminanceSource(bufferedImage)
-        val bitmap = BinaryBitmap(HybridBinarizer(source))
+        val binaryBitmap = BinaryBitmap(HybridBinarizer(source))
         val reader = QRCodeMultiReader()
         task.resolve(
-          reader.decodeMultiple(bitmap).map { barcode ->
+          reader.decodeMultiple(binaryBitmap).map { barcode ->
             // 返回的barcode中，resultPoints有三个标准点，也有可能存在4个，前三个是必定存在的。
             val topLeft = barcode.resultPoints[1]
             val bottomLeft = barcode.resultPoints[0]
             val topRight = barcode.resultPoints[2]
+            val width = abs(topRight.x - topLeft.x)
+            val height = abs(bottomLeft.y - topLeft.y)
             val boundingBox = PureRect(
-              topLeft.x, topLeft.y, abs(topRight.x - topLeft.x), abs(bottomLeft.y - topLeft.y)
+              topLeft.x, topLeft.y, width, height
             )
             BarcodeResult(
               data = barcode.text,

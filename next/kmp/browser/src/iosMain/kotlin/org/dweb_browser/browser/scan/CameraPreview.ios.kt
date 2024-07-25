@@ -9,6 +9,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asComposeImageBitmap
 import androidx.compose.ui.interop.LocalUIViewController
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
@@ -25,6 +26,8 @@ import org.dweb_browser.helper.toPoint
 import org.dweb_browser.helper.toRect
 import org.dweb_browser.sys.window.render.LocalWindowContentStyle
 import org.dweb_browser.sys.window.render.UIKitViewInWindow
+import org.jetbrains.skia.Bitmap
+import org.jetbrains.skia.Image
 import platform.AVFoundation.AVCaptureConnection
 import platform.AVFoundation.AVCaptureDevice
 import platform.AVFoundation.AVCaptureDeviceDiscoverySession.Companion.discoverySessionWithDeviceTypes
@@ -226,24 +229,28 @@ class CameraControllerImpl(
         picker: PHPickerViewController,
         didFinishPicking: List<*>
       ) {
-        val result = didFinishPicking[0] as PHPickerResult
-        // 获取结果中的 itemProvider
-        val itemProvider = result.itemProvider
-        if (itemProvider.hasItemConformingToTypeIdentifier(UTTypeImage.toString())) {
-          itemProvider.loadDataRepresentationForTypeIdentifier(UTTypeImage.toString()) { data, error ->
-            if (data != null) {
-              val byteArray = data.toByteArray()
-              // 回调到二维码识别
-              controller.imageCaptureFlow.tryEmit(byteArray)
-            } else if (error != null) {
-              // 处理错误
-              WARNING("Error loading data: ${error.localizedDescription}")
+        // 用户选中图片
+        if (didFinishPicking.isNotEmpty()) {
+          val result = didFinishPicking[0] as PHPickerResult
+          // 获取结果中的 itemProvider
+          val itemProvider = result.itemProvider
+          if (itemProvider.hasItemConformingToTypeIdentifier(UTTypeImage.toString())) {
+            itemProvider.loadDataRepresentationForTypeIdentifier(UTTypeImage.toString()) { data, error ->
+              if (data != null) {
+                val imageFromNsData = Image.makeFromEncoded(data.toByteArray())
+                val bitmapFromNsData = Bitmap.makeFromImage(imageFromNsData).asComposeImageBitmap()
+                controller.albumImageFlow.tryEmit(bitmapFromNsData)
+                // 回调到二维码识别
+                controller.imageCaptureFlow.tryEmit(data)
+              } else if (error != null) {
+                // 处理错误
+                WARNING("Error loading data: ${error.localizedDescription}")
+              }
             }
           }
-
-          // 关闭选择器视图控制器
-          picker.dismissViewControllerAnimated(true, null)
         }
+        // 关闭选择器视图控制器
+        picker.dismissViewControllerAnimated(true, null)
       }
     }
 

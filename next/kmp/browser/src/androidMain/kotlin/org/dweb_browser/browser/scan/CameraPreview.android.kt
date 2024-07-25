@@ -1,5 +1,6 @@
 package org.dweb_browser.browser.scan
 
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.widget.FrameLayout
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -11,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -24,13 +26,33 @@ actual fun CameraPreviewRender(
 ) {
   val context = LocalContext.current
   val lifecycleOwner = LocalLifecycleOwner.current
+  val previewView = remember { PreviewView(context) }
 
+  // 相册图片选择器
   val imagePickerLauncher =
     rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-      // TODO 将这个Bitmap解码
-      uri?.let {
+      // 用户选中了图片
+      if (uri != null) {
         val bitmap = BitmapFactory.decodeStream(context.contentResolver.openInputStream(uri))
-        controller.imageCaptureFlow.tryEmit(bitmap)
+        // 调整为合适的大小，不然识别不出来
+        val aspectRatio = bitmap.width.toFloat() / bitmap.height.toFloat()
+        val newWidth: Int
+        val newHeight: Int
+        if (previewView.width.toFloat() / previewView.height.toFloat() > aspectRatio) {
+          newHeight = previewView.height
+          newWidth = (newHeight * aspectRatio).toInt()
+        } else {
+          newWidth = previewView.width
+          newHeight = (newWidth / aspectRatio).toInt()
+        }
+        val previewBitmap = Bitmap.createScaledBitmap(
+          bitmap,
+          newWidth,
+          newHeight,
+          true
+        )
+        controller.albumImageFlow.tryEmit(previewBitmap.asImageBitmap())
+        controller.imageCaptureFlow.tryEmit(previewBitmap)
       }
     }
   // 创建相机控制器
@@ -40,7 +62,7 @@ actual fun CameraPreviewRender(
       controller.cameraController = c // 赋值
     }
   }
-  val previewView = remember { PreviewView(context) }
+
   DisposableEffect(Unit) {
     cameraController.initializeCamera(context, lifecycleOwner, previewView)
     onDispose {

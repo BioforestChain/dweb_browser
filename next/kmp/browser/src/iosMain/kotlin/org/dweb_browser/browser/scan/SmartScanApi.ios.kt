@@ -1,6 +1,7 @@
 package org.dweb_browser.browser.scan
 
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.coroutines.CoroutineScope
 import org.dweb_browser.browser.util.regexDeepLink
 import org.dweb_browser.helper.encodeURIComponent
 import org.dweb_browser.helper.isWebUrl
@@ -15,7 +16,7 @@ import platform.CoreImage.CIQRCodeFeature
 import platform.Foundation.NSData
 
 
-actual class ScanningController actual constructor() {
+actual class ScanningController actual constructor(mmScope: CoroutineScope) {
 
   actual fun stop() {}
 

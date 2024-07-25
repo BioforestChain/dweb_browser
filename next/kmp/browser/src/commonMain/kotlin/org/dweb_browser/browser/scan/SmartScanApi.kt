@@ -1,11 +1,12 @@
 package org.dweb_browser.browser.scan
 
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.serialization.Serializable
 import org.dweb_browser.helper.PurePoint
 import org.dweb_browser.helper.PureRect
 
 /**二维码解析管理器*/
-expect class ScanningController() {
+expect class ScanningController(mmScope: CoroutineScope) {
   fun stop()
 
   /**解析二维码*/

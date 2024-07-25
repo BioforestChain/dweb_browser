@@ -43,7 +43,7 @@ class SmartScanNMM : NativeMicroModule("scan.browser.dweb", "Smart Scan") {
 
   inner class ScanRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
     override suspend fun _bootstrap() {
-      val scanningController = ScanningController()
+      val scanningController = ScanningController(mmScope)
       // 实现barcodeScanning协议
       barcodeScanning(scanningController)
       val scanController = SmartScanController(this,scanningController)

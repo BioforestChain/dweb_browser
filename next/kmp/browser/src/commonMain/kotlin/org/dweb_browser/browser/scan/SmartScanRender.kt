@@ -1,12 +1,10 @@
 package org.dweb_browser.browser.scan
 
-import androidx.compose.animation.Animatable
 import androidx.compose.animation.animateColor
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
@@ -24,25 +22,19 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.FlashlightOff
 import androidx.compose.material.icons.filled.FlashlightOn
 import androidx.compose.material.icons.filled.Photo
-import androidx.compose.material3.AlertDialogDefaults
-import androidx.compose.material3.BasicAlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -133,7 +125,7 @@ internal fun SmartScanController.RenderScanResultView(modifier: Modifier) {
 }
 
 /**把二维码框出来，必须使用canvas才能画出偏移角度*/
-private fun DrawScope.drawAnimatedBoundingBox(barcode: BarcodeResult, animatedOffset: Float) {
+fun DrawScope.drawAnimatedBoundingBox(barcode: BarcodeResult, animatedOffset: Float) {
   val path = Path().apply {
     moveTo(barcode.topLeft.x, barcode.topLeft.y)
     lineTo(barcode.topRight.x, barcode.topRight.y)
@@ -189,45 +181,18 @@ private fun DrawScope.drawAnimatedBoundingBox(barcode: BarcodeResult, animatedOf
   )
 }
 
-/**识别到空二维码视图*/
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun RenderEmptyResult(controller: SmartScanController) {
-  var showAlert by remember { mutableStateOf(true) }
-  if (showAlert) {
-    BasicAlertDialog(
-      onDismissRequest = { showAlert = false },
-      modifier = Modifier.clip(AlertDialogDefaults.shape)
-        .background(AlertDialogDefaults.containerColor)
-    ) {
-      Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(
-          text = BrowserI18nResource.QRCode.emptyResult.text,
-          modifier = Modifier.padding(vertical = 20.dp)
-        )
-        Text(text = BrowserI18nResource.QRCode.confirm(),
-          modifier = Modifier.clickableWithNoEffect {
-            showAlert = false; controller.onCancel("close")
-          }
-            .padding(20.dp),
-          color = MaterialTheme.colorScheme.primary)
-      }
-    }
-  }
-}
-
 /**扫码节目中的扫描线，灯光按钮等UI*/
 @Composable
-fun SmartScanController.DefaultScanningView(modifier: Modifier = Modifier) {
-  Box(modifier = Modifier.fillMaxSize()) {
+fun SmartScanController.DefaultScanningView(modifier: Modifier) {
+  Box(modifier = modifier) {
     ScannerLine() // 添加扫描线
     CloseIcon { onCancel("close") } // 关闭按钮
     FlashlightIcon {
       cameraController?.toggleTorch()
     }
-//    AlbumButton {
-//      cameraController?.openAlbum()
-//    }
+    AlbumButton {
+      cameraController?.openAlbum()
+    }
   }
 }
 
