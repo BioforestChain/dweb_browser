@@ -320,9 +320,10 @@ internal fun WindowBottomNavigationThemeBar(
       }
 
       WindowBottomBarMenuPanel(win)
-
+      // 在resizable 的时候禁止退出全屏
+      val resizable by win.watchedState { resizable }
       /// 退出全屏
-      if (isMaximized) {
+      if (isMaximized && resizable) {
         BoxWithConstraints(
           modifier = Modifier.weight(1f).fillMaxHeight()
         ) {
