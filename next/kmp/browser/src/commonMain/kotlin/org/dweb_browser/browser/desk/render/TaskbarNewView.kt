@@ -61,22 +61,20 @@ fun NewTaskbarView(
     ) {
 
       apps.forEach { app ->
-        TaskBarAppIcon(Modifier,
-          app,
-          taskbarController.deskNMM,
-          openApp = { mmid ->
-            scope.launch {
-              taskbarController.open(mmid)
-            }
-          }, quitApp = { mmid ->
-            scope.launch {
-              taskbarController.quit(mmid)
-            }
-          }, toggleWindow = { mmid ->
-            scope.launch {
-              taskbarController.toggleWindowMaximize(mmid)
-            }
-          })
+        TaskBarAppIcon(
+          modifier = Modifier,
+          app = app,
+          microModule = taskbarController.deskNMM,
+          openApp = {
+            scope.launch { taskbarController.open(app.mmid) }
+          },
+          quitApp = {
+            scope.launch { taskbarController.quit(app.mmid) }
+          },
+          toggleWindow = {
+            scope.launch { taskbarController.toggleWindowMaximize(app.mmid) }
+          },
+        )
       }
 
       if (apps.isNotEmpty()) {

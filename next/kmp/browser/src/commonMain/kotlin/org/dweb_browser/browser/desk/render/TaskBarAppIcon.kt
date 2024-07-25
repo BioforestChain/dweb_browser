@@ -31,9 +31,9 @@ internal fun TaskBarAppIcon(
   modifier: Modifier,
   app: TaskbarAppModel,
   microModule: NativeMicroModule.NativeRuntime,
-  openApp: (mmid: String) -> Unit,
-  quitApp: (mmid: String) -> Unit,
-  toggleWindow: (mmid: String) -> Unit,
+  openApp: () -> Unit,
+  quitApp: () -> Unit,
+  toggleWindow: () -> Unit,
 ) {
 
   val scaleValue = remember { Animatable(1f) }
@@ -62,26 +62,32 @@ internal fun TaskBarAppIcon(
       detectTapGestures(onPress = {
         doAnimation()
       }, onTap = {
-        openApp(app.mmid)
+        openApp()
       }, onDoubleTap = {
         if (app.running) {
-          toggleWindow(app.mmid)
+          toggleWindow()
         } else {
-          openApp(app.mmid)
+          openApp()
         }
       }, onLongPress = {
         doHaptics()
         if (app.running) {
           showQuit = true
         } else {
-          openApp(app.mmid)
+          openApp()
         }
       })
     }) {
 
     key(app.icon) {
       BoxWithConstraints(Modifier.blur(if (showQuit) 1.dp else 0.dp)) {
-        DeskCacheIcon(app.icon, microModule, maxWidth, maxHeight)
+        DeskAppIcon(
+          icon = app.icon,
+          microModule = microModule,
+          width = maxWidth,
+          height = maxHeight,
+          containerAlpha = 1f,
+        )
       }
     }
 
@@ -91,13 +97,13 @@ internal fun TaskBarAppIcon(
           showQuit = false
         }) {
           CloseButton(Modifier.size(maxWidth).clickableWithNoEffect {
-            quitApp(app.mmid)
+            quitApp()
             showQuit = false
           })
         }
       } else {
         CloseButton(Modifier.size(maxWidth).clickableWithNoEffect {
-          quitApp(app.mmid)
+          quitApp()
           showQuit = false
         })
       }
