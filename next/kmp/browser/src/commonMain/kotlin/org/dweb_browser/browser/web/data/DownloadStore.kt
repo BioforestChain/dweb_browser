@@ -16,7 +16,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.dweb_browser.browser.BrowserI18nResource
-import org.dweb_browser.browser.download.DownloadStateEvent
+import org.dweb_browser.browser.download.model.DownloadStateEvent
 import org.dweb_browser.browser.download.TaskId
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.file.ext.createStore

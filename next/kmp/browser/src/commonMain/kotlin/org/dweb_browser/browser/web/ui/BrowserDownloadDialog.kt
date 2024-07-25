@@ -34,7 +34,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import org.dweb_browser.browser.BrowserI18nResource
-import org.dweb_browser.browser.download.DownloadState
+import org.dweb_browser.browser.download.model.DownloadState
 import org.dweb_browser.browser.web.BrowserDownloadController
 import org.dweb_browser.browser.web.data.BrowserDownloadItem
 import org.dweb_browser.helper.compose.AutoResizeTextContainer

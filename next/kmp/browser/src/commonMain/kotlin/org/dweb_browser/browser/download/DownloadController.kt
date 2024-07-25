@@ -1,6 +1,5 @@
 package org.dweb_browser.browser.download
 
-import androidx.compose.runtime.mutableStateListOf
 import io.ktor.http.ContentRange
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
@@ -12,18 +11,16 @@ import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.cancel
 import io.ktor.utils.io.close
 import io.ktor.utils.io.core.ByteReadPacket
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
 import kotlinx.serialization.json.Json
-import org.dweb_browser.browser.download.model.ChangeableMutableMap
-import org.dweb_browser.browser.download.model.ChangeableType
-import org.dweb_browser.browser.download.model.DownloadModel
-import org.dweb_browser.browser.download.render.DecompressModel
-import org.dweb_browser.browser.download.render.lastPath
+import org.dweb_browser.browser.download.model.DecompressModel
+import org.dweb_browser.browser.download.model.DownloadListModel
+import org.dweb_browser.browser.download.model.DownloadState
+import org.dweb_browser.browser.download.model.DownloadStateEvent
+import org.dweb_browser.browser.download.model.DownloadTask
+import org.dweb_browser.browser.download.render.Render
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.file.FileMetadata
@@ -47,152 +44,37 @@ import org.dweb_browser.sys.window.core.windowAdapterManager
 import org.dweb_browser.sys.window.ext.getMainWindow
 import org.dweb_browser.sys.window.ext.getWindow
 
-@Serializable
-data class DownloadTask(
-  /** 下载编号 */
-  val id: String,
-  /** 下载链接 */
-  val url: String,
-  /** 创建时间 */
-  val createTime: Long = datetimeNow(),
-  /** 来源模块 */
-  val originMmid: MMID,
-  /** 来源链接 */
-  val originUrl: String?,
-  /** 打开应用的跳转地址 */
-  val openDappUri: String?,
-  /** 文件的元数据类型，可以用来做“打开文件”时的参考类型 */
-  var mime: String,
-  /** 文件路径 */
-  var filepath: String,
-  /** 标记当前下载状态 */
-  val status: DownloadStateEvent,
-///// DBEUG
-//  var frame: Int = 0,
-) {
-
-  @Transient
-  var readChannel: ByteReadChannel? = null
-
-  // 监听下载进度 不存储到数据库
-  @Transient
-  private val changeFlow = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
-
-  fun emitChanged() {
-    changeFlow.tryEmit(Unit)
-  }
-
-  @Transient
-  val onChange = changeFlow.asSharedFlow()
-
-  @Transient
-  internal val paused = Mutex()
-
-  fun cancel() {
-    status.state = DownloadState.Canceled
-    status.current = 0L
-    readChannel?.cancel()
-    readChannel = null
-  }
-
-  @Transient
-  var external: Boolean = false
-}
-
-@Serializable
-enum class DownloadState {
-  /** 初始化中，做下载前的准备，包括寻址、创建文件、保存任务等工作 */
-  Init,
-
-  /** 下载中*/
-  Downloading,
-
-  /** 暂停下载*/
-  Paused,
-
-  /** 取消下载*/
-  Canceled,
-
-  /** 下载失败*/
-  Failed,
-
-  /** 下载完成*/
-  Completed,
-}
-
-@Serializable
-data class DownloadStateEvent(
-  var current: Long = 0,
-  var total: Long = 1,
-  var state: DownloadState = DownloadState.Init,
-  var stateMessage: String = "",
-) {
-  fun progress(): Float {
-    return if (total == 0L) {
-      0f
-    } else {
-      (current * 1.0f / total) * 10 / 10.0f
-    }
-  }
-
-  fun percentProgress(): String {
-    return if (total == 0L) {
-      "0 %"
-    } else {
-      "${(current * 1000 / total) / 10.0f} %"
-    }
-  }
-}
-
-class DownloadController(private val downloadNMM: DownloadNMM.DownloadRuntime) {
+class DownloadController(internal val downloadNMM: DownloadNMM.DownloadRuntime) {
   private val downloadStore = DownloadStore(downloadNMM)
-  val downloadTaskMaps: ChangeableMutableMap<TaskId, DownloadTask> =
-    ChangeableMutableMap() // 用于监听下载列表
-  val downloadList = mutableStateListOf<DownloadTask>()
+  internal inline fun <R> launch(crossinline block: suspend () -> R) {
+    downloadNMM.scopeLaunch(cancelable = true) { block() }
+  }
+
+  val downloadMapFlow = MutableStateFlow(mapOf<String, DownloadTask>())
+  var downloadMap
+    get() = downloadMapFlow.value
+    set(value) {
+      downloadMapFlow.value = value
+    }
+
+
   private var winLock = Mutex(false)
-  val downloadModel = DownloadModel(this)
+  val downloadListModel = DownloadListModel(this)
   val decompressModel = DecompressModel(this)
 
-  init {
-    // 从内存中恢复状态
-
-    // 状态改变的时候存储保存到内存
-    downloadTaskMaps.onChange { (type, _, value) ->
-      when (type) {
-        ChangeableType.Add -> {
-          downloadStore.set(value!!.id, value)
-          downloadList.add(0, value)
-        }
-
-        ChangeableType.Remove -> {
-          downloadStore.delete(value!!.id)
-          downloadList.remove(value)
-        }
-
-        ChangeableType.PutAll -> {
-          downloadList.addAll(downloadTaskMaps.toMutableList()
-            .sortedByDescending { it.createTime })
-        }
-
-        ChangeableType.Clear -> {
-          downloadList.clear()
+  suspend fun loadDownloads() {
+    downloadMap = downloadStore.getAll().also { map ->
+      map.forEach { (_, downloadTask) ->
+        // 如果是从文件中读取的，需要将下载中的状态统一置为暂停。其他状态保持不变
+        if (downloadTask.status.state == DownloadState.Downloading) {
+          if (fileExists(downloadTask.filepath)) { // 为了保证下载中的状态current值正确
+            downloadTask.status.current = fileInfo(downloadTask.filepath).size ?: 0L
+          }
+          downloadTask.status.state = DownloadState.Paused
         }
       }
     }
-  }
-
-  suspend fun loadDownloadList() {
-    downloadTaskMaps.putAll(downloadStore.getAll())
-    // 如果是从文件中读取的，需要将下载中的状态统一置为暂停。其他状态保持不变
-    downloadTaskMaps.suspendForEach { _, downloadTask ->
-      if (downloadTask.status.state == DownloadState.Downloading) {
-        if (fileExists(downloadTask.filepath)) { // 为了保证下载中的状态current值正确
-          downloadTask.status.current = fileInfo(downloadTask.filepath).size ?: 0L
-        }
-        downloadTask.status.state = DownloadState.Paused
-      }
-      debugDownload("LoadList", downloadTask)
-    }
+    debugDownload("loadDownloads", downloadMap)
   }
 
   /**
@@ -213,8 +95,8 @@ class DownloadController(private val downloadNMM: DownloadNMM.DownloadRuntime) {
       status = DownloadStateEvent(total = params.total)
     )
     task.external = externalDownload // 后面有用到这个字段，这边需要在初始化的时候赋值
-    downloadTaskMaps.put(task.id, task)
     downloadStore.set(task.id, task) // 保存下载状态
+    downloadMap += task.id to task
     debugDownload("createTaskFactory", "${task.id} -> $task")
     return task
   }
@@ -231,11 +113,9 @@ class DownloadController(private val downloadNMM: DownloadNMM.DownloadRuntime) {
     task.status.state = DownloadState.Downloading // 这边开始请求http了，属于开始下载
     task.emitChanged()
     var response = downloadNMM.nativeFetch(
-      PureClientRequest(href = task.url,
-        method = PureMethod.GET,
-        headers = PureHeaders().apply {
-          init(HttpHeaders.Range, "${RangeUnits.Bytes}=${ContentRange.TailFrom(start)}")
-        })
+      PureClientRequest(href = task.url, method = PureMethod.GET, headers = PureHeaders().apply {
+        init(HttpHeaders.Range, "${RangeUnits.Bytes}=${ContentRange.TailFrom(start)}")
+      })
     )
     // 目前发现测试的时候，如果不存在range的上面会报错。直接使用下面这个来请求
     if (response.status == HttpStatusCode.RequestedRangeNotSatisfiable) {
@@ -278,7 +158,8 @@ class DownloadController(private val downloadNMM: DownloadNMM.DownloadRuntime) {
     val output = createByteChannel()
     val taskId = task.id
     // 重要记录点 存储到硬盘
-    downloadTaskMaps.put(taskId, task)
+    downloadMap += taskId to task
+    downloadStore.set(taskId, task)
     // 正式下载需要另外起一个协程，不影响当前的返回值
     downloadNMM.scopeLaunch(cancelable = true) {
       debugDownload("middleware", "start id:$taskId current:${task.status.current}")
@@ -347,7 +228,7 @@ class DownloadController(private val downloadNMM: DownloadNMM.DownloadRuntime) {
   ): String {
     // 先从header判断
     var fileName = headers.get("Content-Disposition")?.substringAfter("filename=")?.trim('"')
-      ?: Url(url).encodedPath.lastPath()
+      ?: Url(url).pathSegments.lastOrNull() ?: ""
     if (fileName.isEmpty()) fileName = "${datetimeNow()}.${mime.substringAfter("/")}"
     var index = 0
     while (true) {
@@ -367,7 +248,7 @@ class DownloadController(private val downloadNMM: DownloadNMM.DownloadRuntime) {
    */
   private suspend fun fileCreateByPath(url: String, externalDownload: Boolean): String {
     var index = 0
-    val fileName = Url(url).encodedPath.lastPath() //.decodeURI()
+    val fileName = Url(url).pathSegments.lastOrNull() ?: ""
     while (true) {
       val path = if (externalDownload) {
         "/download/${index++}_${fileName}"
@@ -421,7 +302,7 @@ class DownloadController(private val downloadNMM: DownloadNMM.DownloadRuntime) {
   /**
    * 取消下载
    */
-  suspend fun cancelDownload(taskId: TaskId) = downloadTaskMaps[taskId]?.let { downloadTask ->
+  suspend fun cancelDownload(taskId: TaskId) = downloadMap[taskId]?.let { downloadTask ->
     // 如果有文件,直接删除
     if (fileExists(downloadTask.filepath)) {
       fileRemove(downloadTask.filepath)
@@ -431,11 +312,14 @@ class DownloadController(private val downloadNMM: DownloadNMM.DownloadRuntime) {
     true
   } ?: false
 
-  fun removeDownload(taskId: TaskId) {
-    downloadTaskMaps.remove(taskId)?.let { downloadTask ->
+  suspend fun removeDownload(taskId: TaskId) {
+    downloadMap[taskId]?.let { downloadTask ->
       downloadTask.readChannel?.cancel()
       downloadTask.readChannel = null
-      downloadNMM.scopeLaunch(cancelable = false) { fileRemove(downloadTask.filepath) }
+
+      downloadMap -= taskId
+      downloadStore.delete(taskId)
+      fileRemove(downloadTask.filepath)
     }
   }
 
@@ -486,5 +370,5 @@ class DownloadController(private val downloadNMM: DownloadNMM.DownloadRuntime) {
     }
   }
 
-  suspend fun close() = winLock.withLock { downloadNMM.getMainWindow().hide() }
+  suspend fun close() = winLock.withLock { downloadNMM.getMainWindow().tryCloseOrHide() }
 }

@@ -15,18 +15,21 @@ import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.download.DownloadController
-import org.dweb_browser.browser.download.DownloadState
-import org.dweb_browser.browser.download.model.DownloadTab
+import org.dweb_browser.browser.download.model.DownloadListTabs
+import org.dweb_browser.browser.download.model.DownloadState
 import org.dweb_browser.helper.compose.ListDetailPaneScaffoldNavigator
 import org.dweb_browser.helper.compose.NoDataRender
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DownloadController.DownloadHistory(
+fun DownloadController.DownloadList(
   navigator: ListDetailPaneScaffoldNavigator,
   modifier: Modifier,
 ) {
@@ -36,17 +39,17 @@ fun DownloadController.DownloadHistory(
       .background(MaterialTheme.colorScheme.background)
   ) {
     SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
-      downloadModel.tabItems.forEachIndexed { index, downloadTab ->
+      downloadListModel.tabItems.forEachIndexed { index, downloadTab ->
         SegmentedButton(
-          selected = index == downloadModel.tabIndex,
-          onClick = { downloadModel.tabIndex = index },
+          selected = index == downloadListModel.tabIndex,
+          onClick = { downloadListModel.tabIndex = index },
           shape = SegmentedButtonDefaults.itemShape(
             index = index,
-            count = downloadModel.tabItems.size
+            count = downloadListModel.tabItems.size
           ),
           icon = {
             Icon(
-              imageVector = downloadTab.vector,
+              imageVector = downloadTab.icon,
               contentDescription = downloadTab.title()
             )
           },
@@ -54,25 +57,30 @@ fun DownloadController.DownloadHistory(
         )
       }
     }
-    val downloadTab = downloadModel.tabItems[downloadModel.tabIndex]
-    val list = downloadModel.downloadController.downloadList.filter {
-      downloadTab == DownloadTab.Downloads || it.status.state == DownloadState.Completed
-    }
-    LazyColumn {
+    val downloadTab = downloadListModel.tabItems[downloadListModel.tabIndex]
+    val downloadMap by downloadMapFlow.collectAsState()
+    val list = remember(downloadMap, downloadTab) {
+      when (downloadTab) {
+        DownloadListTabs.Completed -> downloadMap.values.filter { it.status.state == DownloadState.Completed }
+        DownloadListTabs.Downloading -> downloadMap.values.filter { it.status.state != DownloadState.Completed }
+      }
+    }.toList()
+
+    LazyColumn(Modifier.fillMaxSize()) {
       if (list.isEmpty()) {
         item {
           NoDataRender(BrowserI18nResource.no_download_links())
         }
       }
       items(list, key = { it.id }) { downloadTask ->
-        DownloadItem(
+        downloadListModel.DownloadItem(
           onClick = {
             decompressModel.show(downloadTask);
-             navigator.navigateToDetail {
+            navigator.navigateToDetail {
               decompressModel.hide()
             }
           },
-          onRemove = { downloadModel.removeDownloadTask(downloadTask) },
+          onRemove = { downloadListModel.removeDownloadTask(downloadTask) },
           downloadTask = downloadTask,
         )
       }

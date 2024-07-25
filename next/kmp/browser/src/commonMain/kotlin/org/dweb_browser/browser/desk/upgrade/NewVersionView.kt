@@ -35,7 +35,7 @@ import androidx.compose.ui.unit.sp
 import org.dweb_browser.browser.BrowserDrawResource
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.desk.debugDesk
-import org.dweb_browser.browser.download.DownloadState
+import org.dweb_browser.browser.download.model.DownloadState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

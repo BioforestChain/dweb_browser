@@ -6,9 +6,9 @@ import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.datetime.Clock
 import kotlinx.serialization.json.Json
-import org.dweb_browser.browser.download.DownloadState
-import org.dweb_browser.browser.download.DownloadStateEvent
-import org.dweb_browser.browser.download.DownloadTask
+import org.dweb_browser.browser.download.model.DownloadState
+import org.dweb_browser.browser.download.model.DownloadStateEvent
+import org.dweb_browser.browser.download.model.DownloadTask
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.channelRequest
 import org.dweb_browser.core.std.dns.nativeFetch

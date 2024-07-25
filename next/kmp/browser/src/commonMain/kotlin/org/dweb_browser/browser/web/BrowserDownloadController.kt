@@ -7,8 +7,8 @@ import androidx.compose.runtime.setValue
 import io.ktor.http.URLBuilder
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import org.dweb_browser.browser.download.DownloadState
-import org.dweb_browser.browser.download.DownloadStateEvent
+import org.dweb_browser.browser.download.model.DownloadState
+import org.dweb_browser.browser.download.model.DownloadStateEvent
 import org.dweb_browser.browser.download.ext.createDownloadTask
 import org.dweb_browser.browser.download.ext.downloadProgressFlow
 import org.dweb_browser.browser.download.ext.existDownloadTask

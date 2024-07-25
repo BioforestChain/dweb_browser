@@ -1,58 +1,110 @@
 package org.dweb_browser.browser.download.model
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Android
-import androidx.compose.material.icons.filled.AudioFile
-import androidx.compose.material.icons.filled.FileDownload
-import androidx.compose.material.icons.filled.FileOpen
-import androidx.compose.material.icons.filled.Photo
-import androidx.compose.material.icons.filled.VideoFile
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.graphics.vector.ImageVector
-import kotlinx.datetime.LocalDate
-import org.dweb_browser.browser.BrowserI18nResource
-import org.dweb_browser.browser.download.DownloadController
-import org.dweb_browser.browser.download.DownloadTask
-import org.dweb_browser.helper.compose.SimpleI18nResource
-import org.dweb_browser.helper.compose.compositionChainOf
+import io.ktor.utils.io.ByteReadChannel
+import io.ktor.utils.io.cancel
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
+import okio.Path.Companion.toPath
+import org.dweb_browser.core.help.types.MMID
+import org.dweb_browser.helper.datetimeNow
 
-val LocalDownloadModel = compositionChainOf<DownloadModel>("LocalDownloadModel")
-
-enum class DownloadTab(val id: Int, val title: SimpleI18nResource, val vector: ImageVector) {
-  Downloads(1, BrowserI18nResource.install_tab_download, Icons.Default.FileDownload),
-  Files(2, BrowserI18nResource.install_tab_file, Icons.Default.FileOpen),
-  ;
-}
-
-class DownloadModel(val downloadController: DownloadController) {
-  var tabIndex by mutableIntStateOf(0)
-  val tabItems = DownloadTab.entries.toTypedArray()
-  suspend fun startDownload(downloadTask: DownloadTask) =
-    downloadController.startDownload(downloadTask)
-
-  suspend fun pauseDownload(downloadTask: DownloadTask) =
-    downloadController.pauseDownload(downloadTask)
-
-  suspend fun close() = downloadController.close()
-
-  fun removeDownloadTask(downloadTask: DownloadTask) {
-    downloadController.removeDownload(downloadTask.id)
+@Serializable
+data class DownloadTask(
+  /** 下载编号 */
+  val id: String,
+  /** 下载链接 */
+  val url: String,
+  /** 创建时间 */
+  val createTime: Long = datetimeNow(),
+  /** 来源模块 */
+  val originMmid: MMID,
+  /** 来源链接 */
+  val originUrl: String?,
+  /** 打开应用的跳转地址 */
+  val openDappUri: String?,
+  /** 文件的元数据类型，可以用来做“打开文件”时的参考类型 */
+  var mime: String,
+  /** 文件路径 */
+  var filepath: String,
+  /** 标记当前下载状态 */
+  val status: DownloadStateEvent,
+) {
+  val filename by lazy {
+    filepath.toPath().name
   }
-}
 
-fun getIconByMime(mime: String): ImageVector {
-  return when (mime) {
-    "mp4", "avi", "rmvb", "" -> Icons.Default.VideoFile
-    "mp3" -> Icons.Default.AudioFile
-    "jpg", "png", "bmp", "svg" -> Icons.Default.Photo
-    "apk" -> Icons.Default.Android
-    else -> Icons.Default.FileDownload
+  @Transient
+  var readChannel: ByteReadChannel? = null
+
+  // 监听下载进度 不存储到数据库
+  @Transient
+  private val changeFlow = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+
+  fun emitChanged() {
+    changeFlow.tryEmit(Unit)
   }
+
+  @Transient
+  val onChange = changeFlow.asSharedFlow()
+
+  @Transient
+  internal val paused = Mutex()
+
+  fun cancel() {
+    status.state = DownloadState.Canceled
+    status.current = 0L
+    readChannel?.cancel()
+    readChannel = null
+  }
+
+  @Transient
+  var external: Boolean = false
 }
 
-private fun main() {
-  val time = LocalDate.toString()
-  println(time)
+@Serializable
+enum class DownloadState {
+  /** 初始化中，做下载前的准备，包括寻址、创建文件、保存任务等工作 */
+  Init,
+
+  /** 下载中*/
+  Downloading,
+
+  /** 暂停下载*/
+  Paused,
+
+  /** 取消下载*/
+  Canceled,
+
+  /** 下载失败*/
+  Failed,
+
+  /** 下载完成*/
+  Completed,
+}
+
+@Serializable
+data class DownloadStateEvent(
+  var current: Long = 0,
+  var total: Long = 1,
+  var state: DownloadState = DownloadState.Init,
+  var stateMessage: String = "",
+) {
+  fun progress(): Float {
+    return if (total == 0L) {
+      0f
+    } else {
+      (current * 1.0f / total) * 10 / 10.0f
+    }
+  }
+
+  fun percentProgress(): String {
+    return if (total == 0L) {
+      "0 %"
+    } else {
+      "${(current * 1000 / total) / 10.0f} %"
+    }
+  }
 }

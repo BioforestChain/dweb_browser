@@ -10,8 +10,8 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import org.dweb_browser.browser.BrowserI18nResource
-import org.dweb_browser.browser.download.DownloadState
-import org.dweb_browser.browser.download.DownloadTask
+import org.dweb_browser.browser.download.model.DownloadState
+import org.dweb_browser.browser.download.model.DownloadTask
 import org.dweb_browser.browser.download.ext.cancelDownload
 import org.dweb_browser.browser.download.ext.createDownloadTask
 import org.dweb_browser.browser.download.ext.downloadProgressFlow

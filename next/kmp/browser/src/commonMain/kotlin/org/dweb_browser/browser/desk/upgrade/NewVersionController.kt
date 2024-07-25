@@ -4,7 +4,7 @@ import androidx.compose.runtime.mutableStateOf
 import org.dweb_browser.browser.desk.DeskNMM
 import org.dweb_browser.browser.desk.DesktopController
 import org.dweb_browser.browser.desk.debugDesk
-import org.dweb_browser.browser.download.DownloadState
+import org.dweb_browser.browser.download.model.DownloadState
 import org.dweb_browser.browser.download.ext.createDownloadTask
 import org.dweb_browser.browser.download.ext.downloadProgressFlow
 import org.dweb_browser.browser.download.ext.existDownloadTask

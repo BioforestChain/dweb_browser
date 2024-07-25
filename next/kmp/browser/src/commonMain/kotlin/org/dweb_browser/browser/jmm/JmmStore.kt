@@ -8,9 +8,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.vector.ImageVector
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.dweb_browser.browser.download.DownloadState
-import org.dweb_browser.browser.download.DownloadStateEvent
-import org.dweb_browser.browser.download.DownloadTask
+import org.dweb_browser.browser.download.model.DownloadState
+import org.dweb_browser.browser.download.model.DownloadStateEvent
+import org.dweb_browser.browser.download.model.DownloadTask
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.module.MicroModule

@@ -1,6 +1,6 @@
 package org.dweb_browser.browser.web
 
-import org.dweb_browser.browser.download.DownloadStateEvent
+import org.dweb_browser.browser.download.model.DownloadStateEvent
 import org.dweb_browser.browser.web.data.BrowserDownloadItem
 import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.helper.OffListener

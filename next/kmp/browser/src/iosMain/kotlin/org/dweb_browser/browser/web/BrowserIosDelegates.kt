@@ -2,7 +2,7 @@ package org.dweb_browser.browser.web
 
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.launch
-import org.dweb_browser.browser.download.DownloadState
+import org.dweb_browser.browser.download.model.DownloadState
 import org.dweb_browser.browser.web.data.BrowserDownloadItem
 import org.dweb_browser.browser.web.data.WebSiteInfo
 import org.dweb_browser.browser.web.data.WebSiteType

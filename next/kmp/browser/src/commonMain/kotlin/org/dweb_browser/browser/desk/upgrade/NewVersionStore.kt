@@ -4,9 +4,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.dweb_browser.browser.download.DownloadState
-import org.dweb_browser.browser.download.DownloadStateEvent
-import org.dweb_browser.browser.download.DownloadTask
+import org.dweb_browser.browser.download.model.DownloadState
+import org.dweb_browser.browser.download.model.DownloadStateEvent
+import org.dweb_browser.browser.download.model.DownloadTask
 import org.dweb_browser.browser.download.TaskId
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.file.ext.createStore

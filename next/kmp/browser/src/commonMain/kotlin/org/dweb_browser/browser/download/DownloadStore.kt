@@ -1,5 +1,6 @@
 package org.dweb_browser.browser.download
 
+import org.dweb_browser.browser.download.model.DownloadTask
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.file.ext.createStore
 

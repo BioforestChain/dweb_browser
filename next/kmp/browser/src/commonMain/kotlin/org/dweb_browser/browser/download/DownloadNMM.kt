@@ -5,6 +5,8 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.FlowPreview
 import kotlinx.serialization.Serializable
 import org.dweb_browser.browser.BrowserI18nResource
+import org.dweb_browser.browser.download.model.DownloadState
+import org.dweb_browser.browser.download.model.DownloadStateEvent
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.ResponseException
 import org.dweb_browser.core.http.router.bind
@@ -64,9 +66,9 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
     @OptIn(FlowPreview::class)
     override suspend fun _bootstrap() {
       val controller = DownloadController(this)
-      controller.loadDownloadList()
+      controller.loadDownloads()
       onBeforeShutdown {
-        controller.downloadTaskMaps.suspendForEach { _, downloadTask ->
+        controller.downloadMap.forEach { (_, downloadTask) ->
           controller.pauseDownload(downloadTask)
         }
       }
@@ -92,7 +94,7 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
           val taskId = request.queryOrNull("taskId")
             ?: throw ResponseException(HttpStatusCode.BadRequest, "taskId is null")
           debugDownload("exists", "taskId = $taskId")
-          controller.downloadTaskMaps[taskId]?.copy()?.let { downloadTask ->
+          controller.downloadMap[taskId]?.copy()?.let { downloadTask ->
             downloadTask.filepath = pickFile(downloadTask.filepath)
             downloadTask.toJsonElement()
           } ?: throw ResponseException(HttpStatusCode.NotFound, "not found task by $taskId")
@@ -101,14 +103,14 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
         "/start" bind PureMethod.GET by defineBooleanResponse {
           val taskId = request.query("taskId")
           debugDownload("/start", taskId)
-          val task = controller.downloadTaskMaps[taskId] ?: return@defineBooleanResponse false
+          val task = controller.downloadMap[taskId] ?: return@defineBooleanResponse false
           debugDownload("/start", "task=$task")
           controller.startDownload(task)
         },
         // 监控下载进度
         "/flow/progress" byChannel { ctx ->
           val taskId = request.query("taskId")
-          val downloadTask = controller.downloadTaskMaps[taskId]
+          val downloadTask = controller.downloadMap[taskId]
             ?: return@byChannel close(Throwable("not Found download task!"))
           debugDownload("/flow/progress", "taskId=$taskId")
           var statusValue = downloadTask.status
@@ -150,7 +152,7 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
         // 暂停下载
         "/pause" bind PureMethod.GET by defineJsonResponse {
           val taskId = request.query("taskId")
-          val task = controller.downloadTaskMaps[taskId]
+          val task = controller.downloadMap[taskId]
             ?: throwException(message = "no found taskId=$taskId")
           controller.pauseDownload(task)
           task.status.toJsonElement()

@@ -23,10 +23,6 @@ object BrowserI18nResource {
   val dialog_dismiss_webview_upgrade =
     SimpleI18nResource(Language.ZH to "帮助文档", Language.ZH to "Help")
 
-  val install_tab_download =
-    SimpleI18nResource(Language.ZH to "下载", Language.EN to "DownLoad")
-  val install_tab_file =
-    SimpleI18nResource(Language.ZH to "文件", Language.EN to "File")
   val install_button_install = SimpleI18nResource(Language.ZH to "安装", Language.EN to "Install")
   val install_button_update = SimpleI18nResource(Language.ZH to "升级", Language.EN to "Upgrade")
   val install_button_downloading =
@@ -68,16 +64,6 @@ object BrowserI18nResource {
   val no_apps_data = SimpleI18nResource(
     Language.ZH to "没有应用数据", Language.EN to "There are no Apps",
   )
-  val unzip_title_no = SimpleI18nResource(Language.ZH to "编号", Language.EN to "No")
-  val unzip_title_url =
-    SimpleI18nResource(Language.ZH to "下载链接", Language.EN to "Download Link")
-  val unzip_title_createTime =
-    SimpleI18nResource(Language.ZH to "创建时间", Language.EN to "Create Time")
-  val unzip_title_originMmid =
-    SimpleI18nResource(Language.ZH to "下载来源", Language.EN to "Download App")
-  val unzip_title_originUrl =
-    SimpleI18nResource(Language.ZH to "数据来源", Language.EN to "Data Source")
-  val unzip_title_mime = SimpleI18nResource(Language.ZH to "文件类型", Language.EN to "Mime")
   val button_name_confirm = SimpleI18nResource(Language.ZH to "确定", Language.EN to "Confirm")
   val button_name_cancel = SimpleI18nResource(Language.ZH to "取消", Language.EN to "Cancel")
   val top_bar_title_download =
