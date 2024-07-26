@@ -63,7 +63,7 @@ internal class BarHomeButton {
               println("QAQ BarHomeButton onTap")
               isPressed = false
               onClick()
-              desktopWallpaper.play()
+              desktopWallpaper.playJob()
             },
           )
         })

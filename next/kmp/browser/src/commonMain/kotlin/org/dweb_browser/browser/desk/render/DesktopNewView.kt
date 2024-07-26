@@ -63,7 +63,7 @@ fun NewDesktopView(
         if (searchBar.isOpened) {
           searchBar.close()
         } else {
-          desktopWallpaper.play()
+          desktopWallpaper.playJob()
         }
       })
       val layout = desktopGridLayout()
@@ -85,7 +85,7 @@ fun NewDesktopView(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.fillMaxWidth().padding(outerPadding).clickableWithNoEffect {
           searchBar.close()
-          desktopWallpaper.play()
+          desktopWallpaper.playJob()
         }
       ) {
         searchBar.Render(Modifier.padding(vertical = 16.dp))
