@@ -34,10 +34,13 @@ dependencies {
   implementation(libs.gradlePlugin.android)
   implementation(libs.gradlePlugin.kotlin)
   implementation(libs.gradlePlugin.serialization)
+  implementation(libs.gradlePlugin.pinpit)
   implementation(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
 
   // jxbrowser
   implementation(libs.gradlePlugin.jxbrowser)
+  // plist 解析
+  implementation(libs.dd.plist)
 }
 tasks.withType<JavaCompile>().configureEach {
   println("JavaCompile: $name")

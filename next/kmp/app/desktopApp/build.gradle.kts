@@ -5,6 +5,10 @@ plugins {
   id("target-common")
 }
 
+apply("./build-version.gradle.kts")
+
+val appVersion: String by extra
+
 kotlin {
   kmpComposeTarget(project) {
     dependencies {
@@ -32,8 +36,6 @@ kotlin {
     }
   }
 }
-
-val appVersion = "3.7.1700"
 
 compose.desktop {
   val properties = localProperties()

@@ -123,6 +123,14 @@ fun includeApp(dirName: String) {
   project(":$dirName").projectDir = file("app/$dirName")
 }
 
+fun includePinpitApp(dirName: String) {
+  include(dirName)
+  project(":${dirName}").apply {
+    projectDir = file("app/$dirName")
+    buildFileName = "build-pinpit.gradle.kts"
+  }
+}
+
 fun includeUI(dirName: String) {
   include("${dirName}UI")
   project(":${dirName}UI").apply {
@@ -176,7 +184,13 @@ if (features.electronApp.enabled) {
 }
 
 if (features.desktopApp.enabled) {
-  includeApp("desktopApp")
+  val usePinpit = System.getProperty("usePinpit")
+
+  if(usePinpit == "true") {
+    includePinpitApp("desktopApp")
+  } else {
+    includeApp("desktopApp")
+  }
 }
 
 if (features.extlibs.enabled) {

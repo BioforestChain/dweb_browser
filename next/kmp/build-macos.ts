@@ -51,9 +51,14 @@ async function doNotarization(suffix: string) {
 
   console.info("💡 开始执行公证任务");
 
-  await $.cd(import.meta.resolve("./app/desktopApp/build/compose/binaries/main-release"));
+  if (suffix === "x86_64") {
+    $.cd(import.meta.resolve("./app/desktopApp/build/pinpit/binaries/main-default/macos/x64"));
+    await $(`mv distributableApp app-${suffix}`);
+  } else {
+    $.cd(import.meta.resolve("./app/desktopApp/build/compose/binaries/main-release"));
+    await $(`mv app app-${suffix}`);
+  }
 
-  await $(`mv app app-${suffix}`);
   await $(`/usr/bin/ditto -c -k app-${suffix}/DwebBrowser.app zip/DwebBrowser-${suffix}.zip`);
 
   let submissionId: string | undefined;
@@ -115,7 +120,7 @@ async function doNotarization(suffix: string) {
       `--volname`,
       "Dweb Browser Installer",
       "--volicon",
-      "../../../../src/desktopMain/res/icons/mac/icon.icns",
+      `../../../../${suffix === "x86_64" ? "../../" : ""}src/desktopMain/res/icons/mac/icon.icns`,
       "--window-pos",
       `200`,
       `120`,
@@ -145,7 +150,11 @@ async function doNotarization(suffix: string) {
 
 const getVersion = (suffix: string) => {
   const plist = fs.readFileSync(
-    resolveTo(`./app/desktopApp/build/compose/binaries/main-release/app-${suffix}/DwebBrowser.app/Contents/Info.plist`),
+    resolveTo(
+      `./app/desktopApp/build${
+        suffix === "x86_64" ? "/pinpit/binaries/main-default/macos/x64" : "/compose/binaries/main-release"
+      }/app-${suffix}/DwebBrowser.app/Contents/Info.plist`
+    ),
     "utf-8"
   );
   const result = new DOMParser().parseFromString(plist, "text/html");

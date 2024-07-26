@@ -1,5 +1,4 @@
 import org.gradle.accessors.dm.LibrariesForLibs
-import java.util.Properties
 
 val libs = the<LibrariesForLibs>()
 
@@ -26,7 +25,12 @@ jxbrowser {
 kotlin {
   kmpDesktopTarget(project) {
     dependencies {
-      api(jxbrowser.currentPlatform)
+      if (System.getProperty("usePinpit") == "true") {
+        api(jxbrowser.mac)
+      } else {
+        api(jxbrowser.currentPlatform)
+      }
+
       api(jxbrowser.swing)
       if (libs.versions.jxbrowser.version.get().contains("eap")) {
         api(jxbrowser.compose)
