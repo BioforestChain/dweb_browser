@@ -59,7 +59,7 @@ fun ListDetailPaneScaffold(
                   dragging -> MaterialTheme.colorScheme.surfaceTint
                   else -> MaterialTheme.colorScheme.surfaceBright
                 }, shape = RoundedCornerShape(3.dp)
-              ).hoverCursor(PointerIcon.Move).draggable(
+              ).hoverCursor(PointerIcon.HorizontalResize).draggable(
                 orientation = Orientation.Horizontal,
                 state = rememberDraggableState { delta ->
                   listWidth += (delta / density).dp

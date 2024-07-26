@@ -27,6 +27,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.zIndex
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlin.math.abs
@@ -40,6 +41,7 @@ class SwipeToViewBoxState(
   initialAllowFocusEvent: Boolean,
   initialValue: SwipeToViewBoxValue,
   val density: Density,
+  private val scope: CoroutineScope,
   val confirmValueChange: (SwipeToViewBoxValue) -> Boolean,
   val positionalLimit: PositionalThreshold,
   val positionalThreshold: PositionalThreshold,
@@ -60,13 +62,19 @@ class SwipeToViewBoxState(
     toggle(SwipeToViewBoxValue.Open, animation)
   }
 
+  fun openJob(animation: Boolean = true) = scope.launch { open(animation) }
+
   suspend fun close(animation: Boolean = true) {
     toggle(SwipeToViewBoxValue.Close, animation)
   }
 
+  fun closeJob(animation: Boolean = true) = scope.launch { close(animation) }
+
   suspend fun toggle(isOpen: Boolean = !currentValue.isOpen, animation: Boolean = true) {
     toggle(SwipeToViewBoxValue.ALL.getValue(isOpen), animation)
   }
+
+  fun toggleJob(animation: Boolean = true) = scope.launch { toggle(animation) }
 
   suspend fun toggle(state: SwipeToViewBoxValue, animation: Boolean = true) {
     if (state != targetValue && confirmValueChange(state)) {
@@ -113,6 +121,7 @@ fun rememberSwipeToViewBoxState(
   positionalThreshold: PositionalThreshold = SwipeToViewBoxDefaults.positionalThreshold,
 ): SwipeToViewBoxState {
   val density = LocalDensity.current
+  val scope = rememberCoroutineScope()
   return rememberSaveable(
     saver = Saver(
       save = { it.currentValue.isOpen },
@@ -122,6 +131,7 @@ fun rememberSwipeToViewBoxState(
           initialAllowFocusEvent = initialAllowFocusEvent,
           initialValue = SwipeToViewBoxValue.ALL.getValue(it),
           density = density,
+          scope = scope,
           confirmValueChange = confirmValueChange,
           positionalLimit = positionalLimit,
           positionalThreshold = positionalThreshold
@@ -134,6 +144,7 @@ fun rememberSwipeToViewBoxState(
       initialAllowFocusEvent = initialAllowFocusEvent,
       initialValue = initialValue,
       density = density,
+      scope = scope,
       confirmValueChange = confirmValueChange,
       positionalLimit = positionalLimit,
       positionalThreshold = positionalThreshold

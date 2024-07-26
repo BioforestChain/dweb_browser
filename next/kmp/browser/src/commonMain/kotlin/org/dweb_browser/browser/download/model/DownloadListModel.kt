@@ -13,8 +13,8 @@ import org.dweb_browser.browser.download.DownloadI18n
 import org.dweb_browser.helper.compose.SimpleI18nResource
 
 enum class DownloadListTabs(val title: SimpleI18nResource, val icon: ImageVector) {
-  Downloading(DownloadI18n.tab_downloading, Icons.TwoTone.Downloading),
-  Completed(DownloadI18n.tab_completed, Icons.TwoTone.FileDownloadDone),
+  Downloading(DownloadI18n.downloading, Icons.TwoTone.Downloading),
+  Completed(DownloadI18n.completed, Icons.TwoTone.FileDownloadDone),
   ;
 }
 

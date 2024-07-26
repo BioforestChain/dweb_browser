@@ -51,59 +51,56 @@ fun KeychainManager.DetailManager.KeyManager.KeyItemView(
       swapState.close()
     }
   }
-  SwipeToViewBox(swapState,
-    backgroundContent = {
-      Row {
-        TextButton({
-          passwordDeleteAlert = true
-          closeSwipe()
-        }, Modifier.fillMaxHeight().hoverCursor().background(MaterialTheme.colorScheme.error)) {
-          Text(
-            KeychainI18nResource.password_action_delete(), color = MaterialTheme.colorScheme.onError
-          )
-        }
-        TextButton({
-          scope.launch {
-            password = getPassword(key)?.also {
-              passwordRwMode = PasswordReadWriteMode.ReadWrite
-              closeSwipe()
-            }
-          }
-        }, Modifier.fillMaxHeight().hoverCursor().background(MaterialTheme.colorScheme.primary)) {
-          Text(
-            KeychainI18nResource.password_action_edit(), color = MaterialTheme.colorScheme.onPrimary
-          )
-        }
-        TextButton({
-          scope.launch {
-            password = getPassword(key)?.also {
-              passwordRwMode = PasswordReadWriteMode.Readonly
-              closeSwipe()
-            }
-          }
-        }, Modifier.fillMaxHeight().hoverCursor().background(MaterialTheme.colorScheme.secondary)) {
-          Text(
-            KeychainI18nResource.password_action_view(),
-            color = MaterialTheme.colorScheme.onSecondary
-          )
-        }
-        TextButton(
-          { closeSwipe() },
-          Modifier.fillMaxHeight().hoverCursor().background(MaterialTheme.colorScheme.tertiary)
-        ) {
-          Text(CommonI18n.cancel(), color = MaterialTheme.colorScheme.onTertiary)
-        }
+  SwipeToViewBox(swapState, backgroundContent = {
+    Row {
+      TextButton({
+        passwordDeleteAlert = true
+        closeSwipe()
+      }, Modifier.fillMaxHeight().hoverCursor().background(MaterialTheme.colorScheme.error)) {
+        Text(
+          KeychainI18nResource.password_action_delete(), color = MaterialTheme.colorScheme.onError
+        )
       }
-    }) {
+      TextButton({
+        scope.launch {
+          password = getPassword(key)?.also {
+            passwordRwMode = PasswordReadWriteMode.ReadWrite
+            closeSwipe()
+          }
+        }
+      }, Modifier.fillMaxHeight().hoverCursor().background(MaterialTheme.colorScheme.primary)) {
+        Text(
+          KeychainI18nResource.password_action_edit(), color = MaterialTheme.colorScheme.onPrimary
+        )
+      }
+      TextButton({
+        scope.launch {
+          password = getPassword(key)?.also {
+            passwordRwMode = PasswordReadWriteMode.Readonly
+            closeSwipe()
+          }
+        }
+      }, Modifier.fillMaxHeight().hoverCursor().background(MaterialTheme.colorScheme.secondary)) {
+        Text(
+          KeychainI18nResource.password_action_view(),
+          color = MaterialTheme.colorScheme.onSecondary
+        )
+      }
+      TextButton(
+        { closeSwipe() },
+        Modifier.fillMaxHeight().hoverCursor().background(MaterialTheme.colorScheme.tertiary)
+      ) {
+        Text(CommonI18n.cancel(), color = MaterialTheme.colorScheme.onTertiary)
+      }
+    }
+  }) {
     ListItem(
       leadingContent = {
         Icon(Icons.TwoTone.Key, null)
       },
       headlineContent = { Text(key) },
       trailingContent = {
-        IconButton({
-          scope.launch { swapState.toggle() }
-        }, modifier = Modifier.hoverCursor()) {
+        IconButton({ swapState.toggleJob() }, modifier = Modifier.hoverCursor()) {
           Icon(Icons.Default.MoreHoriz, "more")
         }
       },
@@ -113,12 +110,9 @@ fun KeychainManager.DetailManager.KeyManager.KeyItemView(
     BasicAlertDialog(
       {
         password = null
-      },
-      properties = DialogProperties(
-        dismissOnClickOutside = !hasModify,
-        dismissOnBackPress = !hasModify
-      ),
-      modifier = Modifier.wrapContentSize()
+      }, properties = DialogProperties(
+        dismissOnClickOutside = !hasModify, dismissOnBackPress = !hasModify
+      ), modifier = Modifier.wrapContentSize()
     ) {
       ElevatedCard {
         Box(Modifier.zIndex(2f).align(Alignment.End)) {

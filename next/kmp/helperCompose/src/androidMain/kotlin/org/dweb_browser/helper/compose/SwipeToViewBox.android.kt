@@ -15,14 +15,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.launch
 
 @Preview
 @Composable
@@ -70,13 +68,12 @@ fun SwipeToViewBoxPreview() {
     HorizontalDivider()
 
     val state = rememberSwipeToViewBoxState()
-    val scope = rememberCoroutineScope()
 
     @Composable
     fun buttons() {
       Row {
-        TextButton({ scope.launch { state.open() } }) { Text(("Open")) }
-        TextButton({ scope.launch { state.close() } }) { Text(("Close")) }
+        TextButton({ state.openJob() }) { Text(("Open")) }
+        TextButton({ state.closeJob() }) { Text(("Close")) }
       }
     }
     SwipeToViewBox(state, backgroundContent = { p ->

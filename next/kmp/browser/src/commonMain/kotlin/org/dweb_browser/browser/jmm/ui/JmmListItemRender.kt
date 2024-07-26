@@ -11,10 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreHoriz
-import androidx.compose.material.icons.twotone.DeleteForever
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
@@ -38,12 +35,12 @@ import org.dweb_browser.browser.jmm.JmmI18n
 import org.dweb_browser.browser.jmm.JmmI18nResource
 import org.dweb_browser.browser.jmm.JmmMetadata
 import org.dweb_browser.browser.jmm.JmmStatus
-import org.dweb_browser.helper.compose.CommonI18n
 import org.dweb_browser.helper.compose.SwipeToViewBox
 import org.dweb_browser.helper.compose.hoverCursor
 import org.dweb_browser.helper.compose.rememberSwipeToViewBoxState
 import org.dweb_browser.helper.formatDatestampByMilliseconds
 import org.dweb_browser.helper.toSpaceSize
+import org.dweb_browser.sys.window.ext.AlertDeleteDialog
 
 @Composable
 fun JmmListItem(
@@ -59,18 +56,11 @@ fun JmmListItem(
       Row {
         var showUnInstallAlert by remember { mutableStateOf(false) }
         if (showUnInstallAlert) {
-          val scope = rememberCoroutineScope()
-          AlertDialog(
+          AlertDeleteDialog(
             onDismissRequest = { showUnInstallAlert = false },
-            icon = {
-              Icon(
-                Icons.TwoTone.DeleteForever,
-                null,
-                tint = MaterialTheme.colorScheme.error
-              )
-            },
+            onDelete = onRemove,
             title = { Text(JmmI18n.uninstall_alert_title()) },
-            text = {
+            message = {
               Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.fillMaxWidth()
@@ -79,25 +69,7 @@ fun JmmListItem(
                 Text(jmmMetadata.manifest.id)
               }
             },
-            confirmButton = {
-              FilledTonalButton(
-                onUnInstall,
-                colors = ButtonDefaults.filledTonalButtonColors(
-                  containerColor = MaterialTheme.colorScheme.errorContainer,
-                  contentColor = MaterialTheme.colorScheme.error,
-                )
-              ) {
-                Text(JmmI18n.confirm_uninstall())
-              }
-            },
-            dismissButton = {
-              TextButton({
-                showUnInstallAlert = false
-                scope.launch { state.close() }
-              }) {
-                Text(CommonI18n.cancel())
-              }
-            },
+            deleteText = JmmI18n.confirm_uninstall()
           )
         }
         val removeColors = ButtonDefaults.textButtonColors(

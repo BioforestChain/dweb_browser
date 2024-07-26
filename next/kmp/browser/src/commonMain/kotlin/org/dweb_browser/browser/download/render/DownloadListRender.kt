@@ -24,6 +24,7 @@ import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.download.DownloadController
 import org.dweb_browser.browser.download.model.DownloadListTabs
 import org.dweb_browser.browser.download.model.DownloadState
+import org.dweb_browser.helper.compose.HorizontalDivider
 import org.dweb_browser.helper.compose.ListDetailPaneScaffoldNavigator
 import org.dweb_browser.helper.compose.NoDataRender
 
@@ -73,16 +74,19 @@ fun DownloadController.DownloadList(
         }
       }
       items(list, key = { it.id }) { downloadTask ->
-        downloadListModel.DownloadItem(
-          onClick = {
-            decompressModel.show(downloadTask);
-            navigator.navigateToDetail {
-              decompressModel.hide()
-            }
-          },
-          onRemove = { downloadListModel.removeDownloadTask(downloadTask) },
-          downloadTask = downloadTask,
-        )
+        Column(Modifier.fillMaxSize()) {
+          downloadListModel.DownloadItem(
+            onClick = {
+              decompressModel.show(downloadTask);
+              navigator.navigateToDetail {
+                decompressModel.hide()
+              }
+            },
+            onRemove = { downloadListModel.removeDownloadTask(downloadTask) },
+            downloadTask = downloadTask,
+          )
+          HorizontalDivider()
+        }
       }
     }
   }

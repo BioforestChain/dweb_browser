@@ -20,10 +20,13 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.fromHtml
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import okio.Path.Companion.toPath
@@ -117,7 +120,14 @@ private fun DownloadTask.AppHeadInfo(modifier: Modifier = Modifier) {
                   containerColor = Color.White,
                 )
                 Text(
-                  AnnotatedString.fromHtml("<b>${it.short_name}</b> <i>($originMmid)</i>"),
+                  buildAnnotatedString {
+                    withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                      append(it.short_name)
+                    }
+                    withStyle(SpanStyle(fontStyle = FontStyle.Italic)) {
+                      append(" ($originMmid)")
+                    }
+                  },
                   style = style
                 )
               }
