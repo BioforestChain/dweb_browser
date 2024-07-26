@@ -30,6 +30,11 @@ sealed class SuspendOnceBase<R> {
   internal var runned = noRun as Deferred<R>
   val haveRun get() = runned !== noRun
   suspend fun getResult() = this.runned.await()
+  fun getResultOrNull() = when {
+    haveRun -> this.runned.getCompletedOrNull()
+    else -> null
+  }
+
   fun reset(cause: Throwable? = null, doCancel: Boolean = true) {
     synchronized(lock) {
       if (doCancel && this.runned !== noRun) {

@@ -59,8 +59,7 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
     val start: Boolean = false,
     /** 用于接收json中文件大小 */
     val total: Long = 1L,
-  ) {
-  }
+  ) {}
 
   inner class DownloadRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
     @OptIn(FlowPreview::class)
@@ -91,8 +90,9 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
         },
         // 获取当前的task
         "/getTask" bind PureMethod.GET by defineJsonResponse {
-          val taskId = request.queryOrNull("taskId")
-            ?: throw ResponseException(HttpStatusCode.BadRequest, "taskId is null")
+          val taskId = request.queryOrNull("taskId") ?: throw ResponseException(
+            HttpStatusCode.BadRequest, "taskId is null"
+          )
           debugDownload("exists", "taskId = $taskId")
           controller.downloadMap[taskId]?.copy()?.let { downloadTask ->
             downloadTask.filepath = pickFile(downloadTask.filepath)
@@ -152,8 +152,8 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
         // 暂停下载
         "/pause" bind PureMethod.GET by defineJsonResponse {
           val taskId = request.query("taskId")
-          val task = controller.downloadMap[taskId]
-            ?: throwException(message = "no found taskId=$taskId")
+          val task =
+            controller.downloadMap[taskId] ?: throwException(message = "no found taskId=$taskId")
           controller.pauseDownload(task)
           task.status.toJsonElement()
         },

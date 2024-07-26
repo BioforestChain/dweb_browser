@@ -41,17 +41,22 @@ val MicroModule.Runtime.blobFetchHook
   get() = MicroModuleBlobFetchHookCache.getOrPut(this) {
     {
       var res: PureResponse? = null
-      // 不能直接用url，否则可能会出现key过长的问题
-      val key = sha256Sync(request.url.toString().utf8Binary).base64UrlString
-      val blobUrl = sharedBlobStore.getStringOrPut(key) {
-        createBlobFromUrl(request.url) { res = it }
-      }
-      res ?: nativeFetch(blobUrl).let { response ->
-        when {
-          response.isOk -> response
-          else -> {
-            sharedBlobStore.setString(key, createBlobFromUrl(request.url) { res = it })
-            res!!
+      // 如果是 data 协议，那么直接返回构建的 Response 即可
+      if (request.url.protocol.name == "data") {
+        nativeFetch(request.url)
+      } else {
+        // 不能直接用url，否则可能会出现key过长的问题
+        val key = sha256Sync(request.url.toString().utf8Binary).base64UrlString
+        val blobUrl = sharedBlobStore.getStringOrPut(key) {
+          createBlobFromUrl(request.url) { res = it }
+        }
+        res ?: nativeFetch(blobUrl).let { response ->
+          when {
+            response.isOk -> response
+            else -> {
+              sharedBlobStore.setString(key, createBlobFromUrl(request.url) { res = it })
+              res!!
+            }
           }
         }
       }

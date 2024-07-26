@@ -6,10 +6,15 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Android
+import androidx.compose.material.icons.filled.AudioFile
+import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.FileOpen
 import androidx.compose.material.icons.filled.PauseCircle
+import androidx.compose.material.icons.filled.Photo
 import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material.icons.filled.SyncProblem
+import androidx.compose.material.icons.filled.VideoFile
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
@@ -27,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
@@ -40,11 +46,11 @@ import androidx.compose.ui.unit.dp
 import org.dweb_browser.browser.download.model.DownloadListModel
 import org.dweb_browser.browser.download.model.DownloadState
 import org.dweb_browser.browser.download.model.DownloadTask
-import org.dweb_browser.browser.download.model.getIconByMime
 import org.dweb_browser.helper.compose.CommonI18n
 import org.dweb_browser.helper.compose.SwipeToViewBox
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.toSpaceSize
+import org.dweb_browser.sys.window.ext.FileIconByFilename
 import kotlin.math.roundToInt
 
 
@@ -112,11 +118,6 @@ fun DownloadListModel.DownloadItem(
                   maxLines = 1,
                   overflow = TextOverflow.Ellipsis
                 )
-                Text(
-                  text = taskState.name,
-                  textAlign = TextAlign.End,
-                  modifier = Modifier.fillMaxWidth()
-                )
               }
               // 显示下载进度
               LinearProgressIndicator(progress = { taskCurrent / downloadTask.status.total.toFloat() })
@@ -125,7 +126,7 @@ fun DownloadListModel.DownloadItem(
         }
       },
       leadingContent = { // 左边的图标
-        Icon(imageVector = getIconByMime(downloadTask.mime), contentDescription = "Download File")
+        downloadController.downloadNMM.FileIconByFilename(downloadTask.filename, 32.dp)
       },
       trailingContent = { // 右边的图标
         when (downloadTask.status.state) {
@@ -220,4 +221,15 @@ private fun MiddleEllipsisText(
         measuredText = text.take(maxLength / 2) + "...." + text.takeLast(maxLength / 2)
       }
     })
+}
+
+
+private fun getIconByMime(mime: String): ImageVector {
+  return when (mime) {
+    "mp4", "avi", "rmvb", "" -> Icons.Default.VideoFile
+    "mp3" -> Icons.Default.AudioFile
+    "jpg", "png", "bmp", "svg" -> Icons.Default.Photo
+    "apk" -> Icons.Default.Android
+    else -> Icons.Default.FileDownload
+  }
 }

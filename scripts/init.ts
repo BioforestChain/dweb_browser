@@ -39,11 +39,11 @@ AssetsConfig.createAndSave("browser-drawable", [
   },
 ]);
 AssetsConfig.createAndSave(
-  "browser-download-icons",
+  "window-fs-icons",
   [
     {
       type: "linkKmpResFiles",
-      moduleName: "browser",
+      moduleName: "window",
     },
   ],
   rootResolve("./toolkit/dweb_material_icons/build")
