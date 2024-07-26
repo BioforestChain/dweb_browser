@@ -1,3 +1,8 @@
+import {
+  Confirm,
+  Input,
+  prompt,
+} from "https://deno.land/x/cliffy@v1.0.0-rc.4/prompt/mod.ts";
 import { DOMParser } from "https://deno.land/x/deno_dom/deno-dom-wasm.ts";
 import fs from "node:fs";
 import os from "node:os";
@@ -34,9 +39,11 @@ async function doRelease(suffix: string) {
   $.cd(import.meta.resolve("./"));
   console.info("💡 开始执行编译");
   // -PreleaseBuild=true 增加传入参数表示当前是 release 打包操作
-  await $("./gradlew :desktopApp:createReleaseDistributable -PreleaseBuild=true");
-
-  return await doNotarization(suffix);
+  if (suffix === "x86_64") {
+    await $("./gradlew pinpitPackageDefaultDistributableZipMacosX64 -DusePinpit=true -PreleaseBuild=true");
+  } else {
+    await $("./gradlew :desktopApp:createReleaseDistributable -PreleaseBuild=true");
+  }
 }
 
 async function doNotarization(suffix: string) {
@@ -171,12 +178,42 @@ const getVersion = (suffix: string) => {
 };
 
 if (import.meta.main) {
-  // 如果有手动指明 arch，那么不做编译，只做分发
-  if (cliArgs.arch) {
-    await doNotarization(getSuffix());
-  } else {
-    const result = await doRelease(getSuffix());
-    if (result && cliArgs.upload) {
+  const promptResult = await prompt([
+    {
+      name: "arch",
+      message: "请选择CPU架构",
+      type: Input,
+      list: true,
+      info: true,
+      suggestions: ["x86_64", "arm64"]
+    },
+    {
+      name: "package",
+      message: "是否打包",
+      type: Confirm,
+    },
+    {
+      name: "notarization",
+      message: "是否公证",
+      type: Confirm,
+    },
+    {
+      name: "upload",
+      message: "是否上传",
+      type: Confirm,
+    }
+  ]);
+
+  const arch = promptResult.arch ?? "";
+  
+  if(promptResult.package) {
+    await doRelease(arch);
+  }
+
+  if(promptResult.notarization) {
+    const result = await doNotarization(arch);
+
+    if (result && promptResult.upload) {
       const uploadArgs: $UploadReleaseParams = [`desktop-${result.version}`, result.filepath];
       await recordUploadRelease(`desktop-${result.version}/macos`, uploadArgs);
       if (cliArgs.upload) {
