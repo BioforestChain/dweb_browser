@@ -63,6 +63,10 @@ actual class ScanningController actual constructor(mmScope: CoroutineScope) {
     }
     return listOf()
   }
+
+  /**解析二维码时候的震动效果*/
+  actual fun decodeHaptics() {
+  }
 }
 
 

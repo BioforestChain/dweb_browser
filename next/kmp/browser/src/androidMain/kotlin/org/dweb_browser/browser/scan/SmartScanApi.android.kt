@@ -16,14 +16,10 @@ import androidx.camera.view.transform.CoordinateTransform
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.common.InputImage
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.debounce
 import org.dweb_browser.browser.util.regexDeepLink
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.PurePoint
 import org.dweb_browser.helper.PureRect
-import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.getAppContextUnsafe
 import org.dweb_browser.helper.isWebUrl
 import org.dweb_browser.helper.toPoint
@@ -79,8 +75,6 @@ actual class ScanningController actual constructor(mmScope: CoroutineScope) {
     val task = PromiseOut<List<BarcodeResult>>()
     barcodeScanner.process(image)
       .addOnSuccessListener { barcodes ->
-        // 如果识别发生变化，触发抖动
-        decodeHaptics.tryEmit(barcodes.size)
         task.resolve(barcodes.map { barcode ->
           val cornerPoints = barcode.cornerPoints
           if (matrix !== null) {
@@ -125,24 +119,16 @@ actual class ScanningController actual constructor(mmScope: CoroutineScope) {
     return task.waitPromise()
   }
 
-  //计数二维码数量是否发生改变
-  private var oldBarcodeSize = 0
+
   private val mVibrate = AndroidVibrate.mVibrate // 这里高度集成，没有调用HapticsNMM
 
-  @kotlin.OptIn(FlowPreview::class)
-  private val decodeHaptics = MutableStateFlow(0).also {
-    // 避免触发太快
-    it.debounce(300).collectIn(scope = mmScope) { newSize ->
-      if (oldBarcodeSize < newSize) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-          mVibrate.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK))
-        } else {
-          mVibrate.vibrate(VibrateType.CLICK.oldSDKPattern, -1)
-        }
-      }
-      oldBarcodeSize = newSize
+  /**解析二维码时候的震动效果*/
+  actual fun decodeHaptics() {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+      mVibrate.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK))
+    } else {
+      mVibrate.vibrate(VibrateType.CLICK.oldSDKPattern, -1)
     }
-
   }
 }
 

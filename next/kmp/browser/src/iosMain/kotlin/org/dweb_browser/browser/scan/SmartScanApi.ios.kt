@@ -14,6 +14,8 @@ import platform.CoreImage.CIDetectorTypeQRCode
 import platform.CoreImage.CIImage
 import platform.CoreImage.CIQRCodeFeature
 import platform.Foundation.NSData
+import platform.UIKit.UIImpactFeedbackGenerator
+import platform.UIKit.UIImpactFeedbackStyle
 
 
 actual class ScanningController actual constructor(mmScope: CoroutineScope) {
@@ -48,7 +50,17 @@ actual class ScanningController actual constructor(mmScope: CoroutineScope) {
       )
     }
   }
+
+  private var impact =
+    UIImpactFeedbackGenerator(UIImpactFeedbackStyle.UIImpactFeedbackStyleLight)
+
+  // 这里高度集成，没有调用HapticsNMM
+  actual fun decodeHaptics() {
+    impact.prepare()
+    impact.impactOccurred()
+  }
 }
+
 
 actual fun openDeepLink(data: String, showBackground: Boolean): Boolean {
   // 下面判断的是否是 DeepLink，如果不是的话，判断是否是

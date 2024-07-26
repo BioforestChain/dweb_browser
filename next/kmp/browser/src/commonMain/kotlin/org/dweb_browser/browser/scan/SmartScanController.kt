@@ -5,9 +5,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.helper.WARNING
@@ -135,7 +137,23 @@ class SmartScanController(
       WARNING("decode error=>${e.message}")
       emptyList()
     }
+    decodeHaptics.tryEmit(result.size)
     return result
+  }
+
+  //计数二维码数量是否发生改变
+  private var oldBarcodeSize = 0
+
+  // 触发震动
+  @kotlin.OptIn(FlowPreview::class)
+  val decodeHaptics = MutableStateFlow(0).also {
+    // 避免触发太快
+    it.debounce(300).collectIn(scope = smartScanNMM.getRuntimeScope()) { newSize ->
+      if (oldBarcodeSize < newSize) {
+        scanningController.decodeHaptics()
+      }
+      oldBarcodeSize = newSize
+    }
   }
 
   // 相机控制器
