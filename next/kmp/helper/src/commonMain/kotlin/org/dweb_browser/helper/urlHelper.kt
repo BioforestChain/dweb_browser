@@ -105,7 +105,10 @@ fun URLBuilder.resolvePath(path: String) {
   if (path.isBlank() || path.isEmpty()) {
     return
   }
-  val segments = path.split("/").map { it.decodeURLPart() }.filter { it == "." }.toMutableList()
+  val segments = path.split("/")
+    .map { it.decodeURLPart() }
+    .filter { it != "" && it != "." }
+    .toMutableList()
   while (segments.contains("..")) {
     val index = segments.indexOf("..")
     segments.removeAt(index)
