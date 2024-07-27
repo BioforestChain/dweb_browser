@@ -36,7 +36,7 @@ class PermissionProviderTNN :
     short_name = name
     categories = listOf(MICRO_MODULE_CATEGORY.Service)
     icons = listOf(
-      ImageResource(src = "file:///sys/browser-icons/test-yellow.svg", type = "image/svg+xml")
+      ImageResource(src = "file:///sys/sys-icons/test-yellow.svg", type = "image/svg+xml")
     )
     dweb_permissions = listOf(
       DwebPermission(
@@ -76,7 +76,7 @@ class PermissionApplicantTMM :
   short_name = name
   categories = listOf(MICRO_MODULE_CATEGORY.Application)
   icons = listOf(
-    ImageResource(src = "file:///sys/browser-icons/test-pink.svg", type = "image/svg+xml")
+    ImageResource(src = "file:///sys/sys-icons/test-pink.svg", type = "image/svg+xml")
   )
   display = DisplayMode.Fullscreen
 }

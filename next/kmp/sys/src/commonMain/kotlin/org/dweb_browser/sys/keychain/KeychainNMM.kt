@@ -30,7 +30,7 @@ class KeychainNMM : NativeMicroModule("keychain.sys.dweb", KeychainI18nResource.
       MICRO_MODULE_CATEGORY.Device_Management_Service,
     )
     icons =
-      listOf(ImageResource(src = "file:///sys/browser-icons/$mmid.svg", type = "image/svg+xml"))
+      listOf(ImageResource(src = "file:///sys/sys-icons/$mmid.svg", type = "image/svg+xml"))
   }
 
   inner class KeyChainRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {

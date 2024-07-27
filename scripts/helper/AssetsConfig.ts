@@ -48,8 +48,6 @@ export class AssetsConfig {
 }
 
 const symlink = (target: string, dest: string) => {
-  console.log("symlink", target, dest);
-
   if (fs.existsSync(dest)) {
     let isSymbolicLink = false;
     try {
@@ -65,7 +63,6 @@ const symlink = (target: string, dest: string) => {
     fs.mkdirSync(node_path.dirname(dest), { recursive: true });
   }
 
-  console.log("symlink", fs.existsSync(dest));
   // windows系统需要使用junction模式，否则会有权限问题
   if (os.platform() === "win32") {
     fs.symlinkSync(target, dest, "junction");

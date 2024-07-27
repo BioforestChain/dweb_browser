@@ -182,12 +182,12 @@ android {
           }
         }
       }
-      println("QAQ beforeVariantsBuilder=${variantBuilder.name} buildType=${variantBuilder.buildType} enable=${if (variantBuilder.enable) "✅ " else "❌ "}")
+      // println("QAQ beforeVariantsBuilder=${variantBuilder.name} buildType=${variantBuilder.buildType} enable=${if (variantBuilder.enable) "✅ " else "❌ "}")
     }
   }
   applicationVariants.all {
     outputs.all {
-      println("QAQ variantBuilder=${name}")
+      // println("QAQ variantBuilder=${name}")
       val midName = when {
         name.startsWith("for") -> name.substring("for".length).split("-").first().lowercase()
         else -> ""
