@@ -56,8 +56,10 @@ import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.interceptStartApp
 import org.dweb_browser.helper.Once1
 import org.dweb_browser.helper.addStartActivityOptions
+import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
 import org.dweb_browser.helper.compose.LocalCommonUrl
 import org.dweb_browser.helper.compose.RadialGradientX
+import org.dweb_browser.helper.compose.envSwitch
 import org.dweb_browser.helper.getBoolean
 import org.dweb_browser.helper.globalMainScope
 import org.dweb_browser.helper.platform.theme.DwebBrowserAppTheme
@@ -68,7 +70,7 @@ import kotlin.system.exitProcess
 @RequiresApi(Build.VERSION_CODES.S)
 @Preview
 @Composable
-fun RadialGradientXDemo(){
+fun RadialGradientXDemo() {
   RadialGradientX(
     Modifier.size(200.dp),
     startX = 10f,
@@ -157,6 +159,8 @@ class SplashActivity : AppCompatActivity() {
         SplashPrivacyDialog(
           openHome = {
             DwebBrowserApp.appContext.saveBoolean(keyEnableAgreement, true)
+            // 新安装的用户，默认启用 profile
+            envSwitch.enable(ENV_SWITCH_KEY.DWEBVIEW_PROFILE)
             grant.complete(true)
           },
           openWebView = { url -> localPrivacy = url },

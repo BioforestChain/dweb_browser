@@ -62,7 +62,11 @@ fun SplashPrivacyDialog(
           targetOffsetY = { it }, animationSpec = iosTween(durationIn = showPrivacyView)
         ),
       ) {
-        SplashPrivacyView(Modifier, openWebView, openHome) { showPrivacyDeny = true }
+        SplashPrivacyView(
+          openWebView = openWebView,
+          onConfirm = openHome,
+          onDismiss = { showPrivacyDeny = true },
+        )
       }
     }
     Box(modifier = Modifier.widthIn(max = 600.dp).align(Alignment.BottomCenter)) {
@@ -84,8 +88,8 @@ fun SplashPrivacyDialog(
 
 @Composable
 private fun SplashPrivacyView(
-  modifier: Modifier,
   openWebView: (String) -> Unit, onConfirm: () -> Unit, onDismiss: () -> Unit,
+  modifier: Modifier = Modifier,
 ) {
   BottomSheet(modifier) {
     Text(
