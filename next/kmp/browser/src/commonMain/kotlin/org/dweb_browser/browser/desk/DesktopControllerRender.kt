@@ -27,8 +27,8 @@ import org.dweb_browser.sys.window.core.constant.LocalWindowMM
 import org.dweb_browser.sys.window.render.SceneRender
 
 @Composable
-fun DesktopController.Render(
-  desktopController: DesktopController,
+fun TabletopController.Render(
+  tabletopController: TabletopController,
   taskbarController: TaskbarController,
   microModule: NativeMicroModule.NativeRuntime,
 ) {
@@ -39,7 +39,7 @@ fun DesktopController.Render(
   ) {
     Box(modifier = Modifier.fillMaxWidth()) {
       if (remember { envSwitch.isEnabled(ENV_SWITCH_KEY.DESKTOP_STYLE_COMPOSE) }) {
-        NewDesktopView(desktopController, microModule)
+        NewDesktopView(tabletopController, microModule)
       } else {
         DesktopView {
           Render(Modifier.fillMaxSize())

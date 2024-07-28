@@ -32,20 +32,20 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastRoundToInt
 import kotlinx.coroutines.launch
-import org.dweb_browser.browser.desk.DesktopController
+import org.dweb_browser.browser.desk.TabletopController
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 
 @Composable
 fun NewDesktopView(
-  desktopController: DesktopController,
+  tabletopController: TabletopController,
   microModule: NativeMicroModule.NativeRuntime,
   modifier: Modifier = Modifier,
 ) {
-  val appMenuPanel = rememberAppMenuPanel(desktopController, microModule)
+  val appMenuPanel = rememberAppMenuPanel(tabletopController, microModule)
   val scope = rememberCoroutineScope()
 
-  val apps = desktopController.appsFlow.collectAsState().value
+  val apps = tabletopController.appsFlow.collectAsState().value
 
   val searchBar = rememberDesktopSearchBar()
   val desktopWallpaper = rememberDesktopWallpaper()
@@ -91,7 +91,7 @@ fun NewDesktopView(
         searchBar.Render(Modifier.padding(vertical = 16.dp))
         LaunchedEffect(Unit) {
           searchBar.onSearchFlow.collect {
-            desktopController.search(it)
+            tabletopController.search(it)
           }
         }
         val innerPadding = remember(layout.insets, safeGestures) {
@@ -124,7 +124,7 @@ fun NewDesktopView(
               modifier = Modifier.desktopAppItemActions(
                 onOpenApp = {
                   scope.launch {
-                    desktopController.open(app.mmid)
+                    tabletopController.open(app.mmid)
                   }
 //                  searchBar.close()
 //                  desktopWallpaper.play()

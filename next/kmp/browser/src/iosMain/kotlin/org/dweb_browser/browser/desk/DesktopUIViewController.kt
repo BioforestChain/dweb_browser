@@ -11,9 +11,9 @@ import org.dweb_browser.pure.image.compose.rememberOffscreenWebCanvas
 import org.dweb_browser.sys.window.render.LocalWindowsImeVisible
 
 @OptIn(ExperimentalForeignApi::class)
-class DesktopUIViewController(val vc: PureViewController) {
+class TabletopUIViewController(val vc: PureViewController) {
   init {
-    DesktopViewControllerCore(vc)
+    TabletopViewControllerCore(vc)
 
     vc.addContent {
       /// 对 imeVisible 的绑定支持

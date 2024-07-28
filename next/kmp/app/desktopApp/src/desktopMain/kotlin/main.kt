@@ -25,6 +25,7 @@ suspend fun main(vararg args: String) {
   if (PureViewController.isMacOS) {
     System.setProperty("compose.interop.blending", "true")
   }
+  System.setProperty("skiko.renderApi", "SOFTWARE")
   // https://github.com/JetBrains/compose-multiplatform/issues/1521
   //      System.setProperty("compose.swing.render.on.graphics", "true")
   //  System.setProperty("skiko.renderApi", "SOFTWARE")

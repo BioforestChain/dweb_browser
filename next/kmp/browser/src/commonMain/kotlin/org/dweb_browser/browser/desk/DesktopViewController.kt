@@ -1,14 +1,9 @@
 package org.dweb_browser.browser.desk
 
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshotFlow
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import org.dweb_browser.helper.PureRect
 import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.helper.platform.IPureViewController
 import org.dweb_browser.helper.platform.LocalPureViewController
@@ -17,19 +12,15 @@ import org.dweb_browser.helper.platform.from
 import org.dweb_browser.helper.platform.theme.DwebBrowserAppTheme
 import org.dweb_browser.helper.platform.unbindPureViewController
 
-fun PureRect.toModifier(
-  modifier: Modifier = Modifier,
-) = modifier.offset(x.dp, y.dp).size(width.dp, height.dp)
-
-class DesktopViewControllerCore(val viewController: IPureViewController) {
-  private var desktopController: DesktopController? = null
+class TabletopViewControllerCore(val viewController: IPureViewController) {
+  private var tabletopController: TabletopController? = null
   private suspend fun bindController(sessionId: String?): DeskNMM.Companion.DeskControllers {
     /// 解除上一个 controller的activity绑定
-    desktopController?.activity = null
+    tabletopController?.activity = null
 
     return DeskNMM.controllersMap[sessionId]?.also { controllers ->
-      controllers.desktopController.activity = viewController
-      this.desktopController = controllers.desktopController
+      controllers.tabletopController.activity = viewController
+      this.tabletopController = controllers.tabletopController
       controllers.activityPo.resolve(IPureViewBox.from(viewController))
     } ?: throw Exception("no found controller by sessionId: $sessionId")
   }
@@ -70,7 +61,7 @@ class DesktopViewControllerCore(val viewController: IPureViewController) {
     }
 
     viewController.onDestroy {
-      desktopController?.activity = null
+      tabletopController?.activity = null
     }
   }
 }

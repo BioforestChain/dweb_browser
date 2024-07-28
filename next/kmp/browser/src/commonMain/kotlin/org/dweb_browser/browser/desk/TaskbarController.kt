@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.serialization.Serializable
 import org.dweb_browser.browser.desk.model.TaskbarAppModel
+import org.dweb_browser.browser.desk.model.TaskbarModel
 import org.dweb_browser.browser.desk.types.DeskAppMetaData
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.std.http.HttpDwebServer
@@ -37,13 +38,13 @@ import org.dweb_browser.sys.window.core.helper.toStrict
 
 
 class TaskbarController private constructor(
-  override val deskNMM: DeskNMM.DeskRuntime,
+  val deskNMM: DeskNMM.DeskRuntime,
   val deskSessionId: String,
-  private val desktopController: DesktopController,
+  private val tabletopController: TabletopController,
   private val taskbarServer: HttpDwebServer,
   private val runningApps: ChangeableMap<MMID, RunningApp>,
-) : DesktopAppController(deskNMM) {
-  internal val state = TaskbarState();
+) {
+  internal val state = TaskbarModel();
   internal val appsFlow = MutableStateFlow(emptyList<TaskbarAppModel>())
   private suspend fun upsetApps() {
     appsFlow.value = getTaskbarAppList(Int.MAX_VALUE).map { new ->
@@ -63,11 +64,11 @@ class TaskbarController private constructor(
     suspend fun create(
       deskSessionId: String,
       deskNMM: DeskNMM.DeskRuntime,
-      desktopController: DesktopController,
+      tabletopController: TabletopController,
       taskbarServer: HttpDwebServer,
       runningApps: ChangeableMap<MMID, RunningApp>,
     ) = TaskbarController(
-      deskNMM, deskSessionId, desktopController, taskbarServer, runningApps
+      deskNMM, deskSessionId, tabletopController, taskbarServer, runningApps
     )
   }
 
@@ -146,7 +147,7 @@ class TaskbarController private constructor(
       }
     }
     // 监听窗口状态改变
-    desktopController.onUpdate.collectIn(deskNMM.getRuntimeScope()) {
+    tabletopController.onUpdate.collectIn(deskNMM.getRuntimeScope()) {
       updateFlow.emit(it)
     }
   }
@@ -164,7 +165,7 @@ class TaskbarController private constructor(
       if (metaData != null) {
         apps[appId] = DeskAppMetaData().apply {
           running = runningApps.contains(appId)
-          winStates = desktopController.getDesktopWindowsManager().getWindowStates(metaData.mmid)
+          winStates = tabletopController.getTabletopWindowsManager().getWindowStates(metaData.mmid)
           //...复制metaData属性
           assign(metaData.manifest)
         }
@@ -200,7 +201,7 @@ class TaskbarController private constructor(
    * 将其它视图临时最小化到 TaskbarView/TooggleDesktopButton 按钮里头，在此点击该按钮可以释放这些临时视图到原本的状态
    */
   suspend fun toggleDesktopView() {
-    val windowsManager = desktopController.getDesktopWindowsManager()
+    val windowsManager = tabletopController.getTabletopWindowsManager()
     val allWindows = windowsManager.allWindowsFlow.value.keys.toList()
     if (allWindows.isEmpty() || allWindows.find { it.isVisible } != null) {
       allWindows.map { win ->
@@ -282,7 +283,7 @@ class TaskbarController private constructor(
   }
 
   suspend fun toggleWindowMaximize(mmid: MMID) =
-    desktopController.getDesktopWindowsManager().toggleMaximize(mmid)
+    tabletopController.getTabletopWindowsManager().toggleMaximize(mmid)
 
   init {
     onUpdate.filter { it != "bounds" }.collectIn(deskNMM.getRuntimeScope()) {

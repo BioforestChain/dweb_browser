@@ -72,7 +72,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
 
   companion object {
     data class DeskControllers(
-      val desktopController: DesktopController,
+      val tabletopController: TabletopController,
       val taskbarController: TaskbarController,
       val deskNMM: DeskNMM.DeskRuntime,
     ) {
@@ -153,7 +153,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
 
     private val openAppLock = ReasonLock()
     suspend fun IHandlerContext.openOrActivateAppWindow(
-      ipc: Ipc, desktopController: DesktopController,
+      ipc: Ipc, tabletopController: TabletopController,
     ): WindowController {
       val appId = ipc.remote.mmid
       debugDesk("ActivateAppWindow", appId)
@@ -161,10 +161,10 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         /// desk直接为应用打开窗口，因为窗口由desk统一管理，所以由desk窗口，并提供句柄
         val appMainWindow = getAppMainWindow(ipc)
         /// 将所有的窗口聚焦
-        desktopController.getDesktopWindowsManager().focusWindow(appId)
+        tabletopController.getTabletopWindowsManager().focusWindow(appId)
         return appMainWindow
       } catch (e: Exception) {
-        desktopController.showAlert(e)
+        tabletopController.showAlert(e)
         e.printStackTrace()
         throwException(cause = e)
       }
@@ -209,13 +209,13 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       listenApps()
       // 创建桌面和任务的服务
       val taskbarServer = this.createTaskbarWebServer()
-      val desktopServer = this.createDesktopWebServer()
+      val tabletopServer = this.createTabletopWebServer()
       val deskSessionId = randomUUID()
 
-      val desktopController = DesktopController.create(this, desktopServer, runningApps)
+      val tabletopController = TabletopController.create(this, tabletopServer, runningApps)
       val taskBarController =
-        TaskbarController.create(deskSessionId, this, desktopController, taskbarServer, runningApps)
-      val deskControllers = DeskControllers(desktopController, taskBarController, this)
+        TaskbarController.create(deskSessionId, this, tabletopController, taskbarServer, runningApps)
+      val deskControllers = DeskControllers(tabletopController, taskBarController, this)
       controllersMap[deskSessionId] = deskControllers
 
       onShutdown {
@@ -224,7 +224,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       }
 
       /// 实现协议
-      windowProtocol(desktopController)
+      windowProtocol(tabletopController)
 
       /// 内部接口
       routes(
@@ -247,12 +247,12 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
           val targetIpc = connect(mmid, request)
           debugDesk("openAppOrActivate", "targetIpc=$targetIpc")
           // 发现desk.js是判断返回值true or false 来显示是否正常启动，所以这边做下修改
-          openOrActivateAppWindow(targetIpc, desktopController).id
+          openOrActivateAppWindow(targetIpc, tabletopController).id
         },
         // 获取isMaximized 的值
         "/toggleMaximize" bind PureMethod.GET by defineBooleanResponse {
           val mmid = request.query("app_id")
-          return@defineBooleanResponse desktopController.getDesktopWindowsManager()
+          return@defineBooleanResponse tabletopController.getTabletopWindowsManager()
             .toggleMaximize(mmid)
         },
         // 关闭app
@@ -270,14 +270,14 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         },
         // 获取全部app数据
         "/desktop/apps" bind PureMethod.GET by defineJsonResponse {
-          debugDesk("/desktop/apps", desktopController.getDesktopApps())
-          return@defineJsonResponse desktopController.getDesktopApps().toJsonElement()
+          debugDesk("/desktop/apps", tabletopController.getTabletopApps())
+          return@defineJsonResponse tabletopController.getTabletopApps().toJsonElement()
         },
         // 监听所有app数据
         "/desktop/observe/apps" byChannel { ctx ->
           // 默认不同步 bounds 字段，否则move的时候数据量会非常大
           val enableBounds = request.queryAsOrNull<Boolean>("bounds") ?: false
-          val job = desktopController.onUpdate.run {
+          val job = tabletopController.onUpdate.run {
             when {
               enableBounds -> this
               // 如果只有 bounds ，那么忽略，不发送
@@ -286,7 +286,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
           }.collectIn(mmScope) {
             debugDesk("/desktop/observe/apps") { "changes=$it" }
             try {
-              val apps = desktopController.getDesktopApps()
+              val apps = tabletopController.getTabletopApps()
               ctx.sendJsonLine(apps)
             } catch (e: Throwable) {
               close(cause = e)
@@ -295,7 +295,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
           onClose {
             job.cancel()
           }
-          desktopController.updateFlow.emit("init")
+          tabletopController.updateFlow.emit("init")
         },
         // 获取所有taskbar数据
         "/taskbar/apps" bind PureMethod.GET by defineJsonResponse {
@@ -370,7 +370,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         }
       ).cors()
 
-      createBrowserRoutes(desktopController) // 专门给Browser调用的NMM
+      createBrowserRoutes(tabletopController) // 专门给Browser调用的NMM
 
       onActivity {
         startDesktopView(deskSessionId)
@@ -394,7 +394,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       return taskbarServer
     }
 
-    private suspend fun createDesktopWebServer(): HttpDwebServer {
+    private suspend fun createTabletopWebServer(): HttpDwebServer {
       val desktopServer = createHttpDwebServer(DwebHttpServerOptions(subdomain = "desktop"))
       val serverIpc = desktopServer.listen()
       serverIpc.onRequest("DesktopWebServer").collectIn(mmScope, commonWebServerFactory(serverIpc))
@@ -416,13 +416,21 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         }
         serverIpc.postResponse(ipcServerRequest.reqId, pureResponse)
       }
+
+    open suspend fun open(mmid: MMID) {
+      nativeFetch("file://desk.browser.dweb/openAppOrActivate?app_id=$mmid")
+    }
+
+    open suspend fun quit(mmid: MMID) {
+      nativeFetch("file://desk.browser.dweb/closeApp?app_id=$mmid")
+    }
   }
 
   /**
    * 增加一个专门给 web.browser.dweb 调用的 rooter
    */
-  private suspend fun NativeRuntime.createBrowserRoutes(desktopController: DesktopController) {
-    desktopController.loadWebLinks() // 加载存储的数据
+  private suspend fun NativeRuntime.createBrowserRoutes(tabletopController: TabletopController) {
+    tabletopController.loadWebLinks() // 加载存储的数据
     routes(
       /**
        * 添加桌面快捷方式
@@ -431,7 +439,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         debugDesk("addWebLink", "called")
         val webLinkManifest = Json.decodeFromString<WebLinkManifest>(request.body.toPureString())
         debugDesk("addWebLink", "webLinkManifest=$webLinkManifest")
-        desktopController.createWebLink(webLinkManifest)
+        tabletopController.createWebLink(webLinkManifest)
       },
       /**
        * 移除桌面快捷方式
@@ -441,7 +449,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
           HttpStatusCode.BadRequest, "not found app_id"
         )
         debugDesk("removeWebLink", "called => mmid=$mmid")
-        desktopController.removeWebLink(mmid)
+        tabletopController.removeWebLink(mmid)
       },
       /**
        * 打开桌面快捷方式

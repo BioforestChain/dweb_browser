@@ -8,19 +8,19 @@ import org.dweb_browser.sys.window.core.WindowsManager
 import org.dweb_browser.sys.window.core.helper.setDefaultFloatWindowBounds
 import org.dweb_browser.sys.window.core.windowAdapterManager
 
-expect fun DesktopWindowsManager.Companion.getOrPutInstance(
+expect fun TabletopWindowsManager.Companion.getOrPutInstance(
   platformViewController: IPureViewController,
   viewBox: IPureViewBox,
-  onPut: (wm: DesktopWindowsManager) -> Unit,
-): DesktopWindowsManager
+  onPut: (wm: TabletopWindowsManager) -> Unit,
+): TabletopWindowsManager
 
-class DesktopWindowsManager internal constructor(
+class TabletopWindowsManager internal constructor(
   val viewController: IPureViewController,
   val viewBox: IPureViewBox,
-) : WindowsManager<DesktopWindowController>(viewController, viewBox) {
+) : WindowsManager<TabletopWindowController>(viewController, viewBox) {
 
   companion object {
-    internal val instances = WeakHashMap<IPureViewController, DesktopWindowsManager>()
+    internal val instances = WeakHashMap<IPureViewController, TabletopWindowsManager>()
   }
 
   /// 初始化一些监听
@@ -37,7 +37,7 @@ class DesktopWindowsManager internal constructor(
       }
 
       /// 添加窗口到列表中
-      val win = DesktopWindowController(this, newWindowState)
+      val win = TabletopWindowController(this, newWindowState)
       addNewWindow(win);
 
       win

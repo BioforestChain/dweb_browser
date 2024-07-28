@@ -41,10 +41,10 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import org.dweb_browser.browser.desk.DesktopController
+import org.dweb_browser.browser.desk.TabletopController
 import org.dweb_browser.browser.desk.model.AppMenuModel
 import org.dweb_browser.browser.desk.model.AppMenuType
-import org.dweb_browser.browser.desk.model.DesktopAppModel
+import org.dweb_browser.browser.desk.model.TabletopAppModel
 import org.dweb_browser.browser.desk.model.getAppMenuDisplays
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
@@ -62,16 +62,16 @@ import org.dweb_browser.helper.toRect
 
 @Composable
 internal fun rememberAppMenuPanel(
-  desktopController: DesktopController,
+  tabletopController: TabletopController,
   microModule: NativeMicroModule.NativeRuntime,
-) = remember(desktopController, microModule) { AppMenuPanel(desktopController, microModule) }
+) = remember(tabletopController, microModule) { AppMenuPanel(tabletopController, microModule) }
 
 @OptIn(ExperimentalMaterial3Api::class)
 internal class AppMenuPanel(
-  val desktopController: DesktopController,
+  val tabletopController: TabletopController,
   val microModule: NativeMicroModule.NativeRuntime,
 ) {
-  private var cacheApp by mutableStateOf<DesktopAppModel?>(null)
+  private var cacheApp by mutableStateOf<TabletopAppModel?>(null)
   var safeAreaInsets by mutableStateOf(WindowInsets(0))
 
   /**
@@ -91,7 +91,7 @@ internal class AppMenuPanel(
     isOpenDeleteDialog = false
   }
 
-  fun show(app: DesktopAppModel) {
+  fun show(app: TabletopAppModel) {
     this.cacheApp = app
     doHaptics()
     isOpenMenu = true
@@ -99,32 +99,32 @@ internal class AppMenuPanel(
 
   fun doQuit(mmid: String) {
     microModule.scopeLaunch(cancelable = true) {
-      desktopController.quit(mmid)
+      tabletopController.quit(mmid)
     }
   }
 
   fun doDetail(mmid: String) {
     microModule.scopeLaunch(cancelable = true) {
-      desktopController.detail(mmid)
+      tabletopController.detail(mmid)
     }
   }
 
   fun doUninstall(mmid: String) {
     microModule.scopeLaunch(cancelable = true) {
-      desktopController.uninstall(mmid)
+      tabletopController.uninstall(mmid)
     }
   }
 
 
   fun doWebLinkDelete(mmid: String) {
     microModule.scopeLaunch(cancelable = true) {
-      desktopController.removeWebLink(mmid)
+      tabletopController.removeWebLink(mmid)
     }
   }
 
   fun doShare(mmid: String) {
     microModule.scopeLaunch(cancelable = true) {
-      desktopController.share(mmid)
+      tabletopController.share(mmid)
     }
   }
 
@@ -182,7 +182,7 @@ internal class AppMenuPanel(
   }
 
   @Composable
-  fun AppMenuLayer(app: DesktopAppModel, modifier: Modifier = Modifier) {
+  fun AppMenuLayer(app: TabletopAppModel, modifier: Modifier = Modifier) {
     NativeBackHandler(isOpenMenu) {
       hide()
     }

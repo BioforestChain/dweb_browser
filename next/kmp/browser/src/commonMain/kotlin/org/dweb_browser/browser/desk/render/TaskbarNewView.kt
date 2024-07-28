@@ -66,10 +66,10 @@ fun NewTaskbarView(
           app = app,
           microModule = taskbarController.deskNMM,
           openApp = {
-            scope.launch { taskbarController.open(app.mmid) }
+            scope.launch { taskbarController.deskNMM.open(app.mmid) }
           },
           quitApp = {
-            scope.launch { taskbarController.quit(app.mmid) }
+            scope.launch { taskbarController.deskNMM.quit(app.mmid) }
           },
           toggleWindow = {
             scope.launch { taskbarController.toggleWindowMaximize(app.mmid) }

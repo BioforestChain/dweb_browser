@@ -4,13 +4,13 @@ import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.WindowState
 import org.dweb_browser.sys.window.core.WindowsManager
 
-class DesktopWindowController(
-  manager: DesktopWindowsManager,
+class TabletopWindowController(
+  manager: TabletopWindowsManager,
   state: WindowState,
 ) : WindowController(state, manager.viewBox) {
 
-  override fun getManager(): DesktopWindowsManager {
-    return super.getManager() as DesktopWindowsManager
+  override fun getManager(): TabletopWindowsManager {
+    return super.getManager() as TabletopWindowsManager
   }
 
   override fun upsetManager(manager: WindowsManager<*>?) {
@@ -18,7 +18,7 @@ class DesktopWindowController(
 
     if (manager != null) {
       when (manager) {
-        is DesktopWindowsManager ->
+        is TabletopWindowsManager ->
           state.observable.coroutineScope = manager.viewController.lifecycleScope
 
         else -> throw Exception("invalid type $manager should be DesktopWindowsManager")

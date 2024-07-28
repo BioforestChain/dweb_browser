@@ -41,7 +41,7 @@ class DesktopActivity : PureViewController() {
       }
     }
 
-    DesktopViewControllerCore(this)
+    TabletopViewControllerCore(this)
 
     addContent {
       /// 对 imeVisible 的绑定支持

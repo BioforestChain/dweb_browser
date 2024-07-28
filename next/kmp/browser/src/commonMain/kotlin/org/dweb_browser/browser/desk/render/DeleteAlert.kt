@@ -18,13 +18,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import org.dweb_browser.browser.BrowserI18nResource
-import org.dweb_browser.browser.desk.model.DesktopAppModel
+import org.dweb_browser.browser.desk.model.TabletopAppModel
 import org.dweb_browser.core.module.NativeMicroModule
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun DeleteAlert(
-  app: DesktopAppModel,
+  app: TabletopAppModel,
   microModule: NativeMicroModule.NativeRuntime,
   onDismissRequest: () -> Unit,
   onConfirm: () -> Unit,

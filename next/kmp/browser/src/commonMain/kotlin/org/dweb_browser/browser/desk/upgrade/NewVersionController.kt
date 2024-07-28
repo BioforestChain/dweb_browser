@@ -2,7 +2,7 @@ package org.dweb_browser.browser.desk.upgrade
 
 import androidx.compose.runtime.mutableStateOf
 import org.dweb_browser.browser.desk.DeskNMM
-import org.dweb_browser.browser.desk.DesktopController
+import org.dweb_browser.browser.desk.TabletopController
 import org.dweb_browser.browser.desk.debugDesk
 import org.dweb_browser.browser.download.model.DownloadState
 import org.dweb_browser.browser.download.ext.createDownloadTask
@@ -32,7 +32,7 @@ enum class NewVersionType {
 
 class NewVersionController(
   internal val deskNMM: DeskNMM.DeskRuntime,
-  val desktopController: DesktopController,
+  val tabletopController: TabletopController,
 ) {
   private val store = NewVersionStore(deskNMM)
   var newVersionItem: NewVersionItem? = null

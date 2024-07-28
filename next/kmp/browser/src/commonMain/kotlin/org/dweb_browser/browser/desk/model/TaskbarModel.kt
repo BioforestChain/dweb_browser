@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.desk
+package org.dweb_browser.browser.desk.model
 
 import org.dweb_browser.helper.Observable
 import org.dweb_browser.helper.compose.toComposableHelper
@@ -17,9 +17,9 @@ enum class TASKBAR_PROPERTY_KEY(val propertyKey: String) {
 /**
  * 用于和 Service 之间的交互，显示隐藏等操作
  */
-class TaskbarState() {
+class TaskbarModel() {
   internal val observable = Observable<TASKBAR_PROPERTY_KEY>()
-  val composableHelper by lazy { observable.toComposableHelper(this@TaskbarState) }
+  val composableHelper by lazy { observable.toComposableHelper(this@TaskbarModel) }
   var layoutX by observable.observe(TASKBAR_PROPERTY_KEY.LayoutX, Float.NaN)
   var layoutY by observable.observe(TASKBAR_PROPERTY_KEY.LayoutY, Float.NaN)
   var layoutWidth by observable.observe(TASKBAR_PROPERTY_KEY.LayoutWidth, 55f)

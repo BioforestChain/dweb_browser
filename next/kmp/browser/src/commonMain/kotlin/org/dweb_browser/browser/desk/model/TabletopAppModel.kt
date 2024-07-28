@@ -10,7 +10,7 @@ import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.sys.window.core.helper.pickLargest
 import org.dweb_browser.sys.window.core.helper.toStrict
 
-internal class DesktopAppModel(
+internal class TabletopAppModel(
   val appMetaData: DeskAppMetaData,
   initRunningState: DesktopAppRunStatus = DesktopAppRunStatus.Close,
 ) {
@@ -36,7 +36,7 @@ internal class DesktopAppModel(
     if (this === other) return true
     if (other == null || this::class != other::class) return false
 
-    other as DesktopAppModel
+    other as TabletopAppModel
 
     if (mmid != other.mmid) return false
     if (name != other.name) return false

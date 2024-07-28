@@ -13,13 +13,13 @@ import org.dweb_browser.sys.window.core.constant.WindowPropertyKeys
 import org.dweb_browser.sys.window.core.constant.WindowStyle
 import org.dweb_browser.sys.window.core.constant.debugWindow
 
-suspend fun DeskNMM.DeskRuntime.windowProtocol(desktopController: DesktopController) {
+suspend fun DeskNMM.DeskRuntime.windowProtocol(tabletopController: TabletopController) {
   protocol("window.sys.dweb") {
     routes(
       /// 打开主窗口，获取主窗口句柄
       // TODO 这样需要跳出授权窗口，获得OTP（一次性密钥），然后在让 desk.browser.dweb 打开窗口
       "/openMainWindow" bind PureMethod.GET by defineStringResponse {
-        openOrActivateAppWindow(ipc, desktopController).id
+        openOrActivateAppWindow(ipc, tabletopController).id
       },
       "/mainWindow" bind PureMethod.GET by defineStringResponse {
         getAppMainWindow().id

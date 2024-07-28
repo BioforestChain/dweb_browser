@@ -7,7 +7,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import org.dweb_browser.browser.desk.model.DesktopAppModel
+import org.dweb_browser.browser.desk.model.TabletopAppModel
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.file.ext.blobFetchHook
 import org.dweb_browser.helper.ImageResourcePurposes
@@ -46,7 +46,7 @@ internal val deskIconAlpha = when {
 
 @Composable
 internal fun DeskAppIcon(
-  app: DesktopAppModel,
+  app: TabletopAppModel,
   microModule: NativeMicroModule.NativeRuntime,
   containerAlpha: Float? = null,
   containerColor: Color? = null,

@@ -120,7 +120,7 @@ object BrowserI18nResource {
     SimpleI18nResource(Language.ZH to "隐私政策", Language.EN to "Privacy Policy")
   val browser_menu_scanner =
     SimpleI18nResource(Language.ZH to "扫一扫", Language.EN to "Scan")
-  val browser_menu_add_to_desktop =
+  val browser_menu_add_to_tabletop =
     SimpleI18nResource(Language.ZH to "添加到桌面", Language.EN to "Add To Desktop")
 
   val browser_multi_count = SimpleI18nResource(Language.ZH to "个标签页", Language.EN to "tabs")

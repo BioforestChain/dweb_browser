@@ -5,12 +5,12 @@ import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.helper.platform.IPureViewController
 import org.dweb_browser.helper.platform.asAndroid
 
-actual fun DesktopWindowsManager.Companion.getOrPutInstance(
+actual fun TabletopWindowsManager.Companion.getOrPutInstance(
   platformViewController: IPureViewController,
   viewBox: IPureViewBox,
-  onPut: (wm: DesktopWindowsManager) -> Unit,
+  onPut: (wm: TabletopWindowsManager) -> Unit,
 ) = instances.getOrPut(platformViewController) {
-  DesktopWindowsManager(platformViewController, viewBox).also { dwm ->
+  TabletopWindowsManager(platformViewController, viewBox).also { dwm ->
     onPut(dwm)
     platformViewController.asAndroid().onDestroyActivity {
       instances.remove(platformViewController)

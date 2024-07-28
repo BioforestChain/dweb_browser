@@ -55,7 +55,7 @@ internal enum class AppMenuType {
   abstract val data: AppModelTypeData
 }
 
-internal fun DesktopAppModel.getAppMenuDisplays(): List<AppMenuModel> {
+internal fun TabletopAppModel.getAppMenuDisplays(): List<AppMenuModel> {
   val displays = mutableListOf<AppMenuModel>()
   when {
     isWebLink -> {
@@ -64,7 +64,7 @@ internal fun DesktopAppModel.getAppMenuDisplays(): List<AppMenuModel> {
 
     else -> {
       displays.add(
-        AppMenuModel(AppMenuType.OFF, running == DesktopAppModel.DesktopAppRunStatus.Opened)
+        AppMenuModel(AppMenuType.OFF, running == TabletopAppModel.DesktopAppRunStatus.Opened)
       )
       if (!isSystemApp) {
         displays.add(AppMenuModel(AppMenuType.DETAIL, true))

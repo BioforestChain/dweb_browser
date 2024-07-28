@@ -30,7 +30,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.browser.common.createDwebView
-import org.dweb_browser.browser.desk.model.DesktopAppModel
+import org.dweb_browser.browser.desk.model.TabletopAppModel
 import org.dweb_browser.browser.desk.types.DeskAppMetaData
 import org.dweb_browser.browser.web.WebLinkMicroModule
 import org.dweb_browser.browser.web.data.WebLinkManifest
@@ -56,55 +56,43 @@ import org.dweb_browser.helper.platform.from
 import org.dweb_browser.helper.resolvePath
 import org.dweb_browser.sys.window.core.WindowController
 
-abstract class DesktopAppController constructor(open val deskNMM: DeskNMM.DeskRuntime) {
-
-  open suspend fun open(mmid: MMID) {
-    deskNMM.nativeFetch("file://desk.browser.dweb/openAppOrActivate?app_id=$mmid")
-  }
-
-  open suspend fun quit(mmid: MMID) {
-    deskNMM.nativeFetch("file://desk.browser.dweb/closeApp?app_id=$mmid")
-  }
-}
-
-
 @Stable
-open class DesktopController private constructor(
-  final override val deskNMM: DeskNMM.DeskRuntime,
-  private val desktopServer: HttpDwebServer,
+open class TabletopController private constructor(
+  final val deskNMM: DeskNMM.DeskRuntime,
+  private val tabletopServer: HttpDwebServer,
   private val runningApps: ChangeableMap<MMID, RunningApp>,
-) : DesktopAppController(deskNMM) {
+) {
   private val openingApps = mutableSetOf<MMID>()
-  internal val appsFlow = MutableStateFlow(emptyList<DesktopAppModel>())
+  internal val appsFlow = MutableStateFlow(emptyList<TabletopAppModel>())
   private suspend fun upsetApps() {
-    appsFlow.value = getDesktopApps().map { appMetaData ->
+    appsFlow.value = getTabletopApps().map { appMetaData ->
       val runStatus = if (appMetaData.running) {
         openingApps.remove(appMetaData.mmid)
-        DesktopAppModel.DesktopAppRunStatus.Opened
+        TabletopAppModel.DesktopAppRunStatus.Opened
       } else if (openingApps.contains(appMetaData.mmid)) {
-        DesktopAppModel.DesktopAppRunStatus.Opening
+        TabletopAppModel.DesktopAppRunStatus.Opening
       } else {
-        DesktopAppModel.DesktopAppRunStatus.Close
+        TabletopAppModel.DesktopAppRunStatus.Close
       }
 
       appsFlow.value.find { oldApp ->
         oldApp.mmid == appMetaData.mmid
-      }?.also { it.running = runStatus } ?: DesktopAppModel(
+      }?.also { it.running = runStatus } ?: TabletopAppModel(
         appMetaData = appMetaData, initRunningState = runStatus
       )
     }
   }
 
-  override suspend fun open(mmid: MMID) {
+  suspend fun open(mmid: MMID) {
     val app = appsFlow.value.find { it.mmid == mmid } ?: return
     when (val webLink = app.webLink) {
       null -> {
-        if (app.running == DesktopAppModel.DesktopAppRunStatus.Close) {
-          app.running = DesktopAppModel.DesktopAppRunStatus.Opening
+        if (app.running == TabletopAppModel.DesktopAppRunStatus.Close) {
+          app.running = TabletopAppModel.DesktopAppRunStatus.Opening
           openingApps.add(mmid)
         }
         // 不论如何都进行 open，因为这本质是 openAppOrActivate
-        super.open(mmid)
+        deskNMM.open(mmid)
       }
 
       else -> {
@@ -114,9 +102,9 @@ open class DesktopController private constructor(
     }
   }
 
-  override suspend fun quit(mmid: MMID) {
+  suspend fun quit(mmid: MMID) {
     openingApps.remove(mmid)
-    super.quit(mmid)
+    deskNMM.quit(mmid)
   }
 
   // val newVersionController = NewVersionController(deskNMM, this)
@@ -229,7 +217,7 @@ open class DesktopController private constructor(
       deskNMM: DeskNMM.DeskRuntime,
       desktopServer: HttpDwebServer,
       runningApps: ChangeableMap<MMID, RunningApp>,
-    ) = DesktopController(deskNMM, desktopServer, runningApps)
+    ) = TabletopController(deskNMM, desktopServer, runningApps)
   }
 
   // 状态更新信号
@@ -269,7 +257,7 @@ open class DesktopController private constructor(
   }
 
   private val appSortList = DeskSortStore(deskNMM)
-  suspend fun getDesktopApps(): List<DeskAppMetaData> {
+  suspend fun getTabletopApps(): List<DeskAppMetaData> {
     val apps =
       deskNMM.bootstrapContext.dns.search(MICRO_MODULE_CATEGORY.Application).toMutableList()
     // 简单的排序再渲染
@@ -278,7 +266,7 @@ open class DesktopController private constructor(
     val runApps = apps.map { metaData ->
       return@map DeskAppMetaData().apply {
         running = runningApps.containsKey(metaData.mmid)
-        winStates = getDesktopWindowsManager().getWindowStates(metaData.mmid)
+        winStates = getTabletopWindowsManager().getWindowStates(metaData.mmid)
         //...复制metaData属性
         assign(metaData.manifest)
       }
@@ -286,17 +274,17 @@ open class DesktopController private constructor(
     return runApps
   }
 
-  private var preDesktopWindowsManager: DesktopWindowsManager? = null
+  private var preTabletopWindowsManager: TabletopWindowsManager? = null
 
   private val wmLock = Mutex()
 
   /**
    * 窗口管理器
    */
-  suspend fun getDesktopWindowsManager() = wmLock.withLock {
+  suspend fun getTabletopWindowsManager() = wmLock.withLock {
     _desktopView.await()
     val vc = this.activity!!
-    DesktopWindowsManager.getOrPutInstance(vc, IPureViewBox.from(vc)) { dwm ->
+    TabletopWindowsManager.getOrPutInstance(vc, IPureViewBox.from(vc)) { dwm ->
       val watchWindows = mutableMapOf<WindowController, OffListener<*>>()
       fun watchAllWindows() {
         watchWindows.keys.subtract(dwm.allWindows).forEach { win ->
@@ -320,28 +308,28 @@ open class DesktopController private constructor(
       }
       watchAllWindows()
 
-      preDesktopWindowsManager?.also { preDwm ->
+      preTabletopWindowsManager?.also { preDwm ->
         deskNMM.scopeLaunch(Dispatchers.Main, cancelable = true) {
           /// 窗口迁移
           preDwm.moveWindowsTo(dwm)
         }
       }
-      preDesktopWindowsManager = dwm
+      preTabletopWindowsManager = dwm
     }
   }
 
   @Composable
-  fun DesktopWindowsManager(content: @Composable DesktopWindowsManager.() -> Unit) {
-    var windowsManager by remember { mutableStateOf<DesktopWindowsManager?>(null) }
+  fun DesktopWindowsManager(content: @Composable TabletopWindowsManager.() -> Unit) {
+    var windowsManager by remember { mutableStateOf<TabletopWindowsManager?>(null) }
     LaunchedEffect(Unit) {
-      windowsManager = getDesktopWindowsManager()
+      windowsManager = getTabletopWindowsManager()
     }
     windowsManager?.content()
   }
 
 
   private fun getDesktopUrl() = when (val url = envSwitch.get(ENV_SWITCH_KEY.DESKTOP_DEV_URL)) {
-    "" -> desktopServer.startResult.urlInfo.buildInternalUrl().build {
+    "" -> tabletopServer.startResult.urlInfo.buildInternalUrl().build {
       resolvePath("/desktop.html")
     }
 

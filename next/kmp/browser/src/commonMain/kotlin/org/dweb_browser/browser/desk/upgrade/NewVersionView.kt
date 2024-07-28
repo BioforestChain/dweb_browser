@@ -41,7 +41,7 @@ import org.dweb_browser.browser.download.model.DownloadState
 @Composable
 fun NewVersionController.NewVersionView() {
   DisposableEffect(newVersionType) {
-    val close = desktopController.activity?.onStart?.let { onStart ->
+    val close = tabletopController.activity?.onStart?.let { onStart ->
       onStart {
         debugDesk("NewVersion", "onStart => openAgain=$openAgain, $newVersionItem")
         if (openAgain) {

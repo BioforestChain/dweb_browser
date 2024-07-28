@@ -50,7 +50,7 @@ internal fun BrowserMenuPanel(modifier: Modifier = Modifier) {
     // 添加书签
     if (page is BrowserWebPage) {
       /// 添加到桌面
-      SettingListItem(title = BrowserI18nResource.browser_menu_add_to_desktop(), // stringResource(id = R.string.browser_options_privacy),
+      SettingListItem(title = BrowserI18nResource.browser_menu_add_to_tabletop(), // stringResource(id = R.string.browser_options_privacy),
         icon = Icons.AutoMirrored.Default.AddToHomeScreen, {
           hide()
           uiScope.launch { viewModel.addUrlToDesktopUI(page) }

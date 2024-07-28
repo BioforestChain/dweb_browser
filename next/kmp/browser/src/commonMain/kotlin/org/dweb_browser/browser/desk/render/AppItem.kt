@@ -15,13 +15,13 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
-import org.dweb_browser.browser.desk.model.DesktopAppModel
+import org.dweb_browser.browser.desk.model.TabletopAppModel
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.helper.compose.div
 
 @Composable
 internal fun AppItem(
-  app: DesktopAppModel,
+  app: TabletopAppModel,
   microModule: NativeMicroModule.NativeRuntime,
   modifier: Modifier,
 ) {
@@ -34,7 +34,7 @@ internal fun AppItem(
     DeskAppIcon(app, microModule, modifier = Modifier.onGloballyPositioned {
       app.size = it.size / density
       app.offset = it.positionInWindow() / density
-    }.jump(app.running == DesktopAppModel.DesktopAppRunStatus.Opening))
+    }.jump(app.running == TabletopAppModel.DesktopAppRunStatus.Opening))
     Text(
       text = app.name, maxLines = 2, overflow = TextOverflow.Ellipsis, style = TextStyle(
         color = Color.White,
