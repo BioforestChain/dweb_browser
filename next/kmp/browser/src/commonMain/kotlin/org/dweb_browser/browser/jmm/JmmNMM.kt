@@ -14,6 +14,8 @@ import org.dweb_browser.core.std.file.fileTypeAdapterManager
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.ImageResource
+import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
+import org.dweb_browser.helper.compose.envSwitch
 import org.dweb_browser.helper.removeInvisibleChars
 import org.dweb_browser.helper.removeWhen
 import org.dweb_browser.pure.http.PureMethod
@@ -127,8 +129,14 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Service") {
      * 从磁盘中恢复应用
      */
     private suspend fun loadJmmAppList(store: JmmStore) {
-      for (dbItem in store.getAllApps().values) {
-        bootstrapContext.dns.install(JsMicroModule(dbItem.installManifest))
+      val apps = store.getAllApps().values
+
+      // 如果发现没有应用，那么强制启用数据隔离
+      when {
+        apps.isEmpty() -> envSwitch.enable(ENV_SWITCH_KEY.DWEBVIEW_PROFILE)
+        else -> for (dbItem in apps) {
+          bootstrapContext.dns.install(JsMicroModule(dbItem.installManifest))
+        }
       }
     }
 
