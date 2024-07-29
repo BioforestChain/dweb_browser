@@ -28,8 +28,6 @@ AssetsConfig.createAndSave("sys-icons", [
   {
     type: "linkKmpResFiles",
     moduleName: "sys",
-    ignoreSharedFix: true,
-    moduleTarget: "desktopMain",
   },
 ]);
 AssetsConfig.createAndSave("browser-drawable", [

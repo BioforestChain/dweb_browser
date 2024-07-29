@@ -1,6 +1,6 @@
 package org.dweb_browser.helper.platform
 
-actual open class EnvSwitchCore {
+actual open class EnvSwitchCore : EnvSwitchWatcher() {
   private val env = System.getenv()
 
   actual fun isEnabled(switch: String): Boolean {
@@ -17,9 +17,11 @@ actual open class EnvSwitchCore {
 
   actual fun set(switch: String, value: String) {
     System.setProperty("dweb-$switch", value)
+    emitChanged(switch)
   }
 
   actual fun remove(switch: String) {
-    System.clearProperty(switch)
+    System.clearProperty("dweb-$switch")
+    emitChanged(switch)
   }
 }

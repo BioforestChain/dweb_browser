@@ -2,7 +2,7 @@ package org.dweb_browser.helper.platform
 
 import org.dweb_browser.helper.CommonBuildConfig
 
-actual open class EnvSwitchCore {
+actual open class EnvSwitchCore : EnvSwitchWatcher() {
   private val switchStore = KeyValueStore("env")
   actual fun isEnabled(switch: String): Boolean {
     return get(switch) == "true"
@@ -15,9 +15,11 @@ actual open class EnvSwitchCore {
 
   actual fun set(switch: String, value: String) {
     switchStore.setString("dweb-$switch", value)
+    emitChanged(switch)
   }
 
   actual fun remove(switch: String) {
     switchStore.removeKeys("dweb-$switch")
+    emitChanged(switch)
   }
 }

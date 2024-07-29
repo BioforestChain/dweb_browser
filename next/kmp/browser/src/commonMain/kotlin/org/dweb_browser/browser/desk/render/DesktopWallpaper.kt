@@ -199,7 +199,7 @@ class DesktopWallpaper(private val scope: CoroutineScope) {
       val ns = noise.n2d(progress / 30, 2000.0).scale(0.1..0.4)
       val nx = noise.n2d(progress / 10, 200.0).scale(-1.2..1.2)
       val ny = noise.n2d(100.0, progress / 10).scale(-1.2..1.2)
-      val nb = noise.n2d(1000.0, progress / 50).scale(0.8..1.2).coerceAtMost(1.0)
+      val nb = noise.n2d(1000.0, progress / 20).scale(0.8..1.2).coerceAtMost(1.0)
       val nc = noise.n2d(progress / 30, 1000.0).scale(0.1..0.4).scale(0..colors.size)
         .coerceAtLeast(0.0) % colors.size
       val colorProgress = nc % 1

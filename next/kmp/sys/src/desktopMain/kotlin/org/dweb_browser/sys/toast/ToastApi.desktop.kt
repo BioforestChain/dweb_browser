@@ -11,11 +11,11 @@ import java.awt.Color
 import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Graphics2D
+import java.awt.Image
 import java.awt.Point
 import java.awt.RenderingHints
 import java.awt.Shape
 import java.awt.geom.RoundRectangle2D
-import java.awt.image.BufferedImage
 import javax.swing.JDialog
 import javax.swing.JLabel
 import kotlin.properties.Delegates
@@ -30,7 +30,7 @@ class Toast(
 ) : JDialog() {
 
   private lateinit var contentShape: Shape
-  private lateinit var iconImage: BufferedImage
+  private lateinit var iconImage: Image
   private var lineHeight by Delegates.notNull<Int>()
   private val imageSize by lazy { padding + lineHeight + padding - spacer - spacer }
   private val imageRight by lazy { spacer + imageSize + padding }

@@ -58,60 +58,74 @@ class PureViewController(
 
     val contents = mutableStateMapOf<String, @Composable ApplicationScope.() -> Unit>()
 
+    @Composable
+    private fun ApplicationScope.Contents() {
+      for (content in contents.values) {
+        content()
+      }
+    }
+
+    @Composable
+    private fun ApplicationScope.Windows() {
+      for (winRender in windowRenders) {
+        key(winRender) {
+          val state = rememberWindowState()
+          // state要独立存储，否则 position、size 会导致这里重复重组
+          if (winRender.state != state) {
+            val oldState = winRender.state
+            state.apply {
+              placement = oldState.placement
+              isMinimized = oldState.isMinimized
+              position = oldState.position
+              size = oldState.size
+            }
+            winRender.state = state
+          }
+          // 桌面端创建窗口并且绑定一大堆事件
+          Window(
+            onCloseRequest = winRender.onCloseRequest,
+            state = state,
+            visible = winRender.visible,
+            title = winRender.title,
+            icon = winRender.icon ?: winRender.defaultIcon,
+            undecorated = winRender.undecorated,
+            transparent = winRender.transparent,
+            resizable = winRender.resizable,
+            enabled = winRender.enabled,
+            focusable = winRender.focusable,
+            alwaysOnTop = winRender.alwaysOnTop,
+            onPreviewKeyEvent = winRender.onPreviewKeyEvent,
+            onKeyEvent = winRender.onKeyEvent,
+            content = winRender.content,
+          )
+        }
+      }
+    }
+
+    @Composable
+    private fun ApplicationScope.Prepare() {
+      // 初始化退出事件
+      exitDesktop = {
+        exitApplication()
+//        exitProcess(0)
+      }
+      // 目前除了windows，其它平台（android、ios、macos）都能让背景透明地进行渲染
+      envSwitch.init(ENV_SWITCH_KEY.DWEBVIEW_ENABLE_TRANSPARENT_BACKGROUND) { "${!isWindows}" }
+      density = LocalDensity.current.density
+      uiScope = rememberCoroutineScope()
+      // windows dweb deeplink写入注册表
+      if (isWindows) {
+        WindowsRegistry.ensureWindowsRegistry("dweb")
+      }
+
+      prepared.complete(Unit)
+    }
+
     suspend fun startApplication(extContent: @Composable ApplicationScope.() -> Unit = {}) =
       awaitApplication {
-        // 初始化退出事件
-        exitDesktop = {
-          exitApplication()
-//        exitProcess(0)
-        }
-        // 目前除了windows，其它平台（android、ios、macos）都能让背景透明地进行渲染
-        envSwitch.init(ENV_SWITCH_KEY.DWEBVIEW_ENABLE_TRANSPARENT_BACKGROUND) { "${!isWindows}" }
-
-        for (content in contents.values) {
-          content()
-        }
-        // windows dweb deeplink写入注册表
-        if (isWindows) {
-          WindowsRegistry.ensureWindowsRegistry("dweb")
-        }
-
-        density = LocalDensity.current.density
-        uiScope = rememberCoroutineScope()
-        prepared.complete(Unit)
-        for (winRender in windowRenders) {
-          key(winRender) {
-            val state = rememberWindowState()
-            // state要独立存储，否则 position、size 会导致这里重复重组
-            if (winRender.state != state) {
-              val oldState = winRender.state
-              state.apply {
-                placement = oldState.placement
-                isMinimized = oldState.isMinimized
-                position = oldState.position
-                size = oldState.size
-              }
-              winRender.state = state
-            }
-            // 桌面端创建窗口并且绑定一大堆事件
-            Window(
-              onCloseRequest = winRender.onCloseRequest,
-              state = state,
-              visible = winRender.visible,
-              title = winRender.title,
-              icon = winRender.icon ?: winRender.defaultIcon,
-              undecorated = winRender.undecorated,
-              transparent = winRender.transparent,
-              resizable = winRender.resizable,
-              enabled = winRender.enabled,
-              focusable = winRender.focusable,
-              alwaysOnTop = winRender.alwaysOnTop,
-              onPreviewKeyEvent = winRender.onPreviewKeyEvent,
-              onKeyEvent = winRender.onKeyEvent,
-              content = winRender.content,
-            )
-          }
-        }
+        Prepare()
+        Contents()
+        Windows()
         extContent()
       }
   }

@@ -33,6 +33,12 @@ class EnvSwitch : EnvSwitchCore() {
   }
 
   fun remove(switch: ENV_SWITCH_KEY) = remove(switch.key)
+
+  fun watch(
+    switch: ENV_SWITCH_KEY,
+    initEvaluation: Boolean = true,
+    block: suspend () -> Unit,
+  ) = watch(switch.key, initEvaluation, block)
 }
 
 val envSwitch = EnvSwitch()

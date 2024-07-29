@@ -4,20 +4,21 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.awt.ComposeWindow
-import androidx.compose.ui.graphics.painter.BitmapPainter
+import androidx.compose.ui.graphics.toAwtImage
+import androidx.compose.ui.graphics.toPainter
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.WindowPlacement
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
+import org.dweb_browser.core.std.file.ext.blobFetchHook
 import org.dweb_browser.helper.PureRect
 import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.platform.ComposeWindowParams
 import org.dweb_browser.helper.platform.LocalPureViewController
 import org.dweb_browser.helper.platform.asDesktop
-import org.dweb_browser.pure.image.OffscreenWebCanvas
-import org.dweb_browser.pure.image.compose.LoaderTask
-import org.dweb_browser.pure.image.compose.WebImageLoader
+import org.dweb_browser.pure.image.compose.PureImageLoader
+import org.dweb_browser.pure.image.compose.SmartLoad
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.WindowState
 import org.dweb_browser.sys.window.core.constant.WindowMode
@@ -134,22 +135,13 @@ private fun WindowController.TitleEffect(composeWindowParams: ComposeWindowParam
 @Composable
 private fun WindowController.IconEffect(composeWindowParams: ComposeWindowParams) {
   val iconUrl by watchedState { iconUrl }
-  LaunchedEffect(composeWindowParams, iconUrl) {
-    iconUrl?.let { url ->
-      WebImageLoader.defaultInstance.load(
-        OffscreenWebCanvas.defaultInstance,
-        LoaderTask(
-          url,
-          64,
-          64,
-          state.constants.microModule.value?.imageFetchHook
-        )
-      ).firstOrNull {
-        it.isSuccess
-      }?.success?.also {
-        composeWindowParams.icon = BitmapPainter(it)
-      }
-    }
+  composeWindowParams.icon = iconUrl?.let { url ->
+    PureImageLoader.SmartLoad(
+      url,
+      64.dp,
+      64.dp,
+      state.constants.microModule.value?.blobFetchHook
+    ).success?.toAwtImage()?.toPainter()
   }
 }
 

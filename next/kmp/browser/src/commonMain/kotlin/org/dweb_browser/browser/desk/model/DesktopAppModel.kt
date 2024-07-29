@@ -17,7 +17,7 @@ internal class DesktopAppModel(
   val name by lazy { appMetaData.short_name.ifEmpty { appMetaData.name } }
   val mmid get() = appMetaData.mmid
   val webLink by lazy {
-    if (appMetaData.categories.contains(MICRO_MODULE_CATEGORY.Web_Browser) && appMetaData.mmid != "web.browser.dweb" && appMetaData.homepage_url.isNullOrEmpty()) {
+    if (appMetaData.categories.contains(MICRO_MODULE_CATEGORY.Web_Browser) && appMetaData.mmid != "web.browser.dweb" && !appMetaData.homepage_url.isNullOrEmpty()) {
       appMetaData.homepage_url
     } else null
   }

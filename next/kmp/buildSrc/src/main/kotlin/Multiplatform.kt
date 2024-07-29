@@ -8,9 +8,11 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.Project
 import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.testing.Test
 import org.gradle.jvm.toolchain.JavaLanguageVersion
@@ -418,6 +420,10 @@ fun KotlinMultiplatformExtension.kmpCommonTarget(
         manifest.srcFile("src/androidMain/AndroidManifest.xml")
       }
     }
+  }
+
+  project.tasks.withType<Copy> {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
   }
 }
 

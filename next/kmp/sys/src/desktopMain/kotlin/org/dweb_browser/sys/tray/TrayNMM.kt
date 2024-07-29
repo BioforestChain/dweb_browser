@@ -8,6 +8,7 @@ import androidx.compose.ui.graphics.toAwtImage
 import androidx.compose.ui.graphics.toPainter
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyShortcut
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.ApplicationScope
 import androidx.compose.ui.window.MenuScope
 import androidx.compose.ui.window.Tray
@@ -24,8 +25,9 @@ import org.dweb_browser.helper.platform.PureViewController
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.queryAsOrNull
+import org.dweb_browser.pure.image.compose.PureImageLoader
+import org.dweb_browser.pure.image.compose.SmartLoad
 import org.dweb_browser.sys.SysI18nResource
-import org.dweb_browser.sys.window.render.loadSourceToImageBitmap
 import org.jetbrains.compose.resources.painterResource
 
 /**这是一个桌面端组件*/
@@ -50,7 +52,9 @@ class TrayNMM : NativeMicroModule("tray.sys.dweb", "tray") {
 
         TRAY_ITEM_TYPE.Item -> Item(
           text = node.title,
-          icon = node.icon,
+          icon = node.icon?.let {
+            PureImageLoader.SmartLoad(it, 64.dp, 64.dp).success?.toAwtImage()?.toPainter()
+          },
           enabled = node.enabled,
           mnemonic = node.mnemonic,
           shortcut = remember(node.shortcut) { node.shortcut?.toComposeKeyShortcut() },
@@ -117,7 +121,6 @@ class TrayNMM : NativeMicroModule("tray.sys.dweb", "tray") {
           val enabled = request.queryAsOrNull<Boolean>("enabled")
           val mnemonic = request.queryAsOrNull<Char>("mnemonic")
           val icon = request.queryAsOrNull<String>("icon")
-            ?.let { loadSourceToImageBitmap(it, 64, 64)?.toAwtImage()?.toPainter() }
           val shortcut = request.queryAsOrNull<SysKeyShortcut>("shortcut")
 
           val parent = parentId?.let {

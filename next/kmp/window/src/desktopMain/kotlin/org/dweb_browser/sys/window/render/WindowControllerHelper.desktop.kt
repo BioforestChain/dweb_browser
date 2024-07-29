@@ -1,29 +1,31 @@
 package org.dweb_browser.sys.window.render
 
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.toAwtImage
-import dweb_browser_kmp.window.generated.resources.Res
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.ApplicationScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.withContext
 import org.dweb_browser.core.module.MicroModule
+import org.dweb_browser.core.std.file.ext.blobFetchHook
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.getOrPut
-import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.platform.PureViewController
-import org.dweb_browser.pure.image.OffscreenWebCanvas
-import org.dweb_browser.pure.image.compose.LoaderTask
-import org.dweb_browser.pure.image.compose.WebImageLoader
+import org.dweb_browser.helper.randomUUID
+import org.dweb_browser.pure.image.compose.PureImageLoader
+import org.dweb_browser.pure.image.compose.SmartLoad
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.helper.pickLargest
 import org.dweb_browser.sys.window.core.helper.toStrict
-import org.jetbrains.compose.resources.ExperimentalResourceApi
 import java.awt.AlphaComposite
 import java.awt.Color
+import java.awt.Image
 import java.awt.RenderingHints
 import java.awt.geom.RoundRectangle2D
 import java.awt.image.BufferedImage
-import javax.imageio.ImageIO
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
+
 
 actual val WindowController.canOverlayNavigationBar: Boolean
   get() = false
@@ -36,24 +38,28 @@ actual fun getWindowControllerBorderRounded(isMaximize: Boolean) = when {
   else -> WindowPadding.CornerRadius.Zero
 }
 
-// if (isMaximize || PureViewController.isWindows) 0 else 16
-
 suspend fun MicroModule.Runtime.loadSourceToImageBitmap(src: String, width: Int, height: Int) =
-  WebImageLoader.defaultInstance.load(
-    OffscreenWebCanvas.defaultInstance, LoaderTask(src, width, height, imageFetchHook)
-  ).firstOrNull {
-    it.isSuccess
-  }?.success
-
-@OptIn(ExperimentalResourceApi::class)
-suspend fun MicroModule.Runtime.loadIconAsAwtImage(): BufferedImage =
-  icons.toStrict().pickLargest()?.src?.let { url ->
-    loadSourceToImageBitmap(url, 256, 256)?.toAwtImage()
-  } ?: withContext(ioAsyncExceptionHandler) {
-    ImageIO.read(Res.readBytes("files/sys-icons/notification_default_icon.png").inputStream())
+  suspendCoroutine { con ->
+    val key = "got image bitmap: ${randomUUID()} $src"
+    val render: @Composable ApplicationScope.() -> Unit = {
+      val result = PureImageLoader.SmartLoad(src, width.dp, height.dp, blobFetchHook)
+      when {
+        result.isBusy -> {}
+        else -> {
+          con.resume(result.success)
+          PureViewController.contents -= key
+        }
+      }
+    }
+    PureViewController.contents += key to render
   }
 
-val MMR_awtIconImage_WM = WeakHashMap<MicroModule.Runtime, Deferred<BufferedImage>>()
+suspend fun MicroModule.Runtime.loadIconAsAwtImage(): Image =
+  icons.toStrict().pickLargest()?.src?.let { url ->
+    loadSourceToImageBitmap(url, 64, 64)?.toAwtImage()
+  } ?: appIcon.await().awtImage
+
+val MMR_awtIconImage_WM = WeakHashMap<MicroModule.Runtime, Deferred<Image>>()
 val MicroModule.Runtime.awtIconImage
   get() = MMR_awtIconImage_WM.getOrPut(this) {
     getRuntimeScope().async {
@@ -92,6 +98,10 @@ val MMR_awtIconRoundedImage_WM = WeakHashMap<MicroModule.Runtime, Deferred<Buffe
 val MicroModule.Runtime.awtIconRoundedImage: Deferred<BufferedImage>
   get() = MMR_awtIconRoundedImage_WM.getOrPut(this) {
     getRuntimeScope().async {
-      awtIconImage.await().let { it.rounded(it.width * 0.38f, it.height * 0.38f) }
+      val iconImage = awtIconImage.await()
+      BufferedImage(64, 64, BufferedImage.TYPE_INT_ARGB).apply {
+        graphics.drawImage(iconImage, 0, 0, null)
+        graphics.dispose()
+      }.rounded(64 * 0.38f, 64 * 0.38f)
     }
   }

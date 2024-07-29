@@ -34,7 +34,11 @@ kotlin {
     }
   }
   kmpIosTarget(project)
-  kmpDesktopTarget(project)
+  kmpDesktopTarget(project) {
+    dependencies {
+      implementation(projects.libResvgRender)
+    }
+  }
 
   @OptIn(ExperimentalKotlinGradlePluginApi::class)
   applyHierarchyPlatformTemplate {

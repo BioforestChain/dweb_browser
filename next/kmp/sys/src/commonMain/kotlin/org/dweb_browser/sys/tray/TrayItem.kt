@@ -1,6 +1,5 @@
 package org.dweb_browser.sys.tray
 
-import androidx.compose.ui.graphics.painter.Painter
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.serialization.Serializable
 
@@ -37,7 +36,7 @@ internal class TrayComposeItem(
   val group: String? = null,
   val enabled: Boolean = true,
   val mnemonic: Char? = null,
-  val icon: Painter? = null,
+  val icon: String? = null,
   val shortcut: SysKeyShortcut? = null,
   children: List<TrayComposeItem> = listOf(),
 ) {

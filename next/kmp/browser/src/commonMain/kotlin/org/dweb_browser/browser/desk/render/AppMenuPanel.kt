@@ -172,7 +172,7 @@ internal class AppMenuPanel(
       AnimatedVisibility(isOpenDeleteDialog) {
         DeleteAlert(app, microModule, onDismissRequest = { hide() }, onConfirm = {
           hide()
-          when  {
+          when {
             app.isWebLink -> doWebLinkDelete(app.mmid)
             else -> doUninstall(app.mmid)
           }
@@ -213,8 +213,6 @@ internal class AppMenuPanel(
           app.size.height.dp
         )// 不要用 translationXY 去做变换，会有消失不见的问题
           .offset(app.offset.x.dp, app.offset.y.dp).graphicsLayer {
-    //          translationX = app.offset.x * d
-    //          translationY = app.offset.y * d
             scaleX = iconScale
             scaleY = iconScale
             alpha = iconAlpha
