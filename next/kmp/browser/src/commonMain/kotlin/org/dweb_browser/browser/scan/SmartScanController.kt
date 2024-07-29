@@ -23,8 +23,8 @@ import org.dweb_browser.sys.window.ext.getMainWindowId
 import org.dweb_browser.sys.window.ext.getOrOpenMainWindow
 
 class SmartScanController(
-  private val smartScanNMM: SmartScanNMM.ScanRuntime,
-  private val scanningController: ScanningController
+  internal val smartScanNMM: SmartScanNMM.ScanRuntime,
+  internal val scanningController: ScanningController
 ) {
 
   private val viewDeferredFlow = MutableStateFlow(CompletableDeferred<WindowController>())
@@ -100,14 +100,6 @@ class SmartScanController(
   // 拿到的解码流
   val barcodeResultFlow = MutableStateFlow<List<BarcodeResult>>(emptyList())
 
-  init {
-    smartScanNMM.scopeLaunch(cancelable = true) {
-      barcodeResultFlow.map { it.size }.distinctUntilChanged().debounce(200).collect {
-        scanningController.decodeHaptics()
-      }
-    }
-  }
-
 //  //计数二维码数量是否发生改变
 //  private var oldBarcodeSize = 0
 //
@@ -157,25 +149,6 @@ class SmartScanController(
 
   // 相机控制器
   var cameraController: CameraController? = null
-
-  // 对话消息缓存
-  private val cacheChats = mutableListOf<BarcodeResult>()
-
-  fun filterChats(messages: List<BarcodeResult>): MutableList<BarcodeResult> {
-    messages.filter { message ->
-      // 过滤掉已存在的消息
-      cacheChats.none { it.data == message.data }
-    }.forEach { newMessage ->
-      // 添加新的消息到缓存
-      cacheChats.add(newMessage)
-      // 保持缓存大小为5
-      if (cacheChats.size > 5) {
-        cacheChats.removeAt(0)
-      }
-    }
-    return cacheChats
-  }
-
 }
 
 

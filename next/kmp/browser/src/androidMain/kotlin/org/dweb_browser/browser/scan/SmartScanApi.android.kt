@@ -50,7 +50,7 @@ actual class ScanningController actual constructor(mmScope: CoroutineScope) {
     return process(image)
   }
 
-  suspend fun recognize(bitmap: Bitmap, rotation: Int) =
+  suspend fun recognize(bitmap: Bitmap, rotation: Int = 0) =
     process(InputImage.fromBitmap(bitmap, rotation))
 
   suspend fun recognize(image: InputImage) = process(image)
@@ -58,8 +58,7 @@ actual class ScanningController actual constructor(mmScope: CoroutineScope) {
   @OptIn(ExperimentalGetImage::class, TransformExperimental::class)
   suspend fun recognize(imageProxy: ImageProxy, coordinateTransform: CoordinateTransform) =
     runCatching {
-      val image = imageProxy.image!!
-      val inputImage = InputImage.fromMediaImage(image, 0)
+      val inputImage = InputImage.fromBitmap(imageProxy.toBitmap(), 0)
       process(inputImage, coordinateTransform)
     }.getOrElse {
       emptyList()

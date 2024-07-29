@@ -22,10 +22,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.globalDefaultScope
-import org.dweb_browser.helper.globalMainScope
+import org.dweb_browser.helper.withMainContext
 import java.util.concurrent.Executors
 
 class CameraControllerImpl(
@@ -74,15 +73,13 @@ class CameraControllerImpl(
             ).build()
         )
         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST) // 仅将最新图像传送到分析器，并在图像到达时丢弃它们。
-//      .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_YUV_420_888) // 设置输出格式
-        .build().also {
-          it.setAnalyzer(Executors.newSingleThreadExecutor()) { imageProxy ->
-            globalMainScope.launch {
-              val matrix = getCoordinateTransform(imageProxy, previewView)
+        .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_YUV_420_888) // 设置输出格式
+        .build().also { analysis ->
+          analysis.setAnalyzer(Executors.newSingleThreadExecutor()) { imageProxy ->
+            globalDefaultScope.launch {
+              val matrix = withMainContext { getCoordinateTransform(imageProxy, previewView) }
               controller.decodeQrCode {
-                withContext(globalDefaultScope.coroutineContext) {
-                  recognize(imageProxy, matrix)
-                }
+                recognize(imageProxy, matrix)
               }
               imageProxy.close()
             }
