@@ -93,7 +93,7 @@ class SmartScanController(
     flow.collectIn(scope = smartScanNMM.getRuntimeScope()) { byteArray ->
       byteArray?.let {
         val result = decodeQrCode(it)
-        debugSCAN("decodeQrCode=>${result.size}", "size=>${it}")
+//        debugSCAN("decodeQrCode=>${result.size}", "size=>${it}")
         barcodeResultFlow.emit(result)
       }
     }
@@ -158,6 +158,25 @@ class SmartScanController(
 
   // 相机控制器
   var cameraController: CameraController? = null
+
+  // 对话消息缓存
+  private val cacheChats = mutableListOf<BarcodeResult>()
+
+  fun filterChats(messages: List<BarcodeResult>): MutableList<BarcodeResult> {
+    messages.filter { message ->
+      // 过滤掉已存在的消息
+      cacheChats.none { it.data == message.data }
+    }.forEach { newMessage ->
+      // 添加新的消息到缓存
+      cacheChats.add(newMessage)
+      // 保持缓存大小为5
+      if (cacheChats.size > 5) {
+        cacheChats.removeAt(0)
+      }
+    }
+    return cacheChats
+  }
+
 }
 
 

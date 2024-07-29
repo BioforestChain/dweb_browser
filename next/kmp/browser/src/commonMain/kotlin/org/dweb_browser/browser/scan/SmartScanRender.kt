@@ -93,35 +93,41 @@ internal fun SmartScanController.RenderScanResultView(modifier: Modifier) {
         drawAnimatedBoundingBox(result, animatedOffset)
       }
     }
-
     // 画出识别到的内容
     for (result in resultList) {
       key(result.data) {
-        var textSize by remember { mutableStateOf(Size.Zero) }
-        val width by animateFloatAsState((result.boundingBox.width / density))
-        val height by animateFloatAsState((result.boundingBox.height / density))
-        val offsetX by animateFloatAsState(result.boundingBox.x + width - textSize.width)
-        val offsetY by animateFloatAsState(result.boundingBox.y + height - textSize.height)
-        FilledTonalButton(
-          { onSuccess(result.data) },
-          modifier = Modifier.requiredWidth(width.dp).graphicsLayer {
-            translationX = offsetX
-            translationY = offsetY
-          }.onGloballyPositioned { textSize = it.size.div(density) },
-          colors = ButtonDefaults.filledTonalButtonColors()
-            .run { copy(containerColor = Color.White.copy(alpha = 0.5f)) },
-          border = BorderStroke(width = 0.5.dp, brush = SolidColor(Color.White)),
-          contentPadding = PaddingValues(horizontal = 3.dp, vertical = 2.dp)
-        ) {
-          Text(
-            result.data,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            style = MaterialTheme.typography.bodySmall,
-          )
-        }
+        ScanButtonPreview(result, density)
       }
     }
+    ChatScreenPreview(resultList)
+  }
+}
+
+/**我是扫码显示内容的按钮，现在还有点丑*/
+@Composable
+fun SmartScanController.ScanButtonPreview(result: BarcodeResult, density: Float) {
+  var textSize by remember { mutableStateOf(Size.Zero) }
+  val width by animateFloatAsState((result.boundingBox.width / density))
+  val height by animateFloatAsState((result.boundingBox.height / density))
+  val offsetX by animateFloatAsState(result.boundingBox.x + width - textSize.width)
+  val offsetY by animateFloatAsState(result.boundingBox.y + height - textSize.height)
+  FilledTonalButton(
+    { onSuccess(result.data) },
+    modifier = Modifier.requiredWidth(width.dp).graphicsLayer {
+      translationX = offsetX
+      translationY = offsetY
+    }.onGloballyPositioned { textSize = it.size.div(density) },
+    colors = ButtonDefaults.filledTonalButtonColors()
+      .run { copy(containerColor = Color.White.copy(alpha = 0.5f)) },
+    border = BorderStroke(width = 0.5.dp, brush = SolidColor(Color.White)),
+    contentPadding = PaddingValues(horizontal = 3.dp, vertical = 2.dp)
+  ) {
+    Text(
+      result.data,
+      maxLines = 1,
+      overflow = TextOverflow.Ellipsis,
+      style = MaterialTheme.typography.bodySmall,
+    )
   }
 }
 

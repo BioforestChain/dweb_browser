@@ -347,6 +347,11 @@ object BrowserI18nResource {
       Language.EN to "Recognizing..."
     )
 
+    val Action = SimpleI18nResource(
+      Language.ZH to "打开",
+      Language.EN to "Open"
+    )
+
     val emptyResult = SimpleI18nResource(
       Language.ZH to "没有识别到条形码",
       Language.EN to "No barcode recognized"
