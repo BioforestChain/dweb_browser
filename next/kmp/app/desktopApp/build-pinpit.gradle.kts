@@ -83,8 +83,36 @@ pinpit.desktop {
       vendor = "BNGJ"
       copyright = "2022-2024 BFChain"
 
+      windows {
+        iconFile.set(iconsRoot.resolve("win/icon.ico"))
+        menuGroup = "Developer"
+        dirChooser = true
+        shortcut = true
+        console = false
+
+        // see https://wixtoolset.org/documentation/manual/v3/howtos/general/generate_guids.html
+        upgradeUuid = "2f6b36ed-8691-4c5e-a645-6aaf8e9ec32d"
+
+        msi {
+          arch = "x64"
+        }
+
+        msi {
+          arch = "arm64"
+        }
+
+        distributableArchive {
+          format = "zip"
+          arch = "x64"
+        }
+
+        distributableArchive {
+          format = "zip"
+          arch = "arm64"
+        }
+      }
+
       macOS {
-        packageName = "DwebBrowser"
         iconFile.set(iconsRoot.resolve("mac/icon.icns"))
         bundleID = "com.instinct.bfexplorer"
         appCategory = "public.app-category.productivity"
