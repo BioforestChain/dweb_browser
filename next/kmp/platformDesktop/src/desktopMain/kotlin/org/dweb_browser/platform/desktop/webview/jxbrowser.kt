@@ -86,34 +86,52 @@ object jxBrowserEngine {
     dataDir: NioPath,
     optionsBuilder: (EngineOptions.Builder.() -> Unit)? = null,
   ): Engine = getOrCreateByDir(dataDir) {
-    Engine.newInstance(EngineOptions.newBuilder(HARDWARE_ACCELERATED).run {
+    warpCreateEngine {
+      Engine.newInstance(EngineOptions.newBuilder(HARDWARE_ACCELERATED).run {
 //      chromiumDir(sandboxChromiumDir)
-      optionsBuilder?.invoke(this)
-      // 设置用户数据目录，这样WebApp退出再重新打开时能够读取之前的数据
-      userDataDir(dataDir)
-      // 加入音视频解码器的支持
-      enableProprietaryFeature(ProprietaryFeature.HEVC)
-      enableProprietaryFeature(ProprietaryFeature.WIDEVINE)
-      enableProprietaryFeature(ProprietaryFeature.AAC)
-      enableProprietaryFeature(ProprietaryFeature.H_264)
-      this.licenseKey(licenseKey)
-      build()
-    })
+        optionsBuilder?.invoke(this)
+        // 设置用户数据目录，这样WebApp退出再重新打开时能够读取之前的数据
+        userDataDir(dataDir)
+        // 加入音视频解码器的支持
+        enableProprietaryFeature(ProprietaryFeature.HEVC)
+        enableProprietaryFeature(ProprietaryFeature.WIDEVINE)
+        enableProprietaryFeature(ProprietaryFeature.AAC)
+        enableProprietaryFeature(ProprietaryFeature.H_264)
+        this.licenseKey(licenseKey)
+        build()
+      })
+    }
   }
+
+  /**处理Chromium创建失败*/
+  private fun warpCreateEngine(createEngine: () -> Engine) =
+    runCatching {
+      createEngine()
+    }.getOrElse {
+      it.message?.let { error ->
+        val prefix = "Failed to extract Chromium binaries into "
+        if (error.startsWith(prefix)) {
+          Paths.get(error.substring(prefix.length)).toFile().deleteRecursively()
+        }
+      }
+      createEngine()
+    }
 
   @LowLevelWebEngineAPI
   fun offScreen(
     dataDir: NioPath,
     optionsBuilder: (EngineOptions.Builder.() -> Unit)? = null,
   ): Engine = getOrCreateByDir(dataDir) {
-    Engine.newInstance(EngineOptions.newBuilder(OFF_SCREEN).run {
+    warpCreateEngine {
+      Engine.newInstance(EngineOptions.newBuilder(OFF_SCREEN).run {
 //      chromiumDir(sandboxChromiumDir)
-      optionsBuilder?.invoke(this)
-      // 设置用户数据目录，这样WebApp退出再重新打开时能够读取之前的数据
-      userDataDir(dataDir)
-      this.licenseKey(licenseKey)
-      build()
-    })
+        optionsBuilder?.invoke(this)
+        // 设置用户数据目录，这样WebApp退出再重新打开时能够读取之前的数据
+        userDataDir(dataDir)
+        this.licenseKey(licenseKey)
+        build()
+      })
+    }
   }
 
   val chromiumVersion by lazy { VersionInfo.chromiumVersion() }
