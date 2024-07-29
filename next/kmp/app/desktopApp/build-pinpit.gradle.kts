@@ -1,6 +1,7 @@
 import com.dd.plist.NSDictionary
 import com.dd.plist.NSString
 import de.mobanisto.pinpit.desktop.application.tasks.DistributableAppTask
+import org.gradle.internal.os.OperatingSystem
 
 plugins {
   id("target-common")
@@ -20,7 +21,11 @@ kotlin {
     val usePinpit = System.getProperty("usePinpit")
     dependencies {
       if (usePinpit == "true") {
-        implementation(compose.desktop.macos_x64)
+        if(OperatingSystem.current().isMacOsX) {
+          implementation(compose.desktop.macos_x64)
+        } else {
+          implementation("org.jetbrains.compose.desktop:desktop-jvm-windows-arm64:${libs.versions.jetbrains.compose.version}")
+        }
       } else {
         implementation(compose.desktop.currentOs)
       }
@@ -62,7 +67,6 @@ val iconsRoot =
   project.file("${rootProject.rootDir}/app/desktopApp/src/desktopMain/res/icons")
 
 pinpit.desktop {
-//  val properties = localProperties()
   application {
     mainClass = "MainKt"
 
@@ -158,6 +162,8 @@ afterEvaluate {
         infoPlistTargetFile.toPath(),
         infoPlistNSDictionary
       )
+
+      onlyIf { OperatingSystem.current().isMacOsX }
     }
   }
   //# endregion
