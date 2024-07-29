@@ -93,6 +93,8 @@ pinpit.desktop {
         dirChooser = true
         shortcut = true
         console = false
+        // 打包msi必须再此处设置packageVersion，否则会提示找不到
+        packageVersion = appVersion
 
         // see https://wixtoolset.org/documentation/manual/v3/howtos/general/generate_guids.html
         upgradeUuid = "2f6b36ed-8691-4c5e-a645-6aaf8e9ec32d"
@@ -149,21 +151,22 @@ afterEvaluate {
   //# region 改写Info.plist
   tasks.withType<DistributableAppTask> {
     doLast {
-      val infoPlistFile = project.file("${rootProject.rootDir}/app/desktopApp/Info.plist")
-      val infoPlistTargetFile =
-        project.file("${rootProject.rootDir}/app/desktopApp/build/pinpit/binaries/main-default/macos/x64/distributableApp/DwebBrowser.app/Contents/Info.plist")
+      if (OperatingSystem.current().isMacOsX) {
+        val infoPlistFile = project.file("${rootProject.rootDir}/app/desktopApp/Info.plist")
+        val infoPlistTargetFile =
+          project.file("${rootProject.rootDir}/app/desktopApp/build/pinpit/binaries/main-default/macos/x64/distributableApp/DwebBrowser.app/Contents/Info.plist")
 
-      val infoPlistNSDictionary = NSDictionary()
-      infoPlistNSDictionary["CFBundleShortVersionString"] = NSString(appVersion)
-      infoPlistNSDictionary["CFBundleVersion"] = NSString(appVersion)
-      infoPlistNSDictionary["CFBundleIconFile"] = NSString(iconsRoot.resolve("mac/icon.icns").name)
-      infoPlistFileReplace(
-        infoPlistFile.toPath(),
-        infoPlistTargetFile.toPath(),
-        infoPlistNSDictionary
-      )
-
-      onlyIf { OperatingSystem.current().isMacOsX }
+        val infoPlistNSDictionary = NSDictionary()
+        infoPlistNSDictionary["CFBundleShortVersionString"] = NSString(appVersion)
+        infoPlistNSDictionary["CFBundleVersion"] = NSString(appVersion)
+        infoPlistNSDictionary["CFBundleIconFile"] =
+          NSString(iconsRoot.resolve("mac/icon.icns").name)
+        infoPlistFileReplace(
+          infoPlistFile.toPath(),
+          infoPlistTargetFile.toPath(),
+          infoPlistNSDictionary
+        )
+      }
     }
   }
   //# endregion
