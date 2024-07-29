@@ -4,10 +4,10 @@ import com.google.zxing.BinaryBitmap
 import com.google.zxing.client.j2se.BufferedImageLuminanceSource
 import com.google.zxing.common.HybridBinarizer
 import com.google.zxing.multi.qrcode.QRCodeMultiReader
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.withContext
 import org.dweb_browser.browser.util.regexDeepLink
-import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.PurePoint
 import org.dweb_browser.helper.PureRect
 import org.dweb_browser.helper.encodeURIComponent
@@ -24,10 +24,13 @@ actual class ScanningController actual constructor(mmScope: CoroutineScope) {
   }
 
   // TODO 使用 openCV 来实现图像识别
-  actual suspend fun recognize(data: Any, rotation: Int): List<BarcodeResult> {
-    if (data is ByteArray) {
-      val task = PromiseOut<List<BarcodeResult>>()
-      try {
+  actual suspend fun recognize(data: ByteArray, rotation: Int): List<BarcodeResult> {
+    if (data.isEmpty()) {
+      return emptyList()
+    }
+
+    return CompletableDeferred<List<BarcodeResult>>().also { deferred ->
+      runCatching {
         // 从byte array获取图片
         val bufferedImage = withContext(ioAsyncExceptionHandler) {
           ImageIO.read(ByteArrayInputStream(data))
@@ -35,7 +38,7 @@ actual class ScanningController actual constructor(mmScope: CoroutineScope) {
         val source = BufferedImageLuminanceSource(bufferedImage)
         val binaryBitmap = BinaryBitmap(HybridBinarizer(source))
         val reader = QRCodeMultiReader()
-        task.resolve(
+        deferred.complete(
           reader.decodeMultiple(binaryBitmap).map { barcode ->
             // 返回的barcode中，resultPoints有三个标准点，也有可能存在4个，前三个是必定存在的。
             val topLeft = barcode.resultPoints[1]
@@ -56,12 +59,10 @@ actual class ScanningController actual constructor(mmScope: CoroutineScope) {
             )
           }
         )
-      } catch (e: Exception) {
-        task.reject(e)
+      }.getOrElse {
+        deferred.completeExceptionally(it)
       }
-      return task.waitPromise()
-    }
-    return listOf()
+    }.await()
   }
 
   /**解析二维码时候的震动效果*/

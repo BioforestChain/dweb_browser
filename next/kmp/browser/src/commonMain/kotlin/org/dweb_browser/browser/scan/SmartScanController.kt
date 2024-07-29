@@ -5,15 +5,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import org.dweb_browser.helper.WARNING
-import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.platform.IPureViewController
 import org.dweb_browser.helper.platform.PureViewControllerPlatform
 import org.dweb_browser.helper.platform.platform
@@ -88,22 +86,45 @@ class SmartScanController(
   // 返回识别结果
   var saningResult = CompletableDeferred<String>()
 
-  // 监听相机来的图片流
-  val imageCaptureFlow = MutableSharedFlow<Any?>(extraBufferCapacity = 1).also { flow ->
-    flow.collectIn(scope = smartScanNMM.getRuntimeScope()) { byteArray ->
-      byteArray?.let {
-        val result = decodeQrCode(it)
-//        debugSCAN("decodeQrCode=>${result.size}", "size=>${it}")
-        barcodeResultFlow.emit(result)
-      }
-    }
-  }
+//  // 监听相机来的图片流
+//  val imageCaptureFlow = MutableSharedFlow<Any?>(extraBufferCapacity = 1).also { flow ->
+//    flow.collectIn(scope = smartScanNMM.getRuntimeScope()) { byteArray ->
+//      byteArray?.let {
+//        val result = decodeQrCode(it)
+////        debugSCAN("decodeQrCode=>${result.size}", "size=>${it}")
+//        barcodeResultFlow.emit(result)
+//      }
+//    }
+//  }
 
   // 拿到的解码流
   val barcodeResultFlow = MutableStateFlow<List<BarcodeResult>>(emptyList())
 
+  init {
+    smartScanNMM.scopeLaunch(cancelable = true) {
+      barcodeResultFlow.map { it.size }.distinctUntilChanged().debounce(200).collect {
+        scanningController.decodeHaptics()
+      }
+    }
+  }
+
+//  //计数二维码数量是否发生改变
+//  private var oldBarcodeSize = 0
+//
+//  // 触发震动
+//  @kotlin.OptIn(FlowPreview::class)
+//  val decodeHaptics = MutableStateFlow(0).also {
+//    // 避免触发太快
+//    it.debounce(300).collectIn(scope = smartScanNMM.getRuntimeScope()) { newSize ->
+//      if (oldBarcodeSize < newSize) {
+//        scanningController.decodeHaptics()
+//      }
+//      oldBarcodeSize = newSize
+//    }
+//  }
+
   // 相册选中的图片
-  val albumImageFlow = MutableSharedFlow<ImageBitmap?>(extraBufferCapacity = 1)
+  val albumImageFlow = MutableStateFlow<ImageBitmap?>(null)
 
   /**识别成功*/
   fun onSuccess(result: String) {
@@ -130,30 +151,8 @@ class SmartScanController(
   }
 
   /**解码二维码*/
-  private suspend fun decodeQrCode(data: Any): List<BarcodeResult> {
-    val result = try {
-      scanningController.recognize(data, 0)
-    } catch (e: Throwable) {
-      WARNING("decode error=>${e.message}")
-      emptyList()
-    }
-    decodeHaptics.tryEmit(result.size)
-    return result
-  }
-
-  //计数二维码数量是否发生改变
-  private var oldBarcodeSize = 0
-
-  // 触发震动
-  @kotlin.OptIn(FlowPreview::class)
-  val decodeHaptics = MutableStateFlow(0).also {
-    // 避免触发太快
-    it.debounce(300).collectIn(scope = smartScanNMM.getRuntimeScope()) { newSize ->
-      if (oldBarcodeSize < newSize) {
-        scanningController.decodeHaptics()
-      }
-      oldBarcodeSize = newSize
-    }
+  suspend fun decodeQrCode(processer: suspend ScanningController.() -> List<BarcodeResult>) {
+    barcodeResultFlow.value = scanningController.processer()
   }
 
   // 相机控制器

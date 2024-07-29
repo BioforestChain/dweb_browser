@@ -22,7 +22,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.dweb_browser.helper.WARNING
+import org.dweb_browser.helper.globalDefaultScope
 import org.dweb_browser.helper.globalMainScope
 import java.util.concurrent.Executors
 
@@ -77,10 +79,12 @@ class CameraControllerImpl(
           it.setAnalyzer(Executors.newSingleThreadExecutor()) { imageProxy ->
             globalMainScope.launch {
               val matrix = getCoordinateTransform(imageProxy, previewView)
-              val ok = controller.imageCaptureFlow.tryEmit(Pair(imageProxy, matrix))
-              if (!ok) {
-                imageProxy.close()
+              controller.decodeQrCode {
+                withContext(globalDefaultScope.coroutineContext) {
+                  recognize(imageProxy, matrix)
+                }
               }
+              imageProxy.close()
             }
           }
         }

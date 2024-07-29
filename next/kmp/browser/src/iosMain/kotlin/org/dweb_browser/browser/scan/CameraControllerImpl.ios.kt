@@ -3,9 +3,11 @@ package org.dweb_browser.browser.scan
 import androidx.compose.ui.graphics.asComposeImageBitmap
 import kotlinx.cinterop.CValue
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.coroutines.launch
 import org.dweb_browser.helper.PurePoint
 import org.dweb_browser.helper.PureRect
 import org.dweb_browser.helper.WARNING
+import org.dweb_browser.helper.globalDefaultScope
 import org.dweb_browser.helper.platform.NSDataHelper.toByteArray
 import org.dweb_browser.helper.times
 import org.dweb_browser.helper.toPoint
@@ -72,12 +74,11 @@ class CameraControllerImpl(
   private val metadataOutput = AVCaptureMetadataOutput()
 
   // 创建相机
-  private val camera: AVCaptureDevice =
-    discoverySessionWithDeviceTypes(
-      deviceTypes = deviceTypes,
-      mediaType = AVMediaTypeVideo,
-      position = AVCaptureDevicePositionBack,
-    ).devices.firstOrNull() as AVCaptureDevice
+  private val camera: AVCaptureDevice = discoverySessionWithDeviceTypes(
+    deviceTypes = deviceTypes,
+    mediaType = AVMediaTypeVideo,
+    position = AVCaptureDevicePositionBack,
+  ).devices.firstOrNull() as AVCaptureDevice
 
   // 创建一个相机会话
   private val captureSession = AVCaptureSession().also { captureSession ->
@@ -112,10 +113,9 @@ class CameraControllerImpl(
         didOutputMetadataObjects: List<*>,
         fromConnection: AVCaptureConnection
       ) {
-        val barcodes =
+        controller.barcodeResultFlow.value =
           didOutputMetadataObjects.filterIsInstance<AVMetadataMachineReadableCodeObject>()
-        controller.decodeHaptics.tryEmit(barcodes.size)
-        emitBarcode(barcodes)
+            .toBarcodeResult()
       }
     }
 
@@ -123,8 +123,7 @@ class CameraControllerImpl(
   private val galleryDelegate: PHPickerViewControllerDelegateProtocol =
     object : NSObject(), PHPickerViewControllerDelegateProtocol {
       override fun picker(
-        picker: PHPickerViewController,
-        didFinishPicking: List<*>
+        picker: PHPickerViewController, didFinishPicking: List<*>
       ) {
         // 用户选中图片
         if (didFinishPicking.isNotEmpty()) {
@@ -137,8 +136,11 @@ class CameraControllerImpl(
                 val imageFromNsData = Image.makeFromEncoded(data.toByteArray())
                 val bitmapFromNsData = Bitmap.makeFromImage(imageFromNsData).asComposeImageBitmap()
                 controller.albumImageFlow.tryEmit(bitmapFromNsData)
-                // 回调到二维码识别
-                controller.imageCaptureFlow.tryEmit(data)
+                globalDefaultScope.launch {
+                  controller.decodeQrCode {
+                    recognize(data)
+                  }
+                }
               } else if (error != null) {
                 // 处理错误
                 WARNING("Error loading data: ${error.localizedDescription}")
@@ -159,37 +161,36 @@ class CameraControllerImpl(
   }
 
   // 处理识别的二维码数据，构造成通用的BarcodeResult
-  private fun emitBarcode(barcodes: List<AVMetadataMachineReadableCodeObject>) {
-    val results = mutableListOf<BarcodeResult>()
-    for (barcode in barcodes) {
-      val barcodeValue = barcode.stringValue
-      val barcodeBounds =
-        cameraPreviewLayer.transformedMetadataObjectForMetadataObject(barcode)?.bounds?.toRect()
-          ?.times(density)
-      val corners = (cameraPreviewLayer.transformedMetadataObjectForMetadataObject(barcode)
-          as? AVMetadataMachineReadableCodeObject)?.corners?.mapNotNull {
-        if (it is NSDictionary) {
-          val x = (it.objectForKey("X") as? NSNumber)?.doubleValue ?: return@mapNotNull null
-          val y = (it.objectForKey("Y") as? NSNumber)?.doubleValue ?: return@mapNotNull null
-          CGPointMake(x * density, y * density)
-        } else {
-          null
+  fun List<AVMetadataMachineReadableCodeObject>.toBarcodeResult() =
+    mutableListOf<BarcodeResult>().also { results ->
+      for (barcode in this) {
+        val barcodeValue = barcode.stringValue
+        val barcodeBounds =
+          cameraPreviewLayer.transformedMetadataObjectForMetadataObject(barcode)?.bounds?.toRect()
+            ?.times(density)
+        val corners =
+          (cameraPreviewLayer.transformedMetadataObjectForMetadataObject(barcode) as? AVMetadataMachineReadableCodeObject)?.corners?.mapNotNull {
+            if (it is NSDictionary) {
+              val x = (it.objectForKey("X") as? NSNumber)?.doubleValue ?: return@mapNotNull null
+              val y = (it.objectForKey("Y") as? NSNumber)?.doubleValue ?: return@mapNotNull null
+              CGPointMake(x * density, y * density)
+            } else {
+              null
+            }
+          }
+        barcodeValue?.let {
+          val result = BarcodeResult(
+            data = barcodeValue,
+            boundingBox = barcodeBounds ?: PureRect(0f, 0f),
+            topLeft = corners?.get(2)?.toPoint() ?: PurePoint(0f, 0f),
+            topRight = corners?.get(3)?.toPoint() ?: PurePoint(0f, 0f),
+            bottomLeft = corners?.get(1)?.toPoint() ?: PurePoint(0f, 0f),
+            bottomRight = corners?.get(0)?.toPoint() ?: PurePoint(0f, 0f),
+          )
+          results.add(result)
         }
       }
-      barcodeValue?.let {
-        val result = BarcodeResult(
-          data = barcodeValue,
-          boundingBox = barcodeBounds ?: PureRect(0f, 0f),
-          topLeft = corners?.get(2)?.toPoint() ?: PurePoint(0f, 0f),
-          topRight = corners?.get(3)?.toPoint() ?: PurePoint(0f, 0f),
-          bottomLeft = corners?.get(1)?.toPoint() ?: PurePoint(0f, 0f),
-          bottomRight = corners?.get(0)?.toPoint() ?: PurePoint(0f, 0f),
-        )
-        results.add(result)
-      }
-    }
-    controller.barcodeResultFlow.tryEmit(results)
-  }
+    }.toList()
 
   fun start() {
     captureSession.startRunning()

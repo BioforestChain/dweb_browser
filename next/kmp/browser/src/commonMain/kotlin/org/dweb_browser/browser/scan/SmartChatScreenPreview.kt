@@ -65,14 +65,14 @@ fun CustomSnackBar(message: String, onDismiss: () -> Unit) {
         color = Color.White,
         fontSize = 14.sp,
         fontWeight = FontWeight.Bold,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
         modifier = Modifier.clickable { onDismiss() }
       )
       TextButton(onClick = onDismiss) {
         Text(
           BrowserI18nResource.QRCode.Action.text,
           color = Color.White,
-          maxLines = 1,
-          overflow = TextOverflow.Ellipsis,
           fontWeight = FontWeight.Bold
         )
       }

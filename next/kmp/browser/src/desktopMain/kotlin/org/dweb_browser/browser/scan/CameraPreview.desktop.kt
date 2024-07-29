@@ -12,7 +12,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.SwingPanel
 import androidx.compose.ui.graphics.toComposeImageBitmap
+import kotlinx.coroutines.launch
 import org.dweb_browser.browser.common.loading.LoadingView
+import org.dweb_browser.helper.globalDefaultScope
 import org.jetbrains.skia.Image
 import java.io.File
 import javax.swing.JFileChooser
@@ -55,7 +57,11 @@ actual fun CameraPreviewRender(
           // 回调图片
           controller.albumImageFlow.tryEmit(image.toComposeImageBitmap())
           // 发送给识别模块
-          controller.imageCaptureFlow.tryEmit(byteArray)
+          globalDefaultScope.launch {
+            controller.decodeQrCode {
+              recognize(byteArray, 0)
+            }
+          }
         } else {
           controller.onCancel(event.actionCommand)
         }

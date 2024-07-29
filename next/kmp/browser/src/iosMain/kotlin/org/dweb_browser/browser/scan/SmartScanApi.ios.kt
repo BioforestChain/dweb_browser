@@ -22,17 +22,17 @@ actual class ScanningController actual constructor(mmScope: CoroutineScope) {
 
   actual fun stop() {}
 
-  actual suspend fun recognize(data: Any, rotation: Int): List<BarcodeResult> {
-    if (data is ByteArray) {
-      val ciImage = CIImage(data = data.toNSData())
-      return process(ciImage)
+  actual suspend fun recognize(data: ByteArray, rotation: Int): List<BarcodeResult> {
+    if (data.isEmpty()) {
+
+      return emptyList()
     }
-    if (data is NSData) {
-      val ciImage = CIImage(data = data)
-      return process(ciImage)
-    }
-    return emptyList()
+    val ciImage = CIImage(data = data.toNSData())
+    return process(ciImage)
   }
+
+  suspend fun recognize(data: NSData) = process(CIImage(data = data))
+  suspend fun recognize(image: CIImage) = process(image)
 
   @OptIn(ExperimentalForeignApi::class)
   private fun process(ciImage: CIImage): List<BarcodeResult> {

@@ -38,84 +38,77 @@ actual class ScanningController actual constructor(mmScope: CoroutineScope) {
 
   @TransformExperimental
   @OptIn(ExperimentalGetImage::class)
-  actual suspend fun recognize(data: Any, rotation: Int): List<BarcodeResult> {
-    if (data is ByteArray) {
-      // 检查图像是否为空
-      if (data.isEmpty()) {
-        return listOf()
-      }
-      // 解码图像
-      val bit = BitmapFactory.decodeByteArray(data, 0, data.size) ?: return listOf()
+  actual suspend fun recognize(data: ByteArray, rotation: Int): List<BarcodeResult> {
+    // 检查图像是否为空
+    if (data.isEmpty()) {
+      return listOf()
+    }
+    // 解码图像
+    val bit = BitmapFactory.decodeByteArray(data, 0, data.size) ?: return listOf()
 
-      val image = InputImage.fromBitmap(bit, rotation)
-      return process(image)
-    }
-    if (data is Bitmap) {
-      val image = InputImage.fromBitmap(data, rotation)
-      return process(image)
-    }
-    // 如果是需要矩阵转换的
-    if (data is Pair<*, *>) {
-      val coordinateTransform = data.second as CoordinateTransform
-      val imageProxy = data.first as ImageProxy
+    val image = InputImage.fromBitmap(bit, rotation)
+    return process(image)
+  }
+
+  suspend fun recognize(bitmap: Bitmap, rotation: Int) =
+    process(InputImage.fromBitmap(bitmap, rotation))
+
+  suspend fun recognize(image: InputImage) = process(image)
+
+  @OptIn(ExperimentalGetImage::class, TransformExperimental::class)
+  suspend fun recognize(imageProxy: ImageProxy, coordinateTransform: CoordinateTransform) =
+    runCatching {
       val image = imageProxy.image!!
       val inputImage = InputImage.fromMediaImage(image, 0)
-      val barcodes = process(inputImage, coordinateTransform)
-      imageProxy.close()
-      return barcodes
+      process(inputImage, coordinateTransform)
+    }.getOrElse {
+      emptyList()
     }
-    return emptyList()
-  }
 
   @OptIn(TransformExperimental::class)
   private suspend fun process(
-    image: InputImage,
-    matrix: CoordinateTransform? = null
+    image: InputImage, matrix: CoordinateTransform? = null
   ): List<BarcodeResult> {
     val task = PromiseOut<List<BarcodeResult>>()
-    barcodeScanner.process(image)
-      .addOnSuccessListener { barcodes ->
-        task.resolve(barcodes.map { barcode ->
-          val cornerPoints = barcode.cornerPoints
-          if (matrix !== null) {
-            val boundingBox = RectF(barcode.boundingBox)
-            matrix.mapRect(boundingBox)
-            // 转换顶点坐标
-            val topLeft =
-              cornerPoints?.get(0)?.let { point -> mapPointToPreviewView(matrix, point) }
-                ?: PurePoint.Zero
-            val topRight =
-              cornerPoints?.get(1)?.let { point -> mapPointToPreviewView(matrix, point) }
-                ?: PurePoint.Zero
-            val bottomLeft =
-              cornerPoints?.get(3)?.let { point -> mapPointToPreviewView(matrix, point) }
-                ?: PurePoint.Zero
-            val bottomRight =
-              cornerPoints?.get(2)?.let { point -> mapPointToPreviewView(matrix, point) }
-                ?: PurePoint.Zero
-            BarcodeResult(
-              data = barcode.rawBytes?.utf8String ?: "",
-              boundingBox = boundingBox.toRect(),
-              topLeft = topLeft,
-              topRight = topRight,
-              bottomLeft = bottomLeft,
-              bottomRight = bottomRight,
-            )
-          } else {
-            BarcodeResult(
-              data = barcode.rawBytes?.utf8String ?: "",
-              boundingBox = barcode.boundingBox?.toRect() ?: PureRect.Zero,
-              topLeft = cornerPoints?.get(0)?.toPoint() ?: PurePoint.Zero,
-              topRight = cornerPoints?.get(1)?.toPoint() ?: PurePoint.Zero,
-              bottomLeft = cornerPoints?.get(3)?.toPoint() ?: PurePoint.Zero,
-              bottomRight = cornerPoints?.get(2)?.toPoint() ?: PurePoint.Zero,
-            )
-          }
-        })
-      }
-      .addOnFailureListener { err ->
-        task.reject(err)
-      }
+    barcodeScanner.process(image).addOnSuccessListener { barcodes ->
+      task.resolve(barcodes.map { barcode ->
+        val cornerPoints = barcode.cornerPoints
+        if (matrix !== null) {
+          val boundingBox = RectF(barcode.boundingBox)
+          matrix.mapRect(boundingBox)
+          // 转换顶点坐标
+          val topLeft = cornerPoints?.get(0)?.let { point -> mapPointToPreviewView(matrix, point) }
+            ?: PurePoint.Zero
+          val topRight = cornerPoints?.get(1)?.let { point -> mapPointToPreviewView(matrix, point) }
+            ?: PurePoint.Zero
+          val bottomLeft =
+            cornerPoints?.get(3)?.let { point -> mapPointToPreviewView(matrix, point) }
+              ?: PurePoint.Zero
+          val bottomRight =
+            cornerPoints?.get(2)?.let { point -> mapPointToPreviewView(matrix, point) }
+              ?: PurePoint.Zero
+          BarcodeResult(
+            data = barcode.rawBytes?.utf8String ?: "",
+            boundingBox = boundingBox.toRect(),
+            topLeft = topLeft,
+            topRight = topRight,
+            bottomLeft = bottomLeft,
+            bottomRight = bottomRight,
+          )
+        } else {
+          BarcodeResult(
+            data = barcode.rawBytes?.utf8String ?: "",
+            boundingBox = barcode.boundingBox?.toRect() ?: PureRect.Zero,
+            topLeft = cornerPoints?.get(0)?.toPoint() ?: PurePoint.Zero,
+            topRight = cornerPoints?.get(1)?.toPoint() ?: PurePoint.Zero,
+            bottomLeft = cornerPoints?.get(3)?.toPoint() ?: PurePoint.Zero,
+            bottomRight = cornerPoints?.get(2)?.toPoint() ?: PurePoint.Zero,
+          )
+        }
+      })
+    }.addOnFailureListener { err ->
+      task.reject(err)
+    }
     return task.waitPromise()
   }
 

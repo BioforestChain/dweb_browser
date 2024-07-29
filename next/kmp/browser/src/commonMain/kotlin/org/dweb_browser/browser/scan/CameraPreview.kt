@@ -11,13 +11,14 @@ import org.dweb_browser.helper.platform.IPureViewController
 import org.dweb_browser.helper.platform.PureViewControllerPlatform
 import org.dweb_browser.helper.platform.platform
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
+import org.dweb_browser.sys.window.render.LocalWindowController
 
 @Composable
 fun WindowContentRenderScope.RenderBarcodeScanning(
   modifier: Modifier, controller: SmartScanController
 ) {
   // 如果是选中文件
-  val selectImg by controller.albumImageFlow.collectAsState(null)
+  val selectImg by controller.albumImageFlow.collectAsState()
   // 视图切换,如果扫描到了二维码
   Box(modifier) {
     if (selectImg == null) {
@@ -39,6 +40,9 @@ fun WindowContentRenderScope.RenderBarcodeScanning(
         Modifier.matchParentSize().zIndex(3f)
       )
     } else {
+      LocalWindowController.current.navigation.GoBackHandler {
+        controller.albumImageFlow.value = null
+      }
       // 如果是选中图片，渲染选中的图片
       controller.RenderCaptureResult(
         Modifier.fillMaxSize(), selectImg!!

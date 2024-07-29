@@ -10,7 +10,7 @@ expect class ScanningController(mmScope: CoroutineScope) {
   fun stop()
 
   /**解析二维码*/
-  suspend fun recognize(data: Any,rotation:Int): List<BarcodeResult>
+  suspend fun recognize(data: ByteArray, rotation: Int): List<BarcodeResult>
 
   /**解析二维码时候的震动效果*/
   fun decodeHaptics()

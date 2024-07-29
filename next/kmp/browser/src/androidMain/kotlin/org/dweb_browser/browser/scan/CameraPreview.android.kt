@@ -8,6 +8,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.OptIn
 import androidx.camera.core.ExperimentalGetImage
 import androidx.camera.view.PreviewView
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
@@ -16,6 +17,8 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import kotlinx.coroutines.launch
+import org.dweb_browser.helper.globalDefaultScope
 
 
 /**这里是android相机的预览画到Compose上，并且输出扫描到的一贞一贞图片*/
@@ -52,7 +55,11 @@ actual fun CameraPreviewRender(
           true
         )
         controller.albumImageFlow.tryEmit(previewBitmap.asImageBitmap())
-        controller.imageCaptureFlow.tryEmit(previewBitmap)
+        globalDefaultScope.launch {
+          controller.decodeQrCode {
+            recognize(previewBitmap, 0)
+          }
+        }
       }
     }
   // 创建相机控制器
@@ -77,5 +84,5 @@ actual fun CameraPreviewRender(
     // 设置显示模式为兼容，防止页面抖动
     previewView.implementationMode = PreviewView.ImplementationMode.COMPATIBLE
     previewView
-  }, modifier = modifier)
+  }, modifier = modifier.fillMaxSize())
 }
