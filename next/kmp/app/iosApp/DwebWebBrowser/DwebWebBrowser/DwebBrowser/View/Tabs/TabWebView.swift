@@ -142,6 +142,21 @@ class Coordinator: NSObject, WKNavigationDelegate, UIScrollViewDelegate, UIGestu
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
         return true
     }
+    
+    func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        guard let panGesture = gestureRecognizer as? UIPanGestureRecognizer else {
+            return true
+        }
+        
+        let translation = panGesture.translation(in: panGesture.view)
+        
+        // 在某些情况下返回 false，让 WebView 自己处理手势
+        if translation.y < 0 {
+            return false
+        }
+        
+        return true
+    }
 }
 
 //Dragging menu
