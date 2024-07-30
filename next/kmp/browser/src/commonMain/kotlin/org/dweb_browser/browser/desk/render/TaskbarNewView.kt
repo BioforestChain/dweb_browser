@@ -41,7 +41,7 @@ fun NewTaskbarView(
     }
   }
 
-  val taskBarHomeButton = rememberTaskBarHomeButton();
+  val taskBarHomeButton = rememberTaskBarHomeButton(taskbarController.deskNMM)
   Box(
     modifier.pointerInput(draggableHelper) {
       detectDragGestures(onDragEnd = draggableHelper.onDragEnd,

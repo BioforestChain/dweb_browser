@@ -1,7 +1,7 @@
 package org.dweb_browser.sys.haptics
 
 enum class HapticsNotificationType(
-  val type: String, val timings: LongArray, val amplitudes: IntArray, val oldSDKPattern: LongArray
+  val type: String, val timings: LongArray, val amplitudes: IntArray, val oldSDKPattern: LongArray,
 ) {
   SUCCESS(
     "SUCCESS",
@@ -18,19 +18,29 @@ enum class HapticsNotificationType(
   ERROR(
     "ERROR", longArrayOf(0, 27, 45, 50), intArrayOf(0, 120, 0, 25), longArrayOf(0, 27, 45, 50)
   ),
+  ;
+
+  companion object {
+    val ALL = entries.associateBy { it.type }
+  }
 }
 
 enum class HapticsImpactType(
-  val type: String, val timings: LongArray, val amplitudes: IntArray, val oldSDKPattern: LongArray
+  val type: String, val timings: LongArray, val amplitudes: IntArray, val oldSDKPattern: LongArray,
 ) {
-  LIGHT("LIGHT", longArrayOf(0, 50), intArrayOf(0, 110), longArrayOf(0, 20)), MEDIUM(
+  LIGHT("LIGHT", longArrayOf(0, 25), intArrayOf(0, 110), longArrayOf(0, 20)), MEDIUM(
     "MEDIUM", longArrayOf(0, 43), intArrayOf(0, 180), longArrayOf(0, 43)
   ),
   HEAVY("HEAVY", longArrayOf(0, 60), intArrayOf(0, 255), longArrayOf(0, 61)),
+  ;
+
+  companion object {
+    val ALL = entries.associateBy { it.type }
+  }
 }
 
 enum class VibrateType(
-  val type: String, val timings: LongArray, val amplitudes: IntArray, val oldSDKPattern: LongArray
+  val type: String, val timings: LongArray, val amplitudes: IntArray, val oldSDKPattern: LongArray,
 ) {
   CLICK(
     "CLICK", longArrayOf(0, 10), intArrayOf(0, 10), longArrayOf(1)
@@ -65,13 +75,13 @@ expect class VibrateManage() {
 }
 
 data class ImpactOption(
-  val style: String = "LIGHT"
+  val style: String = "LIGHT",
 )
 
 data class NotificationOption(
-  val type: String = "Warning"
+  val type: String = "Warning",
 )
 
 data class VibrateOption(
-  val duration: Long = 1
+  val duration: Long = 1,
 )

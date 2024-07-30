@@ -14,6 +14,7 @@ import squircleshape.CornerSmoothing
 import squircleshape.SquircleShape
 import kotlin.math.max
 
+internal fun <T> deskAniFastSpec() = spring<T>(Spring.DampingRatioLowBouncy, Spring.StiffnessMedium)
 internal fun <T> deskAniSpec() = spring<T>(Spring.DampingRatioLowBouncy, Spring.StiffnessLow)
 internal fun <T> deskAniSpec1() = tween<T>(3000)
 

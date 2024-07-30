@@ -18,16 +18,19 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
+import org.dweb_browser.browser.desk.DeskNMM
 import org.dweb_browser.helper.compose.hoverCursor
+import org.dweb_browser.sys.haptics.ext.vibrateImpact
 
 @Composable
-internal fun rememberTaskBarHomeButton() = remember { BarHomeButton() }
+internal fun rememberTaskBarHomeButton(runtime: DeskNMM.DeskRuntime) =
+  remember(runtime) { BarHomeButton(runtime) }
 
-internal class BarHomeButton {
+internal class BarHomeButton(private val runtime: DeskNMM.DeskRuntime) {
   private val scaleAni = Animatable(1f)
   var isPressed by mutableStateOf(false)
   private suspend fun press() {
-    scaleAni.animateTo(1.1f, deskAniSpec())
+    scaleAni.animateTo(1.1f, deskAniFastSpec())
   }
 
   private suspend fun lift() {
@@ -48,22 +51,25 @@ internal class BarHomeButton {
       contentAlignment = Alignment.Center,
       modifier = Modifier.scale(scaleAni.value).aspectRatio(1.0f)
     ) {
-      val desktopWallpaper = rememberDesktopWallpaper()
+      val desktopWallpaper = rememberDesktopWallpaper {
+        aniSpeed *= 5
+        aniDurationMillis /= 5
+      }
       desktopWallpaper.Render(modifier.clip(CircleShape).shadow(3.dp, CircleShape)
         .hoverCursor()
         .pointerInput(Unit) {
           this.detectTapGestures(
             onPress = {
               isPressed = true
+              runtime.vibrateImpact()
             },
             onLongPress = {
               isPressed = false
             },
             onTap = {
-              println("QAQ BarHomeButton onTap")
               isPressed = false
               onClick()
-              desktopWallpaper.playJob()
+              desktopWallpaper.play()
             },
           )
         })
