@@ -16,7 +16,9 @@ struct PagingScrollView: View {
     @Environment(AddressBarState.self) var addressBar
     @Environment(ShiftAnimation.self) var animation
     @Environment(WndDragScale.self) var dragScale
-
+    
+    @State var menuAction: DragDownMenuAction = .none
+    
     @Binding var showTabPage: Bool
     @State private var addressbarOffset: CGFloat = 0
     var body: some View {
@@ -35,8 +37,12 @@ struct PagingScrollView: View {
                                             HStack {
                                                 TabPageView(webCache: cache, webWrapper: webwrapper,
                                                             isVisible: index == seletecdTab.index,
-                                                            doneLoading: loadingFinished)
-                                                    .highPriorityGesture(disabledDragGesture)
+                                                            doneLoading: loadingFinished,
+                                                            menuAction: $menuAction)
+                                                .highPriorityGesture(disabledDragGesture)
+                                                .onChange(of: menuAction) { _, newValue in
+                                                    menuActionChanged(action: newValue, cacheId: cache.id, index: index)
+                                                }
                                             }
                                             if addressBar.isFocused {
                                                 SearchTypingView()
@@ -51,14 +57,14 @@ struct PagingScrollView: View {
                                 AddressBar(webCache: cache,
                                            tabIndex: index,
                                            isVisible: index == seletecdTab.index)
-                                    .environment(webcacheStore.webWrappers[index].webMonitor)
-                                    .background(.bk)
-                                    .offset(y: addressbarOffset)
-                                    .animation(.default, value: addressbarOffset)
-                                    .highPriorityGesture(addressBar.isFocused ? disabledDragGesture : nil)
-                                    .onChange(of: addressBar.shouldDisplay) { _, dispaly in
-                                        addressbarOffset = dispaly ? 0 : dragScale.addressbarHeight
-                                    }
+                                .environment(webcacheStore.webWrappers[index].webMonitor)
+                                .background(.bk)
+                                .offset(y: addressbarOffset)
+                                .animation(.default, value: addressbarOffset)
+                                .highPriorityGesture(addressBar.isFocused ? disabledDragGesture : nil)
+                                .onChange(of: addressBar.shouldDisplay) { _, dispaly in
+                                    addressbarOffset = dispaly ? 0 : dragScale.addressbarHeight
+                                }
                             }
                         }
                     }
@@ -69,11 +75,32 @@ struct PagingScrollView: View {
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("PagingScrollView")
     }
+    
+    
+}
 
-    func loadingFinished(webCache: WebCache) {
+extension PagingScrollView {
+    private func loadingFinished(webCache: WebCache) {
         webcacheStore.saveCaches()
         if !TracelessMode.shared.isON {
             DwebBrowserHistoryStore.shared.addHistoryRecord(title: webCache.title, url: webCache.lastVisitedUrl.absoluteString)
+        }
+    }
+    
+    private func menuActionChanged(action: DragDownMenuAction, cacheId: UUID, index: Int){
+        if action != .none {
+            if action == .closeTab{
+                webcacheStore.remove(by: cacheId)
+            } else if action == .refreshTab{
+                addressBar.needRefreshOfIndex = index
+            } else if action == .createNewTab {
+                withAnimation {
+                    toolBarState.shouldCreateTab = true
+                } completion: {
+                    seletecdTab.index = webcacheStore.cacheCount - 1
+                }
+            }
+            menuAction = .none
         }
     }
 }

@@ -44,3 +44,11 @@ enum AppBrowserTarget: String {
     case _blank = "_blank"
     case _system = "_system"
 }
+
+
+//展示选项按钮的最小下拉距离
+let minYOffsetToSelectAction: Double = 90
+
+//水平拖拽超过此值时，切换选择
+let minXOffsetToChangeAction: Double = 80
+

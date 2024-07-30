@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3261F7B52C5770090020E829 /* MorphingShape.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3261F7B32C5770090020E829 /* MorphingShape.swift */; };
+		3261F7B62C5770090020E829 /* DragMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3261F7B42C5770090020E829 /* DragMenuView.swift */; };
+		3261F7B82C577B010020E829 /* TabWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3261F7B72C577B010020E829 /* TabWebView.swift */; };
+		3261F7BA2C587A990020E829 /* DragDownMenuAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3261F7B92C587A990020E829 /* DragDownMenuAction.swift */; };
 		4803BFA32B4FF279006B2F79 /* Date+format.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4803BF472B4FF279006B2F79 /* Date+format.swift */; };
 		4803BFA42B4FF279006B2F79 /* UIImage+Resize.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4803BF482B4FF279006B2F79 /* UIImage+Resize.swift */; };
 		4803BFA52B4FF279006B2F79 /* UIApplication+Window.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4803BF492B4FF279006B2F79 /* UIApplication+Window.swift */; };
@@ -80,6 +84,10 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		3261F7B32C5770090020E829 /* MorphingShape.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MorphingShape.swift; sourceTree = "<group>"; };
+		3261F7B42C5770090020E829 /* DragMenuView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DragMenuView.swift; sourceTree = "<group>"; };
+		3261F7B72C577B010020E829 /* TabWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabWebView.swift; sourceTree = "<group>"; };
+		3261F7B92C587A990020E829 /* DragDownMenuAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DragDownMenuAction.swift; sourceTree = "<group>"; };
 		4803BF472B4FF279006B2F79 /* Date+format.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Date+format.swift"; sourceTree = "<group>"; };
 		4803BF482B4FF279006B2F79 /* UIImage+Resize.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIImage+Resize.swift"; sourceTree = "<group>"; };
 		4803BF492B4FF279006B2F79 /* UIApplication+Window.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIApplication+Window.swift"; sourceTree = "<group>"; };
@@ -170,6 +178,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		3261F7B22C576FD50020E829 /* DragDownMenuView */ = {
+			isa = PBXGroup;
+			children = (
+				3261F7B42C5770090020E829 /* DragMenuView.swift */,
+				3261F7B32C5770090020E829 /* MorphingShape.swift */,
+			);
+			path = DragDownMenuView;
+			sourceTree = "<group>";
+		};
 		4803BF3E2B4FF279006B2F79 /* DwebBrowser */ = {
 			isa = PBXGroup;
 			children = (
@@ -227,6 +244,7 @@
 				4803BF6A2B4FF279006B2F79 /* BookmarkModel.swift */,
 				4803BF5F2B4FF279006B2F79 /* DwebBrowserHistoryStore.swift */,
 				4803BF6B2B4FF279006B2F79 /* CoreData */,
+				3261F7B92C587A990020E829 /* DragDownMenuAction.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -254,6 +272,7 @@
 		4803BF742B4FF279006B2F79 /* View */ = {
 			isa = PBXGroup;
 			children = (
+				3261F7B22C576FD50020E829 /* DragDownMenuView */,
 				4803C0112B4FF6D8006B2F79 /* NetworkGuidView.swift */,
 				4803BF752B4FF279006B2F79 /* Tabs */,
 				4803BF7C2B4FF279006B2F79 /* ToolbarView.swift */,
@@ -273,6 +292,7 @@
 				4803BF772B4FF279006B2F79 /* PagingScrollView.swift */,
 				4803BF782B4FF279006B2F79 /* TabPageView.swift */,
 				4803BF792B4FF279006B2F79 /* BlankTabView.swift */,
+				3261F7B72C577B010020E829 /* TabWebView.swift */,
 				4803BF7A2B4FF279006B2F79 /* TabGridView.swift */,
 				4803BF7B2B4FF279006B2F79 /* GridCellView.swift */,
 			);
@@ -508,6 +528,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3261F7B62C5770090020E829 /* DragMenuView.swift in Sources */,
 				48334DF62B50E12000399FFF /* Browser.xcdatamodeld in Sources */,
 				4803BFDD2B4FF279006B2F79 /* MenuView.swift in Sources */,
 				4803BFD02B4FF279006B2F79 /* BiColorButton.swift in Sources */,
@@ -544,6 +565,7 @@
 				4803BFBC2B4FF279006B2F79 /* const.swift in Sources */,
 				4803BFE12B4FF279006B2F79 /* ScanState.swift in Sources */,
 				4828BE1D2BD0C81A005AA0CD /* DownloadTextPreviewView.swift in Sources */,
+				3261F7BA2C587A990020E829 /* DragDownMenuAction.swift in Sources */,
 				4803BFA42B4FF279006B2F79 /* UIImage+Resize.swift in Sources */,
 				4803BFA92B4FF279006B2F79 /* Url+Validator.swift in Sources */,
 				4803BFC62B4FF279006B2F79 /* TabsContainerView.swift in Sources */,
@@ -558,6 +580,7 @@
 				4803BFD92B4FF279006B2F79 /* SheetSegmentView.swift in Sources */,
 				4803BFBD2B4FF279006B2F79 /* BrowserView.swift in Sources */,
 				4803BFAE2B4FF279006B2F79 /* NetworkManager.swift in Sources */,
+				3261F7B82C577B010020E829 /* TabWebView.swift in Sources */,
 				4803BFCC2B4FF279006B2F79 /* ToolbarView.swift in Sources */,
 				4803C0122B4FF6D8006B2F79 /* NetworkGuidView.swift in Sources */,
 				4803BFC12B4FF279006B2F79 /* CoreDataError.swift in Sources */,
@@ -573,6 +596,7 @@
 				4803BFAB2B4FF279006B2F79 /* Environment.swift in Sources */,
 				48A4AE472BC91D5C008F5860 /* DwebCircleProgressView.swift in Sources */,
 				4803C01C2B4FF9E1006B2F79 /* WebBrowserViewProtocol.swift in Sources */,
+				3261F7B52C5770090020E829 /* MorphingShape.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

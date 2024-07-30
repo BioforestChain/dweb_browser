@@ -1,6 +1,5 @@
 import Combine
 import SwiftUI
-import WebKit
 
 @dynamicMemberLookup
 class WebWrapper: ObservableObject, Identifiable, Hashable, Equatable {
@@ -74,32 +73,3 @@ class WebWrapper: ObservableObject, Identifiable, Hashable, Equatable {
     
     static let blankWrapper = WebWrapper(cacheID: WebCache.blank.id)
 }
-
-// A container for using a BrowserWebview in SwiftUI
-struct TabWebView: View, UIViewRepresentable {
-    let innerWeb: WebView
-
-    init(webView: WebView) {
-        self.innerWeb = webView
-    }
-
-    func makeUIView(context: UIViewRepresentableContext<TabWebView>) -> WebView {
-        return innerWeb
-    }
-
-    func updateUIView(_ uiView: WebView, context: UIViewRepresentableContext<TabWebView>) {
-        Log("visiting updateUIView function")
-    }
-}
-
-class LocalWebView: WKWebView {
-    deinit {
-        print("deinit of LocalWebView called")
-    }
-}
-
- #if TestOriginWebView
- typealias WebView = LocalWebView
- #else
-typealias WebView = WebBrowserViewWebDataSource.WebType
- #endif
