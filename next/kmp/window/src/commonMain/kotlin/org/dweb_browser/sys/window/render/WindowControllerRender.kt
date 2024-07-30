@@ -1,5 +1,6 @@
 package org.dweb_browser.sys.window.render
 
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.animateRectAsState
@@ -21,6 +22,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -35,6 +37,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import org.dweb_browser.helper.compose.LocalCompositionChain
 import org.dweb_browser.helper.compose.LocalFocusRequester
 import org.dweb_browser.helper.compose.clickableWithNoEffect
@@ -167,20 +170,21 @@ fun WindowController.WindowRender(modifier: Modifier) {
    * 目前，它只适配了 拖动窗口时将窗口放大的动画效果
    * TODO 需要监听 winBounds 的 height/width 变化，将这个变化适配到窗口的 scaleX、scaleY 上，只有在动画完成的时候，才会正式将真正的 size 传递给内容渲染，这样可以有效避免内容频繁的resize渲染计算。这种resize有两种情况，一种是基于用户行为的resize、一种是基于接口行为的（比如最大化），所以应该统一通过监听winBounds变更来动态生成scale动画
    */
-  val scaleTargetValue = if (inMove) 1.05f else if (isVisible) 1f else 0.38f
-  val scale by animateFloatAsState(
-    targetValue = scaleTargetValue,
-    animationSpec = iosTween(durationIn = scaleTargetValue != 1f),
-    label = "scale"
-  )
-  if (scale == 0f) {
-    return
+  val scaleAni = remember { Animatable(0.38f) }
+  val opacityAni = remember { Animatable(0f) }
+  LaunchedEffect(isVisible || inMove) {
+    launch {
+      scaleAni.animateTo(
+        if (inMove) 1.05f else if (isVisible) 1f else 0.38f,
+        iosTween(durationIn = isVisible)
+      )
+    }
+    launch {
+      opacityAni.animateTo(if (isVisible) 1f else 0f, iosTween(durationIn = isVisible))
+    }
   }
-  val opacity by animateFloatAsState(
-    targetValue = if (isVisible) 1f else 0f,
-    animationSpec = iosTween(durationIn = isVisible),
-    label = "opacity"
-  )
+  val scale = scaleAni.value
+  val opacity = opacityAni.value
   if (opacity == 0f) {
     return
   }
