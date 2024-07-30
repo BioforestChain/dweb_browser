@@ -9,6 +9,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.dwebview.IDWebView.Companion.registryDevtoolsTray
 import org.dweb_browser.helper.WARNING
+import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
+import org.dweb_browser.helper.compose.envSwitch
 import org.dweb_browser.helper.globalDefaultScope
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.platform.PureViewController
@@ -26,10 +28,15 @@ suspend fun main(vararg args: String) {
     System.setProperty("compose.interop.blending", "true")
   }
   // https://github.com/JetBrains/compose-multiplatform/issues/1521
-  //      System.setProperty("compose.swing.render.on.graphics", "true")
   // skiko.renderApi属性介绍：https://github.com/kropp/skiko/blob/master/skiko/src/jvmMain/kotlin/org/jetbrains/skiko/SkikoProperties.kt
   //  System.setProperty("skiko.renderApi", "SOFTWARE")
   if (PureViewController.isWindows) {
+    // 需要开启这个属性，否则新版桌面的taskbar的composePanel无法在JDialog上渲染
+    // see: https://youtrack.jetbrains.com/issue/CMP-5837/Improve-ComposePanel-rendering
+    if (envSwitch.isEnabled(ENV_SWITCH_KEY.DESKTOP_STYLE_COMPOSE)) {
+      System.setProperty("compose.swing.render.on.graphics", "true")
+    }
+    // 回退到OPENGL，不使用DIRECT3D，否则windows平台的swing操作会崩溃
     System.setProperty("skiko.renderApi", "OPENGL")
   }
   // windows平台需要开启单实例，否则会打开多个桌面端

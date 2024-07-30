@@ -410,41 +410,17 @@ class TaskbarView private constructor(
   @Composable
   override fun TaskbarViewRender(draggableHelper: DraggableHelper, modifier: Modifier) {
     // TODO 将拖动反应到窗口位置上
-
-    val dialog = remember {
-      TaskbarDialog(taskbarController, DialogWebContentView(taskbarDWebView))
+    val dialogWebContentView = remember {
+      DialogWebContentView(taskbarDWebView)
     }
 
-    SideEffect {
-      dialog?.isVisible = true
-    }
-
-    DisposableEffect(Unit) {
-      onDispose {
-        dialog.dispose()
-      }
-    }
-
-    taskbarController.state.composableHelper.apply {
-      val layoutWidth by stateOf { layoutWidth.toInt() }
-      val layoutHeight by stateOf { layoutHeight.toInt() }
-      val taskbarDragging by stateOf { taskbarDragging }
-      LaunchedEffect(layoutWidth, layoutHeight) {
-        dialog?.let {
-          it.setSize(layoutWidth, layoutHeight)
-          if (!it.dragging) {
-            it.playMagnetEffect()
-          }
-        }
-      }
-      dialog?.dragging = taskbarDragging
-    }
+    TaskbarViewRenderEffect(dialogWebContentView)
   }
 
   @Composable
   override fun TaskbarViewRenderNewVersion(draggableHelper: DraggableHelper, modifier: Modifier) {
-    val dialog = remember {
-      val composeContentView = DialogComposeContentView() {
+    val composeContentView = remember {
+      DialogComposeContentView() {
         NewTaskbarView(
           taskbarController,
           draggableHelper,
@@ -454,7 +430,15 @@ class TaskbarView private constructor(
             .background(androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.2f))
         )
       }
-      TaskbarDialog(taskbarController, composeContentView)
+    }
+
+    TaskbarViewRenderEffect(composeContentView)
+  }
+
+  @Composable
+  private fun TaskbarViewRenderEffect(dialogContentView: DialogContentView) {
+    val dialog = remember {
+      TaskbarDialog(taskbarController, dialogContentView)
     }
 
     SideEffect {
