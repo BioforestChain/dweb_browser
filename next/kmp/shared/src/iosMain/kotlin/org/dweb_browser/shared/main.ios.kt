@@ -28,6 +28,7 @@ suspend fun startDwebBrowser(
   nativeMicroModuleUIApplication = app;
 
   val launcher = DwebBrowserLauncher(if (debugMode) debugTags else emptyList())
+  dnsNMM = launcher.dnsNMM
   val dnsRuntime = launcher.launch()
 
   // 启动的时候就开始监听deeplink
