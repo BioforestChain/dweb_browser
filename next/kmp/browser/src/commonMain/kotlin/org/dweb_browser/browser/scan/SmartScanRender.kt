@@ -98,7 +98,6 @@ internal fun SmartScanController.RenderScanResultView(modifier: Modifier) {
       animation = tween(4000, easing = LinearEasing), repeatMode = RepeatMode.Restart
     )
   )
-  val density = LocalDensity.current.density
   val resultList by barcodeResultFlow.collectAsState()
   BoxWithConstraints(modifier = modifier.clipToBounds()) {
     // 画出框框

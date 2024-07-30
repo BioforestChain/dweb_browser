@@ -365,6 +365,20 @@ object BrowserI18nResource {
       Language.ZH to "相册",
       Language.EN to "Album"
     )
+    val simulator_title = SimpleI18nResource(
+      Language.ZH to "在模拟器上不可用",
+      Language.EN to "not available on simulator"
+    )
+    val simulator_body = SimpleI18nResource(
+      Language.ZH to """
+        相机在模拟器上不可用。
+        请尝试在真正的iOS设备上运行。
+      """.trimIndent(),
+      Language.EN to """
+      Camera is not available on simulator.
+      Please try to run on a real iOS device.
+      """
+    )
   }
 
   object IconDescription {

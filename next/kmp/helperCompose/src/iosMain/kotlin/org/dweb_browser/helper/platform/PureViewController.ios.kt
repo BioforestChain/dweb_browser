@@ -39,9 +39,6 @@ private var vcIdAcc by SafeInt(0);
 class PureViewController(
   val createParams: PureViewCreateParams = PureViewCreateParams(mapOf())
 ) : IPureViewController {
-  companion object{
-    val isSimulator = UIDevice.currentDevice.model == "iPhone Simulator" || UIDevice.currentDevice.model == "iPad Simulator"
-  }
   constructor(params: Map<String, Any?>) : this(PureViewCreateParams(params))
 
   var prop = DwebUIViewControllerProperty(vcIdAcc++, -1, false)
