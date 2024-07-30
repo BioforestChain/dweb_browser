@@ -16,9 +16,8 @@ import androidx.compose.ui.unit.IntSize
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.compose.CompositionChain
-import org.dweb_browser.helper.compose.toIntSize
 import org.dweb_browser.helper.compose.timesToInt
-import org.dweb_browser.platform.desktop.os.WindowsSystemInfo
+import org.dweb_browser.helper.compose.toIntSize
 import java.awt.Dialog
 import javax.swing.JDialog
 import javax.swing.SwingUtilities
@@ -37,9 +36,7 @@ fun PureViewController.ModalDialog(
     ComposeDialog(getComposeWindowOrNull(), Dialog.ModalityType.APPLICATION_MODAL).apply {
       title = state.title
       isUndecorated = true
-      if (PureViewController.isMacOS) {
-        isTransparent = true
-      }
+      isTransparent = true
       defaultCloseOperation = JDialog.DISPOSE_ON_CLOSE
     }
   }
@@ -74,9 +71,6 @@ fun PureViewController.ModalDialog(
   }
   val uiScope = rememberCoroutineScope()
   DisposableEffect(dialog) {
-    if(WindowsSystemInfo.isWin10) {
-      dialog.isTransparent = true // win10 系统下拉时，背景不透明。fixed #160
-    }
     dialog.setContent {
       state.chain.Provider {
         content(dialog)

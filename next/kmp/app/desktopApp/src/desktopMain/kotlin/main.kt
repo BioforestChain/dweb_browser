@@ -27,8 +27,11 @@ suspend fun main(vararg args: String) {
   }
   // https://github.com/JetBrains/compose-multiplatform/issues/1521
   //      System.setProperty("compose.swing.render.on.graphics", "true")
+  // skiko.renderApi属性介绍：https://github.com/kropp/skiko/blob/master/skiko/src/jvmMain/kotlin/org/jetbrains/skiko/SkikoProperties.kt
   //  System.setProperty("skiko.renderApi", "SOFTWARE")
-  //  System.setProperty("skiko.renderApi", "OPENGL")
+  if (PureViewController.isWindows) {
+    System.setProperty("skiko.renderApi", "OPENGL")
+  }
   // windows平台需要开启单实例，否则会打开多个桌面端
   if (PureViewController.isWindows && !WindowsSingleInstance.requestSingleInstance(
       args.joinToString(",")
