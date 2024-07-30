@@ -25,10 +25,9 @@ import org.dweb_browser.helper.format
 import org.dweb_browser.helper.platform.toImageBitmap
 import org.dweb_browser.helper.toWebUrl
 import org.jetbrains.compose.resources.DrawableResource
-import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 
-@OptIn(ExperimentalResourceApi::class)
+@Serializable
 enum class SearchEngine(
   val host: String, // 域名 如：baidu.com, cn.bing.com, www.google.com,
   val keys: String, // 名称，多个可以使用“逗号”分隔，如 "baidu,百度", "google,谷歌"
