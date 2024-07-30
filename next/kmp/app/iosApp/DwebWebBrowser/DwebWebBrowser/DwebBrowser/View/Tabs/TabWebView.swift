@@ -57,6 +57,13 @@ class Coordinator: NSObject, WKNavigationDelegate, UIScrollViewDelegate, UIGestu
     }
     
     @objc func handlePanGesture(_ gesture: UIPanGestureRecognizer) {
+        let webScrollOffset = parent.innerWeb.scrollView.contentOffset.y
+
+        //如果网页没有滚动到顶部，则不会触发
+        if webScrollOffset > 0{
+            return
+        }
+        
         let translation = gesture.translation(in: gesture.view)
         print("changing: ,x: \(translation.x)  ---y: \(translation.y)")
         if translation.y < 0 {
@@ -88,18 +95,14 @@ class Coordinator: NSObject, WKNavigationDelegate, UIScrollViewDelegate, UIGestu
         }
         
         let draggingX = translation.x // min(max(translation.x, 0), 150)
-        
-        // 计算新的垂直偏移量
         let draggingY = translation.y
         
         parent.yDragOffset = draggingY
 
         if draggingY > minYOffsetToSelectAction {
-
             if draggingX < -minXOffsetToChangeAction, parent.menuIndex == 0 {
                 return
             }
-            
             if draggingX > minXOffsetToChangeAction, parent.menuIndex == 2 {
                 return
             }
@@ -123,7 +126,6 @@ class Coordinator: NSObject, WKNavigationDelegate, UIScrollViewDelegate, UIGestu
                 }else{
                     parent.xDragOffset = abs(minXOffsetToChangeAction + draggingX)
                 }
-                
             } else {
                 if draggingX < 0 {
                     parent.menuIndex = 1
@@ -141,8 +143,6 @@ class Coordinator: NSObject, WKNavigationDelegate, UIScrollViewDelegate, UIGestu
         return true
     }
 }
-
-
 
 //Dragging menu
 extension TabWebView {
