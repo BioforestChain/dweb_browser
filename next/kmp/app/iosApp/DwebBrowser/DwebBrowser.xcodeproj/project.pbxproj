@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		1A0D794E6805F75B088C0939 /* DwebBrowserApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0D7C84CC71A12D5FCBBF78 /* DwebBrowserApp.swift */; };
+		32C66CC32C59D021004DDBDA /* envSwitch.json in Resources */ = {isa = PBXBuildFile; fileRef = 32C66CC22C59D021004DDBDA /* envSwitch.json */; };
 		48001B9F2B8ED4CB00F47669 /* DwebBrowserUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48001B9E2B8ED4CB00F47669 /* DwebBrowserUITests.swift */; };
 		48001BA12B8ED4CB00F47669 /* DwebBrowserUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48001BA02B8ED4CB00F47669 /* DwebBrowserUITestsLaunchTests.swift */; };
 		48001BAA2B8F1ADE00F47669 /* DwebUITestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48001BA92B8F1ADE00F47669 /* DwebUITestCase.swift */; };
@@ -72,6 +73,7 @@
 
 /* Begin PBXFileReference section */
 		1A0D7C84CC71A12D5FCBBF78 /* DwebBrowserApp.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DwebBrowserApp.swift; sourceTree = "<group>"; };
+		32C66CC22C59D021004DDBDA /* envSwitch.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = envSwitch.json; sourceTree = "<group>"; };
 		3D037B8C2C4392FB00AF8A00 /* DwebBrowser.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DwebBrowser.entitlements; sourceTree = "<group>"; };
 		48001B9C2B8ED4CB00F47669 /* DwebBrowserUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DwebBrowserUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		48001B9E2B8ED4CB00F47669 /* DwebBrowserUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DwebBrowserUITests.swift; sourceTree = "<group>"; };
@@ -245,6 +247,7 @@
 		7555FF7D242A565900829871 /* DwebBrowser */ = {
 			isa = PBXGroup;
 			children = (
+				32C66CC22C59D021004DDBDA /* envSwitch.json */,
 				3D037B8C2C4392FB00AF8A00 /* DwebBrowser.entitlements */,
 				1A0D7C84CC71A12D5FCBBF78 /* DwebBrowserApp.swift */,
 				487D7FCA2B6A24DC00DA8162 /* DwebLifeStatusCenter.swift */,
@@ -398,6 +401,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				48334DC92B50CFFF00399FFF /* Assets.xcassets in Resources */,
+				32C66CC32C59D021004DDBDA /* envSwitch.json in Resources */,
 				481488662B970A3E005D7D00 /* LinkSort.order in Resources */,
 				485050412B146B5700080723 /* Preview Assets.xcassets in Resources */,
 			);

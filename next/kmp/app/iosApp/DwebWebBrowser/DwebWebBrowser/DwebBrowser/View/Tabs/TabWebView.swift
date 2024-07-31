@@ -12,11 +12,13 @@ import WebKit
 // A container for using a BrowserWebview in SwiftUI
 struct TabWebView: View, UIViewRepresentable {
     let innerWeb: WebView
-    
+    @EnvironmentObject var envSwitcher: EnvSwitchManager
+
     @Binding var xDragOffset: CGFloat
     @Binding var yDragOffset: CGFloat
     @Binding var menuIndex: Int
     @Binding var actionIndex: Int
+    
     
     init(webView: WebView,  xOffset: Binding<CGFloat>, yOffset: Binding<CGFloat>, menuIndex: Binding<Int>, actionIndex: Binding<Int>) {
         self.innerWeb = webView
@@ -144,6 +146,9 @@ class Coordinator: NSObject, WKNavigationDelegate, UIScrollViewDelegate, UIGestu
     }
     
     func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        if !parent.envSwitcher.config!.isWebTopMenuEnabled {
+            return false
+        }
         guard let panGesture = gestureRecognizer as? UIPanGestureRecognizer else {
             return true
         }

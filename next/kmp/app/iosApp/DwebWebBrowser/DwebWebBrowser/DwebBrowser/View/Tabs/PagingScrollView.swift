@@ -18,7 +18,8 @@ struct PagingScrollView: View {
     @Environment(WndDragScale.self) var dragScale
     
     @State var menuAction: DragDownMenuAction = .none
-    
+    @StateObject var envSwitchManager = EnvSwitchManager()
+
     @Binding var showTabPage: Bool
     @State private var addressbarOffset: CGFloat = 0
     var body: some View {
@@ -43,6 +44,7 @@ struct PagingScrollView: View {
                                                 .onChange(of: menuAction) { _, newValue in
                                                     menuActionChanged(action: newValue, cacheId: cache.id, index: index)
                                                 }
+                                                .environmentObject(envSwitchManager)
                                             }
                                             if addressBar.isFocused {
                                                 SearchTypingView()
