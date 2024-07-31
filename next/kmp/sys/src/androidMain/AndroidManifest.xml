@@ -28,7 +28,7 @@
       android:theme="@style/Theme.DwebBrowser.Transparent" />
     <activity
       android:name="org.dweb_browser.sys.keychain.render.KeychainActivity"
-      android:configChanges="keyboardHidden|screenSize|screenLayout|orientation|keyboard|navigation|uiMode"
+      android:configChanges="keyboardHidden|orientation|screenSize|smallestScreenSize|screenLayout|uiMode|navigation|fontScale|density|colorMode|layoutDirection|locale"
       android:exported="true"
       android:theme="@style/Theme.DwebBrowser.Transparent" />
 

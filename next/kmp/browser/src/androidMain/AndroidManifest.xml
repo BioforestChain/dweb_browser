@@ -9,8 +9,8 @@
 
   <uses-feature android:name="android.hardware.camera.any" />
 
-    <uses-permission android:name="android.permission.VIBRATE" />
-    <application
+  <uses-permission android:name="android.permission.VIBRATE" />
+  <application
     android:enableOnBackInvokedCallback="true"
     android:resizeableActivity="true"
     tools:targetApi="tiramisu">
@@ -21,9 +21,27 @@
       android:name="android.min_aspect"
       android:value="1.0" />
 
+    <!--
+     android:configChanges 说明：
+     locale:             系统语言或区域设置改变时触发。
+     touchscreen:        设备的触摸屏类型改变时触发，通常很少发生。
+     keyboard:           物理键盘的可用性改变时触发（如外接键盘连接或断开）。
+     keyboardHidden:     软键盘的可见性改变时触发（如软键盘显示或隐藏）。
+     navigation:         导航方式改变时触发（如从触摸导航切换到轨迹球或方向键）。
+     fontScale:          用户在设置中更改字体大小时触发。
+     uiMode:             用户界面模式改变时触发，例如从日间模式切换到夜间模式。
+     orientation:        设备屏幕方向改变时触发（如从竖屏切换到横屏）。
+     screenLayout:       屏幕布局改变时触发，包含屏幕大小、屏幕密度等变化。
+     screenSize:         屏幕尺寸改变时触发（通常用于多窗口模式下的窗口调整）。
+     smallestScreenSize: 最小屏幕尺寸改变时触发，通常在多窗口或分屏模式下调整屏幕大小时触发。
+     density:            屏幕密度改变时触发，这在设备分辨率改变时可能发生。
+     layoutDirection:    布局方向改变时触发，例如从左到右 (LTR) 变为从右到左 (RTL)。
+     colorMode:          颜色模式改变时触发，例如从标准模式切换到宽色域模式。
+     uiMode:             UI 模式改变时触发，如从车载模式切换到桌面模式。
+     -->
     <activity
       android:name=".desk.DesktopActivity"
-      android:configChanges="keyboardHidden|orientation|screenSize|smallestScreenSize|screenLayout"
+      android:configChanges="keyboardHidden|orientation|screenSize|smallestScreenSize|screenLayout|uiMode|navigation|fontScale|density|colorMode|layoutDirection|locale"
       android:exported="true"
       android:launchMode="singleTask"
       android:resizeableActivity="true"
