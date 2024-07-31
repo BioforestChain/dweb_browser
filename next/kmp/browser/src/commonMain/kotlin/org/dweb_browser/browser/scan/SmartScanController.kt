@@ -1,6 +1,7 @@
 package org.dweb_browser.browser.scan
 
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import kotlinx.coroutines.CompletableDeferred
@@ -27,6 +28,7 @@ class SmartScanController(
   private val viewDeferredFlow = MutableStateFlow(CompletableDeferred<WindowController>())
   private val viewDeferred get() = viewDeferredFlow.value
   private val winLock = Mutex()
+  var previewTypes = mutableStateOf(SmartModuleTypes.Scanning)
 
   // 用来跟ios形成视图绘画对冲
   internal val scaleFlow = MutableStateFlow(1f)
@@ -45,10 +47,9 @@ class SmartScanController(
     }
 
     smartScanNMM.getOrOpenMainWindow().also { newController ->
-      // 禁止 resize
-      newController.state.resizable = false
       viewDeferred.complete(newController)
       newController.setStateFromManifest(smartScanNMM)
+      newController.state.resizable = false // 禁止 resize
       newController.state.alwaysOnTop = true // 扫码模块置顶
       /// 提供渲染适配
       windowAdapterManager.provideRender(newController.id) { modifier ->
@@ -127,4 +128,10 @@ interface CameraController {
   fun toggleTorch()
   fun openAlbum()
   fun stop()
+}
+
+enum class SmartModuleTypes {
+  Scanning,
+  Album,
+  Endoscopic
 }

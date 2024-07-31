@@ -41,16 +41,20 @@ import kotlinx.coroutines.flow.debounce
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.compose.div
+import org.dweb_browser.sys.window.render.LocalWindowController
 
 
 /**选中文件时候的反馈*/
 @OptIn(FlowPreview::class)
 @Composable
-fun SmartScanController.RenderCaptureResult(
+fun SmartScanController.RenderAlbumPreview(
   modifier: Modifier,
   selectImg: ImageBitmap,
 ) {
-
+  LocalWindowController.current.navigation.GoBackHandler {
+    albumImageFlow.value = null
+    previewTypes.value = SmartModuleTypes.Scanning
+  }
   val density = LocalDensity.current.density
   // 显示选中的图片
   BoxWithConstraints(modifier = modifier.fillMaxSize()) {
@@ -69,7 +73,7 @@ fun SmartScanController.RenderCaptureResult(
     results?.let {
       val offsetImgX = (parentWidth - selectImg.width) / 2f
       val offsetImgY = (parentHeight - selectImg.height) / 2f
-      println("offsetImgX:$offsetImgX offsetImgY:$offsetImgY")
+//      println("offsetImgX:$offsetImgX offsetImgY:$offsetImgY")
       // 画出识别到的内容
       for (result in it) {
         var textSize by remember { mutableStateOf(Size.Zero) }
@@ -77,7 +81,7 @@ fun SmartScanController.RenderCaptureResult(
         val height by animateFloatAsState(result.boundingBox.height / density)
         val offsetX by animateFloatAsState(result.boundingBox.x + width - textSize.width)
         val offsetY by animateFloatAsState(result.boundingBox.y + height - textSize.height)
-        println("offset=> $density $offsetX $offsetY ")
+//        println("offset=> $density $offsetX $offsetY ")
         key(result.data) {
           FilledTonalButton(
             { onSuccess(result.data) },

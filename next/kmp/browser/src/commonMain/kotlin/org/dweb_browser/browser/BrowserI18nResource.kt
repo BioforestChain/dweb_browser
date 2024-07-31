@@ -365,6 +365,10 @@ object BrowserI18nResource {
       Language.ZH to "相册",
       Language.EN to "Album"
     )
+    val photo_endoscopic = SimpleI18nResource(
+      Language.ZH to "内窥",
+      Language.EN to "Endoscopic"
+    )
     val simulator_title = SimpleI18nResource(
       Language.ZH to "在模拟器上不可用",
       Language.EN to "not available on simulator"

@@ -33,7 +33,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.FlashlightOff
 import androidx.compose.material.icons.filled.FlashlightOn
-import androidx.compose.material.icons.filled.Photo
+import androidx.compose.material.icons.filled.Fullscreen
+import androidx.compose.material.icons.filled.PhotoAlbum
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -248,18 +249,53 @@ fun SmartScanController.DefaultScanningView(modifier: Modifier) {
   Box(modifier = modifier) {
     ScannerLine() // 添加扫描线
     CloseIcon { onCancel("close") } // 关闭按钮
+    // 内窥按钮
+//    WarpButton(
+//      alignment = Alignment.BottomStart,
+//      openHandle = {
+//        previewTypes.value = SmartModuleTypes.Endoscopic
+//      }) {
+//      Icon(
+//        imageVector = Icons.Default.Fullscreen,
+//        contentDescription = "Endoscopic",
+//        tint = MaterialTheme.colorScheme.background,
+//        modifier = Modifier.size(22.dp)
+//      )
+//      Text(
+//        text = BrowserI18nResource.QRCode.photo_endoscopic(),
+//        color = MaterialTheme.colorScheme.background,
+//        fontSize = 12.sp
+//      )
+//    }
+
     FlashlightIcon {
       cameraController?.toggleTorch()
     }
-    AlbumButton {
-      cameraController?.openAlbum()
+    // 相册按钮
+    WarpButton(
+      alignment = Alignment.BottomEnd,
+      openHandle = {
+        cameraController?.openAlbum()
+      }) {
+      Icon(
+        imageVector = Icons.Default.PhotoAlbum,
+        contentDescription = "PhotoAlbum",
+        tint = MaterialTheme.colorScheme.background,
+        modifier = Modifier.size(22.dp)
+      )
+      Text(
+        text = BrowserI18nResource.QRCode.photo_album(),
+        color = MaterialTheme.colorScheme.background,
+        fontSize = 12.sp
+      )
     }
+
   }
 }
 
 
 @Composable
-private fun ScannerLine() {
+fun ScannerLine() {
   var linePosition by remember { mutableFloatStateOf(0f) }
   val infiniteTransition = rememberInfiniteTransition(label = "")
   val animatedLinePosition by infiniteTransition.animateFloat(
@@ -290,26 +326,19 @@ private fun ScannerLine() {
 }
 
 @Composable
-private fun BoxScope.AlbumButton(openAlbum: () -> Unit) {
+private fun BoxScope.WarpButton(
+  alignment: Alignment,
+  openHandle: () -> Unit,
+  iconPreview: @Composable () -> Unit
+) {
   Column(
-    modifier = Modifier.padding(16.dp).size(54.dp).clip(CircleShape)
-      .background(MaterialTheme.colorScheme.onBackground.copy(0.5f)).clickableWithNoEffect {
-        openAlbum()
-      }.align(Alignment.BottomEnd),
+    modifier = Modifier.padding(16.dp).size(54.dp).clickableWithNoEffect {
+      openHandle()
+    }.align(alignment),
     horizontalAlignment = Alignment.CenterHorizontally,
     verticalArrangement = Arrangement.Center
   ) {
-    Icon(
-      imageVector = Icons.Default.Photo,
-      contentDescription = "Photo",
-      tint = MaterialTheme.colorScheme.background,
-      modifier = Modifier.size(22.dp)
-    )
-    Text(
-      text = BrowserI18nResource.QRCode.photo_album(),
-      color = MaterialTheme.colorScheme.background,
-      fontSize = 12.sp
-    )
+    iconPreview()
   }
 }
 

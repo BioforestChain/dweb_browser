@@ -11,42 +11,55 @@ import org.dweb_browser.helper.platform.IPureViewController
 import org.dweb_browser.helper.platform.PureViewControllerPlatform
 import org.dweb_browser.helper.platform.platform
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
-import org.dweb_browser.sys.window.render.LocalWindowController
 
 @Composable
 fun WindowContentRenderScope.RenderBarcodeScanning(
   modifier: Modifier, controller: SmartScanController
 ) {
-  // 如果是选中文件
   val selectImg by controller.albumImageFlow.collectAsState()
-  // 视图切换,如果扫描到了二维码
+  selectImg?.let {
+    controller.previewTypes.value = SmartModuleTypes.Album
+  }
   Box(modifier) {
-    if (selectImg == null) {
-      // 渲染相机内容
-      CameraPreviewRender(
-        modifier = Modifier.fillMaxSize(), controller = controller
-      )
-      // 扫描线和打开相册，暂时不再桌面端支持
-      when (IPureViewController.platform) {
-        PureViewControllerPlatform.Desktop -> {
-        }
+    when (controller.previewTypes.value) {
+      // 视图切换,如果扫描到了二维码
+      SmartModuleTypes.Scanning -> {
+        // 渲染相机内容
+        CameraPreviewRender(
+          modifier = Modifier.fillMaxSize(), controller = controller
+        )
+        // 扫描线和打开相册，暂时不再桌面端支持
+        when (IPureViewController.platform) {
+          PureViewControllerPlatform.Desktop -> {
+          }
 
-        PureViewControllerPlatform.Apple, PureViewControllerPlatform.Android -> {
-          controller.DefaultScanningView(Modifier.fillMaxSize().zIndex(2f))
+          PureViewControllerPlatform.Apple, PureViewControllerPlatform.Android -> {
+            controller.DefaultScanningView(Modifier.fillMaxSize().zIndex(2f))
+          }
+        }
+        // 渲染扫码结果
+        controller.RenderScanResultView(
+          Modifier.matchParentSize().zIndex(3f)
+        )
+      }
+      // 相册选择
+      SmartModuleTypes.Album -> {
+        selectImg?.let {
+          // 如果是选中图片，渲染选中的图片
+          controller.RenderAlbumPreview(
+            Modifier.fillMaxSize(), it
+          )
         }
       }
-      // 渲染扫码结果
-      controller.RenderScanResultView(
-        Modifier.matchParentSize().zIndex(3f)
-      )
-    } else {
-      LocalWindowController.current.navigation.GoBackHandler {
-        controller.albumImageFlow.value = null
+      // 内窥模式
+      SmartModuleTypes.Endoscopic -> {
+        controller.EndoscopicPreview(modifier)
+        ScannerLine() // 添加扫描线
+        // 渲染扫码结果
+        controller.RenderScanResultView(
+          Modifier.matchParentSize().zIndex(3f)
+        )
       }
-      // 如果是选中图片，渲染选中的图片
-      controller.RenderCaptureResult(
-        Modifier.fillMaxSize(), selectImg!!
-      )
     }
   }
 }
