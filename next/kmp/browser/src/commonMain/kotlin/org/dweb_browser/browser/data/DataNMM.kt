@@ -22,7 +22,7 @@ class DataNMM : NativeMicroModule("data.browser.dweb", DataI18n.short_name.text)
     )
     icons = listOf(
       ImageResource(
-        src = "file:///sys/browser-icons/store.browser.dweb.svg",
+        src = "file:///sys/browser-icons/data.browser.dweb.svg",
         type = "image/svg+xml",
         // purpose = "monochrome"
       )

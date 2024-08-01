@@ -73,8 +73,8 @@ enum class ENV_SWITCH_KEY(
         Language.EN to "DesktopView Engine 2.0",
       ),
       description = SimpleI18nResource(
-        Language.ZH to "使用新版桌面，获得更顺畅环保的体验。注意，新版还在持续开发中，效果与体验还未完工，非开发者不建议开启。",
-        Language.EN to "Experience smoother and more eco-friendly operations with the new desktop version. Please note that the new version is still under development, and its performance and user experience are not yet finalized. It is not recommended for non-developers to enable it.",
+        Language.ZH to "使用新版桌面，获得更快的启动速度和更好的性能，欢迎使用体验。",
+        Language.EN to "Using the new version desktop, you'll enjoy faster startup times and better performance. Welcome to try it out.",
       ),
       brand = "dweb-desktop",
       disableVersion = "1",
