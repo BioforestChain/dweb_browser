@@ -7,8 +7,10 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.awt.ComposeWindow
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.launch
+import org.dweb_browser.browser.desk.TaskbarControllerBase
 import org.dweb_browser.browser.desk.TaskbarV1Controller
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.asDesktop
@@ -20,7 +22,7 @@ actual suspend fun ITaskbarV1View.Companion.create(
 ): ITaskbarV1View = TaskbarV1View(controller, webview)
 
 class TaskbarV1View(
-  private val taskbarController: TaskbarV1Controller, override val taskbarDWebView: IDWebView,
+  internal val taskbarController: TaskbarV1Controller, override val taskbarDWebView: IDWebView,
 ) : ITaskbarV1View(taskbarController) {
   class NativeTaskbarV1Content(val webview: IDWebView) :
     NativeFloatBarContent(webview.asDesktop().viewEngine.wrapperView) {
@@ -36,10 +38,7 @@ class TaskbarV1View(
 
   @Composable
   override fun Render() {
-    // TODO 将拖动反应到窗口位置上
-    val parentWindow by taskbarController.desktopController.viewController.asDesktop()
-      .composeWindowAsState()
-    val dialog = remember(parentWindow) {
+    CommonTaskbarRender(taskbarController, state) { parentWindow ->
       NativeMagnetFloatBar(
         state = taskbarController.state,
         runtime = taskbarController.deskNMM,
@@ -47,28 +46,40 @@ class TaskbarV1View(
         parentWindow = parentWindow,
       )
     }
-
-    SideEffect {
-      dialog.isVisible = true
-    }
-
-    DisposableEffect(Unit) {
-      onDispose {
-        dialog.dispose()
-      }
-    }
-
-    val layoutWidth by state.layoutWidthFlow.collectAsState()
-    val layoutHeight by state.layoutHeightFlow.collectAsState()
-    val dragging by state.draggingFlow.collectAsState()
-    LaunchedEffect(layoutWidth, layoutHeight) {
-      dialog.let {
-        it.setSize(layoutWidth.toInt(), layoutHeight.toInt())
-        if (!it.dragging) {
-          it.playMagnetEffect()
-        }
-      }
-    }
-    dialog.dragging = dragging
   }
+}
+
+@Composable
+internal fun CommonTaskbarRender(
+  taskbarController: TaskbarControllerBase,
+  state: FloatBarState,
+  nativeFloatBarFactory: (ComposeWindow) -> NativeMagnetFloatBar,
+) {
+  // TODO 将拖动反应到窗口位置上
+  val parentWindow by taskbarController.desktopController.viewController.asDesktop()
+    .composeWindowAsState()
+  val nativeFloatBar = remember(parentWindow) {
+    nativeFloatBarFactory(parentWindow)
+  }
+
+  SideEffect {
+    nativeFloatBar.isVisible = true
+  }
+
+  DisposableEffect(Unit) {
+    onDispose {
+      nativeFloatBar.dispose()
+    }
+  }
+
+  val layoutWidth by state.layoutWidthFlow.collectAsState()
+  val layoutHeight by state.layoutHeightFlow.collectAsState()
+  val dragging by state.draggingFlow.collectAsState()
+  LaunchedEffect(layoutWidth, layoutHeight) {
+    nativeFloatBar.setSize(layoutWidth.toInt(), layoutHeight.toInt())
+    if (!nativeFloatBar.dragging) {
+      nativeFloatBar.playMagnetEffect()
+    }
+  }
+  nativeFloatBar.dragging = dragging
 }
