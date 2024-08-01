@@ -21,6 +21,7 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,13 +33,21 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.data.DataController
+import org.dweb_browser.browser.data.DataI18n
 import org.dweb_browser.core.help.types.IMicroModuleManifest
+import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.file.ext.blobFetchHook
+import org.dweb_browser.dwebview.ProfileName
 import org.dweb_browser.helper.compose.ListDetailPaneScaffold
 import org.dweb_browser.helper.compose.rememberListDetailPaneScaffoldNavigator
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
@@ -50,19 +59,30 @@ import org.dweb_browser.sys.window.core.withRenderScope
 import org.dweb_browser.sys.window.render.AppIcon
 import org.dweb_browser.sys.window.render.LocalWindowController
 
-class ProfileDetail(val profileName: String, val mm: MicroModule) : IMicroModuleManifest by mm {
-
+sealed interface ProfileInfo {
+  val profileName: ProfileName
+  val mmid: MMID
 }
 
+class ProfileDetail(override val profileName: ProfileName, val mm: MicroModule) : ProfileInfo,
+  IMicroModuleManifest by mm
+
+class ProfileBase(override val profileName: ProfileName, override val mmid: MMID) : ProfileInfo
+
 @Composable
-private fun DataController.loadProfileDetails(onLoaded: suspend () -> Unit) =
-  produceState(emptyList()) {
-    value = dWebProfileStore.getAllProfileNames().mapNotNull { profileName ->
-      storeNMM.bootstrapContext.dns.queryAll(profileName).firstOrNull { it.mmid == profileName }
-        ?.let { mm -> ProfileDetail(profileName, mm) }
+private fun DataController.loadProfileInfos(onLoaded: suspend () -> Unit) = produceState(listOf()) {
+  value = dWebProfileStore.getAllProfileNames().mapNotNull { profileName ->
+    profileName.mmid?.let { mmid ->
+      storeNMM.bootstrapContext.dns.queryAll(mmid).firstOrNull { it.mmid == mmid }.let { mm ->
+          when (mm) {
+            null -> ProfileBase(profileName, mmid)
+            else -> ProfileDetail(profileName, mm)
+          }
+        }
     }
-    onLoaded()
   }
+  onLoaded()
+}
 
 @Composable
 fun DataController.Render(modifier: Modifier, windowRenderScope: WindowContentRenderScope) {
@@ -92,39 +112,60 @@ fun DataController.Render(modifier: Modifier, windowRenderScope: WindowContentRe
           IconButton({ refreshCount += 1 }) {
             Icon(Icons.Default.Refresh, contentDescription = "refresh list")
           }
-        }
-      ) { paddingValues ->
+        }) { paddingValues ->
         var isLoading by remember { mutableStateOf(true) }
-        val profileDetails by key(refreshCount) {
-          loadProfileDetails {
-            isLoading = false
-          }
-        }
+        val profileInfos by key(refreshCount) { loadProfileInfos { isLoading = false } }
         when {
           isLoading -> Box(
-            Modifier.fillMaxSize().padding(paddingValues),
-            contentAlignment = Alignment.Center
+            Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center
           ) {
             Text("数据加载中……")
           }
 
           else -> LazyColumn(Modifier.fillMaxSize().padding(paddingValues)) {
-            items(profileDetails) { item ->
-              ListItem(
-                leadingContent = {
-                  // TODO MicroModule Icon
-                  when (val applicantIcon = remember {
-                    item.icons.toStrict().pickLargest()
-                  }) {
-                    null -> Icon(Icons.TwoTone.Image, contentDescription = "", Modifier.size(32.dp))
-                    else -> Box(Modifier.size(32.dp)) {
-                      AppIcon(applicantIcon, iconFetchHook = storeNMM.blobFetchHook)
+            items(profileInfos) { profileInfo ->
+              val mmidText: @Composable () -> AnnotatedString = {
+                profileInfo.profileName.profile?.let { alias ->
+                  buildAnnotatedString {
+                    append(profileInfo.mmid)
+                    withStyle(LocalTextStyle.current.toSpanStyle()
+                      .run { copy(fontSize = fontSize * 0.8f, fontStyle = FontStyle.Italic) }) {
+                      append(" ($alias)")
                     }
                   }
-                },
-                headlineContent = { Text(item.short_name) },
-                supportingContent = { Text(item.profileName) },
-                modifier = Modifier.clickable { currentDetailItem = item })
+                } ?: AnnotatedString(profileInfo.mmid)
+              }
+              when (profileInfo) {
+                is ProfileBase -> ListItem(
+                  modifier = Modifier.alpha(0.8f),
+                  headlineContent = { Text(mmidText()) },
+                  supportingContent = {
+                    Text(
+                      DataI18n.uninstalled(), fontStyle = FontStyle.Italic
+                    )
+                  },
+                )
+
+                is ProfileDetail -> ListItem(
+                  leadingContent = {
+                    // TODO MicroModule Icon
+                    when (val applicantIcon = remember {
+                      profileInfo.icons.toStrict().pickLargest()
+                    }) {
+                      null -> Icon(
+                        Icons.TwoTone.Image, contentDescription = "", Modifier.size(32.dp)
+                      )
+
+                      else -> Box(Modifier.size(32.dp)) {
+                        AppIcon(applicantIcon, iconFetchHook = storeNMM.blobFetchHook)
+                      }
+                    }
+                  },
+                  headlineContent = { Text(profileInfo.short_name) },
+                  supportingContent = { Text(mmidText()) },
+                  modifier = Modifier.clickable { currentDetailItem = profileInfo },
+                )
+              }
             }
           }
         }
@@ -138,104 +179,100 @@ fun DataController.Render(modifier: Modifier, windowRenderScope: WindowContentRe
           }
         }
 
-        else ->
-          WindowContentRenderScope.Unspecified.WindowContentScaffoldWithTitleText(
-            Modifier.fillMaxSize(),
-            topBarTitleText = "数据项详情:${profileDetail.short_name}"
-          ) { paddingValues ->
-            var deleteJob by remember { mutableStateOf<Job?>(null) }
-            val deleteProfile: suspend (ProfileDetail) -> Unit = remember {
-              { detail ->
-                dWebProfileStore.deleteProfile(detail.mmid)
-                refreshCount += 1
-                if (currentDetailItem == detail) {
-                  navigator.backToList()
-                }
-              }
-            }
-            Column(Modifier.padding(paddingValues).fillMaxSize()) {
-              key(profileDetail) {
-                var showForceDeleteProfileDialog by remember { mutableStateOf(false) }
-                FilledTonalButton(
-                  {
-                    storeNMM.scopeLaunch(cancelable = false) {
-                      if (storeNMM.bootstrapContext.dns.isRunning(profileDetail.mmid)) {
-                        showForceDeleteProfileDialog = true
-                      } else {
-                        deleteJob = launch {
-                          deleteProfile(profileDetail)
-                        }
-                      }
-                    }
-                  },
-                  enabled = deleteJob == null,
-                  colors = ButtonDefaults.filledTonalButtonColors(contentColor = MaterialTheme.colorScheme.error),
-                ) {
-                  Row(verticalAlignment = Alignment.CenterVertically) {
-                    when (deleteJob) {
-                      null -> Icon(
-                        Icons.TwoTone.DeleteForever,
-                        contentDescription = "kill and delete profile"
-                      )
-
-                      else -> CircularProgressIndicator(
-                        modifier = Modifier.size(24.dp),
-                        color = MaterialTheme.colorScheme.secondary,
-                        trackColor = MaterialTheme.colorScheme.surfaceVariant,
-                      )
-                    }
-                    Text("清除数据")
-                  }
-                }
-
-                if (showForceDeleteProfileDialog) {
-                  AlertDialog(
-                    { showForceDeleteProfileDialog = false },
-                    title = { Text("程序正在运行") },
-                    text = { Text("${profileDetail.short_name} 正在运行，如果要清除它的数据，需要先将它关停。") },
-                    confirmButton = {
-                      FilledTonalButton(
-                        {
-                          deleteJob = storeNMM.scopeLaunch(cancelable = true) {
-                            storeNMM.bootstrapContext.dns.close(profileDetail.mmid)
-                            deleteProfile(profileDetail)
-                            showForceDeleteProfileDialog = false
-                          }
-                        },
-                        enabled = deleteJob == null,
-                        colors = ButtonDefaults.filledTonalButtonColors(contentColor = MaterialTheme.colorScheme.error),
-                      ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                          when (deleteJob) {
-                            null -> Icon(
-                              Icons.TwoTone.DeleteForever,
-                              contentDescription = "kill and delete profile"
-                            )
-
-                            else -> CircularProgressIndicator(
-                              modifier = Modifier.size(24.dp),
-                              color = MaterialTheme.colorScheme.secondary,
-                              trackColor = MaterialTheme.colorScheme.surfaceVariant,
-                            )
-                          }
-                          Text("关停并清除")
-                        }
-
-                      }
-                    },
-                    dismissButton = {
-                      Button({
-                        deleteJob?.cancel()
-                        deleteJob = null
-                        showForceDeleteProfileDialog = false
-                      }) {
-                        Text("取消")
-                      }
-                    })
-                }
+        else -> WindowContentRenderScope.Unspecified.WindowContentScaffoldWithTitleText(
+          Modifier.fillMaxSize(), topBarTitleText = "数据项详情:${profileDetail.short_name}"
+        ) { paddingValues ->
+          var deleteJob by remember { mutableStateOf<Job?>(null) }
+          val deleteProfile: suspend (ProfileDetail) -> Unit = remember {
+            { detail ->
+              dWebProfileStore.deleteProfile(detail.profileName)
+              refreshCount += 1
+              if (currentDetailItem == detail) {
+                navigator.backToList()
               }
             }
           }
+          Column(Modifier.padding(paddingValues).fillMaxSize()) {
+            key(profileDetail) {
+              var showForceDeleteProfileDialog by remember { mutableStateOf(false) }
+              FilledTonalButton(
+                {
+                  storeNMM.scopeLaunch(cancelable = false) {
+                    if (storeNMM.bootstrapContext.dns.isRunning(profileDetail.mmid)) {
+                      showForceDeleteProfileDialog = true
+                    } else {
+                      deleteJob = launch {
+                        deleteProfile(profileDetail)
+                      }
+                    }
+                  }
+                },
+                enabled = deleteJob == null,
+                colors = ButtonDefaults.filledTonalButtonColors(contentColor = MaterialTheme.colorScheme.error),
+              ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                  when (deleteJob) {
+                    null -> Icon(
+                      Icons.TwoTone.DeleteForever, contentDescription = "kill and delete profile"
+                    )
+
+                    else -> CircularProgressIndicator(
+                      modifier = Modifier.size(24.dp),
+                      color = MaterialTheme.colorScheme.secondary,
+                      trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                    )
+                  }
+                  Text("清除数据")
+                }
+              }
+
+              if (showForceDeleteProfileDialog) {
+                AlertDialog({ showForceDeleteProfileDialog = false },
+                  title = { Text("程序正在运行") },
+                  text = { Text("${profileDetail.short_name} 正在运行，如果要清除它的数据，需要先将它关停。") },
+                  confirmButton = {
+                    FilledTonalButton(
+                      {
+                        deleteJob = storeNMM.scopeLaunch(cancelable = true) {
+                          storeNMM.bootstrapContext.dns.close(profileDetail.mmid)
+                          deleteProfile(profileDetail)
+                          showForceDeleteProfileDialog = false
+                        }
+                      },
+                      enabled = deleteJob == null,
+                      colors = ButtonDefaults.filledTonalButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                    ) {
+                      Row(verticalAlignment = Alignment.CenterVertically) {
+                        when (deleteJob) {
+                          null -> Icon(
+                            Icons.TwoTone.DeleteForever,
+                            contentDescription = "kill and delete profile"
+                          )
+
+                          else -> CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = MaterialTheme.colorScheme.secondary,
+                            trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                          )
+                        }
+                        Text("关停并清除")
+                      }
+
+                    }
+                  },
+                  dismissButton = {
+                    Button({
+                      deleteJob?.cancel()
+                      deleteJob = null
+                      showForceDeleteProfileDialog = false
+                    }) {
+                      Text("取消")
+                    }
+                  })
+              }
+            }
+          }
+        }
       }
     },
   )

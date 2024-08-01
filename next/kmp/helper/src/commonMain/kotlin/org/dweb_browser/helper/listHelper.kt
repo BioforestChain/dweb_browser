@@ -31,9 +31,9 @@ fun <E> List<E>.someOrNull(function: (it: E) -> Boolean): Boolean? {
 fun <E> List<E>.some(function: (it: E) -> Boolean) = this.someOrNull(function) ?: false
 
 fun <E> List<E>.safeSubList(fromIndex: Int, toIndex: Int): List<E> {
-  val validFromIndex = fromIndex.coerceIn(0, this.size)
+  val validFromIndex = fromIndex.coerceIn(0, this.size - 1)
   val validToIndex = toIndex.coerceIn(0, this.size)
-  return if (validFromIndex <= validToIndex) {
+  return if (validFromIndex < validToIndex) {
     this.subList(validFromIndex, validToIndex)
   } else {
     emptyList()

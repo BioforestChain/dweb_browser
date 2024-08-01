@@ -26,12 +26,14 @@ import org.dweb_browser.core.ipc.helper.IWebMessageChannel
 import org.dweb_browser.core.ipc.helper.IWebMessagePort
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.module.NativeMicroModule
-import org.dweb_browser.helper.PureBounds
 import org.dweb_browser.helper.Debugger
+import org.dweb_browser.helper.PureBounds
 import org.dweb_browser.helper.RememberLazy
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.collectIn
+import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
+import org.dweb_browser.helper.compose.envSwitch
 import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.trueAlso
@@ -119,6 +121,7 @@ abstract class IDWebView(initUrl: String?) {
     }
 
     val isSupportProfile = supportProfile()
+    val isEnableProfile get() = envSwitch.isEnabled(ENV_SWITCH_KEY.DWEBVIEW_PROFILE)
   }
 
   /**

@@ -20,6 +20,7 @@ import org.dweb_browser.core.http.dwebHttpGatewayServer
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.IDWebView
+import org.dweb_browser.dwebview.ProfileNameV1
 import org.dweb_browser.dwebview.WKWebViewProfile
 import org.dweb_browser.dwebview.WebBeforeUnloadArgs
 import org.dweb_browser.dwebview.WebDownloadArgs
@@ -34,13 +35,12 @@ import org.dweb_browser.dwebview.polyfill.FaviconPolyfill
 import org.dweb_browser.dwebview.proxy.DwebViewProxy
 import org.dweb_browser.dwebview.toReadyListener
 import org.dweb_browser.dwebview.wkWebsiteDataStore
-import org.dweb_browser.helper.PureBounds
 import org.dweb_browser.helper.JsonLoose
+import org.dweb_browser.helper.PureBounds
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.toIosUIEdgeInsets
-import org.dweb_browser.helper.utf8ToBase64UrlString
 import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.platform.ios.DwebHelper
 import org.dweb_browser.platform.ios.DwebWKWebView
@@ -76,7 +76,10 @@ class DWebViewEngine(
   internal val options: DWebViewOptions,
   configuration: WKWebViewConfiguration,
 
-  private val profile: WKWebViewProfile = "${remoteMM.mmid}/${options.profile.utf8ToBase64UrlString}".let { profileName ->
+  private val profile: WKWebViewProfile = ProfileNameV1(
+    remoteMM.mmid,
+    options.profile
+  ).let { profileName ->
     when (val sessionId = options.incognitoSessionId) {
       // 开启WKWebView数据隔离
       null -> wkWebsiteDataStore.getOrCreateProfile(profileName)

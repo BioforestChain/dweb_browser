@@ -6,11 +6,8 @@ import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.usePinned
 import kotlinx.coroutines.CompletableDeferred
 import org.dweb_browser.helper.SafeHashMap
-import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
-import org.dweb_browser.helper.compose.envSwitch
 import org.dweb_browser.helper.platform.keyValueStore
 import org.dweb_browser.helper.trueAlso
-import org.dweb_browser.helper.utf8ToBase64UrlString
 import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.pure.crypto.hash.ccSha256
 import platform.Foundation.NSDate
@@ -32,16 +29,16 @@ class WKWebViewProfileStore private constructor() : DWebProfileStore {
   /**
    * 注意，该函数必须在主线程中使用
    */
-  fun getOrCreateProfile(profileName: String) = when {
-    envSwitch.isEnabled(ENV_SWITCH_KEY.DWEBVIEW_PROFILE) ->
-      WKWebViewProfile(
-        profileName, WKWebsiteDataStore.dataStoreForIdentifier(nameToIdentifier(profileName))
-      ).also {
-        allProfiles[profileName] = it
+  fun getOrCreateProfile(profileName: ProfileName) = when {
+    IDWebView.isEnableProfile ->
+      WKWebViewProfile(profileName).also {
+        allProfiles[profileName.key] = it
         keyValueStore.setValues(DwebProfilesKey, allProfiles.keys)
       }
 
-    else -> WKWebViewProfile("*", WKWebsiteDataStore.defaultDataStore())
+    else -> ProfileNameV0().let { profileNameV0 ->
+      WKWebViewProfile(profileNameV0)
+    }
   }
 
   private val allIncognitoProfile = SafeHashMap<String, WKWebViewProfile>()
@@ -50,42 +47,38 @@ class WKWebViewProfileStore private constructor() : DWebProfileStore {
    * 注意，该函数必须在主线程中使用
    */
   fun getOrCreateIncognitoProfile(
-    profileName: String,
+    profileName: ProfileName,
     sessionId: String,
   ): WKWebViewProfile {
-    val incognitoProfileName = "$profileName@${sessionId.utf8ToBase64UrlString}$IncognitoSuffix"
-    return allIncognitoProfile.getOrPut(incognitoProfileName) {
-      WKWebViewProfile(
-        incognitoProfileName, WKWebsiteDataStore.nonPersistentDataStore()
-      )
+    val incognitoProfileName = ProfileIncognitoNameV1.from(profileName, sessionId)
+    return allIncognitoProfile.getOrPut(incognitoProfileName.key) {
+      WKWebViewProfile(incognitoProfileName)
     }
   }
 
   private val allProfiles by lazy {
     SafeHashMap(
       (keyValueStore.getValues(DwebProfilesKey)
-        ?: setOf()).associateWith { null as WKWebViewProfile? }.toMutableMap()
+        ?: setOf()).associateWith { WKWebViewProfile(ProfileName.parse(it)) }.toMutableMap()
     )
   }
 
-  override suspend fun getAllProfileNames() = allProfiles.keys.toList()
+  override suspend fun getAllProfileNames() = allProfiles.values.map { it.profileName }.toList()
 
-  override suspend fun deleteProfile(name: String): Boolean = when {
-    allIncognitoProfile.containsKey(name) -> {
+  override suspend fun deleteProfile(name: ProfileName): Boolean = when {
+    allIncognitoProfile.containsKey(name.key) -> {
       runCatching {
-        removeProfile(allIncognitoProfile[name]!!.store).trueAlso {
-          allIncognitoProfile.remove(name)
+        removeProfile(allIncognitoProfile[name.key]!!.store).trueAlso {
+          allIncognitoProfile.remove(name.key)
         }
       }.getOrDefault(false)
     }
 
-    allProfiles.containsKey(name) -> {
+    allProfiles.containsKey(name.key) -> {
       runCatching {
-        val store = allProfiles[name]?.store ?: withMainContext {
-          WKWebsiteDataStore.dataStoreForIdentifier(nameToIdentifier(name))
-        }
+        val store = allProfiles[name.key]!!.store
         removeProfile(store).trueAlso {
-          allProfiles.remove(name)
+          allProfiles.remove(name.key)
           keyValueStore.setValues(DwebProfilesKey, allProfiles.keys)
         }
       }.getOrDefault(false)

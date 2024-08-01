@@ -14,15 +14,16 @@ class ChromiumWebProfileStore private constructor() : DWebProfileStore {
           continue
         }
         val profileName = profile.name()
-        result[profileName] = ChromiumWebProfile(profile, profileName)
+        result[profileName] = ChromiumWebProfile(profile, ProfileName.parse(profileName))
       }
     }
   }
 
-  override suspend fun getAllProfileNames() = getAllProfiles().keys.toList()
+  override suspend fun getAllProfileNames() =
+    getAllProfiles().values.map { it.profileName }.toList()
 
-  override suspend fun deleteProfile(name: String): Boolean {
-    return getAllProfiles()[name]?.let { item ->
+  override suspend fun deleteProfile(name: ProfileName): Boolean {
+    return getAllProfiles()[name.key]?.let { item ->
       item.engine.profiles().delete(item.profile)
       true
     } ?: false

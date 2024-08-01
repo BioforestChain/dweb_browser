@@ -31,20 +31,20 @@ import org.dweb_browser.dwebview.DWebViewOptions.DisplayCutoutStrategy.Default
 import org.dweb_browser.dwebview.DWebViewOptions.DisplayCutoutStrategy.Ignore
 import org.dweb_browser.dwebview.DestroyStateSignal
 import org.dweb_browser.dwebview.IDWebView
+import org.dweb_browser.dwebview.ProfileNameV1
 import org.dweb_browser.dwebview.androidWebProfileStore
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
 import org.dweb_browser.dwebview.debugDWebView
 import org.dweb_browser.dwebview.polyfill.DwebViewAndroidPolyfill
 import org.dweb_browser.dwebview.polyfill.FaviconPolyfill
 import org.dweb_browser.dwebview.polyfill.setupKeyboardPolyfill
-import org.dweb_browser.helper.PureBounds
 import org.dweb_browser.helper.JsonLoose
+import org.dweb_browser.helper.PureBounds
 import org.dweb_browser.helper.Remover
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.getOrPut
 import org.dweb_browser.helper.toAndroidRect
-import org.dweb_browser.helper.utf8ToBase64UrlString
 import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.sys.device.DeviceManage
 
@@ -292,7 +292,7 @@ class DWebViewEngine internal constructor(
     settings.mediaPlaybackRequiresUserGesture = false
     setLayerType(LAYER_TYPE_HARDWARE, null) // 增加硬件加速，避免滑动时画面出现撕裂
 
-    val profileName = "${remoteMM.mmid}/${options.profile.utf8ToBase64UrlString}"
+    val profileName = ProfileNameV1(remoteMM.mmid, options.profile)
     /// 在settings 之后进行 profile 的设置
     profile = when (val sessionId = options.incognitoSessionId) {
       null -> androidWebProfileStore.getOrCreateProfile(

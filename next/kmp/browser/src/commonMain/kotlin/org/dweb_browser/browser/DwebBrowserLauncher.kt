@@ -19,6 +19,7 @@ import org.dweb_browser.core.std.file.FileNMM
 import org.dweb_browser.core.std.http.HttpNMM
 import org.dweb_browser.core.std.http.MultipartNMM
 import org.dweb_browser.core.std.permission.debugPermission
+import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.addDebugTags
 import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
@@ -151,7 +152,7 @@ class DwebBrowserLauncher(
     /// 安装存储管理
     val storeNMMSetup = SuspendOnce { DataNMM().setup() }
     envSwitch.watch(ENV_SWITCH_KEY.DWEBVIEW_PROFILE) {
-      if (envSwitch.isEnabled(ENV_SWITCH_KEY.DWEBVIEW_PROFILE)) {
+      if (IDWebView.isEnableProfile) {
         storeNMMSetup()
       }
     }

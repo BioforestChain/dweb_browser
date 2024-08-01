@@ -8,16 +8,15 @@ import android.webkit.WebStorage
 import androidx.webkit.Profile
 import kotlinx.coroutines.Job
 
-internal const val IncognitoSuffix = ".incognito"
 
-class CompactDWebProfile internal constructor(override val profileName: String) : Profile,
+class CompactDWebProfile internal constructor(override val profileName: ProfileName) : Profile,
   DWebProfile {
 
   internal val bindingJobs = mutableListOf<Job>()
-  override val isIncognito get() = profileName.endsWith(IncognitoSuffix)
+  override val isIncognito get() = profileName.isIncognito
 
   override fun getName(): String {
-    return this.profileName
+    return this.profileName.key
   }
 
   override fun getCookieManager(): CookieManager {
