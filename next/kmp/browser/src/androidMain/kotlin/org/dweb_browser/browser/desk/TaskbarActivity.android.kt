@@ -1,6 +1,7 @@
 package org.dweb_browser.browser.desk
 
 import android.annotation.SuppressLint
+import android.graphics.drawable.Drawable
 import android.view.Gravity
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -13,11 +14,26 @@ import org.dweb_browser.helper.android.ActivityBlurHelper
 import org.dweb_browser.helper.compose.NativeBackHandler
 import org.dweb_browser.helper.platform.PureViewController
 import org.dweb_browser.helper.platform.theme.DwebBrowserAppTheme
+import org.xmlpull.v1.XmlPullParserFactory
+import java.io.StringReader
 
 @SuppressLint("ClickableViewAccessibility", "UseCompatLoadingForDrawables")
 class TaskbarActivity : PureViewController() {
 
   private val blurHelper = ActivityBlurHelper(this)
+  fun createDrawableFromXml(xml: String): Drawable? {
+    return try {
+      val parserFactory = XmlPullParserFactory.newInstance()
+      val parser = parserFactory.newPullParser()
+      parser.setInput(StringReader(xml))
+
+      val drawable = Drawable.createFromXml(resources, parser, theme)
+      drawable
+    } catch (e: Exception) {
+      e.printStackTrace()
+      null
+    }
+  }
 
   init {
     onCreate { params ->
@@ -38,7 +54,19 @@ class TaskbarActivity : PureViewController() {
           /// 启用模糊
           blurHelper.config(
             backgroundBlurRadius = (10 * density).toInt(),
-            windowBackgroundDrawable = getDrawable(R.drawable.taskbar_window_background),
+            windowBackgroundDrawable = when {
+              true -> getDrawable(R.drawable.taskbar_window_background)
+              else -> createDrawableFromXml(
+                """
+                <?xml version="1.0" encoding="utf-8"?>
+                <shape xmlns:android="http://schemas.android.com/apk/res/android"
+                  android:shape="rectangle">
+                  <corners android:radius="20dp" />
+                  <solid android:color="#AAAAAA" />
+                </shape>
+                """.trimIndent()
+              )
+            },
             dimAmountNoBlur = 0.3f,
             dimAmountWithBlur = 0.1f,
           )

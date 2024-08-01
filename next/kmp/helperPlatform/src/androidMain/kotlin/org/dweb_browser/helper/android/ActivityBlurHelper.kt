@@ -9,7 +9,7 @@ import androidx.annotation.RequiresApi
 import java.util.function.Consumer
 
 /**
- * 一个将Activity进行模糊的工具
+ * 一个将Activity进行背景模糊的工具
  * 参阅： https://source.android.com/docs/core/display/window-blurs?hl=zh-cn
  */
 class ActivityBlurHelper(val activity: Activity) {
@@ -33,7 +33,7 @@ class ActivityBlurHelper(val activity: Activity) {
 
   // Use a rectangular shape drawable for the window background. The outline of this drawable
   // dictates the shape and rounded corners for the window background blur area.
-  private lateinit var mWindowBackgroundDrawable: Drawable
+  private var mWindowBackgroundDrawable: Drawable? = null
 
   fun config(
     backgroundBlurRadius: Int? = null,
@@ -54,9 +54,7 @@ class ActivityBlurHelper(val activity: Activity) {
       this.mWindowBackgroundDrawable = it
       activity.window.setBackgroundDrawable(mWindowBackgroundDrawable)
     }
-    if (!setup()) {
-      this.updateWindowForBlurs()
-    }
+    this.updateWindowForBlurs()
   }
 
   private var inited = false
@@ -72,6 +70,8 @@ class ActivityBlurHelper(val activity: Activity) {
 
         // Register a listener to adjust window UI whenever window blurs are enabled/disabled
         setupWindowBlurListener()
+        // Enable window blurs
+        updateWindowForBlurs(true)
       } else {
         // Window blurs are not available prior to Android S
         updateWindowForBlurs(false /* blursEnabled */)
@@ -103,9 +103,7 @@ class ActivityBlurHelper(val activity: Activity) {
   @RequiresApi(api = Build.VERSION_CODES.S)
   private fun setupWindowBlurListener() {
     val windowBlurEnabledListener = Consumer<Boolean> { blursEnabled: Boolean ->
-      updateWindowForBlurs(
-        blursEnabled
-      )
+      updateWindowForBlurs(blursEnabled)
     }
     with(activity) {
       window.decorView.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
@@ -128,7 +126,7 @@ class ActivityBlurHelper(val activity: Activity) {
   private fun updateWindowForBlurs(blursEnabled: Boolean = this._blursEnabled) {
     this._blursEnabled = blursEnabled
     with(activity) {
-      mWindowBackgroundDrawable.alpha =
+      mWindowBackgroundDrawable?.alpha =
         if (blursEnabled && mBackgroundBlurRadius > 0) mWindowBackgroundAlphaWithBlur else mWindowBackgroundAlphaNoBlur
 
       window.setDimAmount(if (blursEnabled && mBlurBehindRadius > 0) mDimAmountWithBlur else mDimAmountNoBlur)
