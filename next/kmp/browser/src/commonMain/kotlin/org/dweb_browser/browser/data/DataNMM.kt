@@ -1,6 +1,5 @@
-package org.dweb_browser.browser.store
+package org.dweb_browser.browser.data
 
-import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.module.BootstrapContext
@@ -12,10 +11,10 @@ import org.dweb_browser.sys.window.ext.getMainWindow
 import org.dweb_browser.sys.window.ext.onRenderer
 
 
-class StoreNMM : NativeMicroModule("store.browser.dweb", "Store Manager") {
+class DataNMM : NativeMicroModule("data.browser.dweb", DataI18n.short_name.text) {
 
   init {
-    short_name = BrowserI18nResource.Store.short_name.text
+    short_name = DataI18n.short_name.text
     categories = listOf(
       MICRO_MODULE_CATEGORY.Application,
       MICRO_MODULE_CATEGORY.Service,
@@ -30,8 +29,8 @@ class StoreNMM : NativeMicroModule("store.browser.dweb", "Store Manager") {
     )
   }
 
-  inner class StoreRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
-    private val storeController = StoreController(this)
+  inner class DataRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
+    private val storeController = DataController(this)
 
     override suspend fun _bootstrap() {
       routes(
@@ -55,5 +54,5 @@ class StoreNMM : NativeMicroModule("store.browser.dweb", "Store Manager") {
     }
   }
 
-  override fun createRuntime(bootstrapContext: BootstrapContext) = StoreRuntime(bootstrapContext)
+  override fun createRuntime(bootstrapContext: BootstrapContext) = DataRuntime(bootstrapContext)
 }

@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.store.render
+package org.dweb_browser.browser.data.render
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -17,7 +17,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -36,9 +35,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import org.dweb_browser.browser.store.StoreController
+import org.dweb_browser.browser.data.DataController
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.module.MicroModule
+import org.dweb_browser.core.std.file.ext.blobFetchHook
 import org.dweb_browser.helper.compose.ListDetailPaneScaffold
 import org.dweb_browser.helper.compose.rememberListDetailPaneScaffoldNavigator
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
@@ -49,27 +49,23 @@ import org.dweb_browser.sys.window.core.helper.toStrict
 import org.dweb_browser.sys.window.core.withRenderScope
 import org.dweb_browser.sys.window.render.AppIcon
 import org.dweb_browser.sys.window.render.LocalWindowController
-import org.dweb_browser.core.std.file.ext.blobFetchHook
 
 class ProfileDetail(val profileName: String, val mm: MicroModule) : IMicroModuleManifest by mm {
 
 }
 
 @Composable
-private fun StoreController.loadProfileDetails(key1: Any? = null, onLoaded: suspend () -> Unit) =
-  key(key1) {
-    produceState(emptyList()) {
-      value = dWebProfileStore.getAllProfileNames().mapNotNull { profileName ->
-        storeNMM.bootstrapContext.dns.queryAll(profileName).firstOrNull { it.mmid == profileName }
-          ?.let { mm -> ProfileDetail(profileName, mm) }
-      }
-      onLoaded()
+private fun DataController.loadProfileDetails(onLoaded: suspend () -> Unit) =
+  produceState(emptyList()) {
+    value = dWebProfileStore.getAllProfileNames().mapNotNull { profileName ->
+      storeNMM.bootstrapContext.dns.queryAll(profileName).firstOrNull { it.mmid == profileName }
+        ?.let { mm -> ProfileDetail(profileName, mm) }
     }
+    onLoaded()
   }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StoreController.Render(modifier: Modifier, windowRenderScope: WindowContentRenderScope) {
+fun DataController.Render(modifier: Modifier, windowRenderScope: WindowContentRenderScope) {
   val navigator = rememberListDetailPaneScaffoldNavigator()
   var currentDetailItem by remember { mutableStateOf<ProfileDetail?>(null) }
   remember(currentDetailItem) {
@@ -99,7 +95,11 @@ fun StoreController.Render(modifier: Modifier, windowRenderScope: WindowContentR
         }
       ) { paddingValues ->
         var isLoading by remember { mutableStateOf(true) }
-        val profileDetails by loadProfileDetails(refreshCount) { isLoading = false }
+        val profileDetails by key(refreshCount) {
+          loadProfileDetails {
+            isLoading = false
+          }
+        }
         when {
           isLoading -> Box(
             Modifier.fillMaxSize().padding(paddingValues),

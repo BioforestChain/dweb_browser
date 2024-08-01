@@ -1,6 +1,7 @@
 package org.dweb_browser.browser
 
 import org.dweb_browser.browser.about.AboutNMM
+import org.dweb_browser.browser.data.DataNMM
 import org.dweb_browser.browser.desk.DeskNMM
 import org.dweb_browser.browser.download.DownloadNMM
 import org.dweb_browser.browser.jmm.JmmNMM
@@ -9,7 +10,6 @@ import org.dweb_browser.browser.mwebview.MultiWebViewNMM
 import org.dweb_browser.browser.nativeui.torch.TorchNMM
 import org.dweb_browser.browser.scan.SmartScanNMM
 import org.dweb_browser.browser.search.SearchNMM
-import org.dweb_browser.browser.store.StoreNMM
 import org.dweb_browser.browser.web.BrowserNMM
 import org.dweb_browser.browser.zip.ZipNMM
 import org.dweb_browser.core.module.MicroModule
@@ -149,7 +149,7 @@ class DwebBrowserLauncher(
     val jmmNMM = JmmNMM().setup()
 
     /// 安装存储管理
-    val storeNMMSetup = SuspendOnce { StoreNMM().setup() }
+    val storeNMMSetup = SuspendOnce { DataNMM().setup() }
     envSwitch.watch(ENV_SWITCH_KEY.DWEBVIEW_PROFILE) {
       if (envSwitch.isEnabled(ENV_SWITCH_KEY.DWEBVIEW_PROFILE)) {
         storeNMMSetup()

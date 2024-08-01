@@ -1,11 +1,11 @@
-package org.dweb_browser.browser.store
+package org.dweb_browser.browser.data
 
-import org.dweb_browser.browser.store.render.Render
+import org.dweb_browser.browser.data.render.Render
 import org.dweb_browser.dwebview.getDwebProfileStoreInstance
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.windowAdapterManager
 
-class StoreController(val storeNMM: StoreNMM.StoreRuntime) {
+class DataController(val storeNMM: DataNMM.DataRuntime) {
   val dWebProfileStore = getDwebProfileStoreInstance()
 
   fun openRender(win: WindowController) {

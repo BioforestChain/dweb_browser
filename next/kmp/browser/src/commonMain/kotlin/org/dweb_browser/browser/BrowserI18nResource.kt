@@ -151,11 +151,6 @@ object BrowserI18nResource {
       SimpleI18nResource(Language.ZH to "程序运行时", Language.EN to "App Runtime")
   }
 
-  object Store {
-    val short_name = SimpleI18nResource(Language.ZH to "数据管理", Language.EN to "Data Manager")
-
-  }
-
   object JsMM {
     class CanNotSupportTargetParams(
       var appName: String = "",
