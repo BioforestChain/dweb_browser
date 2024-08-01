@@ -13,7 +13,7 @@ import org.dweb_browser.sys.window.render.LocalWindowsImeVisible
 @OptIn(ExperimentalForeignApi::class)
 class DesktopUIViewController(val vc: PureViewController) {
   init {
-    DesktopViewControllerCore(vc)
+    DeskViewController(vc)
 
     vc.addContent {
       /// 对 imeVisible 的绑定支持

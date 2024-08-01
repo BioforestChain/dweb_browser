@@ -32,16 +32,13 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastRoundToInt
 import kotlinx.coroutines.launch
-import org.dweb_browser.browser.desk.DesktopController
-import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.browser.desk.DesktopV2Controller
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 
 @Composable
-fun NewDesktopView(
-  desktopController: DesktopController,
-  microModule: NativeMicroModule.NativeRuntime,
-  modifier: Modifier = Modifier,
-) {
+fun DesktopV2Controller.RenderImpl() {
+  val desktopController = this
+  val microModule = deskNMM
   val appMenuPanel = rememberAppMenuPanel(desktopController, microModule)
   val scope = rememberCoroutineScope()
 
@@ -49,7 +46,7 @@ fun NewDesktopView(
 
   val searchBar = rememberDesktopSearchBar()
   val desktopWallpaper = rememberDesktopWallpaper()
-  Box(modifier) {
+  Box(Modifier.fillMaxSize()) {
     BoxWithConstraints(
       modifier = Modifier.fillMaxSize().then(
         when {
@@ -141,6 +138,6 @@ fun NewDesktopView(
       }
     }
 
-    appMenuPanel.Render(Modifier.matchParentSize())
+    appMenuPanel.Render(Modifier.fillMaxSize())
   }
 }

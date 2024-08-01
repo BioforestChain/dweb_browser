@@ -1,25 +1,15 @@
 package org.dweb_browser.browser.desk
 
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.PointerMatcher
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.onClick
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.PointerButton
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.unit.dp
 import org.dweb_browser.helper.platform.PureViewController
 import org.dweb_browser.helper.platform.PureViewCreateParams
 import org.dweb_browser.helper.platform.asDesktop
 
 private val DeskNMM.DeskRuntime.vcCore by lazy {
   val pvc = PureViewController()
-  DesktopViewControllerCore(pvc)
+  DeskViewController(pvc)
 }
 
-actual suspend fun DeskNMM.DeskRuntime.startDesktopView(deskSessionId: String) {
+actual suspend fun DeskNMM.DeskRuntime.startDeskView(deskSessionId: String) {
   vcCore.viewController.asDesktop().apply {
     createParams = PureViewCreateParams(mapOf("deskSessionId" to deskSessionId))
     composeWindowParams.title = ""

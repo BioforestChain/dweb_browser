@@ -1,8 +1,9 @@
-package org.dweb_browser.browser.desk
+package org.dweb_browser.browser.desk.render
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -14,10 +15,10 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.ObjCAction
 import kotlinx.cinterop.useContents
 import kotlinx.coroutines.launch
+import org.dweb_browser.browser.desk.TaskbarV1Controller
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.Render
 import org.dweb_browser.dwebview.asIosWebView
-import org.dweb_browser.dwebview.create
 import org.dweb_browser.helper.launchWithMain
 import org.dweb_browser.helper.platform.LocalUIKitBackgroundView
 import org.dweb_browser.helper.platform.NativeViewController.Companion.nativeViewController
@@ -40,39 +41,43 @@ import platform.UIKit.UIPanGestureRecognizer
 import platform.UIKit.UITapGestureRecognizer
 import platform.UIKit.UIView
 import platform.UIKit.UIVisualEffectView
-import platform.WebKit.WKWebViewConfiguration
 import platform.darwin.NSObject
 
-actual suspend fun ITaskbarView.Companion.create(taskbarController: TaskbarController): ITaskbarView =
-  TaskbarView.from(taskbarController)
+actual suspend fun ITaskbarV1View.Companion.create(
+  controller: TaskbarV1Controller,
+  webview: IDWebView,
+): ITaskbarV1View = TaskbarV1View(controller, webview)
 
-class TaskbarView private constructor(
-  private val taskbarController: TaskbarController, override val taskbarDWebView: IDWebView,
-) : ITaskbarView(taskbarController) {
-  companion object {
-    @OptIn(ExperimentalForeignApi::class)
-    suspend fun from(taskbarController: TaskbarController) = withMainContext {
-      val webView = IDWebView.create(
-        CGRectMake(0.0, 0.0, 100.0, 100.0),
-        taskbarController.deskNMM,
-        taskbarController.getTaskbarDWebViewOptions(),
-        WKWebViewConfiguration()
-      )
-      TaskbarView(taskbarController, webView)
-    }
-  }
-
+class TaskbarV1View(
+  private val taskbarController: TaskbarV1Controller, override val taskbarDWebView: IDWebView,
+) : ITaskbarV1View(taskbarController) {
   private val pvc = PureViewController().also { pvc ->
     pvc.addContent {
-      NormalFloatWindow()
+      FloatBarShell(state) { modifier ->
+        RenderImpl(draggableDelegate, modifier)
+      }
     }
   }
-  private val scope = taskbarController.deskNMM.getRuntimeScope()
+  private val lifecycleScope = taskbarController.deskNMM.getRuntimeScope()
+
+  @Composable
+  override fun Render() {
+    DisposableEffect(Unit) {
+      lifecycleScope.launch {
+        nativeViewController.addOrUpdate(pvc, zIndex = Int.MAX_VALUE - 1, visible = true)
+      }
+      onDispose {
+        lifecycleScope.launch {
+          nativeViewController.addOrUpdate(pvc, visible = false)
+        }
+      }
+    }
+  }
 
   @OptIn(ExperimentalForeignApi::class)
   @Composable
-  override fun TaskbarViewRender(draggableHelper: DraggableHelper, modifier: Modifier) {  //创建毛玻璃效果层
-    val isActivityMode by state.composableHelper.stateOf(getter = { floatActivityState })
+  private fun RenderImpl(draggableHelper: DraggableDelegate, modifier: Modifier) {  //创建毛玻璃效果层
+    val isActivityMode by state.floatActivityStateFlow.collectAsState()
     val density = LocalDensity.current.density
 
     val wkWebView = taskbarDWebView.asIosWebView()
@@ -137,7 +142,7 @@ class TaskbarView private constructor(
     val backgroundView = LocalUIKitBackgroundView.current
 
     LaunchedEffect(wkWebView) {
-      scope.launchWithMain {}
+      lifecycleScope.launchWithMain {}
     }
     if (backgroundView != null && isActivityMode) {
       BackgroundViewRender(backgroundView, bgViewSwitcher)
@@ -149,12 +154,11 @@ class TaskbarView private constructor(
    */
   @OptIn(ExperimentalForeignApi::class)
   @Composable
-  fun BackgroundViewRender(backgroundView: UIView, onToggleBgView: (Boolean) -> Unit) {
+  private fun BackgroundViewRender(backgroundView: UIView, onToggleBgView: (Boolean) -> Unit) {
     val bgTapGesture = remember {
       UIBackgroundViewTapGesture {
-        scope.launch {
-          taskbarController.toggleFloatWindow(openTaskbar = false)
-        }
+        @Suppress("DeferredResultUnused")
+        taskbarController.toggleFloatWindow(openTaskbar = false)
       }
     }
     val onTap = remember {
@@ -162,7 +166,7 @@ class TaskbarView private constructor(
     }
     /// 背景遮罩的显示与隐藏
     DisposableEffect(Unit) {
-      val job = scope.launchWithMain {
+      val job = lifecycleScope.launchWithMain {
         onToggleBgView(true)
         backgroundView.setHidden(false)
         backgroundView.userInteractionEnabled = true
@@ -172,7 +176,7 @@ class TaskbarView private constructor(
       }
       onDispose {
         job.cancel()
-        scope.launchWithMain {
+        lifecycleScope.launchWithMain {
           backgroundView.removeGestureRecognizer(onTap)
           backgroundView.backgroundColor = UIColor.clearColor
           backgroundView.userInteractionEnabled = false
@@ -183,19 +187,6 @@ class TaskbarView private constructor(
     }
   }
 
-  @Composable
-  override fun FloatWindow() {
-    DisposableEffect(Unit) {
-      scope.launch {
-        nativeViewController.addOrUpdate(pvc, zIndex = Int.MAX_VALUE - 1, visible = true)
-      }
-      onDispose {
-        scope.launch {
-          nativeViewController.addOrUpdate(pvc, visible = false)
-        }
-      }
-    }
-  }
 }
 
 class UIBackgroundViewTapGesture(val onTap: () -> Unit) : NSObject() {
@@ -208,7 +199,7 @@ class UIBackgroundViewTapGesture(val onTap: () -> Unit) : NSObject() {
 
 class UIDragGesture(
   private val view: UIView,
-  var draggableHelper: ITaskbarView.DraggableHelper,
+  var draggableHelper: DraggableDelegate,
   var density: Float,
 ) : NSObject() {
   @OptIn(ExperimentalForeignApi::class)

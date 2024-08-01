@@ -56,7 +56,7 @@ internal fun TaskBarAppIcon(
   BoxWithConstraints(contentAlignment = Alignment.Center, modifier = modifier.graphicsLayer {
     scaleX = scaleValue.value
     scaleY = scaleValue.value
-  }.padding(start = paddingValue.dp, top = paddingValue.dp, end = paddingValue.dp)
+  }.padding(start = PADDING_VALUE.dp, top = PADDING_VALUE.dp, end = PADDING_VALUE.dp)
     .aspectRatio(1.0f)
     .pointerInput(app) {
       detectTapGestures(onPress = {

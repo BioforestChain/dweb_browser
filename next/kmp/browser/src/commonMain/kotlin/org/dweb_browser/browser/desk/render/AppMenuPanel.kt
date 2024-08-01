@@ -41,7 +41,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import org.dweb_browser.browser.desk.DesktopController
+import org.dweb_browser.browser.desk.DesktopV2Controller
 import org.dweb_browser.browser.desk.model.AppMenuModel
 import org.dweb_browser.browser.desk.model.AppMenuType
 import org.dweb_browser.browser.desk.model.DesktopAppModel
@@ -62,13 +62,13 @@ import org.dweb_browser.helper.toRect
 
 @Composable
 internal fun rememberAppMenuPanel(
-  desktopController: DesktopController,
+  desktopController: DesktopV2Controller,
   microModule: NativeMicroModule.NativeRuntime,
 ) = remember(desktopController, microModule) { AppMenuPanel(desktopController, microModule) }
 
 @OptIn(ExperimentalMaterial3Api::class)
 internal class AppMenuPanel(
-  val desktopController: DesktopController,
+  val desktopController: DesktopV2Controller,
   val microModule: NativeMicroModule.NativeRuntime,
 ) {
   private var cacheApp by mutableStateOf<DesktopAppModel?>(null)

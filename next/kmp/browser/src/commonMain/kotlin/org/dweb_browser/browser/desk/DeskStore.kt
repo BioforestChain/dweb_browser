@@ -8,13 +8,11 @@ import org.dweb_browser.core.std.file.ext.createStore
 class TaskbarStore(mm: MicroModule.Runtime) {
   private val store = mm.createStore("taskbar", false)// createStore("taskbar/apps", false)
 
-  suspend fun getApps(): MutableList<String> {
-    return store.getOrPut("apps") {
-      return@getOrPut mutableListOf()
-    }
+  suspend fun getApps(): List<String> {
+    return store.getOrPut("apps") { emptyList() }
   }
 
-  suspend fun setApps(data: MutableList<String>) {
+  suspend fun setApps(data: List<String>) {
     return store.set("apps", data)
   }
 }

@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 import org.dweb_browser.browser.desk.upgrade.NewVersionItem
 import org.dweb_browser.core.module.startAppActivity
 
-actual suspend fun DeskNMM.DeskRuntime.startDesktopView(deskSessionId: String) {
+actual suspend fun DeskNMM.DeskRuntime.startDeskView(deskSessionId: String) {
   /// 启动对应的Activity视图，如果在后端也需要唤醒到最前面，所以需要在AndroidManifest.xml 配置 launchMode 为 singleTask
   startAppActivity(DesktopActivity::class.java) { intent ->
     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)

@@ -23,7 +23,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,34 +34,27 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.dweb_browser.browser.BrowserDrawResource
 import org.dweb_browser.browser.BrowserI18nResource
-import org.dweb_browser.browser.desk.debugDesk
 import org.dweb_browser.browser.download.model.DownloadState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NewVersionController.NewVersionView() {
-  DisposableEffect(newVersionType) {
-    val close = desktopController.activity?.onStart?.let { onStart ->
-      onStart {
-        debugDesk("NewVersion", "onStart => openAgain=$openAgain, $newVersionItem")
-        if (openAgain) {
-          openAgain = false
-          newVersionItem?.let { item ->
-            if (item.status.state == DownloadState.Completed) {
-              updateVersionType(NewVersionType.Install)
-            }
-          }
+fun NewVersionController.Render() {
+  if (newVersionType == NewVersionType.Hide) return
+  if (canOpen) {
+    LaunchedEffect(Unit) {
+      canOpen = false
+      newVersionItem?.let { item ->
+        if (item.status.state == DownloadState.Completed) {
+          newVersionType = NewVersionType.Install
         }
       }
     }
-    onDispose { close?.let { close() } }
   }
-  if (newVersionType.value == NewVersionType.Hide) return
 
   BasicAlertDialog(
     onDismissRequest = {
       if (newVersionItem?.forceUpdate != true) {
-        updateVersionType(NewVersionType.Hide)
+        newVersionType = NewVersionType.Hide
       } else {
         // 如果是强制更新，就不能响应点击空白区域关闭升级对话框
       }
@@ -73,7 +66,7 @@ fun NewVersionController.NewVersionView() {
       contentAlignment = Alignment.Center
     ) {
       AnimatedContent(
-        targetState = newVersionType.value, label = "",
+        targetState = newVersionType, label = "",
         transitionSpec = { // 实现左出右进
           if (targetState > initialState) {
             (slideInHorizontally { width -> width } + fadeIn()).togetherWith(
@@ -131,9 +124,9 @@ private fun NewVersionController.DialogNewVersion() {
     confirmButton = {
       Button(onClick = {
         if (newVersion.status.state == DownloadState.Completed) {
-          updateVersionType(NewVersionType.Install)
+          newVersionType = NewVersionType.Install
         } else {
-          updateVersionType(NewVersionType.Download)
+          newVersionType = NewVersionType.Download
         }
       }) {
         Text(BrowserI18nResource.dialog_upgrade_button_upgrade())
@@ -141,7 +134,7 @@ private fun NewVersionController.DialogNewVersion() {
     },
     dismissButton = {
       Button(
-        onClick = { updateVersionType(NewVersionType.Hide) }) {
+        onClick = { newVersionType = NewVersionType.Hide }) {
         Text(BrowserI18nResource.dialog_upgrade_button_delay())
       }
     }
@@ -191,7 +184,7 @@ private fun NewVersionController.DialogDownloadView() {
       }
     },
     confirmButton = {
-      Button(onClick = { updateVersionType(NewVersionType.Hide) /* 转移到后台下载 */ }) {
+      Button(onClick = { newVersionType = NewVersionType.Hide /* 转移到后台下载 */ }) {
         Text(BrowserI18nResource.dialog_upgrade_button_background())
       }
     }
@@ -224,7 +217,7 @@ private fun NewVersionController.DialogInstallView() {
     },
     confirmButton = {
       Button(onClick = {
-        updateVersionType(NewVersionType.Hide)
+        newVersionType = NewVersionType.Hide
         openSystemInstallSetting()
       }) {
         Text(BrowserI18nResource.dialog_upgrade_button_setting())

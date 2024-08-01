@@ -1,16 +1,18 @@
 package org.dweb_browser.browser.desk.upgrade
 
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import org.dweb_browser.browser.desk.DeskNMM
-import org.dweb_browser.browser.desk.DesktopController
+import org.dweb_browser.browser.desk.DesktopV1Controller
 import org.dweb_browser.browser.desk.debugDesk
-import org.dweb_browser.browser.download.model.DownloadState
 import org.dweb_browser.browser.download.ext.createDownloadTask
 import org.dweb_browser.browser.download.ext.downloadProgressFlow
 import org.dweb_browser.browser.download.ext.existDownloadTask
 import org.dweb_browser.browser.download.ext.pauseDownload
 import org.dweb_browser.browser.download.ext.removeDownload
 import org.dweb_browser.browser.download.ext.startDownload
+import org.dweb_browser.browser.download.model.DownloadState
 import org.dweb_browser.browser.web.openFileByPath
 import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.falseAlso
@@ -32,16 +34,12 @@ enum class NewVersionType {
 
 class NewVersionController(
   internal val deskNMM: DeskNMM.DeskRuntime,
-  val desktopController: DesktopController,
+  val desktopController: DesktopV1Controller,
 ) {
   private val store = NewVersionStore(deskNMM)
-  var newVersionItem: NewVersionItem? = null
-  val newVersionType = mutableStateOf(NewVersionType.Hide) // 用于显示新版本提醒的控制
-  var openAgain: Boolean = false // 默认不需要重新打开，只有在授权后返回时，才需要重新打开
-
-  fun updateVersionType(type: NewVersionType) {
-    newVersionType.value = type
-  }
+  var newVersionItem by mutableStateOf<NewVersionItem?>(null)
+  var newVersionType by mutableStateOf(NewVersionType.Hide) // 用于显示新版本提醒的控制
+  var canOpen by mutableStateOf(false) // 默认不需要重新打开，只有在授权后返回时，才需要重新打开
 
   init {
     deskNMM.scopeLaunch(cancelable = true) { initNewVersionItem() }
@@ -79,12 +77,12 @@ class NewVersionController(
     // 如果 newVersionItem 为空的话，那么就不需要显示了；如果不为空，判断状态进行指定跳转
     newVersionItem?.let { newVersion ->
       if (newVersion.status.state == DownloadState.Completed) {
-        updateVersionType(NewVersionType.Install)
+        newVersionType = NewVersionType.Install
       } else {
-        updateVersionType(NewVersionType.NewVersion)
+        newVersionType = NewVersionType.NewVersion
       }
     }
-    debugDesk("NewVersion", "hasNew=${newVersionType.value} => $newVersionItem")
+    debugDesk("NewVersion", "hasNew=${newVersionType} => $newVersionItem")
   }
 
   private suspend fun watchProcess(taskId: String, newVersionItem: NewVersionItem): Boolean {
@@ -120,12 +118,12 @@ class NewVersionController(
             // 跳转到安装界面
             val realPath = downloadTask.filepath
             if (openFileByPath(realPath = realPath, justInstall = true)) { // 安装文件 TODO
-              newVersionType.value = NewVersionType.Hide
+              newVersionType = NewVersionType.Hide
               // 清除保存的新版本信息
               store.clear()
             } else {
               debugDesk("NewVersion", "no Install Apk Permission")
-              updateVersionType(NewVersionType.Install)
+              newVersionType = NewVersionType.Install
             }
           }
         }
@@ -141,7 +139,7 @@ class NewVersionController(
   suspend fun pause() = newVersionItem?.taskId?.let { deskNMM.pauseDownload(it) } ?: false
 
   fun openSystemInstallSetting() = run {
-    openAgain = true // 为了使得返回的时候重新判断是否安装
+    canOpen = true // 为了使得返回的时候重新判断是否安装
     // TODO 这边似乎还没完成
     // OpenFileUtil.openSystemInstallSetting()
   }

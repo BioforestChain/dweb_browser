@@ -1,31 +1,14 @@
-package org.dweb_browser.browser.desk
+package org.dweb_browser.browser.desk.render
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.awt.ComposePanel
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.window.WindowPlacement
-import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import org.dweb_browser.browser.desk.render.NewTaskbarView
+import org.dweb_browser.browser.desk.MagnetEffect
+import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.file.ext.store
-import org.dweb_browser.dwebview.IDWebView
-import org.dweb_browser.dwebview.asDesktop
-import org.dweb_browser.dwebview.create
 import org.dweb_browser.helper.PureIntPoint
 import org.dweb_browser.helper.PureIntRect
 import org.dweb_browser.helper.platform.getAnimationFrameMs
-import org.dweb_browser.helper.platform.getComposeWindowOrNull
 import org.dweb_browser.helper.platform.getScreenBounds
 import org.dweb_browser.helper.toPureIntPoint
 import org.dweb_browser.helper.toPureIntRect
@@ -33,61 +16,29 @@ import java.awt.Color
 import java.awt.Dimension
 import java.awt.MouseInfo
 import java.awt.Point
-import java.awt.Shape
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import javax.swing.JComponent
 import javax.swing.JDialog
-import javax.swing.SwingUtilities
 import javax.swing.Timer
 import kotlin.math.max
 
-actual suspend fun ITaskbarView.Companion.create(taskbarController: TaskbarController): ITaskbarView =
-  TaskbarView.from(taskbarController)
-
-private abstract class DialogContentView {
-  abstract fun addContentView(dialog: TaskbarDialog)
-  open fun endDrag() {}
+abstract class NativeFloatBarContent(val component: JComponent) {
+  open fun onEndDrag() {}
 }
 
-private class DialogWebContentView(private val content: IDWebView) : DialogContentView() {
-  override fun addContentView(dialog: TaskbarDialog) {
-    dialog.add(content.asDesktop().viewEngine.wrapperView)
-  }
-
-  override fun endDrag() {
-    /// 强行释放 js 里的状态
-    content.lifecycleScope.launch(start = CoroutineStart.UNDISPATCHED) {
-      runCatching {
-        content.evaluateAsyncJavascriptCode("dragEnd()")
-      }
-    }
-  }
-}
-
-private class DialogComposeContentView(private val composableView: (@Composable () -> Unit)) :
-  DialogContentView() {
-  override fun addContentView(dialog: TaskbarDialog) {
-    SwingUtilities.invokeLater {
-      val composePanel = ComposePanel().apply {
-        background = Color(0, 0, 0, 0)
-        setContent {
-          composableView()
-        }
-      }
-      dialog.add(composePanel)
-    }
-  }
-}
-
-private class TaskbarDialog(
-  val taskbarController: TaskbarController,
-  val contentView: DialogContentView
+/**
+ * ## 磁吸浮动条
+ * 配合原生窗口的原生 FloatBar
+ */
+internal class NativeMagnetFloatBar(
+  val state: FloatBarState,
+  val runtime: NativeMicroModule.NativeRuntime,
+  val content: NativeFloatBarContent,
+  val parentWindow: ComposeWindow,
 ) : JDialog() {
-  private lateinit var contentShape: Shape
   val round = 20
   val padding = 5
-
-  val parentWindow = taskbarController.deskNMM.getComposeWindowOrNull()
 
   private var ready = false
 
@@ -155,7 +106,7 @@ private class TaskbarDialog(
   /**
    * 桌面吸附在 taskbar 边缘
    */
-  private val desktopMagnetEffect = parentWindow?.let { composeWindow ->
+  private val desktopMagnetEffect = parentWindow.let { composeWindow ->
     val paddingY = 20
     val paddingX = 20
     MagnetEffect(
@@ -212,7 +163,7 @@ private class TaskbarDialog(
 
   private fun effectStyle() {
     val dialog = this
-    dialog.isUndecorated = true; // 移除窗体装饰
+    dialog.isUndecorated = true // 移除窗体装饰
     // 背景透明，这里的圆角和背景都将让 taskbar 内部自己绘制
     dialog.background = Color(0, 0, 0, 0)
 
@@ -222,13 +173,13 @@ private class TaskbarDialog(
     // 置顶
     dialog.isAlwaysOnTop = true
 
-    contentView.addContentView(dialog)
+    add(content.component)
   }
 
   private fun effectRelativePosition() {
     val dialog = this
     // 位置
-    dialog.taskbarController.deskNMM.also { nmm ->
+    dialog.runtime.also { nmm ->
       nmm.scopeLaunch(cancelable = true) {
         var taskbarLocation = nmm.store.getOrPut("taskbar.location") {
           getScreenBounds().let {
@@ -241,12 +192,12 @@ private class TaskbarDialog(
         }
 
         var desktopBounds = nmm.store.getOrNull<PureIntRect>("desktop.bounds")?.apply {
-          parentWindow?.setBounds(x, y, width, height)
+          parentWindow.setBounds(x, y, width, height)
         }
 
         // 初始化动画
         playMagnetEffect()
-        desktopMagnetEffect?.start()
+        desktopMagnetEffect.start()
 
         while (true) {
           delay(2000)
@@ -256,7 +207,7 @@ private class TaskbarDialog(
               nmm.store.set("taskbar.location", it)
             }
           }
-          parentWindow?.apply {
+          parentWindow.apply {
             bounds.toPureIntRect().also {
               if (desktopBounds != it) {
                 desktopBounds = it
@@ -373,9 +324,9 @@ private class TaskbarDialog(
     dragTimer?.stop()
     dragTimer = null
 
-    if (taskbarController.state.taskbarDragging) {
-      taskbarController.state.taskbarDragging = false
-      contentView.endDrag()
+    if (state.dragging) {
+      state.dragging = false
+      content.onEndDrag()
     }
     // 结束后，强制执行复位动画
     playMagnetEffect()
@@ -385,88 +336,5 @@ private class TaskbarDialog(
     effectStyle()
     effectRelativePosition()
     ready = true
-  }
-}
-
-class TaskbarView private constructor(
-  private val taskbarController: TaskbarController, override val taskbarDWebView: IDWebView,
-) : ITaskbarView(taskbarController) {
-  companion object {
-    suspend fun from(taskbarController: TaskbarController) = TaskbarView(
-      taskbarController, IDWebView.create(
-        taskbarController.deskNMM,
-        taskbarController.getTaskbarDWebViewOptions(),
-      )
-    )
-  }
-//  private var dialog: TaskbarDialog? = null
-//
-//  init {
-//    taskbarController.deskNMM.onBeforeShutdown {
-//      dialog?.dispose()
-//    }
-//  }
-
-  @Composable
-  override fun TaskbarViewRender(draggableHelper: DraggableHelper, modifier: Modifier) {
-    // TODO 将拖动反应到窗口位置上
-    val dialogWebContentView = remember {
-      DialogWebContentView(taskbarDWebView)
-    }
-
-    TaskbarViewRenderEffect(dialogWebContentView)
-  }
-
-  @Composable
-  override fun TaskbarViewRenderNewVersion(draggableHelper: DraggableHelper, modifier: Modifier) {
-    val composeContentView = remember {
-      DialogComposeContentView() {
-        NewTaskbarView(
-          taskbarController,
-          draggableHelper,
-          Modifier
-            .fillMaxSize()
-            .clip(RoundedCornerShape(16.dp))
-            .background(androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.2f))
-        )
-      }
-    }
-
-    TaskbarViewRenderEffect(composeContentView)
-  }
-
-  @Composable
-  private fun TaskbarViewRenderEffect(dialogContentView: DialogContentView) {
-    val dialog = remember {
-      TaskbarDialog(taskbarController, dialogContentView)
-    }
-
-    SideEffect {
-      dialog.isVisible = true
-    }
-
-    DisposableEffect(Unit) {
-      onDispose {
-        dialog.dispose()
-      }
-    }
-
-    taskbarController.state.composableHelper.apply {
-      val layoutWidth by stateOf { layoutWidth.toInt() }
-      val layoutHeight by stateOf { layoutHeight.toInt() }
-      val taskbarDragging by stateOf { taskbarDragging }
-      LaunchedEffect(layoutWidth, layoutHeight) {
-        dialog.setSize(layoutWidth, layoutHeight)
-        if (!dialog.dragging) {
-          dialog.playMagnetEffect()
-        }
-      }
-      dialog.dragging = taskbarDragging
-    }
-  }
-
-  @Composable
-  override fun FloatWindow() {
-    NormalFloatWindow()
   }
 }

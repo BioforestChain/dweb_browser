@@ -12,7 +12,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 internal fun TaskBarDivider() {
   HorizontalDivider(
-    Modifier.padding(start = paddingValue.dp, top = paddingValue.dp, end = paddingValue.dp)
+    Modifier.padding(start = PADDING_VALUE.dp, top = PADDING_VALUE.dp, end = PADDING_VALUE.dp)
       .background(
         Brush.horizontalGradient(
           listOf(

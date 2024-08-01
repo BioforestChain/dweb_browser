@@ -9,7 +9,7 @@ data class StartDesktopViewParams(val deskSessionId: String)
 
 private var preParams = StartDesktopViewParams("")
 val lock = Mutex();
-actual suspend fun DeskNMM.DeskRuntime.startDesktopView(deskSessionId: String) = lock.withLock {
+actual suspend fun DeskNMM.DeskRuntime.startDeskView(deskSessionId: String) = lock.withLock {
 //  withMainContext {
 //     println("startUIViewController:${DesktopUIViewController::class}")
 //    val rvc = getUIApplication().keyWindow?.rootViewController ?: return@withMainContext
