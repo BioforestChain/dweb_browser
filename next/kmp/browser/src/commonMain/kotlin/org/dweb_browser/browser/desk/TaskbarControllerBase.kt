@@ -3,6 +3,7 @@ package org.dweb_browser.browser.desk
 import androidx.compose.runtime.Composable
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.channelFlow
@@ -13,6 +14,7 @@ import org.dweb_browser.browser.desk.render.FloatBarState
 import org.dweb_browser.browser.desk.types.DeskAppMetaData
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.helper.SafeHashSet
+import org.dweb_browser.helper.collectIn
 
 sealed class TaskbarControllerBase(
   internal val deskNMM: DeskNMM.DeskRuntime,
@@ -21,33 +23,11 @@ sealed class TaskbarControllerBase(
   val state = FloatBarState()
   protected val taskbarStore = TaskbarStore(deskNMM)
 
-  init {
-    /**
-     * 绑定 runningApps 集合
-     */
-    deskNMM.scopeLaunch(cancelable = true) {
-      var apps = getTaskbarShowAppList()
-      deskNMM.runningAppsFlow.collect { runningApps ->
-        for (mmid in apps) {
-          if (!runningApps.containsKey(mmid)) {
-            apps.remove(mmid)
-          }
-        }
-        apps = (runningApps.keys.toList() + apps).distinct().toMutableList()
-
-        // 只展示4个，结合返回桌面的一个tarBar有5个图标
-//        if (apps.size > 4) {
-//          apps = apps.subList(0, 3)
-//        }
-        /// 保存到数据库
-        taskbarStore.setApps(apps)
-      }
-    }
-  }
 
   /** 展示在taskbar中的应用列表 */
-  protected suspend fun getTaskbarShowAppList() = taskbarStore.getApps().toMutableList()
-  protected suspend fun getFocusApp() = getTaskbarShowAppList().firstOrNull()
+  private val appsFlow = MutableStateFlow(listOf<String>())
+  private fun getTaskbarShowAppList() = appsFlow.value
+  private fun getFocusApp() = getTaskbarShowAppList().firstOrNull()
   fun open(mmid: MMID) = deskNMM.scopeLaunch(cancelable = true) {
     deskNMM.open(mmid)
   }
@@ -147,4 +127,40 @@ sealed class TaskbarControllerBase(
 
   @Composable
   abstract fun Render()
+
+  init {
+    /// 绑定 runningApps 集合
+    val mmScope = deskNMM.getRuntimeScope()
+
+    /// 绑定 runningApps 集合，保存到数据库
+    deskNMM.scopeLaunch(cancelable = true) {
+      appsFlow.value = taskbarStore.getApps()
+      var preRunningApps = emptySet<String>()
+      deskNMM.runningAppsFlow.collect { runningApps ->
+        // 新增的应用
+        val newApps = runningApps.keys.filter { !preRunningApps.contains(it) }
+        preRunningApps = runningApps.keys
+
+        appsFlow.value = when {
+          // 我们会尝试保留5个记录
+          runningApps.keys.size <= 5 -> newApps + runningApps.keys + appsFlow.value
+          // 如果超过5个，那么就只显示正在运行中的
+          else -> newApps + runningApps.keys
+        }.distinct()
+
+        // 保存到数据库
+        taskbarStore.setApps(appsFlow.value)
+      }
+    }
+
+    /// 跟随 runningApps 变动，触发自身的 onUpdate
+    deskNMM.runningAppsFlow.collectIn(mmScope) {
+      // 窗口打开时触发
+      updateFlow.emit("apps")
+    }
+    // 跟随 desktopController.onUpdate 变动，触发自身的 onUpdate
+    desktopController.onUpdate.collectIn(mmScope) {
+      updateFlow.emit(it)
+    }
+  }
 }

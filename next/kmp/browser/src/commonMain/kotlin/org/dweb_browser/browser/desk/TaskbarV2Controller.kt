@@ -42,14 +42,5 @@ class TaskbarV2Controller(
     onUpdate.filter { it != "bounds" }.collectIn(mmScope) {
       upsetApps()
     }
-
-    deskNMM.runningAppsFlow.collectIn(mmScope) {
-      // 窗口打开时触发
-      updateFlow.emit("apps")
-    }
-    // 监听窗口状态改变
-    desktopController.onUpdate.collectIn(mmScope) {
-      updateFlow.emit(it)
-    }
   }
 }
