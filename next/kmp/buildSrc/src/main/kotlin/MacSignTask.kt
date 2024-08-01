@@ -34,15 +34,12 @@ abstract class MacSignTask : DefaultTask() {
   protected val workingDir: Provider<Directory> =
     project.layout.buildDirectory.dir("pinpit/tmp/pinpitCreateDefaultDistributableMacosX64")
 
-  @get:Internal
   private val libsMappingFile: Provider<RegularFile> = workingDir.map {
     it.file("libs-mapping.txt")
   }
 
-  @get:Internal
   private val libsMapping = FilesMapping()
 
-  @get:Internal
   private val libsDir: Provider<Directory> = workingDir.map {
     it.dir("libs")
   }

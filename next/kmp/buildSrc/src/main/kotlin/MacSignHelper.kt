@@ -16,8 +16,6 @@ import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.io.OutputStream
 import java.io.Serializable
-import java.security.DigestInputStream
-import java.security.MessageDigest
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.regex.Pattern
@@ -25,25 +23,6 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 import kotlin.io.path.isExecutable
-
-private val currentOS: OS by lazy {
-  val os = System.getProperty("os.name")
-  when {
-    os.equals("Mac OS X", ignoreCase = true) -> OS.MacOS
-    os.startsWith("Win", ignoreCase = true) -> OS.Windows
-    os.startsWith("Linux", ignoreCase = true) -> OS.Linux
-    else -> error("Unknown OS name: $os")
-  }
-}
-
-private val currentArch by lazy {
-  val osArch = System.getProperty("os.arch")
-  when (osArch) {
-    "x86_64", "amd64" -> Arch.X64
-    "aarch64" -> Arch.Arm64
-    else -> error("Unsupported OS arch: $osArch")
-  }
-}
 
 internal class MacJarSignFileCopyingProcessor(
   private val signer: MacSigner, private val tempDir: File, private val jvmRuntimeVersion: Int
@@ -270,24 +249,6 @@ internal data class ValidatedMacOSSigningSettings(
     }
 }
 
-internal fun Provider<String?>.toBooleanProvider(defaultValue: Boolean): Provider<Boolean> =
-  orElse(defaultValue.toString()).map { "true" == it }
-
-private fun Provider<String?>.forUseAtConfigurationTimeSafe(): Provider<String?> = try {
-  forUseAtConfigurationTime()
-} catch (e: NoSuchMethodError) {
-  // todo: remove once we drop support for Gradle 6.4
-  this
-}
-
-private enum class OS(val id: String) {
-  Linux("linux"), Windows("windows"), MacOS("macos")
-}
-
-private enum class Arch(val id: String) {
-  X64("x64"), Arm64("arm64")
-}
-
 internal object MacUtils {
   val codesign: File by lazy {
     File("/usr/bin/codesign").checkExistingFile()
@@ -295,14 +256,6 @@ internal object MacUtils {
 
   val security: File by lazy {
     File("/usr/bin/security").checkExistingFile()
-  }
-
-  val xcrun: File by lazy {
-    File("/usr/bin/xcrun").checkExistingFile()
-  }
-
-  val xcodeBuild: File by lazy {
-    File("/usr/bin/xcodebuild").checkExistingFile()
   }
 
   val make: File by lazy {
@@ -475,78 +428,6 @@ internal fun FileSystemOperations.clearDirs(vararg dirs: Provider<out FileSystem
 
 private fun Array<out Provider<out FileSystemLocation>>.ioFiles(): Array<File> =
   let { providers -> Array(size) { i -> providers[i].ioFile } }
-
-internal fun File.mangledName(): String =
-  buildString {
-    append(nameWithoutExtension)
-    append("-")
-    append(contentHash())
-    val ext = extension
-    if (ext.isNotBlank()) {
-      append(".$ext")
-    }
-  }
-
-internal fun File.contentHash(): String {
-  val md5 = MessageDigest.getInstance("MD5")
-  if (isDirectory) {
-    walk()
-      .filter { it.isFile }
-      .sortedBy { it.relativeTo(this).path }
-      .forEach { md5.digestContent(it) }
-  } else {
-    md5.digestContent(this)
-  }
-  val digest = md5.digest()
-  return buildString(digest.size * 2) {
-    for (byte in digest) {
-      append(Integer.toHexString(0xFF and byte.toInt()))
-    }
-  }
-}
-
-private fun MessageDigest.digestContent(file: File) {
-  file.inputStream().buffered().use { fis ->
-    DigestInputStream(fis, this).use { ds ->
-      while (ds.read() != -1) {
-      }
-    }
-  }
-}
-
-internal fun isSkikoForCurrentOS(lib: File): Boolean =
-  lib.name.startsWith("skiko-awt-runtime-${currentOS.id}-${currentArch.id}")
-      && lib.name.endsWith(".jar")
-
-internal fun unpackSkikoForCurrentOS(
-  sourceJar: File,
-  skikoDir: File,
-  fileOperations: FileSystemOperations
-): List<File> {
-  val entriesToUnpack = when (currentOS) {
-    OS.MacOS -> setOf("libskiko-macos-${currentArch.id}.dylib")
-    OS.Windows -> setOf("skiko-windows-${currentArch.id}.dll", "icudtl.dat")
-    OS.Linux -> setOf("libskiko-linux-${currentArch.id}.so")
-  }
-
-  // output files: unpacked libs, corresponding .sha256 files, and target jar
-  val outputFiles = ArrayList<File>(entriesToUnpack.size * 2 + 1)
-  val targetJar = skikoDir.resolve(sourceJar.name)
-  outputFiles.add(targetJar)
-
-  fileOperations.clearDirs(skikoDir)
-  transformJar(sourceJar, targetJar) { entry, zin, zout ->
-    // check both entry or entry.sha256
-    if (entry.name.removeSuffix(".sha256") in entriesToUnpack) {
-      val unpackedFile = skikoDir.resolve(entry.name.substringAfterLast("/"))
-      zin.copyTo(unpackedFile)
-      outputFiles.add(unpackedFile)
-    } else {
-      copyZipEntry(entry, zin, zout)
-    }
-  }
-  return outputFiles
-}
 
 // Serializable is only needed to avoid breaking configuration cache:
 // https://docs.gradle.org/current/userguide/configuration_cache.html#config_cache:requirements
