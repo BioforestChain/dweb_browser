@@ -15,6 +15,7 @@ import org.dweb_browser.browser.desk.types.DeskAppMetaData
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.helper.SafeHashSet
 import org.dweb_browser.helper.collectIn
+import org.dweb_browser.helper.safeSubList
 
 sealed class TaskbarControllerBase(
   internal val deskNMM: DeskNMM.DeskRuntime,
@@ -136,17 +137,20 @@ sealed class TaskbarControllerBase(
     deskNMM.scopeLaunch(cancelable = true) {
       appsFlow.value = taskbarStore.getApps()
       var preRunningApps = emptySet<String>()
-      deskNMM.runningAppsFlow.collect { runningApps ->
+      deskNMM.runningAppsFlow.collect { runningAppMap ->
+        val runningApps = runningAppMap.keys
         // 新增的应用
-        val newApps = runningApps.keys.filter { !preRunningApps.contains(it) }
-        preRunningApps = runningApps.keys
+        val newApps = runningApps.filter { !preRunningApps.contains(it) }
+        preRunningApps = runningApps
+
+        val apps = (newApps + runningApps).distinct()
 
         appsFlow.value = when {
           // 我们会尝试保留5个记录
-          runningApps.keys.size <= 5 -> newApps + runningApps.keys + appsFlow.value
+          apps.size < 5 -> (apps + appsFlow.value).distinct().safeSubList(0, 5)
           // 如果超过5个，那么就只显示正在运行中的
-          else -> newApps + runningApps.keys
-        }.distinct()
+          else -> apps
+        }
 
         // 保存到数据库
         taskbarStore.setApps(appsFlow.value)
