@@ -22,22 +22,38 @@ sealed interface ProfileName {
   companion object {
     fun parse(profileNameKey: String): ProfileName {
       return if (profileNameKey == "*") {
-        ProfileNameV0()
+        NoProfileName()
       } else if (profileNameKey.contains("@") && profileNameKey.endsWith(IncognitoSuffix)) {
         ProfileIncognitoNameV1.parse(profileNameKey)
-      } else {
+      } else if (profileNameKey.contains("/")) {
         ProfileNameV1.parse(profileNameKey)
+      } else {
+        ProfileNameV0.parse(profileNameKey)
       }
     }
   }
 }
 
 
-class ProfileNameV0 : ProfileName {
+class NoProfileName : ProfileName {
   override val key: String = "*"
   override val isIncognito = false
   override val mmid = null
   override val profile = null
+}
+
+class ProfileNameV0(
+  override val mmid: String,
+  override val key: String = mmid,
+) : ProfileName {
+  companion object {
+    fun parse(profileNameKey: String): ProfileNameV0 {
+      return ProfileNameV0(profileNameKey)
+    }
+  }
+
+  override val profile = null
+  override val isIncognito = false
 }
 
 class ProfileNameV1(

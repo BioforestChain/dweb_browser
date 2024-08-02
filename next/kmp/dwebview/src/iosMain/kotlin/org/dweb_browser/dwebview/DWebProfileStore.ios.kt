@@ -36,7 +36,7 @@ class WKWebViewProfileStore private constructor() : DWebProfileStore {
         keyValueStore.setValues(DwebProfilesKey, allProfiles.keys)
       }
 
-    else -> ProfileNameV0().let { profileNameV0 ->
+    else -> NoProfileName().let { profileNameV0 ->
       WKWebViewProfile(profileNameV0)
     }
   }

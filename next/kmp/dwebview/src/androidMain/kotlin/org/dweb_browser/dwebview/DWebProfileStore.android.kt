@@ -56,7 +56,7 @@ class CompactDWebProfileStore private constructor() : AndroidWebProfileStore {
       setProfile(it, engine)
     }
 
-    else -> CompactDWebProfile(ProfileNameV0())
+    else -> CompactDWebProfile(NoProfileName())
   }
 
   /**
