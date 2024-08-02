@@ -211,7 +211,7 @@ suspend fun createJsProcessWeb(
     mm, DWebViewOptions(
       privateNet = true,
       openDevTools = envSwitch.isEnabled(ENV_SWITCH_KEY.JS_PROCESS_DEVTOOLS),
-      enabledOffScreenRender = true
+      enabledOffScreenRender = envSwitch.isEnabled(ENV_SWITCH_KEY.DWEBVIEW_ENABLE_OFFSCREEN_RENDER)
     )
   )
   // 等待加载完成

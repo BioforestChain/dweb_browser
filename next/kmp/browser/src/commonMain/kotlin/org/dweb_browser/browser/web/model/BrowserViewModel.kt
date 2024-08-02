@@ -41,7 +41,9 @@ import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.WebDownloadArgs
 import org.dweb_browser.dwebview.create
 import org.dweb_browser.helper.Signal
+import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
 import org.dweb_browser.helper.compose.compositionChainOf
+import org.dweb_browser.helper.compose.envSwitch
 import org.dweb_browser.helper.encodeURIComponent
 import org.dweb_browser.helper.format
 import org.dweb_browser.helper.isDwebDeepLink
@@ -252,7 +254,7 @@ class BrowserViewModel(
       /// 我们会完全控制页面将如何离开，所以这里兜底默认为留在页面
       detachedStrategy = DWebViewOptions.DetachedStrategy.Ignore,
       /// 桌面端web browser需要使用离屏渲染，才能preview tabs
-      enabledOffScreenRender = false
+      enabledOffScreenRender = envSwitch.isEnabled(ENV_SWITCH_KEY.DWEBVIEW_ENABLE_OFFSCREEN_RENDER)
     ),
     viewBox = browserController.viewBox
   ).also { dwebview ->

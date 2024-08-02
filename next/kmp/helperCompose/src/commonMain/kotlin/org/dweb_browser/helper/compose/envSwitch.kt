@@ -59,13 +59,16 @@ enum class ENV_SWITCH_KEY(
    */
   val experimental: ExperimentalKey? = null,
 ) {
-  DWEBVIEW_ENABLE_TRANSPARENT_BACKGROUND("dwebview-enable-transparent-background"), DESKTOP_DEV_URL(
-    "desktop-dev-url"
-  ),
-  DESKTOP_DEVTOOLS("desktop-devtools"), TASKBAR_DEV_URL("taskbar-dev-url"), TASKBAR_DEVTOOLS("taskbar-devtools"), JS_PROCESS_DEVTOOLS(
-    "js-process-devtools"
-  ),
-  ALL_WINDOW_DEVTOOLS("*-window-devtools"), DWEBVIEW_JS_CONSOLE("dwebview-js-console"), DESKTOP_STYLE_COMPOSE(
+  DWEBVIEW_ENABLE_TRANSPARENT_BACKGROUND("dwebview-enable-transparent-background"),
+  DWEBVIEW_ENABLE_OFFSCREEN_RENDER("dwebview-enable-offscreen-render"),
+  DESKTOP_DEV_URL("desktop-dev-url"),
+  DESKTOP_DEVTOOLS("desktop-devtools"),
+  TASKBAR_DEV_URL("taskbar-dev-url"),
+  TASKBAR_DEVTOOLS("taskbar-devtools"),
+  JS_PROCESS_DEVTOOLS("js-process-devtools"),
+  ALL_WINDOW_DEVTOOLS("*-window-devtools"),
+  DWEBVIEW_JS_CONSOLE("dwebview-js-console"),
+  DESKTOP_STYLE_COMPOSE(
     "destktop-style-compose",
     experimental = ExperimentalKey(
       title = SimpleI18nResource(
