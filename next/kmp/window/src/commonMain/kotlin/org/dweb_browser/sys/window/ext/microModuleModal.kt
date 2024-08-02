@@ -6,7 +6,6 @@ import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.module.NativeMicroModule
@@ -26,7 +25,7 @@ import org.dweb_browser.sys.window.core.windowAdapterManager
 private val microModuleModalLocks = WeakHashMap<MicroModule.Runtime, Mutex>()
 private val microModuleModalLocksSyncObj = SynchronizedObject()
 
-val NativeMicroModule.NativeRuntime.modalLock: Mutex
+private val NativeMicroModule.NativeRuntime.modalLock: Mutex
   get() = synchronized(microModuleModalLocksSyncObj) {
     microModuleModalLocks.getOrPut(
       this
@@ -39,7 +38,7 @@ suspend fun NativeMicroModule.NativeRuntime.createBottomSheets(
   iconAlt: String? = null,
   wid: String? = null,
   renderProvider: WindowRenderProvider,
-) = modalLock.withLock {
+): WindowBottomSheetsController {
   val callbackRouter = routes();
   val callbackUrlId = randomUUID()
   val callbackUrlPathname = "/internal/callback/bottom-sheets/$callbackUrlId"
@@ -57,7 +56,7 @@ suspend fun NativeMicroModule.NativeRuntime.createBottomSheets(
   )
 
   windowAdapterManager.provideRender(modal.renderId, renderProvider)
-  WindowBottomSheetsController(
+  return WindowBottomSheetsController(
     this,
     modal,
     mainWindow.id,
@@ -76,8 +75,8 @@ suspend fun NativeMicroModule.NativeRuntime.createAlert(
   iconAlt: String? = null,
   confirmText: String? = null,
   dismissText: String? = null,
-  wid: String? = null
-) = modalLock.withLock {
+  wid: String? = null,
+): WindowAlertController {
   val callbackUrlId = randomUUID()
   val callbackUrlPathname = "/internal/callback/alert/$callbackUrlId"
   val onCallback = MutableSharedFlow<ModalCallback>()
@@ -95,7 +94,12 @@ suspend fun NativeMicroModule.NativeRuntime.createAlert(
     dismissText = dismissText,
     callbackUrl = "file://$mmid$callbackUrlPathname",
   )
-  WindowAlertController(this, modal, mainWindow.id, onCallback.asSharedFlow()).also { controller ->
+  return WindowAlertController(
+    this,
+    modal,
+    mainWindow.id,
+    onCallback.asSharedFlow()
+  ).also { controller ->
     controller.onDestroy {
       removeRouter(callbackRouter)
     }

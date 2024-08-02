@@ -179,10 +179,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
 
     override suspend fun _bootstrap() {
       listenApps()
-
-      val deskController = DeskController(this)
       controllersMap[deskController.sessionId] = deskController
-
       onShutdown {
         controllersMap.remove(deskController.sessionId)
       }
