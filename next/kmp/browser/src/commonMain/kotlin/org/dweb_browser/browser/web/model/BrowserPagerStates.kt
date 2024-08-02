@@ -65,33 +65,6 @@ class BrowserPagerStates(val viewModel: BrowserViewModel) {
         contentPagePager.scrollToPage(currentPage, currentPageOffsetFraction)
       }
 
-      // focusedPage => searchPagePager
-      LaunchedEffect(Unit) {
-        snapshotFlow {
-          Pair(viewModel.focusedPageIndex, searchBarPager.isScrollInProgress)
-        }.collect { (pageIndex, isScrollInProgress) ->
-          if (!isScrollInProgress && pageIndex != -1) { // 在closePageUI时，如果close是lastPage的话，不能走animateScrollToPage
-            // 由于如果是通过BrowserPreview点击后聚焦的，那么滚动时候需要直接滚动，不要动画滚动。
-            if (viewModel.withoutAnimationOnFocus) {
-              searchBarPager.scrollToPage(pageIndex)
-            } else {
-              searchBarPager.animateScrollToPage(pageIndex)
-            }
-            viewModel.withoutAnimationOnFocus = false
-          }
-        }
-      }
-
-      // contentPagePager => focusedPage
-      LaunchedEffect(Unit) {
-        snapshotFlow {
-          Pair(contentPage.currentPage, contentPage.isScrollInProgress)
-        }.collect { (currentPage, isScrollInProgress) ->
-          if (!isScrollInProgress) {
-            viewModel.focusPageUI(currentPage)
-          }
-        }
-      }
     } else {
       // 为了确认下当前窗口是否有改变大小
       if (lastWindowRenderScope.width != windowRenderScope.width ||
@@ -100,7 +73,7 @@ class BrowserPagerStates(val viewModel: BrowserViewModel) {
         isResizeWin = true
         lastWindowRenderScope = windowRenderScope
       }
-      var preSearchBarState by remember { mutableStateOf(false) } // 用于记录上一次searchBar状态，
+      var preSearchBarState by remember { mutableStateOf(false) } // 用于记录上一次searchBar状态
 
       // focusedPage => searchPagePager
       LaunchedEffect(Unit) {

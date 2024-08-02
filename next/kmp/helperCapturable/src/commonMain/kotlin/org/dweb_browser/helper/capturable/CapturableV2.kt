@@ -2,6 +2,7 @@ package org.dweb_browser.helper.capturable
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -13,13 +14,25 @@ import androidx.compose.ui.graphics.rememberGraphicsLayer
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
+import org.dweb_browser.helper.globalDefaultScope
+import org.dweb_browser.helper.globalEmptyScope
 
 fun Modifier.capturable2(controller: CaptureV2Controller) = this.composed {
   when (val task = controller.taskFlow.collectAsState().value) {
     null -> this
     else -> {
+      val ready by controller.readyFlow.collectAsState()
+      if (!ready) {
+        return@composed this
+      }
       val scope = rememberCoroutineScope()
       val graphicsLayer = rememberGraphicsLayer()
       this.drawWithContent {
@@ -44,15 +57,31 @@ fun rememberCaptureV2Controller(): CaptureV2Controller {
 }
 
 class CaptureV2Controller : SynchronizedObject() {
-  val taskFlow = MutableStateFlow<CompletableDeferred<ImageBitmap>?>(null)
+  internal val taskFlow = MutableStateFlow<CompletableDeferred<ImageBitmap>?>(null)
+  internal val readyFlow = MutableStateFlow(true)
+  private val captureStartFlow = MutableSharedFlow<Unit?>()
+  val onCaptureStart =
+    captureStartFlow.filterNotNull().shareIn(globalDefaultScope, started = SharingStarted.Eagerly)
+
+  private val captureEndFlow = MutableSharedFlow<Unit?>()
+  val onCaptureEnd = captureEndFlow.asSharedFlow()
   fun captureAsync() = synchronized(this) {
     taskFlow.value ?: CompletableDeferred<ImageBitmap>().also { task ->
       task.invokeOnCompletion {
-        if (taskFlow.value == task) {
-          taskFlow.value = null
+        globalEmptyScope.launch(start = CoroutineStart.UNDISPATCHED) {
+          if (taskFlow.value == task) {
+            taskFlow.value = null
+          }
+          captureEndFlow.emit(Unit)
         }
       }
-      taskFlow.value = task
+      globalEmptyScope.launch(start = CoroutineStart.UNDISPATCHED) {
+        readyFlow.value = false
+        taskFlow.value = task
+        captureStartFlow.emit(Unit)
+        captureStartFlow.emit(null)
+        readyFlow.value = true
+      }
     }
   }
 

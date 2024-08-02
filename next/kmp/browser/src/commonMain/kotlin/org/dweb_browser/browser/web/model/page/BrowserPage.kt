@@ -59,8 +59,8 @@ sealed class BrowserPage(browserController: BrowserController) {
       thumbnail?.let { BitmapPainter(it) }
     }
 
-  suspend fun captureView() {
-    captureViewInBackground().join()
+  suspend fun captureView(reason: String) {
+    captureViewInBackground(reason).join()
   }
 
   /**
@@ -74,7 +74,8 @@ sealed class BrowserPage(browserController: BrowserController) {
     return true
   }
 
-  fun captureViewInBackground() = globalDefaultScope.launch {
+  fun captureViewInBackground(reason:String) = globalDefaultScope.launch {
+    println("QAQ captureView($reason) url=$url")
     val preThumbnail = thumbnail
     onRequestCapture()
     if (preThumbnail == thumbnail) {

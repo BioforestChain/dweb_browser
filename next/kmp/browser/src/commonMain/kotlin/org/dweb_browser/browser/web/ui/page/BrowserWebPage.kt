@@ -49,7 +49,7 @@ internal fun BrowserWebPage.Effect() {
         1f -> {
           /// 如果网页在后台加载，那么加载完成后，应该进行截图
           if (viewModel.focusedPage != this) {
-            captureViewInBackground()
+            captureViewInBackground("webLoaded")
           }
         }
 

@@ -172,9 +172,20 @@ class BrowserViewModel(
   fun getPage(currentPage: Int) = pages[currentPage]
   fun getPageIndex(page: BrowserPage) = pages.indexOf(page)
 
-  var focusedPage by mutableStateOf<BrowserPage?>(null)
-    private set
-  val focusedPageIndex get() = pages.indexOf(focusedPage)
+//  var focusedPage by mutableStateOf<BrowserPage?>(null)
+//    private set
+//  pagerStates
+
+  var focusedPage
+    get() = pages.getOrNull(focusedPageIndex)
+    set(value) {
+      value?.also { focusedPageIndex = pages.indexOf(value) }
+    }
+  var focusedPageIndex
+    get() = pagerStates.searchBar.targetPage
+    set(value) {
+      pagerStates.searchBar.requestScrollToPage(value)
+    }
 
   suspend fun focusPageUI(page: BrowserPage?) {
     val prePage = focusedPage
@@ -183,7 +194,7 @@ class BrowserViewModel(
     }
     debugBrowser("focusBrowserView", page)
     // 前一个页面要失去焦点了，所以进行截图
-    prePage?.captureViewInBackground()
+    prePage?.captureViewInBackground("prePage cap by focus newPage")
     focusedPage = page
   }
 

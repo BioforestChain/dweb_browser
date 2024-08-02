@@ -120,7 +120,7 @@ fun BrowserSearchBar(modifier: Modifier) {
     // 多窗口预览界面
     IconButton(modifier = Modifier.size(onceItemSize), onClick = {
       uiScope.launch {
-        viewModel.focusedPage?.captureView()
+        viewModel.focusedPage?.captureView("for preview")
         viewModel.toggleShowPreviewUI(BrowserViewModel.PreviewPanelVisibleState.DisplayGrid)
       }
     }) {

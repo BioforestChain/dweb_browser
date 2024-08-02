@@ -363,24 +363,33 @@ class DWebViewEngine internal constructor(
       )
     }
 
-  private var isAttachedToWindow = false
 
   override fun onDetachedFromWindow() {
     if (options.detachedStrategy == DWebViewOptions.DetachedStrategy.Default) {
-      isAttachedToWindow = true
+      attachedStateFlow.value = false
       super.onDetachedFromWindow()
     }
   }
 
-  override fun onAttachedToWindow() {
-    lifecycleScope.launch {
-      attachedStateFlow.emit(true)
+  override fun onPause() {
+    if (options.detachedStrategy == DWebViewOptions.DetachedStrategy.Default) {
+      super.onPause()
     }
-    super.onAttachedToWindow()
-    isAttachedToWindow = false
   }
 
-  val attachedStateFlow = MutableStateFlow<Boolean>(false);
+  /**
+   * onAttachedToWindow yi
+   */
+  override fun onAttachedToWindow() {
+    val url = originalUrl
+//    println("QAQ onAttachedToWindow isAttachedToWindow=${super.isAttachedToWindow()} url=$url progress=$progress")
+//    if (!attachedStateFlow.value) {
+    attachedStateFlow.value = url != null
+    super.onAttachedToWindow()
+//    }
+  }
+
+  val attachedStateFlow = MutableStateFlow(false);
   val closeWatcher = CloseWatcher(this)
   val dwebFavicon = FaviconPolyfill(this)
 

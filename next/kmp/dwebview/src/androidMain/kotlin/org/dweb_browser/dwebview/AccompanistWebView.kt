@@ -189,22 +189,34 @@ public fun AccompanistWebView(
   client.navigator = navigator
   chromeClient.state = state
 
-  AndroidView(factory = { context ->
-    (factory?.invoke(context) ?: WebView(context)).apply {
-      onCreated(this)
-
-      this.layoutParams = layoutParams
-
-      state.viewState?.let {
-        this.restoreState(it)
+  AndroidView(
+    factory = { context ->
+      (factory?.invoke(context) ?: WebView(context)).also { webview ->
+        onCreated(webview)
+        webview.layoutParams = layoutParams
+        state.viewState?.also { viewState ->
+          webview.restoreState(viewState)
+          state.viewState = null
+        }
+        webview.webChromeClient = chromeClient
+        webview.webViewClient = client
+      }.also { state.webView = it }
+    },
+    modifier = modifier,
+    update = { webview ->
+      state.viewState?.also { viewState ->
+        webview.restoreState(viewState)
+        state.viewState = null
       }
-
-      webChromeClient = chromeClient
-      webViewClient = client
-    }.also { state.webView = it }
-  }, modifier = modifier, onRelease = {
-    onDispose(it)
-  })
+    },
+    onRelease = { webview ->
+      Bundle().also { viewState ->
+        webview.saveState(viewState)
+        state.viewState = viewState
+      }
+      onDispose(webview)
+    },
+  )
 }
 
 /**
