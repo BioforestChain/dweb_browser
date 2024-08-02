@@ -49,6 +49,9 @@ class BrowserNMM : NativeMicroModule("web.browser.dweb", "Web Browser") {
     val webLinkStore = WebLinkStore(this)
     val browserController = BrowserController(this)
     override suspend fun _bootstrap() {
+      // 用于修复iOS新版桌面如果启动之后直接使用browser会导致代理为启动
+      dwebviewProxyPrepare()
+
       // 由于 WebView创建需要在主线程，所以这边做了 withContext 操作
       browserController.loadWebLinkApps()
 

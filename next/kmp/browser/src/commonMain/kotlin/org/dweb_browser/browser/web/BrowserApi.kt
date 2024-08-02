@@ -13,3 +13,5 @@ expect suspend fun deepLinkDoSearch(dwebLinkSearchItem: DwebLinkSearchItem)
  * @param justInstall 如果为 true 表示只打开安装文件，如果是false，表示打开所有文件
  */
 expect suspend fun openFileByPath(realPath: String, justInstall: Boolean): Boolean
+
+expect suspend fun dwebviewProxyPrepare()

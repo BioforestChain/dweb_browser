@@ -14,6 +14,8 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.browser.web.data.AppBrowserTarget
 import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.browser.web.model.DwebLinkSearchItem
+import org.dweb_browser.dwebview.DWebView
+import org.dweb_browser.helper.globalDefaultScope
 import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.platform.ios_browser.DwebWebView
 import org.dweb_browser.platform.ios_browser.browserActiveOn
@@ -151,4 +153,10 @@ actual fun CommonBrowserView(
 
 actual suspend fun openFileByPath(realPath: String, justInstall: Boolean): Boolean {
   return false
+}
+
+actual suspend fun dwebviewProxyPrepare() {
+  globalDefaultScope.launch {
+    DWebView.prepare()
+  }
 }
