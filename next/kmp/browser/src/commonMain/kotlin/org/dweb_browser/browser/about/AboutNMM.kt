@@ -76,7 +76,7 @@ class AboutNMM : NativeMicroModule("about.browser.dweb", "About") {
         }.getOrNull()
         serverIpc.postResponse(request.reqId, response ?: PureResponse(HttpStatusCode.NotFound))
       }
-      onShutdown { scopeLaunch(cancelable = false) { html5testServer.close() } }
+      onShutdown { scopeLaunch(cancelable = true) { html5testServer.close() } }
 
       val webview = IDWebView.create(this,
         DWebViewOptions(url = html5testServer.startResult.urlInfo.buildInternalUrl { path("index.html") }

@@ -1,16 +1,15 @@
 package org.dweb_browser.core.std.http
 
 import io.ktor.http.URLBuilder
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.module.MicroModule
-import org.dweb_browser.core.std.dns.nativeFetch
-import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.buildUnsafeString
+import org.dweb_browser.helper.getCompletedOrNull
 import org.dweb_browser.pure.http.PureMethod
 
 /// 对外提供一套建议的操作来创建、使用、维护这个http服务
@@ -18,76 +17,77 @@ import org.dweb_browser.pure.http.PureMethod
 @Serializable
 data class DwebHttpServerOptions(
   val subdomain: String = "",
+)
+
+
+class HttpDwebServer(
+  private val nmm: MicroModule.Runtime,
+  private val httpIpc: Ipc,
+  private val options: DwebHttpServerOptions,
 ) {
-}
+  suspend fun startHttpDwebServer(options: DwebHttpServerOptions): HttpNMM.ServerStartResult {
+    val urlString = URLBuilder("file://http.std.dweb/start").apply {
+      parameters["subdomain"] = options.subdomain
+    }.buildUnsafeString()
 
-suspend fun MicroModule.Runtime.startHttpDwebServer(options: DwebHttpServerOptions): HttpNMM.ServerStartResult {
-  val urlString = URLBuilder("file://http.std.dweb/start").apply {
-    parameters["subdomain"] = options.subdomain
-  }.buildUnsafeString()
+    return httpIpc.request(urlString).json<HttpNMM.ServerStartResult>()
+  }
 
-  return this.nativeFetch(
-    urlString
-  ).json<HttpNMM.ServerStartResult>()
-}
+  lateinit var startResult: HttpNMM.ServerStartResult
+    internal set
 
+  suspend fun listenHttpDwebServer(
+    startResult: HttpNMM.ServerStartResult,
+    routes: Array<CommonRoute> = arrayOf(
+      CommonRoute(pathname = "", method = PureMethod.ALL_VALUES.keys.joinToString("|")),
+    ),
+    customServerIpc: Ipc? = null,
+  ): Ipc {
+    debugHttp("listen", nmm.mmid)
+    val serverIpc =
+      customServerIpc ?: httpIpc.fork(autoStart = true, startReason = "listenHttpDwebServer")
+    serverIpc.request(URLBuilder("file://http.std.dweb/listen").apply {
+      parameters["token"] = startResult.token
+      parameters["routes"] = Json.encodeToString(routes)
+    }.buildUnsafeString())
+    return serverIpc
+  }
 
-suspend fun MicroModule.Runtime.listenHttpDwebServer(
-  microModule: IMicroModuleManifest,
-  startResult: HttpNMM.ServerStartResult,
-  routes: Array<CommonRoute> = arrayOf(
-    CommonRoute(pathname = "", method = PureMethod.ALL_VALUES.keys.joinToString("|")),
-  ),
-  customServerIpc: Ipc? = null,
-): Ipc {
-  debugHttp("listen", microModule.mmid)
-  val httpIpc = this.connect("http.std.dweb")
-  val serverIpc =
-    customServerIpc ?: httpIpc.fork(autoStart = true, startReason = "listenHttpDwebServer")
-  serverIpc.request(URLBuilder("file://http.std.dweb/listen").apply {
-    parameters["token"] = startResult.token
-    parameters["routes"] = Json.encodeToString(routes)
-  }.buildUnsafeString())
-  return serverIpc
-}
-
-
-suspend fun MicroModule.Runtime.closeHttpDwebServer(options: DwebHttpServerOptions) =
-  this.nativeFetch(
+  suspend fun closeHttpDwebServer(options: DwebHttpServerOptions) = httpIpc.request(
     URLBuilder("file://http.std.dweb/close").apply {
       parameters["subdomain"] = options.subdomain
     }.buildUnsafeString(),
   ).boolean()
 
-class HttpDwebServer(
-  private val nmm: MicroModule.Runtime,
-  private val options: DwebHttpServerOptions,
-  val startResult: HttpNMM.ServerStartResult,
-) {
-  private val listenPo = PromiseOut<Ipc>()
+  private val listenPo = CompletableDeferred<Ipc>()
   val listen = SuspendOnce {
-    if (listenPo.isFinished) {
+    if (listenPo.isCompleted) {
       throw Exception("Listen method has been called more than once without closing.");
     }
-    val streamIpc = nmm.listenHttpDwebServer(
-      nmm,
-      startResult
-    )
-    listenPo.resolve(streamIpc)
+    val streamIpc = listenHttpDwebServer(startResult)
+    listenPo.complete(streamIpc)
     streamIpc
   }
 
   val close = SuspendOnce {
-    val ipc = listenPo.waitPromise()
+    val ipc = listenPo.getCompletedOrNull() ?: listenPo.await()
+    if (ipc.isClosed) {
+      return@SuspendOnce
+    }
     runCatching {
       // 尝试发送关闭指令（对方也会将我进行关闭，但我仍然需要执行主动关闭，确保自己的资源正确释放，对方不释放是它自己的事情）
-      nmm.closeHttpDwebServer(options)
+      closeHttpDwebServer(options)
     }
     // 主动关闭
     ipc.close()
   }
 }
 
-suspend fun MicroModule.Runtime.createHttpDwebServer(options: DwebHttpServerOptions) =
-  HttpDwebServer(this, options, startHttpDwebServer(options))
+suspend fun MicroModule.Runtime.createHttpDwebServer(options: DwebHttpServerOptions): HttpDwebServer {
+  val httpIpc = connect("http.std.dweb")
+  return HttpDwebServer(this, httpIpc, options).also {
+    it.startResult = it.startHttpDwebServer(options)
+  }
+}
+
 
