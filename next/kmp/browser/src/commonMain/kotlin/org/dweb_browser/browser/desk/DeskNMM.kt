@@ -16,10 +16,8 @@ import org.dweb_browser.core.http.router.bindPrefix
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
-import org.dweb_browser.core.module.channelRequest
 import org.dweb_browser.core.std.dns.ext.onActivity
 import org.dweb_browser.core.std.dns.nativeFetch
-import org.dweb_browser.helper.ChangeState
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.ReasonLock
@@ -28,7 +26,6 @@ import org.dweb_browser.helper.setValue
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureResponse
 import org.dweb_browser.pure.http.PureStringBody
-import org.dweb_browser.pure.http.PureTextFrame
 import org.dweb_browser.pure.http.initCors
 import org.dweb_browser.pure.http.queryAs
 import org.dweb_browser.pure.http.queryAsOrNull
@@ -36,7 +33,6 @@ import org.dweb_browser.sys.toast.ext.showToast
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.modal.ModalState
 import org.dweb_browser.sys.window.core.windowInstancesManager
-import org.jetbrains.compose.resources.ExperimentalResourceApi
 
 val debugDesk = Debugger("desk")
 
@@ -56,19 +52,9 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
   }
 
   companion object {
-//    data class DeskControllers(
-//      val desktopController: DesktopControllerBase,
-//      val taskbarController: TaskbarControllerBase,
-//      val deskNMM: DeskNMM.DeskRuntime,
-//    ) {
-//      val activityPo = PromiseOut<IPureViewController>()
-//    }
-
     val controllersMap = mutableMapOf<String, DeskController>()
   }
 
-
-  @OptIn(ExperimentalResourceApi::class)
   inner class DeskRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
     val runningAppsFlow = MutableStateFlow(mapOf<MMID, RunningApp>())
     var runningApps by runningAppsFlow
@@ -93,25 +79,6 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         }
 
         else -> runningApp
-      }
-    }
-
-    private suspend fun listenApps() = scopeLaunch(cancelable = true) {
-      suspend fun doObserve(urlPath: String, cb: suspend ChangeState<MMID>.() -> Unit) {
-        val response = channelRequest(urlPath) {
-          for (frame in income) {
-            when (frame) {
-              is PureTextFrame -> {
-                Json.decodeFromString<ChangeState<MMID>>(frame.text).also {
-                  it.cb()
-                }
-              }
-
-              else -> {}
-            }
-          }
-        }
-        debugDesk("doObserve error", response.status)
       }
     }
 
@@ -178,7 +145,6 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
     val deskController = DeskController(this)
 
     override suspend fun _bootstrap() {
-      listenApps()
       controllersMap[deskController.sessionId] = deskController
       onShutdown {
         controllersMap.remove(deskController.sessionId)

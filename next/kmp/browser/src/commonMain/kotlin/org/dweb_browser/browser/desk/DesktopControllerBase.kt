@@ -174,12 +174,11 @@ sealed class DesktopControllerBase(
     deskNMM.nativeFetch("file://web.browser.dweb/search?q=$words")
   }
 
-  private val appSortList = DeskSortStore(deskNMM)
   suspend fun getDesktopApps(): List<DeskAppMetaData> {
     val apps =
       deskNMM.bootstrapContext.dns.search(MICRO_MODULE_CATEGORY.Application).toMutableList()
     // 简单的排序再渲染
-    val sortList = appSortList.getApps()
+    val sortList = deskNMM.deskController.appSortList.getApps()
     apps.sortBy { sortList.indexOf(it.mmid) }
     val runApps = apps.map { metaData ->
       return@map DeskAppMetaData().apply {
