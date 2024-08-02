@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerButton
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import org.dweb_browser.helper.compose.hoverEvent
 
 
 actual fun desktopGridLayout(): DesktopGridLayout =
@@ -20,24 +21,28 @@ actual fun desktopGridLayout(): DesktopGridLayout =
     verticalSpace = 16.dp,
   )
 
-actual fun desktopBgCircleCount(): Int = 12
-
 actual fun desktopIconSize(): IntSize = IntSize(64, 64)
-
-actual fun taskBarCloseButtonLineWidth() = 2f
 
 actual fun taskBarCloseButtonUsePopUp() = false
 
 @Composable
 @OptIn(ExperimentalFoundationApi::class)
-actual fun Modifier.desktopAppItemActions(onOpenApp: () -> Unit, onOpenAppMenu: () -> Unit) =
+actual fun Modifier.desktopAppItemActions(
+  onHoverStart: () -> Unit,
+  onHoverEnd: () -> Unit,
+  onDoubleTap: () -> Unit,
+  onOpenApp: () -> Unit,
+  onOpenAppMenu: () -> Unit,
+) =
   this.onClick(
     matcher = PointerMatcher.mouse(PointerButton.Primary),
     onClick = onOpenApp,
+    onDoubleClick = onDoubleTap,
     onLongClick = onOpenAppMenu,
   ).onClick(
     matcher = PointerMatcher.mouse(PointerButton.Secondary),
+    onDoubleClick = onDoubleTap,
     onClick = onOpenAppMenu,
-  )
+  ).hoverEvent(onEnter = onHoverStart, onExit = onHoverEnd)
 
 actual fun canSupportModifierBlur(): Boolean = true

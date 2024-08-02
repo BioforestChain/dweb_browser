@@ -168,9 +168,9 @@ private fun AppIconOuter(
     containerModifier = containerModifier.shadow(size, containerShape)
   }
   containerModifier = containerModifier.background(safeContainerColor, containerShape)
-  if (!isSuccess) {
-    containerModifier = containerModifier.alpha(0.5f)
-  }
+//  if (!isSuccess) {
+//    containerModifier = containerModifier.alpha(0.5f)
+//  }
   BoxWithConstraints(
     modifier = containerModifier.aspectRatio(1f),
     contentAlignment = Alignment.Center

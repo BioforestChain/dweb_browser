@@ -37,15 +37,16 @@ data class DesktopGridLayout(
 expect fun desktopGridLayout(): DesktopGridLayout
 
 expect fun canSupportModifierBlur(): Boolean
-expect fun desktopBgCircleCount(): Int
 expect fun desktopIconSize(): IntSize
 
-expect fun taskBarCloseButtonLineWidth(): Float
 expect fun taskBarCloseButtonUsePopUp(): Boolean
 
 
 @Composable
 expect fun Modifier.desktopAppItemActions(
-  onOpenApp: () -> Unit,
-  onOpenAppMenu: () -> Unit,
+  onHoverStart: () -> Unit = {},
+  onHoverEnd: () -> Unit = {},
+  onDoubleTap: () -> Unit = {},
+  onOpenApp: () -> Unit = {},
+  onOpenAppMenu: () -> Unit = {},
 ): Modifier

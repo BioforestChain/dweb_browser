@@ -24,6 +24,7 @@ fun DeskAppIcon(
   height: Dp,
   containerAlpha: Float? = null,
   containerColor: Color? = null,
+  containerShadow: Dp? = null,
   modifier: Modifier = Modifier,
 ) {
   val imageResult =
@@ -35,7 +36,8 @@ fun DeskAppIcon(
     iconMaskable = icon?.let { icon.purpose.contains(ImageResourcePurposes.Maskable) } ?: false,
     iconMonochrome = icon?.let { icon.purpose.contains(ImageResourcePurposes.Monochrome) } ?: false,
     containerAlpha = containerAlpha ?: deskIconAlpha,
-    containerColor = containerColor
+    containerColor = containerColor,
+    containerShadow = containerShadow,
   )
 }
 
