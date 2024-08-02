@@ -128,6 +128,7 @@ fun Modifier.windowTouchFocusable(win: WindowController): Modifier = this.pointe
  */
 fun Modifier.windowMoveAble(win: WindowController): Modifier = this.composed {
   val useCustomFrameDrag = win.state.renderConfig.useCustomFrameDrag
+  val padding = win.createSafeBounds(LocalWindowLimits.current)
   pointerInput(win, useCustomFrameDrag) {
     /// 触摸窗口的时候，聚焦，并且提示可以移动
     detectTapGestures(
@@ -171,8 +172,22 @@ fun Modifier.windowMoveAble(win: WindowController): Modifier = this.composed {
         useCustomFrameDrag.frameDragMove()
       } else {
         win.state.updateMutableBounds {
-          x += dragAmount.x / density
-          y += dragAmount.y / density
+          var moveX = x + dragAmount.x / density
+          var moveY = y + dragAmount.y / density
+          if (moveX <= padding.left) {
+            moveX = padding.left
+          }
+          if (moveX >= padding.right) {
+            moveX = padding.right
+          }
+          x = moveX
+          if (moveY <= padding.top) {
+            moveY = padding.top
+          }
+          if (moveY >= padding.bottom) {
+            moveY = padding.bottom
+          }
+          y = moveY
         }
       }
     }
@@ -340,36 +355,51 @@ private fun WindowController.calcWindowBoundsByLimits(
       }
     }
   } else {
-    val layoutDirection = LocalLayoutDirection.current
     // 这里不要用 watchedBounds，会导致冗余的计算循环
     val bounds = state.bounds
 
     /**
      * 获取可触摸的空间
      */
-    val safeGesturesPadding = WindowInsets.safeGestures.asPaddingValues()
-    val winWidth = max(bounds.width, limits.minWidth)
     val winHeight = max(bounds.height, limits.minHeight)
-    val safeLeftPadding = safeGesturesPadding.calculateLeftPadding(layoutDirection).value
-    val safeTopPadding = safeGesturesPadding.calculateTopPadding().value
-    val safeRightPadding = safeGesturesPadding.calculateRightPadding(layoutDirection).value
-    val safeBottomPadding = safeGesturesPadding.calculateBottomPadding().value
-    val minLeft = safeLeftPadding - winWidth / 2
-    val maxLeft = limits.maxWidth - safeRightPadding - winWidth / 2
-    val minTop = safeTopPadding
-    val maxTop =
-      limits.maxHeight - safeBottomPadding - limits.topBarBaseHeight // 确保 topBar 在可触摸的空间内
-
+    val winWidth = max(bounds.width, limits.minWidth)
+    val padding = createSafeBounds(limits)
     state.updateBounds {
       copy(
-        x = min(max(minLeft, bounds.x), maxLeft),
-        y = min(max(minTop, bounds.y), maxTop),
+        x = min(max(padding.left, bounds.x), padding.right),
+        y = min(max(padding.top, bounds.y), padding.bottom),
         width = winWidth,
         height = winHeight,
       )
     }
   }
 }
+
+@Composable
+private fun WindowController.createSafeBounds(
+  limits: WindowLimits,
+): SafePadding {
+  val layoutDirection = LocalLayoutDirection.current
+  // 这里不要用 watchedBounds，会导致冗余的计算循环
+  val bounds = state.bounds
+
+  /**
+   * 获取可触摸的空间
+   */
+  val safeGesturesPadding = WindowInsets.safeGestures.asPaddingValues()
+  val winWidth = max(bounds.width, limits.minWidth)
+  val safeLeftPadding = safeGesturesPadding.calculateLeftPadding(layoutDirection).value
+  val top = safeGesturesPadding.calculateTopPadding().value
+  val safeRightPadding = safeGesturesPadding.calculateRightPadding(layoutDirection).value
+  val safeBottomPadding = safeGesturesPadding.calculateBottomPadding().value
+  val left = safeLeftPadding - winWidth / 2
+  val right = limits.maxWidth - safeRightPadding - winWidth / 2
+  val bottom =
+    limits.maxHeight - safeBottomPadding - limits.topBarBaseHeight // 确保 topBar 在可触摸的空间内
+  return SafePadding(top, bottom, left, right)
+}
+
+data class SafePadding(val top: Float, val bottom: Float, val left: Float, val right: Float)
 
 expect val WindowController.canOverlayNavigationBar: Boolean
 
