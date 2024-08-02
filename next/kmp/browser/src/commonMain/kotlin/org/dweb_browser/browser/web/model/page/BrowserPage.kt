@@ -24,7 +24,7 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.web.BrowserController
 import org.dweb_browser.helper.SimpleSignal
-import org.dweb_browser.helper.capturable.CaptureController
+import org.dweb_browser.helper.capturable.CaptureV2Controller
 import org.dweb_browser.helper.compose.SimpleI18nResource
 import org.dweb_browser.helper.globalDefaultScope
 
@@ -48,7 +48,7 @@ sealed class BrowserPage(browserController: BrowserController) {
   /**
    * 截图器
    */
-  val captureController = CaptureController()
+  val captureController = CaptureV2Controller()
 
   /**
    * 缩略图
@@ -78,7 +78,7 @@ sealed class BrowserPage(browserController: BrowserController) {
     val preThumbnail = thumbnail
     onRequestCapture()
     if (preThumbnail == thumbnail) {
-      thumbnail = captureController.captureAsync().await()
+      thumbnail = captureController.capture()
     }
   }
 

@@ -2,6 +2,7 @@ package org.dweb_browser.browser.web.ui
 
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,7 +19,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.browser.web.model.LocalBrowserViewModel
-import org.dweb_browser.helper.capturable.capturable
+import org.dweb_browser.helper.capturable.capturable2
 import org.dweb_browser.helper.compose.IosLeaveEasing
 import org.dweb_browser.helper.compose.LocalCompositionChain
 import org.dweb_browser.helper.compose.clickableWithNoEffect
@@ -91,8 +92,11 @@ fun BrowserPageBox(contentScaled: Float) {
       beyondViewportPageCount = 1,
       pageContent = { currentPage ->
         val browserPage = viewModel.getPage(currentPage)
-        browserPage.scale = contentScaled
-        browserPage.Render(Modifier.fillMaxSize().capturable(browserPage.captureController))
+        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+          println("QAQ 1 width=$maxWidth height=$maxHeight")
+          browserPage.scale = contentScaled
+          browserPage.Render(Modifier.fillMaxSize().capturable2(browserPage.captureController))
+        }
       })
   }
 }

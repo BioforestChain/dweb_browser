@@ -67,6 +67,7 @@ fun BrowserHomePage.BrowserHomePageRender(modifier: Modifier = Modifier) {
       modifier = Modifier.fillMaxWidth().weight(1f),
       contentAlignment = Alignment.TopCenter
     ) {
+      println("QAQ 2 width=$maxWidth height=$maxHeight")
       val itemWidth = 80
       val maxRowItemCount = maxWidth.value.toInt().div(itemWidth)
       val gridCells: GridCells
