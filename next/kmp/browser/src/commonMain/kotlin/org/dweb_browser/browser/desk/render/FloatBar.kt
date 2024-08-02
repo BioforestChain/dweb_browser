@@ -82,10 +82,10 @@ fun FloatBarShell(
         boxY = clamp(safeBounds.top, toY, safeBounds.bottom - boxHeight)
       }
     }
-    if (boxX < 0) {
+    if (boxX.isNaN()) {
       setBoxX(safeBounds.right)
     }
-    if (boxY < 0) {
+    if (boxY.isNaN()) {
       setBoxY(safeBounds.vCenter * 0.618f)
     }
     val transition = updateTransition(targetState = Offset(boxX, boxY), label = "")
@@ -195,9 +195,9 @@ class DraggableDelegate() {
  * 用于和 Service 之间的交互，显示隐藏等操作
  */
 class FloatBarState {
-  val layoutXFlow = MutableStateFlow(-1f)
+  val layoutXFlow = MutableStateFlow(Float.NaN)
   var layoutX by layoutXFlow
-  val layoutYFlow = MutableStateFlow(-1f)
+  val layoutYFlow = MutableStateFlow(Float.NaN)
   var layoutY by layoutYFlow
   val layoutWidthFlow = MutableStateFlow(55f)
   var layoutWidth by layoutWidthFlow
