@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -22,6 +23,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
@@ -36,10 +38,10 @@ import org.dweb_browser.sys.window.core.constant.LocalWindowMM
 
 @Composable
 internal fun SmartScanController.ChatScreenPreview(
-  listState: LazyListState, messages: List<BarcodeResultDrawer>
+  listState: LazyListState, messages: List<BarcodeResultDrawer>,
 ) {
   Box(
-    modifier = Modifier.fillMaxSize().padding(bottom = 80.dp),
+    modifier = Modifier.fillMaxSize().padding(bottom = 72.dp, start = 8.dp, end = 8.dp),
     contentAlignment = Alignment.BottomCenter
   ) {
     val density = LocalDensity.current.density
@@ -48,13 +50,12 @@ internal fun SmartScanController.ChatScreenPreview(
     val contentColor = MaterialTheme.colorScheme.onTertiary
     LazyColumn(
       state = listState,
-      modifier = Modifier.fillMaxWidth().sizeIn(maxHeight = 200.dp).background(
-        Brush.verticalGradient(
-          colors = listOf(containerColor.copy(alpha = 0.5f), Color.Transparent),
-          startY = 0f,
-          endY = 200f * density,
-        )
-      ),
+      modifier = Modifier.fillMaxWidth().sizeIn(maxHeight = 200.dp).clip(RoundedCornerShape(16.dp))
+        .background(
+          Brush.verticalGradient(
+            colors = listOf(containerColor.copy(alpha = 0.5f), containerColor.copy(alpha = 0.15f)),
+          )
+        ),
       verticalArrangement = Arrangement.Bottom,
       horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -83,7 +84,7 @@ internal fun CustomSnackBar(
   onOpen: () -> Unit,
   containerColor: Color,
   contentColor: Color,
-  modifier: Modifier = Modifier
+  modifier: Modifier = Modifier,
 ) {
   // 透明背景
   val clipboardManager = LocalClipboardManager.current

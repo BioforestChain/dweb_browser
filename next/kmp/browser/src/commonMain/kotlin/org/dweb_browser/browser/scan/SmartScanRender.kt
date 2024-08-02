@@ -1,7 +1,6 @@
 package org.dweb_browser.browser.scan
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateColor
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -19,24 +18,28 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
-import androidx.compose.material.icons.filled.FlashlightOff
-import androidx.compose.material.icons.filled.FlashlightOn
-import androidx.compose.material.icons.filled.Fullscreen
-import androidx.compose.material.icons.filled.PhotoAlbum
+import androidx.compose.material.icons.twotone.FlashlightOff
+import androidx.compose.material.icons.twotone.FlashlightOn
+import androidx.compose.material.icons.twotone.PhotoLibrary
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.FilledTonalIconToggleButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonColors
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.IconToggleButtonColors
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -77,8 +80,6 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
-import org.dweb_browser.browser.BrowserI18nResource
-import org.dweb_browser.helper.compose.clickableWithNoEffect
 import kotlin.math.max
 import kotlin.math.min
 
@@ -145,6 +146,7 @@ internal fun SmartScanController.RenderScanResultView(modifier: Modifier) {
         }
       }
     }
+    /// 画出结果列表
     ChatScreenPreview(listState, draws.values.toList().sortedBy { -it.index })
   }
 }
@@ -250,14 +252,78 @@ fun SmartScanController.DefaultScanningView(modifier: Modifier, showLight: Boole
     ScannerLine() // 添加扫描线
     CloseIcon { onCancel("close") } // 关闭按钮
     // 内窥按钮
-//    EndoscopicButton(this@DefaultScanningView)
-    if (showLight) {
-      FlashlightIcon {
-        cameraController?.toggleTorch()
+//    WarpButton(
+//      alignment = Alignment.BottomStart,
+//      openHandle = {
+//        previewTypes.value = SmartModuleTypes.Endoscopic
+//      }) {
+//      Icon(
+//        imageVector = Icons.Default.Fullscreen,
+//        contentDescription = "Endoscopic",
+//        tint = MaterialTheme.colorScheme.background,
+//        modifier = Modifier.size(22.dp)
+//      )
+//      Text(
+//        text = BrowserI18nResource.QRCode.photo_endoscopic(),
+//        color = MaterialTheme.colorScheme.background,
+//        fontSize = 12.sp
+//      )
+//    }
+
+    Row(
+      Modifier.fillMaxWidth().align(Alignment.BottomCenter).padding(8.dp),
+      horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+      var isTorchOpened by remember { mutableStateOf(false) }
+      FilledTonalIconToggleButton(
+        checked = isTorchOpened,
+        onCheckedChange = {
+          cameraController?.apply {
+            toggleTorch()
+            isTorchOpened = !isTorchOpened
+          }
+        },
+        enabled = showLight,
+        colors = IconButtonDefaults.filledTonalIconToggleButtonColors().run {
+          remember(this) {
+            IconToggleButtonColors(
+              containerColor = containerColor.copy(0.5f),
+              contentColor = contentColor,
+              disabledContainerColor = disabledContainerColor.copy(0.5f),
+              disabledContentColor = disabledContentColor,
+              checkedContainerColor = checkedContainerColor.copy(0.5f),
+              checkedContentColor = checkedContentColor,
+            )
+          }
+        }
+      ) {
+        Icon(
+          if (isTorchOpened) Icons.TwoTone.FlashlightOn else Icons.TwoTone.FlashlightOff,
+          contentDescription = "Toggle Flashlight",
+        )
+      }
+
+      FilledTonalIconButton(
+        onClick = {
+          cameraController?.openAlbum()
+        },
+        colors = IconButtonDefaults.filledTonalIconButtonColors().run {
+          remember(this) {
+            IconButtonColors(
+              containerColor = containerColor.copy(0.5f),
+              contentColor = contentColor,
+              disabledContainerColor = disabledContainerColor.copy(0.5f),
+              disabledContentColor = disabledContentColor,
+            )
+          }
+        }
+      ) {
+        Icon(
+          Icons.TwoTone.PhotoLibrary,
+          contentDescription = "Pick Photo",
+        )
       }
     }
-    // 相册按钮
-    AlbumButton(cameraController)
   }
 }
 
@@ -290,101 +356,6 @@ fun ScannerLine() {
         size = Size(lineWidth, 3.dp.toPx()),
       )
     }
-  }
-}
-
-@Composable
-fun BoxScope.EndoscopicButton(
-  controller: SmartScanController
-) {
-  WarpButton(
-    alignment = Alignment.BottomStart,
-    openHandle = {
-      controller.previewTypes.value = SmartModuleTypes.Endoscopic
-    }) {
-    Icon(
-      imageVector = Icons.Default.Fullscreen,
-      contentDescription = "Endoscopic",
-      tint = MaterialTheme.colorScheme.background,
-      modifier = Modifier.size(22.dp)
-    )
-    Text(
-      text = BrowserI18nResource.QRCode.photo_endoscopic(),
-      color = MaterialTheme.colorScheme.background,
-      fontSize = 12.sp
-    )
-  }
-}
-
-@Composable
-fun BoxScope.AlbumButton(cameraController: CameraController?) {
-  WarpButton(
-    alignment = Alignment.BottomEnd,
-    openHandle = {
-      cameraController?.openAlbum()
-    }) {
-    Icon(
-      imageVector = Icons.Default.PhotoAlbum,
-      contentDescription = "PhotoAlbum",
-      tint = MaterialTheme.colorScheme.background,
-      modifier = Modifier.size(22.dp)
-    )
-    Text(
-      text = BrowserI18nResource.QRCode.photo_album(),
-      color = MaterialTheme.colorScheme.background,
-      fontSize = 12.sp
-    )
-  }
-}
-
-@Composable
-private fun BoxScope.WarpButton(
-  alignment: Alignment,
-  openHandle: () -> Unit,
-  iconPreview: @Composable () -> Unit
-) {
-  Column(
-    modifier = Modifier.padding(16.dp).size(54.dp).clickableWithNoEffect {
-      openHandle()
-    }.align(alignment),
-    horizontalAlignment = Alignment.CenterHorizontally,
-    verticalArrangement = Arrangement.Center
-  ) {
-    iconPreview()
-  }
-}
-
-/**画出相机等*/
-@Composable
-private fun BoxScope.FlashlightIcon(toggleTorch: () -> Unit) {
-  var lightState by remember { mutableStateOf(false) }
-  val imageVector = if (lightState) Icons.Default.FlashlightOn else Icons.Default.FlashlightOff
-  var animationColor by remember { mutableStateOf(Color(0xFFFFFFFF)) }
-  val animation = rememberInfiniteTransition(label = "")
-  val animateColor by animation.animateColor(
-    initialValue = Color(0xFFFFFFFF),
-    targetValue = Color(0xFF000000),
-    animationSpec = infiniteRepeatable(
-      animation = tween(durationMillis = 2000), repeatMode = RepeatMode.Reverse
-    ),
-    label = ""
-  )
-
-  DisposableEffect(animateColor) {
-    animationColor = animateColor
-    onDispose { }
-  }
-  Box(modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp).size(46.dp).clip(CircleShape)
-    .clickable {
-      lightState = !lightState
-      toggleTorch()
-    }) {
-    Icon(
-      imageVector = imageVector,
-      contentDescription = "FlashLight",
-      tint = animationColor,
-      modifier = Modifier.align(Alignment.Center).size(36.dp)
-    )
   }
 }
 
