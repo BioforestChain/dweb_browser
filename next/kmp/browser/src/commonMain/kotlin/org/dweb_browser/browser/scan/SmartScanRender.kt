@@ -245,51 +245,19 @@ fun DrawScope.drawAnimatedBoundingBox(barcode: BarcodeResult, animatedOffset: Fl
 
 /**扫码节目中的扫描线，灯光按钮等UI*/
 @Composable
-fun SmartScanController.DefaultScanningView(modifier: Modifier) {
+fun SmartScanController.DefaultScanningView(modifier: Modifier, showLight: Boolean = true) {
   Box(modifier = modifier) {
     ScannerLine() // 添加扫描线
     CloseIcon { onCancel("close") } // 关闭按钮
     // 内窥按钮
-//    WarpButton(
-//      alignment = Alignment.BottomStart,
-//      openHandle = {
-//        previewTypes.value = SmartModuleTypes.Endoscopic
-//      }) {
-//      Icon(
-//        imageVector = Icons.Default.Fullscreen,
-//        contentDescription = "Endoscopic",
-//        tint = MaterialTheme.colorScheme.background,
-//        modifier = Modifier.size(22.dp)
-//      )
-//      Text(
-//        text = BrowserI18nResource.QRCode.photo_endoscopic(),
-//        color = MaterialTheme.colorScheme.background,
-//        fontSize = 12.sp
-//      )
-//    }
-
-    FlashlightIcon {
-      cameraController?.toggleTorch()
+//    EndoscopicButton(this@DefaultScanningView)
+    if (showLight) {
+      FlashlightIcon {
+        cameraController?.toggleTorch()
+      }
     }
     // 相册按钮
-    WarpButton(
-      alignment = Alignment.BottomEnd,
-      openHandle = {
-        cameraController?.openAlbum()
-      }) {
-      Icon(
-        imageVector = Icons.Default.PhotoAlbum,
-        contentDescription = "PhotoAlbum",
-        tint = MaterialTheme.colorScheme.background,
-        modifier = Modifier.size(22.dp)
-      )
-      Text(
-        text = BrowserI18nResource.QRCode.photo_album(),
-        color = MaterialTheme.colorScheme.background,
-        fontSize = 12.sp
-      )
-    }
-
+    AlbumButton(cameraController)
   }
 }
 
@@ -322,6 +290,50 @@ fun ScannerLine() {
         size = Size(lineWidth, 3.dp.toPx()),
       )
     }
+  }
+}
+
+@Composable
+fun BoxScope.EndoscopicButton(
+  controller: SmartScanController
+) {
+  WarpButton(
+    alignment = Alignment.BottomStart,
+    openHandle = {
+      controller.previewTypes.value = SmartModuleTypes.Endoscopic
+    }) {
+    Icon(
+      imageVector = Icons.Default.Fullscreen,
+      contentDescription = "Endoscopic",
+      tint = MaterialTheme.colorScheme.background,
+      modifier = Modifier.size(22.dp)
+    )
+    Text(
+      text = BrowserI18nResource.QRCode.photo_endoscopic(),
+      color = MaterialTheme.colorScheme.background,
+      fontSize = 12.sp
+    )
+  }
+}
+
+@Composable
+fun BoxScope.AlbumButton(cameraController: CameraController?) {
+  WarpButton(
+    alignment = Alignment.BottomEnd,
+    openHandle = {
+      cameraController?.openAlbum()
+    }) {
+    Icon(
+      imageVector = Icons.Default.PhotoAlbum,
+      contentDescription = "PhotoAlbum",
+      tint = MaterialTheme.colorScheme.background,
+      modifier = Modifier.size(22.dp)
+    )
+    Text(
+      text = BrowserI18nResource.QRCode.photo_album(),
+      color = MaterialTheme.colorScheme.background,
+      fontSize = 12.sp
+    )
   }
 }
 

@@ -23,6 +23,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,6 +39,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.compose.div
@@ -53,7 +55,8 @@ fun SmartScanController.RenderAlbumPreview(
 ) {
   LocalWindowController.current.navigation.GoBackHandler {
     albumImageFlow.value = null
-    previewTypes.value = SmartModuleTypes.Scanning
+    barcodeResultFlow.emit(listOf()) // 清空缓存的数据
+    previewTypes.value = SmartModuleTypes.Scanning // 切换成扫码模式
   }
   val density = LocalDensity.current.density
   // 显示选中的图片
@@ -111,6 +114,8 @@ fun SmartScanController.RenderAlbumPreview(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SmartScanController.RenderEmptyResult() {
+  val win = LocalWindowController.current
+  val uiScope = rememberCoroutineScope()
   BasicAlertDialog(
     onDismissRequest = { },
     modifier = Modifier.clip(AlertDialogDefaults.shape)
@@ -122,8 +127,10 @@ fun SmartScanController.RenderEmptyResult() {
         modifier = Modifier.padding(vertical = 20.dp)
       )
       Text(
-        text = BrowserI18nResource.QRCode.confirm(), modifier = Modifier.clickableWithNoEffect {
-          onCancel("close")
+        text = BrowserI18nResource.QRCode.Back(), modifier = Modifier.clickableWithNoEffect {
+          uiScope.launch {
+            win.navigation.emitGoBack()
+          }
         }.padding(20.dp), color = MaterialTheme.colorScheme.primary
       )
     }

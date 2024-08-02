@@ -8,17 +8,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.WeakHashMap
+import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.getOrPut
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
 import org.dweb_browser.sys.window.core.WindowState
 
 class WindowNavigation(private val state: WindowState) {
 
-  private val goBackSignal = SimpleSignal()
-  val onGoBack = goBackSignal.toListener()
+  private val goBackFlow = MutableSharedFlow<Unit>()
 
   internal val pageStack by lazy { mutableStateListOf<@Composable WindowContentRenderScope.(Modifier) -> Unit>() }
   fun pushPage(pageContent: @Composable WindowContentRenderScope.(Modifier) -> Unit) {
@@ -42,7 +43,7 @@ class WindowNavigation(private val state: WindowState) {
 
   private val onBackRecords by lazy {
     mutableStateListOf<GoBackRecord>().also { records ->
-      onGoBack {
+      goBackFlow.collectIn {
         records.lastOrNull { it.enabled }?.apply {
           uiScope.launch {
             onBack()
@@ -74,7 +75,7 @@ class WindowNavigation(private val state: WindowState) {
   }
 
   suspend fun emitGoBack() {
-    goBackSignal.emit()
+    goBackFlow.emit(Unit)
   }
 
   internal val goBackButtonStack = mutableStateListOf<String>()

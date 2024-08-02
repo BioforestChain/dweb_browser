@@ -1,8 +1,12 @@
 package org.dweb_browser.browser.scan
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Camera
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -13,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.SwingPanel
 import androidx.compose.ui.graphics.toComposeImageBitmap
 import kotlinx.coroutines.launch
+import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.common.loading.LoadingView
 import org.dweb_browser.helper.globalDefaultScope
 import org.jetbrains.skia.Image
@@ -27,7 +32,6 @@ var lastDirectory = mutableStateOf<String?>(null)
 /**
  * 桌面端是选择图片文件
  */
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 actual fun CameraPreviewRender(
   modifier: Modifier,
@@ -38,7 +42,80 @@ actual fun CameraPreviewRender(
 
   LoadingView(startLoading) {}
 
+  // 创建相机控制器
+  val cameraController = remember {
+    CameraControllerImpl(controller).also { c ->
+      controller.cameraController?.stop()
+      controller.cameraController = c // 赋值
+    }
+  }
+  // 没有检测到摄像头
+//  if (cameraController.webcam == null) {
+//    return noWebcamDetected(controller)
+//  }
 
+//  SwingPanel(
+//    modifier = Modifier.fillMaxSize(),
+//    factory = {
+//      // 创建面板显示网络摄像头视频
+//      val panel = WebcamPanel(cameraController.webcam).apply {
+//        isFPSDisplayed = true
+//        drawMode = DrawMode.FIT
+//        // panel要显示的相机图像大小
+//        isImageSizeDisplayed = true
+//      }
+//      panel
+//    }
+//  )
+
+  LaunchedEffect(Unit) {
+    startLoading = false
+  }
+}
+
+
+/**没有检测到网络摄像头*/
+@Composable
+private fun noWebcamDetected(controller: SmartScanController) {
+  AlertDialog(
+    icon = {
+      Icon(Icons.Default.Camera, contentDescription = "Example Icon")
+    },
+    title = {
+      Text(text = BrowserI18nResource.QRCode.webcam_detected_title.text)
+    },
+    text = {
+      Text(text = BrowserI18nResource.QRCode.webcam_detected_body.text)
+    },
+    onDismissRequest = {
+    },
+    dismissButton = {
+      TextButton(
+        onClick = {
+          controller.onCancel("dismiss")
+        }
+      ) {
+        Text(BrowserI18nResource.QRCode.dismiss.text)
+      }
+    },
+    confirmButton = {
+      TextButton(
+        onClick = {
+          controller.previewTypes.value = SmartModuleTypes.Endoscopic
+        }
+      ) {
+        Text(BrowserI18nResource.QRCode.confirm.text)
+      }
+    }
+  )
+}
+
+@Composable
+actual fun AlbumPreviewRender(
+  modifier: Modifier,
+  controller: SmartScanController
+) {
+  // 渲染文件选择
   SwingPanel(
     modifier = Modifier.fillMaxSize(),
     factory = {
@@ -69,9 +146,4 @@ actual fun CameraPreviewRender(
       fileChooser
     }
   )
-
-  LaunchedEffect(Unit) {
-    startLoading = false
-  }
-
 }

@@ -17,6 +17,7 @@ fun WindowContentRenderScope.RenderBarcodeScanning(
   modifier: Modifier, controller: SmartScanController
 ) {
   val selectImg by controller.albumImageFlow.collectAsState()
+  // 当用户选中文件的时候切换到Album模式
   selectImg?.let {
     controller.previewTypes.value = SmartModuleTypes.Album
   }
@@ -31,6 +32,7 @@ fun WindowContentRenderScope.RenderBarcodeScanning(
         // 扫描线和打开相册，暂时不再桌面端支持
         when (IPureViewController.platform) {
           PureViewControllerPlatform.Desktop -> {
+            controller.DefaultScanningView(Modifier.fillMaxSize().zIndex(2f), false)
           }
 
           PureViewControllerPlatform.Apple, PureViewControllerPlatform.Android -> {
@@ -44,6 +46,9 @@ fun WindowContentRenderScope.RenderBarcodeScanning(
       }
       // 相册选择
       SmartModuleTypes.Album -> {
+        if (selectImg == null) {
+          AlbumPreviewRender(modifier, controller)
+        }
         selectImg?.let {
           // 如果是选中图片，渲染选中的图片
           controller.RenderAlbumPreview(
@@ -67,5 +72,11 @@ fun WindowContentRenderScope.RenderBarcodeScanning(
 /**相机preview视图*/
 @Composable
 expect fun CameraPreviewRender(
+  modifier: Modifier = Modifier, controller: SmartScanController
+)
+
+/**这里是文件选择视图*/
+@Composable
+expect fun AlbumPreviewRender(
   modifier: Modifier = Modifier, controller: SmartScanController
 )

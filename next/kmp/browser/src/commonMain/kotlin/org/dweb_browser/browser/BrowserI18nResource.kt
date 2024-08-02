@@ -337,11 +337,6 @@ object BrowserI18nResource {
       Language.EN to "Failed to obtain the Camera permission and cannot provide the code scanning service"
     )
 
-    val recognizing = SimpleI18nResource(
-      Language.ZH to "正在识别中...",
-      Language.EN to "Recognizing..."
-    )
-
     val Action = SimpleI18nResource(
       Language.ZH to "打开",
       Language.EN to "Open"
@@ -355,6 +350,14 @@ object BrowserI18nResource {
     val confirm = SimpleI18nResource(
       Language.ZH to "确定",
       Language.EN to "Confirm"
+    )
+    val dismiss = SimpleI18nResource(
+      Language.ZH to "关闭",
+      Language.EN to "Dismiss"
+    )
+    val Back = SimpleI18nResource(
+      Language.ZH to "返回",
+      Language.EN to "Back"
     )
     val photo_album = SimpleI18nResource(
       Language.ZH to "相册",
@@ -377,6 +380,14 @@ object BrowserI18nResource {
       Camera is not available on simulator.
       Please try to run on a real iOS device.
       """
+    )
+    val webcam_detected_title = SimpleI18nResource(
+      Language.ZH to "没有检测到摄像头",
+      Language.EN to "Camera not detected"
+    )
+    val webcam_detected_body = SimpleI18nResource(
+      Language.ZH to "是否切换为内窥模式？",
+      Language.EN to "Switch to Endoscopic Mode?"
     )
   }
 
