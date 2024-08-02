@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.BrokenImage
-import androidx.compose.material.icons.twotone.Image
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
@@ -18,12 +17,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.unit.Dp
 import org.dweb_browser.helper.ImageResourcePurposes
 import org.dweb_browser.helper.StrictImageResource
 import org.dweb_browser.helper.compose.rememberVectorPainterWithTint
@@ -50,6 +51,7 @@ fun AppIcon(
   color: Color = LocalContentColor.current,
   containerAlpha: Float? = null,
   containerColor: Color? = null,
+  containerShadow: Dp? = null,
   iconShape: Shape? = null,
   iconPlaceholder: Painter? = null,
   iconError: Painter? = null,
@@ -64,6 +66,7 @@ fun AppIcon(
     color = color,
     containerAlpha = containerAlpha,
     containerColor = containerColor,
+    containerShadow = containerShadow,
     iconShape = iconShape,
     iconPlaceholder = iconPlaceholder,
     iconError = iconError,
@@ -143,6 +146,7 @@ private fun AppIconOuter(
   color: Color,
   containerAlpha: Float? = null,
   containerColor: Color?,
+  containerShadow: Dp? = null,
   iconShape: Shape? = null,
   iconPlaceholder: Painter?,
   iconError: Painter?,
@@ -157,15 +161,20 @@ private fun AppIconOuter(
     ?: (if (color.luminance() > 0.5f) Color.Black else Color.White).copy(
       alpha = containerAlpha ?: 0.2f
     )
+  val containerShape = iconShape ?: SquircleShape()
   // 只有加载成功的时候，才会显示背景裁切图
-  val containerModifier = if (isSuccess) {
-    modifier
-      .clip(iconShape ?: SquircleShape())
-      .background(safeContainerColor)
-  } else {
-    modifier
+  var containerModifier = modifier
+  containerShadow?.also { size ->
+    containerModifier = containerModifier.shadow(size, containerShape)
   }
-  BoxWithConstraints(modifier = containerModifier.aspectRatio(1f), contentAlignment = Alignment.Center) {
+  containerModifier = containerModifier.background(safeContainerColor, containerShape)
+  if (!isSuccess) {
+    containerModifier = containerModifier.alpha(0.5f)
+  }
+  BoxWithConstraints(
+    modifier = containerModifier.aspectRatio(1f),
+    contentAlignment = Alignment.Center
+  ) {
     val icon = when (iconSrc) {
       is String -> {
         PureImageLoader.SmartLoad(iconSrc, maxWidth, maxHeight, iconFetchHook)
@@ -203,16 +212,16 @@ private fun AppIconInner(
   iconDescription: String = "icon",
 ) {
   var iconModifier = Modifier.fillMaxSize();
-  icon.with(onBusy = { busyInfo ->
-    val painter = iconPlaceholder ?: rememberVectorPainterWithTint(
-      image = Icons.TwoTone.Image,
-      tintColor = color,
-    )
-    Image(painter, contentDescription = busyInfo, iconModifier)
+  icon.with(onBusy = { // busyInfo ->
+//    val painter = iconPlaceholder ?: rememberVectorPainterWithTint(
+//      image = Icons.TwoTone.Image,
+//      tintColor = color,
+//    )
+//    Image(painter, contentDescription = busyInfo, iconModifier)
   }, onError = { error ->
     val painter = iconError ?: rememberVectorPainterWithTint(
       image = Icons.TwoTone.BrokenImage,
-      tintColor = color,
+      tintColor = color.copy(alpha = 0.5f),
     )
     Image(painter, contentDescription = error.message, iconModifier)
   }) { imageBitmap ->

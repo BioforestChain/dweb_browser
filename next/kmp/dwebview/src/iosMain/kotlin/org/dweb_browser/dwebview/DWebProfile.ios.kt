@@ -8,8 +8,6 @@ import org.dweb_browser.pure.crypto.hash.sha256Sync
 import platform.Foundation.NSUUID
 import platform.WebKit.WKWebsiteDataStore
 
-internal const val IncognitoSuffix = ".incognito"
-
 class WKWebViewProfile internal constructor(
   override val profileName: ProfileName,
 ) : DWebProfile {
