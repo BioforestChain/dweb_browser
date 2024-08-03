@@ -122,8 +122,8 @@ fun FloatBarShell(
 
     val color = remember(isDark) {
       when {
-        isDark -> Color.Black.copy(alpha = 0.2f)
-        else -> Color.White.copy(alpha = 0.45f)
+        isDark -> Color.White.copy(alpha = 0.45f)
+        else -> Color.Black.copy(alpha = 0.2f)
       }
     }
     val ctx = remember(draggableDelegate) { FloatBarContext(draggableDelegate) }

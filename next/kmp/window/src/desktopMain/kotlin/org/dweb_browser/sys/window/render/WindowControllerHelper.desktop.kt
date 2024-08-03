@@ -42,7 +42,7 @@ suspend fun MicroModule.Runtime.loadSourceToImageBitmap(src: String, width: Int,
   suspendCoroutine { con ->
     val key = "got image bitmap: ${randomUUID()} $src"
     val render: @Composable ApplicationScope.() -> Unit = {
-      val result = PureImageLoader.SmartLoad(src, width.dp, height.dp, blobFetchHook)
+      val result = PureImageLoader.SmartLoad(src, width.dp, height.dp, null, blobFetchHook)
       when {
         result.isBusy -> {}
         else -> {

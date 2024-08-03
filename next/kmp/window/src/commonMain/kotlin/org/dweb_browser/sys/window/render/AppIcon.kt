@@ -141,7 +141,7 @@ data class AppLogo(
   val monochrome: Boolean? = null,
 ) {
   val safeMaskable get() = maskable ?: false
-  val safeMonochrome get() = maskable ?: false
+  val safeMonochrome get() = monochrome ?: false
   val safeDescription get() = description ?: "logo"
   val safeColor @Composable get() = color ?: LocalContentColor.current
 
@@ -159,7 +159,13 @@ data class AppLogo(
     ): AppLogo {
       if (url == null) return base ?: AppLogo()
       val loadResult =
-        PureImageLoader.SmartLoad(url, width ?: defaultSize, height ?: defaultSize, fetchHook)
+        PureImageLoader.SmartLoad(
+          url = url,
+          maxWidth = width ?: defaultSize,
+          maxHeight = height ?: defaultSize,
+          currentColor = base?.color,
+          hook = fetchHook
+        )
       return base?.copy(loadResult = loadResult) ?: AppLogo(
         loadResult = loadResult, color = LocalContentColor.current
       )
@@ -242,7 +248,7 @@ data class AppLogo(
       when (val errorContent = logoOptions.errorContent) {
         null -> logoOptions.error?.also { painter ->
           Box(iconModifier, contentAlignment = Alignment.Center) {
-            Image(painter, contentDescription = logoOptions.description, Modifier.scale(0.62f))
+            Image(painter, contentDescription = logoOptions.safeDescription, Modifier.scale(0.62f))
           }
         }
 
@@ -254,7 +260,7 @@ data class AppLogo(
       when (val loadingContent = logoOptions.loadingContent) {
         null -> logoOptions.placeholder?.also { painter ->
           Box(iconModifier, contentAlignment = Alignment.Center) {
-            Image(painter, contentDescription = logoOptions.description, iconModifier.scale(0.62f))
+            Image(painter, contentDescription = logoOptions.safeDescription, iconModifier.scale(0.62f))
           }
         }
 
@@ -270,14 +276,14 @@ data class AppLogo(
       if (logoOptions.safeMonochrome) {
         Icon(
           imageBitmap,
-          contentDescription = logoOptions.description,
+          contentDescription = logoOptions.safeDescription,
           modifier = iconModifier,
           tint = logoOptions.safeColor,
         )
       } else {
         Image(
           imageBitmap,
-          contentDescription = logoOptions.description,
+          contentDescription = logoOptions.safeDescription,
           modifier = iconModifier,
         )
       }

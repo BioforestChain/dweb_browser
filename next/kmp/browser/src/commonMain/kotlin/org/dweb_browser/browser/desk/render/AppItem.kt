@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -47,9 +48,9 @@ internal fun AppItem(
     Text(
       text = app.name, maxLines = 2, overflow = TextOverflow.Ellipsis, style = TextStyle(
         color = Color.White,
-        fontSize = 12.sp,
+        fontSize = 10.sp,
         textAlign = TextAlign.Center,
-        fontWeight = FontWeight.Thin,
+        fontWeight = FontWeight.Light,
         shadow = Shadow(Color.Black.copy(alpha = 0.5f), Offset(0f, 2f), 4f)
       ), modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
     )

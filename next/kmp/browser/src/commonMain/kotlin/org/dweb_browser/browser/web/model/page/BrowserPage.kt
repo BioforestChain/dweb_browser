@@ -75,7 +75,6 @@ sealed class BrowserPage(browserController: BrowserController) {
   }
 
   fun captureViewInBackground(reason:String) = globalDefaultScope.launch {
-    println("QAQ captureView($reason) url=$url")
     val preThumbnail = thumbnail
     onRequestCapture()
     if (preThumbnail == thumbnail) {

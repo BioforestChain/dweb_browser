@@ -23,6 +23,7 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import org.dweb_browser.core.std.file.ext.blobFetchHook
 import org.dweb_browser.pure.image.compose.PureImageLoader
 import org.dweb_browser.pure.image.compose.SmartLoad
 import org.dweb_browser.sys.window.core.WindowController
@@ -141,17 +142,18 @@ class AlertModalState private constructor(
              * IconButtonTokens.IconSize
              */
             val iconSize = 24.dp
-            PureImageLoader.SmartLoad(url, iconSize, iconSize).with(onError = {
-              Icon(imageVector = Icons.Default.ErrorOutline, contentDescription = iconAlt)
-            }, onBusy = {
-              CircularProgressIndicator(
-                modifier = Modifier.width(iconSize),
-                color = MaterialTheme.colorScheme.surfaceVariant,
-                trackColor = MaterialTheme.colorScheme.secondary,
-              )
-            }) {
-              Image(bitmap = it, contentDescription = iconAlt)
-            }
+            PureImageLoader.SmartLoad(url, iconSize, iconSize, hook = mm.blobFetchHook)
+              .with(onError = {
+                Icon(imageVector = Icons.Default.ErrorOutline, contentDescription = iconAlt)
+              }, onBusy = {
+                CircularProgressIndicator(
+                  modifier = Modifier.width(iconSize),
+                  color = MaterialTheme.colorScheme.surfaceVariant,
+                  trackColor = MaterialTheme.colorScheme.secondary,
+                )
+              }) {
+                Image(bitmap = it, contentDescription = iconAlt)
+              }
           }
         }
       },

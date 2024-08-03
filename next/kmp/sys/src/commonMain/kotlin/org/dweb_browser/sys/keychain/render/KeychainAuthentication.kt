@@ -74,6 +74,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import org.dweb_browser.core.std.file.ext.blobFetchHook
 import org.dweb_browser.helper.platform.DeviceKeyValueStore
 import org.dweb_browser.helper.platform.theme.DwebBrowserAppTheme
 import org.dweb_browser.helper.platform.theme.LocalColorful
@@ -85,7 +86,6 @@ import org.dweb_browser.pure.image.compose.StableSmartLoad
 import org.dweb_browser.sys.keychain.KeychainNMM
 import org.dweb_browser.sys.window.core.helper.pickLargest
 import org.dweb_browser.sys.window.core.helper.toStrict
-import org.dweb_browser.core.std.file.ext.blobFetchHook
 
 internal expect fun getDeviceName(): String
 
@@ -166,7 +166,7 @@ class KeychainAuthentication(
       ) {
         remember { runtime.icons.toStrict().pickLargest() }?.also { icon ->
           val size = min(maxWidth, maxHeight)
-          PureImageLoader.StableSmartLoad(icon.src, size, size, runtime.blobFetchHook)
+          PureImageLoader.StableSmartLoad(icon.src, size, size, hook = runtime.blobFetchHook)
             .with { img ->
               AnimatedVisibility(
                 visibleState = remember {

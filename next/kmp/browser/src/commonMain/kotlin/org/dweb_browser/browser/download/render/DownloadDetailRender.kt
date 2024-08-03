@@ -4,10 +4,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -19,13 +21,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import okio.Path.Companion.toPath
@@ -111,18 +110,22 @@ private fun DownloadTask.AppHeadInfo(modifier: Modifier = Modifier) {
                 verticalAlignment = Alignment.Top
               ) {
                 AppLogo.fromResources(it.icons, fetchHook = mm.blobFetchHook).toDeskAppIcon()
-                  .Render()
-                Text(
-                  buildAnnotatedString {
-                    withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
-                      append(it.short_name)
-                    }
-                    withStyle(SpanStyle(fontStyle = FontStyle.Italic)) {
-                      append(" ($originMmid)")
-                    }
-                  },
-                  style = style
-                )
+                  .Render(Modifier.size(32.dp))
+                Column(
+                  Modifier.padding(start = 4.dp),
+                  verticalArrangement = Arrangement.spacedBy(2.dp)
+                ) {
+                  Text(
+                    it.name,
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Bold
+                  )
+                  Text(
+                    originMmid,
+                    style = MaterialTheme.typography.bodySmall.run { copy(fontSize = fontSize * 0.8f) },
+                    fontStyle = FontStyle.Italic
+                  )
+                }
               }
             }
         }

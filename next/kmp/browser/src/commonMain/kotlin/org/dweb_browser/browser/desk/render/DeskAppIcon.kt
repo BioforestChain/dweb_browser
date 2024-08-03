@@ -12,11 +12,22 @@ fun AppLogo.toDeskAppLogo() = remember(this) { copyToDeskAppLogo() }
 fun AppLogo.copyToDeskAppLogo() = if (color == null) copy(color = Color.Black) else this
 
 @Composable
-fun AppLogo.toDeskAppIcon(containerBase: AppIconContainer? = null, containerAlpha: Float? = null) =
+fun AppLogo.toDeskAppIcon(
+  containerBase: AppIconContainer? = null,
+  containerColor: Color? = null,
+  containerAlpha: Float? = null,
+) =
   toDeskAppLogo().toIcon(
     when (containerBase) {
-      null -> AppIconContainer(color = Color.White, alpha = containerAlpha ?: deskIconAlpha)
-      else -> containerBase.copy(color = Color.White, alpha = containerAlpha ?: deskIconAlpha)
+      null -> AppIconContainer(
+        color = containerColor ?: Color.White,
+        alpha = containerAlpha ?: deskIconAlpha
+      )
+
+      else -> containerBase.copy(
+        color = containerColor ?: Color.White,
+        alpha = containerAlpha ?: deskIconAlpha
+      )
     }
   )
 

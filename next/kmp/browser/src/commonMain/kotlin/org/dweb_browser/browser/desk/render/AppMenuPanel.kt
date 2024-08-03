@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.union
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -27,6 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.referentialEqualityPolicy
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -68,12 +68,15 @@ internal fun rememberAppMenuPanel(
   microModule: NativeMicroModule.NativeRuntime,
 ) = remember(desktopController, microModule) { AppMenuPanel(desktopController, microModule) }
 
-@OptIn(ExperimentalMaterial3Api::class)
 internal class AppMenuPanel(
   val desktopController: DesktopV2Controller,
   val microModule: NativeMicroModule.NativeRuntime,
 ) {
-  private var cacheApp by mutableStateOf<DesktopAppModel?>(null)
+  private var cacheApp by mutableStateOf<DesktopAppModel?>(
+    null,
+    // 不知道为什么， DesktopAppModel 就是得用 === ，而不能是 ==
+    policy = referentialEqualityPolicy()
+  )
   var safeAreaInsets by mutableStateOf(WindowInsets(0))
 
   /**
@@ -172,7 +175,7 @@ internal class AppMenuPanel(
         AppMenuLayer(app)
       }
       AnimatedVisibility(isOpenDeleteDialog) {
-        DeleteAlert(app, microModule, onDismissRequest = { hide() }, onConfirm = {
+        DeskDeleteAlert(app, microModule, onDismissRequest = { hide() }, onConfirm = {
           hide()
           when {
             app.isWebLink -> doWebLinkDelete(app.mmid)
@@ -208,13 +211,15 @@ internal class AppMenuPanel(
       val iconScaleDiff = 0.1f
       val iconScale = 1f + iconScaleDiff * p2
       val iconAlpha = safeAlpha(p1)
+      val appOffset = app.offset
+      val appSize = app.size
 
       AppLogo.from(app.icon, fetchHook = microModule.blobFetchHook).toDeskAppIcon().Render(
         Modifier.requiredSize(
-          app.size.width.dp,
-          app.size.height.dp
+          appSize.width.dp,
+          appSize.height.dp
         )// 不要用 translationXY 去做变换，会有消失不见的问题
-          .offset(app.offset.x.dp, app.offset.y.dp).graphicsLayer {
+          .offset(appOffset.x.dp, appOffset.y.dp).graphicsLayer {
             scaleX = iconScale
             scaleY = iconScale
             alpha = iconAlpha
@@ -232,12 +237,12 @@ internal class AppMenuPanel(
         )
       }
 
-      val appBounds = remember(app.offset, app.size) {
+      val appBounds = remember(appOffset, appSize) {
         PureRect(
-          x = app.offset.x,
-          y = app.offset.y,
-          width = app.size.width,
-          height = app.size.height,
+          x = appOffset.x,
+          y = appOffset.y,
+          width = appSize.width,
+          height = appSize.height,
         ).toPureBounds().centerScale(1f + iconScaleDiff)
       }
       var appMenuIntSizeReady by remember { mutableStateOf(false) }
@@ -283,8 +288,8 @@ internal class AppMenuPanel(
       val aniTranslationX = startIntX + (endIntX - startIntX) * p3
       val aniTranslationY = startIntY + (endIntY - startIntY) * p3
 
-      val startScaleX = app.size.width / (appMenuIntSize.width / d)
-      val startScaleY = app.size.height / (appMenuIntSize.height / d)
+      val startScaleX = appSize.width / (appMenuIntSize.width / d)
+      val startScaleY = appSize.height / (appMenuIntSize.height / d)
       val aniScaleX = startScaleX + (1f - startScaleX) * p3
       val aniScaleY = startScaleY + (1f - startScaleY) * p3
 

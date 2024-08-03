@@ -137,10 +137,11 @@ private fun WindowController.IconEffect(composeWindowParams: ComposeWindowParams
   val iconUrl by watchedState { iconUrl }
   composeWindowParams.icon = iconUrl?.let { url ->
     PureImageLoader.SmartLoad(
-      url,
-      64.dp,
-      64.dp,
-      state.constants.microModule.value?.blobFetchHook
+      url = url,
+      maxWidth = 64.dp,
+      maxHeight = 64.dp,
+      currentColor = null,
+      hook = state.constants.microModule.value?.blobFetchHook
     ).success?.toAwtImage()?.toPainter()
   }
 }

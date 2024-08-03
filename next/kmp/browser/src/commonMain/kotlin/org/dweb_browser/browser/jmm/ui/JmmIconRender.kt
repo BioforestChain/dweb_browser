@@ -1,8 +1,10 @@
 package org.dweb_browser.browser.jmm.ui
 
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.LocalTextStyle
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import org.dweb_browser.browser.desk.render.toDeskAppLogo
@@ -19,5 +21,5 @@ fun JmmAppInstallManifest.IconRender(size: Dp = LocalTextStyle.current.fontSize.
   when (val icon = remember(icons) { icons.toStrict().pickLargest() }) {
     null -> AppLogo.fromUrl(logo, fetchHook = fetchHook)
     else -> AppLogo.from(icon, fetchHook = fetchHook)
-  }.toDeskAppLogo()
+  }.toDeskAppLogo().Render(Modifier.size(size))
 }

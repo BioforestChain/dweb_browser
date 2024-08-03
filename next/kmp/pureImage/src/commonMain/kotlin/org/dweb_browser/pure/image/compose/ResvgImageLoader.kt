@@ -7,8 +7,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import org.dweb_browser.helper.compose.toCssRgba
 import org.dweb_browser.helper.globalDefaultScope
 import org.dweb_browser.helper.platform.toImageBitmap
+import org.dweb_browser.helper.utf8Binary
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureServerRequest
 import org.dweb_browser.pure.http.defaultHttpPureClient
@@ -57,7 +59,15 @@ class ResvgImageLoader : PureImageLoader {
               ?: client.fetch(task.url);
           imageResultState.emit(ImageLoadResult.Loading)
 
-          val svgData = pureResponse.binary()
+          val svgData = when (val currentColor = task.currentColor) {
+            null -> pureResponse.binary()
+            else -> {
+              val svgCode = pureResponse.text()
+              if (svgCode.contains("currentColor")) {
+                svgCode.replace("currentColor", currentColor.toCssRgba()).utf8Binary
+              } else pureResponse.binary()
+            }
+          }
           val pngData = svgToPng(
             svgData,
             RenderOptions(

@@ -8,6 +8,7 @@ import androidx.compose.material.icons.twotone.Share
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import org.dweb_browser.browser.BrowserI18nResource
+import org.dweb_browser.browser.desk.DeskI18n
 
 internal data class AppMenuModel(val type: AppMenuType, val enable: Boolean)
 internal enum class AppMenuType {
@@ -28,7 +29,7 @@ internal enum class AppMenuType {
   UNINSTALL {
     override val data: AppModelTypeData
       get() = AppModelTypeData(
-        BrowserI18nResource.Desktop.uninstall.text, Icons.TwoTone.Delete, color = Color(0xFFEF5350)
+        DeskI18n.uninstall.text, Icons.TwoTone.Delete, color = Color(0xFFEF5350)
       )
   },
 

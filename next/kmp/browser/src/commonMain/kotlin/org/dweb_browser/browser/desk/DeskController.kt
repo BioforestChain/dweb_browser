@@ -1,6 +1,7 @@
 package org.dweb_browser.browser.desk
 
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.serialization.json.Json
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.module.channelRequest
@@ -47,34 +48,41 @@ class DeskController(val deskNMM: DeskNMM.DeskRuntime) {
     }
   }
   val alertController = AlertController()
-  val appSortList = DeskSortStore(deskNMM).also { appSortList ->
-    deskNMM.scopeLaunch(cancelable = true) {
-      suspend fun doObserve(urlPath: String, cb: suspend ChangeState<MMID>.() -> Unit) {
-        val response = deskNMM.channelRequest(urlPath) {
-          for (frame in income) {
-            when (frame) {
-              is PureTextFrame -> {
-                Json.decodeFromString<ChangeState<MMID>>(frame.text).also {
-                  it.cb()
-                }
-              }
 
-              else -> {}
+  /**
+   * 应用变更的数据流
+   */
+  internal val dnsInstallAppsFlow = MutableSharedFlow<ChangeState<MMID>>().apply {
+    deskNMM.scopeLaunch(cancelable = true) {
+      val response = deskNMM.channelRequest("file://dns.std.dweb/observe/install-apps") {
+        for (frame in income) {
+          when (frame) {
+            is PureTextFrame -> {
+              Json.decodeFromString<ChangeState<MMID>>(frame.text).also {
+                emit(it)
+              }
             }
+
+            else -> {}
           }
         }
-        debugDesk("doObserve error", response.status)
       }
-      // app排序
-      doObserve("file://dns.std.dweb/observe/install-apps") {
+      debugDesk("doObserve error", response.status)
+    }
+  }
+
+  // app排序
+  val appSortList = DeskSortStore(deskNMM).also { appSortList ->
+    deskNMM.scopeLaunch(cancelable = true) {
+      dnsInstallAppsFlow.collect { changeState ->
         // 强制触发一次变更
         deskNMM.runningApps = deskNMM.runningApps.toMap()
         // 对排序app列表进行更新
-        removes.map {
+        changeState.removes.map {
           getDesktopController.invoke().updateFlow.emit("delete")
           appSortList.delete(it)
         }
-        adds.map {
+        changeState.adds.map {
           if (!appSortList.has(it)) {
             appSortList.push(it)
           }

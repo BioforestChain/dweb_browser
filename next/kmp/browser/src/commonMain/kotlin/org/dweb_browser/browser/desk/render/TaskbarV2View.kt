@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.dp
 import org.dweb_browser.browser.desk.TaskbarV2Controller
 
 internal const val PADDING_VALUE = 6
-internal const val TASKBAR_WIDTH = 55f
+internal const val TASKBAR_WIDTH = 54f
 internal const val TASKBAR_DIVIDER_HEIGHT = 8f
 
 expect fun ITaskbarV2View.Companion.create(taskbarController: TaskbarV2Controller): ITaskbarV2View

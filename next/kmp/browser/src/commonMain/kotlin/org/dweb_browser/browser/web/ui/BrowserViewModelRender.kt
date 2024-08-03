@@ -112,26 +112,22 @@ fun BrowserPageBox(contentScaled: Float) {
           LaunchedEffect(browserPage) {
             launch {
               browserPage.captureController.onCaptureStart.collect {
-                println("QAQ Capture Start ${debugTag()}")
                 inCapture = true
               }
             }
             launch {
               browserPage.captureController.onCaptureEnd.collect {
                 inCapture = false
-                println("QAQ Capture End ${debugTag()}")
               }
             }
           }
           val shouldRender = inView || inCapture || browserPage.url.isEmpty()
           when {
             shouldRender -> {
-              println("QAQ Render On Foreground ${debugTag()}")
               browserPage.Render(Modifier.fillMaxSize().capturable2(browserPage.captureController))
             }
 
             else -> {
-              println("QAQ Render Ignore ${debugTag()}")
               Box(Modifier.fillMaxSize())
             }
           }

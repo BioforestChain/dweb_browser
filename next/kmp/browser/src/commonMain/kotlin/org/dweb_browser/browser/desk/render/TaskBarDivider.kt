@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -19,6 +20,8 @@ internal fun TaskBarDivider() {
             Color.Transparent, Color.Black, Color.Transparent
           )
         )
-      ), color = Color.Transparent
+      ),
+    thickness = (1 / LocalDensity.current.density).dp,
+    color = Color.Transparent,
   )
 }

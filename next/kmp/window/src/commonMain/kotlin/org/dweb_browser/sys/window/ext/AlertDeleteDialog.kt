@@ -24,17 +24,18 @@ import org.dweb_browser.helper.compose.CommonI18n
 fun AlertDeleteDialog(
   onDismissRequest: () -> Unit,
   onDelete: suspend () -> Unit,
-  title: @Composable () -> Unit,
-  message: @Composable () -> Unit,
+  icon: (@Composable () -> Unit)? = null,
+  message: (@Composable () -> Unit)? = null,
+  title: (@Composable () -> Unit)? = null,
   deleteText: String,
   cancelText: String = CommonI18n.cancel(),
-  cancelable: Boolean = false,
+  jobCancelable: Boolean = false,
 ) {
   val scope = rememberCoroutineScope()
   var deleteJob by remember { mutableStateOf<Job?>(null) }
   AlertDialog(
     onDismissRequest = onDismissRequest,
-    icon = {
+    icon = icon ?: {
       Icon(
         Icons.TwoTone.DeleteForever,
         CommonI18n.delete(),
@@ -66,13 +67,13 @@ fun AlertDeleteDialog(
     dismissButton = {
       TextButton(
         {
-          if (cancelable) {
+          if (jobCancelable) {
             deleteJob?.cancel()
             deleteJob = null
           }
           onDismissRequest()
         }, enabled = when {
-          cancelable -> true
+          jobCancelable -> true
           else -> deleteJob == null
         }
       ) {

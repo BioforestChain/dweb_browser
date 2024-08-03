@@ -421,11 +421,6 @@ object BrowserI18nResource {
       Language.EN to "App Info"
     )
 
-    val uninstall = SimpleI18nResource(
-      Language.ZH to "卸载",
-      Language.EN to "Uninstall"
-    )
-
     val delete = SimpleI18nResource(
       Language.ZH to "删除",
       Language.EN to "Delete"
@@ -435,11 +430,5 @@ object BrowserI18nResource {
       Language.ZH to "分享",
       Language.EN to "Share"
     )
-
-    val uninstallAlert = SimpleI18nResource(
-      Language.ZH to "其所有数据也将被删除",
-      Language.EN to "All its data will also be deleted!"
-    )
-
   }
 }

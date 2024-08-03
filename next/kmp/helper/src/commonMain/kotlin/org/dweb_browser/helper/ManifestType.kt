@@ -87,12 +87,12 @@ data class StrictImageResource(
       val imageSizes = mutableListOf<ImageResourceSize>()
       if (img.sizes == null) {
         if (imageType == "image/svg+xml") {
-          imageSizes.add(ImageResourceSize(46340, 46340))
+          imageSizes.add(ImageResourceSize(2048, 2048))
         } else {
-          imageSizes.add(ImageResourceSize(1, 1))
+          imageSizes.add(ImageResourceSize(128, 128))
         }
       } else if (img.sizes == "any") {
-        imageSizes.add(ImageResourceSize(46340, 46340))
+        imageSizes.add(ImageResourceSize(2048, 2048))
       } else {
         img.sizes.split(Regex("\\s+")).forEach { size ->
           Regex("""(\d+)x(\d+)""").find(size)?.let { mathResult ->

@@ -827,7 +827,7 @@ fun WindowController.IconRender(
       monochrome = iconMonochrome,
       maskable = iconMaskable,
     )
-  ).toIcon(primaryContainerColor?.let { AppIconContainer(color = it) }).Render(modifier)
+  ).toIcon(AppIconContainer(color = primaryContainerColor, alpha = 0.2f)).Render(modifier)
 }
 
 /**

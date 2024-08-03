@@ -55,7 +55,7 @@ internal class BarHomeButton(private val runtime: DeskNMM.DeskRuntime) {
         aniSpeed *= 5
         aniDurationMillis /= 5
       }
-      desktopWallpaper.Render(modifier.clip(CircleShape).shadow(3.dp, CircleShape)
+      desktopWallpaper.Render(modifier.shadow(3.dp, CircleShape).clip(CircleShape)
         .hoverCursor()
         .pointerInput(Unit) {
           this.detectTapGestures(

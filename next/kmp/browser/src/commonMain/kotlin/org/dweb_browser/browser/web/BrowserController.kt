@@ -152,7 +152,7 @@ class BrowserController(
       id = linkId,
       title = title,
       url = "dweb://openinbrowser?url=${url.encodeURIComponent()}",
-      icons = listOf(ImageResource(icon))
+      icons = listOf(ImageResource(icon, purpose = "maskable"))
     )
 
     return addUrlToDesktop(webLinkManifest)

@@ -23,6 +23,7 @@ import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.file.ext.blobFetchHook
 import org.dweb_browser.helper.compose.clickableWithNoEffect
+import org.dweb_browser.helper.platform.theme.LocalColorful
 import org.dweb_browser.sys.window.render.AppIconContainer
 import org.dweb_browser.sys.window.render.AppLogo
 
@@ -83,7 +84,11 @@ internal fun TaskBarAppIcon(
       ),
   ) {
     AppLogo.from(app.icon, fetchHook = microModule.blobFetchHook)
-      .toDeskAppIcon(AppIconContainer(shadow = if (app.running) 2.dp else null)).Render(
+      .toDeskAppIcon(
+        AppIconContainer(shadow = if (app.running) 2.dp else null),
+        containerColor = if (app.running) null else LocalColorful.current.Gray.Shade_100,
+        containerAlpha = if (app.running) 1f else 0.8f,
+      ).Render(
         logoModifier = if (showQuit) Modifier.blur(4.dp) else Modifier,
         innerContent = {
           if (showQuit) {
