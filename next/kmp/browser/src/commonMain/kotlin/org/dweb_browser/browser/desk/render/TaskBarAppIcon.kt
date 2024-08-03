@@ -2,12 +2,10 @@ package org.dweb_browser.browser.desk.render
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -23,16 +21,19 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.browser.desk.model.TaskbarAppModel
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
+import org.dweb_browser.core.std.file.ext.blobFetchHook
 import org.dweb_browser.helper.compose.clickableWithNoEffect
+import org.dweb_browser.sys.window.render.AppIconContainer
+import org.dweb_browser.sys.window.render.AppLogo
 
 @Composable
 internal fun TaskBarAppIcon(
-  modifier: Modifier,
   app: TaskbarAppModel,
   microModule: NativeMicroModule.NativeRuntime,
   openApp: () -> Unit,
   quitApp: () -> Unit,
   toggleWindow: () -> Unit,
+  modifier: Modifier = Modifier,
 ) {
 
   val scaleValue = remember { Animatable(1f) }
@@ -50,7 +51,6 @@ internal fun TaskBarAppIcon(
       scaleX = scaleValue.value
       scaleY = scaleValue.value
     }.padding(start = PADDING_VALUE.dp, top = PADDING_VALUE.dp, end = PADDING_VALUE.dp)
-      .aspectRatio(1.0f)
       .desktopAppItemActions(
         onHoverStart = {
           scope.launch {
@@ -82,33 +82,26 @@ internal fun TaskBarAppIcon(
         },
       ),
   ) {
-    key(app.icon) {
-      BoxWithConstraints(Modifier.blur(if (showQuit) 2.dp else 0.dp)) {
-        DeskAppIcon(
-          icon = app.icon,
-          microModule = microModule,
-          width = maxWidth,
-          height = maxHeight,
-          containerAlpha = 1f,
-          containerShadow = if (app.running) 2.dp else null
-        )
-      }
-    }
-
-    if (showQuit) {
-      val closeButton: @Composable () -> Unit = {
-        CloseButton(Color.Black, Modifier.size(maxWidth).clickableWithNoEffect {
-          quitApp()
-          showQuit = false
-        })
-      }
-      if (taskBarCloseButtonUsePopUp()) {
-        Popup(onDismissRequest = {
-          showQuit = false
-        }, content = closeButton)
-      } else {
-        closeButton()
-      }
-    }
+    AppLogo.from(app.icon, fetchHook = microModule.blobFetchHook)
+      .toDeskAppIcon(AppIconContainer(shadow = if (app.running) 2.dp else null)).Render(
+        logoModifier = if (showQuit) Modifier.blur(4.dp) else Modifier,
+        innerContent = {
+          if (showQuit) {
+            Popup(
+              onDismissRequest = {
+                showQuit = false
+              },
+            ) {
+              CloseButton(
+                Color.Black,
+                Modifier.requiredSize(size = maxWidth).clickableWithNoEffect {
+                  quitApp()
+                  showQuit = false
+                },
+              )
+            }
+          }
+        },
+      )
   }
 }

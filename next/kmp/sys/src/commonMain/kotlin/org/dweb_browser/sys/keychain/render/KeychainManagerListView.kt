@@ -18,23 +18,20 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
+import org.dweb_browser.core.std.file.ext.blobFetchHook
 import org.dweb_browser.helper.compose.CommonI18n
 import org.dweb_browser.helper.compose.hoverCursor
 import org.dweb_browser.sys.keychain.KeychainI18nResource
 import org.dweb_browser.sys.keychain.KeychainManager
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
 import org.dweb_browser.sys.window.core.WindowContentScaffoldWithTitleText
-import org.dweb_browser.sys.window.core.helper.pickLargest
-import org.dweb_browser.sys.window.core.helper.toStrict
-import org.dweb_browser.sys.window.render.AppIcon
-import org.dweb_browser.core.std.file.ext.blobFetchHook
+import org.dweb_browser.sys.window.render.AppLogo
 
 @Composable
 internal fun KeychainManager.ListView(
@@ -72,14 +69,13 @@ internal fun KeychainManager.ListView(
                 },
                 leadingContent = {
                   // TODO MicroModule Icon
-                  when (val applicantIcon = remember {
-                    mm.icons.toStrict().pickLargest()
-                  }) {
-                    null -> Icon(Icons.TwoTone.Image, contentDescription = "", Modifier.size(32.dp))
-                    else -> Box(Modifier.size(32.dp)) {
-                      AppIcon(applicantIcon, iconFetchHook = keychainRuntime.blobFetchHook)
-                    }
-                  }
+                  AppLogo.fromResources(
+                    mm.icons,
+                    fetchHook = keychainRuntime.blobFetchHook,
+                    base = AppLogo(errorContent = {
+                      Icon(Icons.TwoTone.Image, contentDescription = "")
+                    })
+                  ).toIcon().Render()
                 },
                 headlineContent = { Text(mm.name) },
                 supportingContent = { Text(mm.mmid) },

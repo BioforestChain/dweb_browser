@@ -20,6 +20,8 @@ import androidx.compose.ui.unit.dp
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.desk.model.DesktopAppModel
 import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.core.std.file.ext.blobFetchHook
+import org.dweb_browser.sys.window.render.AppLogo
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,9 +41,8 @@ internal fun DeleteAlert(
         .padding(20.dp),
       horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
-      DeskAppIcon(app, microModule, containerAlpha = 1f)
-
+      AppLogo.from(app.icon, fetchHook = microModule.blobFetchHook)
+        .toDeskAppIcon(containerAlpha = 1f).Render()
       when {
         app.isWebLink -> {
           Text("${BrowserI18nResource.Desktop.delete.text}: \"${app.name}\"", color = Color.Black)

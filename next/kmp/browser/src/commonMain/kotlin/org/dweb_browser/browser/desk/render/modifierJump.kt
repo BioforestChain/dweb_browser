@@ -34,11 +34,11 @@ fun Modifier.jump(
     remember {
       scope.launch {
         animating = true
-        val backSpec = spring<Float>(Spring.DampingRatioMediumBouncy, Spring.StiffnessVeryLow)
+        val backSpec = spring<Float>(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow)
         while (aniState.value) {
           offsetAni.animateTo(
             heightState.value,
-            tween((heightState.value * 50).toInt(), easing = EaseOutCirc)
+            tween((heightState.value * 20).toInt(), easing = EaseOutCirc)
           )
           offsetAni.animateTo(0f, backSpec)
           delay(internalDelayState.value)

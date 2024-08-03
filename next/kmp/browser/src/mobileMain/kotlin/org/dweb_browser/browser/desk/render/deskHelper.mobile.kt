@@ -10,7 +10,6 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 
 
@@ -21,10 +20,6 @@ actual fun desktopGridLayout(): DesktopGridLayout =
     horizontalSpace = 8.dp,
     verticalSpace = 16.dp,
   )
-
-actual fun desktopIconSize(): IntSize = IntSize(50, 50)
-
-actual fun taskBarCloseButtonUsePopUp() = true
 
 @Composable
 actual fun Modifier.desktopAppItemActions(

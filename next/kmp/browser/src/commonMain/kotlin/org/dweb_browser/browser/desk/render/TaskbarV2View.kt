@@ -57,7 +57,6 @@ abstract class ITaskbarV2View(protected val taskbarController: TaskbarV2Controll
       apps.forEach { app ->
         @Suppress("DeferredResultUnused")
         TaskBarAppIcon(
-          modifier = Modifier,
           app = app,
           microModule = taskbarController.deskNMM,
           openApp = {

@@ -8,7 +8,6 @@ import androidx.compose.foundation.onClick
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerButton
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import org.dweb_browser.helper.compose.hoverEvent
 
@@ -20,10 +19,6 @@ actual fun desktopGridLayout(): DesktopGridLayout =
     horizontalSpace = 8.dp,
     verticalSpace = 16.dp,
   )
-
-actual fun desktopIconSize(): IntSize = IntSize(64, 64)
-
-actual fun taskBarCloseButtonUsePopUp() = false
 
 @Composable
 @OptIn(ExperimentalFoundationApi::class)

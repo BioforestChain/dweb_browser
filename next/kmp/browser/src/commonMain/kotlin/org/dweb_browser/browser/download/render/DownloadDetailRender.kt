@@ -17,7 +17,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -30,12 +29,13 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import okio.Path.Companion.toPath
-import org.dweb_browser.browser.desk.render.DeskAppIcon
+import org.dweb_browser.browser.desk.render.toDeskAppIcon
 import org.dweb_browser.browser.download.DownloadI18n
 import org.dweb_browser.browser.download.DownloadNMM
 import org.dweb_browser.browser.download.model.DecompressModel
 import org.dweb_browser.browser.download.model.DownloadTask
 import org.dweb_browser.browser.web.data.formatToStickyName
+import org.dweb_browser.core.std.file.ext.blobFetchHook
 import org.dweb_browser.helper.compose.HorizontalDivider
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.formatTimestampByMilliseconds
@@ -43,8 +43,7 @@ import org.dweb_browser.helper.platform.theme.LocalColorful
 import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.sys.toast.ext.showToast
 import org.dweb_browser.sys.window.core.constant.LocalWindowMM
-import org.dweb_browser.sys.window.core.helper.pickLargest
-import org.dweb_browser.sys.window.core.helper.toStrict
+import org.dweb_browser.sys.window.render.AppLogo
 
 @Composable
 fun DecompressModel.Render(downloadTask: DownloadTask, modifier: Modifier) {
@@ -111,14 +110,8 @@ private fun DownloadTask.AppHeadInfo(modifier: Modifier = Modifier) {
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.Top
               ) {
-                DeskAppIcon(
-                  it.icons.toStrict().pickLargest(),
-                  mm,
-                  width = 32.dp,
-                  height = 32.dp,
-                  containerAlpha = 1f,
-                  containerColor = Color.White,
-                )
+                AppLogo.fromResources(it.icons, fetchHook = mm.blobFetchHook).toDeskAppIcon()
+                  .Render()
                 Text(
                   buildAnnotatedString {
                     withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {

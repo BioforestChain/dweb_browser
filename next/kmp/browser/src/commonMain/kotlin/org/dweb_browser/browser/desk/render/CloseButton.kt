@@ -12,7 +12,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
 
 @Composable
-fun CloseButton(color: Color, modifier: Modifier) {
+fun CloseButton(color: Color, modifier: Modifier = Modifier) {
   val lineWidth = 1 * LocalDensity.current.density
   Canvas(modifier.background(color.copy(alpha = 0.1f), CircleShape)) {
     val r = size.minDimension / 2.0f * 0.8f

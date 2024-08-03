@@ -48,6 +48,7 @@ import org.dweb_browser.browser.desk.model.DesktopAppModel
 import org.dweb_browser.browser.desk.model.getAppMenuDisplays
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
+import org.dweb_browser.core.std.file.ext.blobFetchHook
 import org.dweb_browser.helper.PureIntBounds
 import org.dweb_browser.helper.PureRect
 import org.dweb_browser.helper.compose.NativeBackHandler
@@ -58,6 +59,7 @@ import org.dweb_browser.helper.compose.plus
 import org.dweb_browser.helper.compose.timesIntOffset
 import org.dweb_browser.helper.compose.timesToInt
 import org.dweb_browser.helper.toRect
+import org.dweb_browser.sys.window.render.AppLogo
 
 
 @Composable
@@ -206,9 +208,9 @@ internal class AppMenuPanel(
       val iconScaleDiff = 0.1f
       val iconScale = 1f + iconScaleDiff * p2
       val iconAlpha = safeAlpha(p1)
-      DeskAppIcon(
-        app, microModule,
-        modifier = Modifier.requiredSize(
+
+      AppLogo.from(app.icon, fetchHook = microModule.blobFetchHook).toDeskAppIcon().Render(
+        Modifier.requiredSize(
           app.size.width.dp,
           app.size.height.dp
         )// 不要用 translationXY 去做变换，会有消失不见的问题

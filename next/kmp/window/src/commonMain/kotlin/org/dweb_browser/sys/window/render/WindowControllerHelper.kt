@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
+import org.dweb_browser.core.std.file.ext.blobFetchHook
 import org.dweb_browser.helper.Observable
 import org.dweb_browser.helper.PureBounds
 import org.dweb_browser.helper.PureRect
@@ -820,15 +821,13 @@ fun WindowController.IconRender(
   val iconMaskable by watchedState { iconMaskable }
   val iconMonochrome by watchedState { iconMonochrome }
   val microModule by state.constants.microModule
-  AppIcon(
-    iconUrl = iconUrl,
-    modifier,
-    color = primaryColor,
-    containerColor = primaryContainerColor,
-    iconMonochrome = iconMonochrome,
-    iconMaskable = iconMaskable,
-    iconFetchHook = microModule?.imageFetchHook,
-  )
+  AppLogo.fromUrl(
+    iconUrl, fetchHook = microModule?.blobFetchHook, base = AppLogo(
+      color = primaryColor,
+      monochrome = iconMonochrome,
+      maskable = iconMaskable,
+    )
+  ).toIcon(primaryContainerColor?.let { AppIconContainer(color = it) }).Render(modifier)
 }
 
 /**

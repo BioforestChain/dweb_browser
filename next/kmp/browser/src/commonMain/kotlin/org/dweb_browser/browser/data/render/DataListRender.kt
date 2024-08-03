@@ -10,16 +10,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.twotone.DeleteForever
 import androidx.compose.material.icons.twotone.Image
 import androidx.compose.material.icons.twotone.MoreHoriz
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -34,7 +36,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.buildAnnotatedString
@@ -50,13 +51,12 @@ import org.dweb_browser.helper.compose.SwipeToViewBox
 import org.dweb_browser.helper.compose.rememberSwipeToViewBoxState
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
 import org.dweb_browser.sys.window.core.WindowContentScaffoldWithTitleText
-import org.dweb_browser.sys.window.core.helper.pickLargest
-import org.dweb_browser.sys.window.core.helper.toStrict
-import org.dweb_browser.sys.window.render.AppIcon
+import org.dweb_browser.sys.window.render.AppLogo
 
 @Composable
 fun DataController.ListRender() {
-  WindowContentRenderScope.Unspecified.WindowContentScaffoldWithTitleText(Modifier.fillMaxSize(),
+  WindowContentRenderScope.Unspecified.WindowContentScaffoldWithTitleText(
+    Modifier.fillMaxSize(),
     topBarTitleText = "数据列表",
     topBarActions = {
       IconButton({ refresh() }) {
@@ -80,7 +80,10 @@ fun DataController.ListRender() {
       }
 
       else -> LazyColumn(Modifier.fillMaxSize().padding(paddingValues)) {
-        items(profileInfos) { profileInfo ->
+        itemsIndexed(
+          profileInfos,
+          key = { _, profileInfo -> profileInfo.profileName.key },
+        ) { index, profileInfo ->
           val mmidText: @Composable () -> AnnotatedString = {
             profileInfo.profileName.profile?.let { alias ->
               buildAnnotatedString {
@@ -102,8 +105,10 @@ fun DataController.ListRender() {
               Icon(Icons.TwoTone.MoreHoriz, "open menu")
             }
           }
+          if (index > 0) {
+            HorizontalDivider()
+          }
           SwipeToViewBox(state, backgroundContent = {
-//            val deleteJob by deleteJobFlow.collectAsState()
             Row {
               TextButton(
                 onClick = {
@@ -132,30 +137,29 @@ fun DataController.ListRender() {
           }) {
             when (profileInfo) {
               is DataController.ProfileBase -> ListItem(
-                modifier = Modifier.alpha(0.8f),
-                headlineContent = { Text(mmidText()) },
-                supportingContent = {
+                headlineContent = {
                   Text(
-                    DataI18n.uninstalled(), fontStyle = FontStyle.Italic
+                    DataI18n.uninstalled(),
+                    fontStyle = FontStyle.Italic,
+                    color = LocalContentColor.current.copy(alpha = 0.8f)
                   )
                 },
-                trailingContent = trailingContent
+                supportingContent = {
+                  Text(mmidText())
+                },
+                trailingContent = trailingContent,
               )
 
               is DataController.ProfileDetail -> ListItem(
                 leadingContent = {
                   // TODO MicroModule Icon
-                  when (val applicantIcon = remember {
-                    profileInfo.icons.toStrict().pickLargest()
-                  }) {
-                    null -> Icon(
-                      Icons.TwoTone.Image, contentDescription = "", Modifier.size(32.dp)
-                    )
-
-                    else -> Box(Modifier.size(32.dp)) {
-                      AppIcon(applicantIcon, iconFetchHook = storeNMM.blobFetchHook)
-                    }
-                  }
+                  AppLogo.fromResources(
+                    profileInfo.icons,
+                    fetchHook = storeNMM.blobFetchHook,
+                    base = AppLogo(errorContent = {
+                      Icon(Icons.TwoTone.Image, profileInfo.short_name)
+                    })
+                  ).toIcon().Render(Modifier.size(32.dp))
                 },
                 modifier = Modifier.clickable { goToDetail(profileInfo) },
                 headlineContent = { Text(profileInfo.short_name) },

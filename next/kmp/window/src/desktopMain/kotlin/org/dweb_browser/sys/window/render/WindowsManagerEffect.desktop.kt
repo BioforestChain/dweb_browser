@@ -31,13 +31,13 @@ private fun <T : WindowController> WindowsManager<T>.EffectSafeModel() {
   WARNING("Java Swing No Support Safe Modal")
 }
 
-class AppIcon(
+class RootAppIcon(
   val painter: Painter,
   val awtImage: Image,
 )
 
 val appIcon by lazy {
-  CompletableDeferred<AppIcon>().also { deferred ->
+  CompletableDeferred<RootAppIcon>().also { deferred ->
     val key = "app-icon-render"
     PureViewController.contents += key to {
       val painter = painterResource(Res.drawable.dweb_browser)
@@ -45,7 +45,7 @@ val appIcon by lazy {
         LocalDensity.current, LocalLayoutDirection.current,
         Size(64f, 64f)
       )
-      deferred.complete(AppIcon(painter, awtImage))
+      deferred.complete(RootAppIcon(painter, awtImage))
       PureViewController.contents -= key
     }
   }

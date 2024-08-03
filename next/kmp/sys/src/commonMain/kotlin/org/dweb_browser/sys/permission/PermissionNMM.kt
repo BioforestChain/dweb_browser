@@ -2,7 +2,6 @@ package org.dweb_browser.sys.permission
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -44,6 +43,7 @@ import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.core.std.file.ext.blobFetchHook
 import org.dweb_browser.core.std.permission.AuthorizationRecord
 import org.dweb_browser.core.std.permission.PermissionHooks
 import org.dweb_browser.core.std.permission.PermissionProvider
@@ -53,15 +53,12 @@ import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.compose.HorizontalDivider
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.pure.http.PureMethod
-import org.dweb_browser.sys.window.core.helper.pickLargest
 import org.dweb_browser.sys.window.core.helper.setStateFromManifest
-import org.dweb_browser.sys.window.core.helper.toStrict
 import org.dweb_browser.sys.window.core.windowAdapterManager
 import org.dweb_browser.sys.window.ext.createBottomSheets
 import org.dweb_browser.sys.window.ext.getMainWindow
 import org.dweb_browser.sys.window.ext.onRenderer
-import org.dweb_browser.sys.window.render.AppIcon
-import org.dweb_browser.sys.window.render.imageFetchHook
+import org.dweb_browser.sys.window.render.AppLogo
 
 class PermissionNMM : NativeMicroModule("permission.sys.dweb", PermissionI18nResource.name.text) {
   init {
@@ -82,18 +79,16 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", PermissionI18nRes
     override suspend fun _bootstrap() {
       val permissionTable = permissionStdProtocol(hooks)
 
-      routes(
-        "/request" bind PureMethod.POST by defineJsonResponse {
-          val permissions = request.body.toPureString()
-          debugPermission("request@sys", "ipc=>${ipc.remote.mmid}, permission=>$permissions")
-          val permissionTaskList = Json.decodeFromString<List<SystemPermissionTask>>(permissions)
-          requestSysPermission(
-            microModule = getRemoteRuntime(), // requestMicroModule,
-            pureViewController = null,//getOrOpenMainWindow().apply { hide() }.pureViewControllerState.value,
-            permissionTaskList = permissionTaskList
-          ).toJsonElement()
-        }
-      )
+      routes("/request" bind PureMethod.POST by defineJsonResponse {
+        val permissions = request.body.toPureString()
+        debugPermission("request@sys", "ipc=>${ipc.remote.mmid}, permission=>$permissions")
+        val permissionTaskList = Json.decodeFromString<List<SystemPermissionTask>>(permissions)
+        requestSysPermission(
+          microModule = getRemoteRuntime(), // requestMicroModule,
+          pureViewController = null,//getOrOpenMainWindow().apply { hide() }.pureViewControllerState.value,
+          permissionTaskList = permissionTaskList
+        ).toJsonElement()
+      })
 
       onRenderer {
         getMainWindow().apply {
@@ -136,19 +131,15 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", PermissionI18nRes
                   text = PermissionI18nResource.request_title.text,
                   style = MaterialTheme.typography.titleLarge
                 )
-                val applicantIcon = remember {
-                  applicant.icons.toStrict().pickLargest()
-                }
                 Spacer(Modifier.width(32.dp))
-                when (applicantIcon) {
-                  null -> Text(applicant.short_name)
-                  else -> Box(Modifier.size(32.dp)) {
-                    AppIcon(
-                      applicantIcon,
-                      iconFetchHook = imageFetchHook,
-                    )
-                  }
-                }
+
+                AppLogo.fromResources(
+                  applicant.icons,
+                  fetchHook = blobFetchHook,
+                  base = AppLogo(errorContent = {
+                    Text(applicant.short_name)
+                  })
+                ).toIcon().Render(Modifier.size(32.dp))
 
                 Spacer(Modifier.width(16.dp))
 
@@ -158,39 +149,21 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", PermissionI18nRes
               HorizontalDivider()
 
               for ((permission, module) in permissionModuleMap) {
-                ListItem(
-                  colors = ListItemDefaults.colors(
-                    containerColor = Color.Transparent,
-                    overlineColor = Color.Transparent,
-                  ),
+                ListItem(colors = ListItemDefaults.colors(
+                  containerColor = Color.Transparent,
+                  overlineColor = Color.Transparent,
+                ),
                   leadingContent = {
                     BadgedBox(badge = {
-                      val badgeIcon = remember {
-                        permission.badges.pickLargest()
-                      }
-                      badgeIcon?.also {
-                        AppIcon(
-                          iconResource = it,
-                          modifier = Modifier.size(6.dp),
-                          iconFetchHook = imageFetchHook,
-                        )
-                      }
+                      AppLogo.pickFrom(permission.badges, fetchHook = blobFetchHook)
+                        .Render(Modifier.size(6.dp))
                     }) {
-                      val providerIcon = remember {
-                        module.icons.toStrict().pickLargest()
-                      }
-                      when (providerIcon) {
-                        null -> Image(
-                          imageVector = Icons.Rounded.Info, contentDescription = module.name
+                      AppLogo.fromResources(
+                        module.icons, fetchHook = blobFetchHook, base = AppLogo(
+                          description = module.name,
+                          errorContent = { Image(Icons.Rounded.Info, module.name) },
                         )
-
-                        else -> AppIcon(
-                          iconResource = providerIcon,
-                          modifier = Modifier.size(24.dp),
-                          iconDescription = module.name,
-                          iconFetchHook = imageFetchHook,
-                        )
-                      }
+                      ).toIcon().Render(Modifier.size(24.dp))
                     }
                   },
                   headlineContent = { Text(permission.title()) },
@@ -222,17 +195,15 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", PermissionI18nRes
                 Modifier.fillMaxWidth().padding(start = 8.dp, end = 8.dp, top = 16.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
               ) {
-                Button(
-                  colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.errorContainer,
-                    contentColor = MaterialTheme.colorScheme.onErrorContainer,
-                  ),
-                  onClick = {
-                    for (permission in checkedMap.keys) {
-                      resultMap[permission] = false
-                    }
-                    submitDeferred.complete(Unit)
-                  }) {
+                Button(colors = ButtonDefaults.buttonColors(
+                  containerColor = MaterialTheme.colorScheme.errorContainer,
+                  contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                ), onClick = {
+                  for (permission in checkedMap.keys) {
+                    resultMap[permission] = false
+                  }
+                  submitDeferred.complete(Unit)
+                }) {
                   Text(text = PermissionI18nResource.request_button_refuse())
                 }
 

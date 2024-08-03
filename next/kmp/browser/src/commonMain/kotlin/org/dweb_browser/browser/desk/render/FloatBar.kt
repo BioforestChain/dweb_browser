@@ -20,7 +20,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
@@ -133,8 +132,7 @@ fun FloatBarShell(
         .zIndex(1000f)
         .size(boxWidth.dp, boxHeight.dp)
         .offset(x = boxOffset.x.dp, y = boxOffset.y.dp)
-        .clip(SquircleShape(16.dp, CornerSmoothing.Small))
-        .background(color)
+        .background(color, SquircleShape(16.dp, CornerSmoothing.Small))
     )
   }
 }

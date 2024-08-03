@@ -9,7 +9,6 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.IntSize
 import squircleshape.CornerSmoothing
 import squircleshape.SquircleShape
 import kotlin.math.max
@@ -37,10 +36,6 @@ data class DesktopGridLayout(
 expect fun desktopGridLayout(): DesktopGridLayout
 
 expect fun canSupportModifierBlur(): Boolean
-expect fun desktopIconSize(): IntSize
-
-expect fun taskBarCloseButtonUsePopUp(): Boolean
-
 
 @Composable
 expect fun Modifier.desktopAppItemActions(

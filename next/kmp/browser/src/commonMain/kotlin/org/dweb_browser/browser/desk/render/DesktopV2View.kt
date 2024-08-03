@@ -102,7 +102,7 @@ fun DesktopV2Controller.RenderImpl() {
         LazyVerticalGrid(
           columns = layout.cells,
           contentPadding = innerPadding,
-          modifier = Modifier.fillMaxWidth().padding(top = 8.dp).onGloballyPositioned {
+          modifier = Modifier.fillMaxWidth().padding(top = 4.dp).onGloballyPositioned {
             val pos = it.positionInWindow()
             appMenuPanel.safeAreaInsets = WindowInsets(
               top = pos.y.fastRoundToInt(),

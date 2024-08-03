@@ -1,94 +1,30 @@
 package org.dweb_browser.browser.desk.render
 
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
-import org.dweb_browser.browser.desk.model.DesktopAppModel
-import org.dweb_browser.core.module.MicroModule
-import org.dweb_browser.core.std.file.ext.blobFetchHook
-import org.dweb_browser.helper.ImageResource
-import org.dweb_browser.helper.ImageResourcePurposes
-import org.dweb_browser.helper.StrictImageResource
-import org.dweb_browser.pure.image.compose.PureImageLoader
-import org.dweb_browser.pure.image.compose.SmartLoad
-import org.dweb_browser.sys.window.core.helper.pickLargest
-import org.dweb_browser.sys.window.core.helper.toStrict
 import org.dweb_browser.sys.window.render.AppIcon
+import org.dweb_browser.sys.window.render.AppIconContainer
+import org.dweb_browser.sys.window.render.AppLogo
 
 @Composable
-fun DeskAppIcon(
-  icons: List<ImageResource>,
-  microModule: MicroModule.Runtime,
-  width: Dp,
-  height: Dp,
-  containerAlpha: Float? = null,
-  containerColor: Color? = null,
-  containerShadow: Dp? = null,
-  modifier: Modifier = Modifier,
-) {
-  val icon = icons.toStrict().pickLargest()
-  DeskAppIcon(
-    icon,
-    microModule,
-    width,
-    height,
-    containerAlpha,
-    containerColor,
-    containerShadow,
-    modifier
-  )
-}
+fun AppLogo.toDeskAppLogo() = remember(this) { copyToDeskAppLogo() }
+fun AppLogo.copyToDeskAppLogo() = if (color == null) copy(color = Color.Black) else this
 
 @Composable
-fun DeskAppIcon(
-  icon: StrictImageResource?,
-  microModule: MicroModule.Runtime,
-  width: Dp,
-  height: Dp,
-  containerAlpha: Float? = null,
-  containerColor: Color? = null,
-  containerShadow: Dp? = null,
-  modifier: Modifier = Modifier,
-) {
-  val imageResult =
-    icon?.let { PureImageLoader.SmartLoad(icon.src, width, height, microModule.blobFetchHook) }
-  AppIcon(
-    icon = imageResult,
-    modifier = modifier.requiredSize(width, height),
-    iconShape = deskSquircleShape(),
-    iconMaskable = icon?.let { icon.purpose.contains(ImageResourcePurposes.Maskable) } ?: false,
-    iconMonochrome = icon?.let { icon.purpose.contains(ImageResourcePurposes.Monochrome) } ?: false,
-    containerAlpha = containerAlpha ?: deskIconAlpha,
-    containerColor = containerColor,
-    containerShadow = containerShadow,
+fun AppLogo.toDeskAppIcon(containerBase: AppIconContainer? = null, containerAlpha: Float? = null) =
+  toDeskAppLogo().toIcon(
+    when (containerBase) {
+      null -> AppIconContainer(color = Color.White, alpha = containerAlpha ?: deskIconAlpha)
+      else -> containerBase.copy(color = Color.White, alpha = containerAlpha ?: deskIconAlpha)
+    }
   )
-}
+
+@Composable
+fun AppIcon.toDeskAppIcon() =
+  logo.toDeskAppLogo().toIcon(container.copy(color = Color.White, alpha = deskIconAlpha))
 
 internal val deskIconAlpha = when {
   canSupportModifierBlur() -> 0.9f
   else -> 1f
-}
-
-@Composable
-internal fun DeskAppIcon(
-  app: DesktopAppModel,
-  microModule: MicroModule.Runtime,
-  containerAlpha: Float? = null,
-  containerColor: Color? = null,
-  modifier: Modifier = Modifier,
-) {
-  val iconSize = desktopIconSize()
-  DeskAppIcon(
-    icon = app.icon,
-    microModule = microModule,
-    width = iconSize.width.dp,
-    height = iconSize.height.dp,
-    containerAlpha = containerAlpha,
-    containerColor = containerColor,
-    modifier = modifier.padding(8.dp)
-  )
 }
