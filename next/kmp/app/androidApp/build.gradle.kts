@@ -106,6 +106,9 @@ android {
   }
 
   android.buildFeatures.buildConfig = true
+
+  // 判断编译的时候是否传入了 -PreleaseBuild=true，表示是脚本执行
+  val isReleaseBuild = hasProperty("releaseBuild") && property("releaseBuild") == "true"
   buildTypes {
     getByName("release") {
       // signingConfig = signingConfigs.getByName("debug") // 如果是测试benchmark需要使用debug
@@ -128,12 +131,24 @@ android {
       versionNameSuffix = "-beta"
     }
     getByName("debug") {
-      signingConfig = signingConfigs.getByName("debug")
-      val userName = keystoreProperties.getProperty("debugApk", null)
-        ?: System.getProperty("user.name").replace("[^a-zA-Z0-9]".toRegex(), "").lowercase()
-      resValue("string", "appName", "Kmp-$userName")
-      applicationIdSuffix = ".kmp.$userName"
-      versionNameSuffix = null // ".kmp.$userName"
+      if (isReleaseBuild) {
+        /// 尽量与 release 保持一致，只是开启了 isDebuggable
+        signingConfig = signingConfigs.getByName("release")
+        isMinifyEnabled = true // 开启代码混淆
+        setProguardFiles(listOf("proguard-rules.pro"))
+        isShrinkResources = true // 移除无用的resource
+        resValue("string", "appName", "Dweb Browser")
+        applicationIdSuffix = null
+        versionNameSuffix = null
+      } else {
+        signingConfig = signingConfigs.getByName("debug")
+        val userName =
+          keystoreProperties.getProperty("debugApk", null) ?: System.getProperty("user.name")
+            .replace("[^a-zA-Z0-9]".toRegex(), "").lowercase()
+        resValue("string", "appName", "Dweb-$userName")
+        applicationIdSuffix = ".dweb.$userName"
+        versionNameSuffix = null
+      }
       isDebuggable = true
     }
     create("benchmark") {

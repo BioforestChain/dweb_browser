@@ -7,6 +7,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.compose.toCssRgba
 import org.dweb_browser.helper.globalDefaultScope
 import org.dweb_browser.helper.platform.toImageBitmap
@@ -22,6 +23,7 @@ import resvg_render.svgToPng
 import kotlin.math.min
 
 val LocalResvgImageLoader = compositionLocalOf { ResvgImageLoader.defaultInstance }
+val debugResvg = Debugger("resvg")
 
 class ResvgImageLoader : PureImageLoader {
   companion object {
@@ -78,6 +80,7 @@ class ResvgImageLoader : PureImageLoader {
           )
           imageResultState.emit(ImageLoadResult.success(pngData.toImageBitmap()))
         }.getOrElse {
+          debugResvg("load", "fail", it)
           val failTimes = PureImageLoader.urlErrorCount.getOrPut(task.url) { 0 } + 1
           PureImageLoader.urlErrorCount[task.url] = failTimes
 

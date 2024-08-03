@@ -24,6 +24,24 @@
 -keep class info.bagen.dwebbrowser.** { *; }
 -keep class org.dweb_browser.** { *; }
 -keep interface org.dweb_browser.** { *; }
+-keep class biometrics.** { *; }
+-keep interface biometrics.** { *; }
+-keep class keychainstore.** { *; }
+-keep interface keychainstore.** { *; }
+-keep class mix_compression.** { *; }
+-keep interface mix_compression.** { *; }
+-keep class multipart.** { *; }
+-keep interface multipart.** { *; }
+-keep class resvg_render.** { *; }
+-keep interface resvg_render.** { *; }
+-keep class gradlew.** { *; }
+-keep interface gradlew.** { *; }
+-keep class reverse_proxy.** { *; }
+-keep interface reverse_proxy.** { *; }
+-keep class hardware_info.** { *; }
+-keep interface hardware_info.** { *; }
+-keep class ziplib.** { *; }
+-keep interface ziplib.** { *; }
 
 # com.sun.jna
 -keep class com.sun.jna.** { *; }
