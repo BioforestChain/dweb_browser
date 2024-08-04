@@ -214,4 +214,4 @@ fun IPureViewController.asDesktop(): PureViewController {
 }
 
 actual val IPureViewController.Companion.platform
-  get() = PureViewControllerPlatform.Desktop
+  get() = PureViewControllerPlatform.DesktopJvm

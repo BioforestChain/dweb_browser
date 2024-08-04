@@ -32,7 +32,7 @@ import platform.UIKit.UIDevice
 import platform.UIKit.UIView
 
 actual val IPureViewController.Companion.platform
-  get() = PureViewControllerPlatform.Apple
+  get() = PureViewControllerPlatform.IOS
 
 private var vcIdAcc by SafeInt(0);
 

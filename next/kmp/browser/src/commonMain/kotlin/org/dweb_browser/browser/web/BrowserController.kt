@@ -20,8 +20,7 @@ import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.encodeURIComponent
 import org.dweb_browser.helper.platform.IPureViewController
-import org.dweb_browser.helper.platform.PureViewControllerPlatform
-import org.dweb_browser.helper.platform.platform
+import org.dweb_browser.helper.platform.isMobile
 import org.dweb_browser.pure.http.IPureBody
 import org.dweb_browser.pure.http.PureClientRequest
 import org.dweb_browser.pure.http.PureMethod
@@ -86,15 +85,8 @@ class BrowserController(
 
       /// 移动端默认最大化
       // TODO 这里应使用屏幕尺寸来判定
-      when (IPureViewController.platform) {
-        PureViewControllerPlatform.Android,
-
-        PureViewControllerPlatform.Apple,
-        -> {
-          newWin.maximize()
-        }
-
-        else -> {}
+      if (IPureViewController.isMobile) {
+        newWin.maximize()
       }
 
       /// 提供渲染适配

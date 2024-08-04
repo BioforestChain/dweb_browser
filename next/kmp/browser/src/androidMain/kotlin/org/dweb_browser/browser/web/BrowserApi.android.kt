@@ -5,7 +5,7 @@ import androidx.compose.ui.Modifier
 import org.dweb_browser.browser.util.InstallApkUtil
 import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.browser.web.model.DwebLinkSearchItem
-import org.dweb_browser.browser.web.ui.BrowserViewModalRender
+import org.dweb_browser.browser.web.ui.BrowserRender
 import org.dweb_browser.helper.getAppContextUnsafe
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
 import java.io.File
@@ -18,7 +18,7 @@ actual fun getImageResourceRootPath(): String {
 actual fun CommonBrowserView(
   viewModel: BrowserViewModel, modifier: Modifier, windowRenderScope: WindowContentRenderScope,
 ) {
-  BrowserViewModalRender(viewModel, modifier, windowRenderScope)
+  BrowserRender(viewModel, modifier, windowRenderScope)
 }
 
 actual suspend fun deepLinkDoSearch(dwebLinkSearchItem: DwebLinkSearchItem) {

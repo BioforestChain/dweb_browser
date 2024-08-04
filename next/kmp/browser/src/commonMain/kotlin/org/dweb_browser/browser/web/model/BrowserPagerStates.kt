@@ -6,9 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.unit.dp
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
 
@@ -73,56 +71,15 @@ class BrowserPagerStates(val viewModel: BrowserViewModel) {
         isResizeWin = true
         lastWindowRenderScope = windowRenderScope
       }
-      var preSearchBarState by remember { mutableStateOf(false) } // 用于记录上一次searchBar状态
 
-      // focusedPage => searchPagePager
-      LaunchedEffect(Unit) {
-        snapshotFlow {
-          Pair(viewModel.focusedPageIndex, contentPagePager.isScrollInProgress)
-        }.collect { (focusedPageIndex, isScrollInProgress) ->
-          if (!isScrollInProgress && focusedPageIndex != -1) { // 在closePageUI时，如果close是lastPage的话，不能走animateScrollToPage
-            contentPagePager.animateScrollToPage(focusedPageIndex)
-          }
-        }
-      }
+      // searchBarPager => contentPagePager
+      println("QAQ searchBarPager currentPage=${searchBarPager.currentPage} currentPageOffsetFraction=${searchBarPager.currentPageOffsetFraction}")
+      LaunchedEffect(searchBarPager.currentPage, searchBarPager.currentPageOffsetFraction) {
+        val targetPage = searchBarPager.currentPage
+        val currentPageOffsetFraction = searchBarPager.currentPageOffsetFraction
 
-      LaunchedEffect(Unit) {
-        snapshotFlow {
-          Pair(contentPage.currentPage, contentPage.isScrollInProgress)
-        }.collect { (currentPage, isScrollInProgress) ->
-          if (!isScrollInProgress) {
-            if (viewModel.focusedPageIndex == -1) { // 在closePageUI时，如果close是lastPage的话，必须执行一次重新focus操作
-              viewModel.focusPageUI(currentPage)
-            } else {
-              searchBarPager.scrollToPage(currentPage)
-            }
-          }
-        }
-      }
-
-      // searchBar => focusedUI
-      LaunchedEffect(Unit) {
-        snapshotFlow {
-          Triple(
-            searchBar.currentPage, searchBar.isScrollInProgress, searchBar.currentPageOffsetFraction
-          )
-        }.collect { (currentPage, isScrollInProgress, currentPageOffsetFraction) ->
-          // 考虑到如果聚焦到最后一个page时，currentPage有偏移量的话，不进行聚焦
-          if (!isScrollInProgress && currentPageOffsetFraction == 0f && preSearchBarState && !isResizeWin) {
-            viewModel.focusPageUI(currentPage)
-          }
-          preSearchBarState = isScrollInProgress
-          isResizeWin = false
-        }
-      }
-
-      // isResizeWin -> searchBarPager
-      LaunchedEffect(Unit) {
-        snapshotFlow { isResizeWin }.collect { isResize ->
-          if (isResize && !searchBarPager.isScrollInProgress) {
-            searchBarPager.scrollToPage(viewModel.focusedPageIndex)
-          }
-        }
+        // 执行滚动
+        contentPagePager.scrollToPage(targetPage, currentPageOffsetFraction)
       }
     }
   }

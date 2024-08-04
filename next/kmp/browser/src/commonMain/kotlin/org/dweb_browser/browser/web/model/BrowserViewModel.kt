@@ -176,6 +176,9 @@ class BrowserViewModel(
 //    private set
 //  pagerStates
 
+  var isFillPageSize by mutableStateOf(true) // 用于标志当前的HorizontalPager中的PageSize是Fill还是Fixed
+  val pagerStates = BrowserPagerStates(this)
+
   var focusedPage
     get() = pages.getOrNull(focusedPageIndex)
     set(value) {
@@ -214,9 +217,6 @@ class BrowserViewModel(
       )
     )
   }
-
-  var isFillPageSize by mutableStateOf(true) // 用于标志当前的HorizontalPager中的PageSize是Fill还是Fixed
-  val pagerStates = BrowserPagerStates(this)
 
   @Composable
   fun ViewModelEffect(windowRenderScope: WindowContentRenderScope) {
