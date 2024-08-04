@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerButton
 import androidx.compose.ui.unit.dp
+import org.dweb_browser.helper.compose.hoverCursor
 import org.dweb_browser.helper.compose.hoverEvent
 
 
@@ -38,6 +39,6 @@ actual fun Modifier.desktopAppItemActions(
     matcher = PointerMatcher.mouse(PointerButton.Secondary),
     onDoubleClick = onDoubleTap,
     onClick = onOpenAppMenu,
-  ).hoverEvent(onEnter = onHoverStart, onExit = onHoverEnd)
+  ).hoverEvent(onEnter = onHoverStart, onExit = onHoverEnd).hoverCursor()
 
 actual fun canSupportModifierBlur(): Boolean = true

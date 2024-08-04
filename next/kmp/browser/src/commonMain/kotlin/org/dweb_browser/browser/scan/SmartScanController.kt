@@ -11,8 +11,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.helper.platform.IPureViewController
-import org.dweb_browser.helper.platform.PureViewControllerPlatform
-import org.dweb_browser.helper.platform.platform
+import org.dweb_browser.helper.platform.isMobile
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.WindowSurface
 import org.dweb_browser.sys.window.core.helper.setStateFromManifest
@@ -65,8 +64,8 @@ class SmartScanController(
       }
 
       // 适配各个平台样式 移动端默认最大化
-      when (IPureViewController.platform) {
-        PureViewControllerPlatform.Android, PureViewControllerPlatform.Apple -> {
+      when {
+        IPureViewController.isMobile -> {
           newController.fullscreen()
         }
 

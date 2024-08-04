@@ -6,7 +6,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import kotlinx.coroutines.delay
 import org.dweb_browser.browser.web.model.BrowserViewModel
-import org.dweb_browser.browser.web.ui.BrowserViewModalRender
+import org.dweb_browser.browser.web.ui.BrowserRender
 import org.dweb_browser.helper.platform.LocalPureViewController
 import org.dweb_browser.helper.platform.asDesktop
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
@@ -19,7 +19,7 @@ actual fun CommonBrowserView(
   modifier: Modifier,
   windowRenderScope: WindowContentRenderScope,
 ) {
-  BrowserViewModalRender(viewModel, modifier, windowRenderScope)
+  BrowserRender(viewModel, modifier, windowRenderScope)
   // TODO 临时方案
   val composeWindow by LocalPureViewController.current.asDesktop().composeWindowAsState()
   LaunchedEffect(viewModel.showMore, composeWindow) {

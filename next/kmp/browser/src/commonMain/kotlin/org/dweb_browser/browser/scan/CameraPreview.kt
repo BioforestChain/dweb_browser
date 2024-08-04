@@ -8,8 +8,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.zIndex
 import org.dweb_browser.helper.platform.IPureViewController
-import org.dweb_browser.helper.platform.PureViewControllerPlatform
-import org.dweb_browser.helper.platform.platform
+import org.dweb_browser.helper.platform.isDesktop
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
 
 @Composable
@@ -30,12 +29,13 @@ fun WindowContentRenderScope.RenderBarcodeScanning(
           modifier = Modifier.fillMaxSize(), controller = controller
         )
         // 扫描线和打开相册，暂时不再桌面端支持
-        when (IPureViewController.platform) {
-          PureViewControllerPlatform.Desktop -> {
+        // TODO 根据设备是否支持摄像头来做这个事情
+        when {
+          IPureViewController.isDesktop -> {
             controller.DefaultScanningView(Modifier.fillMaxSize().zIndex(2f), false)
           }
 
-          PureViewControllerPlatform.Apple, PureViewControllerPlatform.Android -> {
+          else -> {
             controller.DefaultScanningView(Modifier.fillMaxSize().zIndex(2f))
           }
         }
