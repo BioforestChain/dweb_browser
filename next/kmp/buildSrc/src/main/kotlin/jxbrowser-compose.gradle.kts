@@ -23,6 +23,10 @@ jxbrowser {
 }
 
 kotlin {
+  //#region 不添加的话，高版本的 Android Gradle Plugin 会有异常提示
+  kmpAndroidTarget(project)
+  //#endregion
+
   kmpDesktopTarget(project) {
     dependencies {
       if (System.getProperty("usePinpit") == "true") {
