@@ -92,7 +92,11 @@ public extension DwebWebView {
     @objc func doNewTabUrl(url: String, target: String) {
         browerView?.doNewTabUrl(url: url, target: target)
     }
-    
+
+    @objc func loadPullMenuConfig(isActived: Bool) {
+        browerView?.loadPullMenuConfig(isActived: isActived)
+    }
+
     @objc func colorSchemeChanged(color: Int32) {
         browerView?.updateColorScheme(color: Int(color))
     }

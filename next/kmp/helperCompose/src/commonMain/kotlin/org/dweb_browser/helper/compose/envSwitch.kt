@@ -80,8 +80,8 @@ enum class ENV_SWITCH_KEY(
         Language.EN to "Using the new version desktop, you'll enjoy faster startup times and better performance. Welcome to try it out.",
       ),
       brand = "dweb-desktop",
-      disableVersion = "1",
-      enableVersion = "2",
+      disableVersion = "0",
+      enableVersion = "1",
     ),
   ),
   DWEBVIEW_PROFILE(
@@ -113,6 +113,21 @@ enum class ENV_SWITCH_KEY(
       disableVersion = "0",
       enableVersion = "1",
     ),
+  ),
+  DWEBVIEW_PULLDOWNWEBMENU(
+  "dwebview-pullwebmenu",
+  experimental = ExperimentalKey(
+  title = SimpleI18nResource(
+  Language.ZH to "网页下拉快捷菜单", Language.EN to "Quick Menu On Web Top"
+  ),
+  description = SimpleI18nResource(
+  Language.ZH to "启用该功能，则可以在网页滚动到顶部时下拉出快捷菜单，完成刷新网页，关闭标签页，新开标签页这些功能",
+  Language.EN to "Enabling this feature allows you to pull down a quick menu when scrolling to the top of the webpage, where you can refresh the page, close a tab, or open a new tab.",
+  ),
+  brand = "dweb-browser-pullmenu",
+  disableVersion = "1",
+  enableVersion = "2",
+  )
   )
 //  SCAN_STD(
 //    "lens-nmm",

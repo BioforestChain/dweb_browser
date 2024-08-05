@@ -12,7 +12,8 @@ import WebKit
 // A container for using a BrowserWebview in SwiftUI
 struct TabWebView: View, UIViewRepresentable {
     let innerWeb: WebView
-    @EnvironmentObject var envSwitcher: EnvSwitchManager
+    
+    @Environment(PullingMenu.self) var pullingMenu
 
     @Binding var xDragOffset: CGFloat
     @Binding var yDragOffset: CGFloat
@@ -67,7 +68,6 @@ class Coordinator: NSObject, WKNavigationDelegate, UIScrollViewDelegate, UIGestu
         }
         
         let translation = gesture.translation(in: gesture.view)
-        print("changing: ,x: \(translation.x)  ---y: \(translation.y)")
         if translation.y < 0 {
             return
         }
@@ -146,7 +146,7 @@ class Coordinator: NSObject, WKNavigationDelegate, UIScrollViewDelegate, UIGestu
     }
     
     func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
-        if !parent.envSwitcher.config!.isWebTopMenuEnabled {
+        if !parent.pullingMenu.isActived {
             return false
         }
         guard let panGesture = gestureRecognizer as? UIPanGestureRecognizer else {

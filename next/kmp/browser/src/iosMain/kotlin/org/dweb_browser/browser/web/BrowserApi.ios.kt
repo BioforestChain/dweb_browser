@@ -5,17 +5,23 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.launch
+import org.dweb_browser.browser.jmm.JmmTabs
 import org.dweb_browser.browser.web.data.AppBrowserTarget
 import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.browser.web.model.DwebLinkSearchItem
 import org.dweb_browser.dwebview.DWebView
 import org.dweb_browser.helper.globalDefaultScope
+import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
+import org.dweb_browser.helper.compose.envSwitch
 import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.platform.ios_browser.DwebWebView
 import org.dweb_browser.platform.ios_browser.browserActiveOn
@@ -24,6 +30,7 @@ import org.dweb_browser.platform.ios_browser.colorSchemeChangedWithColor
 import org.dweb_browser.platform.ios_browser.doNewTabUrlWithUrl
 import org.dweb_browser.platform.ios_browser.doSearchWithKey
 import org.dweb_browser.platform.ios_browser.gobackIfCanDo
+import org.dweb_browser.platform.ios_browser.loadPullMenuConfigWithIsActived
 import org.dweb_browser.platform.ios_browser.prepareToKmp
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
 import org.dweb_browser.sys.window.render.LocalWindowController
@@ -141,6 +148,14 @@ actual fun CommonBrowserView(
     scope.launch {
       win.tryCloseOrHide()
     }
+  }
+
+  val isActived by remember {
+    mutableStateOf(envSwitch.isEnabled(ENV_SWITCH_KEY.DWEBVIEW_PULLDOWNWEBMENU))
+  }
+  // 使用 LaunchedEffect 在 isActived 初始化时执行一次副作用
+  LaunchedEffect(isActived) {
+    iOSBrowserView.loadPullMenuConfigWithIsActived(isActived)
   }
 
   LaunchedEffect(win.state.colorScheme) {

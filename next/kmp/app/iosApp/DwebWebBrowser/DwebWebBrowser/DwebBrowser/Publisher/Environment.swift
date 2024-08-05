@@ -106,6 +106,11 @@ class TracelessMode {
 }
 
 @Observable
+class PullingMenu {
+    var isActived: Bool = false
+}
+
+@Observable
 class OpeningLink {
     var clickedLink: URL = emptyURL
 }

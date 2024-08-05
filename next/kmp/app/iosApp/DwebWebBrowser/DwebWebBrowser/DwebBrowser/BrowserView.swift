@@ -17,6 +17,7 @@ struct BrowserView: View {
     @State var openingLink = OpeningLink()
     @State var toolbarState = ToolBarState()
     @State var outerSearch = OuterSearch()
+    @State var pullingMenu = PullingMenu()
     let sheetState = ResizeSheetState()
 
     var body: some View {
@@ -36,6 +37,7 @@ struct BrowserView: View {
                     .environment(toolbarState)
                     .environment(selectedTab)
                     .environment(outerSearch)
+                    .environment(pullingMenu)
                 }
                 .resizableSheet(isPresented: sheetState) {
                     SheetSegmentView(webCache: webcacheStore.cache(at: selectedTab.index))
@@ -94,6 +96,10 @@ struct BrowserView: View {
 
     func updateColorScheme(color: Int) {
         ColorSchemeManager.shared.colorScheme = LocalColorScheme(rawValue: color)!
+    }
+
+    func loadPullMenuConfig(isActived: Bool) {
+        pullingMenu.isActived = isActived
     }
 
     func gobackIfCanDo() -> Bool {
