@@ -25,5 +25,5 @@ val ProfileName.dataStore
   get() = when (this) {
     is ProfileIncognitoNameV1 -> WKWebsiteDataStore.nonPersistentDataStore()
     is NoProfileName -> WKWebsiteDataStore.defaultDataStore()
-    is ProfileNameV1 -> WKWebsiteDataStore.dataStoreForIdentifier(identifier)
+    is ProfileNameV1, is ProfileNameV0 -> WKWebsiteDataStore.dataStoreForIdentifier(identifier)
   }
