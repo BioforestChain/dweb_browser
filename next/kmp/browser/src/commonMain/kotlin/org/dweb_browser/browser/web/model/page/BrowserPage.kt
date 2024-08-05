@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.web.BrowserController
+import org.dweb_browser.browser.web.debugBrowser
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.capturable.CaptureV2Controller
 import org.dweb_browser.helper.compose.SimpleI18nResource
@@ -59,10 +60,6 @@ sealed class BrowserPage(browserController: BrowserController) {
       thumbnail?.let { BitmapPainter(it) }
     }
 
-  suspend fun captureView(reason: String) {
-    captureViewInBackground(reason).join()
-  }
-
   /**
    * 用来告知界面将要刷新
    * 如果有内置的渲染器，可以override这个函数，从而辅助做到修改 thumbnail 的内容
@@ -74,7 +71,12 @@ sealed class BrowserPage(browserController: BrowserController) {
     return true
   }
 
-  fun captureViewInBackground(reason:String) = globalDefaultScope.launch {
+  suspend fun captureView(reason: String) {
+    captureViewInBackground(reason).join()
+  }
+
+  fun captureViewInBackground(reason: String) = globalDefaultScope.launch {
+    debugBrowser("captureViewInBackground", reason)
     val preThumbnail = thumbnail
     onRequestCapture()
     if (preThumbnail == thumbnail) {

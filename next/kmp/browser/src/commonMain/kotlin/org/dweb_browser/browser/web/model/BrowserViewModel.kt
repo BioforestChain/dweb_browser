@@ -176,7 +176,7 @@ class BrowserViewModel(
 //    private set
 //  pagerStates
 
-  var isFillPageSize by mutableStateOf(true) // 用于标志当前的HorizontalPager中的PageSize是Fill还是Fixed
+  var isTabFixedSize by mutableStateOf(true) // 用于标志当前的HorizontalPager中的PageSize是Fill还是Fixed
   val pagerStates = BrowserPagerStates(this)
 
   var focusedPage
@@ -185,9 +185,9 @@ class BrowserViewModel(
       value?.also { focusedPageIndex = pages.indexOf(value) }
     }
   var focusedPageIndex
-    get() = pagerStates.searchBar.targetPage
+    get() = pagerStates.focusedPageIndex
     set(value) {
-      pagerStates.searchBar.requestScrollToPage(value)
+      pagerStates.focusedPageIndex = value
     }
 
   suspend fun focusPageUI(page: BrowserPage?) {
@@ -245,8 +245,6 @@ class BrowserViewModel(
       }
     }
 
-    pagerStates.BindingEffect(windowRenderScope) // 监听ContentPage页面，进行focusedUI操作
-
     /// 监听窗口关闭，进行资源释放
     DisposableEffect(Unit) {
       val off = browserController.onCloseWindow {
@@ -266,8 +264,7 @@ class BrowserViewModel(
       detachedStrategy = DWebViewOptions.DetachedStrategy.Ignore,
       /// 桌面端web browser需要使用离屏渲染，才能preview tabs
       enabledOffScreenRender = envSwitch.isEnabled(ENV_SWITCH_KEY.DWEBVIEW_ENABLE_OFFSCREEN_RENDER)
-    ),
-    viewBox = browserController.viewBox
+    ), viewBox = browserController.viewBox
   ).also { dwebview ->
     browserNMM.onBeforeShutdown {
       browserNMM.scopeLaunch(cancelable = false) {
@@ -644,41 +641,6 @@ class BrowserViewModel(
     showSearchPage = null
   }
 }
-
-/**
- * 将合法的url，解析成需要显示的简要内容
- */
-internal fun pageUrlTransformer(pageUrl: String, needHost: Boolean = true): String {
-  if (
-  // deeplink
-    pageUrl.startsWith("dweb:")
-    // 内部页面
-    || pageUrl.startsWith("about:") || pageUrl.startsWith("chrome:")
-    // android 特定的链接，理论上不应该给予支持
-    || pageUrl.startsWith("file:///android_asset/")
-  ) {
-    return pageUrl
-  }
-  // 尝试当成网址来解析
-  val url = pageUrl.toWebUrl() ?: return pageUrl
-
-  // 判断是不是搜索引擎，如果是提取它的关键字
-  for (item in SearchEngine.entries) {
-    item.queryKeyWordValue(url)?.let { searchText ->
-      return searchText
-    }
-  }
-  return if (needHost && url.host.isNotEmpty()) {
-    url.host.domainSimplify()
-  } else pageUrl
-}
-
-/**
- * 尝试剔除 www.
- */
-private fun String.domainSimplify() = if (startsWith("www.") && split('.').size == 3) {
-  substring(4)
-} else this
 
 /**
  * 将WebViewState转为WebSiteInfo

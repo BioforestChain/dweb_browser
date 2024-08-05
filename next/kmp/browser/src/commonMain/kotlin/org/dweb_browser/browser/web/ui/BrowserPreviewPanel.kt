@@ -16,8 +16,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -65,6 +65,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.web.model.BrowserViewModel
@@ -78,7 +79,6 @@ import kotlin.math.max
 /**
  * 显示多视图窗口
  */
-@OptIn(ExperimentalTransitionApi::class)
 @Composable
 internal fun BrowserPreviewPanel(modifier: Modifier = Modifier): Boolean {
   val viewModel = LocalBrowserViewModel.current
@@ -167,43 +167,52 @@ internal fun BrowserPreviewPanel(modifier: Modifier = Modifier): Boolean {
         }
       }
     }
-    Row(
-      modifier = Modifier.fillMaxWidth().height(dimenBottomHeight)
-        .background(MaterialTheme.colorScheme.surface), verticalAlignment = CenterVertically
-    ) {
-      IconButton(onClick = {
-        uiScope.launch {
-          viewModel.toggleShowPreviewUI(BrowserViewModel.PreviewPanelVisibleState.FastClose)
-          viewModel.addNewPageUI {
-            addIndex = focusedPageIndex + 1
-            focusPage = true
-          }
-        }
-      }) {
-        Icon(
-          imageVector = Icons.Default.Add, // ImageVector.vectorResource(id = R.drawable.ic_main_add),
-          contentDescription = "Add New Page",
-          tint = MaterialTheme.colorScheme.primary,
-        )
-      }
-      val content = BrowserI18nResource.browser_multi_count()
-      Text(
-        text = "${viewModel.pageSize} $content",
-        modifier = Modifier.weight(1f),
-        textAlign = TextAlign.Center
-      )
-      TextButton(onClick = {
-        viewModel.toggleShowPreviewUI(BrowserViewModel.PreviewPanelVisibleState.Close)
-      }) {
-        Text(
-          text = BrowserI18nResource.browser_multi_done(),
-          color = MaterialTheme.colorScheme.primary,
-          fontWeight = FontWeight.Bold
-        )
-      }
-    }
+    PreviewBottomBar(uiScope, viewModel, focusedPageIndex)
   }
   return true
+}
+
+@Composable
+private fun PreviewBottomBar(
+  uiScope: CoroutineScope,
+  viewModel: BrowserViewModel,
+  focusedPageIndex: Int,
+) {
+  Row(
+    modifier = Modifier.fillMaxWidth().requiredHeight(dimenBottomHeight),
+    verticalAlignment = CenterVertically
+  ) {
+    IconButton(onClick = {
+      uiScope.launch {
+        viewModel.toggleShowPreviewUI(BrowserViewModel.PreviewPanelVisibleState.FastClose)
+        viewModel.addNewPageUI {
+          addIndex = focusedPageIndex + 1
+          focusPage = true
+        }
+      }
+    }) {
+      Icon(
+        imageVector = Icons.Default.Add, // ImageVector.vectorResource(id = R.drawable.ic_main_add),
+        contentDescription = "Add New Page",
+        tint = MaterialTheme.colorScheme.primary,
+      )
+    }
+    val content = BrowserI18nResource.browser_multi_count()
+    Text(
+      text = "${viewModel.pageSize} $content",
+      modifier = Modifier.weight(1f),
+      textAlign = TextAlign.Center
+    )
+    TextButton(onClick = {
+      viewModel.toggleShowPreviewUI(BrowserViewModel.PreviewPanelVisibleState.Close)
+    }) {
+      Text(
+        text = BrowserI18nResource.browser_multi_done(),
+        color = MaterialTheme.colorScheme.primary,
+        fontWeight = FontWeight.Bold
+      )
+    }
+  }
 }
 
 private enum class PagePreviewState(val isMinimal: Boolean) {
