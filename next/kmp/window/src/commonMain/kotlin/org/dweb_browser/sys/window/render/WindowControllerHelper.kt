@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.safeGestures
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -68,6 +68,8 @@ import org.dweb_browser.sys.window.core.constant.WindowColorScheme
 import org.dweb_browser.sys.window.core.constant.WindowPropertyField
 import org.dweb_browser.sys.window.core.constant.WindowPropertyKeys
 import org.dweb_browser.sys.window.core.helper.asWindowStateColorOr
+import squircleshape.CornerSmoothing
+import squircleshape.SquircleShape
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
@@ -553,7 +555,14 @@ data class WindowPadding(
       CornerRadius(topStart / value, topEnd / value, bottomStart / value, bottomEnd / value)
 
     val roundedCornerShape by lazy {
-      RoundedCornerShape(topStart.dp, topEnd.dp, bottomStart.dp, bottomEnd.dp)
+      SquircleShape(
+        topStartCorner = CornerSize(topStart.dp),
+        topEndCorner = CornerSize(topEnd.dp),
+        bottomStartCorner = CornerSize(bottomStart.dp),
+        bottomEndCorner = CornerSize(bottomEnd.dp),
+        cornerSmoothing = CornerSmoothing.Small,
+      )
+//      RoundedCornerShape(topStart.dp, topEnd.dp, bottomStart.dp, bottomEnd.dp)
     }
 
     companion object {

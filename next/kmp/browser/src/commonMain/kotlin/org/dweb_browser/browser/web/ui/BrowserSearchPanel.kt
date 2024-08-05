@@ -4,11 +4,16 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -17,10 +22,15 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.twotone.Public
+import androidx.compose.material.icons.twotone.TravelExplore
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -46,13 +56,13 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import org.dweb_browser.browser.BrowserI18nResource
-import org.dweb_browser.browser.common.CommonTextField
 import org.dweb_browser.browser.search.SearchInject
 import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.browser.web.model.LocalBrowserViewModel
@@ -138,7 +148,7 @@ fun BrowserSearchPanel(modifier: Modifier = Modifier): Boolean {
         Box(
           Modifier.fillMaxWidth().height(dimenBottomHeight)
             .padding(horizontal = dimenPageHorizontal),
-          contentAlignment = Alignment.Center
+          contentAlignment = Alignment.Center,
         ) {
           val focusRequester = remember { FocusRequester() }
           LaunchedEffect(focusRequester) {
@@ -158,55 +168,124 @@ fun BrowserSearchPanel(modifier: Modifier = Modifier): Boolean {
               }
             }
           }
-          CommonTextField(
-            value = searchTextField,
+
+          val maybeUrl = searchTextField.text.run {
+            isEmpty() || startsWith("http") || startsWith("dweb") || matches(Regex("^\\d+://"))
+          }
+//
+//          OutlinedTextField(value = searchTextField,
+//            onValueChange = { searchTextField = it },
+//            modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
+//            singleLine = true,
+//            shape = SquircleShape(30, CornerSmoothing.Small),
+//            textStyle = MaterialTheme.typography.bodyMedium.copy(
+//              color = MaterialTheme.colorScheme.onSecondaryContainer
+//            ),
+//            keyboardOptions = KeyboardOptions(keyboardType = if (maybeUrl) KeyboardType.Uri else KeyboardType.Text),
+//            keyboardActions = KeyboardActions(onSearch = {
+//              hide()
+//              viewModel.doIOSearchUrl(searchTextField.text.trim().trim('\u200B').trim())
+//            }),
+//            leadingIcon = {
+//              if (maybeUrl) {
+//                Icon(Icons.TwoTone.Public, "visit network")
+//              } else {
+//                Icon(Icons.TwoTone.TravelExplore, "search network")
+//              }
+//            },
+//            placeholder = {
+//              Text(
+//                BrowserI18nResource.browser_search_hint(),
+//                fontSize = MaterialTheme.typography.bodyMedium.fontSize
+//              )
+//            },
+//            trailingIcon = {
+//              // 清除文本的按钮
+//              IconButton(onClick = {
+//                // 清空文本之后再次点击需要还原文本内容并对输入框失焦
+//                if (searchTextField.text.isEmpty()) {
+//                  searchTextField = TextFieldValue(showSearchPage.url)
+//                  hide()
+//                } else {
+//                  searchTextField = TextFieldValue("")
+//                }
+//              }) {
+//                Icon(Icons.Default.Clear, contentDescription = "Clear Input Text")
+//              }
+//            })
+          val doAction = {
+
+            hide()
+            viewModel.doIOSearchUrl(searchTextField.text.trim().trim('\u200B').trim())
+          }
+          BasicTextField(value = searchTextField,
             onValueChange = { searchTextField = it },
-            modifier = Modifier.fillMaxWidth().searchBoxStyle(SearchBoxTheme.Border)
+            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp).border(
+              1.dp, MaterialTheme.colorScheme.primary, tabShape
+            ).background(MaterialTheme.colorScheme.outlineVariant, tabShape)
               .focusRequester(focusRequester),
             singleLine = true,
             maxLines = 1,
-            textStyle = TextStyle.Default.copy(
-              fontSize = dimenTextFieldFontSize,
+            textStyle = MaterialTheme.typography.bodyMedium.copy(
               color = MaterialTheme.colorScheme.onSecondaryContainer
             ),
-            onKeyboardSearch = {
-              hide()
-              viewModel.doIOSearchUrl(searchTextField.text.trim().trim('\u200B').trim())
-            },
-          ) { innerTextField ->
-            Row(
-              modifier = Modifier.fillMaxSize(),
-              verticalAlignment = Alignment.CenterVertically,
-            ) {
-              Box(
-                modifier = Modifier.weight(1f).searchInnerStyle(end = false),
-                contentAlignment = Alignment.CenterStart,
+            keyboardOptions = KeyboardOptions(
+              keyboardType = if (maybeUrl) KeyboardType.Uri else KeyboardType.Text,
+              imeAction = if (maybeUrl) ImeAction.Go else ImeAction.Search
+            ),
+            keyboardActions = KeyboardActions(onSearch = { doAction() }, onGo = { doAction() }),
+            decorationBox = { innerTextField ->
+              Row(
+                modifier = Modifier.fillMaxSize(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
               ) {
-                innerTextField()
-                /// Placeholder
-                if (searchTextField.text.isEmpty()) {
-                  Text(
-                    text = BrowserI18nResource.browser_search_hint(),
-                    fontSize = dimenTextFieldFontSize,
-                    maxLines = 1,
-                    modifier = Modifier.fillMaxSize().alpha(0.5f)
-                  )
+                Row(
+                  modifier = Modifier.fillMaxHeight().weight(1f),
+                  verticalAlignment = Alignment.CenterVertically,
+                ) {
+                  // leadingIcon
+                  Box(
+                    Modifier.fillMaxHeight().aspectRatio(1f),
+                    contentAlignment = Alignment.Center
+                  ) {
+                    if (maybeUrl) {
+                      Icon(Icons.TwoTone.Public, "visit network")
+                    } else {
+                      Icon(Icons.TwoTone.TravelExplore, "search network")
+                    }
+                  }
+                  Box(
+                    modifier = Modifier.weight(1f),
+                    contentAlignment = Alignment.CenterStart,
+                  ) {
+                    innerTextField()
+                    // Placeholder
+                    if (searchTextField.text.isEmpty()) {
+                      Text(
+                        text = BrowserI18nResource.browser_search_hint(),
+                        fontSize = dimenTextFieldFontSize,
+                        maxLines = 1,
+                        modifier = Modifier.alpha(0.5f)
+                      )
+                    }
+                  }
+                }
+
+                // trailingIcon 清除文本的按钮
+                IconButton(onClick = {
+                  // 清空文本之后再次点击需要还原文本内容并对输入框失焦
+                  if (searchTextField.text.isEmpty()) {
+                    searchTextField = TextFieldValue(showSearchPage.url)
+                    hide()
+                  } else {
+                    searchTextField = TextFieldValue("")
+                  }
+                }) {
+                  Icon(Icons.Default.Clear, contentDescription = "Clear Input Text")
                 }
               }
-              // 清除文本的按钮
-              IconButton(onClick = {
-                // 清空文本之后再次点击需要还原文本内容并对输入框失焦
-                if (searchTextField.text.isEmpty()) {
-                  searchTextField = TextFieldValue(showSearchPage.url)
-                  hide()
-                } else {
-                  searchTextField = TextFieldValue("")
-                }
-              }) {
-                Icon(Icons.Default.Clear, contentDescription = "Clear Input Text")
-              }
-            }
-          }
+            })
         }
       }
     }

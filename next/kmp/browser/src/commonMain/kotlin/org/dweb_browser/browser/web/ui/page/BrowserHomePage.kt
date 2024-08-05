@@ -23,6 +23,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -64,7 +65,7 @@ fun BrowserHomePage.BrowserHomePageRender(modifier: Modifier = Modifier) {
         text = "Dweb Browser", style = MaterialTheme.typography.titleMedium
       )
     }
-    
+
     Row(
       Modifier.padding(horizontal = 16.dp).weight(1.618f).sizeIn(maxWidth = 480.dp).fillMaxWidth(),
       horizontalArrangement = Arrangement.SpaceEvenly
@@ -87,6 +88,7 @@ fun BrowserHomePage.BrowserHomePageRender(modifier: Modifier = Modifier) {
             }
             Text(
               text = pageType.pageTitle(),
+              modifier = Modifier.scale(0.8f),
               textAlign = TextAlign.Center,
               style = MaterialTheme.typography.bodySmall
             )
@@ -111,6 +113,6 @@ fun BrowserHomePagePreview() {
     val browserRuntime = dnsRuntime.open(browserNMM.mmid) as BrowserNMM.BrowserRuntime
     browserHomePage = BrowserHomePage(browserRuntime.browserController)
   }
-  
+
   browserHomePage?.BrowserHomePageRender()
 }

@@ -2,12 +2,10 @@ package info.bagen.dwebbrowser
 
 import android.annotation.SuppressLint
 import android.app.ActivityOptions
-import android.os.Build
 import android.os.Bundle
 import android.transition.Fade
 import android.view.Window
 import androidx.activity.compose.setContent
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.EaseInOutQuart
@@ -22,7 +20,6 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.requiredSize
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -39,7 +36,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -58,7 +54,6 @@ import org.dweb_browser.helper.Once1
 import org.dweb_browser.helper.addStartActivityOptions
 import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
 import org.dweb_browser.helper.compose.LocalCommonUrl
-import org.dweb_browser.helper.compose.RadialGradientX
 import org.dweb_browser.helper.compose.envSwitch
 import org.dweb_browser.helper.getBoolean
 import org.dweb_browser.helper.globalMainScope
@@ -66,24 +61,6 @@ import org.dweb_browser.helper.platform.theme.DwebBrowserAppTheme
 import org.dweb_browser.helper.removeStartActivityOptions
 import org.dweb_browser.helper.saveBoolean
 import kotlin.system.exitProcess
-
-@RequiresApi(Build.VERSION_CODES.S)
-@Preview
-@Composable
-fun RadialGradientXDemo() {
-  RadialGradientX(
-    Modifier.size(200.dp),
-    startX = 10f,
-    startY = 100f,
-    startRadius = 1f,
-    endX = 100f,
-    endY = 100f,
-    endRadius = 100f,
-    colors = arrayOf(
-      Color.Red, Color.Blue
-    )
-  )
-}
 
 @SuppressLint("CustomSplashScreen")
 class SplashActivity : AppCompatActivity() {
