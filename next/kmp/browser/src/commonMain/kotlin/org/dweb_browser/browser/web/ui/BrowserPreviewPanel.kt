@@ -43,7 +43,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -56,11 +55,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -102,6 +101,7 @@ class BrowserPreviewPanel(val viewModel: BrowserViewModel) {
   private val aniOutSpec = spring<Float>(Spring.DampingRatioNoBouncy, Spring.StiffnessLow)
 
   var previewPanelVisible by mutableStateOf(PreviewPanelVisibleState.Close)
+  var previewReady by mutableStateOf(false)
 
   /**
    * 是否显示 Preview
@@ -142,7 +142,12 @@ class BrowserPreviewPanel(val viewModel: BrowserViewModel) {
       toggleShowPreviewUI(PreviewPanelVisibleState.Close)
     }
 
-    val focusPagePreviewBoundsDeferred = remember { CompletableDeferred<Rect>() }
+    val focusPagePreviewBoundsDeferred = remember {
+      CompletableDeferred<Rect>().also {
+        previewReady = false
+        it.invokeOnCompletion { previewReady = true }
+      }
+    }
 
     /// 绑定 aniProgress
     LaunchedEffect(previewPanelVisible) {
@@ -169,7 +174,8 @@ class BrowserPreviewPanel(val viewModel: BrowserViewModel) {
       val focusedPageIndex = viewModel.focusedPageIndex
       /// 预览图
       BoxWithConstraints(
-        modifier = Modifier.weight(1f).background(MaterialTheme.colorScheme.surfaceContainer)
+        modifier = Modifier.weight(1f)
+          .background(if (previewReady) MaterialTheme.colorScheme.surfaceContainer else Color.Transparent)
       ) {
         val density = LocalDensity.current.density
         val pageSize = viewModel.pageSize
@@ -215,9 +221,9 @@ class BrowserPreviewPanel(val viewModel: BrowserViewModel) {
                   .zIndex(if (isFocusedPage) 3f else 1f),
                 closable = cellClosable,
                 focus = isFocusedPage,
-                focusPagePreviewBoundsDeferred = focusPagePreviewBoundsDeferred,
                 containerWidth = containerWidth,
-                containerHeight = containerHeight
+                containerHeight = containerHeight,
+                focusPagePreviewBoundsDeferred = focusPagePreviewBoundsDeferred,
               )
             }
           }
@@ -270,11 +276,25 @@ class BrowserPreviewPanel(val viewModel: BrowserViewModel) {
             var rect by remember { mutableStateOf(Rect.Zero) }
             val density = LocalDensity.current.density
             imageModifier = imageModifier.onGloballyPositioned { coordinates ->
-              focusPagePreviewBoundsDeferred.complete(Rect(
-                coordinates.positionInRoot() / density, coordinates.size.div(density)
-              ).also {
-                rect = it
-              })
+              if (false) {
+                var i = 1
+                var parent = coordinates.parentLayoutCoordinates
+                while (parent != null) {
+                  val position = parent.localPositionOf(coordinates)
+                  println("QAQ $i.position=$position")
+                  parent = parent.parentLayoutCoordinates
+                  i += 1
+                }
+              }
+              coordinates.parentLayoutCoordinates?.parentLayoutCoordinates?.parentLayoutCoordinates?.parentLayoutCoordinates?.localPositionOf(
+                coordinates
+              )?.also { position ->
+                focusPagePreviewBoundsDeferred.complete(Rect(
+                  position / density, coordinates.size.div(density)
+                ).also {
+                  rect = it
+                })
+              }
             }
             when (focusPagePreviewBoundsDeferred.getCompletedOrNull()) {
               null -> {
@@ -312,19 +332,15 @@ class BrowserPreviewPanel(val viewModel: BrowserViewModel) {
           val innerP = if (focus) p else 1f
           val shadowColor = LocalContentColor.current.copy(alpha = innerP)
           val shape = SquircleShape(
-            lerp(0.dp, 20.dp, innerP),
-            lerp(CornerSmoothing.None, CornerSmoothing.Small, innerP)
+            lerp(0.dp, 20.dp, innerP), lerp(CornerSmoothing.None, CornerSmoothing.Small, innerP)
           )
 
-          val innerModifier = Modifier.fillMaxSize().aspectRatio(defaultAspectRatio)
-            .shadow(
-              elevation = if (focus) lerp(0.dp, 4.dp, innerP) else 1.dp,
-              shape = shape,
-              ambientColor = shadowColor,
-              spotColor = shadowColor,
-            )
-            .clip(shape)
-            .background(MaterialTheme.colorScheme.surface)
+          val innerModifier = Modifier.fillMaxSize().aspectRatio(defaultAspectRatio).shadow(
+            elevation = if (focus) lerp(0.dp, 4.dp, innerP) else 1.dp,
+            shape = shape,
+            ambientColor = shadowColor,
+            spotColor = shadowColor,
+          ).clip(shape).background(MaterialTheme.colorScheme.surface)
 
           page.PreviewRender(containerWidth = maxWidth, modifier = innerModifier)
         }
@@ -397,8 +413,7 @@ class BrowserPreviewPanel(val viewModel: BrowserViewModel) {
     Row(
       modifier = modifier.fillMaxWidth().requiredHeight(dimenBottomHeight)
         // 因为本质上和 tabsbar 层叠在一起渲染，所以这里拦截掉所有事件
-        .pointerInput(Unit) { awaitPointerEventScope { } },
-      verticalAlignment = CenterVertically
+        .pointerInput(Unit) { awaitPointerEventScope { } }, verticalAlignment = CenterVertically
     ) {
       // 添加新页面按钮
       IconButton(onClick = {
