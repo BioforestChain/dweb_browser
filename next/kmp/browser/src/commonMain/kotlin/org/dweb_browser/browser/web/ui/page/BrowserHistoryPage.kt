@@ -46,37 +46,30 @@ fun BrowserHistoryPageRender(historyPage: BrowserHistoryPage, modifier: Modifier
   val uiScope = rememberCoroutineScope()
   val viewModel = LocalBrowserViewModel.current
   Column(modifier = modifier) {
-    BrowserTopBar(
-      title = BrowserI18nResource.History.page_title(),
+    BrowserTopBar(title = BrowserI18nResource.History.page_title(),
       enableNavigation = historyPage.isInEditMode,
       onNavigationBack = { historyPage.isInEditMode = false },
       actions = {
         if (historyPage.isInEditMode) {
-          IconButton(
-            enabled = historyPage.selectedHistories.isNotEmpty(),
-            onClick = {
-              uiScope.launch {
-                viewModel.removeHistoryLink(historyPage.selectedHistories.toList())
-                historyPage.isInEditMode = false
-              }
+          IconButton(enabled = historyPage.selectedHistories.isNotEmpty(), onClick = {
+            uiScope.launch {
+              viewModel.removeHistoryLink(historyPage.selectedHistories.toList())
+              historyPage.isInEditMode = false
             }
-          ) {
+          }) {
             Icon(imageVector = Icons.Filled.Delete, contentDescription = "Delete Selects")
           }
         } else {
-          IconButton(
-            onClick = {
-              historyPage.isInEditMode = true
-              historyPage.selectedHistories.clear()
-            }
-          ) {
+          IconButton(onClick = {
+            historyPage.isInEditMode = true
+            historyPage.selectedHistories.clear()
+          }) {
             Icon(
               imageVector = Icons.Filled.Edit, contentDescription = "Go to Edit"
             )
           }
         }
-      }
-    )
+      })
     BrowserHistoryListPage(historyPage = historyPage)
   }
 }
@@ -94,7 +87,7 @@ fun BrowserHistoryListPage(modifier: Modifier = Modifier, historyPage: BrowserHi
 
   val currentDay = datetimeNowToEpochDay()
 
-  LazyColumn(modifier = modifier.background(MaterialTheme.colorScheme.background)) {
+  LazyColumn(modifier.background(MaterialTheme.colorScheme.background).padding(vertical = 16.dp)) {
     for (day in currentDay downTo currentDay - 6) {
       val historyList = historyMap[day.toString()] ?: continue
       stickyHeader(key = day) {
@@ -115,35 +108,30 @@ fun BrowserHistoryListPage(modifier: Modifier = Modifier, historyPage: BrowserHi
             Unit
           }
         }
-        ListItem(
-          headlineContent = {
-            Text(text = historyItem.title, overflow = TextOverflow.Ellipsis, maxLines = 1)
-          },
-          modifier = Modifier.clickableWithNoEffect {
-            if (!historyPage.isInEditMode) {
-              openInNewPage()
-            }
-          },
-          supportingContent = {
-            Text(text = historyItem.url, overflow = TextOverflow.Ellipsis, maxLines = 2)
-          },
-          trailingContent = {
-            if (historyPage.isInEditMode) {
-              Checkbox(checked = historyPage.selectedHistories.contains(historyItem), {
-                when (it) {
-                  true -> historyPage.selectedHistories.add(historyItem)
-                  else -> historyPage.selectedHistories.remove(historyItem)
-                }
-              })
-            } else {
-              Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                contentDescription = "Open In New Page",
-                tint = MaterialTheme.colorScheme.outlineVariant
-              )
-            }
+        ListItem(headlineContent = {
+          Text(text = historyItem.title, overflow = TextOverflow.Ellipsis, maxLines = 1)
+        }, modifier = Modifier.clickableWithNoEffect {
+          if (!historyPage.isInEditMode) {
+            openInNewPage()
           }
-        )
+        }, supportingContent = {
+          Text(text = historyItem.url, overflow = TextOverflow.Ellipsis, maxLines = 2)
+        }, trailingContent = {
+          if (historyPage.isInEditMode) {
+            Checkbox(checked = historyPage.selectedHistories.contains(historyItem), {
+              when (it) {
+                true -> historyPage.selectedHistories.add(historyItem)
+                else -> historyPage.selectedHistories.remove(historyItem)
+              }
+            })
+          } else {
+            Icon(
+              imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+              contentDescription = "Open In New Page",
+              tint = MaterialTheme.colorScheme.outlineVariant
+            )
+          }
+        })
       }
     }
   }

@@ -33,7 +33,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
-import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.browser.web.model.LocalBrowserViewModel
 import org.dweb_browser.browser.web.model.LocalShowIme
 import org.dweb_browser.helper.compose.hoverCursor
@@ -110,7 +109,7 @@ fun BrowserBottomBar(modifier: Modifier) {
     IconButton(onClick = {
       uiScope.launch {
         viewModel.focusedPage?.captureViewInBackground("for preview")
-        viewModel.toggleShowPreviewUI(BrowserViewModel.PreviewPanelVisibleState.DisplayGrid)
+        viewModel.previewPanel.toggleShowPreviewUI( PreviewPanelVisibleState.DisplayGrid)
       }
     }, Modifier.hoverCursor()) {
       Icon(

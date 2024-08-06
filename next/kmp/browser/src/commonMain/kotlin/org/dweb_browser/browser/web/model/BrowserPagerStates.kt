@@ -7,8 +7,11 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.util.fastRoundToInt
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.web.debugBrowser
 
@@ -35,21 +38,32 @@ class BrowserPagerStates(val viewModel: BrowserViewModel) {
 
   @Composable
   fun ContentPageEffect() {
+    var isFirstView by remember { mutableStateOf(true) }
     if (!useSearchBar) {
-      LaunchedEffect(focusedPageIndex) {
-        launch {
+      val viewPortWidth = contentLazyState.layoutInfo.viewportSize.width
+      LaunchedEffect(focusedPageIndex, viewPortWidth) {
+        launch(start = CoroutineStart.UNDISPATCHED) {
           debugBrowser("ContentPageEffect") {
-            "contentLazyState.animateScrollToItem($focusedPageIndex)"
+            "contentLazyState.animateScrollToItem($focusedPageIndex) isFirstView=$isFirstView"
           }
-          contentLazyState.animateScrollToItem(focusedPageIndex)
+          if (isFirstView) {
+            contentLazyState.scrollToItem(focusedPageIndex)
+          } else {
+            contentLazyState.animateScrollToItem(focusedPageIndex)
+          }
         }
-        launch {
+        launch(start = CoroutineStart.UNDISPATCHED) {
           debugBrowser("ContentPageEffect") {
             "tabsBarLazyState.animateScrollToItem($focusedPageIndex)"
           }
           tabsBarLazyState.animateScrollToItem(focusedPageIndex)
         }
       }
+    }
+    LaunchedEffect(Unit) {
+      delay(200)
+      isFirstView = false
+      println("QAQ isFirstView done")
     }
   }
 

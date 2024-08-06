@@ -10,9 +10,7 @@ import org.dweb_browser.browser.web.BrowserController
 import org.dweb_browser.browser.web.data.BrowserDownloadItem
 import org.dweb_browser.browser.web.ui.page.BrowserDownloadPageRender
 
-class BrowserDownloadPage(
-  private val browserController: BrowserController,
-) : BrowserPage(browserController) {
+class BrowserDownloadPage(browserController: BrowserController) : BrowserPage(browserController) {
   companion object {
     fun isDownloadUrl(url: String) =
       BrowserPageType.Download.isMatchUrl(url) // isAboutPage(url, "downloads")
@@ -48,14 +46,16 @@ class BrowserDownloadPage(
   fun clickDownloadButton(downloadItem: BrowserDownloadItem) =
     downloadController.clickDownloadButton(downloadItem)
 
-  fun shareDownloadItem(downloadItem: BrowserDownloadItem) = browserController.lifecycleScope.launch {
-    downloadController.shareDownloadItem(downloadItem)
-  }
+  fun shareDownloadItem(downloadItem: BrowserDownloadItem) =
+    browserController.lifecycleScope.launch {
+      downloadController.shareDownloadItem(downloadItem)
+    }
 
   fun deleteDownloadItems(list: List<BrowserDownloadItem>) =
     downloadController.deleteDownloadItems(list)
 
-  fun openFileOnDownload(downloadItem: BrowserDownloadItem) = browserController.lifecycleScope.launch {
-    downloadController.openFileOnDownload(downloadItem)
-  }
+  fun openFileOnDownload(downloadItem: BrowserDownloadItem) =
+    browserController.lifecycleScope.launch {
+      downloadController.openFileOnDownload(downloadItem)
+    }
 }

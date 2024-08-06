@@ -1,5 +1,6 @@
 package org.dweb_browser.browser.web.ui.page
 
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -77,16 +78,25 @@ internal fun BrowserWebPage.Effect() {
 internal fun BrowserWebPage.BrowserWebPageRender(modifier: Modifier) {
   val webPage = this
   webPage.Effect()
-  ///
-  UnScaleBox(scale, modifier) { // 对冲缩放
-    val win = LocalWindowController.current
-    val colorScheme by win.watchedState { colorScheme }
-    LaunchedEffect(colorScheme) {
-      webView.setPrefersColorScheme(colorScheme.toWebColorScheme())
-    }
+  /**
+   * 默认情况下这个WebView默认一直显示，但是桌面端例外，因为它的SwingPanel是置顶显示的，所以浏览器界面会一直盖在其它界面上面
+   */
+  if (webPage.browserController.viewModel.previewPanel.isPreviewInvisible) {
+    ///
+    UnScaleBox(scale, modifier) { // 对冲缩放
+      val win = LocalWindowController.current
+      val colorScheme by win.watchedState { colorScheme }
+      LaunchedEffect(colorScheme) {
+        webView.setPrefersColorScheme(colorScheme.toWebColorScheme())
+      }
 
-    /// 同步缩放量
-    webView.ScaleRender(scale)
-    webView.Render(Modifier.fillMaxSize())
+      /// 同步缩放量
+      webView.ScaleRender(scale)
+      webView.Render(Modifier.fillMaxSize())
+    }
+  } else {
+    BoxWithConstraints(modifier) {
+      webPage.PreviewRender(containerWidth = maxWidth, modifier = Modifier.fillMaxSize())
+    }
   }
 }
