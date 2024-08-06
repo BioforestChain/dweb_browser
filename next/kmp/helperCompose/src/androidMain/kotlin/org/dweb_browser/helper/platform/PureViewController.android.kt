@@ -6,6 +6,7 @@ import android.view.MotionEvent
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
+import android.graphics.Color
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.CoroutineScope
@@ -39,6 +40,8 @@ open class PureViewController : BaseActivity(), IPureViewController {
     lifecycleScope.launch(start = CoroutineStart.UNDISPATCHED) {
       createSignal.emit(PureViewCreateParams(intent))
     }
+    
+    window.statusBarColor = Color.TRANSPARENT
     setContent {
       LocalCompositionChain.current.Provider(
         LocalPureViewController provides this,
