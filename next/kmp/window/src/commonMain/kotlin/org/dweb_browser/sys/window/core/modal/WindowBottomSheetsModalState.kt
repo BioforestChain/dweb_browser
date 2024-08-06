@@ -238,7 +238,7 @@ internal fun BottomSheetsModalState.CommonRenderImpl(emitModalVisibilityChange: 
         BottomSheetDefaults.DragHandle(Modifier.align(Alignment.TopCenter))
       }
     },
-    windowInsets = modalWindowInsets,
+    contentWindowInsets = { modalWindowInsets },
     onDismissRequest = { emitModalVisibilityChange(EmitModalVisibilityState.TryClose) }
   ) {
     /// 显示内容

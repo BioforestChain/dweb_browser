@@ -28,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -122,6 +123,8 @@ internal fun BoxScope.BottomDownloadButton() {
               progress = { jmmUiKit.jmmStatusEvent.progress },
               modifier = Modifier.fillMaxSize().alpha(0.5f).zIndex(1f),
               color = bgColor,
+              strokeCap = StrokeCap.Butt,
+              drawStopIndicator = {},
             )
           }
           Column(
