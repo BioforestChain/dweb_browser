@@ -5,9 +5,11 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
@@ -226,7 +228,7 @@ internal fun BottomSheetsModalState.CommonRenderImpl(emitModalVisibilityChange: 
   }
   ModalBottomSheet(
     sheetState = sheetState,
-    modifier = Modifier.padding(top = windowInsetTop),
+    modifier = Modifier.padding(top = WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding()),
     dragHandle = {
       TitleBarWithOnClose({
         if (emitModalVisibilityChange(EmitModalVisibilityState.TryClose)) {

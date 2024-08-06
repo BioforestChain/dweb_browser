@@ -54,7 +54,7 @@ import platform.darwin.NSObject
  * 因此直到官方修复这个问题之前，我们先使用 CommonRenderImpl 来替代渲染
  */
 @Composable
-internal fun BottomSheetsModalState.RenderImplOld(emitModalVisibilityChange: (state: EmitModalVisibilityState) -> Boolean) {
+internal fun BottomSheetsModalState.RenderImplNative(emitModalVisibilityChange: (state: EmitModalVisibilityState) -> Boolean) {
   val uiViewController = LocalUIViewController.current
   val compositionChain = rememberUpdatedState(LocalCompositionChain.current)
   val win = parent
@@ -229,6 +229,6 @@ internal fun BottomSheetsModalState.RenderImplOld(emitModalVisibilityChange: (st
 
 @Composable
 internal actual fun BottomSheetsModalState.RenderImpl(emitModalVisibilityChange: (state: EmitModalVisibilityState) -> Boolean) {
-//  if(compose-multiplatform.version < 1.7) RenderImplOld else
-  CommonRenderImpl(emitModalVisibilityChange)
+//  CommonRenderImpl(emitModalVisibilityChange)
+  RenderImplNative(emitModalVisibilityChange)
 }
