@@ -50,21 +50,6 @@ internal fun BrowserWebPage.Effect() {
       }
     }
   }
-  /// 绑定进度
-  LaunchedEffect(webPage) {
-    webView.loadingProgressFlow.collect {
-      when (it) {
-        1f -> {
-          /// 如果网页在后台加载，那么加载完成后，应该进行截图
-          if (viewModel.focusedPage != this) {
-            captureViewInBackground("webLoaded")
-          }
-        }
-
-        else -> {}
-      }
-    }
-  }
 
   /// 返回按钮拦截
   key(viewModel) {

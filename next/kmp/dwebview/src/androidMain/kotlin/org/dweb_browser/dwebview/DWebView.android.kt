@@ -259,7 +259,7 @@ class DWebView private constructor(internal val engine: DWebViewEngine, initUrl:
     evaluateAsyncJavascriptCode("console.log('openDevTool')")
   }
 
-  override fun requestRefresh() {
+  override fun requestRedraw() {
     engine.invalidate()
   }
 

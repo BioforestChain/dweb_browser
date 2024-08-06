@@ -322,7 +322,7 @@ class DWebView private constructor(
     }
   }
 
-  override fun requestRefresh() {
+  override fun requestRedraw() {
     WARNING("Not yet implemented requestRefresh")
   }
 

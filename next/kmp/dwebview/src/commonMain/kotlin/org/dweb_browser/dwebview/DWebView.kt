@@ -242,9 +242,9 @@ abstract class IDWebView(initUrl: String?) {
   abstract suspend fun requestClose(): Unit
 
   /**
-   * 申请刷新webview
+   * 申请webview重新绘制
    */
-  abstract fun requestRefresh(): Unit
+  abstract fun requestRedraw(): Unit
 //
 //  /**
 //   * 让页面进入激活态，从而可以做一些需要 激活状 才能执行的事务

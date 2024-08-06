@@ -8,8 +8,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.util.fastRoundToInt
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -26,7 +28,10 @@ class BrowserPagerStates(val viewModel: BrowserViewModel) {
     get() = focusedPageIndexState.value
     set(value) {
       focusedPageIndexState.value = value
-      if (useSearchBar) {
+//      tabsBarPagerScope?.launch {
+//        tabsBarPager.animateScrollToPage(value)
+//      }
+      if (useTabsBarPager) {
         tabsBarPager.requestScrollToPage(value)
       }
     }
@@ -39,7 +44,7 @@ class BrowserPagerStates(val viewModel: BrowserViewModel) {
   @Composable
   fun ContentPageEffect() {
     var isFirstView by remember { mutableStateOf(true) }
-    if (!useSearchBar) {
+    if (!useTabsBarPager) {
       val viewPortWidth = contentLazyState.layoutInfo.viewportSize.width
       LaunchedEffect(focusedPageIndex, viewPortWidth) {
         launch(start = CoroutineStart.UNDISPATCHED) {
@@ -73,15 +78,17 @@ class BrowserPagerStates(val viewModel: BrowserViewModel) {
    * 用于表示下面搜索框等内容
    */
   val tabsBarPager: PagerState = InnerPagerState()
-  private var useSearchBar by mutableStateOf(false)
+  private var tabsBarPagerScope by mutableStateOf<CoroutineScope?>(null)
+  private val useTabsBarPager get() = tabsBarPagerScope != null
 
   @Composable
   fun SearchBarEffect() {
+    val uiScope = rememberCoroutineScope()
     DisposableEffect(this) {
+      tabsBarPagerScope = uiScope
       tabsBarPager.requestScrollToPage(focusedPageIndex)
-      useSearchBar = true
       onDispose {
-        useSearchBar = false
+        tabsBarPagerScope = null
       }
     }
     val viewPortWidth = contentLazyState.layoutInfo.viewportSize.width
