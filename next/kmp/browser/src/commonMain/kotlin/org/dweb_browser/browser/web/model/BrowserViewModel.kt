@@ -41,6 +41,7 @@ import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.WebDownloadArgs
 import org.dweb_browser.dwebview.create
 import org.dweb_browser.helper.Signal
+import org.dweb_browser.helper.clamp
 import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
 import org.dweb_browser.helper.compose.compositionChainOf
 import org.dweb_browser.helper.compose.envSwitch
@@ -338,11 +339,9 @@ class BrowserViewModel(
           focusPage = true
           replaceOldHomePage = false
         }
-      } else if (focusedPage == page) {
+      } else if (focusedPage == page || focusedPage == null) {
         // TODO 获取的index是否在移除后的列表有效区间内，如果存在可以进行聚焦，不存在（-1），等待PagerState内部自行处理
-        if (index in 0 until pageSize) {
-          focusPageUI(index)
-        }
+        focusPageUI(clamp(0, index, pageSize - 1))
       }
       page.destroy()
     }
