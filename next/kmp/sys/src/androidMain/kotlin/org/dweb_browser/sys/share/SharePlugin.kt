@@ -1,6 +1,7 @@
 package org.dweb_browser.sys.share
 
 import android.app.PendingIntent
+import android.content.ClipData
 import android.content.ComponentName
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -115,8 +116,11 @@ object SharePlugin {
 //                        intent.setDataAndType(shareFile, type)
             intent.action = Intent.ACTION_SEND
             intent.putExtra(Intent.EXTRA_STREAM, shareFile)
-          }
 
+            // @see https://stackoverflow.com/questions/62323291/coulnt-sharing-file-requires-the-provider-be-exported-or-granturipermission
+            // Writing exception to parcel java.lang.SecurityException: Permission Denial requires the provider be exported, or grantUriPermission()
+            intent.clipData = ClipData.newRawUri("", shareFile)
+          }
         } else {
           debugShare("shareFiles", "only file urls are supported")
           po.resolve("only file urls are supported")
@@ -124,7 +128,14 @@ object SharePlugin {
       }
 
       if (arrayListFiles.size > 1) {
-        intent.putExtra(Intent.EXTRA_STREAM, arrayListFiles)
+        intent.action = Intent.ACTION_SEND_MULTIPLE
+        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+        intent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, arrayListFiles)
+        val clipData = ClipData.newRawUri("", Uri.EMPTY)
+        arrayListFiles.forEach {
+          clipData.addItem(ClipData.Item(it))
+        }
+        intent.clipData = clipData
       }
       // 添加权限 将于任务堆栈完成后自动过期
       intent.flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
