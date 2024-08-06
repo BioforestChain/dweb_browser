@@ -1,6 +1,5 @@
 package org.dweb_browser.browser.web.model
 
-import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -34,6 +33,7 @@ import org.dweb_browser.browser.web.model.page.BrowserHomePage
 import org.dweb_browser.browser.web.model.page.BrowserPage
 import org.dweb_browser.browser.web.model.page.BrowserSettingPage
 import org.dweb_browser.browser.web.model.page.BrowserWebPage
+import org.dweb_browser.browser.web.ui.BrowserPreviewPanel
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.file.ext.readFile
 import org.dweb_browser.dwebview.DWebViewOptions
@@ -89,39 +89,7 @@ class BrowserViewModel(
 
   var showMore by mutableStateOf(false)
 
-  enum class PreviewPanelVisibleState(val isVisible: Boolean) {
-    DisplayGrid(true), Close(false), FastClose(false)/*不做动画，直接隐藏*/;
-  }
-
-  val previewPanelVisibleState = MutableTransitionState(PreviewPanelVisibleState.Close)
-
-  /**
-   * previewPanel 是否完成了布局计算，可以开始动画渲染
-   */
-  var previewPanelAnimationReady = mutableStateListOf<Int>()
-
-  /**
-   * 是否显示 Preview
-   */
-  val showPreview get() = previewPanelVisibleState.targetState == PreviewPanelVisibleState.DisplayGrid
-
-  /**
-   * Preview 是否不显示，同时 也不在 收起显示的动画中
-   */
-  val isPreviewInvisible get() = previewPanelVisibleState.targetState == PreviewPanelVisibleState.FastClose || (!showPreview && previewPanelVisibleState.isIdle)
-  fun toggleShowPreviewUI(state: PreviewPanelVisibleState) {
-    previewPanelVisibleState.targetState = state
-  }
-
-  var withoutAnimationOnFocus by mutableStateOf(false)
-
-  /**
-   * 隐藏BrowserPreview，并且将PageState滚动时不适用动画效果
-   */
-  fun hideBrowserPreviewWithoutAnimation() {
-    withoutAnimationOnFocus = true
-    toggleShowPreviewUI(PreviewPanelVisibleState.Close)
-  }
+  val previewPanel = BrowserPreviewPanel(this)
 
   var showSearchPage by mutableStateOf<BrowserPage?>(null)
 
@@ -636,7 +604,7 @@ class BrowserViewModel(
    * 隐藏所有的Panel
    */
   fun hideAllPanel() {
-    previewPanelVisibleState.targetState = PreviewPanelVisibleState.Close
+    previewPanel.hideBrowserPreviewWithoutAnimation()
     searchKeyWord = null
     showSearchPage = null
   }

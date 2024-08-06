@@ -63,12 +63,12 @@ internal fun Modifier.pagerTabStyle(boxTheme: SearchBoxTheme) = composed {
   when (boxTheme) {
     SearchBoxTheme.Focused -> shadow(
       elevation = dimenShadowElevation,
-      shape = tabShape,
+      shape = browserShape,
       ambientColor = LocalContentColor.current,
       spotColor = LocalContentColor.current,
     ).background(MaterialTheme.colorScheme.background)
 
-    SearchBoxTheme.Unfocused -> clip(tabShape).background(MaterialTheme.colorScheme.background)
+    SearchBoxTheme.Unfocused -> clip(browserShape).background(MaterialTheme.colorScheme.background)
       .alpha(0.5f)
   }
 }

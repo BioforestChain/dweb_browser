@@ -1,18 +1,26 @@
 package org.dweb_browser.browser.web.model.page
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Bookmarks
+import androidx.compose.material.icons.twotone.BrokenImage
 import androidx.compose.material.icons.twotone.Download
 import androidx.compose.material.icons.twotone.History
 import androidx.compose.material.icons.twotone.PersonSearch
 import androidx.compose.material.icons.twotone.Settings
 import androidx.compose.material.icons.twotone.Star
+import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ImageBitmap
@@ -20,6 +28,8 @@ import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.unit.Dp
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.web.BrowserController
@@ -29,7 +39,7 @@ import org.dweb_browser.helper.capturable.CaptureV2Controller
 import org.dweb_browser.helper.compose.SimpleI18nResource
 import org.dweb_browser.helper.globalDefaultScope
 
-sealed class BrowserPage(browserController: BrowserController) {
+sealed class BrowserPage(val browserController: BrowserController) {
   abstract fun isUrlMatch(url: String): Boolean
   open fun updateUrl(url: String) {
     this.url = url
@@ -59,6 +69,44 @@ sealed class BrowserPage(browserController: BrowserController) {
     @Composable get() = remember(thumbnail) {
       thumbnail?.let { BitmapPainter(it) }
     }
+
+  @Composable
+  fun PreviewRender(containerWidth: Dp, modifier: Modifier) {
+    val page = this
+    val pageTitle = page.title
+    val pageIcon = page.icon
+    val pageIconColorFilter = page.iconColorFilter
+    val pagePreview = page.previewContent
+    if (pagePreview != null) {
+      Image(
+        painter = pagePreview,
+        contentDescription = pageTitle,
+        modifier = modifier,
+        contentScale = ContentScale.FillWidth,
+        alignment = Alignment.Center,
+      )
+    } else {
+      // 如果没有预览图，那么尝试显示图标作为预览图的替代，如果没有图标，那么使用备用Icon
+      Box(modifier) {
+        val iconModifier = Modifier.size(containerWidth / 3).aspectRatio(1f).align(Alignment.Center)
+        if (pageIcon != null) {
+          Image(
+            painter = pageIcon,
+            contentDescription = pageTitle,
+            colorFilter = pageIconColorFilter,
+            modifier = iconModifier,
+          )
+        } else {
+          Icon(
+            imageVector = Icons.TwoTone.BrokenImage,
+            contentDescription = pageTitle,
+            modifier = iconModifier,
+            tint = LocalContentColor.current.copy(alpha = 0.5f)
+          )
+        }
+      }
+    }
+  }
 
   /**
    * 用来告知界面将要刷新

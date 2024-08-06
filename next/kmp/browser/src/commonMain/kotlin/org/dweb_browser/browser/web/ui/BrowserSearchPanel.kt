@@ -172,57 +172,15 @@ fun BrowserSearchPanel(modifier: Modifier = Modifier): Boolean {
           val maybeUrl = searchTextField.text.run {
             isEmpty() || startsWith("http") || startsWith("dweb") || matches(Regex("^\\d+://"))
           }
-//
-//          OutlinedTextField(value = searchTextField,
-//            onValueChange = { searchTextField = it },
-//            modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
-//            singleLine = true,
-//            shape = SquircleShape(30, CornerSmoothing.Small),
-//            textStyle = MaterialTheme.typography.bodyMedium.copy(
-//              color = MaterialTheme.colorScheme.onSecondaryContainer
-//            ),
-//            keyboardOptions = KeyboardOptions(keyboardType = if (maybeUrl) KeyboardType.Uri else KeyboardType.Text),
-//            keyboardActions = KeyboardActions(onSearch = {
-//              hide()
-//              viewModel.doIOSearchUrl(searchTextField.text.trim().trim('\u200B').trim())
-//            }),
-//            leadingIcon = {
-//              if (maybeUrl) {
-//                Icon(Icons.TwoTone.Public, "visit network")
-//              } else {
-//                Icon(Icons.TwoTone.TravelExplore, "search network")
-//              }
-//            },
-//            placeholder = {
-//              Text(
-//                BrowserI18nResource.browser_search_hint(),
-//                fontSize = MaterialTheme.typography.bodyMedium.fontSize
-//              )
-//            },
-//            trailingIcon = {
-//              // 清除文本的按钮
-//              IconButton(onClick = {
-//                // 清空文本之后再次点击需要还原文本内容并对输入框失焦
-//                if (searchTextField.text.isEmpty()) {
-//                  searchTextField = TextFieldValue(showSearchPage.url)
-//                  hide()
-//                } else {
-//                  searchTextField = TextFieldValue("")
-//                }
-//              }) {
-//                Icon(Icons.Default.Clear, contentDescription = "Clear Input Text")
-//              }
-//            })
           val doAction = {
-
             hide()
             viewModel.doIOSearchUrl(searchTextField.text.trim().trim('\u200B').trim())
           }
           BasicTextField(value = searchTextField,
             onValueChange = { searchTextField = it },
             modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp).border(
-              1.dp, MaterialTheme.colorScheme.primary, tabShape
-            ).background(MaterialTheme.colorScheme.outlineVariant, tabShape)
+              1.dp, MaterialTheme.colorScheme.primary, browserShape
+            ).background(MaterialTheme.colorScheme.outlineVariant, browserShape)
               .focusRequester(focusRequester),
             singleLine = true,
             maxLines = 1,
