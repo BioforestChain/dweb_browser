@@ -15,7 +15,7 @@ import android.webkit.WebStorage
 import android.webkit.WebView
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.IDWebView
@@ -23,9 +23,9 @@ import org.dweb_browser.dwebview.WebBeforeUnloadArgs
 import org.dweb_browser.dwebview.WebLoadSuccessState
 import org.dweb_browser.dwebview.create
 import org.dweb_browser.dwebview.debugDWebView
-import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
+import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
 import org.dweb_browser.helper.compose.envSwitch
 import org.dweb_browser.helper.globalMainScope
 import org.dweb_browser.helper.mapFindNoNull
@@ -234,12 +234,12 @@ class DWebChromeClient(val engine: DWebViewEngine) : WebChromeClient() {
       ?: super.onPermissionRequestCanceled(request)
   }
 
-  val loadingProgressSharedFlow = MutableSharedFlow<Float>(1)
+  val loadingProgressStateFlow = MutableStateFlow(1f)
 
   override fun onProgressChanged(view: WebView, newProgress: Int) {
-    if (loadingProgressSharedFlow.subscriptionCount.value > 0) {
+    if (loadingProgressStateFlow.subscriptionCount.value > 0) {
       scope.launch {
-        loadingProgressSharedFlow.emit(newProgress / 100f)
+        loadingProgressStateFlow.emit(newProgress / 100f)
       }
     }
     inners("onProgressChanged").forEach { it.onProgressChanged(view, newProgress) }

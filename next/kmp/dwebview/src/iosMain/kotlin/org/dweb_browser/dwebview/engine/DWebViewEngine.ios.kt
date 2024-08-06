@@ -12,7 +12,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import org.dweb_browser.core.help.types.MMID
@@ -117,7 +117,7 @@ class DWebViewEngine(
   val loadStateChangeSignal = Signal<WebLoadState>()
   val onReady by lazy { loadStateChangeSignal.toReadyListener() }
   val beforeUnloadSignal = Signal<WebBeforeUnloadArgs>()
-  val loadingProgressSharedFlow = MutableSharedFlow<Float>()
+  val loadingProgressStateFlow = MutableStateFlow<Float>(1f)
   val closeSignal = SimpleSignal()
   val createWindowSignal = Signal<IDWebView>()
   val downloadSignal = Signal<WebDownloadArgs>()

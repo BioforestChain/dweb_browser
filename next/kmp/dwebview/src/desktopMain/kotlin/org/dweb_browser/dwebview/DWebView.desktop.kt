@@ -6,7 +6,7 @@ import com.teamdev.jxbrowser.js.JsException
 import com.teamdev.jxbrowser.js.JsObject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.ipc.helper.IWebMessageChannel
 import org.dweb_browser.core.ipc.helper.IWebMessagePort
@@ -163,7 +163,7 @@ class DWebView(
   override val iconBitmapFlow by _engineLazy.then { viewEngine.iconBitmapFlow }
   override val onReady get() = viewEngine.onReady
   override val onBeforeUnload by _engineLazy.then { viewEngine.beforeUnloadSignal.toListener() }
-  override val loadingProgressFlow by _engineLazy.then { viewEngine.loadingProgressSharedFlow.asSharedFlow() }
+  override val loadingProgressFlow by _engineLazy.then { viewEngine.loadingProgressStateFlow.asStateFlow() }
   override val closeWatcherLazy: RememberLazy<ICloseWatcher> = _engineLazy.then {
     viewEngine.closeWatcher
   }

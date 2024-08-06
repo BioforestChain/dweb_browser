@@ -3,10 +3,10 @@ package org.dweb_browser.dwebview.engine
 import com.teamdev.jxbrowser.navigation.event.LoadFinished
 import com.teamdev.jxbrowser.navigation.event.LoadProgressChanged
 import com.teamdev.jxbrowser.navigation.event.LoadStarted
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 
-fun setupLoadingProgressSharedFlow(engine: DWebViewEngine) =
-  MutableSharedFlow<Float>(1).also { stateFlow ->
+fun setupLoadingProgressStateFlow(engine: DWebViewEngine) =
+  MutableStateFlow(1f).also { stateFlow ->
     fun tryEmit(value: Float) {
       if (value != stateFlow.replayCache.lastOrNull()) {
         stateFlow.tryEmit(value)

@@ -9,7 +9,6 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -225,7 +224,7 @@ abstract class IDWebView(initUrl: String?) {
   abstract val onLoadStateChange: Signal.Listener<WebLoadState>
   abstract val onReady: Signal.Listener<String>
   abstract val onBeforeUnload: Signal.Listener<WebBeforeUnloadArgs>
-  abstract val loadingProgressFlow: SharedFlow<Float>
+  abstract val loadingProgressFlow: StateFlow<Float>
   internal abstract val closeWatcherLazy: RememberLazy<ICloseWatcher>
   val closeWatcher get() = closeWatcherLazy.value
   abstract val onCreateWindow: Signal.Listener<IDWebView>

@@ -363,7 +363,7 @@ class DWebViewEngine internal constructor(
   val createWindowSignal = _setupCreateWindowSignals.createWindowSignal
   val closeWatcher = CloseWatcher(this)
   val beforeUnloadSignal = setupBeforeUnloadSignal(this)
-  val loadingProgressSharedFlow = setupLoadingProgressSharedFlow(this)
+  val loadingProgressStateFlow = setupLoadingProgressStateFlow(this)
   val downloadSignal = setupDownloadSignal(this)
   internal val createWebMessagePortPicker = setupWebMessagePicker(this)
   val iconBitmapFlow = setupIconBitmapFlow(this)

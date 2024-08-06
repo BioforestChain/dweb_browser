@@ -16,7 +16,7 @@ import androidx.webkit.WebSettingsCompat.FORCE_DARK_ON
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.ipc.helper.IWebMessageChannel
 import org.dweb_browser.core.ipc.helper.IWebMessagePort
@@ -230,7 +230,7 @@ class DWebView private constructor(internal val engine: DWebViewEngine, initUrl:
   override val onReady get() = engine.dWebViewClient.onReady
 
   override val onBeforeUnload by lazy { engine.dWebChromeClient.beforeUnloadSignal.toListener() }
-  override val loadingProgressFlow by lazy { engine.dWebChromeClient.loadingProgressSharedFlow.asSharedFlow() }
+  override val loadingProgressFlow by lazy { engine.dWebChromeClient.loadingProgressStateFlow.asStateFlow() }
 
   override val closeWatcherLazy = RememberLazy<ICloseWatcher>(engine) {
     engine.closeWatcher

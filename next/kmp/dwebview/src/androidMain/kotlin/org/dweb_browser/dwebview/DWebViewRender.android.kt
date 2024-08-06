@@ -16,6 +16,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.viewinterop.AndroidView
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.compose.LocalFocusRequester
 
@@ -28,55 +29,75 @@ actual fun IDWebView.Render(
   require(this is DWebView)
   val webView = engine
   // val state = rememberWebViewState(webView.url ?: "about:blank")
-  val state = rememberSaveableWebViewState()
-  val navigator = rememberWebViewNavigator(webView.lifecycleScope)
-  val client = remember { AccompanistWebViewClient() }
-  val chromeClient = remember { AccompanistWebChromeClient() }
+//  val state = rememberSaveableWebViewState()
+//  val navigator = rememberWebViewNavigator(webView.lifecycleScope)
+//  val client = remember { AccompanistWebViewClient() }
+//  val chromeClient = remember { AccompanistWebChromeClient() }
   val focusRequester = LocalFocusRequester.current
-  BoxWithConstraints(
-    modifier = when (focusRequester) {
-      null -> modifier
-      else -> modifier.focusRequester(focusRequester).onFocusChanged {
+  BoxWithConstraints(modifier = when (focusRequester) {
+    null -> modifier
+    else -> modifier
+      .focusRequester(focusRequester)
+      .onFocusChanged {
         if (it.isFocused) {
           webView.requestFocus()
         }
-      }.focusable()
-    }
-  ) {
+      }
+      .focusable()
+  }) {
     val scale by viewScale
     val contentWidth = maxWidth / scale
     val contentHeight = maxHeight / scale
-    AccompanistWebView(
-      state = state,
-      navigator = navigator,
-      layoutParams = remember {
-        FrameLayout.LayoutParams(
+    AndroidView(
+      factory = {
+        // 修复 activity 已存在父级时导致的异常
+        webView.parent?.let { parentView ->
+          (parentView as ViewGroup).removeAllViews()
+        }
+        webView.setBackgroundColor(Color.Transparent.toArgb())
+        webView.layoutParams = FrameLayout.LayoutParams(
           FrameLayout.LayoutParams.MATCH_PARENT,
           FrameLayout.LayoutParams.MATCH_PARENT,
         )
+        onCreate?.also {
+          engine.lifecycleScope.launch { onCreate.invoke(this@Render) }
+        }
+        webView
       },
       modifier = Modifier.requiredSize(contentWidth, contentHeight),
-      factory = remember {
-        {
-          // 修复 activity 已存在父级时导致的异常
-          webView.parent?.let { parentView ->
-            (parentView as ViewGroup).removeAllViews()
-          }
-          webView.setBackgroundColor(Color.Transparent.toArgb())
-          webView
-        }
-      },
-      onCreated = remember {
-        {
-          onCreate?.also {
-            engine.lifecycleScope.launch { onCreate.invoke(this@Render) }
-          }
-        }
-      },
-      client = client,
-      chromeClient = chromeClient,
-      captureBackPresses = false,
     )
+
+//    AccompanistWebView(
+//      state = state,
+//      navigator = navigator,
+//      layoutParams = remember {
+//        FrameLayout.LayoutParams(
+//          FrameLayout.LayoutParams.MATCH_PARENT,
+//          FrameLayout.LayoutParams.MATCH_PARENT,
+//        )
+//      },
+//      modifier = Modifier.requiredSize(contentWidth, contentHeight),
+//      factory = remember {
+//        {
+//          // 修复 activity 已存在父级时导致的异常
+//          webView.parent?.let { parentView ->
+//            (parentView as ViewGroup).removeAllViews()
+//          }
+//          webView.setBackgroundColor(Color.Transparent.toArgb())
+//          webView
+//        }
+//      },
+//      onCreated = remember {
+//        {
+//          onCreate?.also {
+//            engine.lifecycleScope.launch { onCreate.invoke(this@Render) }
+//          }
+//        }
+//      },
+//      client = client,
+//      chromeClient = chromeClient,
+//      captureBackPresses = false,
+//    )
     /// 处理键盘响应
     val imm = remember(webView) {
       webView.context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager

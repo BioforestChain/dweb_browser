@@ -8,7 +8,7 @@ import kotlinx.cinterop.CValue
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.ipc.helper.IWebMessagePort
 import org.dweb_browser.core.module.MicroModule
@@ -150,7 +150,7 @@ class DWebView private constructor(
     engine.beforeUnloadSignal.toListener()
   }
   override val loadingProgressFlow by _engineLazy.then {
-    engine.loadingProgressSharedFlow.asSharedFlow()
+    engine.loadingProgressStateFlow.asStateFlow()
   }
   override val closeWatcherLazy: RememberLazy<ICloseWatcher> = _engineLazy.then {
     engine.closeWatcher
