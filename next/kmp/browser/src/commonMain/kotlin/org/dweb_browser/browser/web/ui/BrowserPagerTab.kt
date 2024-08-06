@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -101,18 +100,10 @@ internal fun PagerTab(page: BrowserPage, modifier: Modifier = Modifier) {
     }
     val humanPageUrl = page.url.let { pageUrl -> remember(pageUrl) { pageUrlTransformer(pageUrl) } }
     val pageTitle = page.title
-    val endIcon: (@Composable (Modifier) -> Unit)? = when (page) {
-      is BrowserWebPage -> {
-        { modifier ->
-          IconButton(
-            onClick = { scope.launch { page.webView.reload() } }, modifier = modifier
-          ) {
-            Icon(Icons.Rounded.Refresh, contentDescription = "Reload Web Page")
-          }
-        }
-      }
-
-      else -> if (viewModel.isTabFixedSize && viewModel.pageSize > 1) {
+    val endIcon: (@Composable (Modifier) -> Unit)? =
+      if (viewModel.pageSize == 1 && page is BrowserHomePage) {
+        null
+      } else {
         { modifier ->
           IconButton(
             onClick = { scope.launch { viewModel.closePageUI(page) } }, modifier = modifier
@@ -120,8 +111,19 @@ internal fun PagerTab(page: BrowserPage, modifier: Modifier = Modifier) {
             Icon(Icons.Rounded.Close, contentDescription = "Close Page")
           }
         }
-      } else null
-    }
+      }
+//      is BrowserWebPage -> {
+//        { modifier ->
+//          IconButton(
+//            onClick = { scope.launch { page.webView.reload() } }, modifier = modifier
+//          ) {
+//            Icon(Icons.Rounded.Refresh, contentDescription = "Reload Web Page")
+//          }
+//        }
+//      }
+//
+//      else -> if ( viewModel.isTabFixedSize && viewModel.pageSize > 1)  else null
+//    }
     Row(
       modifier = Modifier.fillMaxSize(),
       verticalAlignment = Alignment.CenterVertically,
@@ -166,10 +168,9 @@ internal fun PagerTab(page: BrowserPage, modifier: Modifier = Modifier) {
       }
       Text(
         text = pageTitle.ifEmpty { humanPageUrl },
-        modifier = if (endIcon == null) Modifier.padding(end = 32.dp) else Modifier,
-//          textAlign = TextAlign.Center,
+        modifier = if (endIcon == null) Modifier.padding(end = 32.dp) else Modifier.weight(1f),
+        textAlign = TextAlign.Center,
         maxLines = 1,
-//          fontSize = dimenTextFieldFontSize,
         overflow = TextOverflow.Ellipsis,
         style = MaterialTheme.typography.titleSmall
       )

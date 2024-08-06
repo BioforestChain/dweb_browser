@@ -1,9 +1,14 @@
 package org.dweb_browser.browser.web.ui
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.AddToHomeScreen
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
+import androidx.compose.material.icons.automirrored.rounded.ArrowBackIos
+import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.BookmarkAdd
 import androidx.compose.material.icons.filled.BookmarkRemove
@@ -13,14 +18,17 @@ import androidx.compose.material.icons.filled.PersonSearch
 import androidx.compose.material.icons.filled.Policy
 import androidx.compose.material.icons.filled.PrivateConnectivity
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -32,6 +40,8 @@ import org.dweb_browser.browser.BrowserDrawResource
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.web.model.LocalBrowserViewModel
 import org.dweb_browser.browser.web.model.page.BrowserWebPage
+import org.dweb_browser.dwebview.rememberCanGoBack
+import org.dweb_browser.dwebview.rememberCanGoForward
 import org.dweb_browser.helper.PrivacyUrl
 
 @Composable
@@ -166,6 +176,31 @@ internal fun BrowserMenuPanel(modifier: Modifier = Modifier) {
       },
       trailingIcon = Icons.AutoMirrored.Filled.ArrowForwardIos
     )
+
+    if (page is BrowserWebPage) {
+      HorizontalDivider()
+      Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+        IconButton(
+          { page.webView.lifecycleScope.launch { page.webView.goBack() } },
+          enabled = page.webView.rememberCanGoBack()
+        ) {
+          Icon(Icons.AutoMirrored.Rounded.ArrowBackIos, "go back")
+        }
+        VerticalDivider()
+        IconButton(
+          { page.webView.lifecycleScope.launch { page.webView.historyGoForward() } },
+          enabled = page.webView.rememberCanGoForward()
+        ) {
+          Icon(Icons.AutoMirrored.Rounded.ArrowForwardIos, "go forward")
+        }
+        VerticalDivider()
+        IconButton(
+          { page.webView.lifecycleScope.launch { page.webView.reload() } },
+        ) {
+          Icon(Icons.Rounded.Refresh, "reload web page")
+        }
+      }
+    }
   }
 
 }

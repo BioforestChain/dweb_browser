@@ -109,7 +109,7 @@ fun BrowserBottomBar(modifier: Modifier) {
     IconButton(onClick = {
       uiScope.launch {
         viewModel.focusedPage?.captureViewInBackground("for preview")
-        viewModel.previewPanel.toggleShowPreviewUI( PreviewPanelVisibleState.DisplayGrid)
+        viewModel.previewPanel.toggleShowPreviewUI(PreviewPanelVisibleState.DisplayGrid)
       }
     }, Modifier.hoverCursor()) {
       Icon(
