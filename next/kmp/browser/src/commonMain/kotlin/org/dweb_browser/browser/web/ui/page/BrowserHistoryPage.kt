@@ -2,6 +2,7 @@ package org.dweb_browser.browser.web.ui.page
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -33,7 +34,6 @@ import org.dweb_browser.browser.web.model.LocalBrowserViewModel
 import org.dweb_browser.browser.web.model.page.BrowserHistoryPage
 import org.dweb_browser.browser.web.ui.common.BrowserTopBar
 import org.dweb_browser.helper.compose.NoDataRender
-import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.datetimeNowToEpochDay
 import org.dweb_browser.sys.window.render.LocalWindowController
 
@@ -87,7 +87,9 @@ fun BrowserHistoryListPage(modifier: Modifier = Modifier, historyPage: BrowserHi
 
   val currentDay = datetimeNowToEpochDay()
 
-  LazyColumn(modifier.background(MaterialTheme.colorScheme.background).padding(vertical = 16.dp)) {
+  LazyColumn(
+    modifier.background(MaterialTheme.colorScheme.background).padding(horizontal = 16.dp)
+  ) {
     for (day in currentDay downTo currentDay - 6) {
       val historyList = historyMap[day.toString()] ?: continue
       stickyHeader(key = day) {
@@ -102,15 +104,14 @@ fun BrowserHistoryListPage(modifier: Modifier = Modifier, historyPage: BrowserHi
       }
 
       items(historyList) { historyItem ->
-        val openInNewPage = remember(viewModel, historyItem) {
+        val openInNewPage: () -> Unit = remember(viewModel, historyItem) {
           {
             uiScope.launch { viewModel.tryOpenUrlUI(historyItem.url) }
-            Unit
           }
         }
         ListItem(headlineContent = {
           Text(text = historyItem.title, overflow = TextOverflow.Ellipsis, maxLines = 1)
-        }, modifier = Modifier.clickableWithNoEffect {
+        }, modifier = Modifier.clickable {
           if (!historyPage.isInEditMode) {
             openInNewPage()
           }
