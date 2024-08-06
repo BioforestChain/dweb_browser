@@ -112,6 +112,7 @@ class BrowserPreviewPanel(val viewModel: BrowserViewModel) {
    * Preview 是否不显示，同时 也不在 收起显示的动画中
    */
   val isPreviewInvisible get() = !showPreview && aniProgress.value == 0f
+  val isPreviewVisible get() = !isPreviewInvisible
   fun toggleShowPreviewUI(state: PreviewPanelVisibleState) {
     previewPanelVisible = state
   }

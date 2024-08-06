@@ -124,7 +124,7 @@ sealed class BrowserPage(val browserController: BrowserController) {
   }
 
   fun captureViewInBackground(reason: String) = globalDefaultScope.launch {
-    debugBrowser("captureViewInBackground", reason)
+    debugBrowser("captureViewInBackground") { "reason=$reason title=$title url=$url" }
     val preThumbnail = thumbnail
     onRequestCapture()
     if (preThumbnail == thumbnail) {

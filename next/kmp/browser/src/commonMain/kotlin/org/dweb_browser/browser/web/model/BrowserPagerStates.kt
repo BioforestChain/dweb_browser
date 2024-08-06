@@ -113,6 +113,7 @@ class BrowserPagerStates(val viewModel: BrowserViewModel) {
       // 执行滚动
       val scrollOffset = viewPortWidth * currentPageOffsetFraction
       contentLazyState.scrollToItem(currentPage, scrollOffset.fastRoundToInt())
+      focusedPageIndexState.value = currentPage
     }
   }
 }

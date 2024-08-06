@@ -211,6 +211,8 @@ object BrowserI18nResource {
 
   object Web {
     val page_title = SimpleI18nResource(Language.ZH to "网页", Language.EN to "Web")
+    val web_page_loading =
+      SimpleI18nResource(Language.ZH to "加载中……", Language.EN to "Loading...")
   }
 
   object Bookmark {

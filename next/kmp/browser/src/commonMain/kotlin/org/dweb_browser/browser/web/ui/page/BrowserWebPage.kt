@@ -17,6 +17,8 @@ import org.dweb_browser.browser.web.model.page.BrowserWebPage
 import org.dweb_browser.browser.web.model.toWebSiteInfo
 import org.dweb_browser.dwebview.Render
 import org.dweb_browser.dwebview.UnScaleBox
+import org.dweb_browser.helper.platform.IPureViewController
+import org.dweb_browser.helper.platform.isDesktop
 import org.dweb_browser.helper.withScope
 import org.dweb_browser.sys.window.render.LocalWindowController
 import org.dweb_browser.sys.window.render.watchedState
@@ -29,7 +31,12 @@ internal fun BrowserWebPage.Effect() {
 
   /// 绑定title
   webView.titleFlow.collectAsState().value.also {
-    title = it.ifEmpty { BrowserI18nResource.Web.page_title() }
+    title = it.ifEmpty {
+      when (webView.loadingProgressFlow.collectAsState().value) {
+        1f -> BrowserI18nResource.Web.page_title()
+        else -> BrowserI18nResource.Web.web_page_loading()
+      }
+    }
   }
 
   /// 绑定URL
@@ -78,10 +85,23 @@ internal fun BrowserWebPage.Effect() {
 internal fun BrowserWebPage.BrowserWebPageRender(modifier: Modifier) {
   val webPage = this
   webPage.Effect()
+  val viewModel = webPage.browserController.viewModel
+//  val focusedPage = viewModel.focusedPage
+//  if (focusedPage != webPage) {
+//    LaunchedEffect(Unit) {
+//      delay(200)
+//      webPage.captureViewInBackground("web view invisible")
+//    }
+//  }
   /**
    * 默认情况下这个WebView默认一直显示，但是桌面端例外，因为它的SwingPanel是置顶显示的，所以浏览器界面会一直盖在其它界面上面
+   * 所以在这种情况下，我们显示截图就好
    */
-  if (webPage.browserController.viewModel.previewPanel.isPreviewInvisible) {
+  if (IPureViewController.isDesktop && viewModel.previewPanel.isPreviewVisible) {
+    BoxWithConstraints(modifier) {
+      webPage.PreviewRender(containerWidth = maxWidth, modifier = Modifier.fillMaxSize())
+    }
+  } else {
     ///
     UnScaleBox(scale, modifier) { // 对冲缩放
       val win = LocalWindowController.current
@@ -93,10 +113,6 @@ internal fun BrowserWebPage.BrowserWebPageRender(modifier: Modifier) {
       /// 同步缩放量
       webView.ScaleRender(scale)
       webView.Render(Modifier.fillMaxSize())
-    }
-  } else {
-    BoxWithConstraints(modifier) {
-      webPage.PreviewRender(containerWidth = maxWidth, modifier = Modifier.fillMaxSize())
     }
   }
 }
