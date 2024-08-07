@@ -86,7 +86,6 @@ import org.dweb_browser.sys.window.render.LocalWindowController
 import squircleshape.CornerSmoothing
 import squircleshape.SquircleShape
 
-
 enum class PreviewPanelVisibleState(val isVisible: Boolean) {
   DisplayGrid(true), Close(false), FastClose(false)/*不做动画，直接隐藏*/;
 }

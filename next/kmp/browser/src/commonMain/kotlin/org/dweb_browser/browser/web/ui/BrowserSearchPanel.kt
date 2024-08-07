@@ -66,190 +66,197 @@ import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.search.SearchInject
 import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.browser.web.model.LocalBrowserViewModel
+import org.dweb_browser.browser.web.model.page.BrowserPage
 import org.dweb_browser.browser.web.ui.common.BrowserTopBar
 import org.dweb_browser.helper.format
 import org.dweb_browser.sys.window.render.LocalWindowController
 import org.dweb_browser.sys.window.render.LocalWindowsImeVisible
 
-/**
- * 搜索界面
- */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun BrowserSearchPanel(modifier: Modifier = Modifier): Boolean {
-  val viewModel = LocalBrowserViewModel.current
-  val showSearchPage = viewModel.showSearchPage
-  AnimatedVisibility(
-    visible = showSearchPage != null,
-    modifier = modifier,
-    enter = remember { slideInVertically(enterAnimationSpec()) { it } },
-    exit = remember { slideOutVertically(exitAnimationSpec()) { it } },
-  ) {
-    if (showSearchPage == null) {
-      return@AnimatedVisibility
-    }
-    val focusManager = LocalFocusManager.current
-    val hide = {
-      focusManager.clearFocus()
-      viewModel.hideAllPanel()
-    }
-    /// 返回关闭搜索
-    LocalWindowController.current.navigation.GoBackHandler {
-      hide()
-    }
-    var searchTextField by remember(viewModel.searchKeyWord, showSearchPage.url) {
-      val text = viewModel.searchKeyWord ?: showSearchPage.url
-      mutableStateOf(
-        TextFieldValue(text = text, selection = TextRange(0, text.length))
-      )
-    }
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
-    Scaffold(
-      modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-      contentWindowInsets = WindowInsets(0),
-      topBar = {
-        BrowserTopBar(
-          title = BrowserI18nResource.browser_search_title(),
-          navigationIcon = { /// 左上角导航按钮
-            IconButton(onClick = hide) {
-              Icon(
-                imageVector = Icons.Default.KeyboardArrowDown,
-                contentDescription = "Close Search Panel"
-              )
-            }
-          },
-          actions = { /// 右上角功能按钮
-            // TODO 提供搜索的设置
-          },
-          scrollBehavior = scrollBehavior
+class BrowserSearchPanel(val viewModel: BrowserViewModel) {
+  private var showSearchPage by mutableStateOf<BrowserPage?>(null) // 用于显示搜索框的
+  val showPanel get() = showSearchPage != null
+
+  fun hideSearchPanel() {
+    showSearchPage = null
+  }
+
+  fun showSearchPanel(page: BrowserPage) {
+    showSearchPage = page
+  }
+
+  @OptIn(ExperimentalMaterial3Api::class)
+  @Composable
+  fun Render(modifier: Modifier = Modifier): Boolean {
+    val viewModel = LocalBrowserViewModel.current
+    AnimatedVisibility(
+      visible = showSearchPage != null,
+      modifier = modifier,
+      enter = remember { slideInVertically(enterAnimationSpec()) { it } },
+      exit = remember { slideOutVertically(exitAnimationSpec()) { it } },
+    ) {
+      val searchPage = showSearchPage ?: return@AnimatedVisibility
+      val focusManager = LocalFocusManager.current
+      val hide = {
+        focusManager.clearFocus()
+        viewModel.hideAllPanel()
+      }
+      /// 返回关闭搜索
+      LocalWindowController.current.navigation.GoBackHandler {
+        hide()
+      }
+      var searchTextField by remember(viewModel.searchKeyWord, searchPage.url) {
+        val text = viewModel.searchKeyWord ?: searchPage.url
+        mutableStateOf(
+          TextFieldValue(text = text, selection = TextRange(0, text.length))
         )
-      },
-    ) { innerPadding ->
-      Column(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
-        /// 面板内容
-        Box(Modifier.fillMaxWidth().weight(1f)) {
-          if (searchTextField.text.isNotEmpty()) {
-            SearchSuggestion(searchText = searchTextField.text,
-              modifier = Modifier.fillMaxWidth(),
-              onClose = hide,
-              // 模拟
-              onOpenApp = {
-                // TODO 暂未实现
-              },
-              // 输入框输入提交
-              onSubmit = { url ->
-                hide()
-                viewModel.doIOSearchUrl(url)
+      }
+      val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
+      Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        contentWindowInsets = WindowInsets(0),
+        topBar = {
+          BrowserTopBar(
+            title = BrowserI18nResource.browser_search_title(),
+            navigationIcon = { /// 左上角导航按钮
+              IconButton(onClick = hide) {
+                Icon(
+                  imageVector = Icons.Default.KeyboardArrowDown,
+                  contentDescription = "Close Search Panel"
+                )
+              }
+            },
+            actions = { /// 右上角功能按钮
+              // TODO 提供搜索的设置
+            },
+            scrollBehavior = scrollBehavior
+          )
+        },
+      ) { innerPadding ->
+        Column(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
+          /// 面板内容
+          Box(Modifier.fillMaxWidth().weight(1f)) {
+            if (searchTextField.text.isNotEmpty()) {
+              SearchSuggestion(searchText = searchTextField.text,
+                modifier = Modifier.fillMaxWidth(),
+                onClose = hide,
+                // 模拟
+                onOpenApp = {
+                  // TODO 暂未实现
+                },
+                // 输入框输入提交
+                onSubmit = { url ->
+                  hide()
+                  viewModel.doIOSearchUrl(url)
+                })
+            }
+          }
+
+          /// 底部的输入框
+          Box(
+            Modifier.fillMaxWidth().height(dimenBottomHeight)
+              .padding(horizontal = dimenPageHorizontal),
+            contentAlignment = Alignment.Center,
+          ) {
+            val focusRequester = remember { FocusRequester() }
+            LaunchedEffect(focusRequester) {
+              delay(100)
+              focusRequester.requestFocus()
+            }
+            val showIme by LocalWindowsImeVisible.current
+            /// 键盘隐藏后，需要清除焦点，避免再次点击不显示键盘的问题
+            /// 键盘显示出来的时候，默认要进行全选操作
+            LaunchedEffect(showIme) {
+              if (!showIme) {
+                focusManager.clearFocus()
+              } else {
+                if (searchTextField.selection.start != 0 || searchTextField.selection.end != searchTextField.text.length) {
+                  searchTextField =
+                    searchTextField.copy(selection = TextRange(0, searchTextField.text.length))
+                }
+              }
+            }
+
+            val maybeUrl = searchTextField.text.run {
+              isEmpty() || startsWith("http") || startsWith("dweb") || matches(Regex("^\\d+://"))
+            }
+            val doAction = {
+              hide()
+              viewModel.doIOSearchUrl(searchTextField.text.trim().trim('\u200B').trim())
+            }
+            BasicTextField(value = searchTextField,
+              onValueChange = { searchTextField = it },
+              modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp).border(
+                1.dp, MaterialTheme.colorScheme.primary, browserShape
+              ).background(MaterialTheme.colorScheme.outlineVariant, browserShape)
+                .focusRequester(focusRequester),
+              singleLine = true,
+              maxLines = 1,
+              textStyle = MaterialTheme.typography.bodyMedium.copy(
+                color = MaterialTheme.colorScheme.onSecondaryContainer
+              ),
+              keyboardOptions = KeyboardOptions(
+                keyboardType = if (maybeUrl) KeyboardType.Uri else KeyboardType.Text,
+                imeAction = if (maybeUrl) ImeAction.Go else ImeAction.Search
+              ),
+              keyboardActions = KeyboardActions(onSearch = { doAction() }, onGo = { doAction() }),
+              decorationBox = { innerTextField ->
+                Row(
+                  modifier = Modifier.fillMaxSize(),
+                  verticalAlignment = Alignment.CenterVertically,
+                  horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                  Row(
+                    modifier = Modifier.fillMaxHeight().weight(1f),
+                    verticalAlignment = Alignment.CenterVertically,
+                  ) {
+                    // leadingIcon
+                    Box(
+                      Modifier.fillMaxHeight().aspectRatio(1f),
+                      contentAlignment = Alignment.Center
+                    ) {
+                      if (maybeUrl) {
+                        Icon(Icons.TwoTone.Public, "visit network")
+                      } else {
+                        Icon(Icons.TwoTone.TravelExplore, "search network")
+                      }
+                    }
+                    Box(
+                      modifier = Modifier.weight(1f),
+                      contentAlignment = Alignment.CenterStart,
+                    ) {
+                      innerTextField()
+                      // Placeholder
+                      if (searchTextField.text.isEmpty()) {
+                        Text(
+                          text = BrowserI18nResource.browser_search_hint(),
+                          fontSize = dimenTextFieldFontSize,
+                          maxLines = 1,
+                          modifier = Modifier.alpha(0.5f)
+                        )
+                      }
+                    }
+                  }
+
+                  // trailingIcon 清除文本的按钮
+                  IconButton(onClick = {
+                    // 清空文本之后再次点击需要还原文本内容并对输入框失焦
+                    if (searchTextField.text.isEmpty()) {
+                      searchTextField = TextFieldValue(searchPage.url)
+                      hide()
+                    } else {
+                      searchTextField = TextFieldValue("")
+                    }
+                  }) {
+                    Icon(Icons.Default.Clear, contentDescription = "Clear Input Text")
+                  }
+                }
               })
           }
         }
-
-        /// 底部的输入框
-        Box(
-          Modifier.fillMaxWidth().height(dimenBottomHeight)
-            .padding(horizontal = dimenPageHorizontal),
-          contentAlignment = Alignment.Center,
-        ) {
-          val focusRequester = remember { FocusRequester() }
-          LaunchedEffect(focusRequester) {
-            delay(100)
-            focusRequester.requestFocus()
-          }
-          val showIme by LocalWindowsImeVisible.current
-          /// 键盘隐藏后，需要清除焦点，避免再次点击不显示键盘的问题
-          /// 键盘显示出来的时候，默认要进行全选操作
-          LaunchedEffect(showIme) {
-            if (!showIme) {
-              focusManager.clearFocus()
-            } else {
-              if (searchTextField.selection.start != 0 || searchTextField.selection.end != searchTextField.text.length) {
-                searchTextField =
-                  searchTextField.copy(selection = TextRange(0, searchTextField.text.length))
-              }
-            }
-          }
-
-          val maybeUrl = searchTextField.text.run {
-            isEmpty() || startsWith("http") || startsWith("dweb") || matches(Regex("^\\d+://"))
-          }
-          val doAction = {
-            hide()
-            viewModel.doIOSearchUrl(searchTextField.text.trim().trim('\u200B').trim())
-          }
-          BasicTextField(value = searchTextField,
-            onValueChange = { searchTextField = it },
-            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp).border(
-              1.dp, MaterialTheme.colorScheme.primary, browserShape
-            ).background(MaterialTheme.colorScheme.outlineVariant, browserShape)
-              .focusRequester(focusRequester),
-            singleLine = true,
-            maxLines = 1,
-            textStyle = MaterialTheme.typography.bodyMedium.copy(
-              color = MaterialTheme.colorScheme.onSecondaryContainer
-            ),
-            keyboardOptions = KeyboardOptions(
-              keyboardType = if (maybeUrl) KeyboardType.Uri else KeyboardType.Text,
-              imeAction = if (maybeUrl) ImeAction.Go else ImeAction.Search
-            ),
-            keyboardActions = KeyboardActions(onSearch = { doAction() }, onGo = { doAction() }),
-            decorationBox = { innerTextField ->
-              Row(
-                modifier = Modifier.fillMaxSize(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-              ) {
-                Row(
-                  modifier = Modifier.fillMaxHeight().weight(1f),
-                  verticalAlignment = Alignment.CenterVertically,
-                ) {
-                  // leadingIcon
-                  Box(
-                    Modifier.fillMaxHeight().aspectRatio(1f),
-                    contentAlignment = Alignment.Center
-                  ) {
-                    if (maybeUrl) {
-                      Icon(Icons.TwoTone.Public, "visit network")
-                    } else {
-                      Icon(Icons.TwoTone.TravelExplore, "search network")
-                    }
-                  }
-                  Box(
-                    modifier = Modifier.weight(1f),
-                    contentAlignment = Alignment.CenterStart,
-                  ) {
-                    innerTextField()
-                    // Placeholder
-                    if (searchTextField.text.isEmpty()) {
-                      Text(
-                        text = BrowserI18nResource.browser_search_hint(),
-                        fontSize = dimenTextFieldFontSize,
-                        maxLines = 1,
-                        modifier = Modifier.alpha(0.5f)
-                      )
-                    }
-                  }
-                }
-
-                // trailingIcon 清除文本的按钮
-                IconButton(onClick = {
-                  // 清空文本之后再次点击需要还原文本内容并对输入框失焦
-                  if (searchTextField.text.isEmpty()) {
-                    searchTextField = TextFieldValue(showSearchPage.url)
-                    hide()
-                  } else {
-                    searchTextField = TextFieldValue("")
-                  }
-                }) {
-                  Icon(Icons.Default.Clear, contentDescription = "Clear Input Text")
-                }
-              }
-            })
-        }
       }
     }
-
+    return showSearchPage != null
   }
-  return showSearchPage != null
 }
 
 /**

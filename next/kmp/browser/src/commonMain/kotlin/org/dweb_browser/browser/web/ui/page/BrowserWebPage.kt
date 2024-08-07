@@ -82,7 +82,9 @@ internal fun BrowserWebPage.BrowserWebPageRender(modifier: Modifier) {
    * 默认情况下这个WebView默认一直显示，但是桌面端例外，因为它的SwingPanel是置顶显示的，所以浏览器界面会一直盖在其它界面上面
    * 所以在这种情况下，我们显示截图就好
    */
-  if (IPureViewController.isDesktop && viewModel.previewPanel.isPreviewVisible) {
+  if (IPureViewController.isDesktop &&
+    (viewModel.previewPanel.isPreviewVisible || viewModel.searchPanel.showPanel)
+  ) {
     BoxWithConstraints(modifier) {
       webPage.PreviewRender(containerWidth = maxWidth, modifier = Modifier.fillMaxSize())
     }

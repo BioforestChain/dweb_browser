@@ -49,7 +49,7 @@ fun BrowserRender(
       // 搜索界面考虑到窗口和全屏问题，显示的问题，需要控制modifier
       when {
         viewModel.previewPanel.Render(Modifier.fillMaxSize().zIndex(2f)) -> {}
-        BrowserSearchPanel(Modifier.fillMaxSize().zIndex(2f)) -> {}
+        viewModel.searchPanel.Render(Modifier.fillMaxSize().zIndex(2f)) -> {}
         else -> {}
       }
     }
@@ -57,10 +57,7 @@ fun BrowserRender(
 }
 
 @Composable
-fun BrowserPagePanel(
-  modifier: Modifier,
-  contentScaled: Float,
-) {
+fun BrowserPagePanel(modifier: Modifier, contentScaled: Float) {
   Column(modifier) {
     // 网页主体
     Box(modifier = Modifier.weight(1f)) {

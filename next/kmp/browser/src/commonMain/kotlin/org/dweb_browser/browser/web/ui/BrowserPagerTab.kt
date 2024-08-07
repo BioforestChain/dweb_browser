@@ -89,7 +89,7 @@ internal fun PagerTab(page: BrowserPage, modifier: Modifier = Modifier) {
     // 增加判断，如果当前点击的是当前界面，那么就显示搜索框；如果不是，那么进行focus操作
     scope.launch {
       if (isFocused) {
-        viewModel.showSearchPage = page
+        viewModel.searchPanel.showSearchPanel(page)
       } else {
         viewModel.focusPageUI(page)
       }

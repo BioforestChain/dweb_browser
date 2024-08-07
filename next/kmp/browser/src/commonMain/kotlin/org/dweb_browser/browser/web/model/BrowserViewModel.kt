@@ -34,6 +34,7 @@ import org.dweb_browser.browser.web.model.page.BrowserPage
 import org.dweb_browser.browser.web.model.page.BrowserSettingPage
 import org.dweb_browser.browser.web.model.page.BrowserWebPage
 import org.dweb_browser.browser.web.ui.BrowserPreviewPanel
+import org.dweb_browser.browser.web.ui.BrowserSearchPanel
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.file.ext.readFile
 import org.dweb_browser.dwebview.DWebViewOptions
@@ -42,9 +43,7 @@ import org.dweb_browser.dwebview.WebDownloadArgs
 import org.dweb_browser.dwebview.create
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.clamp
-import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
 import org.dweb_browser.helper.compose.compositionChainOf
-import org.dweb_browser.helper.compose.envSwitch
 import org.dweb_browser.helper.encodeURIComponent
 import org.dweb_browser.helper.format
 import org.dweb_browser.helper.isDwebDeepLink
@@ -91,8 +90,7 @@ class BrowserViewModel(
   var showMore by mutableStateOf(false)
 
   val previewPanel = BrowserPreviewPanel(this)
-
-  var showSearchPage by mutableStateOf<BrowserPage?>(null)
+  val searchPanel = BrowserSearchPanel(this)
 
   // 该字段是用来存储通过 deeplink 调用的 search 和 openinbrowser 关键字，关闭搜索界面需要直接置空
   var searchKeyWord by mutableStateOf<String?>(null)
@@ -205,11 +203,12 @@ class BrowserViewModel(
         val replaceHomePage = if (focusedPage is BrowserHomePage) focusedPage else null
         tryOpenUrlUI(searchWord, replaceHomePage) {
           // 如果searchWord不满足browserPage，那么就需要弹出搜索界面 BrowserSearchPanel
-          showSearchPage = focusedPage ?: run {
+          val searchPage = focusedPage ?: run {
             BrowserHomePage(browserController).apply {
               addNewPageUI(this) { addIndex = focusedPageIndex + 1 } // 直接移动到最后
             }
           }
+          searchPanel.showSearchPanel(searchPage)
         }
       }
     }
@@ -605,7 +604,7 @@ class BrowserViewModel(
   fun hideAllPanel() {
     previewPanel.hideBrowserPreviewWithoutAnimation()
     searchKeyWord = null
-    showSearchPage = null
+    searchPanel.hideSearchPanel()
   }
 }
 
