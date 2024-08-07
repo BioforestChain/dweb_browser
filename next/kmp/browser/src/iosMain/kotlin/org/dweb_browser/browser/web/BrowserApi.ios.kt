@@ -9,19 +9,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.launch
-import org.dweb_browser.browser.jmm.JmmTabs
 import org.dweb_browser.browser.web.data.AppBrowserTarget
 import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.browser.web.model.DwebLinkSearchItem
+import org.dweb_browser.browser.web.ui.BrowserRender
 import org.dweb_browser.dwebview.DWebView
-import org.dweb_browser.helper.globalDefaultScope
 import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
 import org.dweb_browser.helper.compose.envSwitch
+import org.dweb_browser.helper.globalDefaultScope
 import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.platform.ios_browser.DwebWebView
 import org.dweb_browser.platform.ios_browser.browserActiveOn
@@ -92,9 +91,17 @@ actual suspend fun deepLinkDoSearch(dwebLinkSearchItem: DwebLinkSearchItem) {
   }
 }
 
-@OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
+
 @Composable
 actual fun CommonBrowserView(
+  viewModel: BrowserViewModel, modifier: Modifier, windowRenderScope: WindowContentRenderScope,
+) {
+  BrowserRender(viewModel, modifier, windowRenderScope)
+}
+
+@OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
+@Composable
+fun NativeBrowserView(
   viewModel: BrowserViewModel,
   modifier: Modifier,
   windowRenderScope: WindowContentRenderScope,
@@ -162,7 +169,10 @@ actual fun CommonBrowserView(
     iOSBrowserView.colorSchemeChangedWithColor(win.state.colorScheme.ordinal)
   }
   Box(modifier = modifier) {
-    iOSBrowserView.UIKitViewInWindow(modifier = Modifier.fillMaxSize(), LocalWindowFrameStyle.current)
+    iOSBrowserView.UIKitViewInWindow(
+      modifier = Modifier.fillMaxSize(),
+      LocalWindowFrameStyle.current
+    )
   }
 }
 

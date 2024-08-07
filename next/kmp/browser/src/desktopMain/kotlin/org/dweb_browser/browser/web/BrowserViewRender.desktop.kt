@@ -20,7 +20,7 @@ actual fun CommonBrowserView(
   windowRenderScope: WindowContentRenderScope,
 ) {
   BrowserRender(viewModel, modifier, windowRenderScope)
-  // TODO 临时方案
+  // TODO 临时方案处理弹出层的一些问题
   val composeWindow by LocalPureViewController.current.asDesktop().composeWindowAsState()
   LaunchedEffect(viewModel.showMore, composeWindow) {
     while (true) {
