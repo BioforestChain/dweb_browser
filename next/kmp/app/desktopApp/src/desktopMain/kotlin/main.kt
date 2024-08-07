@@ -55,14 +55,7 @@ suspend fun main(vararg args: String) {
       startDwebBrowser(System.getenv("debug") ?: System.getProperty("debug"))
     }
     // 启动“应用”
-    PureViewController.startApplication {
-      val dnsNMM = produceState<NativeMicroModule.NativeRuntime?>(null) {
-        value = dnsNMMDeferred.await().runtimeOrNull as NativeMicroModule.NativeRuntime?
-      }.value
-      if (dnsNMM != null) {
-        PrepareOffscreenWebCanvas(dnsNMM)
-      }
-    }
+    PureViewController.startApplication {}
     dnsNMMDeferred.await().runtimeOrNull?.shutdown()
   } catch (e: Exception) {
     WARNING("global catch error : ${e.message}")

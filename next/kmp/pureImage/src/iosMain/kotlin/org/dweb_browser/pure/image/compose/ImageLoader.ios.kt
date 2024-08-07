@@ -3,6 +3,7 @@ package org.dweb_browser.pure.image.compose
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.InternalComposeApi
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.interop.UIKitView
 import androidx.compose.ui.unit.dp
@@ -16,7 +17,7 @@ import org.dweb_browser.pure.image.OffscreenWebCanvas
 @Composable
 @InternalComposeApi
 actual fun rememberOffscreenWebCanvas(): OffscreenWebCanvas {
-  return OffscreenWebCanvas.defaultInstance
+  return OffscreenWebCanvas.defaultInstance.collectAsState().value
 }
 
 internal actual fun ComponentRegistry.Builder.addPlatformComponents() {

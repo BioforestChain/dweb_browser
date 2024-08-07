@@ -1,6 +1,7 @@
 package org.dweb_browser.pure.image
 
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.globalMainScope
 import org.dweb_browser.platform.ios.DwebWKWebView
@@ -14,7 +15,7 @@ import platform.WebKit.javaScriptEnabled
 
 actual class OffscreenWebCanvas private actual constructor(width: Int, height: Int) {
   companion object {
-    val defaultInstance by lazy { OffscreenWebCanvas(128, 128) }
+    val defaultInstance = MutableStateFlow(OffscreenWebCanvas(128, 128))
   }
 
   internal actual val core = OffscreenWebCanvasCore()
