@@ -115,8 +115,7 @@ class BrowserSearchPanel(val viewModel: BrowserViewModel) {
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         contentWindowInsets = WindowInsets(0),
         topBar = {
-          BrowserTopBar(
-            title = BrowserI18nResource.browser_search_title(),
+          BrowserTopBar(title = BrowserI18nResource.browser_search_title(),
             navigationIcon = { /// 左上角导航按钮
               IconButton(onClick = hide) {
                 Icon(
@@ -177,12 +176,20 @@ class BrowserSearchPanel(val viewModel: BrowserViewModel) {
             }
 
             val maybeUrl = searchTextField.text.run {
-              isEmpty() || startsWith("http") || startsWith("dweb") || matches(Regex("^\\d+://"))
+              isEmpty() || matches(Regex("^\\w+://"))
+                  //
+                  || "https://".startsWith(this)
+                  //
+                  || "dweb://".startsWith(this)
+                  //
+                  || "about://".startsWith(this)
             }
-            val doAction = {
-              hide()
-              viewModel.doIOSearchUrl(searchTextField.text.trim().trim('\u200B').trim())
-            }
+
+            /**
+             * TODO 提供自动完成的功能，提供一下数据源
+             * 1. 搜索历史
+             * 2. 浏览器访问记录，尝试匹配 title 与 url，并提供 icon、title、url等基本信息进行显示
+             */
             BasicTextField(value = searchTextField,
               onValueChange = { searchTextField = it },
               modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp).border(
@@ -195,10 +202,15 @@ class BrowserSearchPanel(val viewModel: BrowserViewModel) {
                 color = MaterialTheme.colorScheme.onSecondaryContainer
               ),
               keyboardOptions = KeyboardOptions(
-                keyboardType = if (maybeUrl) KeyboardType.Uri else KeyboardType.Text,
-                imeAction = if (maybeUrl) ImeAction.Go else ImeAction.Search
+                keyboardType = KeyboardType.Uri,
+                imeAction = ImeAction.Search,
               ),
-              keyboardActions = KeyboardActions(onSearch = { doAction() }, onGo = { doAction() }),
+              keyboardActions = KeyboardActions(
+                onSearch = {
+                  hide()
+                  viewModel.doIOSearchUrl(searchTextField.text.trim().trim('\u200B').trim())
+                },
+              ),
               decorationBox = { innerTextField ->
                 Row(
                   modifier = Modifier.fillMaxSize(),
@@ -211,8 +223,7 @@ class BrowserSearchPanel(val viewModel: BrowserViewModel) {
                   ) {
                     // leadingIcon
                     Box(
-                      Modifier.fillMaxHeight().aspectRatio(1f),
-                      contentAlignment = Alignment.Center
+                      Modifier.fillMaxHeight().aspectRatio(1f), contentAlignment = Alignment.Center
                     ) {
                       if (maybeUrl) {
                         Icon(Icons.TwoTone.Public, "visit network")

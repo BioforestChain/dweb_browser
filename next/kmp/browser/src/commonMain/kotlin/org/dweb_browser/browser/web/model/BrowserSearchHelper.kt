@@ -7,6 +7,7 @@ import org.dweb_browser.browser.search.SearchInject
 import org.dweb_browser.browser.web.BrowserNMM
 import org.dweb_browser.core.module.channelRequest
 import org.dweb_browser.core.std.dns.nativeFetch
+import org.dweb_browser.helper.buildUrlString
 import org.dweb_browser.pure.http.IPureBody
 import org.dweb_browser.pure.http.PureChannelContext
 import org.dweb_browser.pure.http.PureClientRequest
@@ -14,7 +15,9 @@ import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureTextFrame
 
 suspend fun BrowserNMM.BrowserRuntime.getEngineHomeLink(key: String) =
-  nativeFetch("file://search.browser.dweb/homeLink?key=$key").text()
+  nativeFetch(buildUrlString("file://search.browser.dweb/homeLink") {
+    parameters["key"] = key
+  }).text()
 
 suspend fun BrowserNMM.BrowserRuntime.updateEngineState(
   searchEngine: SearchEngine, enabled: Boolean,
@@ -28,7 +31,9 @@ suspend fun BrowserNMM.BrowserRuntime.updateEngineState(
 
 suspend fun BrowserNMM.BrowserRuntime.getInjectList(key: String) =
   Json.decodeFromString<MutableList<SearchInject>>(
-    nativeFetch("file://search.browser.dweb/injectList?key=$key").text()
+    nativeFetch(buildUrlString("file://search.browser.dweb/injectList") {
+      parameters["key"] = key
+    }).text()
   )
 
 class WatchSearchEngineContext(val engineList: List<SearchEngine>, val channel: PureChannelContext)
