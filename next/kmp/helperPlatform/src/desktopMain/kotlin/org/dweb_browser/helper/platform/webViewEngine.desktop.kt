@@ -38,14 +38,15 @@ object webViewEngine {
   }
 
   @OptIn(LowLevelWebEngineAPI::class)
-  val hardwareAcceleratedEngine by lazy {
-    jxBrowserEngine.hardwareAccelerated(webviewDir, dwebviewEngineOptionsBuilder)
-  }
+  val hardwareAcceleratedEngine
+    get() =
+      jxBrowserEngine.hardwareAccelerated(webviewDir, dwebviewEngineOptionsBuilder)
+
 
   @OptIn(LowLevelWebEngineAPI::class)
-  val offScreenEngine by lazy {
-    jxBrowserEngine.offScreen(webviewDir, dwebviewEngineOptionsBuilder)
-  }
+  val offScreenEngine
+    get() =
+      jxBrowserEngine.offScreen(webviewDir, dwebviewEngineOptionsBuilder)
 
   fun resolveDir(dir: String): String {
     val info = webviewDir.relativize(Paths.get(dir))
