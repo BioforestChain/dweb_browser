@@ -54,19 +54,7 @@ actual fun CameraPreviewRender(
 //    return noWebcamDetected(controller)
 //  }
 
-//  SwingPanel(
-//    modifier = Modifier.fillMaxSize(),
-//    factory = {
-//      // 创建面板显示网络摄像头视频
-//      val panel = WebcamPanel(cameraController.webcam).apply {
-//        isFPSDisplayed = true
-//        drawMode = DrawMode.FIT
-//        // panel要显示的相机图像大小
-//        isImageSizeDisplayed = true
-//      }
-//      panel
-//    }
-//  )
+  AlbumPreviewRender(modifier, controller)
 
   LaunchedEffect(Unit) {
     startLoading = false

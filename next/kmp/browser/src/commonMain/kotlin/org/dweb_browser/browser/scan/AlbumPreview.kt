@@ -129,7 +129,8 @@ fun SmartScanController.RenderEmptyResult() {
       Text(
         text = BrowserI18nResource.QRCode.Back(), modifier = Modifier.clickableWithNoEffect {
           uiScope.launch {
-            win.navigation.emitGoBack()
+            onCancel("back")
+//            win.navigation.emitGoBack()
           }
         }.padding(20.dp), color = MaterialTheme.colorScheme.primary
       )
