@@ -2,6 +2,7 @@ package org.dweb_browser.dwebview
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.ui.graphics.Color
 import com.teamdev.jxbrowser.js.JsException
 import com.teamdev.jxbrowser.js.JsObject
 import kotlinx.coroutines.CoroutineScope
@@ -20,6 +21,8 @@ import org.dweb_browser.dwebview.proxy.DwebViewProxy
 import org.dweb_browser.helper.PureBounds
 import org.dweb_browser.helper.RememberLazy
 import org.dweb_browser.helper.WARNING
+import org.dweb_browser.helper.compose.toAwtColor
+import org.dweb_browser.helper.compose.toComposeColor
 import org.dweb_browser.helper.globalIoScope
 import org.dweb_browser.helper.platform.IPureViewBox
 
@@ -143,6 +146,12 @@ class DWebView(
   override suspend fun setHorizontalScrollBarVisible(visible: Boolean) {
     viewEngine.setHorizontalScrollBarVisible(visible);
   }
+
+  override var backgroundColor: Color
+    get() = viewEngine.wrapperView.background.toComposeColor()
+    set(value) {
+      viewEngine.wrapperView.background = value.toAwtColor()
+    }
 
   override suspend fun evaluateAsyncJavascriptCode(
     script: String, afterEval: suspend () -> Unit,

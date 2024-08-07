@@ -5,7 +5,9 @@ import android.content.Context
 import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.toArgb
 import androidx.webkit.WebMessageCompat
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebSettingsCompat.DARK_STRATEGY_PREFER_WEB_THEME_OVER_USER_AGENT_DARKENING
@@ -161,6 +163,7 @@ class DWebView private constructor(internal val engine: DWebViewEngine, initUrl:
     }
 
   private var renderScale = 1f
+
   @Composable
   override fun ScaleRender(scale: Float) {
     if (renderScale != scale) {
@@ -219,6 +222,16 @@ class DWebView private constructor(internal val engine: DWebViewEngine, initUrl:
   override suspend fun setHorizontalScrollBarVisible(visible: Boolean) {
     engine.isHorizontalScrollBarEnabled = visible
   }
+
+  private var bgColor = Color.Transparent
+  override var backgroundColor: Color
+    get() = bgColor
+    set(value) {
+      if (value != bgColor) {
+        bgColor = value
+        engine.setBackgroundColor(bgColor.toArgb())
+      }
+    }
 
   override suspend fun evaluateAsyncJavascriptCode(
     script: String, afterEval: suspend () -> Unit,

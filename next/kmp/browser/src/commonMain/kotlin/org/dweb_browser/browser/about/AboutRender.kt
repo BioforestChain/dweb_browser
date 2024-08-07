@@ -38,6 +38,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import org.dweb_browser.browser.common.WindowControllerBinding
 import org.dweb_browser.browser.jmm.JsMicroModule
 import org.dweb_browser.dwebview.Render
 import org.dweb_browser.dwebview.UnScaleBox
@@ -299,7 +300,6 @@ fun EnvSwitcherRender() {
 
 @Composable
 fun WindowContentRenderScope.Html5TestRender(modifier: Modifier) {
-
   AboutPage(modifier = modifier, title = AboutI18nResource.html5test()) { pageContentModifier ->
     val aboutNMM = LocalWindowMM.current as AboutNMM.AboutRuntime
     when (val webview = produceState(aboutNMM.html5testWebView.getCompletedOrNull()) {
@@ -310,8 +310,11 @@ fun WindowContentRenderScope.Html5TestRender(modifier: Modifier) {
       ) { CircularProgressIndicator(Modifier.size(64.dp)) }
 
       else -> UnScaleBox(scale, pageContentModifier) {
-        webview.ScaleRender(scale)
-        webview.Render(Modifier.fillMaxSize())
+        webview.apply {
+          WindowControllerBinding()
+          ScaleRender(scale)
+          Render(Modifier.fillMaxSize())
+        }
       }
     }
   }

@@ -21,3 +21,11 @@ fun UIColor.Companion.fromColor(color: Color) = UIColor(
 val UIColor.Companion.transparentColor by lazy { UIColor.clearColor }
 
 fun Color.toUIColor() = UIColor.fromColor(this)
+fun UIColor.toComposeColor() = with(CIColor) {
+  Color(
+    red = red.toFloat(),
+    green = green.toFloat(),
+    blue = blue.toFloat(),
+    alpha = alpha.toFloat()
+  )
+}

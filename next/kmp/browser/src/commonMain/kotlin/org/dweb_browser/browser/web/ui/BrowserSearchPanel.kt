@@ -66,6 +66,7 @@ import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.search.SearchInject
 import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.browser.web.model.LocalBrowserViewModel
+import org.dweb_browser.browser.web.model.couldBeUrlStart
 import org.dweb_browser.browser.web.model.page.BrowserPage
 import org.dweb_browser.browser.web.ui.common.BrowserTopBar
 import org.dweb_browser.helper.format
@@ -175,18 +176,10 @@ class BrowserSearchPanel(val viewModel: BrowserViewModel) {
               }
             }
 
-            val maybeUrl = searchTextField.text.run {
-              isEmpty() || matches(Regex("^\\w+://"))
-                  //
-                  || "https://".startsWith(this)
-                  //
-                  || "dweb://".startsWith(this)
-                  //
-                  || "about://".startsWith(this)
-            }
+            val couldBeUrlStart = searchTextField.text.couldBeUrlStart()
 
             /**
-             * TODO 提供自动完成的功能，提供一下数据源
+             * TODO 完成自动完成的功能
              * 1. 搜索历史
              * 2. 浏览器访问记录，尝试匹配 title 与 url，并提供 icon、title、url等基本信息进行显示
              */
@@ -225,7 +218,7 @@ class BrowserSearchPanel(val viewModel: BrowserViewModel) {
                     Box(
                       Modifier.fillMaxHeight().aspectRatio(1f), contentAlignment = Alignment.Center
                     ) {
-                      if (maybeUrl) {
+                      if (couldBeUrlStart) {
                         Icon(Icons.TwoTone.Public, "visit network")
                       } else {
                         Icon(Icons.TwoTone.TravelExplore, "search network")

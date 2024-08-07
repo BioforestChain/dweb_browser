@@ -44,8 +44,7 @@ suspend fun BrowserNMM.BrowserRuntime.collectChannelOfEngines(collector: suspend
       when (pureFrame) {
         is PureTextFrame -> {
           WatchSearchEngineContext(
-            Json.decodeFromString<List<SearchEngine>>(pureFrame.text),
-            this
+            Json.decodeFromString<List<SearchEngine>>(pureFrame.text), this
           ).collector()
         }
 
@@ -53,3 +52,14 @@ suspend fun BrowserNMM.BrowserRuntime.collectChannelOfEngines(collector: suspend
       }
     }
   }
+
+
+/**
+ * 是否是链接的开头部分
+ */
+internal fun String.couldBeUrlStart() = isEmpty()//
+    || split(":", limit = 2).let { it.size > 1 && it.first().matches(Regex("^[\\w+]+")) }//
+    || "data:".startsWith(this)  //
+    || "https://".startsWith(this)  //
+    || "dweb://".startsWith(this)  //
+    || "about://".startsWith(this)  //

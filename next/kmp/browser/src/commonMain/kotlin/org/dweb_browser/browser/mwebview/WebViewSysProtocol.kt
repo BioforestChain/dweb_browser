@@ -2,7 +2,7 @@ package org.dweb_browser.browser.mwebview
 
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.platform.LocalDensity
+import org.dweb_browser.browser.common.WindowControllerBinding
 import org.dweb_browser.browser.common.createDwebView
 import org.dweb_browser.browser.common.toWebColorScheme
 import org.dweb_browser.core.http.router.bind
@@ -31,8 +31,11 @@ suspend fun MultiWebViewNMM.MultiWebViewRuntime.webViewSysProtocol() {
           LaunchedEffect(colorScheme) {
             webView.setPrefersColorScheme(colorScheme.toWebColorScheme())
           }
-          webView.ScaleRender(scale)
-          webView.Render(modifier)
+          webView.apply {
+            WindowControllerBinding()
+            ScaleRender(scale)
+            Render(modifier)
+          }
         }.removeWhen(win.lifecycleScope)
       }).cors()
   }

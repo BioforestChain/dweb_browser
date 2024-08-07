@@ -10,6 +10,7 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import org.dweb_browser.browser.BrowserI18nResource
+import org.dweb_browser.browser.common.WindowControllerBinding
 import org.dweb_browser.browser.common.toWebColorScheme
 import org.dweb_browser.browser.web.data.WebSiteType
 import org.dweb_browser.browser.web.model.LocalBrowserViewModel
@@ -28,6 +29,9 @@ internal fun BrowserWebPage.Effect() {
   val webPage = this
   val viewModel = LocalBrowserViewModel.current
   val uiScope = rememberCoroutineScope()
+
+  /// 和窗口控制器的绑定
+  webPage.webView.WindowControllerBinding()
 
   /// 绑定title
   webView.titleFlow.collectAsState().value.also {

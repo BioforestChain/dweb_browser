@@ -1,6 +1,7 @@
 package org.dweb_browser.dwebview
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
@@ -207,6 +208,7 @@ abstract class IDWebView(initUrl: String?) {
   abstract suspend fun setPrefersColorScheme(colorScheme: WebColorScheme)
   abstract suspend fun setVerticalScrollBarVisible(visible: Boolean)
   abstract suspend fun setHorizontalScrollBarVisible(visible: Boolean)
+  abstract var backgroundColor: Color
 //  abstract suspend fun setSafeArea(top: Float, left: Float, bottom: Float, right: Float)
 
   /**

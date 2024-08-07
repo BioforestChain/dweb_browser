@@ -2,6 +2,7 @@ package org.dweb_browser.dwebview
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.CValue
@@ -23,6 +24,8 @@ import org.dweb_browser.helper.RememberLazy
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.WARNING
+import org.dweb_browser.helper.compose.toComposeColor
+import org.dweb_browser.helper.compose.toUIColor
 import org.dweb_browser.helper.globalDefaultScope
 import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.helper.platform.setScale
@@ -217,6 +220,7 @@ class DWebView private constructor(
     }
 
   private var renderScale = 1f
+
   @Composable
   override fun ScaleRender(scale: Float) {
     if (renderScale != scale) {
@@ -248,6 +252,12 @@ class DWebView private constructor(
   override suspend fun setHorizontalScrollBarVisible(visible: Boolean) = withMainContext {
     engine.scrollView.showsHorizontalScrollIndicator = visible
   }
+
+  override var backgroundColor: Color
+    get() = engine.backgroundColor?.toComposeColor() ?: Color.Transparent
+    set(value) {
+      engine.backgroundColor = value.toUIColor()
+    }
 
   override suspend fun evaluateAsyncJavascriptCode(
     script: String,

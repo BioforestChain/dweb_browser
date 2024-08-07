@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -12,12 +11,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import kotlinx.coroutines.launch
-import org.dweb_browser.browser.common.toWebColorScheme
+import org.dweb_browser.browser.common.WindowControllerBinding
 import org.dweb_browser.dwebview.Render
 import org.dweb_browser.dwebview.rememberCanGoBack
 import org.dweb_browser.dwebview.rememberCanGoForward
 import org.dweb_browser.sys.window.render.watchedIsMaximized
-import org.dweb_browser.sys.window.render.watchedState
 
 @Composable
 fun MultiWebViewController.Render(
@@ -46,13 +44,12 @@ fun MultiWebViewController.Render(
   Box(modifier) {
     list.forEach { viewItem ->
       key(viewItem.webviewId) {
-        val colorScheme by win.watchedState { colorScheme }
-        LaunchedEffect(colorScheme) {
-          viewItem.webView.setPrefersColorScheme(colorScheme.toWebColorScheme())
+        viewItem.webView.apply {
+          WindowControllerBinding()
+          /// 为了防止在窗口状态下，webview返回时失真问题。所以在webview加载完成后出发刷新
+          ScaleRender(scale)
+          Render(Modifier.fillMaxSize())
         }
-        /// 为了防止在窗口状态下，webview返回时失真问题。所以在webview加载完成后出发刷新
-        viewItem.webView.ScaleRender(scale)
-        viewItem.webView.Render(Modifier.fillMaxSize())
       }
     }
     list.lastOrNull()?.also { LatestEffect(it, list) }
