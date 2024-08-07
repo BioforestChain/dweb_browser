@@ -3,6 +3,8 @@ package org.dweb_browser.dwebview.engine
 import io.ktor.http.URLProtocol
 import io.ktor.http.Url
 import io.ktor.http.hostWithPort
+import kotlinx.atomicfu.locks.SynchronizedObject
+import kotlinx.atomicfu.locks.synchronized
 import kotlinx.cinterop.CValue
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.cValue
@@ -40,6 +42,7 @@ import org.dweb_browser.helper.PureBounds
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.mainAsyncExceptionHandler
+import org.dweb_browser.helper.platform.toImageBitmap
 import org.dweb_browser.helper.toIosUIEdgeInsets
 import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.platform.ios.DwebHelper
@@ -53,6 +56,7 @@ import platform.Foundation.NSUUID
 import platform.UIKit.UIEdgeInsetsEqualToEdgeInsets
 import platform.UIKit.UIEdgeInsetsMake
 import platform.UIKit.UIEdgeInsetsZero
+import platform.UIKit.UIGraphicsImageRenderer
 import platform.UIKit.UIScrollViewContentInsetAdjustmentBehavior
 import platform.WebKit.WKAudiovisualMediaTypeNone
 import platform.WebKit.WKContentWorld
@@ -455,6 +459,26 @@ class DWebViewEngine(
       }
     }
   }
+
+  private var captureRenderer: Pair<CValue<CGRect>, UIGraphicsImageRenderer>? = null
+  private val captureSync by lazy { SynchronizedObject() }
+
+  /**
+   * 截图
+   */
+  fun getCaptureImage() = synchronized(captureSync) {
+    val renderer = captureRenderer?.let {
+      if (it.first == bounds) {
+        it.second
+      } else null
+    } ?: UIGraphicsImageRenderer(bounds = bounds).also {
+      captureRenderer = bounds to it
+    }
+    renderer.imageWithActions { ctx ->
+      layer.renderInContext(ctx?.CGContext)
+    }.toImageBitmap()
+  }
+
 
   /**
    * 必须在 mainThread 调用这个函数

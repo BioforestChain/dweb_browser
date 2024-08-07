@@ -28,7 +28,6 @@ import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.platform.NativeViewController.Companion.nativeViewController
 import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.platform.ios.BgPlaceholderView
-import platform.UIKit.UIDevice
 import platform.UIKit.UIView
 
 actual val IPureViewController.Companion.platform
@@ -37,7 +36,7 @@ actual val IPureViewController.Companion.platform
 private var vcIdAcc by SafeInt(0);
 
 class PureViewController(
-  val createParams: PureViewCreateParams = PureViewCreateParams(mapOf())
+  val createParams: PureViewCreateParams = PureViewCreateParams(mapOf()),
 ) : IPureViewController {
   constructor(params: Map<String, Any?>) : this(PureViewCreateParams(params))
 
@@ -166,6 +165,11 @@ class PureViewController(
   override fun getContents(): MutableList<@Composable () -> Unit> {
     return contents
   }
+}
+
+fun IPureViewController.asIosPureViewController(): PureViewController {
+  require(this is PureViewController)
+  return this
 }
 
 val LocalUIKitBackgroundView = compositionChainOf<UIView?>("UIKitBackgroundView") { null }

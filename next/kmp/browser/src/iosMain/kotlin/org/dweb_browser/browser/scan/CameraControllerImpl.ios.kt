@@ -1,6 +1,6 @@
 package org.dweb_browser.browser.scan
 
-import androidx.compose.ui.graphics.asComposeImageBitmap
+import androidx.compose.ui.graphics.toComposeImageBitmap
 import kotlinx.cinterop.CValue
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.launch
@@ -12,7 +12,6 @@ import org.dweb_browser.helper.platform.NSDataHelper.toByteArray
 import org.dweb_browser.helper.times
 import org.dweb_browser.helper.toPoint
 import org.dweb_browser.helper.toRect
-import org.jetbrains.skia.Bitmap
 import org.jetbrains.skia.Image
 import platform.AVFoundation.AVCaptureConnection
 import platform.AVFoundation.AVCaptureDevice
@@ -133,8 +132,7 @@ class CameraControllerImpl(
           if (itemProvider.hasItemConformingToTypeIdentifier(UTTypeImage.toString())) {
             itemProvider.loadDataRepresentationForTypeIdentifier(UTTypeImage.toString()) { data, error ->
               if (data != null) {
-                val imageFromNsData = Image.makeFromEncoded(data.toByteArray())
-                val bitmapFromNsData = Bitmap.makeFromImage(imageFromNsData).asComposeImageBitmap()
+                val bitmapFromNsData = Image.makeFromEncoded(data.toByteArray()).toComposeImageBitmap()
                 controller.albumImageFlow.tryEmit(bitmapFromNsData)
                 globalDefaultScope.launch {
                   controller.decodeQrCode {

@@ -34,12 +34,15 @@ interface IPureViewController {
 
 expect val IPureViewController.Companion.platform: PureViewControllerPlatform
 val IPureViewController.Companion.isDesktop get() = platform == PureViewControllerPlatform.DesktopJvm
-val IPureViewController.Companion.isMobile get() = !isDesktop
+val IPureViewController.Companion.isMobile get() = isAndroid || isIOS
+val IPureViewController.Companion.isAndroid get() = platform == PureViewControllerPlatform.Android
+val IPureViewController.Companion.isIOS get() = platform == PureViewControllerPlatform.IOS
 
 enum class PureViewControllerPlatform(val platformName: String) {
   DesktopJvm("desktop-jvm"),
   Android("android"),
-  IOS("ios"), ;
+  IOS("ios"),
+  ;
 
 }
 
