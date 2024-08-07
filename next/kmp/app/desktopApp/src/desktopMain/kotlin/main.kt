@@ -19,6 +19,9 @@ import org.dweb_browser.pure.image.compose.rememberOffscreenWebCanvas
 import kotlin.system.exitProcess
 
 suspend fun main(vararg args: String) {
+  /// 桌面端强制启用新版桌面, 要在最前面开启，因为Windows平台需要开启compose.swing.render.on.graphics
+  envSwitch.enable(ENV_SWITCH_KEY.DESKTOP_STYLE_COMPOSE)
+
   System.setProperty("apple.awt.application.name", "Dweb Browser");
   // https://github.com/JetBrains/kotlin-multiplatform-dev-docs/blob/master/topics/whats-new/whats-new-compose-1-6-0.md#desktop-experimental
   // 设置为WINDOW，则MenuPanel可以弹出到前面，而不会被webview遮挡

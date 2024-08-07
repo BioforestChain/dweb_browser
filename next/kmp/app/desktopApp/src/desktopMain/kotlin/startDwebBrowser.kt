@@ -26,8 +26,6 @@ suspend fun startDwebBrowser(debugTags: String?): DnsNMM {
       )
     )
   )
-  /// 桌面端强制启用新版桌面
-  envSwitch.enable(ENV_SWITCH_KEY.DESKTOP_STYLE_COMPOSE)
 
   val dnsRuntime = launcher.launch()
 
