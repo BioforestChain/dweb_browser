@@ -3,9 +3,7 @@ package org.dweb_browser.browser.desk
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.serialization.json.Json
 import org.dweb_browser.browser.BrowserI18nResource
-import org.dweb_browser.browser.web.data.WebLinkManifest
 import org.dweb_browser.browser.web.debugBrowser
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
@@ -210,47 +208,6 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
     suspend fun quit(mmid: MMID) {
       nativeFetch("file://desk.browser.dweb/closeApp?app_id=$mmid")
     }
-  }
-
-  /**
-   * 增加一个专门给 web.browser.dweb 调用的 rooter
-   */
-  private suspend fun NativeRuntime.createBrowserRoutes(desktopController: DesktopV1Controller) {
-    desktopController.loadWebLinks() // 加载存储的数据
-    routes(
-      /**
-       * 添加桌面快捷方式
-       */
-      "/addWebLink" bind PureMethod.POST by defineBooleanResponse {
-        debugDesk("addWebLink", "called")
-        val webLinkManifest = Json.decodeFromString<WebLinkManifest>(request.body.toPureString())
-        debugDesk("addWebLink", "webLinkManifest=$webLinkManifest")
-        desktopController.createWebLink(webLinkManifest)
-      },
-      /**
-       * 移除桌面快捷方式
-       */
-      "/removeWebLink" bind PureMethod.GET by defineBooleanResponse {
-        val mmid = request.queryOrNull("app_id") ?: throw ResponseException(
-          HttpStatusCode.BadRequest, "not found app_id"
-        )
-        debugDesk("removeWebLink", "called => mmid=$mmid")
-        desktopController.removeWebLink(mmid)
-      },
-      /**
-       * 打开桌面快捷方式
-       */
-      "/openBrowser" bind PureMethod.GET by defineBooleanResponse {
-        val url = request.queryOrNull("url")
-          ?: throw ResponseException(HttpStatusCode.BadRequest, "not found url")
-        debugDesk("openBrowser", "called => url=$url")
-        try {
-          nativeFetch(url).boolean()
-        } catch (e: Exception) {
-          throw ResponseException(HttpStatusCode.ExpectationFailed, "err=>${e.message}")
-        }
-      },
-    ).cors()
   }
 
   override fun createRuntime(bootstrapContext: BootstrapContext) = DeskRuntime(bootstrapContext)

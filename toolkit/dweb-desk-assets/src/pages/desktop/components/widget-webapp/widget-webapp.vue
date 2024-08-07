@@ -36,6 +36,7 @@ const props = defineProps({
 });
 const appid = computed(() => props.appMetaData.mmid);
 const appUrl = computed(() => props.appMetaData.name);
+const appHomePage = computed(() => props.appMetaData.homepage_url);
 const appname = computed(() => props.appMetaData.short_name!!);
 const appicon = shallowRef<$AppIconInfo>({ src: "", monochrome: false, maskable: false });
 watch(
@@ -91,7 +92,7 @@ const $menu = {
 
 async function doOpen() {
   opening.value = true;
-  if ((await openBrowser(appUrl.value).catch(() => (opening.value = false))) === false) {
+  if ((await openBrowser(appHomePage.value).catch(() => (opening.value = false))) === false) {
     snackbar.text = `${appname.value} 启动失败`;
     snackbar.timeOut = 1500;
     snackbar.type = "error";
