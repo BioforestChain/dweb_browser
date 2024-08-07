@@ -45,7 +45,7 @@ class TaskbarV1Controller private constructor(
           // 监听所有taskbar数据
           "/taskbar/observe/apps" byChannel { ctx ->
             val limit = request.queryOrNull("limit")?.toInt() ?: Int.MAX_VALUE
-            debugDesk("/taskbar/observe/apps", "limit=$limit")
+            debugDesk(tag = "/taskbar/observe/apps", "limit=$limit")
             // 默认不同步 bounds 字段，否则move的时候数据量会非常大
             val enableBounds = request.queryAsOrNull<Boolean>("bounds") ?: false
             val job = taskBarController.onUpdate.run {
@@ -170,7 +170,7 @@ class TaskbarV1Controller private constructor(
     privateNet = true,
     // 这里使用离屏渲染，来确保能在jDialog中透明背景地显示
     // 现在离屏渲染还有很严重的BUG没有修复，所以这里谨慎使用，只用在taskbar这种没有输入框的简单模块中
-    enabledOffScreenRender = envSwitch.isEnabled(ENV_SWITCH_KEY.DWEBVIEW_ENABLE_OFFSCREEN_RENDER),
+    enabledOffScreenRender = true,//!envSwitch.isEnabled(ENV_SWITCH_KEY.DWEBVIEW_ENABLE_TRANSPARENT_BACKGROUND),
     detachedStrategy = DWebViewOptions.DetachedStrategy.Ignore,
     viewId = 2,
   )

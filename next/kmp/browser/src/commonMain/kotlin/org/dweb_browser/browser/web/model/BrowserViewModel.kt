@@ -232,7 +232,7 @@ class BrowserViewModel(
       /// 我们会完全控制页面将如何离开，所以这里兜底默认为留在页面
       detachedStrategy = DWebViewOptions.DetachedStrategy.Ignore,
       /// 桌面端web browser需要使用离屏渲染，才能preview tabs
-      enabledOffScreenRender = envSwitch.isEnabled(ENV_SWITCH_KEY.DWEBVIEW_ENABLE_OFFSCREEN_RENDER)
+      enabledOffScreenRender = false
     ), viewBox = browserController.viewBox
   ).also { dwebview ->
     browserNMM.onBeforeShutdown {
