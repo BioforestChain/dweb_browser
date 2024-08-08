@@ -75,6 +75,8 @@ benchmark-macro-junit4 = "1.2.4"
 roomKtx = "2.6.1"
 log4j12 = "2.0.12"
 
+filekit = "0.7.0"
+
 [libraries]
 
 # Compose
@@ -223,6 +225,8 @@ androidx-test-uiautomator = { group = "androidx.test.uiautomator", name = "uiaut
 benchmark-macro-junit4 = { group = "androidx.benchmark", name = "benchmark-macro-junit4", version.ref = "benchmark-macro-junit4" }
 org-slf4j-log4j12 = { group = "org.slf4j", name = "slf4j-log4j12", version.ref = "log4j12" }
 
+# 文件选择器
+filekit-compose = { group = "io.github.vinceglb", name = "filekit-compose", version.ref = "filekit" }
 
 # jna
 java-jna = { module = "net.java.dev.jna:jna", version.ref = "java-jna-version" }

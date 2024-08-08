@@ -18,10 +18,9 @@ class FileChooserActivity : ComponentActivity() {
     private const val EXTRA_TASK_ID_KEY = "taskId"
     private const val EXTRA_ACCEPT_KEY = "accept"
     private const val EXTRA_MULTI_KEY = "multiple"
-    private const val EXTRA_LIMIT_KEY = "limit"
 
     suspend fun launchAndroidFileChooser(
-      microModule: MicroModule.Runtime, mimeType: String, multiple: Boolean, limit: Int
+      microModule: MicroModule.Runtime, mimeType: String, multiple: Boolean
     ): List<String> {
       val taskId = randomUUID()
       return CompletableDeferred<List<String>>().also { task ->
@@ -34,7 +33,6 @@ class FileChooserActivity : ComponentActivity() {
           intent.putExtra(EXTRA_TASK_ID_KEY, taskId)
           intent.putExtra(EXTRA_ACCEPT_KEY, mimeType)
           intent.putExtra(EXTRA_MULTI_KEY, multiple)
-          intent.putExtra(EXTRA_LIMIT_KEY, limit)
         }
       }.await()
     }
@@ -45,7 +43,6 @@ class FileChooserActivity : ComponentActivity() {
     val taskId = intent.getStringExtra(EXTRA_TASK_ID_KEY) ?: finish()
     val accept = intent.getStringExtra(EXTRA_ACCEPT_KEY)!!
     val multiple = intent.getBooleanExtra(EXTRA_MULTI_KEY, false)
-    val limit = intent.getIntExtra(EXTRA_LIMIT_KEY, 1)
 
     lifecycleScope.launch {
       when {

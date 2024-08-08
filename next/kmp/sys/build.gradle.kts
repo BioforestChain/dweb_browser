@@ -46,6 +46,9 @@ kotlin {
       // 不直接使用 projects.*，因为如果 disabled 了 desktop，那么就会解析不过
       implementation(project(":lib_biometrics"))
       implementation(project(":lib_hardware_info"))
+
+      // 文件选择器
+      api(libs.filekit.compose)
     }
   }
   sourceSets.create("nativeJvmMain") {

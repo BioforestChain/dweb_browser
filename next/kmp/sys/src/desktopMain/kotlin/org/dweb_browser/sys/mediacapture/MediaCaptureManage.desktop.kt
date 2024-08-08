@@ -12,7 +12,7 @@ actual class MediaCaptureManage actual constructor() {
     microModule: MicroModule.Runtime,
     accept: String
   ) =
-    fileChooser.openFileChooser(microModule, "image/*", false, 1).firstOrNull()?.let {
+    fileChooser.openFileChooser(microModule, accept, false).firstOrNull()?.let {
       val file = File(it)
       PureStream(file.inputStream().toByteReadChannel())
     }
