@@ -12,7 +12,7 @@ import org.dweb_browser.browser.download.model.DownloadTask
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.channelRequest
 import org.dweb_browser.core.std.dns.nativeFetch
-import org.dweb_browser.helper.encodeURIComponent
+import org.dweb_browser.helper.buildUrlString
 import org.dweb_browser.helper.valueNotIn
 import org.dweb_browser.pure.http.PureClientRequest
 import org.dweb_browser.pure.http.PureMethod
@@ -23,14 +23,18 @@ suspend fun NativeMicroModule.NativeRuntime.createDownloadTask(
   url: String, total: Long? = null, external: Boolean? = null,
 ): DownloadTask {
   // 将 url 转码，避免 url 内容被解析为 parameter，引起下载地址错误
-  val response = nativeFetch(
-    url = "file://download.browser.dweb/create?url=${url.encodeURIComponent()}&total=${total ?: 0L}&external=${external ?: false}"
-  )
+  val response = nativeFetch(buildUrlString("file://download.browser.dweb/create") {
+    parameters["url"] = url
+    parameters["total"] = total?.toString() ?: "0L"
+    parameters["external"] = external?.toString() ?: "false"
+  })
   return response.json<DownloadTask>()
 }
 
 suspend fun NativeMicroModule.NativeRuntime.getDownloadTask(taskId: String): DownloadTask? {
-  val response = nativeFetch("file://download.browser.dweb/getTask?taskId=$taskId")
+  val response = nativeFetch(buildUrlString("file://download.browser.dweb/getTask") {
+    parameters["taskId"] = taskId
+  })
   return if (response.isOk) {
     response.json<DownloadTask>()
   } else null
@@ -44,25 +48,34 @@ suspend fun NativeMicroModule.NativeRuntime.existDownloadTask(taskId: String): B
 
 suspend fun NativeMicroModule.NativeRuntime.removeDownload(taskId: String) = nativeFetch(
   PureClientRequest(
-    href = "file://download.browser.dweb/remove?taskId=${taskId}", method = PureMethod.DELETE
+    href = buildUrlString("file://download.browser.dweb/remove") { parameters["taskId"] = taskId },
+    method = PureMethod.DELETE
   )
 ).boolean()
 
 suspend fun NativeMicroModule.NativeRuntime.startDownload(taskId: String) =
-  nativeFetch("file://download.browser.dweb/start?taskId=$taskId").boolean()
+  nativeFetch(buildUrlString("file://download.browser.dweb/start") {
+    parameters["taskId"] = taskId
+  }).boolean()
 
 suspend fun NativeMicroModule.NativeRuntime.pauseDownload(taskId: String) =
-  nativeFetch("file://download.browser.dweb/pause?taskId=$taskId").json<DownloadStateEvent>()
+  nativeFetch(buildUrlString("file://download.browser.dweb/pause") {
+    parameters["taskId"] = taskId
+  }).json<DownloadStateEvent>()
 
 suspend fun NativeMicroModule.NativeRuntime.cancelDownload(taskId: String) =
-  nativeFetch("file://download.browser.dweb/cancel?taskId=$taskId").boolean()
+  nativeFetch(buildUrlString("file://download.browser.dweb/cancel") {
+    parameters["taskId"] = taskId
+  }).boolean()
 
 suspend fun NativeMicroModule.NativeRuntime.downloadProgressFlow(
   taskId: String, fps: Double = 10.0,
 ) = channelFlow {
   val flowProducer = this
   val throttleMs = (1000.0 / fps).milliseconds
-  channelRequest("file://download.browser.dweb/flow/progress?taskId=$taskId") {
+  channelRequest(buildUrlString("file://download.browser.dweb/flow/progress") {
+    parameters["taskId"] = taskId
+  }) {
     val ctx = this
     ctx.sendText("get")
     for (pureFrame in ctx.income) {

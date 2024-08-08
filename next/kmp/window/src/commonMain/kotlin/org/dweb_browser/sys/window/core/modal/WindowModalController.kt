@@ -6,7 +6,7 @@ import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
-import org.dweb_browser.helper.encodeURIComponent
+import org.dweb_browser.helper.buildUrlString
 
 sealed class WindowModalController(
   val mm: NativeMicroModule.NativeRuntime,
@@ -82,8 +82,10 @@ sealed class WindowModalController(
       return
     }
     state = WindowModalState.OPENING
-    mm.nativeFetch("file://window.sys.dweb/openModal?modalId=${modal.modalId.encodeURIComponent()}&wid=${wid.encodeURIComponent()}")
-      .boolean()
+    mm.nativeFetch(buildUrlString("file://window.sys.dweb/openModal") {
+      parameters["modalId"] = modal.modalId
+      parameters["wid"] = wid
+    }).boolean()
   }
 
   suspend fun close() {
@@ -91,25 +93,30 @@ sealed class WindowModalController(
       return
     }
     state = WindowModalState.CLOSING
-    mm.nativeFetch("file://window.sys.dweb/closeModal?modalId=${modal.modalId.encodeURIComponent()}&wid=${wid.encodeURIComponent()}")
-      .boolean()
+    mm.nativeFetch(buildUrlString("file://window.sys.dweb/closeModal") {
+      parameters["modalId"] = modal.modalId
+      parameters["wid"] = wid
+    }).boolean()
   }
 
   suspend fun setCloseTip(closeTip: String?) {
     if (isDestroyed) {
       return
     }
-    mm.nativeFetch("file://window.sys.dweb/updateModalCloseTip?modalId=${modal.modalId.encodeURIComponent()}&closeTip=${closeTip?.encodeURIComponent()}")
-      .boolean()
+    mm.nativeFetch(buildUrlString("file://window.sys.dweb/updateModalCloseTip") {
+      parameters["modalId"] = modal.modalId
+      closeTip?.let { parameters["closeTip"] = it }
+    }).boolean()
   }
 
   suspend fun destroy() {
     if (isDestroyed) {
       return
     }
-    this.state = WindowModalState.DESTROYING;
-    mm.nativeFetch("file://window.sys.dweb/removeModal?modalId=${modal.modalId.encodeURIComponent()}")
-      .boolean();
+    this.state = WindowModalState.DESTROYING
+    mm.nativeFetch(buildUrlString("file://window.sys.dweb/removeModal") {
+      parameters["modalId"] = modal.modalId
+    }).boolean()
     this.state = WindowModalState.DESTROY;
   }
 }

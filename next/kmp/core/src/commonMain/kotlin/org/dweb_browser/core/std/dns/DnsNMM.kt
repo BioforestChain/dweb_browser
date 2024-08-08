@@ -32,7 +32,7 @@ import org.dweb_browser.core.std.permission.permissionAdapterManager
 import org.dweb_browser.helper.ChangeState
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.Debugger
-import org.dweb_browser.helper.encodeURIComponent
+import org.dweb_browser.helper.buildUrlString
 import org.dweb_browser.helper.removeWhen
 import org.dweb_browser.helper.some
 import org.dweb_browser.helper.toJsonElement
@@ -428,7 +428,9 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
               scopeLaunch(cancelable = true) {
                 it.message?.also { msg ->
                   debugDNS("open", mmpt, it)
-                  nativeFetch("file://toast.sys.dweb/show?message=${msg.encodeURIComponent()}")
+                  nativeFetch(buildUrlString("file://toast.sys.dweb/show") {
+                    parameters["message"] = msg
+                  })
                 }
               }
             }

@@ -33,7 +33,7 @@ import org.dweb_browser.core.CoreI18nResource
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.std.dns.nativeFetch
-import org.dweb_browser.helper.encodeURIComponent
+import org.dweb_browser.helper.buildUrlString
 import org.dweb_browser.helper.toSpaceSize
 
 /**
@@ -86,7 +86,9 @@ internal fun OtherInfoView(
       OtherItemView(
         modifier = Modifier.clickable {
           controller.jmmNMM.scopeLaunch(cancelable = true) {
-            controller.jmmNMM.nativeFetch("dweb://openinbrowser?url=${homepage_url.encodeURIComponent()}")
+            controller.jmmNMM.nativeFetch(buildUrlString("dweb://openinbrowser") {
+              parameters["url"] = homepage_url
+            })
             controller.closeBottomSheet()
           }
         },

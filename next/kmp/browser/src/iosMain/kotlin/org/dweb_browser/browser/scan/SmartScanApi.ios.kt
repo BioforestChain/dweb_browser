@@ -3,12 +3,12 @@ package org.dweb_browser.browser.scan
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CoroutineScope
 import org.dweb_browser.browser.util.regexDeepLink
-import org.dweb_browser.helper.encodeURIComponent
 import org.dweb_browser.helper.isWebUrl
 import org.dweb_browser.helper.platform.DeepLinkHook
 import org.dweb_browser.helper.platform.NSDataHelper.toNSData
 import org.dweb_browser.helper.toPoint
 import org.dweb_browser.helper.toRect
+import org.dweb_browser.helper.buildUrlString
 import platform.CoreImage.CIDetector
 import platform.CoreImage.CIDetectorTypeQRCode
 import platform.CoreImage.CIImage
@@ -66,9 +66,13 @@ actual fun openDeepLink(data: String, showBackground: Boolean): Boolean {
   // 下面判断的是否是 DeepLink，如果不是的话，判断是否是
   val deepLink = data.regexDeepLink() ?: run {
     if (data.isWebUrl()) {
-      "dweb://openinbrowser?url=${data.encodeURIComponent()}"
+      buildUrlString("dweb://openinbrowser") {
+        parameters["url"] = data
+      }
     } else {
-      "dweb://search?q=${data.encodeURIComponent()}"
+      buildUrlString("dweb://search") {
+        parameters["q"] = data
+      }
     }
   }
   DeepLinkHook.deepLinkHook.emitOnInit(deepLink)

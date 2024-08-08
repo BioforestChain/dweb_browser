@@ -19,6 +19,7 @@ import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.ReasonLock
+import org.dweb_browser.helper.buildUrlString
 import org.dweb_browser.helper.getValue
 import org.dweb_browser.helper.setValue
 import org.dweb_browser.pure.http.PureMethod
@@ -200,13 +201,16 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
     override suspend fun _shutdown() {
     }
 
-
     suspend fun open(mmid: MMID) {
-      nativeFetch("file://desk.browser.dweb/openAppOrActivate?app_id=$mmid")
+      nativeFetch(buildUrlString("file://desk.browser.dweb/openAppOrActivate") {
+        parameters["app_id"] = mmid
+      })
     }
 
     suspend fun quit(mmid: MMID) {
-      nativeFetch("file://desk.browser.dweb/closeApp?app_id=$mmid")
+      nativeFetch(buildUrlString("file://desk.browser.dweb/closeApp") {
+        parameters["app_id"] = mmid
+      })
     }
   }
 

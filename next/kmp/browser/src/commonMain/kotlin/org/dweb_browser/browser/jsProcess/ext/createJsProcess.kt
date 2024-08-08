@@ -17,6 +17,7 @@ import org.dweb_browser.core.ipc.kotlinIpcPool
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.buildUnsafeString
+import org.dweb_browser.helper.buildUrlString
 import org.dweb_browser.helper.collectIn
 
 suspend fun MicroModule.Runtime.createJsProcess(
@@ -80,12 +81,11 @@ class JsProcess(
    * 创建一个可以与jsProcess内部通讯的ipc
    */
   suspend fun createIpc(remoteMM: MicroModuleManifest): Ipc {
-    val globalId = runtime.nativeFetch(
-      URLBuilder("file://js.browser.dweb/create-ipc-endpoint").apply {
+    val globalId =
+      runtime.nativeFetch(buildUrlString("file://js.browser.dweb/create-ipc-endpoint") {
         parameters["token"] = processToken
         parameters["manifest"] = Json.encodeToString(remoteMM)
-      }.buildUnsafeString()
-    ).int()
+      }).int()
     debugJsMM("create-ipc") { "globalId=$globalId,processToken=$processToken" }
     return kotlinIpcPool.createIpc(
       endpoint = GlobalWebMessageEndpoint.get(globalId),
@@ -98,12 +98,10 @@ class JsProcess(
   }
 
   suspend fun bridgeIpc(remoteGlobalId: Int, remoteMM: MicroModuleManifest) {
-    runtime.nativeFetch(
-      URLBuilder("file://js.browser.dweb/create-ipc").apply {
-        parameters["token"] = processToken
-        parameters["globalId"] = remoteGlobalId.toString()
-        parameters["manifest"] = Json.encodeToString(remoteMM)
-      }.buildUnsafeString()
-    )
+    runtime.nativeFetch(buildUrlString("file://js.browser.dweb/create-ipc") {
+      parameters["token"] = processToken
+      parameters["globalId"] = remoteGlobalId.toString()
+      parameters["manifest"] = Json.encodeToString(remoteMM)
+    })
   }
 }

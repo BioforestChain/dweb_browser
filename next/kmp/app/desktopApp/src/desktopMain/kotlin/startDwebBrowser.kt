@@ -3,8 +3,6 @@ import org.dweb_browser.browser.DwebBrowserLauncher
 import org.dweb_browser.core.std.dns.DnsNMM
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.collectIn
-import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
-import org.dweb_browser.helper.compose.envSwitch
 import org.dweb_browser.helper.platform.DeepLinkHook
 import org.dweb_browser.helper.platform.PureViewController
 import org.dweb_browser.sys.tray.TrayNMM

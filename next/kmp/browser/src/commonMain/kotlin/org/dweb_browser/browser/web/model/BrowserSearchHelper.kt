@@ -23,7 +23,9 @@ suspend fun BrowserNMM.BrowserRuntime.updateEngineState(
   searchEngine: SearchEngine, enabled: Boolean,
 ) = nativeFetch(
   PureClientRequest(
-    "file://search.browser.dweb/updateEngineState?state=$enabled",
+    href = buildUrlString("file://search.browser.dweb/updateEngineState") {
+      parameters["state"] = enabled.toString()
+    },
     PureMethod.POST,
     body = IPureBody.from(Json.encodeToString(searchEngine))
   )

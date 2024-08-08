@@ -58,10 +58,10 @@ class MediaNMM : NativeMicroModule("media.file.sys.dweb", "system media") {
             contentType.match(ContentType.MultiPart.FormData) -> {
               val response = nativeFetch(
                 PureClientRequest(
-                  "file://multipart.http.std.dweb/parser",
-                  PureMethod.POST,
-                  request.headers,
-                  request.body
+                  href = "file://multipart.http.std.dweb/parser",
+                  method = PureMethod.POST,
+                  headers = request.headers,
+                  body = request.body
                 )
               )
 

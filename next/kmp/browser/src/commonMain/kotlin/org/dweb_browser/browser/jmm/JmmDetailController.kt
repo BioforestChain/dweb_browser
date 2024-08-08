@@ -12,9 +12,9 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.browser.jmm.ui.Render
 import org.dweb_browser.core.std.dns.nativeFetch
+import org.dweb_browser.helper.buildUrlString
 import org.dweb_browser.helper.compose.ObservableMutableState
 import org.dweb_browser.helper.compose.compositionChainOf
-import org.dweb_browser.helper.encodeURIComponent
 import org.dweb_browser.helper.isWebUrl
 import org.dweb_browser.sys.window.core.modal.WindowBottomSheetsController
 import org.dweb_browser.sys.window.ext.createBottomSheets
@@ -84,7 +84,9 @@ class JmmDetailController(
     closeBottomSheet()
     val homepageUrl = metadata.referrerUrl ?: metadata.manifest.homepage_url
     if (homepageUrl?.isWebUrl() == true) {
-      jmmNMM.nativeFetch("file://web.browser.dweb/openinbrowser?url=${homepageUrl.encodeURIComponent()}")
+      jmmNMM.nativeFetch(buildUrlString("file://web.browser.dweb/openinbrowser") {
+        parameters["url"] = homepageUrl
+      })
     }
   }
 
@@ -92,7 +94,9 @@ class JmmDetailController(
     closeBottomSheet()
     val referrerUrl = metadata.referrerUrl ?: metadata.manifest.homepage_url
     if (referrerUrl?.isWebUrl() == true) {
-      jmmNMM.nativeFetch("file://web.browser.dweb/openinbrowser?url=${referrerUrl.encodeURIComponent()}")
+      jmmNMM.nativeFetch(buildUrlString("file://web.browser.dweb/openinbrowser") {
+        parameters["url"] = referrerUrl
+      })
     }
   }
 

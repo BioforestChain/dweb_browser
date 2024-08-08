@@ -10,8 +10,6 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import org.dweb_browser.browser.BrowserI18nResource
-import org.dweb_browser.browser.download.model.DownloadState
-import org.dweb_browser.browser.download.model.DownloadTask
 import org.dweb_browser.browser.download.ext.cancelDownload
 import org.dweb_browser.browser.download.ext.createDownloadTask
 import org.dweb_browser.browser.download.ext.downloadProgressFlow
@@ -20,6 +18,8 @@ import org.dweb_browser.browser.download.ext.getDownloadTask
 import org.dweb_browser.browser.download.ext.pauseDownload
 import org.dweb_browser.browser.download.ext.removeDownload
 import org.dweb_browser.browser.download.ext.startDownload
+import org.dweb_browser.browser.download.model.DownloadState
+import org.dweb_browser.browser.download.model.DownloadTask
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.http.router.ResponseException
@@ -406,7 +406,9 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
   }
 
   suspend fun openApp(mmid: MMID) {
-    jmmNMM.nativeFetch("file://desk.browser.dweb/openAppOrActivate?app_id=$mmid")
+    jmmNMM.nativeFetch(buildUrlString("file://desk.browser.dweb/openAppOrActivate") {
+      parameters["app_id"] = mmid
+    })
   }
 }
 

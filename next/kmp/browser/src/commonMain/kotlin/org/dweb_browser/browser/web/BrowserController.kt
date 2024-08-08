@@ -18,7 +18,7 @@ import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.UUID
-import org.dweb_browser.helper.encodeURIComponent
+import org.dweb_browser.helper.buildUrlString
 import org.dweb_browser.helper.platform.IPureViewController
 import org.dweb_browser.helper.platform.isMobile
 import org.dweb_browser.pure.http.IPureBody
@@ -126,11 +126,11 @@ class BrowserController(
    */
   suspend fun loadWebLinkApps() {
     webLinkStore.getAll().map { (_, webLinkManifest) ->
-      addUrlToDesktop(
-        webLinkManifest.copy(
-          url = "dweb://openinbrowser?url=${webLinkManifest.url.encodeURIComponent()}"
-        )
-      )
+      addUrlToDesktop(webLinkManifest.copy(
+        url = buildUrlString("dweb://openinbrowser") {
+          parameters["url"] = webLinkManifest.url
+        }
+      ))
     }
     webLinkStore.clear()
   }
@@ -143,7 +143,7 @@ class BrowserController(
     val webLinkManifest = WebLinkManifest(
       id = linkId,
       title = title,
-      url = "dweb://openinbrowser?url=${url.encodeURIComponent()}",
+      url = buildUrlString("dweb://openinbrowser") { parameters["url"] = url },
       icons = listOf(ImageResource(icon, purpose = "maskable"))
     )
 
