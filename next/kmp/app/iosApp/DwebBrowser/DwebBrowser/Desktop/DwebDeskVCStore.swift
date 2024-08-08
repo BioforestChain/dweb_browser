@@ -57,7 +57,7 @@ class DwebVCData {
             if let data = self.vcs.first(where: { data in data.vc == vc }) {
                 updateHook(
                     prop: HelperComposeDwebUIViewControllerProperty(
-                        vcId: data.prop.vcId, zIndex: prop.zIndex, visible: prop.visible))
+                        vcId: data.prop.vcId, zIndex: prop.zIndex, visible: prop.visible, fullscreen: prop.fullscreen))
                 return
             }
 

@@ -2,7 +2,6 @@ package org.dweb_browser.helper.platform
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.ExperimentalComposeApi
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
@@ -17,17 +16,25 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
+import org.dweb_browser.helper.PurePoint
+import org.dweb_browser.helper.PureRect
 import org.dweb_browser.helper.SafeInt
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.compose.LocalCompositionChain
 import org.dweb_browser.helper.compose.compositionChainOf
+import org.dweb_browser.helper.globalDefaultScope
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.platform.NativeViewController.Companion.nativeViewController
 import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.platform.ios.BgPlaceholderView
+import platform.UIKit.NSLayoutConstraint
 import platform.UIKit.UIView
 
 actual val IPureViewController.Companion.platform
@@ -37,14 +44,90 @@ private var vcIdAcc by SafeInt(0);
 
 class PureViewController(
   val createParams: PureViewCreateParams = PureViewCreateParams(mapOf()),
+  fullscreen: Boolean? = null,
 ) : IPureViewController {
-  constructor(params: Map<String, Any?>) : this(PureViewCreateParams(params))
+  constructor(params: Map<String, Any?>, fullscreen: Boolean? = null) : this(
+    PureViewCreateParams(
+      params
+    ),
+    fullscreen,
+  )
 
-  var prop = DwebUIViewControllerProperty(vcIdAcc++, -1, false)
+  var prop = DwebUIViewControllerProperty(
+    vcId = vcIdAcc++,
+    zIndex = -1,
+    visible = false,
+    fullscreen = fullscreen ?: true,
+  )
   val vcId get() = prop.vcId
 
   var isAdded = false
     private set
+
+  private val boundsFlow = MutableSharedFlow<PureRect>(
+    extraBufferCapacity = 1,
+    onBufferOverflow = BufferOverflow.DROP_OLDEST,
+  )
+  private val viewAppearFlow = MutableStateFlow(false)
+
+  suspend fun setBounds(bounds: PureRect) {
+    // println("QAQ setBounds(${prop.vcId}) bounds=$bounds")
+    boundsFlow.emit(bounds)
+  }
+
+  private var boundsConstraints = emptyList<NSLayoutConstraint>()
+  private fun getBoundsValueByIndex(index: Int) =
+    boundsConstraints.getOrNull(index)?.constant?.toFloat() ?: 0f
+
+  fun getBounds() = PureRect(
+    width = getBoundsValueByIndex(0),
+    height = getBoundsValueByIndex(1),
+    x = getBoundsValueByIndex(2),
+    y = getBoundsValueByIndex(3),
+  )
+
+  fun getPosition() = PurePoint(
+    x = getBoundsValueByIndex(2),
+    y = getBoundsValueByIndex(3),
+  )
+
+  init {
+    globalDefaultScope.launch {
+      // println("QAQ getUiViewController-0(${prop.vcId})")
+      waitInit()
+      val rootView = getUiViewController.getResult().view
+      // println("QAQ getUiViewController-1(${prop.vcId}) rootView=$rootView")
+      boundsFlow.combine(viewAppearFlow) { bounds, viewAppear ->
+        // println("QAQ (${prop.vcId})boundsFlow.combine(viewAppearFlow) bounds=$bounds viewAppear=$viewAppear")
+        bounds to rootView.superview
+      }.collect { (bounds, parentView) ->
+        withMainContext {
+          // println("QAQ rootView(${prop.vcId}).frame=$bounds parent=${parentView}")
+          rootView.translatesAutoresizingMaskIntoConstraints = false
+          NSLayoutConstraint.deactivateConstraints(boundsConstraints)
+          NSLayoutConstraint.activateConstraints(constraints = mutableListOf(
+            rootView.widthAnchor.constraintEqualToConstant(bounds.width.toDouble()),
+            rootView.heightAnchor.constraintEqualToConstant(bounds.height.toDouble()),
+          ).also { constraints ->
+            parentView?.also {
+              constraints.add(
+                rootView.leftAnchor.constraintEqualToAnchor(
+                  anchor = parentView.leftAnchor, bounds.x.toDouble()
+                )
+              )
+              constraints.add(
+                rootView.topAnchor.constraintEqualToAnchor(
+                  anchor = parentView.topAnchor, bounds.y.toDouble()
+                ),
+              )
+            }
+          }.also {
+            boundsConstraints = it
+          })
+        }
+      }
+    }
+  }
 
   init {
     nativeViewController.onInitSignal.listen {
@@ -98,7 +181,7 @@ class PureViewController(
 
   private val scope = nativeViewController.scope
 
-  @OptIn(ExperimentalForeignApi::class, ExperimentalComposeApi::class)
+  @OptIn(ExperimentalForeignApi::class)
   val getUiViewController = SuspendOnce {
     withMainContext {
       val backgroundView = mutableStateOf<UIView?>(null)
@@ -118,6 +201,7 @@ class PureViewController(
 
           //当视图控制器的视图即将被添加到视图层次结构中时触发
           override fun viewWillAppear(animated: Boolean) {
+            viewAppearFlow.value = true
             scope.launch { resumeSignal.emit() }
           }
 
@@ -136,14 +220,13 @@ class PureViewController(
 
           // 视图已经从视图层次结构中移除后会调用此函数
           override fun viewDidDisappear(animated: Boolean) {
+            viewAppearFlow.value = false
             println("QWQ viewDidDisappear animated=$animated")
           }
         }
       }) {
         UIKitView(
-          factory = { bgPlaceholderView },
-          Modifier.fillMaxSize().zIndex(0f),
-          interactive = true
+          factory = { bgPlaceholderView }, Modifier.fillMaxSize().zIndex(0f), interactive = true
         )
 
         LocalCompositionChain.current.Provider(
@@ -151,11 +234,9 @@ class PureViewController(
           LocalPureViewBox provides PureViewBox(LocalUIViewController.current),
           LocalUIKitBackgroundView provides backgroundView.value,
         ) {
-//      DwebBrowserAppTheme {
           for (content in contents) {
             content()
           }
-//      }
         }
       }
     }

@@ -7,13 +7,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.ObjCAction
-import kotlinx.cinterop.useContents
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.desk.TaskbarV1Controller
 import org.dweb_browser.dwebview.IDWebView
@@ -24,6 +22,9 @@ import org.dweb_browser.helper.platform.LocalUIKitBackgroundView
 import org.dweb_browser.helper.platform.NativeViewController.Companion.nativeViewController
 import org.dweb_browser.helper.platform.PureViewController
 import org.dweb_browser.helper.withMainContext
+import org.dweb_browser.sys.window.helper.DraggableDelegate
+import org.dweb_browser.sys.window.helper.FloatBarShell
+import org.dweb_browser.sys.window.helper.UIDragGesture
 import platform.CoreGraphics.CGRectMake
 import platform.Foundation.NSSelectorFromString
 import platform.QuartzCore.kCALayerMaxXMaxYCorner
@@ -33,10 +34,6 @@ import platform.QuartzCore.kCALayerMinXMinYCorner
 import platform.UIKit.UIBlurEffect
 import platform.UIKit.UIBlurEffectStyle
 import platform.UIKit.UIColor
-import platform.UIKit.UIGestureRecognizerStateBegan
-import platform.UIKit.UIGestureRecognizerStateCancelled
-import platform.UIKit.UIGestureRecognizerStateChanged
-import platform.UIKit.UIGestureRecognizerStateEnded
 import platform.UIKit.UIPanGestureRecognizer
 import platform.UIKit.UITapGestureRecognizer
 import platform.UIKit.UIView
@@ -76,7 +73,7 @@ class TaskbarV1View(
 
   @OptIn(ExperimentalForeignApi::class)
   @Composable
-  private fun RenderImpl(draggableHelper: DraggableDelegate, modifier: Modifier) {  //创建毛玻璃效果层
+  private fun RenderImpl(draggableDelegate: DraggableDelegate, modifier: Modifier) {  //创建毛玻璃效果层
     val isActivityMode by state.floatActivityStateFlow.collectAsState()
     val density = LocalDensity.current.density
 
@@ -84,11 +81,11 @@ class TaskbarV1View(
     val dragGesture = remember(wkWebView) {
       UIDragGesture(
         view = wkWebView,
-        draggableHelper = draggableHelper,
+        draggableDelegate = draggableDelegate,
         density = density,
       )
     }
-    dragGesture.draggableHelper = draggableHelper
+    dragGesture.draggableDelegate = draggableDelegate
     dragGesture.density = density
 
     val dragGestureRecognizer = remember {
@@ -194,41 +191,5 @@ class UIBackgroundViewTapGesture(val onTap: () -> Unit) : NSObject() {
   @ObjCAction
   fun tapBackground(gesture: UITapGestureRecognizer) {
     onTap()
-  }
-}
-
-class UIDragGesture(
-  private val view: UIView,
-  var draggableHelper: DraggableDelegate,
-  var density: Float,
-) : NSObject() {
-  @OptIn(ExperimentalForeignApi::class)
-  fun getPoint(gesture: UIPanGestureRecognizer): Offset {
-    val point = gesture.translationInView(view = view)
-    val offset = point.useContents {
-      Offset(x.toFloat(), y.toFloat())
-    }
-    return offset
-  }
-
-  private var prePoint = Offset.Zero
-
-  @OptIn(BetaInteropApi::class)
-  @ObjCAction
-  fun dragView(gesture: UIPanGestureRecognizer) {
-
-    when (gesture.state) {
-      UIGestureRecognizerStateBegan -> {
-        draggableHelper.onDragStart(getPoint(gesture).also { prePoint = it })
-      }
-
-      UIGestureRecognizerStateChanged -> draggableHelper.onDrag(getPoint(gesture).let {
-        val diff = it - prePoint
-        prePoint = it
-        diff
-      })
-
-      UIGestureRecognizerStateEnded, UIGestureRecognizerStateCancelled -> draggableHelper.onDragEnd()
-    }
   }
 }

@@ -276,16 +276,25 @@ class BrowserPreviewPanel(val viewModel: BrowserViewModel) {
             var rect by remember { mutableStateOf(Rect.Zero) }
             val density = LocalDensity.current.density
             imageModifier = imageModifier.onGloballyPositioned { coordinates ->
-              if (false) {
-                var i = 1
-                var parent = coordinates.parentLayoutCoordinates
-                while (parent != null) {
-                  val position = parent.localPositionOf(coordinates)
-                  println("QAQ $i.position=$position")
-                  parent = parent.parentLayoutCoordinates
-                  i += 1
-                }
-              }
+              /**
+               * 这里与compose层级有很严格的依赖关系，如果不知道要使用几层parentLayoutCoordinates，可以开启下面代码进行打印调试
+               * ```kotlin
+               * var i = 1
+               * var parent = coordinates.parentLayoutCoordinates
+               * while (parent != null) {
+               *   val position = parent.localPositionOf(coordinates)
+               *   println("QAQ $i.position=$position")
+               *   parent = parent.parentLayoutCoordinates
+               *   i += 1
+               * }
+               * ```
+               * 虽然理论上其它的更加标准的写法方案，但目前来说这种写法是最简单的有效的。除非有一种基于标记的方案：
+               * ```kotlin
+               * Modifier.markLayoutCoordinates("some-parent")
+               *
+               * coordinates.parentLayoutCoordinates("some-parent")?.localPositionOf(coordinates)
+               * ```
+               */
               coordinates.parentLayoutCoordinates?.parentLayoutCoordinates?.parentLayoutCoordinates?.parentLayoutCoordinates?.localPositionOf(
                 coordinates
               )?.also { position ->

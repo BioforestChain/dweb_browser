@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import org.dweb_browser.browser.desk.TaskbarV2Controller
+import org.dweb_browser.sys.window.helper.DraggableDelegate
 
 internal const val PADDING_VALUE = 6
 internal const val TASKBAR_WIDTH = 54f

@@ -12,7 +12,12 @@ import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import platform.UIKit.UIViewController
 
-data class DwebUIViewControllerProperty(val vcId: Int, val zIndex: Int, val visible: Boolean)
+data class DwebUIViewControllerProperty(
+  val vcId: Int,
+  val zIndex: Int,
+  val visible: Boolean,
+  val fullscreen: Boolean,
+)
 
 private var addHook: (UIViewController, DwebUIViewControllerProperty) -> Unit =
   { _, _ -> }
@@ -75,7 +80,7 @@ class NativeViewController private constructor() {
   private val vscLock = Mutex()
 
   suspend fun addOrUpdate(
-    pureViewController: PureViewController, zIndex: Int? = null, visible: Boolean = true
+    pureViewController: PureViewController, zIndex: Int? = null, visible: Boolean = true,
   ) = vscLock.withLock {
     fun updateProp() = pureViewController.prop.copy(
       zIndex = zIndex ?: (getMaxZIndex() + 1), visible = visible

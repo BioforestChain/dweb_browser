@@ -15,6 +15,7 @@ import org.dweb_browser.browser.desk.TaskbarV1Controller
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.asDesktop
 import org.dweb_browser.helper.platform.asDesktop
+import org.dweb_browser.sys.window.helper.FloatBarState
 
 actual suspend fun ITaskbarV1View.Companion.create(
   controller: TaskbarV1Controller,

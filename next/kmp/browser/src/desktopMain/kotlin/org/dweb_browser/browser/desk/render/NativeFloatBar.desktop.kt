@@ -12,6 +12,7 @@ import org.dweb_browser.helper.platform.getAnimationFrameMs
 import org.dweb_browser.helper.platform.getScreenBounds
 import org.dweb_browser.helper.toPureIntPoint
 import org.dweb_browser.helper.toPureIntRect
+import org.dweb_browser.sys.window.helper.FloatBarState
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.MouseInfo

@@ -14,10 +14,10 @@ import UIKit
 class DwebComposeRootViewController: UIViewController {
     private var recongizer: DwebScreenEdgePanGestureRecognizer? = nil
 
-    init(vcs: [UIViewController]) {
+    init(vcds: [DwebVCData]) {
         super.init(nibName: nil, bundle: nil)
         setupTouchDispatchView()
-        updateContent(vcs)
+        updateContent(vcds)
 
         addEdgePanGesture()
     }
@@ -29,7 +29,7 @@ class DwebComposeRootViewController: UIViewController {
     }
 
     func setupTouchDispatchView() {
-        addFullSreen(subView: touchDispatchView, to: view)
+        addViewToContainer(subView: touchDispatchView, to: view, fullscreen: true)
     }
 
     @available(*, unavailable)
@@ -37,24 +37,24 @@ class DwebComposeRootViewController: UIViewController {
 
     private let touchDispatchView = TouchThroughView(frame: .zero)
 
-    func updateContent(_ vcs: [UIViewController]) {
-        Log("\(vcs)")
+    func updateContent(_ vcds: [DwebVCData]) {
+        Log("\(vcds)")
 
         children.forEach { childVc in
-            if vcs.contains(childVc) { return }
+            if vcds.contains(where: {vcd in vcd.vc == childVc}) { return }
             childVc.removeFromParent()
             childVc.view.removeFromSuperview()
             childVc.didMove(toParent: nil)
         }
 
-        vcs.forEach { vc in
-            if !children.contains(vc) {
-                addChild(vc)
-                addFullSreen(subView: vc.view, to: touchDispatchView)
-                vc.didMove(toParent: self)
+        vcds.forEach { vcd in
+            if !children.contains(vcd.vc) {
+                addChild(vcd.vc)
+                addViewToContainer(subView: vcd.vc.view, to: touchDispatchView, fullscreen: vcd.prop.fullscreen)
+                vcd.vc.didMove(toParent: self)
             }
 
-            touchDispatchView.bringSubviewToFront(vc.view)
+            touchDispatchView.bringSubviewToFront(vcd.vc.view)
         }
     }
 
@@ -64,30 +64,32 @@ class DwebComposeRootViewController: UIViewController {
             DwebLifeStatusCenter.shared.postDidRendedNotification()
         }
     }
-
-    func addFullSreen(subView: UIView, to container: UIView) {
+    func addViewToContainer(subView: UIView, to container: UIView, fullscreen: Bool) {
         container.addSubview(subView)
+        // subView.isOpaque = false
         subView.backgroundColor = .clear
 
         /// 填充父级视图
-        subView.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            subView.topAnchor.constraint(equalTo: container.topAnchor),
-            subView.bottomAnchor.constraint(equalTo: container.bottomAnchor),
-            subView.leadingAnchor.constraint(equalTo: container.leadingAnchor),
-            subView.trailingAnchor.constraint(equalTo: container.trailingAnchor),
-        ])
+        if fullscreen {
+            subView.translatesAutoresizingMaskIntoConstraints = false
+            NSLayoutConstraint.activate([
+                subView.topAnchor.constraint(equalTo: container.topAnchor),
+                subView.bottomAnchor.constraint(equalTo: container.bottomAnchor),
+                subView.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+                subView.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+            ])
+        }
     }
 }
 
 struct DwebDeskRootView: UIViewControllerRepresentable {
-    var vcs: [UIViewController]
+    var vcds: [DwebVCData]
 
     func makeUIViewController(context: Context) -> DwebComposeRootViewController {
-        return DwebComposeRootViewController(vcs: vcs)
+        return DwebComposeRootViewController(vcds: vcds)
     }
 
     func updateUIViewController(_ uiViewController: DwebComposeRootViewController, context: Context) {
-        uiViewController.updateContent(vcs)
+        uiViewController.updateContent(vcds)
     }
 }

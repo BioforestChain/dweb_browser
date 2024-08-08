@@ -1,6 +1,9 @@
 package org.dweb_browser.browser.desk.render
 
-import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.awaitDragOrCancellation
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.awaitTouchSlopOrCancellation
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -49,7 +52,18 @@ actual fun Modifier.desktopAppItemActions(
       },
       onDoubleTap = { doubleTap() },
     )
-  }.pointerInput(Unit) {
-    detectDragGestures(onDragCancel = { hoverEnd() }, onDragEnd = { hoverEnd() }) { _, _ -> }
   }
+    .pointerInput(Unit) {
+      awaitEachGesture {
+        val down = awaitFirstDown(requireUnconsumed = false)
+        hoverStart()
+        val drag = awaitTouchSlopOrCancellation(down.id) { _, _ -> }
+        if (drag == null) {
+          hoverEnd()
+        } else {
+          awaitDragOrCancellation(drag.id)
+          hoverEnd()
+        }
+      }
+    }
 }

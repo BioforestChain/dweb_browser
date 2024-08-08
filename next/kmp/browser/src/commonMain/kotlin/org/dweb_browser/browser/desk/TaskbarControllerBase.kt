@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
-import org.dweb_browser.browser.desk.render.FloatBarState
+import org.dweb_browser.sys.window.helper.FloatBarState
 import org.dweb_browser.browser.desk.types.DeskAppMetaData
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.helper.SafeHashSet

@@ -18,7 +18,7 @@ struct DwebBrowserApp: App {
 
     var content: some View {
         ZStack(alignment: .center, content: {
-            DwebFrameworkContentView(vcs: $deskVCStore.vcs)
+            DwebFrameworkContentView(vcds: $deskVCStore.vcs)
                 .ignoresSafeArea(.all, edges: .all)
                 .persistentSystemOverlays(deskVCStore.navgationBarVisible)
         })
@@ -26,16 +26,16 @@ struct DwebBrowserApp: App {
 }
 
 struct DwebFrameworkContentView: View {
-    @Binding var vcs: [DwebVCData]
+    @Binding var vcds: [DwebVCData]
     @State private var isDidAppear = false
     
     var body: some View {
         ZStack {
-            if vcs.isEmpty {
+            if vcds.isEmpty {
                 Text("Loading...")
                     .accessibilityLabel("loading")
             } else {
-                DwebDeskRootView(vcs: vcs.map { $0.vc })
+                DwebDeskRootView(vcds: vcds)
             }
         }
         .overlay {
