@@ -1,19 +1,21 @@
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.InternalComposeApi
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.produceState
 import com.teamdev.jxbrowser.browser.event.BrowserClosed
 import com.teamdev.jxbrowser.browser.event.TitleChanged
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.dwebview.IDWebView.Companion.registryDevtoolsTray
 import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
 import org.dweb_browser.helper.compose.envSwitch
 import org.dweb_browser.helper.globalDefaultScope
+import org.dweb_browser.helper.globalEmptyScope
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.platform.PureViewController
+import org.dweb_browser.helper.platform.webViewEngine
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.pure.image.compose.rememberOffscreenWebCanvas
 import kotlin.system.exitProcess
@@ -21,6 +23,13 @@ import kotlin.system.exitProcess
 suspend fun main(vararg args: String) {
   /// 桌面端强制启用新版桌面, 要在最前面开启，因为Windows平台需要开启compose.swing.render.on.graphics
   envSwitch.enable(ENV_SWITCH_KEY.DESKTOP_STYLE_COMPOSE)
+
+  // 先预先加载jxbrowser engine，避免第一次加载webview时需要解压jxbrowser导致启动慢
+  if (envSwitch.isEnabled(ENV_SWITCH_KEY.DESKTOP_STYLE_COMPOSE)) {
+    globalEmptyScope.launch {
+      println("QAQ chromiumDir=${webViewEngine.offScreenEngine.options().chromiumDir()}")
+    }
+  }
 
   System.setProperty("apple.awt.application.name", "Dweb Browser");
   // https://github.com/JetBrains/kotlin-multiplatform-dev-docs/blob/master/topics/whats-new/whats-new-compose-1-6-0.md#desktop-experimental
