@@ -3,6 +3,33 @@ import ora, { type Options } from "npm:ora";
 import prettyBytes from "npm:pretty-bytes";
 import { StdinDiscarder } from "./StdinDiscarder.ts";
 
+export class EasySpinner {
+  static stdinDiscarder = new StdinDiscarder();
+  readonly spinner;
+  #ti;
+  constructor(options?: Options) {
+    // deno 下的， discardStdin 不能很好支持，所以我们手动进行捕捉
+    this.spinner = ora({ discardStdin: false, ...options }).start();
+    UploadSpinner.stdinDiscarder.start();
+
+    this.#ti = setInterval(() => {
+      this.redraw();
+    }, 500);
+  }
+  readonly startTime = Date.now();
+  text = "";
+  redraw() {
+    const now = Date.now();
+    const second = Math.ceil((now - this.startTime) / 1000);
+    this.spinner.text = colors.cyan(`+${second}s`) + ` ${this.text}`;
+  }
+  stop() {
+    this.spinner.stopAndPersist();
+    UploadSpinner.stdinDiscarder.stop();
+    clearInterval(this.#ti);
+  }
+}
+
 export class UploadSpinner {
   static stdinDiscarder = new StdinDiscarder();
 

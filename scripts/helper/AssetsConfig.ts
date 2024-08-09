@@ -79,7 +79,9 @@ const copyDir = (target: string, path: string) => {
 };
 
 const generateComposeResClass = debounce(async () => {
-  await $([os.platform().startsWith("win") ? "./gradlew.bat" : "./gradlew", `generateComposeResClass`], kmpResolve());
+  await $([os.platform().startsWith("win") ? "./gradlew.bat" : "./gradlew", `generateComposeResClass`], {
+    cwd: kmpResolve(),
+  });
 }, 350);
 
 const effectUse = async (assetConfig: AssetsConfig, use: UseAssets, watch: boolean) => {

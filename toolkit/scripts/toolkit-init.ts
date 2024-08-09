@@ -11,7 +11,7 @@ export const toolkitInit = async (options: { npmInstall?: boolean } = {}) => {
   await npmInit();
   if (npmInstall) {
     //await $(`pnpm install`);
-    await $(`pnpm install`, undefined, { useWhich: true });
+    await $(`pnpm install`, { useWhich: true });
   }
 };
 export const npmInit = async () => {

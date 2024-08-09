@@ -84,7 +84,6 @@ async function doNotarization(suffix: string) {
       password,
       `zip/DwebBrowser-${suffix}.zip`,
     ],
-    undefined,
     {
       onStdout: (log) => {
         for (const line of log.split("\n")) {

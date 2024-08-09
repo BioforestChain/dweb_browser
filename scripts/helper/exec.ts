@@ -5,29 +5,29 @@ import { createBaseResolveTo } from "./resolveTo.ts";
 
 let defaultResolveTo = createBaseResolveTo(Deno.cwd());
 let preCwd = Deno.cwd();
+export type CmdOptions = {
+  cwd?: string | URL;
+  silent?: boolean;
+  useWhich?: boolean;
+  onSpawn?: (childProcess: Deno.ChildProcess) => void;
+  onStdout?: (log: string) => string | void;
+  onStderr?: (log: string) => string | void;
+};
 export const $ = Object.assign(
-  async (
-    cmd: string | string[],
-    cwd?: string | URL,
-    options: {
-      useWhich?: boolean;
-      onSpawn?: (childProcess: Deno.ChildProcess) => void;
-      onStdout?: (log: string) => string | void;
-      onStderr?: (log: string) => string | void;
-    } = {}
-  ) => {
-    const { useWhich = false, onSpawn, onStdout, onStderr } = options;
+  (cmd: string | string[], options: CmdOptions = {}) => {
+    const { useWhich = false, onSpawn, onStdout, onStderr, silent = false } = options;
     if (typeof cmd === "string") {
       cmd = cmd.split(/\s+/);
     }
     const [exec, ...args] = cmd;
     const cmdWhich = useWhich ? (exec.startsWith("./") ? exec : whichSync(exec)) : exec;
-    cwd = defaultResolveTo(cwd ?? "./");
+    let cwd = defaultResolveTo(options.cwd ?? "./");
     if (preCwd !== cwd) {
       preCwd = cwd;
-      console.log(picocolors.green(">"), picocolors.magenta(picocolors.bold("cd")), picocolors.magenta(cwd));
+      silent || console.log(picocolors.green(">"), picocolors.magenta(picocolors.bold("cd")), picocolors.magenta(cwd));
     }
-    console.log(picocolors.green(">"), picocolors.magenta(picocolors.bold(exec)), picocolors.magenta(args.join(" ")));
+    silent ||
+      console.log(picocolors.green(">"), picocolors.magenta(picocolors.bold(exec)), picocolors.magenta(args.join(" ")));
     const command = new Deno.Command(cmdWhich!, {
       args,
       cwd,
@@ -44,7 +44,9 @@ export const $ = Object.assign(
         const decoder = new TextDecoderStream();
         for await (const line of childProcess.stdout.pipeThrough(decoder)) {
           const outline = onStdout(line) ?? line;
-          Deno.stdout.writeSync(encoder.encode(outline));
+          if (outline !== "") {
+            Deno.stdout.writeSync(encoder.encode(outline));
+          }
         }
       })();
     }
@@ -67,5 +69,26 @@ export const $ = Object.assign(
     },
     pwd: () => defaultResolveTo(),
     ls: (dir: string | URL) => WalkAny(defaultResolveTo(dir)),
+    string: (cmd: string | string[], options?: CmdOptions) => {
+      return new Promise<string>((resolve, reject) => {
+        let res = "";
+        $(cmd, {
+          ...options,
+          onStdout: (chunk) => {
+            res += chunk;
+            if (options?.onStdout) {
+              return options.onStdout(chunk);
+            }
+            return "";
+          },
+        }).then((status) => {
+          if (status.success) {
+            resolve(res);
+          } else {
+            reject(`(${status.code}) ${status.signal}`);
+          }
+        }, reject);
+      });
+    },
   }
 );
