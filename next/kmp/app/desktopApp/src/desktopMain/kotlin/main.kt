@@ -70,7 +70,7 @@ suspend fun main(vararg args: String) {
     PureViewController.startApplication {}
     dnsNMMDeferred.await().runtimeOrNull?.shutdown()
   } catch (e: Exception) {
-    WARNING("global catch error : ${e.message}")
+    WARNING("global catch error : ${e.stackTraceToString()}")
   } finally {
     WARNING("exitProcess")
     exitProcess(0)

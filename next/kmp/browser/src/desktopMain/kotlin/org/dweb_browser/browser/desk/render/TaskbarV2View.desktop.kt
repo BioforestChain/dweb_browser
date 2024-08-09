@@ -1,10 +1,12 @@
 package org.dweb_browser.browser.desk.render
 
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.awt.ComposePanel
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.unit.dp
 import org.dweb_browser.browser.desk.TaskbarV2Controller
 import org.dweb_browser.helper.platform.asDesktop
 import org.dweb_browser.helper.platform.rememberPureViewBox
@@ -44,6 +46,9 @@ class TaskbarV2View(taskbarController: TaskbarV2Controller) : ITaskbarV2View(tas
             state,
             draggableDelegate,
             displaySize = displaySize,
+            effectBounds = {bounds ->
+              this.size(bounds.width.dp, bounds.height.dp)
+            }
           ) { modifier ->
             FloatBarMover(draggableDelegate, modifier) {
               RenderContent(draggableDelegate)
