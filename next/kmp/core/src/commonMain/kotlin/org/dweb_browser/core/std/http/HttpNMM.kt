@@ -8,6 +8,7 @@ import io.ktor.http.Url
 import io.ktor.http.hostWithPort
 import io.ktor.http.protocolWithAuthority
 import io.ktor.util.decodeBase64String
+import io.ktor.utils.io.CancellationException
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -561,8 +562,10 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
       /// ipc 在关闭的时候，自动释放所有的绑定
       ipc.onClosed {
         scopeLaunch(cancelable = false) {
-          debugHttp("start close", "onDestroy ${ipc.remote.mmid} ${serverUrlInfo.host}")
-          listener.destroy()
+          debugHttp("start/onClosed") {
+            "ipc=${ipc.remote.mmid} host=${serverUrlInfo.host}"
+          }
+          listener.destroy(CancellationException("ipc closed"))
           close(ipc, options)
         }
       }
@@ -606,7 +609,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
       return gatewayMap.remove(serverUrlInfo.host)?.let { gateway ->
         debugHttp("close", "mmid: ${ipc.remote.mmid} ${serverUrlInfo.host}")
         tokenMap.remove(gateway.token)
-        gateway.listener.destroyDeferred.complete(Unit)
+        gateway.listener.destroyDeferred.complete(null)
         true
       } ?: false
     }

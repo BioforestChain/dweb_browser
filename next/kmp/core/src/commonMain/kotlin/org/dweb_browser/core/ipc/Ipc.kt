@@ -44,6 +44,7 @@ import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.SuspendOnce1
 import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.collectIn
+import org.dweb_browser.helper.globalEmptyScope
 import org.dweb_browser.helper.withScope
 import org.dweb_browser.pure.http.IPureBody
 import org.dweb_browser.pure.http.PureClientRequest
@@ -99,7 +100,7 @@ class Ipc internal constructor(
 
   fun tryClose(cause: CancellationException? = null) {
     if (scope.isActive) {
-      scope.launch(start = CoroutineStart.UNDISPATCHED) {
+      globalEmptyScope.launch(start = CoroutineStart.UNDISPATCHED) {
         close(cause)
       }
     }
@@ -213,7 +214,7 @@ class Ipc internal constructor(
         }
       }
       when (lifecycleRemote.state) {
-        is IpcLifecycleClosing, is IpcLifecycleClosed -> tryClose()
+        is IpcLifecycleClosing, is IpcLifecycleClosed -> tryClose(CancellationException("lifecycle close"))
         // 收到 opened 了，自己也设置成 opened，代表正式握手成功
         is IpcLifecycleOpened -> {
           when (lifecycle.state) {

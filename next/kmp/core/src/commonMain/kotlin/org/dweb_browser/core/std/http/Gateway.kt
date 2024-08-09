@@ -2,6 +2,7 @@ package org.dweb_browser.core.std.http
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.util.collections.ConcurrentSet
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.helper.DeferredSignal
@@ -18,7 +19,7 @@ data class Gateway(
     val mainIpc: Ipc, val host: String,
   ) {
     private val _routerSet = ConcurrentSet<StreamIpcRouter>()
-
+    
     fun addRouter(config: CommonRoute, ipc: Ipc) {
       val route = StreamIpcRouter(config, ipc)
       _routerSet.add(route)
@@ -42,15 +43,18 @@ data class Gateway(
     }
 
     /// 销毁
-    val destroyDeferred = CompletableDeferred<Unit>()
+    val destroyDeferred = CompletableDeferred<CancellationException?>()
     val onDestroy = DeferredSignal(destroyDeferred)
 
-    suspend fun destroy() {
-      _routerSet.toList().forEach {
-        it.ipc.close()
+    suspend fun destroy(cause: CancellationException? = null) {
+      debugHttp("destroy") { "host=$host routeCount=${_routerSet.size}" }
+      _routerSet.toList().forEachIndexed { index, streamIpcRouter ->
+        debugHttp("destroy/closeIpc") { "index=$index ipc=${streamIpcRouter.ipc}" }
+        streamIpcRouter.ipc.close(cause)
       }
       _routerSet.clear()
-      destroyDeferred.complete(Unit)
+      debugHttp("destroy/closeIpc", "done")
+      destroyDeferred.complete(cause)
     }
   }
 
