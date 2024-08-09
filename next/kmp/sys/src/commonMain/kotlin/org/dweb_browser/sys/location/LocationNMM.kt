@@ -10,6 +10,7 @@ import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.permission.AuthorizationStatus
 import org.dweb_browser.helper.Debugger
+import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.helper.withMainContext
@@ -20,10 +21,13 @@ import org.dweb_browser.sys.permission.ext.requestSystemPermissions
 
 val debugLocation = Debugger("Location")
 
-class LocationNMM : NativeMicroModule("geolocation.sys.dweb", "geolocation") {
+class LocationNMM : NativeMicroModule("geolocation.sys.dweb", LocationI18nResource.name.text) {
   init {
+    short_name = LocationI18nResource.name.text
     categories =
       listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Device_Management_Service)
+    icons =
+      listOf(ImageResource(src = "file:///sys/sys-icons/$mmid.svg", type = "image/svg+xml"))
     dweb_permissions = listOf(
       DwebPermission(
         pid = "$mmid/location",
@@ -32,7 +36,6 @@ class LocationNMM : NativeMicroModule("geolocation.sys.dweb", "geolocation") {
       )
     )
   }
-
   inner class LocationRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
 
 
@@ -79,10 +82,10 @@ class LocationNMM : NativeMicroModule("geolocation.sys.dweb", "geolocation") {
         }
       )
     }
-
+    
     override suspend fun _shutdown() {
     }
-
+    
     private suspend fun requestSystemPermission(): Boolean {
       val permission = requestSystemPermissions(
         SystemPermissionTask(
@@ -94,6 +97,6 @@ class LocationNMM : NativeMicroModule("geolocation.sys.dweb", "geolocation") {
       return permission.filterValues { it != AuthorizationStatus.GRANTED }.isEmpty()
     }
   }
-
+  
   override fun createRuntime(bootstrapContext: BootstrapContext) = LocationRuntime(bootstrapContext)
 }

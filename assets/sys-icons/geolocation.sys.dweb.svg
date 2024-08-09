@@ -1,0 +1,40 @@
+<svg class="icon" viewBox="0 0 1171 1024" xmlns="http://www.w3.org/2000/svg" width="200" height="200">
+  <style>
+    .fill {
+      fill: #19f9c9;
+    }
+  </style>
+  <defs>
+    <filter id="fgFilter">
+      <feColorMatrix type="saturate" values=".6" />
+      <feComponentTransfer>
+        <feFuncR type="linear" slope="1.4" />
+        <feFuncG type="linear" slope="1.4" />
+        <feFuncB type="linear" slope="1.4" />
+      </feComponentTransfer>
+    </filter>
+    <filter id="blurFilter" x="0" y="0">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="20" />
+    </filter>
+    <path
+      d="M604.858569 587.672067c0 134.159334-187.236952 329.687108-264.963834 405.076339-18.704612 18.142349-47.707155 18.142349-66.411767 0C195.756087 917.359175 8.519135 721.831401 8.519135 587.672067 8.519135 418.374709 142.013977 281.131448 306.688852 281.131448s298.169717 137.243261 298.169717 306.540619z"
+      id="bg" />
+    <path
+      d="M1015.480865 422.549085c0 195.359095-314.027235 485.123834-416.318189 574.331101-18.391108 16.038123-45.185491 16.038123-63.576599 0C433.295121 907.672918 119.267887 617.90818 119.267887 422.549085 119.267887 189.181018 319.891807 0 567.374376 0s448.106489 189.181018 448.106489 422.549085z"
+      id="fg" />
+    <path
+      d="M567.374376 368.026622m-136.306156 0a136.306156 136.306156 0 1 0 272.612312 0 136.306156 136.306156 0 1 0-272.612312 0Z"
+      id="symbol" />
+  </defs>
+  <clipPath id="clipPath">
+    <use href="#fg" />
+  </clipPath>
+  <mask id="maskPath">
+    <use href="#bg" fill="#FFF" />
+    <use href="#fg" />
+  </mask>
+  <use href="#bg" class="fill" mask="url(#maskPath)" />
+  <use href="#bg" class="fill" clip-path="url(#clipPath)" filter="url(#blurFilter)" />
+  <use href="#fg" class="fill" filter="url(#fgFilter)" fill-opacity=".4" />
+  <use href="#symbol" fill="#FFF" fill-opacity=".8" />
+</svg>
