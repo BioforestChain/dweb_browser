@@ -99,7 +99,7 @@ internal fun WindowBottomResizeBar(
     )
   ) {
     // 如果使用 原生窗口，那么不显示这两个角标
-    val showResizeIcon = resizable && !win.state.renderConfig.isWindowUseComposeStyle
+    val showResizeIcon = resizable && win.state.renderConfig.isWindowUseComposeStyle
     /// 左下角 视窗 Resize
     if (showResizeIcon) {
       Box(
