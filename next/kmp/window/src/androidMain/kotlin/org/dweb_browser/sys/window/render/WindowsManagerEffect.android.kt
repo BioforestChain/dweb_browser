@@ -15,8 +15,8 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowInsetsControllerCompat
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import org.dweb_browser.helper.PureRect
-import org.dweb_browser.helper.platform.LocalPureViewBox
 import org.dweb_browser.helper.platform.asAndroid
+import org.dweb_browser.helper.platform.rememberPureViewBox
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.WindowsManager
 import org.dweb_browser.sys.window.core.WindowsManagerState.Companion.watchedState
@@ -73,7 +73,7 @@ private fun <T : WindowController> WindowsManager<T>.EffectNavigationBar() {
 
 @Composable
 private fun <T : WindowController> WindowsManager<T>.EffectSafeModel() {
-  val window = LocalPureViewBox.current.asAndroid().activity.window
+  val window = rememberPureViewBox().asAndroid().activity.window
   val safeMode by watchedState { safeMode }
   if (safeMode) {
     DisposableEffect(window) {

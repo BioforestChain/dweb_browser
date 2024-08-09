@@ -204,7 +204,7 @@ fun WindowController.WindowRender(modifier: Modifier) {
     var inResizeAnimation by remember { mutableStateOf(false) }
     val windowRectNoTranslate = inResizeFrame || inMove
     val windowRect = when {
-      win.state.isSystemWindow -> null
+      win.state.renderConfig.isSystemWindow -> null
       else -> winBounds.toRect().let { rect ->
         when {
           windowRectNoTranslate -> rect

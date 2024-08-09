@@ -1,9 +1,6 @@
 package org.dweb_browser.sys.window.core
 
 //import kotlinx.serialization.internal.NoOpEncoder.encodeSerializableElement
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
@@ -147,28 +144,10 @@ class WindowState(internal var _constants: WindowConstants) {
     reason: UpdateReason = UpdateReason.Inner, updater: PureRect.Mutable.() -> Unit,
   ) = bounds.toMutable().also(updater).toImmutable().also { updateBounds(it, reason) }
 
-  internal class WindowRenderConfig {
-    class FrameDragListener(
-      val frameDragStart: (() -> Unit),
-      val frameDragMove: (() -> Unit),
-      val frameDragEnd: (() -> Unit),
-    )
-
-    var useCustomFrameDrag by mutableStateOf<FrameDragListener?>(null)
-
-    /**
-     * 使用 系统窗口 的 位置与大小
-     */
-    var useSystemFrame by mutableStateOf(false)
-
-  }
-
   /**
-   * 是否
+   * 窗口渲染相关的配置项目
    */
   internal val renderConfig = WindowRenderConfig()
-
-  val isSystemWindow get() = renderConfig.useSystemFrame
 
   /**
    * 键盘插入到内容底部的高度

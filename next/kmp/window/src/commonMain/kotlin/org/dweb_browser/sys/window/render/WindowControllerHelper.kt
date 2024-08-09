@@ -26,6 +26,7 @@ import androidx.compose.runtime.structuralEqualityPolicy
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.colorspace.ColorSpaces
@@ -119,82 +120,9 @@ val WindowController.inMove
   get() = inMoveStore.getOrPut(this) { mutableStateOf(false) }
 
 fun Modifier.windowTouchFocusable(win: WindowController): Modifier = this.pointerInput(win) {
-  detectTapGestures(
-    onPress = {
-      win.focusInBackground()
-    }
-  )
-}
-
-/**
- * 移动窗口的控制器
- */
-fun Modifier.windowMoveAble(win: WindowController): Modifier = this.composed {
-  val useCustomFrameDrag = win.state.renderConfig.useCustomFrameDrag
-  val padding = win.createSafeBounds(LocalWindowLimits.current)
-  pointerInput(win, useCustomFrameDrag) {
-    /// 触摸窗口的时候，聚焦，并且提示可以移动
-    detectTapGestures(
-      // touchStart 的时候，聚焦移动
-      onPress = {
-        win.inMove.value = true
-        useCustomFrameDrag?.frameDragStart?.invoke()
-        win.focusInBackground()
-      },
-      /// touchEnd 的时候，取消移动
-      onTap = {
-        win.inMove.value = false
-        useCustomFrameDrag?.frameDragEnd?.invoke()
-      },
-      onLongPress = {
-        win.inMove.value = false
-        useCustomFrameDrag?.frameDragEnd?.invoke()
-      },
-    )
-  }.pointerInput(win, useCustomFrameDrag) {
-    /// 拖动窗口
-    detectDragGestures(
-      onDragStart = {
-        win.inMove.value = true
-        useCustomFrameDrag?.frameDragStart?.invoke()
-        /// 开始移动的时候，同时进行聚焦
-        win.focusInBackground()
-      },
-      onDragEnd = {
-        win.inMove.value = false
-        useCustomFrameDrag?.frameDragEnd?.invoke()
-      },
-      onDragCancel = {
-        win.inMove.value = false
-        useCustomFrameDrag?.frameDragEnd?.invoke()
-      },
-    ) { pointer, dragAmount ->
-      pointer.consume()
-      /// 如果使用自定义窗口拖拽，这里不执行 updateBounds，只是通知
-      if (useCustomFrameDrag != null) {
-        useCustomFrameDrag.frameDragMove()
-      } else {
-        win.state.updateMutableBounds {
-          var moveX = x + dragAmount.x / density
-          var moveY = y + dragAmount.y / density
-          if (moveX <= padding.left) {
-            moveX = padding.left
-          }
-          if (moveX >= padding.right) {
-            moveX = padding.right
-          }
-          x = moveX
-          if (moveY <= padding.top) {
-            moveY = padding.top
-          }
-          if (moveY >= padding.bottom) {
-            moveY = padding.bottom
-          }
-          y = moveY
-        }
-      }
-    }
-  }
+  detectTapGestures(onPress = {
+    win.focusInBackground()
+  })
 }
 
 val inResizeStore = WeakHashMap<WindowController, MutableState<Boolean>>()
@@ -366,7 +294,7 @@ private fun WindowController.calcWindowBoundsByLimits(
      */
     val winHeight = max(bounds.height, limits.minHeight)
     val winWidth = max(bounds.width, limits.minWidth)
-    val padding = createSafeBounds(limits)
+    val padding = safeBounds(limits)
     state.updateBounds {
       copy(
         x = min(max(padding.left, bounds.x), padding.right),
@@ -379,9 +307,7 @@ private fun WindowController.calcWindowBoundsByLimits(
 }
 
 @Composable
-private fun WindowController.createSafeBounds(
-  limits: WindowLimits,
-): SafePadding {
+internal fun WindowController.safeBounds(limits: WindowLimits): PureBounds {
   val layoutDirection = LocalLayoutDirection.current
   // 这里不要用 watchedBounds，会导致冗余的计算循环
   val bounds = state.bounds
@@ -397,12 +323,33 @@ private fun WindowController.createSafeBounds(
   val safeBottomPadding = safeGesturesPadding.calculateBottomPadding().value
   val left = safeLeftPadding - winWidth / 2
   val right = limits.maxWidth - safeRightPadding - winWidth / 2
-  val bottom =
-    limits.maxHeight - safeBottomPadding - limits.topBarBaseHeight // 确保 topBar 在可触摸的空间内
-  return SafePadding(top, bottom, left, right)
+  val bottom = limits.maxHeight - safeBottomPadding - limits.topBarBaseHeight // 确保 topBar 在可触摸的空间内
+  return PureBounds(top = top, left = left, bottom = bottom, right = right)
 }
 
-data class SafePadding(val top: Float, val bottom: Float, val left: Float, val right: Float)
+fun moveWindowBoundsInSafeBounds(
+  winBounds: PureRect,
+  safeBounds: PureBounds,
+  moveAmount: Offset,
+) = winBounds.toMutable().apply {
+  var moveX = x + moveAmount.x
+  var moveY = y + moveAmount.y
+  if (moveX <= safeBounds.left) {
+    moveX = safeBounds.left
+  }
+  if (moveX >= safeBounds.right) {
+    moveX = safeBounds.right
+  }
+  x = moveX
+  if (moveY <= safeBounds.top) {
+    moveY = safeBounds.top
+  }
+  if (moveY >= safeBounds.bottom) {
+    moveY = safeBounds.bottom
+  }
+  y = moveY
+}.toImmutable()
+
 
 expect val WindowController.canOverlayNavigationBar: Boolean
 

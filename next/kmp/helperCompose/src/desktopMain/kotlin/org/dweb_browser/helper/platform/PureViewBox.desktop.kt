@@ -16,7 +16,7 @@ import org.dweb_browser.helper.compose.div
 import org.dweb_browser.helper.getOrPut
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 
-actual suspend fun IPureViewBox.Companion.from(viewController: IPureViewController): IPureViewBox {
+actual fun IPureViewBox.Companion.from(viewController: IPureViewController): IPureViewBox {
   require(viewController is PureViewController)
   return PureViewBox.instances.getOrPut(viewController) {
     viewController.pureViewBox

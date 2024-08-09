@@ -62,9 +62,9 @@ class DwebVCData {
             }
 
             let data = DwebVCData(vc: vc, prop: prop)
-            Main_iosKt.dwebViewController.emitOnInit(vcId: prop.vcId)
             self.vcs.append(data)
             self.updateSortVCDatas()
+            Main_iosKt.dwebViewController.emitOnInit(vcId: prop.vcId)
         }
     }
 

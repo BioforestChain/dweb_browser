@@ -20,6 +20,7 @@ import org.dweb_browser.helper.platform.asDesktop
 import org.dweb_browser.pure.image.compose.PureImageLoader
 import org.dweb_browser.pure.image.compose.SmartLoad
 import org.dweb_browser.sys.window.core.WindowController
+import org.dweb_browser.sys.window.core.WindowRenderConfig
 import org.dweb_browser.sys.window.core.WindowState
 import org.dweb_browser.sys.window.core.constant.WindowMode
 import org.dweb_browser.sys.window.core.constant.WindowPropertyKeys
@@ -45,15 +46,14 @@ fun WindowController.WindowControllerEffect() {
      * 拖动窗口的起点 输入位置（相对窗口的位置）
      */
     var dragStartPoint: Point? = null
-    renderConfig.useCustomFrameDrag = WindowState.WindowRenderConfig.FrameDragListener(
-      frameDragStart = {
+    renderConfig.frameDragDelegate = WindowRenderConfig.FrameDragDelegate(
+      onStart = {
         /**
          * composeWindow.mousePosition 是指鼠标相对于窗口左上角的位置，会有负数
          */
         dragStartPoint = composeWindow.mousePosition
       },
-      frameDragMove = {},
-      frameDragEnd = { dragStartPoint = null },
+      onEnd = { dragStartPoint = null },
     )
 
     // 监听原生窗口resize的变化，去改变state的bounds

@@ -65,12 +65,18 @@ class PureViewController(
     private set
 
   private val boundsFlow = MutableSharedFlow<PureRect>(
-    extraBufferCapacity = 1,
+    replay = 1,
     onBufferOverflow = BufferOverflow.DROP_OLDEST,
   )
   private val viewAppearFlow = MutableStateFlow(false)
 
   suspend fun setBounds(bounds: PureRect) {
+//    /// 做一次强制初始化
+//    if (boundsConstraints.isEmpty()) {
+//      withMainContext {
+//        setBounds(bounds, uiViewControllerInMain.view)
+//      }
+//    }
     // println("QAQ setBounds(${prop.vcId}) bounds=$bounds")
     boundsFlow.emit(bounds)
   }
@@ -91,39 +97,39 @@ class PureViewController(
     y = getBoundsValueByIndex(3),
   )
 
+  fun setBounds(bounds: PureRect, rootView: UIView, parentView: UIView? = rootView.superview) {
+    rootView.translatesAutoresizingMaskIntoConstraints = false
+    NSLayoutConstraint.deactivateConstraints(boundsConstraints)
+    NSLayoutConstraint.activateConstraints(constraints = mutableListOf(
+      rootView.widthAnchor.constraintEqualToConstant(bounds.width.toDouble()),
+      rootView.heightAnchor.constraintEqualToConstant(bounds.height.toDouble()),
+    ).also { constraints ->
+      parentView?.also {
+        constraints.add(
+          rootView.leftAnchor.constraintEqualToAnchor(
+            anchor = parentView.leftAnchor, bounds.x.toDouble()
+          )
+        )
+        constraints.add(
+          rootView.topAnchor.constraintEqualToAnchor(
+            anchor = parentView.topAnchor, bounds.y.toDouble()
+          ),
+        )
+      }
+    }.also {
+      boundsConstraints = it
+    })
+  }
+
   init {
     globalDefaultScope.launch {
-      // println("QAQ getUiViewController-0(${prop.vcId})")
       waitInit()
-      val rootView = getUiViewController.getResult().view
-      // println("QAQ getUiViewController-1(${prop.vcId}) rootView=$rootView")
+      val rootView = uiViewControllerInMain.view
       boundsFlow.combine(viewAppearFlow) { bounds, viewAppear ->
-        // println("QAQ (${prop.vcId})boundsFlow.combine(viewAppearFlow) bounds=$bounds viewAppear=$viewAppear")
         bounds to rootView.superview
       }.collect { (bounds, parentView) ->
         withMainContext {
-          // println("QAQ rootView(${prop.vcId}).frame=$bounds parent=${parentView}")
-          rootView.translatesAutoresizingMaskIntoConstraints = false
-          NSLayoutConstraint.deactivateConstraints(boundsConstraints)
-          NSLayoutConstraint.activateConstraints(constraints = mutableListOf(
-            rootView.widthAnchor.constraintEqualToConstant(bounds.width.toDouble()),
-            rootView.heightAnchor.constraintEqualToConstant(bounds.height.toDouble()),
-          ).also { constraints ->
-            parentView?.also {
-              constraints.add(
-                rootView.leftAnchor.constraintEqualToAnchor(
-                  anchor = parentView.leftAnchor, bounds.x.toDouble()
-                )
-              )
-              constraints.add(
-                rootView.topAnchor.constraintEqualToAnchor(
-                  anchor = parentView.topAnchor, bounds.y.toDouble()
-                ),
-              )
-            }
-          }.also {
-            boundsConstraints = it
-          })
+          setBounds(bounds, rootView, parentView)
         }
       }
     }
@@ -181,66 +187,70 @@ class PureViewController(
 
   private val scope = nativeViewController.scope
 
+  private val backgroundView = mutableStateOf<UIView?>(null)
+
   @OptIn(ExperimentalForeignApi::class)
-  val getUiViewController = SuspendOnce {
-    withMainContext {
-      val backgroundView = mutableStateOf<UIView?>(null)
-      val bgPlaceholderView = BgPlaceholderView()
-      bgPlaceholderView.setCallback { bgView ->
-        backgroundView.value = bgView
-        bgView?.apply {
-          bgView.setHidden(true)
-        }
+  private val bgPlaceholderView = BgPlaceholderView().also {
+    it.setCallback { bgView ->
+      backgroundView.value = bgView
+      bgView?.apply {
+        bgView.setHidden(true)
       }
-      ComposeUIViewController({
-        delegate = object : ComposeUIViewControllerDelegate {
-          // 视图被加载后立即调用
-          override fun viewDidLoad() {
-            scope.launch { createSignal.emit(createParams) }
-          }
+    }
+  }
+  private val uiViewControllerDelegate = object : ComposeUIViewControllerDelegate {
+    // 视图被加载后立即调用
+    override fun viewDidLoad() {
+      scope.launch { createSignal.emit(createParams) }
+    }
 
-          //当视图控制器的视图即将被添加到视图层次结构中时触发
-          override fun viewWillAppear(animated: Boolean) {
-            viewAppearFlow.value = true
-            scope.launch { resumeSignal.emit() }
-          }
+    //当视图控制器的视图即将被添加到视图层次结构中时触发
+    override fun viewWillAppear(animated: Boolean) {
+      scope.launch { resumeSignal.emit() }
+    }
 
-          // 视图控制器的视图已经被添加到视图层次结构后调用
-          override fun viewDidAppear(animated: Boolean) {
-            backgroundView.value?.also { bgView ->
-              bgView.superview?.sendSubviewToBack(bgView)
-            }
-            scope.launch { stopSignal.emit() }
-          }
+    // 视图控制器的视图已经被添加到视图层次结构后调用
+    override fun viewDidAppear(animated: Boolean) {
+      viewAppearFlow.value = true
+      backgroundView.value?.also { bgView ->
+        bgView.superview?.sendSubviewToBack(bgView)
+      }
+    }
 
-          // 在视图即将从视图层次结构中移除时调用
-          override fun viewWillDisappear(animated: Boolean) {
-            println("QWQ viewWillDisappear animated=$animated")
-          }
+    // 在视图即将从视图层次结构中移除时调用
+    override fun viewWillDisappear(animated: Boolean) {
+      println("QWQ viewWillDisappear animated=$animated")
+    }
 
-          // 视图已经从视图层次结构中移除后会调用此函数
-          override fun viewDidDisappear(animated: Boolean) {
-            viewAppearFlow.value = false
-            println("QWQ viewDidDisappear animated=$animated")
-          }
-        }
-      }) {
-        UIKitView(
-          factory = { bgPlaceholderView }, Modifier.fillMaxSize().zIndex(0f), interactive = true
-        )
+    // 视图已经从视图层次结构中移除后会调用此函数
+    override fun viewDidDisappear(animated: Boolean) {
+      viewAppearFlow.value = false
+      println("QWQ viewDidDisappear animated=$animated")
+      scope.launch { stopSignal.emit() }
+    }
+  }
 
-        LocalCompositionChain.current.Provider(
-          LocalPureViewController provides this@PureViewController,
-          LocalPureViewBox provides PureViewBox(LocalUIViewController.current),
-          LocalUIKitBackgroundView provides backgroundView.value,
-        ) {
-          for (content in contents) {
-            content()
-          }
+  @OptIn(ExperimentalForeignApi::class)
+  val uiViewControllerInMain by lazy {
+    ComposeUIViewController({
+      delegate = uiViewControllerDelegate
+    }) {
+      UIKitView(
+        factory = { bgPlaceholderView }, Modifier.fillMaxSize().zIndex(0f), interactive = true
+      )
+
+      LocalCompositionChain.current.Provider(
+        LocalPureViewController provides this@PureViewController,
+        LocalPureViewBox provides PureViewBox(LocalUIViewController.current),
+        LocalUIKitBackgroundView provides backgroundView.value,
+      ) {
+        for (content in contents) {
+          content()
         }
       }
     }
   }
+  val getUiViewController = SuspendOnce { withMainContext { uiViewControllerInMain } }
 
   private val contents = mutableStateListOf<@Composable () -> Unit>();
   override fun getContents(): MutableList<@Composable () -> Unit> {

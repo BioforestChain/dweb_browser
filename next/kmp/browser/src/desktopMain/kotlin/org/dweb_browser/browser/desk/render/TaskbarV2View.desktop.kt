@@ -1,8 +1,13 @@
 package org.dweb_browser.browser.desk.render
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.awt.ComposePanel
+import androidx.compose.ui.geometry.Size
 import org.dweb_browser.browser.desk.TaskbarV2Controller
+import org.dweb_browser.helper.platform.asDesktop
+import org.dweb_browser.helper.platform.rememberPureViewBox
 import org.dweb_browser.sys.window.helper.DraggableDelegate
 import org.dweb_browser.sys.window.helper.FloatBarMover
 import org.dweb_browser.sys.window.helper.FloatBarShell
@@ -27,13 +32,19 @@ class TaskbarV2View(taskbarController: TaskbarV2Controller) : ITaskbarV2View(tas
 
   @Composable
   override fun Render() {
+    val viewBox = rememberPureViewBox().asDesktop()
+    val displaySize by produceState(Size.Zero) { value = viewBox.getDisplaySize() }
     CommonTaskbarRender(taskbarController, state) { parentWindow ->
       val draggableDelegate = DraggableDelegate()
       NativeMagnetFloatBar(
         state = taskbarController.state,
         runtime = taskbarController.deskNMM,
         content = NativeTaskbarV2Content(draggableDelegate) {
-          FloatBarShell(state, draggableDelegate) { modifier ->
+          FloatBarShell(
+            state,
+            draggableDelegate,
+            displaySize = displaySize,
+          ) { modifier ->
             FloatBarMover(draggableDelegate, modifier) {
               RenderContent(draggableDelegate)
             }

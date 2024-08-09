@@ -9,12 +9,12 @@ import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.android.BaseActivity
 import org.dweb_browser.helper.getOrPut
 
-actual suspend fun IPureViewBox.Companion.from(viewController: IPureViewController): IPureViewBox {
+actual fun IPureViewBox.Companion.from(viewController: IPureViewController): IPureViewBox {
   require(viewController is PureViewController)
   return PureViewBox.instances.getOrPut(viewController) { PureViewBox(viewController) }
 }
 
-class PureViewBox(val activity: BaseActivity) : IPureViewBox {
+class PureViewBox internal constructor(val activity: BaseActivity) : IPureViewBox {
   companion object {
     internal val instances = WeakHashMap<BaseActivity, IPureViewBox>()
   }
@@ -27,7 +27,7 @@ class PureViewBox(val activity: BaseActivity) : IPureViewBox {
     with(activity.resources.displayMetrics) { IntSize(widthPixels, heightPixels) }
 
   override suspend fun getViewControllerMaxBoundsPx() =
-    with(activity.window.decorView) { IntRect(0,0,width, height) }
+    with(activity.window.decorView) { IntRect(0, 0, width, height) }
 
 
   override suspend fun getDisplayDensity() = activity.resources.displayMetrics.density

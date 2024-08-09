@@ -47,10 +47,7 @@ fun WindowPreviewer(
   BoxWithConstraints(modifier.fillMaxSize()) {
     val state = WindowState(
       WindowConstants(
-        wid = wid,
-        owner = owner,
-        ownerVersion = "0.0.0",
-        provider = provider
+        wid = wid, owner = owner, ownerVersion = "0.0.0", provider = provider
       )
     ).also {
       it.updateMutableBounds {

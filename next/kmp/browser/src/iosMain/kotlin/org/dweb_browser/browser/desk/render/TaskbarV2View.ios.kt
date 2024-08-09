@@ -7,12 +7,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.toRect
 import androidx.compose.ui.input.pointer.pointerInput
 import org.dweb_browser.browser.desk.TaskbarV2Controller
-import org.dweb_browser.helper.PureRect
 import org.dweb_browser.helper.compose.toOffset
 import org.dweb_browser.helper.platform.NativeViewController.Companion.nativeViewController
 import org.dweb_browser.helper.platform.PureViewController
+import org.dweb_browser.helper.platform.rememberPureViewBox
+import org.dweb_browser.helper.toPureRect
 import org.dweb_browser.sys.window.helper.DraggableDelegate
 import org.dweb_browser.sys.window.helper.FloatBarShell
 
@@ -33,7 +35,8 @@ private fun TaskbarMover(
   Box(
     modifier.pointerInput(draggableDelegate) {
       var previousPosition = Offset.Zero
-      detectDragGestures(onDragEnd = draggableDelegate.onDragEnd,
+      detectDragGestures(
+        onDragEnd = draggableDelegate.onDragEnd,
         onDragCancel = draggableDelegate.onDragEnd,
         onDragStart = { pointerPositionPx ->
           val viewPosition = pvc.getPosition().toOffset()
@@ -49,8 +52,10 @@ private fun TaskbarMover(
           val dragAmount = screenPosition - previousPosition
           previousPosition = screenPosition
           draggableDelegate.onDrag(dragAmount)
-        })
-    }, contentAlignment = Alignment.Center
+        },
+      )
+    },
+    contentAlignment = Alignment.Center,
   ) {
     content()
   }
@@ -76,10 +81,11 @@ class TaskbarV2View(taskbarController: TaskbarV2Controller) : ITaskbarV2View(tas
   @Composable
   override fun Render() {
     /// 切换zIndex
+    val viewBox = rememberPureViewBox()
     LaunchedEffect(Unit) {
       nativeViewController.addOrUpdate(pvc, Int.MAX_VALUE - 1000)
       /// 需要给一个初始化的bounds，否则compose默认处于一个0x0的区域，是不会触发渲染的
-      pvc.setBounds(PureRect(0f, 0f, 36f, 36f))
+      pvc.setBounds(viewBox.getDisplaySize().toRect().toPureRect())
     }
   }
 }

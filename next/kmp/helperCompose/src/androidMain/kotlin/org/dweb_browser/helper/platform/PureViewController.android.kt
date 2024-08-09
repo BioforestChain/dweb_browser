@@ -1,12 +1,12 @@
 package org.dweb_browser.helper.platform
 
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
 import android.view.MotionEvent
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
-import android.graphics.Color
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.CoroutineScope
@@ -45,7 +45,7 @@ open class PureViewController : BaseActivity(), IPureViewController {
     setContent {
       LocalCompositionChain.current.Provider(
         LocalPureViewController provides this,
-        LocalPureViewBox provides PureViewBox(this)
+        LocalPureViewBox provides IPureViewBox.from(this)
       ) {
         DwebBrowserAppTheme {
           for (content in contents) {

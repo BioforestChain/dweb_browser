@@ -14,8 +14,8 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import org.dweb_browser.helper.PureRect
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.getOrPut
-import org.dweb_browser.helper.platform.LocalPureViewBox
 import org.dweb_browser.helper.platform.NativeViewController.Companion.nativeViewController
+import org.dweb_browser.helper.platform.rememberPureViewBox
 import org.dweb_browser.platform.ios.SecureViewController
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.WindowsManager
@@ -29,7 +29,7 @@ private fun <T : WindowController> WindowsManager<T>.EffectKeyboard() {
   val imeVisible = LocalWindowsImeVisible.current.value
   val ime = WindowInsets.ime // 直接使用ime，数据不稳定，会变化，改为imeAnimationTarget就是固定值
   val density = LocalDensity.current
-  val view = LocalPureViewBox.current
+  val view = rememberPureViewBox()
 
   LaunchedEffect(view, imeVisible, ime) { // WindowInsets.ime 对象并不会变化，所以导致这个重组不会重复执行
     state.imeVisible = imeVisible // 由于小米手机的安全键盘存在问题，会出现WindowInsets.isImeVisible不正确的情况

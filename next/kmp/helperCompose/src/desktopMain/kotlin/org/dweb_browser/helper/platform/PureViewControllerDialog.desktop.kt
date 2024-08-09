@@ -31,7 +31,7 @@ fun PureViewController.ModalDialog(
 ) {
   // 强行设置渲染方式为 SAMECANVAS
   System.setProperty("compose.layers.type", "SAMECANVAS")
-  val viewBox = LocalPureViewBox.current
+  val viewBox = rememberPureViewBox()
   val dialog = remember {
     ComposeDialog(getComposeWindowOrNull(), Dialog.ModalityType.APPLICATION_MODAL).apply {
       title = state.title

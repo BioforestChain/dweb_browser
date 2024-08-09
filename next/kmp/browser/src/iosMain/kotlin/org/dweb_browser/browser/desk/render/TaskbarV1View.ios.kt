@@ -121,7 +121,7 @@ class TaskbarV1View(
     }, onCreate = {
       withMainContext {
         /// 增加拖动手势
-        pvc.getUiViewController().view.addGestureRecognizer(dragGestureRecognizer)
+        pvc.uiViewControllerInMain.view.addGestureRecognizer(dragGestureRecognizer)
 
         /// 前景层的背景色渲染
         wkWebView.layer.cornerRadius = 16.0

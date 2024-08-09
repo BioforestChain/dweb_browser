@@ -1,13 +1,14 @@
 package org.dweb_browser.helper.platform
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
 import kotlinx.coroutines.CoroutineScope
 import org.dweb_browser.helper.compose.compositionChainOf
 import org.dweb_browser.helper.compose.div
 
-expect suspend fun IPureViewBox.Companion.from(viewController: IPureViewController): IPureViewBox
+expect fun IPureViewBox.Companion.from(viewController: IPureViewController): IPureViewBox
 
 /**
  * 视图 前端
@@ -54,6 +55,8 @@ interface IPureViewBox {
 }
 
 @Composable
-fun rememberPureViewBox() = LocalPureViewBox.current
+fun rememberPureViewBox(viewController: IPureViewController? = null) =
+  LocalPureViewBox.current ?: (viewController
+    ?: LocalPureViewController.current).let { pvc -> remember(pvc) { IPureViewBox.from(pvc) } }
 
-val LocalPureViewBox = compositionChainOf<IPureViewBox>("PureViewBox")
+internal val LocalPureViewBox = compositionChainOf<IPureViewBox?>("PureViewBox") { null }

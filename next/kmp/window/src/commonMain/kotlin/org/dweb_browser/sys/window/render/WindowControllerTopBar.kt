@@ -32,9 +32,7 @@ import org.dweb_browser.sys.window.core.WindowController
 
 // 这里是窗口顶部，分成移动端和桌面端实现，桌面端将使用原生的窗口并且绑定事件
 @Composable
-expect fun WindowTopBar(
-  win: WindowController, modifier: Modifier
-)
+expect fun WindowTopBar(win: WindowController, modifier: Modifier)
 
 // 平常情况下的顶部窗口
 @Composable
@@ -93,7 +91,7 @@ fun WindowTopControllerBar(
         val titleText by win.watchedState { title ?: constants.owner }
 
         val baseFontStyle = MaterialTheme.typography.titleSmall
-        val fontStyle = remember(contentColor) {
+        val fontStyle = remember(baseFontStyle, contentColor) {
           baseFontStyle.copy(color = contentColor)
         }
 

@@ -20,9 +20,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
@@ -32,7 +34,7 @@ import org.dweb_browser.helper.PureRect
 import org.dweb_browser.helper.clamp
 import org.dweb_browser.helper.compose.collectAsMutableState
 import org.dweb_browser.helper.getValue
-import org.dweb_browser.helper.platform.LocalPureViewBox
+import org.dweb_browser.helper.platform.rememberPureViewBox
 import org.dweb_browser.helper.setValue
 import squircleshape.CornerSmoothing
 import squircleshape.SquircleShape
@@ -49,14 +51,16 @@ fun FloatBarShell(
   draggableDelegate: DraggableDelegate = remember { DraggableDelegate() },
   modifier: Modifier = Modifier,
   isDark: Boolean = isSystemInDarkTheme(),
+  displaySize: Size = rememberPureViewBox().let { viewBox ->
+    produceState(Size.Zero) {
+      value = viewBox.getDisplaySize()
+    }.value
+  },
   effectBounds: @Composable Modifier.(PureRect) -> Modifier = { bounds ->
-    this.size(bounds.width.dp, bounds.height.dp)
-      .offset(x = bounds.x.dp, y = bounds.y.dp)
+    this.size(bounds.width.dp, bounds.height.dp).offset(x = bounds.x.dp, y = bounds.y.dp)
   },
   moverContent: @Composable FloatBarContext.(modifier: Modifier) -> Unit,
 ) {
-  val viewBox = LocalPureViewBox.current
-  val displaySize by produceState(Size.Zero) { value = viewBox.getDisplaySize() }
 
   val screenWidth = displaySize.width
   val screenHeight = displaySize.height
@@ -129,26 +133,28 @@ fun FloatBarShell(
     }
   }
 
-  val color = remember(isDark) {
-    when {
-      isDark -> Color.White.copy(alpha = 0.45f)
-      else -> Color.Black.copy(alpha = 0.2f)
-    }
-  }
   val ctx = remember(draggableDelegate) { FloatBarContext(draggableDelegate) }
   ctx.moverContent(
-    modifier
-      .zIndex(1000f).effectBounds(
-        PureRect(
-          x = boxOffset.x,
-          y = boxOffset.y,
-          width = boxWidth,
-          height = boxHeight,
-        )
+    modifier.zIndex(1000f).effectBounds(
+      PureRect(
+        x = boxOffset.x,
+        y = boxOffset.y,
+        width = boxWidth,
+        height = boxHeight,
       )
-      .background(color, floatBarDefaultShape)
+    ).floatBarBackground(isDark, floatBarDefaultShape)
   )
 }
+
+fun Modifier.floatBarBackground(isDark: Boolean, shape: Shape = floatBarDefaultShape) =
+  this.composed {
+    this.background(remember(isDark) {
+      when {
+        isDark -> Color.White.copy(alpha = 0.45f)
+        else -> Color.Black.copy(alpha = 0.2f)
+      }
+    }, shape)
+  }
 
 val floatBarDefaultShape = SquircleShape(16.dp, CornerSmoothing.Small)
 
@@ -163,13 +169,16 @@ fun FloatBarMover(
 ) {
   Box(
     modifier.pointerInput(draggableDelegate) {
-      detectDragGestures(onDragEnd = draggableDelegate.onDragEnd,
+      detectDragGestures(
+        onDragEnd = draggableDelegate.onDragEnd,
         onDragCancel = draggableDelegate.onDragEnd,
         onDragStart = { draggableDelegate.onDragStart(it / density) },
         onDrag = { _, dragAmount ->
           draggableDelegate.onDrag(dragAmount / density)
-        })
-    }, contentAlignment = Alignment.Center
+        },
+      )
+    },
+    contentAlignment = Alignment.Center,
   ) {
     content()
   }

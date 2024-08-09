@@ -14,19 +14,17 @@ import org.dweb_browser.helper.withMainContext
 import platform.UIKit.UIScreen
 import platform.UIKit.UIViewController
 
-actual suspend fun IPureViewBox.Companion.from(viewController: IPureViewController): IPureViewBox {
+actual fun IPureViewBox.Companion.from(viewController: IPureViewController): IPureViewBox {
   require(viewController is PureViewController)
   return PureViewBox.instances.getOrPut(viewController) {
-    val vc = viewController.getUiViewController()
-    viewController.waitInit() /// 等待附加到UIWindow中
-    PureViewBox(vc)
+    PureViewBox(viewController.uiViewControllerInMain)
   }
 }
 
 @OptIn(ExperimentalForeignApi::class)
 class PureViewBox(
   val uiViewController: UIViewController,
-  private val uiScreen: UIScreen = UIScreen.mainScreen
+  private val uiScreen: UIScreen = UIScreen.mainScreen,
 ) : IPureViewBox {
   companion object {
     internal val instances = WeakHashMap<IPureViewController, IPureViewBox>()

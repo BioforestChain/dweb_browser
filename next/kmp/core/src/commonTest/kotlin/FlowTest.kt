@@ -1,12 +1,14 @@
 package info.bagen.dwebbrowser
 
 import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.conflate
@@ -179,5 +181,35 @@ class FlowTest {
       println("QWQ collect $it")
       delay(100)
     }
+  }
+
+  @Test
+  fun combineState() = runCommonTest {
+    val stateFlow = MutableStateFlow(false)
+    val sharedFlow = MutableSharedFlow<Int>(
+      replay = 1,
+      onBufferOverflow = BufferOverflow.DROP_OLDEST,
+    )
+    val job = launch {
+      sharedFlow.combine(stateFlow) { i, b ->
+        i to b
+      }.collect {
+        println("QWQ $it")
+      }
+    }
+//    delay(100)
+    sharedFlow.emit(1)
+
+//    delay(100)
+    stateFlow.value = true
+
+    //delay(100)
+    stateFlow.value = false
+
+    //delay(100)
+    sharedFlow.emit(2)
+
+    delay(100)
+    job.cancel()
   }
 }

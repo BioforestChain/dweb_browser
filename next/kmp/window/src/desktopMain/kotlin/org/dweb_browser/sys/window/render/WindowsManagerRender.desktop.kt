@@ -12,9 +12,9 @@ import androidx.compose.ui.Modifier
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.compose.CompositionChain
 import org.dweb_browser.helper.compose.LocalCompositionChain
-import org.dweb_browser.helper.platform.LocalPureViewBox
 import org.dweb_browser.helper.platform.PureViewController
 import org.dweb_browser.helper.platform.asDesktop
+import org.dweb_browser.helper.platform.rememberPureViewBox
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.WindowsManager
 import org.dweb_browser.sys.window.core.WindowsManagerState.Companion.windowImeOutsetBounds
@@ -49,7 +49,7 @@ fun RenderWindowInNative(
   windowsManager: WindowsManager<*>,
   win: WindowController,
 ) {
-  val maxBounds = LocalPureViewBox.current.asDesktop()
+  val maxBounds = rememberPureViewBox().asDesktop()
     .currentViewControllerMaxBounds(withSafeArea = !win.watchedIsFullscreen().value)
   win.Prepare(
     winMaxWidth = maxBounds.width, winMaxHeight = maxBounds.height, minScale = 1.0
@@ -61,7 +61,8 @@ fun RenderWindowInNative(
     LaunchedEffect(pvc) {
       if (!pvc.composeWindowParams.isOpened) {
         // 使用系统原生的窗口进行渲染
-        win.state.renderConfig.useSystemFrame = true
+        win.state.renderConfig.isSystemWindow = true
+        win.state.renderConfig.isWindowUseComposeStyle = false
         pvc.composeWindowParams.apply {
           // 打开窗口
           openWindow()
@@ -92,8 +93,7 @@ private class DesktopWindowNativeView(
       @Suppress("UNCHECKED_CAST") pvc.addContent {
         val compositionChain by params["compositionChain"] as State<CompositionChain>
 
-        (compositionChain + LocalCompositionChain.current)
-          .Provider(LocalWindowsManager provides windowsManager) {
+        (compositionChain + LocalCompositionChain.current).Provider(LocalWindowsManager provides windowsManager) {
             /// 注册副作用
             win.WindowControllerEffect()
             /// 渲染窗口

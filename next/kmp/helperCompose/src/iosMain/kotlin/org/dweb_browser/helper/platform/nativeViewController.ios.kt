@@ -1,8 +1,6 @@
 package org.dweb_browser.helper.platform
 
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -86,17 +84,14 @@ class NativeViewController private constructor() {
       zIndex = zIndex ?: (getMaxZIndex() + 1), visible = visible
     ).also { pureViewController.prop = it }
 
-    coroutineScope {
-      val prop = updateProp()
-      if (pureViewController.isAdded) {
-        updateHook(prop)
-      } else {
-        /// 设置init监听，等待vc构建完成
-        val waitInit = async { pureViewController.waitInit() }
-        // 唤醒swift进行重新绘制一个新的UIViewController
-        addHook(pureViewController.getUiViewController(), prop)
-        waitInit.await()
-      }
+    val prop = updateProp()
+    if (pureViewController.isAdded) {
+      updateHook(prop)
+    } else {
+      // 唤醒swift进行重新绘制一个新的UIViewController
+      addHook(pureViewController.getUiViewController(), prop)
+      /// 设置init监听，等待vc构建完成
+      pureViewController.waitInit()
     }
   }
 
