@@ -2,13 +2,16 @@ package org.dweb_browser.core.std.file.ext
 
 import io.ktor.http.ContentType
 import io.ktor.http.Url
+import kotlinx.serialization.Serializable
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.base64UrlString
 import org.dweb_browser.helper.buildUrlString
+import org.dweb_browser.helper.datetimeNow
 import org.dweb_browser.helper.getOrPut
 import org.dweb_browser.helper.platform.KeyValueStore
+import org.dweb_browser.helper.platform.getJsonOrPut
 import org.dweb_browser.helper.utf8Binary
 import org.dweb_browser.pure.crypto.hash.sha256Sync
 import org.dweb_browser.pure.http.PureBinaryBody
@@ -37,6 +40,11 @@ private suspend fun MicroModule.Runtime.createBlobFromUrl(
   createBlob(data, mime, ext)
 }
 
+@Serializable
+class BlobInfo(val url: String, val dateTime: Long = datetimeNow())
+
+const val CACHE_DURATION = 12 * 60 * 60 * 1000
+
 val MicroModule.Runtime.blobFetchHook
   get() = MicroModuleBlobFetchHookCache.getOrPut(this) {
     {
@@ -47,10 +55,13 @@ val MicroModule.Runtime.blobFetchHook
       } else {
         // 不能直接用url，否则可能会出现key过长的问题
         val key = sha256Sync(request.url.toString().utf8Binary).base64UrlString
-        val blobUrl = sharedBlobStore.getStringOrPut(key) {
-          createBlobFromUrl(request.url) { res = it }
+        val blobInfo = sharedBlobStore.getJsonOrPut<BlobInfo>(key) {
+          BlobInfo(createBlobFromUrl(request.url) { res = it })
         }
-        res ?: nativeFetch(blobUrl).let { response ->
+        if (datetimeNow() - blobInfo.dateTime > CACHE_DURATION) {
+          res = null
+        }
+        res ?: nativeFetch(blobInfo.url).let { response ->
           when {
             response.isOk -> response
             else -> {
