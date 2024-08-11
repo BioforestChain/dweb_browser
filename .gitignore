@@ -66,3 +66,6 @@ next/kmp/app/androidApp/src/androidMain/generated/baselineProfiles
 # 请不要挪动这些配置，我们的自动清理脚本需要读取这个ignore配置来避免错误的清理，否则将导致清理失效
 /next/kmp/*/src/*/resources/
 /next/kmp/*/src/*/composeResources/
+
+# log
+.contribution.txt

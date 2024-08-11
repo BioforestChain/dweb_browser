@@ -7,26 +7,40 @@ export class EasySpinner {
   static stdinDiscarder = new StdinDiscarder();
   readonly spinner;
   #ti;
-  constructor(options?: Options) {
+  constructor(options?: Options & { redrawInterval?: number }) {
     // deno 下的， discardStdin 不能很好支持，所以我们手动进行捕捉
     this.spinner = ora({ discardStdin: false, ...options }).start();
-    UploadSpinner.stdinDiscarder.start();
+    // UploadSpinner.stdinDiscarder.start();
 
-    this.#ti = setInterval(() => {
-      this.redraw();
-    }, 500);
+    if (options?.redrawInterval) {
+      this.#ti = setInterval(() => {
+        this.redraw();
+      }, options.redrawInterval);
+    }
   }
   readonly startTime = Date.now();
-  text = "";
+  text: string | (() => string) = "";
+  private getText() {
+    const { text } = this;
+    if (typeof text === "function") {
+      return text();
+    }
+    return text;
+  }
   redraw() {
     const now = Date.now();
-    const second = Math.ceil((now - this.startTime) / 1000);
-    this.spinner.text = colors.cyan(`+${second}s`) + ` ${this.text}`;
+    const second = ((now - this.startTime) / 1000).toFixed(1);
+    this.spinner.text = colors.cyan(`+${second}s`) + ` ${this.getText()}`;
   }
   stop() {
+    this.#isStoped = true;
     this.spinner.stopAndPersist();
-    UploadSpinner.stdinDiscarder.stop();
+    // UploadSpinner.stdinDiscarder.stop();
     clearInterval(this.#ti);
+  }
+  #isStoped = false;
+  get isStoped() {
+    return this.#isStoped;
   }
 }
 

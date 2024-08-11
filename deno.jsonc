@@ -3,6 +3,7 @@
   "tasks": {
     "init": "deno run -A ./scripts/init.ts",
     "dev": "deno run -A ./scripts/dev.ts",
+    "contribution": "deno run -A ./git-contribution.ts",
     "clean": "deno run -A ./scripts/clean.ts",
     "build": "deno run -A ./scripts/build.ts",
     "bundle:android": "deno run -A ./next/kmp/build-android.ts",

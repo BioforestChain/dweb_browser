@@ -145,7 +145,6 @@ private fun IosWindowPrepare(
             val pointerPosition = pointerPositionPx / density
             val screenPosition = pointerPosition + viewPosition
             previousPosition = screenPosition
-            println("QAQ onDragStart screenPosition=$screenPosition(pointer=$pointerPosition,view=$viewPosition)")
           },
           onMove = { change, _ ->
             val viewPosition = pvc.getPosition().toOffset()
