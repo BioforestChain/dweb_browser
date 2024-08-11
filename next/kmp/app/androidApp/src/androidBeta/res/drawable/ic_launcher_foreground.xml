@@ -18,19 +18,19 @@
           android:type="linear">
           <item
             android:offset="0"
-            android:color="#440CB4" />
+            android:color="#FFB4440C" />
           <item
             android:offset="0.29"
-            android:color="#6A11CC" />
+            android:color="#FFCC6A11" />
           <item
             android:offset="0.58"
-            android:color="#8A15E0" />
+            android:color="#FFE08A15" />
           <item
             android:offset="0.83"
-            android:color="#9D18EC" />
+            android:color="#FFEC9D18" />
           <item
             android:offset="1"
-            android:color="#A419F0" />
+            android:color="#FFF0A419" />
         </gradient>
       </aapt:attr>
     </path>
@@ -46,28 +46,28 @@
           android:type="linear">
           <item
             android:offset="0"
-            android:color="#8703FF" />
+            android:color="#FFFF8703" />
           <item
             android:offset="0.27"
-            android:color="#8A04FF" />
+            android:color="#FFFF8A04" />
           <item
             android:offset="0.45"
-            android:color="#9308FF" />
+            android:color="#FFFF9308" />
           <item
             android:offset="0.6"
-            android:color="#A20EFF" />
+            android:color="#FFFFA20E" />
           <item
             android:offset="0.74"
-            android:color="#B718FF" />
+            android:color="#FFFFB718" />
           <item
             android:offset="0.87"
-            android:color="#D324FE" />
+            android:color="#FFFED324" />
           <item
             android:offset="0.98"
-            android:color="#F432FE" />
+            android:color="#FFFEF432" />
           <item
             android:offset="1"
-            android:color="#F934FE" />
+            android:color="#FFFEF934" />
         </gradient>
       </aapt:attr>
     </path>
@@ -83,10 +83,10 @@
           android:type="linear">
           <item
             android:offset="0.04"
-            android:color="#8909E6" />
+            android:color="#FFE68909" />
           <item
             android:offset="1"
-            android:color="#E92CFD" />
+            android:color="#FFFDE92C" />
         </gradient>
       </aapt:attr>
     </path>
@@ -102,10 +102,10 @@
           android:type="linear">
           <item
             android:offset="0"
-            android:color="#C71EFF" />
+            android:color="#FFFFC71E" />
           <item
             android:offset="0.64"
-            android:color="#F134FF" />
+            android:color="#FFFFF134" />
         </gradient>
       </aapt:attr>
     </path>

@@ -7,10 +7,30 @@ const resolveTo = createBaseResolveTo(import.meta.url);
 
 // 运行 assembleRelease 命令，继承输出
 const cmd = Deno.build.os === "windows" ? resolveTo("gradlew.bat") : resolveTo("gradlew");
-// -PreleaseBuild=true 增加传入参数表示当前是 release 打包操作
-const cmd_args = ["assembleRelease", "assembleDebug", "bundleRelease", "-PreleaseBuild=true"];
 
-const doBundle = async () => {
+const safeChannels = ["stable", "beta", "dev"] as const;
+const getChannelName = (channel?: string) => {
+  if (channel === undefined) {
+    return "stable" as $ChannelName;
+  }
+  if (!safeChannels.includes(channel as any)) {
+    throw new Error(`invalid channel=${channel}`);
+  }
+  return channel as $ChannelName;
+};
+type $ChannelName = (typeof safeChannels)[number];
+const doBundle = async (channel: $ChannelName) => {
+  const cmd_args = [
+    "assembleRelease",
+    "assembleDebug",
+    "bundleRelease",
+
+    // 表示当前是 release 打包操作，从而使得 debug 的打包也使用release进行签名，仅仅是允许开启 debug 模式
+    "-PreleaseBuild=true",
+    // 表明需要发布的通道，默认是 stable，可以是 beta（每周）、dev（日常）
+    `-PbuildChannel=${channel}`,
+  ];
+
   console.log(">", cmd, ...cmd_args);
 
   // 执行 assembleRelease
@@ -50,9 +70,9 @@ const OUTPUT_DIR = resolveTo("./app/androidApp/release");
 // Deno.removeSync(OUTPUT_DIR, { recursive: true });
 // Deno.mkdirSync(OUTPUT_DIR, { recursive: true });
 
-const doCopy = async (versionName: string) => {
+const doCopy = async (versionName: string, channelName: $ChannelName) => {
   const CONDITIONS = ["debug", "release", "for"];
-  const outputDir = `${OUTPUT_DIR}/android_v${versionName}`;
+  const outputDir = `${OUTPUT_DIR}/android_v${versionName}_${channelName}`;
   // 创建目标目录
   if (fs.existsSync(outputDir)) {
     Deno.removeSync(outputDir, { recursive: true });
@@ -155,14 +175,15 @@ const upgradeVersionInfo = async (filePath: string, forceUpdate = false) => {
 
 if (import.meta.main) {
   // 发布版本的时候，升级下版本信息 versionCode和versionName
-  const version = await upgradeVersionInfo(resolveTo("gradle/libs.versions.toml"), Deno.args.includes("--new"));
+  const version = await upgradeVersionInfo(resolveTo("gradle/libs.versions.toml"), cliArgs.new);
   if (cliArgs.clean) {
     await doCleanBuildDIR(); // 清空编译目录
   }
-  await doBundle();
-  const dirpath = await doCopy(version);
+  const channelName = getChannelName(cliArgs.channel);
+  await doBundle(channelName);
+  const dirpath = await doCopy(version, channelName);
 
-  const uploadArgs: $UploadReleaseParams = [`android-${version}`, dirpath, "*.apk"];
+  const uploadArgs: $UploadReleaseParams = [`android-${version}-${channelName}`, dirpath, "*.apk"];
   await recordUploadRelease(uploadArgs[0], uploadArgs);
   if (cliArgs.upload) {
     await doUploadRelease(...uploadArgs);

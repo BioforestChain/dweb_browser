@@ -1,5 +1,7 @@
+import com.android.build.api.dsl.ApplicationBuildType
 import com.android.build.gradle.internal.api.ApkVariantOutputImpl
 import com.android.build.gradle.internal.tasks.FinalizeBundleTask
+import org.gradle.kotlin.dsl.support.uppercaseFirstChar
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.capitalizeAsciiOnly
 import java.util.Properties
 
@@ -109,6 +111,38 @@ android {
 
   // 判断编译的时候是否传入了 -PreleaseBuild=true，表示是脚本执行
   val isReleaseBuild = hasProperty("releaseBuild") && property("releaseBuild") == "true"
+  val buildChannel = when {
+    hasProperty("buildChannel") -> property("buildChannel")!!.toString()
+    else -> "stable"
+  }
+
+  fun ApplicationBuildType.configChannel(channel: String, srcName: String) {
+    if (channel == "stable") {
+      resValue("string", "appName", "Dweb Browser")
+      applicationIdSuffix = null
+      versionNameSuffix = null
+    } else {
+      resValue("string", "appName", "Dweb Browser ${channel.uppercaseFirstChar()}")
+      applicationIdSuffix = ".$channel"
+      versionNameSuffix = "-$channel"
+      val replaceTaskName = "replaceIcon-$srcName"
+      tasks.register<Copy>(replaceTaskName) {
+        val fromDir = "src/android${channel.uppercaseFirstChar()}/res/drawable"
+        val toDir = "src/$srcName/res/drawable"
+        from(fromDir) {
+          include("ic_launcher_background.xml")
+        }
+        into(toDir)
+        doLast {
+          println("QAQ CopyInto $fromDir => $toDir")
+        }
+      }
+      tasks.named("preBuild") {
+        println("QAQ merge resource !!")
+        dependsOn(replaceTaskName)
+      }
+    }
+  }
   buildTypes {
     getByName("release") {
       // signingConfig = signingConfigs.getByName("debug") // 如果是测试benchmark需要使用debug
@@ -116,19 +150,7 @@ android {
       isMinifyEnabled = true // 开启代码混淆
       setProguardFiles(listOf("proguard-rules.pro"))
       isShrinkResources = true // 移除无用的resource
-      resValue("string", "appName", "Dweb Browser")
-      applicationIdSuffix = null
-      versionNameSuffix = null
-    }
-    create("beta") {
-      // signingConfig = signingConfigs.getByName("debug") // 如果是测试benchmark需要使用debug
-      signingConfig = signingConfigs.getByName("release")
-      isMinifyEnabled = true // 开启代码混淆
-      setProguardFiles(listOf("proguard-rules.pro"))
-      isShrinkResources = true // 移除无用的resource
-      resValue("string", "appName", "Dweb Browser Beta")
-      applicationIdSuffix = ".beta"
-      versionNameSuffix = "-beta"
+      configChannel(buildChannel, "androidMain")
     }
     getByName("debug") {
       if (isReleaseBuild) {
@@ -137,9 +159,7 @@ android {
         isMinifyEnabled = true // 开启代码混淆
         setProguardFiles(listOf("proguard-rules.pro"))
         isShrinkResources = true // 移除无用的resource
-        resValue("string", "appName", "Dweb Browser")
-        applicationIdSuffix = null
-        versionNameSuffix = null
+        configChannel(buildChannel, "androidDebug")
       } else {
         signingConfig = signingConfigs.getByName("debug")
         val userName =
