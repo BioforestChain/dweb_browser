@@ -119,7 +119,7 @@ export class Server_www extends HttpServer {
 
   _config(event: $Core.IpcFetchEvent) {
     const pathname = event.pathname.slice(CONFIG_PREFIX.length);
-    if (pathname.startsWith("/setLang")) {
+    if (pathname.startsWith("setLang")) {
       const lang = event.searchParams.get("lang");
       this.lang = lang;
     }

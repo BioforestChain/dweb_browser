@@ -101,10 +101,7 @@ const restart = () => {
 };
 
 const setLang = async () => {
-  const res = await configPlugin.setLang("en", false);
-  if (res) {
-    dwebServiceWorker.restart();
-  }
+  const res = await configPlugin.setLang("en");
   console.log("res=>", res);
 };
 

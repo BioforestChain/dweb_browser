@@ -1,6 +1,5 @@
 import { bindThis } from "../../helper/bindThis.ts";
 import { BasePlugin } from "../base/base.plugin.ts";
-import { dwebServiceWorker } from "../index.ts";
 
 export class ConfigPlugin extends BasePlugin {
   constructor() {
@@ -20,9 +19,10 @@ export class ConfigPlugin extends BasePlugin {
       search: {
         lang: lang,
       },
+      base: location.href,
     }).boolean();
     if (res && isReload) {
-      dwebServiceWorker.restart();
+      location.reload();
     }
     return res;
   }
@@ -32,7 +32,7 @@ export class ConfigPlugin extends BasePlugin {
    * @since 1.0.0
    */
   @bindThis
-  async getLang() {
+  getLang() {
     return this.fetchApi("/getLang", { base: location.href }).text();
   }
 }
