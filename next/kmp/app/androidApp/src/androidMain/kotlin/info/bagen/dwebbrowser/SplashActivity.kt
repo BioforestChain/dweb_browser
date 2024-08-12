@@ -174,7 +174,9 @@ fun dpAni(targetValue: Dp, label: String, onFinished: () -> Unit = {}): Dp {
 @Composable
 fun SplashMainView(modifier: Modifier, startAnimation: Boolean) {
   BoxWithConstraints(
-    modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
+    modifier
+      .fillMaxSize()
+      .background(MaterialTheme.colorScheme.background),
     contentAlignment = Alignment.Center,
   ) {
     var aniStart by remember { mutableStateOf(false) }
@@ -193,11 +195,20 @@ fun SplashMainView(modifier: Modifier, startAnimation: Boolean) {
     }
 
     val logoOffsetY = dpAni(logoTop, "logoPaddingTop")
-    Image(imageVector = ImageVector.vectorResource(R.drawable.ic_launcher_foreground),
+    Image(imageVector = when (BuildConfig.DEBUG) {
+      true -> ImageVector.vectorResource(R.drawable.ic_launcher_foreground_debug)
+      false -> when (BuildConfig.VERSION_NAME.split("-").last()) {
+        "dev" -> ImageVector.vectorResource(R.drawable.ic_launcher_foreground_dev)
+        "beta" -> ImageVector.vectorResource(R.drawable.ic_launcher_foreground_beta)
+        else -> ImageVector.vectorResource(R.drawable.ic_launcher_foreground_stable)
+      }
+    },
       contentDescription = "Dweb Browser Logo",
-      modifier = Modifier.requiredSize(288.dp).offset {
-        IntOffset(0, (logoOffsetY.value * density).toInt())
-      })
+      modifier = Modifier
+        .requiredSize(288.dp)
+        .offset {
+          IntOffset(0, (logoOffsetY.value * density).toInt())
+        })
     val bannerOffsetY = dpAni(bannerTop, "bannerPaddingTop")
     Box(
       Modifier.offset {

@@ -116,33 +116,29 @@ android {
     else -> "stable"
   }
 
-  fun ApplicationBuildType.configChannel(channel: String, srcName: String) {
-    if (channel == "stable") {
-      resValue("string", "appName", "Dweb Browser")
+  fun ApplicationBuildType.configChannel(channel: String, buildType: ApplicationBuildType) {
+    if(channel == "stable") {
       applicationIdSuffix = null
       versionNameSuffix = null
+      manifestPlaceholders["appName"] = "Dweb Browser"
     } else {
-      resValue("string", "appName", "Dweb Browser ${channel.uppercaseFirstChar()}")
       applicationIdSuffix = ".$channel"
       versionNameSuffix = "-$channel"
-      val replaceTaskName = "replaceIcon-$srcName"
-      tasks.register<Copy>(replaceTaskName) {
-        val fromDir = "src/android${channel.uppercaseFirstChar()}/res/drawable"
-        val toDir = "src/$srcName/res/drawable"
-        from(fromDir) {
-          include("ic_launcher_background.xml")
-        }
-        into(toDir)
-        doLast {
-          println("QAQ CopyInto $fromDir => $toDir")
-        }
-      }
-      tasks.named("preBuild") {
-        println("QAQ merge resource !!")
-        dependsOn(replaceTaskName)
-      }
+      manifestPlaceholders["appName"] = "Dweb Browser ${channel.uppercaseFirstChar()}"
     }
+
+    if(buildType.name == "debug") {
+      val userName =
+        keystoreProperties.getProperty("debugApk", null) ?: System.getProperty("user.name")
+          .replace("[^a-zA-Z0-9]".toRegex(), "").lowercase()
+      applicationIdSuffix = ".dweb.$userName"
+      versionNameSuffix = null
+      manifestPlaceholders["appName"] = "Dweb-$userName"
+    }
+
+    manifestPlaceholders["appIcon"] = "@mipmap/ic_launcher_${channel}"
   }
+
   buildTypes {
     getByName("release") {
       // signingConfig = signingConfigs.getByName("debug") // 如果是测试benchmark需要使用debug
@@ -150,7 +146,7 @@ android {
       isMinifyEnabled = true // 开启代码混淆
       setProguardFiles(listOf("proguard-rules.pro"))
       isShrinkResources = true // 移除无用的resource
-      configChannel(buildChannel, "androidMain")
+      configChannel(buildChannel, this)
     }
     getByName("debug") {
       if (isReleaseBuild) {
@@ -159,15 +155,11 @@ android {
         isMinifyEnabled = true // 开启代码混淆
         setProguardFiles(listOf("proguard-rules.pro"))
         isShrinkResources = true // 移除无用的resource
-        configChannel(buildChannel, "androidDebug")
+        configChannel(buildChannel, this)
       } else {
         signingConfig = signingConfigs.getByName("debug")
-        val userName =
-          keystoreProperties.getProperty("debugApk", null) ?: System.getProperty("user.name")
-            .replace("[^a-zA-Z0-9]".toRegex(), "").lowercase()
-        resValue("string", "appName", "Dweb-$userName")
-        applicationIdSuffix = ".dweb.$userName"
-        versionNameSuffix = null
+        configChannel(buildChannel, this)
+        manifestPlaceholders["appIcon"] = "@mipmap/ic_launcher_debug"
       }
       isDebuggable = true
     }
