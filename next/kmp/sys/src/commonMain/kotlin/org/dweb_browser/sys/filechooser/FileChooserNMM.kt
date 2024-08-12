@@ -26,10 +26,9 @@ class FileChooserNMM : NativeMicroModule("fs-picker.sys.dweb", "FileChooser") {
           // accept 的格式为mime:ext,ext;mime:ext，比如：image/*:.jpg,.png;video/*:.mp4
           val accept = request.queryOrNull("accept") ?: "*/*"
           val multiple = request.queryOrNull("multiple")?.toBoolean() ?: false
-          val limit = request.queryOrNull("limit")?.toInt() ?: 1
-          debugFileChooser("open-file", "accept=$accept, multiple=$multiple, limit=$limit")
+          debugFileChooser("open-file", "accept=$accept, multiple=$multiple")
           val fromMM = getRemoteRuntime()
-          fileChooserManage.openFileChooser(fromMM, accept, multiple, limit).toJsonElement()
+          fileChooserManage.openFileChooser(fromMM, accept, multiple).toJsonElement()
         },
         "/directory" bind PureMethod.GET by defineEmptyResponse {
           // /directory?mode=*&startIn=*&preference=* 选择目录
