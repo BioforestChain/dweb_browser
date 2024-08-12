@@ -7,7 +7,7 @@ import org.dweb_browser.helper.some
 
 expect class FileChooserManage() {
   suspend fun openFileChooser(
-    microModule: MicroModule.Runtime, accept: String, multiple: Boolean, limit: Int
+    microModule: MicroModule.Runtime, accept: String, multiple: Boolean
   ): List<String>
 }
 

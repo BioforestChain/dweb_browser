@@ -1,41 +1,56 @@
 package org.dweb_browser.sys.filechooser
 
+import io.github.vinceglb.filekit.core.FileKit
+import io.github.vinceglb.filekit.core.PickerMode
+import io.github.vinceglb.filekit.core.PickerType
+import io.github.vinceglb.filekit.core.pickFile
 import org.dweb_browser.core.module.MicroModule
-import org.dweb_browser.helper.platform.awaitComposeWindow
-import java.io.File
-import javax.swing.JFileChooser
-import javax.swing.filechooser.FileFilter
 
 actual class FileChooserManage actual constructor() {
   actual suspend fun openFileChooser(
     microModule: MicroModule.Runtime,
     accept: String,
-    multiple: Boolean,
-    limit: Int
+    multiple: Boolean
   ): List<String> {
-    return when (val composeWindow = microModule.awaitComposeWindow()) {
-      null -> emptyList()
-      else -> {
-        val fc = JFileChooser();
-        fc.isMultiSelectionEnabled = multiple
-        val fileNameFilter = acceptToNameFilter(accept)
-        fc.addChoosableFileFilter(object : FileFilter() {
-          override fun accept(file: File): Boolean {
-            return fileNameFilter(file.name)
-          }
+    val pickerType = when (accept) {
+      "image/*" -> PickerType.Image
+      "video/*" -> PickerType.Video
+      else -> PickerType.File()
+    }
 
-          override fun getDescription(): String {
-            return accept
-          }
-        })
-        when (fc.showOpenDialog(composeWindow)) {
-          JFileChooser.APPROVE_OPTION -> {
-            fc.selectedFiles.map { it.absolutePath }
-          }
+    if (multiple) {
+      val pickFiles = FileKit.pickFile(pickerType, mode = PickerMode.Multiple())
 
-          else -> emptyList()
-        }
-      }
+      return pickFiles?.map {
+        it.file.absolutePath
+      } ?: emptyList()
+    } else {
+      val pickFile = FileKit.pickFile(pickerType)
+
+      return pickFile?.file?.absolutePath?.let { listOf(it) } ?: emptyList()
     }
   }
+
+  suspend fun openFileChooser(
+    microModule: MicroModule.Runtime,
+    accept: List<String>,
+    multiple: Boolean
+  ): List<String> {
+    val pickerType = PickerType.File(extensions = accept)
+
+    if (multiple) {
+      val pickFiles = FileKit.pickFile(pickerType, mode = PickerMode.Multiple())
+
+      return pickFiles?.map {
+        it.file.absolutePath
+      } ?: emptyList()
+    } else {
+      val pickFile = FileKit.pickFile(pickerType)
+
+      return pickFile?.file?.absolutePath?.let { listOf(it) } ?: emptyList()
+    }
+  }
+
+  suspend fun openFolderChooser(initialDirectory: String?) =
+    FileKit.pickDirectory(initialDirectory = initialDirectory)?.file?.absolutePath ?: ""
 }
