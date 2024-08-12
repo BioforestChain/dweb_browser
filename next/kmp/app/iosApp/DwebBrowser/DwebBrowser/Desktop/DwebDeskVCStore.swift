@@ -76,7 +76,7 @@ class DwebVCData {
             let index = self.vcs.firstIndex { $0.prop.vcId == prop.vcId }
 
             guard let index = index else {
-                assertionFailure("异常的vcId：\(prop.vcId)未找到")
+                print("ERROR: 异常的vcId：\(prop.vcId)未找到")
                 return
             }
 

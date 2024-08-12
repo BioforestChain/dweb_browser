@@ -1,6 +1,5 @@
 package org.dweb_browser.sys.window.render
 
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.WindowInsets
@@ -21,12 +20,9 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.structuralEqualityPolicy
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.composed
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.colorspace.ColorSpaces
@@ -36,6 +32,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import org.dweb_browser.core.module.MicroModule
@@ -125,64 +122,11 @@ fun Modifier.windowTouchFocusable(win: WindowController): Modifier = this.pointe
   })
 }
 
-val inResizeStore = WeakHashMap<WindowController, MutableState<Boolean>>()
-
-/** 窗口是否在调整大小中 */
-val WindowController.inResize get() = inResizeStore.getOrPut(this) { mutableStateOf(false) }
-
-/** 基于窗口左下角进行调整大小 */
-fun Modifier.windowResizeByLeftBottom(win: WindowController) = composed {
-  val limits = LocalWindowLimits.current
-  this.pointerInput(win) {
-    var inResize by win.inResize
-    detectDragGestures(
-      onDragStart = { inResize = true },
-      onDragEnd = { inResize = false },
-      onDragCancel = { inResize = false },
-    ) { change, dragAmount ->
-      change.consume()
-      win.state.updateBounds {
-        copy(
-          x = x + dragAmount.x / density,
-          width = max(width - dragAmount.x / density, limits.minWidth),
-          height = max(height + dragAmount.y / density, limits.minHeight),
-        )
-      }
-    }
-  }
-}
-
-/** 基于窗口右下角进行调整大小 */
-fun Modifier.windowResizeByRightBottom(win: WindowController) = composed {
-  val limits = LocalWindowLimits.current
-  this.pointerInput(win) {
-    var inResize by win.inResize
-    detectDragGestures(
-      onDragStart = { inResize = true },
-      onDragEnd = { inResize = false },
-      onDragCancel = { inResize = false },
-    ) { change, dragAmount ->
-      change.consume()
-      win.state.updateBounds {
-        copy(
-          width = max(width + dragAmount.x / density, limits.minWidth),
-          height = max(height + dragAmount.y / density, limits.minHeight),
-        )
-      }
-    }
-  }
-}
-
 val LocalWindowLimits = compositionChainOf<WindowLimits>("WindowLimits")
 val LocalWindowController = compositionChainOf<WindowController>("WindowController")
 val LocalWindowsManager = compositionChainOf<WindowsManager<*>>("WindowsManager")
 val LocalWindowsImeVisible =
   compositionChainOf("WindowsImeVisible") { mutableStateOf(false) } // 由于小米手机键盘收起会有异常，所以自行维护键盘的显示和隐藏
-
-/**
- * 窗口是否在动画状态中
- */
-val LocalWindowInResizeAnimation = compositionChainOf<WindowLimits>("WindowInResizeAnimation")
 
 /**
  * 存储窗口样式：
@@ -192,26 +136,12 @@ val LocalWindowInResizeAnimation = compositionChainOf<WindowLimits>("WindowInRes
  * 于是在与原生试图进行混合渲染的时候，它们需要知道这些上下文，从而做出相似的配合。
  * 目前主要是IOS在使用
  */
-val LocalWindowFrameStyle = compositionChainOf("WindowFrameStyle") { WindowFrameStyle() }
-val LocalWindowContentStyle =
-  compositionChainOf("WindowContentStyle") { WindowContentStyle(WindowFrameStyle()) }
-
-interface WindowCommonStyle {
-  val scale: Float
-  val opacity: Float
-}
-
-data class WindowFrameStyle(override val scale: Float = 1f, override val opacity: Float = 1f) :
-  WindowCommonStyle
-
-data class WindowContentStyle(
-  val frameStyle: WindowFrameStyle,
-  val contentScale: Float = 1f,
-  val contentOpacity: Float = 1f,
-) : WindowCommonStyle {
-  override val scale = contentScale * frameStyle.scale
-  override val opacity = contentOpacity * frameStyle.opacity
-}
+data class WindowFrameStyle(
+  val scale: Float = 1f,
+  val opacity: Float = 1f,
+  val elevation: Dp,
+  val cornerRadius: WindowPadding.CornerRadius,
+)
 
 data class WindowLimits(
   val minWidth: Float,
@@ -326,30 +256,6 @@ internal fun WindowController.safeBounds(limits: WindowLimits): PureBounds {
   val bottom = limits.maxHeight - safeBottomPadding - limits.topBarBaseHeight // 确保 topBar 在可触摸的空间内
   return PureBounds(top = top, left = left, bottom = bottom, right = right)
 }
-
-fun moveWindowBoundsInSafeBounds(
-  winBounds: PureRect,
-  safeBounds: PureBounds,
-  moveAmount: Offset,
-) = winBounds.toMutable().apply {
-  var moveX = x + moveAmount.x
-  var moveY = y + moveAmount.y
-  if (moveX <= safeBounds.left) {
-    moveX = safeBounds.left
-  }
-  if (moveX >= safeBounds.right) {
-    moveX = safeBounds.right
-  }
-  x = moveX
-  if (moveY <= safeBounds.top) {
-    moveY = safeBounds.top
-  }
-  if (moveY >= safeBounds.bottom) {
-    moveY = safeBounds.bottom
-  }
-  y = moveY
-}.toImmutable()
-
 
 expect val WindowController.canOverlayNavigationBar: Boolean
 
@@ -509,7 +415,6 @@ data class WindowPadding(
         bottomEndCorner = CornerSize(bottomEnd.dp),
         cornerSmoothing = CornerSmoothing.Small,
       )
-//      RoundedCornerShape(topStart.dp, topEnd.dp, bottomStart.dp, bottomEnd.dp)
     }
 
     companion object {

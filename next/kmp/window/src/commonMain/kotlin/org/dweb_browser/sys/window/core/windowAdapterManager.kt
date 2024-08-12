@@ -25,12 +25,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.help.AdapterManager
 import org.dweb_browser.helper.ChangeableMap
-import org.dweb_browser.helper.compose.LocalCompositionChain
 import org.dweb_browser.helper.compose.MetaBallLoadingView
 import org.dweb_browser.helper.compose.SlideNavAnimations
 import org.dweb_browser.helper.defaultAsyncExceptionHandler
 import org.dweb_browser.helper.platform.theme.DwebBrowserAppTheme
-import org.dweb_browser.sys.window.render.LocalWindowContentStyle
 import org.dweb_browser.sys.window.render.LocalWindowController
 import org.dweb_browser.sys.window.render.LocalWindowControllerTheme
 import org.dweb_browser.sys.window.render.watchedState
@@ -120,52 +118,47 @@ class WindowAdapterManager : AdapterManager<CreateWindowAdapter>() {
         }
 
         else -> {
-          val windowContentStyle = LocalWindowContentStyle.current
-          LocalCompositionChain.current.Provider(
-            LocalWindowContentStyle provides windowContentStyle.copy(contentScale = windowRenderScope.scale)
-          ) {
-            /**
-             * 视图的宽高随着窗口的缩小而缩小，随着窗口的放大而放大，
-             * 但这些缩放不是等比的，而是会以一定比例进行换算。
-             */
-            val win = LocalWindowController.current
-            val navigation = win.navigation
-            val pageRenders = remember {
-              mutableStateMapOf<Int, @Composable (WindowContentRenderScope, Modifier) -> Unit>()
-            }
-            val pushedPages = remember(render, navigation.pageStack.size) {
-              mutableListOf(elements = arrayOf(render) + navigation.pageStack)
-            }
-            pushedPages.forEachIndexed { index, pageRender ->
-              pageRenders[index] = { windowRenderScope, contentModifier ->
-                val visibleState = remember { MutableTransitionState(index == 0) }
-                visibleState.targetState = true
+          /**
+           * 视图的宽高随着窗口的缩小而缩小，随着窗口的放大而放大，
+           * 但这些缩放不是等比的，而是会以一定比例进行换算。
+           */
+          val win = LocalWindowController.current
+          val navigation = win.navigation
+          val pageRenders = remember {
+            mutableStateMapOf<Int, @Composable (WindowContentRenderScope, Modifier) -> Unit>()
+          }
+          val pushedPages = remember(render, navigation.pageStack.size) {
+            mutableListOf(elements = arrayOf(render) + navigation.pageStack)
+          }
+          pushedPages.forEachIndexed { index, pageRender ->
+            pageRenders[index] = { windowRenderScope, contentModifier ->
+              val visibleState = remember { MutableTransitionState(index == 0) }
+              visibleState.targetState = true
 
-                /**
-                 * currentPage
-                 */
-                AnimatedVisibility(
-                  visibleState,
-                  modifier = Modifier.fillMaxSize(),
-                  enter = SlideNavAnimations.enterTransition,
-                  exit = SlideNavAnimations.popExitTransition,
-                ) {
-                  navigation.GoBackHandler(navigation.pageStack.size > 0) {
-                    navigation.pageStack.removeLast()
-                    visibleState.targetState = false
-                  }
-                  DisposableEffect(Unit) {
-                    onDispose {
-                      pageRenders.remove(index)
-                    }
-                  }
-                  pageRender(windowRenderScope, contentModifier)
+              /**
+               * currentPage
+               */
+              AnimatedVisibility(
+                visibleState,
+                modifier = Modifier.fillMaxSize(),
+                enter = SlideNavAnimations.enterTransition,
+                exit = SlideNavAnimations.popExitTransition,
+              ) {
+                navigation.GoBackHandler(navigation.pageStack.size > 0) {
+                  navigation.pageStack.removeLast()
+                  visibleState.targetState = false
                 }
+                DisposableEffect(Unit) {
+                  onDispose {
+                    pageRenders.remove(index)
+                  }
+                }
+                pageRender(windowRenderScope, contentModifier)
               }
             }
-            for (pageRender in pageRenders.values) {
-              pageRender(windowRenderScope, contentModifier)
-            }
+          }
+          for (pageRender in pageRenders.values) {
+            pageRender(windowRenderScope, contentModifier)
           }
         }
       }

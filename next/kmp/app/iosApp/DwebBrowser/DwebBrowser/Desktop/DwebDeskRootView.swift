@@ -53,8 +53,15 @@ class DwebComposeRootViewController: UIViewController {
                 addViewToContainer(subView: vcd.vc.view, to: touchDispatchView, fullscreen: vcd.prop.fullscreen)
                 vcd.vc.didMove(toParent: self)
             }
+            
+            if vcd.prop.visible {
+                touchDispatchView.bringSubviewToFront(vcd.vc.view)
+            } else {
+                touchDispatchView.sendSubviewToBack(vcd.vc.view)
+            }
 
-            touchDispatchView.bringSubviewToFront(vcd.vc.view)
+            vcd.vc.view.isHidden = !vcd.prop.visible
+            vcd.vc.view.isUserInteractionEnabled = vcd.prop.visible
         }
     }
 

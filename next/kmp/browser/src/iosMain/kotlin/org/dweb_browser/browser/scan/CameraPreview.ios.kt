@@ -14,12 +14,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.interop.LocalUIViewController
+import androidx.compose.ui.interop.UIKitView
 import androidx.compose.ui.platform.LocalDensity
 import kotlinx.cinterop.ExperimentalForeignApi
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.dwebview.UnScaleBox
-import org.dweb_browser.sys.window.render.LocalWindowContentStyle
-import org.dweb_browser.sys.window.render.UIKitViewInWindow
 import platform.UIKit.UIView
 
 
@@ -27,7 +26,7 @@ import platform.UIKit.UIView
 @Composable
 actual fun CameraPreviewRender(
   modifier: Modifier,
-  controller: SmartScanController
+  controller: SmartScanController,
 ) {
   val uiViewController = LocalUIViewController.current
   val density = LocalDensity.current.density
@@ -58,9 +57,9 @@ actual fun CameraPreviewRender(
   // 对冲窗口样式
   val scale by controller.scaleFlow.collectAsState()
   UnScaleBox(scale, modifier) {
-    uiView.UIKitViewInWindow(
+    UIKitView(
+      factory = { uiView },
       modifier = Modifier.fillMaxSize(),
-      style = LocalWindowContentStyle.current.frameStyle,
       onResize = { _, frame ->
         cameraController.onResize(frame)
       }

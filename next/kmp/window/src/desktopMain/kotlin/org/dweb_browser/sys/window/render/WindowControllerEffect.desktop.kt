@@ -46,7 +46,7 @@ fun WindowController.WindowControllerEffect() {
      * 拖动窗口的起点 输入位置（相对窗口的位置）
      */
     var dragStartPoint: Point? = null
-    renderConfig.frameDragDelegate = WindowRenderConfig.FrameDragDelegate(
+    renderConfig.frameMoveDelegate = WindowRenderConfig.FrameDragDelegate(
       onStart = {
         /**
          * composeWindow.mousePosition 是指鼠标相对于窗口左上角的位置，会有负数

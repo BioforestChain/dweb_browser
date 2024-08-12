@@ -62,7 +62,7 @@ fun RenderWindowInNative(
       if (!pvc.composeWindowParams.isOpened) {
         // 使用系统原生的窗口进行渲染
         win.state.renderConfig.isSystemWindow = true
-        win.state.renderConfig.isWindowUseComposeStyle = false
+        win.state.renderConfig.isWindowUseComposeFrame = false
         pvc.composeWindowParams.apply {
           // 打开窗口
           openWindow()

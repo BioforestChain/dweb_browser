@@ -80,18 +80,28 @@ private fun AndroidWindowPrepare(
       )
     }
 
-    /// 响应窗口的拖动行为
-    val safeBounds = win.safeBounds(LocalWindowLimits.current)
+    /// 响应窗口的move和resize行为
+    val limits = LocalWindowLimits.current
+    val safeBounds = win.safeBounds(limits)
     val density = LocalDensity.current.density
-    LaunchedEffect(win) {
-      win.state.renderConfig.frameDragDelegate =
-        WindowRenderConfig.FrameDragDelegate(
-          onMove = { _, dragAmount ->
-            win.state.updateBounds {
-              moveWindowBoundsInSafeBounds(this, safeBounds, (dragAmount / density))
-            }
-          },
-        )
+    LaunchedEffect(win, limits, density) {
+      win.state.renderConfig.apply {
+        frameMoveDelegate = WindowRenderConfig.FrameDragDelegate { _, dragAmount ->
+          win.state.updateBounds {
+            moveWindowBoundsInSafeBounds(this, safeBounds, dragAmount / density)
+          }
+        }
+        frameLBResizeDelegate = WindowRenderConfig.FrameDragDelegate { _, dragAmount ->
+          win.state.updateBounds {
+            resizeWindowBoundsInLeftBottom(this, limits, dragAmount / density)
+          }
+        }
+        frameRBResizeDelegate = WindowRenderConfig.FrameDragDelegate { _, dragAmount ->
+          win.state.updateBounds {
+            resizeWindowBoundsInRightBottom(this, limits, dragAmount / density)
+          }
+        }
+      }
     }
   }
 }

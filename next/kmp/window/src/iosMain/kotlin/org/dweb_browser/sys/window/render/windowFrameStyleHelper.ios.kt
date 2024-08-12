@@ -1,86 +1,35 @@
 package org.dweb_browser.sys.window.render
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.interop.UIKitView
-import kotlinx.cinterop.CValue
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.useContents
-import platform.CoreGraphics.CGAffineTransformMake
-import platform.CoreGraphics.CGRect
+import platform.CoreGraphics.CGAffineTransformMakeScale
+import platform.CoreGraphics.CGSizeMake
+import platform.UIKit.UIColor
 import platform.UIKit.UIView
 
 @OptIn(ExperimentalForeignApi::class)
-private fun UIView.setTransform(
-  scale: Double,
-  translateX: Double,
-  translateY: Double,
-) {
-  transform.useContents {
-    a == scale && b == 0.0 && c == 0.0 && tx == translateX && ty == translateY
-  }
-
-  if (transform.useContents { a == scale && b == 0.0 && c == 0.0 && tx == translateX && ty == translateY }) {
-    return
-  }
-  transform = CGAffineTransformMake(scale, 0.0, 0.0, scale, translateX, translateY)
+fun UIView.setTransform(scale: Double) {
+  val viewCenter = center
+  transform = CGAffineTransformMakeScale(scale, scale)
+  center = viewCenter
 }
 
-private fun UIView.unsetTransform() = setTransform(1.0, 0.0, 0.0)
+fun UIView.unsetTransform() = setTransform(1.0)
 
 @OptIn(ExperimentalForeignApi::class)
-private fun UIView.effectWindowFrameStyle(style: WindowCommonStyle) {
+fun UIView.effectWindowFrameStyle(style: WindowFrameStyle) {
   style.opacity.toDouble().also { double ->
-    if (alpha != double) {
-      alpha = double
-    }
-  }
-  val scale = style.scale.toDouble()
-  val (tx, ty) = frame.useContents {
-    Pair(size.width * (scale - 1) / 2, size.height * (scale - 1) / 2)
+    alpha = double
   }
 
-  setTransform(scale, tx, ty)
-}
+  /// 配置阴影
+  layer.shadowColor = UIColor.blackColor.CGColor
+  layer.shadowOffset = CGSizeMake(width = 0.0, height = style.elevation.value / 3.0)
+  layer.shadowRadius = style.elevation.value.toDouble()
+  layer.shadowOpacity = 0.5f
 
-/**
- * TODO 目前只能和 IDWebView 配合使用。普通UIView如果要使用，需要注意的是，这里只是改动 superview 的 视觉上的scale，而子 view 的大小还是原本那么大，这就有问题，会导致触摸错位
- */
-@OptIn(ExperimentalForeignApi::class)
-@Composable
-fun <T : UIView> T.UIKitViewInWindow(
-  modifier: Modifier,
-  style: WindowCommonStyle,
-  onInit: (T) -> Unit = { },
-  update: (T) -> Unit = { },
-  background: Color = Color.Unspecified,
-  onRelease: (T) -> Unit = { },
-  onResize: (view: T, rect: CValue<CGRect>) -> Unit = { view, rect -> view.setFrame(rect) },
-  interactive: Boolean = true,
-  accessibilityEnabled: Boolean = true,
-) {
-  remember(style) {
-    superview?.effectWindowFrameStyle(style)
-  }
+  // 配置圆角
+  layer.cornerRadius = style.cornerRadius.topStart.toDouble()
 
-  UIKitView(
-    factory = {
-      onInit(this)
-      this
-    },
-    modifier = modifier,
-    update = update,
-    onResize = { view, rect ->
-      superview?.effectWindowFrameStyle(style)
-      onResize(this, rect)
-    },
-    onRelease = {
-      superview?.unsetTransform()
-      onRelease(this)
-    },
-    interactive = interactive,
-    accessibilityEnabled = accessibilityEnabled,
-  )
+  // 设置缩放
+  setTransform(style.scale.toDouble())
 }

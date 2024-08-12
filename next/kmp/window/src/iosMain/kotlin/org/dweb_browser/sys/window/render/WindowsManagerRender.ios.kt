@@ -1,5 +1,6 @@
 package org.dweb_browser.sys.window.render
 
+import androidx.compose.animation.core.animateRectAsState
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -16,10 +17,13 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.compose.CompositionChain
 import org.dweb_browser.helper.compose.LocalCompositionChain
+import org.dweb_browser.helper.compose.iosTween
 import org.dweb_browser.helper.compose.toOffset
 import org.dweb_browser.helper.getOrPut
 import org.dweb_browser.helper.platform.NativeViewController.Companion.nativeViewController
 import org.dweb_browser.helper.platform.PureViewController
+import org.dweb_browser.helper.toPureRect
+import org.dweb_browser.helper.toRect
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.WindowRenderConfig
 import org.dweb_browser.sys.window.core.WindowsManager
@@ -57,6 +61,9 @@ private class IosWindowNativeView(
   private val windowsManager: WindowsManager<*>,
 ) {
   val pvc = PureViewController(params, false).also { pvc ->
+    win.onClose {
+      nativeViewController.remove(pvc)
+    }
     pvc.onCreate { params ->
       @Suppress("UNCHECKED_CAST") pvc.addContent {
         val compositionChain by params["compositionChain"] as State<CompositionChain>
@@ -104,65 +111,122 @@ private fun IosWindowPrepare(
       compositionChain = rememberUpdatedState(LocalCompositionChain.current)
     ).pvc
     val zIndex by win.watchedState(zIndexBase) { zIndex + zIndexBase }
-    val winBounds by win.watchedBounds()
     /// 视图的显示与关闭
     DisposableEffect(pvc) {
       pvc.lifecycleScope.launch {
-        nativeViewController.addOrUpdate(pvc, zIndex)
+        nativeViewController.addOrUpdate(pvc, visible = true)
       }
       onDispose {
         pvc.lifecycleScope.launch {
-          nativeViewController.remove(pvc)
+          if (pvc.isAdded) {// 可能已经被销毁了
+            nativeViewController.addOrUpdate(pvc, visible = false)
+          }
         }
       }
+    }
+    /// 切换zIndex
+    LaunchedEffect(zIndex) {
+      nativeViewController.addOrUpdate(pvc, zIndex)
     }
     /// 视图的一些初始化配置
     LaunchedEffect(pvc) {
       // 我们使用原生的窗口图层
       win.state.renderConfig.isSystemWindow = true
       // 但仍然使用compose进行窗口边框绘制
-      win.state.renderConfig.isWindowUseComposeStyle = true
-      // 配置圆角
-      pvc.uiViewControllerInMain.view.layer.cornerRadius
+      win.state.renderConfig.isWindowUseComposeFrame = true
+      /// 应用窗口样式
+      val vc = pvc.uiViewControllerInMain
+      win.state.renderConfig.styleWindowFrameDelegate =
+        WindowRenderConfig.StyleWindowFrameDelegate {
+          vc.view.effectWindowFrameStyle(it)
+        }
     }
     /// 绑定窗口的坐标与大小
     val inMove by win.inMove
-    if (!inMove) { // 移动中，由移动器自己更新bounds，否则会有延迟
-      LaunchedEffect(winBounds) {
-        pvc.setBounds(winBounds)
-      }
+    val inResizeFrame by win.inResize
+
+    // 用户手势操作窗口大小时，由操作器自己更新bounds，否则会有延迟。
+    if (!inMove && !inResizeFrame) {
+      // 同时这里使用动画方案来进行bounds的更新。以确保和android平台保持相似的体验
+      AnimationWindowBoundsEffect(pvc, win)
     }
-    /// 响应窗口的拖动行为
-    val safeBounds = win.safeBounds(LocalWindowLimits.current)
+    /// 响应窗口的move和resize行为
+    val limits = LocalWindowLimits.current
+    val safeBounds = win.safeBounds(limits)
     val density = LocalDensity.current.density
-    LaunchedEffect(win) {
+    LaunchedEffect(win, limits, density) {
       val rootView = pvc.uiViewControllerInMain.view
-      var previousPosition = Offset.Zero
-      win.state.renderConfig.frameDragDelegate =
-        WindowRenderConfig.FrameDragDelegate(
+      fun buildPvcDragDelegate(onMove: (dragAmount: Offset) -> Unit): WindowRenderConfig.FrameDragDelegate {
+        var prevPosition = Offset.Zero
+        var prevViewPosition = Offset.Zero
+        return WindowRenderConfig.FrameDragDelegate(
           onStart = { pointerPositionPx ->
             val viewPosition = pvc.getPosition().toOffset()
             val pointerPosition = pointerPositionPx / density
             val screenPosition = pointerPosition + viewPosition
-            previousPosition = screenPosition
+            prevPosition = screenPosition
+            prevViewPosition = screenPosition
           },
-          onMove = { change, _ ->
+          onMove = { change, changeAmount ->
             val viewPosition = pvc.getPosition().toOffset()
             val pointerPosition = change.position / density
             val screenPosition = pointerPosition + viewPosition
-            val dragAmount = screenPosition - previousPosition
-            previousPosition = screenPosition
-            val movingWinBounds = win.state.updateBounds {
-              moveWindowBoundsInSafeBounds(this, safeBounds, dragAmount)
+            // 奇葩的IOS，如果 viewPosition 没有变化，那么这个 change.position 居然会抖动错乱，但是 changeAmount 反而是正常的
+            // 很类似如果是 viewPosition 没有变化的时候，change.position 的计算会错误，同时 prevPosition 延续了这个错误的计算，所以 changeAmount 居然神奇地对了
+            val moveX: Float = when (prevViewPosition.x) {
+              viewPosition.x -> changeAmount.x / density
+              else -> screenPosition.x - prevPosition.x
             }
-            pvc.setBounds(movingWinBounds, rootView)
+            val moveY: Float = when (prevViewPosition.y) {
+              viewPosition.y -> changeAmount.y / density
+              else -> screenPosition.y - prevPosition.y
+            }
+
+            val dragAmount = Offset(x = moveX, y = moveY)// screenPosition - prevPosition
+            prevPosition = screenPosition
+            prevViewPosition = viewPosition
+            onMove(dragAmount)
           },
         )
-    }
+      }
+      win.state.renderConfig.apply {
+        /// move
+        frameMoveDelegate = buildPvcDragDelegate { dragAmount ->
+          val movingWinBounds = win.state.updateBounds {
+            moveWindowBoundsInSafeBounds(this, safeBounds, dragAmount)
+          }
+          pvc.setBoundsInMain(movingWinBounds, rootView)
+        }
+        /// resize left-bottom
+        frameLBResizeDelegate = buildPvcDragDelegate { dragAmount ->
+          val resizingWinBounds = win.state.updateBounds {
+            resizeWindowBoundsInLeftBottom(this, limits, dragAmount)
+          }
+          pvc.setBoundsInMain(resizingWinBounds, rootView)
+        }
 
-    /// 切换zIndex
-    LaunchedEffect(zIndex) {
-      nativeViewController.addOrUpdate(pvc, zIndex)
+        /// resize right-bottom
+        frameRBResizeDelegate = buildPvcDragDelegate { dragAmount ->
+          val resizingWinBounds = win.state.updateBounds {
+            resizeWindowBoundsInRightBottom(this, limits, dragAmount)
+          }
+          pvc.setBoundsInMain(resizingWinBounds, rootView)
+        }
+      }
     }
+  }
+}
+
+@Composable
+private fun AnimationWindowBoundsEffect(pvc: PureViewController, win: WindowController) {
+  val isMaximized by win.watchedIsMaximized()
+  val winBounds by animateRectAsState(
+    targetValue = win.watchedBounds().value.toRect(),
+    animationSpec = iosTween(durationIn = isMaximized),
+    label = "bounds-rect",
+  )
+
+  LaunchedEffect(winBounds) {
+    pvc.setBounds(winBounds.toPureRect())
   }
 }

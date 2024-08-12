@@ -29,7 +29,6 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Brush
@@ -40,7 +39,6 @@ import androidx.compose.ui.zIndex
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.compose.NativeBackHandler
 import org.dweb_browser.sys.window.core.WindowController
-import org.dweb_browser.sys.window.core.constant.LowLevelWindowAPI
 import org.dweb_browser.sys.window.core.constant.WindowBottomBarTheme
 import org.dweb_browser.sys.window.core.constant.WindowPropertyKeys
 import kotlin.math.max
@@ -99,7 +97,7 @@ internal fun WindowBottomResizeBar(
     )
   ) {
     // 如果使用 原生窗口，那么不显示这两个角标
-    val showResizeIcon = resizable && win.state.renderConfig.isWindowUseComposeStyle
+    val showResizeIcon = resizable && win.state.renderConfig.isWindowUseComposeFrame
     /// 左下角 视窗 Resize
     if (showResizeIcon) {
       Box(
@@ -193,7 +191,6 @@ internal fun WindowBottomImmersionThemeBar(
  * 导航模式
  *
  */
-@OptIn(ExperimentalComposeUiApi::class, LowLevelWindowAPI::class)
 @Composable
 internal fun WindowBottomNavigationThemeBar(
   win: WindowController,

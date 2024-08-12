@@ -10,6 +10,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.interop.UIKitView
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.launch
@@ -33,8 +34,6 @@ import org.dweb_browser.platform.ios_browser.loadPullMenuConfigWithIsActived
 import org.dweb_browser.platform.ios_browser.prepareToKmp
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
 import org.dweb_browser.sys.window.render.LocalWindowController
-import org.dweb_browser.sys.window.render.LocalWindowFrameStyle
-import org.dweb_browser.sys.window.render.UIKitViewInWindow
 import platform.CoreGraphics.CGRectMake
 import kotlin.experimental.ExperimentalNativeApi
 
@@ -79,8 +78,7 @@ actual suspend fun deepLinkDoSearch(dwebLinkSearchItem: DwebLinkSearchItem) {
     if (dwebLinkSearchItem.link.isNotEmpty()) {
       when (dwebLinkSearchItem.target) {
         AppBrowserTarget.BLANK, AppBrowserTarget.SYSTEM -> iOSView.doNewTabUrlWithUrl(
-          dwebLinkSearchItem.link,
-          dwebLinkSearchItem.target.type
+          dwebLinkSearchItem.link, dwebLinkSearchItem.target.type
         )
 
         AppBrowserTarget.SELF -> {
@@ -169,9 +167,9 @@ fun NativeBrowserView(
     iOSBrowserView.colorSchemeChangedWithColor(win.state.colorScheme.ordinal)
   }
   Box(modifier = modifier) {
-    iOSBrowserView.UIKitViewInWindow(
+    UIKitView(
+      factory = { iOSBrowserView },
       modifier = Modifier.fillMaxSize(),
-      LocalWindowFrameStyle.current
     )
   }
 }

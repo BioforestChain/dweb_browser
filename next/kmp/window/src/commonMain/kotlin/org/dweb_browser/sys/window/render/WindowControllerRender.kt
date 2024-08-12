@@ -1,7 +1,6 @@
 package org.dweb_browser.sys.window.render
 
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.animateRectAsState
 import androidx.compose.animation.core.tween
@@ -16,7 +15,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -29,7 +27,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.graphicsLayer
@@ -172,15 +169,27 @@ fun WindowController.WindowRender(modifier: Modifier) {
    */
   val scaleAni = remember { Animatable(0.38f) }
   val opacityAni = remember { Animatable(0f) }
-  LaunchedEffect(isVisible || inMove) {
+  LaunchedEffect(isVisible, inMove) {
     launch {
+      val scaleTo = when {
+        isVisible -> when {
+          inMove -> 1.05f
+          else -> 1f
+        }
+
+        else -> 0.38f
+      }
       scaleAni.animateTo(
-        if (inMove) 1.05f else if (isVisible) 1f else 0.38f,
-        iosTween(durationIn = isVisible)
+        scaleTo,
+        iosTween(durationIn = scaleTo > scaleAni.value)
       )
     }
     launch {
-      opacityAni.animateTo(if (isVisible) 1f else 0f, iosTween(durationIn = isVisible))
+      val opacityTo = when {
+        isVisible -> 1f
+        else -> 0f
+      }
+      opacityAni.animateTo(opacityTo, iosTween(durationIn = opacityTo > opacityAni.value))
     }
   }
   val scale = scaleAni.value
@@ -189,11 +198,7 @@ fun WindowController.WindowRender(modifier: Modifier) {
     return
   }
 
-  val windowFrameStyle = WindowFrameStyle(scale, opacity)
-  val windowContentStyle = WindowContentStyle(windowFrameStyle)
   LocalCompositionChain.current.Provider(
-    LocalWindowFrameStyle provides windowFrameStyle,
-    LocalWindowContentStyle provides windowContentStyle,
     LocalFocusRequester provides win.focusRequester,
     LocalWindowMM provides (win.state.constants.microModule.value ?: LocalWindowMM.current),
   ) {
@@ -203,53 +208,66 @@ fun WindowController.WindowRender(modifier: Modifier) {
     val winBounds by win.watchedBounds()
     var inResizeAnimation by remember { mutableStateOf(false) }
     val windowRectNoTranslate = inResizeFrame || inMove
-    val windowRect = when {
-      win.state.renderConfig.isSystemWindow -> null
-      else -> winBounds.toRect().let { rect ->
-        when {
-          windowRectNoTranslate -> rect
-          else -> animateRectAsState(
-            targetValue = rect,
-            animationSpec = iosTween(durationIn = isMaximized),
-            label = "bounds-rect",
-          ).value.also {
-            inResizeAnimation = it != rect
-          }
+
+    /**
+     * 窗口海拔，决定阴影效果
+     */
+    val windowElevation = animateFloatAsState(
+      targetValue = (if (inMove) 20f else 1f) + zIndex,
+      animationSpec = tween(durationMillis = if (inMove) 250 else 500),
+      label = "elevation"
+    ).value.dp
+
+    /**
+     * 窗口的形状描述，决定圆角效果
+     */
+    val windowCornerRadius =
+      when {
+        windowRectNoTranslate -> winPadding.boxRounded// roundedCornerShape
+        else -> winPadding.boxRounded.run {
+          val aniSpec = iosTween<Float>(durationIn = isMaximized)
+          WindowPadding.CornerRadius(
+            topStart = animateFloatAsState(topStart, aniSpec).value,
+            topEnd = animateFloatAsState(topEnd, aniSpec).value,
+            bottomStart = animateFloatAsState(bottomStart, aniSpec).value,
+            bottomEnd = animateFloatAsState(bottomEnd, aniSpec).value,
+          )
         }
       }
-    }
+
     Box(
-      modifier = modifier.composed {
-        when (windowRect) {
-          // 如果使用 原生窗口的边框，那么只需要填充满画布即可
-          null -> fillMaxSize()
-          // 否则使用 模拟窗口的边框，需要自定义坐标、阴影、缩放
-          else -> {
-            offset(windowRect.left.dp, windowRect.top.dp).size(
-              windowRect.width.dp, windowRect.height.dp
-            ).graphicsLayer {
-              this.alpha = opacity
-              this.scaleX = scale
-              this.scaleY = scale
-            }.shadow(/**
-             * 窗口海拔阴影
-             */
-              elevation = animateFloatAsState(
-                targetValue = (if (inMove) 20f else 1f) + zIndex,
-                animationSpec = tween(durationMillis = if (inMove) 250 else 500),
-                label = "elevation"
-              ).value.dp, shape = winPadding.boxRounded.run {
-                when {
-                  windowRectNoTranslate -> roundedCornerShape
-                  else -> RoundedCornerShape(
-                    animateDpAsState(topStart.dp, iosTween(durationIn = isMaximized)).value,
-                    animateDpAsState(topEnd.dp, iosTween(durationIn = isMaximized)).value,
-                    animateDpAsState(bottomStart.dp, iosTween(durationIn = isMaximized)).value,
-                    animateDpAsState(bottomEnd.dp, iosTween(durationIn = isMaximized)).value,
-                  )
-                }
-              }).focusable()
+      modifier = when {
+        // 如果使用 原生窗口的边框，那么只需要填充满画布即可
+        win.state.renderConfig.isSystemWindow -> {
+          win.state.renderConfig.styleWindowFrameDelegate?.effectStyle(
+            WindowFrameStyle(scale, opacity, windowElevation, windowCornerRadius)
+          )
+          modifier.fillMaxSize()
+        }
+        // 否则使用 模拟窗口的边框，需要自定义坐标、阴影、缩放
+        else -> {
+          val windowRect = winBounds.toRect().let { rect ->
+            when {
+              windowRectNoTranslate -> rect
+              else -> animateRectAsState(
+                targetValue = rect,
+                animationSpec = iosTween(durationIn = isMaximized),
+                label = "bounds-rect",
+              ).value.also {
+                inResizeAnimation = it != rect
+              }
+            }
           }
+          modifier.offset(windowRect.left.dp, windowRect.top.dp).size(
+            windowRect.width.dp, windowRect.height.dp
+          ).graphicsLayer {
+            this.alpha = opacity
+            this.scaleX = scale
+            this.scaleY = scale
+          }.shadow(
+            elevation = windowElevation,
+            shape = windowCornerRadius.roundedCornerShape,
+          ).focusable()
         }
       },
     ) {

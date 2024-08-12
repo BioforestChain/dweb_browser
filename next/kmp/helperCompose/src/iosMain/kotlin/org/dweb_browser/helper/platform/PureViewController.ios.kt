@@ -71,13 +71,6 @@ class PureViewController(
   private val viewAppearFlow = MutableStateFlow(false)
 
   suspend fun setBounds(bounds: PureRect) {
-//    /// 做一次强制初始化
-//    if (boundsConstraints.isEmpty()) {
-//      withMainContext {
-//        setBounds(bounds, uiViewControllerInMain.view)
-//      }
-//    }
-    // println("QAQ setBounds(${prop.vcId}) bounds=$bounds")
     boundsFlow.emit(bounds)
   }
 
@@ -97,7 +90,11 @@ class PureViewController(
     y = getBoundsValueByIndex(3),
   )
 
-  fun setBounds(bounds: PureRect, rootView: UIView, parentView: UIView? = rootView.superview) {
+  fun setBoundsInMain(
+    bounds: PureRect,
+    rootView: UIView,
+    parentView: UIView? = rootView.superview,
+  ) {
     rootView.translatesAutoresizingMaskIntoConstraints = false
     NSLayoutConstraint.deactivateConstraints(boundsConstraints)
     NSLayoutConstraint.activateConstraints(constraints = mutableListOf(
@@ -129,7 +126,7 @@ class PureViewController(
         bounds to rootView.superview
       }.collect { (bounds, parentView) ->
         withMainContext {
-          setBounds(bounds, rootView, parentView)
+          setBoundsInMain(bounds, rootView, parentView)
         }
       }
     }
