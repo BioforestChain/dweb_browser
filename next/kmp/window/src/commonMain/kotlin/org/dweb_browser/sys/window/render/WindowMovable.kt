@@ -64,7 +64,7 @@ internal fun moveWindowBoundsInSafeBounds(
   winBounds: PureRect,
   safeBounds: PureBounds,
   moveAmount: Offset,
-) = winBounds.toMutable().apply {
+) = winBounds.mutable {
   var moveX = x + moveAmount.x
   var moveY = y + moveAmount.y
   if (moveX <= safeBounds.left) {
@@ -81,4 +81,4 @@ internal fun moveWindowBoundsInSafeBounds(
     moveY = safeBounds.bottom
   }
   y = moveY
-}.toImmutable()
+}

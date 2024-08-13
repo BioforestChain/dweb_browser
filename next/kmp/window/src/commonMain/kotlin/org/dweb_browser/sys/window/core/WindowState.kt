@@ -141,8 +141,8 @@ class WindowState(internal var _constants: WindowConstants) {
   ) = updater.invoke(bounds).also { updateBounds(it, reason) }
 
   inline fun updateMutableBounds(
-    reason: UpdateReason = UpdateReason.Inner, updater: PureRect.Mutable.() -> Unit,
-  ) = bounds.toMutable().also(updater).toImmutable().also { updateBounds(it, reason) }
+    reason: UpdateReason = UpdateReason.Inner, noinline updater: PureRect.Mutable.() -> Unit,
+  ) = bounds.mutable(updater).also { updateBounds(it, reason) }
 
   /**
    * 窗口渲染相关的配置项目

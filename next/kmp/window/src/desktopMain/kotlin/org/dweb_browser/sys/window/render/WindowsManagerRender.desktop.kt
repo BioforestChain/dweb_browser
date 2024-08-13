@@ -17,7 +17,6 @@ import org.dweb_browser.helper.platform.asDesktop
 import org.dweb_browser.helper.platform.rememberPureViewBox
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.WindowsManager
-import org.dweb_browser.sys.window.core.WindowsManagerState.Companion.windowImeOutsetBounds
 import org.dweb_browser.sys.window.core.constant.debugWindow
 
 @Composable
@@ -69,6 +68,23 @@ fun RenderWindowInNative(
         }
       }
     }
+    /// 对屏幕键盘的适配
+    /// TODO 需要设备开启虚拟键盘后进行测试完善该功能
+    /// 需要确保上游计算厂商提供了屏幕键盘到compose的适配工作
+    //    val windowImeOutsetBounds = calcWindowImeOutsetBounds(windowsManager, win)
+    //    win.state.keyboardInsetBottom = windowImeOutsetBounds.keyboardInsetBottom
+    //    var winOffsetByIme by remember { mutableStateOf(0) }
+    //    val composeWindow by pvc.composeWindowAsState()
+    //    LaunchedEffect(windowImeOutsetBounds.modifierOffsetY) {
+    //      when(val locationOffsetY = windowImeOutsetBounds.modifierOffsetY.toInt()){
+    //        0f->
+    //      }
+    //      composeWindow.setLocation(
+    //        composeWindow.x,
+    //        composeWindow.y + winOffsetByIme + windowImeOutsetBounds.modifierOffsetY.toInt()
+    //      )
+    //      winOffsetByIme += windowImeOutsetBounds.modifierOffsetY.toInt()
+    //    }
   }
 }
 
@@ -94,15 +110,15 @@ private class DesktopWindowNativeView(
         val compositionChain by params["compositionChain"] as State<CompositionChain>
 
         (compositionChain + LocalCompositionChain.current).Provider(LocalWindowsManager provides windowsManager) {
-            /// 注册副作用
-            win.WindowControllerEffect()
-            /// 渲染窗口
-            win.WithMaterialTheme {
-              win.WindowRender(
-                modifier = Modifier.windowImeOutsetBounds(),
-              )
-            }
+          /// 注册副作用
+          win.WindowControllerEffect()
+          /// 渲染窗口
+          win.WithMaterialTheme {
+            win.WindowRender(
+              modifier = Modifier,
+            )
           }
+        }
       }
     }
   }

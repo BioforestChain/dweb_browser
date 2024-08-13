@@ -13,7 +13,6 @@ import org.dweb_browser.helper.compose.LocalCompositionChain
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.WindowRenderConfig
 import org.dweb_browser.sys.window.core.WindowsManager
-import org.dweb_browser.sys.window.core.WindowsManagerState.Companion.windowImeOutsetBounds
 import org.dweb_browser.sys.window.core.constant.debugWindow
 
 @Composable
@@ -76,7 +75,7 @@ private fun AndroidWindowPrepare(
       win.WindowRender(
         modifier = Modifier
           .zIndex(win.watchedState { (zIndexBase + zIndex).toFloat() }.value)
-          .windowImeOutsetBounds()
+          .windowImeOutsetBounds(windowsManager, win)
       )
     }
 

@@ -8,7 +8,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.input.pointer.positionChange
 import org.dweb_browser.helper.PureRect
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.getOrPut
@@ -62,17 +61,17 @@ internal fun resizeWindowBoundsInLeftBottom(
   winBounds: PureRect,
   limits: WindowLimits,
   dragAmount: Offset,
-) = winBounds.toMutable().apply {
+) = winBounds.mutable {
   x += dragAmount.x
   width = max(width - dragAmount.x, limits.minWidth)
   height = max(height + dragAmount.y, limits.minHeight)
-}.toImmutable()
+}
 
 internal fun resizeWindowBoundsInRightBottom(
   winBounds: PureRect,
   limits: WindowLimits,
   dragAmount: Offset,
-) = winBounds.toMutable().apply {
+) = winBounds.mutable {
   width = max(width + dragAmount.x, limits.minWidth)
   height = max(height + dragAmount.y, limits.minHeight)
-}.toImmutable()
+}

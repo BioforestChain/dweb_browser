@@ -27,7 +27,6 @@ import org.dweb_browser.helper.toRect
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.WindowRenderConfig
 import org.dweb_browser.sys.window.core.WindowsManager
-import org.dweb_browser.sys.window.core.WindowsManagerState.Companion.windowImeOutsetBounds
 import org.dweb_browser.sys.window.core.constant.debugWindow
 
 
@@ -70,7 +69,7 @@ private class IosWindowNativeView(
         (compositionChain + LocalCompositionChain.current).Provider(LocalWindowsManager provides windowsManager) {
           /// 渲染窗口
           win.WithMaterialTheme {
-            win.WindowRender(Modifier.windowImeOutsetBounds())
+            win.WindowRender(Modifier)
           }
         }
       }
@@ -141,6 +140,10 @@ private fun IosWindowPrepare(
           vc.view.effectWindowFrameStyle(it)
         }
     }
+    /// 键盘视图的交叉渲染
+    val windowImeOutsetBounds = calcWindowImeOutsetBounds(windowsManager, win)
+    win.state.keyboardInsetBottom = windowImeOutsetBounds.keyboardInsetBottom
+
     /// 绑定窗口的坐标与大小
     val inMove by win.inMove
     val inResizeFrame by win.inResize
@@ -148,7 +151,7 @@ private fun IosWindowPrepare(
     // 用户手势操作窗口大小时，由操作器自己更新bounds，否则会有延迟。
     if (!inMove && !inResizeFrame) {
       // 同时这里使用动画方案来进行bounds的更新。以确保和android平台保持相似的体验
-      AnimationWindowBoundsEffect(pvc, win)
+      AnimationWindowBoundsEffect(pvc, win, windowImeOutsetBounds.modifierOffsetY)
     }
     /// 响应窗口的move和resize行为
     val limits = LocalWindowLimits.current
@@ -218,15 +221,25 @@ private fun IosWindowPrepare(
 }
 
 @Composable
-private fun AnimationWindowBoundsEffect(pvc: PureViewController, win: WindowController) {
+private fun AnimationWindowBoundsEffect(
+  pvc: PureViewController,
+  win: WindowController,
+  boundsOffsetY: Float,
+) {
   val isMaximized by win.watchedIsMaximized()
-  val winBounds by animateRectAsState(
-    targetValue = win.watchedBounds().value.toRect(),
-    animationSpec = iosTween(durationIn = isMaximized),
+  val winBounds by win.watchedBounds()
+  val winAniBounds by animateRectAsState(
+    targetValue = when (boundsOffsetY) {
+      0f -> winBounds
+      else -> winBounds.mutable {
+        y += boundsOffsetY
+      }
+    }.toRect(),
+    animationSpec = iosTween(durationIn = isMaximized || boundsOffsetY != 0f),
     label = "bounds-rect",
   )
 
-  LaunchedEffect(winBounds) {
-    pvc.setBounds(winBounds.toPureRect())
+  LaunchedEffect(winAniBounds) {
+    pvc.setBounds(winAniBounds.toPureRect())
   }
 }

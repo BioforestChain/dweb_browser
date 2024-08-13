@@ -19,6 +19,11 @@ data class PureRect(
   }
 
   fun toMutable() = Mutable(x, y, width, height)
+  fun mutable(apply: Mutable.() -> Unit) = toMutable().run {
+    apply()
+    toImmutable()
+  }
+
   class Mutable(
     var x: Float,
     var y: Float,
