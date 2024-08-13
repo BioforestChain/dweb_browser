@@ -82,6 +82,6 @@ fun Modifier.windowImeOutsetBounds(
 
   when (val modifierOffsetY = windowImeOutsetBounds.modifierOffsetY) {
     0f -> this
-    else -> this.offset(modifierOffsetY.dp)
+    else -> this.offset(y = modifierOffsetY.dp)
   }
 }
