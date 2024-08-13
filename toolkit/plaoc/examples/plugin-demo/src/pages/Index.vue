@@ -56,5 +56,6 @@ const items = routes;
   }
 }
 .my-list-item {
+  break-inside: avoid;
 }
 </style>
