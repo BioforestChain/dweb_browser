@@ -33,7 +33,6 @@ kotlin {
     dependencies {
       implementation(libs.androidx.core.splashscreen)
       // Google.accompanist 相关
-      implementation(libs.accompanist.webview)
       implementation(libs.accompanist.permissions)
       implementation(libs.accompanist.systemui.controller)
 

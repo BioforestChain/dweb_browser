@@ -31,7 +31,6 @@ kotlin {
       implementation(libs.compose.material3)
       implementation(libs.compose.material3.window)
       // Google Accompanist
-      implementation(libs.accompanist.webview)
       implementation(libs.accompanist.navigation.material)
       implementation(libs.accompanist.navigation.animation)
       implementation(libs.accompanist.systemui.controller)

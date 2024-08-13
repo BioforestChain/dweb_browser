@@ -65,8 +65,8 @@ allprojects {
   afterEvaluate {
     // 判断编译的时候是否传入了 -PreleaseBuild=true，表示是脚本执行
     val isReleaseBuild = hasProperty("releaseBuild") && property("releaseBuild") == "true"
-    val keyValuePairsCode = when {
-      isReleaseBuild -> ""
+    val keyValuePairCodes = when {
+      isReleaseBuild -> emptyList()
       else -> localProperties.mapNotNull { (key, value) ->
         val keyStr = key.toString()
         val valStr = value.toString()
@@ -80,7 +80,7 @@ allprojects {
 
           else -> null
         }
-      }.joinToString(",\n")
+      }
     }
 
     // 在 gradle sync，或者编译的时候，会执行当前code
@@ -88,8 +88,10 @@ allprojects {
     val sourceCode = """
     package org.dweb_browser.helper
     
-    object CommonBuildConfig {
-      val switchMaps: Map<String, String> = mapOf($keyValuePairsCode)
+    public object CommonBuildConfig {
+      public val switchMaps: Map<String, String> = mapOf(
+      ${keyValuePairCodes.joinToString(",\n    ")}
+      )
     }
     """.trimIndent()
 

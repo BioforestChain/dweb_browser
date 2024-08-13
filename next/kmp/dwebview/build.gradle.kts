@@ -33,7 +33,6 @@ kotlin {
     dependencies {
       api(libs.androidx.webkit)
       implementation(libs.google.material)
-      implementation(libs.accompanist.webview)
       implementation(libs.compose.ui)
     }
 //    instrumentedTestDependsOn(commonMain.get())
