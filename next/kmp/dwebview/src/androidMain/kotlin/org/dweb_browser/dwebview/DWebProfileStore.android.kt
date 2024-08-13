@@ -40,7 +40,7 @@ class CompactDWebProfileStore private constructor() : AndroidWebProfileStore {
     internal val geolocationPermissions by lazy { GeolocationPermissions.getInstance() }
     internal val serviceWorkerController by lazy { ServiceWorkerController.getInstance() }
 
-    val instance by lazy { CompactDWebProfileStore() }
+    internal val instance by lazy { CompactDWebProfileStore() }
   }
 
   override val isSupportIncognitoProfile: Boolean = false
@@ -156,6 +156,9 @@ class CompactDWebProfileStore private constructor() : AndroidWebProfileStore {
   }
 }
 
+/**
+ * WARNING 必须在主线程中使用
+ */
 internal val androidWebProfileStore by lazy {
   when {
     IDWebView.isSupportProfile -> ChromiumWebProfileStore.instance
@@ -163,4 +166,5 @@ internal val androidWebProfileStore by lazy {
   }
 }
 
-actual fun getDwebProfileStoreInstance(): DWebProfileStore = androidWebProfileStore
+actual suspend fun getDwebProfileStoreInstance(): DWebProfileStore =
+  withMainContext { androidWebProfileStore }

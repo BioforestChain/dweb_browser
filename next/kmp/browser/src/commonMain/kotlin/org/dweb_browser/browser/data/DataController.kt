@@ -8,11 +8,12 @@ import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.dwebview.ProfileName
 import org.dweb_browser.dwebview.getDwebProfileStoreInstance
+import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.windowAdapterManager
 
 class DataController(val storeNMM: DataNMM.DataRuntime) {
-  val dWebProfileStore = getDwebProfileStoreInstance()
+  private val dWebProfileStore = SuspendOnce { getDwebProfileStoreInstance() }
   val refreshFlow = MutableStateFlow(0f)
   fun refresh() {
     refreshFlow.value += 1
@@ -43,16 +44,17 @@ class DataController(val storeNMM: DataNMM.DataRuntime) {
 
   class ProfileBase(override val profileName: ProfileName, override val mmid: MMID) : ProfileInfo
 
-  suspend fun loadProfileInfos() = dWebProfileStore.getAllProfileNames().mapNotNull { profileName ->
-    profileName.mmid?.let { mmid ->
-      storeNMM.bootstrapContext.dns.queryAll(mmid).firstOrNull { it.mmid == mmid }.let { mm ->
-        when (mm) {
-          null -> ProfileBase(profileName, mmid)
-          else -> ProfileDetail(profileName, mm)
+  suspend fun loadProfileInfos() =
+    dWebProfileStore().getAllProfileNames().mapNotNull { profileName ->
+      profileName.mmid?.let { mmid ->
+        storeNMM.bootstrapContext.dns.queryAll(mmid).firstOrNull { it.mmid == mmid }.let { mm ->
+          when (mm) {
+            null -> ProfileBase(profileName, mmid)
+            else -> ProfileDetail(profileName, mm)
+          }
         }
       }
     }
-  }
 
   val deleteProfileFlow = MutableStateFlow<ProfileInfo?>(null)
   var isRunningFlow = MutableStateFlow(false)
@@ -67,7 +69,7 @@ class DataController(val storeNMM: DataNMM.DataRuntime) {
 
   val deleteJobFlow = MutableStateFlow<Job?>(null)
   suspend fun deleteProfile(info: ProfileInfo) {
-    dWebProfileStore.deleteProfile(info.profileName)
+    dWebProfileStore().deleteProfile(info.profileName)
     refresh()
 //    if (deleteProfileDetailFlow.value == detail) {
 //      backToList()

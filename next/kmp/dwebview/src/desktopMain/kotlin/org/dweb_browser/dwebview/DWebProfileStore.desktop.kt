@@ -4,7 +4,7 @@ import org.dweb_browser.platform.desktop.webview.jxBrowserEngine
 
 class ChromiumWebProfileStore private constructor() : DWebProfileStore {
   companion object {
-    val instance by lazy { ChromiumWebProfileStore() }
+    internal val instance by lazy { ChromiumWebProfileStore() }
   }
 
   fun getAllProfiles() = mutableMapOf<String, ChromiumWebProfile>().also { result ->
@@ -30,6 +30,6 @@ class ChromiumWebProfileStore private constructor() : DWebProfileStore {
   }
 }
 
-val chromiumWebProfile get() = ChromiumWebProfileStore.instance
+internal val chromiumWebProfile get() = ChromiumWebProfileStore.instance
 
-actual fun getDwebProfileStoreInstance(): DWebProfileStore = chromiumWebProfile
+actual suspend fun getDwebProfileStoreInstance(): DWebProfileStore = chromiumWebProfile

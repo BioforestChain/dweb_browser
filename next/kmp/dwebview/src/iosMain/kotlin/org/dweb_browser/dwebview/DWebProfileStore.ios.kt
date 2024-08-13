@@ -23,7 +23,7 @@ class WKWebViewProfileStore private constructor() : DWebProfileStore {
       NSUUID(uUIDBytes = it.addressOf(0))
     }
 
-    val instance by lazy { WKWebViewProfileStore() }
+    internal val instance by lazy { WKWebViewProfileStore() }
   }
 
   /**
@@ -133,4 +133,4 @@ class WKWebViewProfileStore private constructor() : DWebProfileStore {
 
 internal val wkWebsiteDataStore get() = WKWebViewProfileStore.instance
 
-actual fun getDwebProfileStoreInstance(): DWebProfileStore = wkWebsiteDataStore
+actual suspend fun getDwebProfileStoreInstance(): DWebProfileStore = wkWebsiteDataStore

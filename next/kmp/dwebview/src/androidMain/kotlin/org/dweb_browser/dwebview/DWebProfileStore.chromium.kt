@@ -7,10 +7,13 @@ import org.dweb_browser.helper.platform.keyValueStore
 import org.dweb_browser.helper.withMainContext
 
 
+/**
+ * WARN 必须在主线程中使用，包括构建工作
+ */
 @SuppressLint("RequiresFeature")
 class ChromiumWebProfileStore(private val profileStore: ProfileStore) : AndroidWebProfileStore {
   companion object {
-    val instance by lazy { ChromiumWebProfileStore(ProfileStore.getInstance()) }
+    internal val instance by lazy { ChromiumWebProfileStore(ProfileStore.getInstance()) }
   }
 
   /**

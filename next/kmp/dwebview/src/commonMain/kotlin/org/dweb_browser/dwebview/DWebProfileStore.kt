@@ -5,7 +5,7 @@ import org.dweb_browser.helper.base64UrlBinary
 import org.dweb_browser.helper.utf8String
 import org.dweb_browser.helper.utf8ToBase64UrlString
 
-expect fun getDwebProfileStoreInstance(): DWebProfileStore
+expect suspend fun getDwebProfileStoreInstance(): DWebProfileStore
 
 interface DWebProfileStore {
   suspend fun getAllProfileNames(): List<ProfileName>
