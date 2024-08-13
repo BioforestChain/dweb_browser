@@ -1,6 +1,13 @@
 package org.dweb_browser.browser.jmm.render
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Box
@@ -8,7 +15,6 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
@@ -19,19 +25,19 @@ import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.itemsIndexed
 import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.Card
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
@@ -39,30 +45,34 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.zIndex
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.clamp
+import org.dweb_browser.helper.compose.LocalCompositionChain
+import org.dweb_browser.helper.compose.compositionChainOf
 import org.dweb_browser.pure.image.compose.CoilAsyncImage
 import kotlin.math.max
 
 private val imageSizeCache = mutableMapOf<String, GridItem<String>>()
 
+class CaptureItemContext(val src: String, val index: Int)
+
 /**
  * 应用介绍的图片展示部分
  */
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 internal fun CaptureListView(
   jmmAppInstallManifest: JmmAppInstallManifest,
+//  decorationBox: @Composable CaptureItemContext.(innerItem: @Composable (modifier: Modifier) -> Unit) -> Unit = { innerItem ->
+//    innerItem(Modifier)
+//  }
+  itemContent: @Composable CaptureItemContext.() -> Unit
 ) {
   val waterfallItems = remember(jmmAppInstallManifest.images) {
     jmmAppInstallManifest.images.map {
@@ -79,119 +89,131 @@ internal fun CaptureListView(
     val gridHeight = unitSize * (waterfallItems.mapIndexed { index, gridItem ->
       gridItem.sizeState.value.height + (layoutList?.getOrNull(index)?.y ?: 0)
     }.maxOrNull() ?: 0)
+
     Box(Modifier.fillMaxWidth().requiredHeight(gridHeight)) {
-
       waterfallItems.forEachIndexed { index, gridItem ->
-        val layout = layoutList?.get(index) ?: IntOffset(0, 0)
-        var showBigView by remember { mutableStateOf(false) }
-        CaptureListItem(Modifier.offset(unitSize * layout.x, unitSize * layout.y),
-          gridItem.key,
-          unitSize,
-          gridItem.sizeState,
-          onClick = {
-            showBigView = true
-          })
-
-        if (showBigView) {
-          Dialog(
-            onDismissRequest = {
-              showBigView = false
-            },
-            properties = DialogProperties(
-              dismissOnBackPress = true,
-              dismissOnClickOutside = true,
-            ),
+        LocalCompositionChain.current.Provider(LocalSizeState provides gridItem.sizeState) {
+          val layout = layoutList?.get(index) ?: IntOffset(0, 0)
+          Box(
+            Modifier.offset(unitSize * layout.x, unitSize * layout.y)
+              .requiredSize(with(gridItem.sizeState.value) {
+                DpSize(unitSize * width, unitSize * height)
+              }).animateContentSize().padding(8.dp)
           ) {
-            var scale by remember { mutableStateOf(1f) }
-            var offset by remember { mutableStateOf(Offset.Zero) }
-            Box(Modifier.fillMaxSize().pointerInput(Unit) {
-              detectTransformGestures { _, pan, zoom, _ ->
-                scale *= zoom
-                scale = clamp(0.5f, scale, 5f)
-                offset += pan
-              }
-            }) {
-              Box(
-                Modifier.align(Alignment.BottomCenter).zIndex(2f).navigationBarsPadding()
-                  .padding(bottom = 48.dp)
-              ) {
-                FilledTonalIconButton(
-                  onClick = {
-                    showBigView = false
-                  },
-                  modifier = Modifier.align(Alignment.Center),
-                ) {
-                  Icon(Icons.Default.Close, contentDescription = "close image view")
-                }
-              }
-              Box(Modifier.zIndex(1f).align(Alignment.Center).fillMaxSize().padding(24.dp)) {
-                CoilAsyncImage(
-                  model = gridItem.key,
-                  modifier = Modifier.fillMaxSize().graphicsLayer(
-                    scaleX = scale,
-                    scaleY = scale,
-                    translationX = offset.x,
-                    translationY = offset.y,
-                  ),
-                  contentDescription = null,
-                  contentScale = ContentScale.Fit,
-                )
-              }
-            }
+            CaptureItemContext(src = gridItem.key, index = index).itemContent()
           }
         }
-
       }
     }
   }
 }
 
-@Composable
-internal fun CaptureListView2(
-  jmmAppInstallManifest: JmmAppInstallManifest, onSelectPic: (Int) -> Unit,
-) {
-  var cells by remember { mutableIntStateOf(1) }
-  val density = LocalDensity.current.density
-  BoxWithConstraints(Modifier.fillMaxWidth()
-    .onGloballyPositioned { cells = max(1, (it.size.width / density / 180).toInt()) }) {
-    jmmAppInstallManifest.images.forEachIndexed { index, item ->
-
-    }
-  }
-}
+internal val LocalSizeState = compositionChainOf<MutableState<IntSize>?>("sizeState") { null }
 
 @Composable
-private fun CaptureListItem(
-  modifier: Modifier,
-  src: String,
-  unitSize: Dp,
-  sizeState: MutableState<IntSize>,
+internal fun CaptureImage(
   onClick: () -> Unit,
+  src: String,
+  modifier: Modifier = Modifier,
+  contentScale: ContentScale = ContentScale.Fit,
 ) {
-  var size by sizeState
+  val sizeState = LocalSizeState.current
   Card(
-    onClick = onClick,//{ onSelectPic(index) },
-    modifier = modifier.requiredSize(unitSize * size.width, unitSize * size.height)
-      .animateContentSize().padding(8.dp)
+    onClick = onClick, modifier = modifier.fillMaxSize()
   ) {
     CoilAsyncImage(
       model = src,
-      modifier = Modifier.fillMaxSize(),
+      modifier = Modifier.fillMaxWidth(),
       contentDescription = null,
-      contentScale = ContentScale.Crop,
+      contentScale = contentScale,
       onState = {
-        it.painter?.run {
-          size = when (intrinsicSize.width / intrinsicSize.height) {
-            in 0f..0.75f -> IntSize(1, 2)
-            in 0.75f..1.25f -> IntSize(1, 1)
-            in 1.25f..Float.MAX_VALUE -> IntSize(2, 1)
-            else -> IntSize(1, 1)
+        it.painter?.apply {
+          sizeState?.apply {
+            value = when (intrinsicSize.width / intrinsicSize.height) {
+              in 0f..0.75f -> IntSize(1, 2)
+              in 0.75f..1.25f -> IntSize(1, 1)
+              in 1.25f..Float.MAX_VALUE -> IntSize(2, 1)
+              else -> IntSize(1, 1)
+            }
           }
         }
       },
     )
   }
 }
+
+
+class CaptureBigImage() {
+  var src by mutableStateOf<String?>(null)
+
+  @OptIn(ExperimentalSharedTransitionApi::class)
+  @Composable
+  fun Render(sharedTransitionScope: SharedTransitionScope) {
+    with(sharedTransitionScope) {
+      AnimatedContent(
+        targetState = src,
+        modifier = Modifier.fillMaxWidth().padding(bottom = AppBottomHeight),
+        label = "Detail Image",
+        transitionSpec = { fadeIn() togetherWith fadeOut() },
+        contentAlignment = Alignment.Center,
+      ) { aniSrc ->
+        /// 大图预览
+        aniSrc?.also { currentSrc ->
+          val alphaAni = remember { Animatable(0f) }
+          LaunchedEffect(aniSrc, transition.isRunning) {
+            if (src == null) {
+              alphaAni.snapTo(0f)
+            } else if (!transition.isRunning) {
+              alphaAni.animateTo(1f)
+            }
+          }
+
+          var scale by remember { mutableStateOf(1f) }
+          var offset by remember { mutableStateOf(Offset.Zero) }
+          Box(Modifier.fillMaxSize()
+            .background(MaterialTheme.colorScheme.surfaceDim.copy(alpha = alphaAni.value * 0.5f))
+            .sharedBounds(rememberSharedContentState(key = "bounds:$currentSrc"), this)
+            .renderInSharedTransitionScopeOverlay(
+              renderInOverlay = { true }, zIndexInOverlay = 3f
+            ).pointerInput(Unit) {
+              detectTransformGestures { _, pan, zoom, _ ->
+                scale *= zoom
+                scale = clamp(0.5f, scale, 5f)
+                offset += pan
+              }
+            }) {
+            Box(
+              Modifier.align(Alignment.BottomCenter).alpha(alphaAni.value).zIndex(2f)
+            ) {
+              FilledTonalIconButton(
+                onClick = { src = null },
+                modifier = Modifier.align(Alignment.Center),
+              ) {
+                Icon(Icons.Rounded.Close, contentDescription = "close image view")
+              }
+            }
+            Box(Modifier.zIndex(1f).align(Alignment.Center).fillMaxSize().padding(24.dp)) {
+              CoilAsyncImage(
+                model = src,
+                modifier = Modifier.fillMaxSize().graphicsLayer(
+                  scaleX = scale,
+                  scaleY = scale,
+                  translationX = offset.x,
+                  translationY = offset.y,
+                ).sharedElement(
+                  rememberSharedContentState(key = "element:$currentSrc"), this@AnimatedContent
+                ),
+                contentDescription = null,
+                contentScale = ContentScale.Fit,
+              )
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
 
 class GridItem<T>(
   val key: T,

@@ -1,5 +1,12 @@
 package org.dweb_browser.browser.jmm.ui
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -24,6 +31,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.launch
@@ -32,6 +40,8 @@ import org.dweb_browser.browser.jmm.JmmI18nResource
 import org.dweb_browser.browser.jmm.LocalJmmDetailController
 import org.dweb_browser.browser.jmm.render.AppBottomHeight
 import org.dweb_browser.browser.jmm.render.BottomDownloadButton
+import org.dweb_browser.browser.jmm.render.CaptureBigImage
+import org.dweb_browser.browser.jmm.render.CaptureImage
 import org.dweb_browser.browser.jmm.render.CaptureListView
 import org.dweb_browser.browser.jmm.render.HorizontalPadding
 import org.dweb_browser.browser.jmm.render.WebviewVersionWarningDialog
@@ -54,8 +64,7 @@ enum class JmmDetailTabs(val i18n: SimpleI18nResource) {
   Detail(JmmI18nResource.tab_detail),
 
   /** 介绍 */
-  Intro(JmmI18nResource.tab_intro),
-  ;
+  Intro(JmmI18nResource.tab_intro), ;
 
   companion object {
     val ALL = entries.toList()
@@ -81,9 +90,9 @@ fun JmmDetailController.Render(modifier: Modifier, renderScope: WindowContentRen
           Text(metadata.manifest.name, maxLines = 2)
         }
       },
-      content = {
+      content = { contentPaddings ->
         val uiScope = rememberCoroutineScope()
-        Box(Modifier.fillMaxWidth().padding(it).run {
+        Box(Modifier.fillMaxWidth().padding(contentPaddings).run {
           if (CanCloseBottomSheet()) {
             val bottomSafePadding = win.watchedState { safePadding }.value.bottom
             padding(PaddingValues(bottom = bottomSafePadding.dp))
@@ -91,75 +100,102 @@ fun JmmDetailController.Render(modifier: Modifier, renderScope: WindowContentRen
         }) {
           val hasDetail = metadata.manifest.images.isNotEmpty()
 
-          Column(
-            Modifier.fillMaxWidth().padding(bottom = AppBottomHeight)
-          ) {
-            val allTabs = JmmDetailTabs.ALL.filter { tab ->
-              when (tab) {
-                JmmDetailTabs.Detail -> hasDetail
-                else -> true
-              }
-            }
-            val lazyListState = rememberLazyListState()
-            var indexByTabClick by remember { mutableStateOf(-1) }
-            var selectedTabIndex by remember { mutableStateOf(0) }
-            remember(lazyListState.isScrollInProgress, lazyListState.firstVisibleItemIndex) {
-              /**
-               * 目标tabIndex
-               */
-              val toTabIndex =
-                when (!lazyListState.isScrollInProgress && !lazyListState.canScrollForward && lazyListState.canScrollBackward) {
-                  // 如果不能再向下滚动了，那么设置成 lastIndex
-                  true -> allTabs.size - 1
-                  else -> lazyListState.firstVisibleItemIndex
-                }
-
-              if (indexByTabClick == -1) {
-                selectedTabIndex = toTabIndex
-              } else {
-                /// 如果这次滚动是tabClick触发的，那么消费掉这次判断
-                if (!lazyListState.isScrollInProgress) {
-                  indexByTabClick = -1
-                }
-              }
-            }
-            PrimaryTabRow(selectedTabIndex = selectedTabIndex) {
-              allTabs.forEachIndexed { tabIndex, tab ->
-                Tab(
-                  selected = selectedTabIndex == tabIndex,
-                  onClick = {
-                    selectedTabIndex = tabIndex
-                    indexByTabClick = tabIndex
-                    uiScope.launch(start = CoroutineStart.UNDISPATCHED) {
-                      lazyListState.animateScrollToItem(tabIndex)
-                    }
-                  },
-                ) {
-                  Text(tab.i18n(), modifier = Modifier.padding(8.dp))
-                }
-              }
-            }
-
-            LazyColumn(Modifier.fillMaxSize(), state = lazyListState) {
-              for (tab in allTabs) {
+          @OptIn(ExperimentalSharedTransitionApi::class) SharedTransitionLayout {
+            val captureBigImage = remember { CaptureBigImage() }
+            Column(
+              Modifier.fillMaxWidth().padding(bottom = AppBottomHeight)
+            ) {
+              val allTabs = JmmDetailTabs.ALL.filter { tab ->
                 when (tab) {
-                  JmmDetailTabs.Param -> item(key = tab) {
-                    OtherInfoView(metadata.manifest)
+                  JmmDetailTabs.Detail -> hasDetail
+                  else -> true
+                }
+              }
+              val lazyListState = rememberLazyListState()
+              var indexByTabClick by remember { mutableStateOf(-1) }
+              var selectedTabIndex by remember { mutableStateOf(0) }
+              remember(lazyListState.isScrollInProgress, lazyListState.firstVisibleItemIndex) {
+                /**
+                 * 目标tabIndex
+                 */
+                val toTabIndex =
+                  when (!lazyListState.isScrollInProgress && !lazyListState.canScrollForward && lazyListState.canScrollBackward) {
+                    // 如果不能再向下滚动了，那么设置成 lastIndex
+                    true -> allTabs.size - 1
+                    else -> lazyListState.firstVisibleItemIndex
                   }
 
-                  JmmDetailTabs.Detail -> item(key = tab) {
-                    CaptureListView(metadata.manifest)
+                if (indexByTabClick == -1) {
+                  selectedTabIndex = toTabIndex
+                } else {
+                  /// 如果这次滚动是tabClick触发的，那么消费掉这次判断
+                  if (!lazyListState.isScrollInProgress) {
+                    indexByTabClick = -1
                   }
+                }
+              }
+              PrimaryTabRow(selectedTabIndex = selectedTabIndex) {
+                allTabs.forEachIndexed { tabIndex, tab ->
+                  Tab(
+                    selected = selectedTabIndex == tabIndex,
+                    onClick = {
+                      selectedTabIndex = tabIndex
+                      indexByTabClick = tabIndex
+                      uiScope.launch(start = CoroutineStart.UNDISPATCHED) {
+                        lazyListState.animateScrollToItem(tabIndex)
+                      }
+                    },
+                  ) {
+                    Text(tab.i18n(), modifier = Modifier.padding(8.dp))
+                  }
+                }
+              }
 
-                  JmmDetailTabs.Intro -> item(key = tab) {
-                    AppIntroductionView(metadata.manifest)
-                    HorizontalDivider(modifier = Modifier.padding(horizontal = HorizontalPadding))
-                    NewVersionInfoView(metadata.manifest)
-                    HorizontalDivider(modifier = Modifier.padding(horizontal = HorizontalPadding))
+              LazyColumn(Modifier.fillMaxSize(), state = lazyListState) {
+                for (tab in allTabs) {
+                  when (tab) {
+                    JmmDetailTabs.Param -> item(key = tab) {
+                      OtherInfoView(metadata.manifest)
+                    }
+
+                    JmmDetailTabs.Detail -> item(key = tab) {
+                      CaptureListView(jmmAppInstallManifest = metadata.manifest) {
+                        AnimatedVisibility(
+                          captureBigImage.src != src,
+                          enter = fadeIn() + scaleIn(),
+                          exit = fadeOut() + scaleOut(),
+                        ) {
+                          Box(
+                            Modifier.sharedBounds(
+                              rememberSharedContentState(key = "bounds:$src"),
+                              this
+                            )
+                          ) {
+                            CaptureImage(
+                              onClick = { captureBigImage.src = src },
+                              src = src,
+                              modifier = Modifier.sharedElement(
+                                rememberSharedContentState(key = "element:$src"),
+                                this@AnimatedVisibility
+                              ),
+                              contentScale = ContentScale.Crop,
+                            )
+                          }
+                        }
+                      }
+                    }
+
+                    JmmDetailTabs.Intro -> item(key = tab) {
+                      AppIntroductionView(metadata.manifest)
+                      HorizontalDivider(modifier = Modifier.padding(horizontal = HorizontalPadding))
+                      NewVersionInfoView(metadata.manifest)
+                      HorizontalDivider(modifier = Modifier.padding(horizontal = HorizontalPadding))
+                    }
                   }
                 }
               }
             }
+            captureBigImage.Render(this)
           }
 
           BottomDownloadButton()
