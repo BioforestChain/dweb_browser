@@ -28,7 +28,10 @@ import { Input } from "./toolkit/plaoc/cli/deps/cliffy.ts";
 
 // # git ls-files | egrep '\.(swift|kt|java|sh|ts|mts|cts|js|json|jsonc|svelte|vue|css|scss|md)$' | xargs -L 1 -I{} sh -c 'git blame -w "{}" | grep "pxh" > /dev/null && echo "{}"' | sort | uniq
 $.cd(import.meta.resolve("./"));
-const suffixs = `swift|kt|java|sh|ts|mts|cts|js|json|jsonc|svelte|vue|css|scss|md`.split("|").map((ext) => `.${ext}`);
+const suffixs = `swift|kt|kts|java|sh|ts|mts|cts|js|json|jsonc|svelte|vue|css|scss|md`
+  .split("|")
+  .map((ext) => `.${ext}`);
+console.log(`开始统计代码，根据文件后缀: \n${colors.green(suffixs.join(" "))}`);
 const files = (await $.string(`git ls-files`))
   .split("\n")
   .filter((filepath) => suffixs.some((suffix) => filepath.endsWith(suffix)));
@@ -63,13 +66,11 @@ class Contribution {
     this.files.set(file, old + line);
     this.line += line;
   }
-  getLog(color = true) {
-    colors.setColorEnabled(color);
+  getLog() {
     return `${colors.cyan(this.author)} 贡献代码 ${colors.blue(this.line + "")} 行`;
   }
-  getDetailLog(color = true) {
-    colors.setColorEnabled(color);
-    const logs: string[] = [this.getLog(color)];
+  getDetailLog() {
+    const logs: string[] = [this.getLog()];
     this.files.forEach((line, filepath) => {
       logs.push(`\t${colors.gray(filepath)} ${colors.green(`+${line}`)}`);
     });
@@ -85,11 +86,13 @@ class AuthorContribution {
     author = authorAlias.get(author) || author;
     return mapHelper.getOrPut(this.statistics, author, () => new Contribution(author));
   }
-  getLog(color = true) {
+  getLog() {
     const logs: string[] = [];
-
-    for (const contribution of this.getSorted()) {
-      logs.push(contribution.getLog(color));
+    const contributionList = this.getSorted();
+    const totalLine = contributionList.reduce((lines, c) => (lines += c.line), 0);
+    logs.push(`${colors.magenta(`已统计有效代码行:`)} ${colors.blue(`${totalLine}`)}`);
+    for (const contribution of contributionList) {
+      logs.push(contribution.getLog() + colors.magenta(` ${((contribution.line / totalLine) * 100).toFixed(2)}%`));
     }
     return logs.join("\n");
   }
@@ -102,26 +105,6 @@ const spinner = new EasySpinner({ redrawInterval: 100 });
  * 无效代码
  */
 const invalidCode = new Set(["", "//", ..."[]{}(),;\t*"]);
-
-// const easyPool = new (class EasyPool {
-//   poolSize = 10; // 默认并发数为10
-//   private busy = 0;
-//   private waiters: PromiseOut<void>[] = [];
-//   async requestWorker<R>(work: () => R) {
-//     if (this.busy >= this.poolSize) {
-//       const waiter = new PromiseOut<void>();
-//       this.waiters.push(waiter);
-//       await waiter.promise;
-//     }
-//     this.busy += 1;
-//     try {
-//       return await work();
-//     } finally {
-//       this.busy -= 1;
-//       this.waiters.shift()?.resolve();
-//     }
-//   }
-// })();
 
 const warnings: string[] = [];
 
@@ -200,7 +183,8 @@ if (import.meta.main) {
     };
     addAction(colors.bold(colors.green("导出到文件")), () => {
       const outputfile = fileURLToPath(import.meta.resolve("./.contribution.txt"));
-      fs.writeFileSync(outputfile, contributions.map((a) => a.getDetailLog(false)).join("\n\n"));
+      colors.setColorEnabled(false);
+      fs.writeFileSync(outputfile, contributions.map((a) => a.getDetailLog()).join("\n\n"));
       colors.setColorEnabled(true);
       console.log(
         "已经导出到文件:",
