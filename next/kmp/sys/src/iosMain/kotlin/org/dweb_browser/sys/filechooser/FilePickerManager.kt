@@ -17,77 +17,77 @@ import platform.darwin.dispatch_group_notify
 
 class FilePickerManager {
 
-    enum class FilePickerType {
-        IMAGE, VIDEO
+  enum class FilePickerType {
+    IMAGE, VIDEO
+  }
+
+  private var filePathCallback: ((result: MutableList<String>) -> Unit)? = null
+  private var typeString = ""
+
+  val rootController: UIViewController?
+    get() {
+      return UIApplication.sharedApplication.keyWindow?.rootViewController
     }
 
-    private var filePathCallback: ((result: MutableList<String>) -> Unit)? = null
-    private var typeString = ""
+  fun chooseImages(multiple: Boolean, callback: (result: MutableList<String>) -> Unit) {
+    typeString = "public.image"
+    filePathCallback = callback
+    openFileViewController(FilePickerType.IMAGE, multiple)
 
-    val rootController: UIViewController?
-        get() {
-            return UIApplication.sharedApplication.keyWindow?.rootViewController
-        }
+  }
 
-    fun chooseImages(multiple: Boolean, limit: Int, callback: (result: MutableList<String>) -> Unit) {
-        typeString = "public.image"
-        filePathCallback = callback
-        openFileViewController(FilePickerType.IMAGE, multiple, limit)
+  fun chooseVideos(multiple: Boolean, callback: (result: MutableList<String>) -> Unit) {
+    typeString = "public.movie"
+    filePathCallback = callback
+    openFileViewController(FilePickerType.VIDEO, multiple)
+  }
 
+  private fun openFileViewController(type: FilePickerType, multiple: Boolean) {
+    val configuration = PHPickerConfiguration()
+    if (multiple) {
+      configuration.selectionLimit = Long.MAX_VALUE
+    } else {
+      configuration.selectionLimit = 1
+    }
+    when (type) {
+      FilePickerType.IMAGE -> configuration.filter = PHPickerFilter.imagesFilter
+      FilePickerType.VIDEO -> configuration.filter = PHPickerFilter.videosFilter
     }
 
-    fun chooseVideos(multiple: Boolean, limit: Int, callback: (result: MutableList<String>) -> Unit) {
-        typeString = "public.movie"
-        filePathCallback = callback
-        openFileViewController(FilePickerType.VIDEO, multiple, limit)
+    dispatch_async(dispatch_get_main_queue()) {
+      val pickerController = PHPickerViewController(configuration)
+      pickerController.delegate = delegate
+      rootController?.presentViewController(pickerController, true, null)
     }
+  }
 
-    private fun openFileViewController(type: FilePickerType, multiple: Boolean, limit: Int) {
-        val configuration = PHPickerConfiguration()
-        if (multiple) {
-            configuration.selectionLimit = limit.toLong()
-        } else {
-            configuration.selectionLimit = 1
-        }
-        when (type) {
-            FilePickerType.IMAGE -> configuration.filter = PHPickerFilter.imagesFilter
-            FilePickerType.VIDEO -> configuration.filter = PHPickerFilter.videosFilter
-        }
+  inner class PHPickerDelegate : NSObject(), PHPickerViewControllerDelegateProtocol {
 
-        dispatch_async(dispatch_get_main_queue()) {
-            val pickerController = PHPickerViewController(configuration)
-            pickerController.delegate = delegate
-            rootController?.presentViewController(pickerController, true, null)
-        }
-    }
-
-    inner class PHPickerDelegate : NSObject(), PHPickerViewControllerDelegateProtocol {
-
-        override fun picker(picker: PHPickerViewController, didFinishPicking: List<*>) {
-            picker.dismissViewControllerAnimated(true, null)
-            val paths = mutableListOf<String>()
-            println("didFinishPicking")
-            val dispatchGroup = dispatch_group_create()
-            didFinishPicking.filterIsInstance<PHPickerResult>()
-                .map {
-                    dispatch_group_enter(dispatchGroup)
-                    it.itemProvider.loadFileRepresentationForTypeIdentifier(typeString)
-                    { url, error ->
-                        println("loadFileRepresentationForTypeIdentifier")
-                        println(error)
-                        println(url)
-                        if (error == null && url != null) {
-                            url.absoluteString?.let { it1 -> paths.add(it1) }
-                        }
-                        dispatch_group_leave(dispatchGroup)
-                    }
-                }
-            dispatch_group_notify(dispatchGroup, dispatch_get_main_queue()) {
-                println("dispatch_group_notify")
-                filePathCallback?.let { it(paths) }
+    override fun picker(picker: PHPickerViewController, didFinishPicking: List<*>) {
+      picker.dismissViewControllerAnimated(true, null)
+      val paths = mutableListOf<String>()
+      println("didFinishPicking")
+      val dispatchGroup = dispatch_group_create()
+      didFinishPicking.filterIsInstance<PHPickerResult>()
+        .map {
+          dispatch_group_enter(dispatchGroup)
+          it.itemProvider.loadFileRepresentationForTypeIdentifier(typeString)
+          { url, error ->
+            println("loadFileRepresentationForTypeIdentifier")
+            println(error)
+            println(url)
+            if (error == null && url != null) {
+              url.absoluteString?.let { it1 -> paths.add(it1) }
             }
+            dispatch_group_leave(dispatchGroup)
+          }
         }
+      dispatch_group_notify(dispatchGroup, dispatch_get_main_queue()) {
+        println("dispatch_group_notify")
+        filePathCallback?.let { it(paths) }
+      }
     }
+  }
 
-    private val delegate = PHPickerDelegate()
+  private val delegate = PHPickerDelegate()
 }

@@ -39,15 +39,15 @@ actual class FileChooserManage {
   }
 
   actual suspend fun openFileChooser(
-    microModule: MicroModule.Runtime, accept: String, multiple: Boolean, limit: Int
+    microModule: MicroModule.Runtime, accept: String, multiple: Boolean,
   ): List<String> {
 //    WARNING("Not yet implemented openFileChooser")
     if (isImage(accept)) {
-      return imagePath(multiple, limit)
+      return imagePath(multiple)
     } else if (isVideo(accept)) {
-      return videoPath(multiple, limit)
+      return videoPath(multiple)
     } else if (isAudio(accept)) {
-      val path = audioPath(multiple, limit)
+      val path = audioPath(multiple)
       return path.split(",")
     }
     return emptyList()
@@ -89,9 +89,9 @@ actual class FileChooserManage {
     return false
   }
 
-  private suspend fun imagePath(multiple: Boolean, limit: Int): List<String> {
+  private suspend fun imagePath(multiple: Boolean): List<String> {
     val result = CompletableDeferred<List<String>>()
-    FilePickerManager().chooseImages(multiple, limit) {
+    FilePickerManager().chooseImages(multiple) {
       result.complete(it)
     }
 //    MediaCaptureHandler().launchPhotoString {
@@ -100,9 +100,9 @@ actual class FileChooserManage {
     return result.await()
   }
 
-  private suspend fun videoPath(multiple: Boolean, limit: Int): List<String> {
+  private suspend fun videoPath(multiple: Boolean): List<String> {
     val result = CompletableDeferred<List<String>>()
-    FilePickerManager().chooseVideos(multiple, limit) {
+    FilePickerManager().chooseVideos(multiple) {
       result.complete(it)
     }
 //    MediaCaptureHandler().launchVideoPath {
@@ -112,13 +112,18 @@ actual class FileChooserManage {
   }
 
   @OptIn(ExperimentalForeignApi::class)
-  private suspend fun audioPath(multiple: Boolean, limit: Int): String {
+  private suspend fun audioPath(multiple: Boolean): String {
     val result = CompletableDeferred<String>()
 //    return ""
     val manager = SoundRecordManager()
     withMainContext {
       val rootController = UIApplication.sharedApplication.keyWindow?.rootViewController
-      val recordController = manager.createWithMultiple(multiple, limit.toLong())
+      val recordController = manager.createWithMultiple(
+        multiple, when {
+          multiple -> Long.MAX_VALUE
+          else -> 1
+        }
+      )
       manager.completeRecordWithCallback { path ->
         recordController.dismissViewControllerAnimated(true, null)
         if (path != null) {
