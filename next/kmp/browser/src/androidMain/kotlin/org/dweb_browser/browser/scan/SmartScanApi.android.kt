@@ -20,6 +20,7 @@ import org.dweb_browser.browser.util.regexDeepLink
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.PurePoint
 import org.dweb_browser.helper.PureRect
+import org.dweb_browser.helper.buildUrlString
 import org.dweb_browser.helper.getAppContextUnsafe
 import org.dweb_browser.helper.isWebUrl
 import org.dweb_browser.helper.toPoint
@@ -66,7 +67,7 @@ actual class ScanningController actual constructor(mmScope: CoroutineScope) {
 
   @OptIn(TransformExperimental::class)
   private suspend fun process(
-    image: InputImage, matrix: CoordinateTransform? = null
+    image: InputImage, matrix: CoordinateTransform? = null,
   ): List<BarcodeResult> {
     val task = PromiseOut<List<BarcodeResult>>()
     barcodeScanner.process(image).addOnSuccessListener { barcodes ->
@@ -129,9 +130,15 @@ actual fun openDeepLink(data: String, showBackground: Boolean): Boolean {
   val context = getAppContextUnsafe()
   // 下盘的是否是 DeepLink，如果不是的话，判断是否是
   val deepLink = data.regexDeepLink() ?: run {
-    if (data.isWebUrl()) {
-      "dweb://openinbrowser?url=$data"
-    } else "dweb://search?q=$data"
+    when {
+      data.isWebUrl() -> buildUrlString("dweb://openinbrowser") {
+        parameters["url"] = data
+      }
+
+      else -> buildUrlString("dweb://search") {
+        parameters["q"] = data
+      }
+    }
   }
 
   context.startActivity(Intent().apply {

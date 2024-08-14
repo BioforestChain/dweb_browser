@@ -1,21 +1,12 @@
 package org.dweb_browser.dwebview.engine
 
-import kotlinx.cinterop.BetaInteropApi
-import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.module.getUIApplication
-import org.dweb_browser.core.std.dns.nativeFetch
-import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.DwebViewI18nResource
-import org.dweb_browser.dwebview.IDWebView
-import org.dweb_browser.dwebview.base.isWebUrlScheme
-import org.dweb_browser.dwebview.create
 import org.dweb_browser.dwebview.debugDWebView
 import org.dweb_browser.helper.Signal
-import org.dweb_browser.helper.buildUrlString
-import org.dweb_browser.helper.launchWithMain
 import org.dweb_browser.helper.platform.addMmid
 import platform.AVFoundation.AVAuthorizationStatusAuthorized
 import platform.AVFoundation.AVAuthorizationStatusDenied
@@ -44,102 +35,65 @@ import platform.WebKit.WKWebViewConfiguration
 import platform.WebKit.WKWindowFeatures
 import platform.darwin.NSObject
 
-class DWebUIDelegate(private val engine: DWebViewEngine) : NSObject(), WKUIDelegateProtocol {
+class DWebUIDelegate(internal val engine: DWebViewEngine) : NSObject(), WKUIDelegateProtocol {
   //#region Alert Confirm Prompt
   private val jsAlertSignal = Signal<Pair<JsParams, SignalResult<Unit>>>()
   private val jsConfirmSignal = Signal<Pair<JsParams, SignalResult<Boolean>>>()
   private val jsPromptSignal = Signal<Pair<JsPromptParams, SignalResult<String?>>>()
   private val closeSignal = engine.closeSignal
-  private val createWindowSignal = engine.createWindowSignal
+  internal val createWindowSignal = engine.createWindowSignal
 
   internal data class JsParams(
     val webView: WKWebView,
     val message: String,
-    val wkFrameInfo: WKFrameInfo
+    val wkFrameInfo: WKFrameInfo,
   )
 
   internal data class JsPromptParams(
     val webView: WKWebView,
     val prompt: String,
     val defaultText: String?,
-    val wkFrameInfo: WKFrameInfo
+    val wkFrameInfo: WKFrameInfo,
   )
 
-  data class CreateWebViewParams(
+  class CreateWebViewParams(
     val webView: WKWebView,
-    val configuration: WKWebViewConfiguration,
-    val navigationAction: WKNavigationAction,
+    val createWebViewWithConfiguration: WKWebViewConfiguration,
+    val forNavigationAction: WKNavigationAction,
     val windowFeatures: WKWindowFeatures,
-    val completionHandler: (WKWebView?) -> Unit
   )
 
-  @OptIn(ExperimentalForeignApi::class)
+  sealed interface CreateWebViewHookPolicy;
+  class CreateWebViewHookPolicyAllow(val webView: WKWebView) : CreateWebViewHookPolicy
+  object CreateWebViewHookPolicyDeny : CreateWebViewHookPolicy
+  object CreateWebViewHookPolicyContinue : CreateWebViewHookPolicy
+
+  val createWebViewHooks = mutableListOf<CreateWebViewParams.() -> CreateWebViewHookPolicy>()
+
   override fun webView(
     webView: WKWebView,
     createWebViewWithConfiguration: WKWebViewConfiguration,
     forNavigationAction: WKNavigationAction,
-    windowFeatures: WKWindowFeatures
+    windowFeatures: WKWindowFeatures,
   ): WKWebView? {
-    val url = forNavigationAction.request.URL?.absoluteString
-    return if (url != null && engine.closeWatcher.consuming.remove(url)) {
-      val isUserGesture =
-        forNavigationAction.targetFrame == null || !forNavigationAction.targetFrame!!.mainFrame
-      val watcher = engine.closeWatcher.applyWatcher(isUserGesture)
-
-      engine.mainScope.launchWithMain {
-        engine.closeWatcher.resolveToken(url, watcher)
-      }
-      null
-    } else {
-      when (engine.options.createWindowBehavior) {
-        DWebViewOptions.CreateWindowBehavior.Deeplink -> {
-          if (url == null) return null
-          val urlScheme = url.split(':', limit = 2).first()
-          engine.lifecycleScope.launch {
-            if (urlScheme == "dweb") {
-              engine.remoteMM.nativeFetch(url)
-            } else if (isWebUrlScheme(urlScheme)) {
-              var target = "_self"
-              if (forNavigationAction.targetFrame == null) {
-                target = "_blank"
-              }
-
-              engine.remoteMM.nativeFetch(
-                buildUrlString("dweb://openinbrowser") {
-                  parameters["url"] = url
-                  parameters["target"] = target
-                }
-              )
-            }
-          }
-          null
-        }
-
-        DWebViewOptions.CreateWindowBehavior.Custom -> {
-          /// TODO 这里的 createWebViewWithConfiguration 是不能自己创建的，所以将会被重新配置，所以需要做好去重工作
-          /// 也就是说 Configuration 不能耦合 DWebViewEngine 这个对象
-          val createDwebviewEngin = DWebViewEngine(
-            engine.frame, // TODO use windowFeatures.x/y/width/height
-            engine.remoteMM,
-            DWebViewOptions(url ?: ""),
-            createWebViewWithConfiguration
-          )
-          engine.mainScope.launch {
-            val dwebView = IDWebView.create(
-              createDwebviewEngin
-            )
-            createWindowSignal.emit(dwebView)
-          }
-          createDwebviewEngin
-        }
+    println("QAQ createWebView!! url=${forNavigationAction.request.URL?.absoluteString}")
+    if (createWebViewHooks.isEmpty()) {
+      return null
+    }
+    val params = CreateWebViewParams(
+      webView,
+      createWebViewWithConfiguration,
+      forNavigationAction,
+      windowFeatures
+    )
+    for (hook in createWebViewHooks) {
+      return when (val policy = params.hook()) {
+        is CreateWebViewHookPolicyAllow -> policy.webView
+        is CreateWebViewHookPolicyDeny -> null
+        is CreateWebViewHookPolicyContinue -> continue
       }
     }
-
-    // if (url != null) {
-    // engine.onReady {
-    //   url = forNavigationAction.request.URL?.absoluteString
-    //   createAction()
-    // }
+    return null
   }
 
   override fun webViewDidClose(webView: WKWebView) {
@@ -152,12 +106,11 @@ class DWebUIDelegate(private val engine: DWebViewEngine) : NSObject(), WKUIDeleg
     addMmid(engine.remoteMM.mmid)
   }
 
-  @OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
   override fun webView(
     webView: WKWebView,
     runJavaScriptAlertPanelWithMessage: String,
     initiatedByFrame: WKFrameInfo,
-    completionHandler: () -> Unit
+    completionHandler: () -> Unit,
   ) {
     val finalNext = Signal<Pair<JsParams, SignalResult<Unit>>>()
 
@@ -201,7 +154,7 @@ class DWebUIDelegate(private val engine: DWebViewEngine) : NSObject(), WKUIDeleg
     webView: WKWebView,
     runJavaScriptConfirmPanelWithMessage: String,
     initiatedByFrame: WKFrameInfo,
-    completionHandler: (Boolean) -> Unit
+    completionHandler: (Boolean) -> Unit,
   ) {
     val finalNext = Signal<Pair<JsParams, SignalResult<Boolean>>>()
 
@@ -252,7 +205,7 @@ class DWebUIDelegate(private val engine: DWebViewEngine) : NSObject(), WKUIDeleg
     runJavaScriptTextInputPanelWithPrompt: String,
     defaultText: String?,
     initiatedByFrame: WKFrameInfo,
-    completionHandler: (String?) -> Unit
+    completionHandler: (String?) -> Unit,
   ) {
     val finalNext = Signal<Pair<JsPromptParams, SignalResult<String?>>>()
 
@@ -308,7 +261,7 @@ class DWebUIDelegate(private val engine: DWebViewEngine) : NSObject(), WKUIDeleg
     requestMediaCapturePermissionForOrigin: WKSecurityOrigin,
     initiatedByFrame: WKFrameInfo,
     type: WKMediaCaptureType,
-    decisionHandler: (WKPermissionDecision) -> Unit
+    decisionHandler: (WKPermissionDecision) -> Unit,
   ) {
     val mediaTypes = when (type) {
       WKMediaCaptureType.WKMediaCaptureTypeCamera -> listOf(AVMediaTypeVideo)
@@ -401,7 +354,7 @@ class DWebUIDelegate(private val engine: DWebViewEngine) : NSObject(), WKUIDeleg
 
   private suspend fun <T, R> Signal<Pair<T, SignalResult<R>>>.emitForResult(
     args: T,
-    finallyNext: Signal<Pair<T, SignalResult<R>>>
+    finallyNext: Signal<Pair<T, SignalResult<R>>>,
   ): Pair<R?, Boolean> {
     try {
       val ctx = SignalResult<R>()

@@ -147,6 +147,11 @@ abstract class IDWebView(initUrl: String?) {
     }
   }
 
+  /**
+   * 拦截跳转
+   */
+  abstract fun overrideUrlLoading(onUrlLoading: (url: String) -> UrlLoadingPolicy)
+
   suspend fun reload() = loadUrl(getUrl(), true)
 
   suspend fun canGoBack() = closeWatcher.canClose || historyCanGoBack()
@@ -320,6 +325,10 @@ class WebBeforeUnloadHook(val message: String) {
   fun keepDocument() = result.complete(false)
 }
 
+enum class UrlLoadingPolicy {
+  Allow,
+  Block,
+}
 
 sealed class WebLoadState {};
 class WebLoadStartState(val url: String) : WebLoadState();

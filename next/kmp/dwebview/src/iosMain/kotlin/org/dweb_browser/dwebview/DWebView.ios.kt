@@ -122,6 +122,15 @@ class DWebView private constructor(
     engine.loadUrl(url)
   }
 
+  override fun overrideUrlLoading(onUrlLoading: (url: String) -> UrlLoadingPolicy) {
+    engine.dwebNavigationDelegate.decidePolicyForNavigationActionHooks.add { _, decidePolicyForNavigationAction ->
+      val url = decidePolicyForNavigationAction.request.URL.toString()
+      onUrlLoading(url).also {
+        println("QAQ overrideUrlLoading url=$url policy=$it")
+      }
+    }
+  }
+
   override suspend fun historyGoBack(): Boolean = withMainContext {
     engine.canGoBack.trueAlso {
       engine.goBack()

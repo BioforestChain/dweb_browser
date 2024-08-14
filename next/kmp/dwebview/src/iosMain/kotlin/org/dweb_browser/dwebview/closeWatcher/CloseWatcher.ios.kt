@@ -7,6 +7,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.dwebview.ICloseWatcher
+import org.dweb_browser.dwebview.engine.DWebUIDelegate
 import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.helper.SafeInt
 import org.dweb_browser.helper.trueAlso
@@ -133,6 +134,17 @@ internal class CloseWatcher(val engine: DWebViewEngine) : ICloseWatcher {
     watchers.find { watcher -> watcher.id == id }?.also {
       watchers.remove(it)
       it.destroy()
+    }
+  }
+}
+
+fun DWebUIDelegate.hookCloseWatcher() {
+  createWebViewHooks.add {
+    when (forNavigationAction.request.URL?.absoluteString?.let { url ->
+      engine.closeWatcher.consuming.remove(url)
+    }) {
+      true -> DWebUIDelegate.CreateWebViewHookPolicyDeny
+      else -> DWebUIDelegate.CreateWebViewHookPolicyContinue
     }
   }
 }

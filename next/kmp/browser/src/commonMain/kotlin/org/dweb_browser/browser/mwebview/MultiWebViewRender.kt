@@ -10,12 +10,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import kotlinx.coroutines.launch
 import org.dweb_browser.browser.common.WindowControllerBinding
 import org.dweb_browser.dwebview.RenderWithScale
 import org.dweb_browser.dwebview.rememberCanGoBack
-import org.dweb_browser.dwebview.rememberCanGoForward
-import org.dweb_browser.sys.window.render.watchedIsMaximized
+import org.dweb_browser.dwebview.rememberHistoryCanGoForward
 
 @Composable
 fun MultiWebViewController.Render(
@@ -48,32 +46,24 @@ fun MultiWebViewController.Render(
         }
       }
     }
-    list.lastOrNull()?.also { LatestEffect(it, list) }
-  }
-}
-
-@Composable
-private fun MultiWebViewController.LatestEffect(
-  viewItem: MultiWebViewController.MultiViewItem,
-  list: List<MultiWebViewController.MultiViewItem>,
-) {
-  val webView = viewItem.webView
-  /// 返回按钮的拦截只跟最后一个视图有关系，直到这最后一个视图被关闭了
-  if (viewItem == list.last()) {
-    val isMaximized by win.watchedIsMaximized()
-    // 在 MWebView 的全屏窗口中，默认将返回按钮的行为与应用退出关联在一起
-    if (win.state.canGoForward != null) {
-      win.state.canGoForward = webView.rememberCanGoForward()
+    /// 如果有多个webview，可以通过返回来关闭最后一个
+    win.navigation.GoBackHandler(list.size > 1) {
+      list.lastOrNull()?.also {
+        closeWebView(it.webviewId)
+      }
     }
-    val canGoBack =
-      if (isMaximized) true else webView.closeWatcher.canClose || webView.rememberCanGoBack()
-    win.navigation.GoBackHandler(canGoBack) {
-      if (webView.canGoBack()) {
+    list.lastOrNull()?.also {
+      val webView = it.webView
+//  /// 返回按钮的拦截只跟最后一个视图有关系，直到这最后一个视图被关闭了
+//  val isMaximized by win.watchedIsMaximized()
+//  // 在 MWebView 的全屏窗口中，默认将返回按钮的行为与应用退出关联在一起
+      if (win.state.canGoForward != null) {
+        win.state.canGoForward = webView.rememberHistoryCanGoForward()
+      }
+      /// 如果最后一个 webview 能够 goBack（closeWatcher+historyGoBack），那么返回按钮执行 goBack。
+      val canGoBack = webView.rememberCanGoBack()
+      win.navigation.GoBackHandler(canGoBack) {
         webView.goBack()
-      } else if (list.size > 1) {
-        viewItem.coroutineScope.launch {
-          closeWebView(viewItem.webviewId)
-        }
       }
     }
   }

@@ -28,6 +28,7 @@ import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.launchWithMain
 import org.dweb_browser.helper.mapFindNoNull
 import org.dweb_browser.helper.one
+import org.dweb_browser.helper.someOrNull
 
 class DWebViewClient(val engine: DWebViewEngine) : WebViewClient() {
   private val scope get() = engine.lifecycleScope
@@ -200,12 +201,12 @@ class DWebViewClient(val engine: DWebViewEngine) : WebViewClient() {
   }
 
   override fun shouldOverrideKeyEvent(view: WebView?, event: KeyEvent?): Boolean {
-    return inners("shouldOverrideKeyEvent").mapFindNoNull { it.shouldOverrideKeyEvent(view, event) }
+    return inners("shouldOverrideKeyEvent").someOrNull { it.shouldOverrideKeyEvent(view, event) }
       ?: super.shouldOverrideKeyEvent(view, event)
   }
 
   override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
-    return inners("shouldOverrideUrlLoading").mapFindNoNull {
+    return inners("shouldOverrideUrlLoading").someOrNull {
       it.shouldOverrideUrlLoading(view, request)
     } ?: super.shouldOverrideUrlLoading(view, request)
   }
@@ -235,7 +236,7 @@ class DWebViewClient(val engine: DWebViewEngine) : WebViewClient() {
 
   @Deprecated("Deprecated in Java")
   override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
-    return inners("shouldOverrideUrlLoading").mapFindNoNull {
+    return inners("shouldOverrideUrlLoading").someOrNull {
       it.shouldOverrideUrlLoading(view, url)
     } ?: super.shouldOverrideUrlLoading(view, url)
   }

@@ -40,8 +40,8 @@ import org.dweb_browser.browser.BrowserDrawResource
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.web.model.LocalBrowserViewModel
 import org.dweb_browser.browser.web.model.page.BrowserWebPage
-import org.dweb_browser.dwebview.rememberCanGoBack
-import org.dweb_browser.dwebview.rememberCanGoForward
+import org.dweb_browser.dwebview.rememberHistoryCanGoBack
+import org.dweb_browser.dwebview.rememberHistoryCanGoForward
 import org.dweb_browser.helper.PrivacyUrl
 
 @Composable
@@ -182,14 +182,14 @@ internal fun BrowserMenuPanel(modifier: Modifier = Modifier) {
       Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
         IconButton(
           { page.webView.lifecycleScope.launch { page.webView.goBack() } },
-          enabled = page.webView.rememberCanGoBack()
+          enabled = page.webView.rememberHistoryCanGoBack()
         ) {
           Icon(Icons.AutoMirrored.Rounded.ArrowBackIos, "go back")
         }
         VerticalDivider()
         IconButton(
           { page.webView.lifecycleScope.launch { page.webView.historyGoForward() } },
-          enabled = page.webView.rememberCanGoForward()
+          enabled = page.webView.rememberHistoryCanGoForward()
         ) {
           Icon(Icons.AutoMirrored.Rounded.ArrowForwardIos, "go forward")
         }

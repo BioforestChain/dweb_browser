@@ -3,6 +3,7 @@ package org.dweb_browser.browser.mwebview
 import androidx.compose.runtime.Stable
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -11,9 +12,12 @@ import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.dwebview.IDWebView
+import org.dweb_browser.dwebview.UrlLoadingPolicy
 import org.dweb_browser.dwebview.base.ViewItem
 import org.dweb_browser.helper.ChangeableList
 import org.dweb_browser.helper.SafeInt
+import org.dweb_browser.helper.buildUrlString
+import org.dweb_browser.helper.toWebUrlOrWithoutProtocol
 import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.windowAdapterManager
@@ -83,7 +87,7 @@ class MultiWebViewController(
     return appendWebViewAsItem(webView)
   }
 
-  private suspend fun appendWebViewAsItem(dWebView: IDWebView): MultiViewItem {
+  private fun appendWebViewAsItem(dWebView: IDWebView): MultiViewItem {
     localeMM.debugMM("appendWebViewAsItem", dWebView)
     val webviewId = "#w${webviewId_acc++}"
     val coroutineScope =
@@ -96,12 +100,46 @@ class MultiWebViewController(
       layerController = this,
     ).also { viewItem ->
       webViewList.add(viewItem)
-      dWebView.onCreateWindow {
-        val url = it.getUrl()
+      /**
+       * 对于链接的跳转与打开策略
+       * 如果可以处理，那么返回 链接本身
+       * 否则直接在内部直接对链接作出需要的处理，然后返回null
+       */
+      fun filterSafeUrl(url: String): String? {
         if (url.startsWith("dweb://")) {
-          dWebView.remoteMM.nativeFetch(url)
+          coroutineScope.launch {
+            dWebView.remoteMM.nativeFetch(url)
+          }
         } else {
-          appendWebViewAsItem(it)
+          val urlHost = url.toWebUrlOrWithoutProtocol()?.host
+          if (urlHost?.endsWith(dWebView.remoteMM.mmid) == true) {
+            return url
+          } else if (urlHost?.endsWith(".dweb") == true) {
+            return null
+          } else {
+            coroutineScope.launch {
+              dWebView.remoteMM.nativeFetch(buildUrlString("dweb://openinbrowser") {
+                parameters["url"] = url
+              })
+            }
+          }
+        }
+        return null
+      }
+      // 拦截当前页面的跳转
+      dWebView.overrideUrlLoading { url ->
+        println("QAQ overrideUrlLoading url=$url")
+        when (filterSafeUrl(url)) {
+          null -> UrlLoadingPolicy.Block
+          else -> UrlLoadingPolicy.Allow
+        }
+      }
+      // 拦截打开新窗口
+      dWebView.onCreateWindow { newWebView ->
+        println("QAQ onCreateWindow url=${newWebView.getUrl()}")
+        when (filterSafeUrl(newWebView.getUrl())) {
+          null -> newWebView.destroy()
+          else -> appendWebViewAsItem(newWebView)
         }
       }
       dWebView.onDestroy {

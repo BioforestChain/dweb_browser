@@ -29,7 +29,11 @@ import org.dweb_browser.dwebview.WebDownloadArgs
 import org.dweb_browser.dwebview.WebLoadState
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcherScriptMessageHandler
+import org.dweb_browser.dwebview.closeWatcher.hookCloseWatcher
 import org.dweb_browser.dwebview.debugDWebView
+import org.dweb_browser.dwebview.engine.DWebDelegate.hookBeforeUnload
+import org.dweb_browser.dwebview.engine.DWebDelegate.hookCreateWindow
+import org.dweb_browser.dwebview.engine.DWebDelegate.hookDeeplink
 import org.dweb_browser.dwebview.messagePort.DWebViewWebMessage
 import org.dweb_browser.dwebview.polyfill.DWebViewWebSocketMessageHandler
 import org.dweb_browser.dwebview.polyfill.DwebViewIosPolyfill
@@ -62,6 +66,7 @@ import platform.WebKit.WKAudiovisualMediaTypeNone
 import platform.WebKit.WKContentWorld
 import platform.WebKit.WKFrameInfo
 import platform.WebKit.WKPreferences
+import platform.WebKit.WKURLSchemeHandlerProtocol
 import platform.WebKit.WKUserScript
 import platform.WebKit.WKUserScriptInjectionTime
 import platform.WebKit.WKWebViewConfiguration
@@ -141,16 +146,27 @@ class DWebViewEngine(
     private fun registryDwebHttpUrlSchemeHandler(
       microModule: MicroModule.Runtime, configuration: WKWebViewConfiguration,
     ) {
-      val dwebSchemeHandler = DwebHttpURLSchemeHandler(microModule)
-      configuration.setURLSchemeHandler(dwebSchemeHandler, "dweb+http")
-      configuration.setURLSchemeHandler(dwebSchemeHandler, "dweb+https")
+      val dwebSchemeHandler by lazy { DwebHttpURLSchemeHandler(microModule) }
+      configuration.initDwebSchemeHandler("dweb+http") { dwebSchemeHandler }
+      configuration.initDwebSchemeHandler("dweb+https") { dwebSchemeHandler }
     }
 
     fun registryDwebSchemeHandler(
       microModule: MicroModule.Runtime, configuration: WKWebViewConfiguration,
     ) {
-      val dwebSchemeHandler = DwebURLSchemeHandler(microModule)
-      configuration.setURLSchemeHandler(dwebSchemeHandler, "dweb")
+      configuration.initDwebSchemeHandler("dweb") { DwebURLSchemeHandler(microModule) }
+    }
+
+    /**
+     * 避免重复初始化，因为 createWindow 的时候，传入的 configuration 可能是继承关系
+     */
+    private fun WKWebViewConfiguration.initDwebSchemeHandler(
+      forURLScheme: String,
+      handler: () -> WKURLSchemeHandlerProtocol,
+    ) {
+      if (null == urlSchemeHandlerForURLScheme(forURLScheme)) {
+        setURLSchemeHandler(handler(), forURLScheme)
+      }
     }
 
     // 删除指定MMID的数据存储
@@ -222,8 +238,15 @@ class DWebViewEngine(
     return safeUrl
   }
 
-  internal val dwebUIDelegate = DWebUIDelegate(this)
-  internal val dwebNavigationDelegate = DWebNavigationDelegate(this)
+  internal val dwebUIDelegate = DWebUIDelegate(this).apply {
+    hookCloseWatcher()
+    hookDeeplink()
+    hookCreateWindow()
+  }
+  internal val dwebNavigationDelegate = DWebNavigationDelegate(this).apply {
+    hookDeeplink()
+    hookBeforeUnload()
+  }
   internal val dwebUIScrollViewDelegate = DWebUIScrollViewDelegate(this)
   private val estimatedProgressObserver = DWebEstimatedProgressObserver(this)
   internal val titleObserver = DWebTitleObserver(this)
@@ -238,9 +261,10 @@ class DWebViewEngine(
     scrollView.setDelegate(dwebUIScrollViewDelegate)
 
     configuration.userContentController.apply {
-//      removeAllScriptMessageHandlers()
-//      removeAllScriptMessageHandlersFromContentWorld(DWebViewWebMessage.webMessagePortContentWorld)
-//      removeAllUserScripts()
+      removeAllScriptMessageHandlers()
+      removeAllScriptMessageHandlersFromContentWorld(DWebViewWebMessage.webMessagePortContentWorld)
+      removeAllUserScripts()
+
       addUserScript(
         WKUserScript(
           DwebViewIosPolyfill.CloseWatcher,

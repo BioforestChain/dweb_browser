@@ -2,9 +2,10 @@ package org.dweb_browser.dwebview
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -12,32 +13,40 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun IDWebView.rememberCanGoBack(): Boolean {
-  var canGoBack by remember { mutableStateOf(false) }
-  LaunchedEffect(this) {
-    canGoBack = historyCanGoBack()
-  }
-  DisposableEffect(this) {
-    val off = onLoadStateChange {
-      canGoBack = historyCanGoBack()
-    }
-    onDispose { off() }
-  }
-  return canGoBack
+  val canClose = rememberCloseWatcherCanClose()
+  val canBack = rememberHistoryCanGoBack()
+  return canClose || canBack
 }
 
 @Composable
-fun IDWebView.rememberCanGoForward(): Boolean {
-  var canGoForward by remember { mutableStateOf(false) }
-  LaunchedEffect(this) {
-    canGoForward = historyCanGoForward()
-  }
-  DisposableEffect(this) {
-    val off = onLoadStateChange {
-      canGoForward = historyCanGoForward()
+fun IDWebView.rememberCloseWatcherCanClose(): Boolean {
+  return closeWatcher.canCloseFlow.collectAsState().value
+}
+
+@Composable
+fun IDWebView.rememberHistoryCanGoBack(): Boolean {
+  return produceState(false) {
+    launch {
+      value = historyCanGoBack()
     }
-    onDispose { off() }
-  }
-  return canGoForward
+    val off = onLoadStateChange {
+      value = historyCanGoBack()
+    }
+    awaitDispose { off() }
+  }.value
+}
+
+@Composable
+fun IDWebView.rememberHistoryCanGoForward(): Boolean {
+  return produceState(false) {
+    launch {
+      value = historyCanGoForward()
+    }
+    val off = onLoadStateChange {
+      value = historyCanGoForward()
+    }
+    awaitDispose { off() }
+  }.value
 }
 
 @Composable
