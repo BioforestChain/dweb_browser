@@ -12,7 +12,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.common.WindowControllerBinding
-import org.dweb_browser.dwebview.Render
+import org.dweb_browser.dwebview.RenderWithScale
 import org.dweb_browser.dwebview.rememberCanGoBack
 import org.dweb_browser.dwebview.rememberCanGoForward
 import org.dweb_browser.sys.window.render.watchedIsMaximized
@@ -21,8 +21,6 @@ import org.dweb_browser.sys.window.render.watchedIsMaximized
 fun MultiWebViewController.Render(
   modifier: Modifier = Modifier,
   scale: Float,
-  width: Float,
-  height: Float,
 ) {
   var list by remember {
     mutableStateOf(listOf<MultiWebViewController.MultiViewItem>())
@@ -46,9 +44,7 @@ fun MultiWebViewController.Render(
       key(viewItem.webviewId) {
         viewItem.webView.apply {
           WindowControllerBinding()
-          /// 为了防止在窗口状态下，webview返回时失真问题。所以在webview加载完成后出发刷新
-          ScaleRender(scale)
-          Render(Modifier.fillMaxSize())
+          RenderWithScale(scale, Modifier.fillMaxSize())
         }
       }
     }

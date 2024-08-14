@@ -24,12 +24,11 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import org.dweb_browser.browser.common.loading.LoadingView
 import org.dweb_browser.browser.web.data.ConstUrl
-import org.dweb_browser.dwebview.AccompanistWebChromeClient
-import org.dweb_browser.dwebview.AccompanistWebView
-import org.dweb_browser.dwebview.AccompanistWebViewClient
-import org.dweb_browser.dwebview.LoadingState
-import org.dweb_browser.dwebview.WebContent
-import org.dweb_browser.dwebview.WebViewState
+import org.dweb_browser.common.webview.AccompanistWebChromeClient
+import org.dweb_browser.common.webview.AccompanistWebViewClient
+import org.dweb_browser.common.webview.LoadingState
+import org.dweb_browser.common.webview.WebContent
+import org.dweb_browser.common.webview.WebViewState
 import org.dweb_browser.helper.compose.NativeBackHandler
 
 

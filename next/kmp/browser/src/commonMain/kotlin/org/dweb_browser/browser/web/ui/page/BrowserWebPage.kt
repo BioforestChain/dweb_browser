@@ -11,18 +11,15 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.common.WindowControllerBinding
-import org.dweb_browser.browser.common.toWebColorScheme
 import org.dweb_browser.browser.web.data.WebSiteType
 import org.dweb_browser.browser.web.model.LocalBrowserViewModel
 import org.dweb_browser.browser.web.model.page.BrowserWebPage
 import org.dweb_browser.browser.web.model.toWebSiteInfo
-import org.dweb_browser.dwebview.Render
-import org.dweb_browser.dwebview.UnScaleBox
+import org.dweb_browser.dwebview.RenderWithScale
 import org.dweb_browser.helper.platform.IPureViewController
 import org.dweb_browser.helper.platform.isDesktop
 import org.dweb_browser.helper.withScope
 import org.dweb_browser.sys.window.render.LocalWindowController
-import org.dweb_browser.sys.window.render.watchedState
 
 @Composable
 internal fun BrowserWebPage.Effect() {
@@ -94,16 +91,7 @@ internal fun BrowserWebPage.BrowserWebPageRender(modifier: Modifier) {
     }
   } else {
     ///
-    UnScaleBox(scale, modifier) { // 对冲缩放
-      val win = LocalWindowController.current
-      val colorScheme by win.watchedState { colorScheme }
-      LaunchedEffect(colorScheme) {
-        webView.setPrefersColorScheme(colorScheme.toWebColorScheme())
-      }
-
-      /// 同步缩放量
-      webView.ScaleRender(scale)
-      webView.Render(Modifier.fillMaxSize())
-    }
+    webView.WindowControllerBinding()
+    webView.RenderWithScale(scale, modifier)
   }
 }

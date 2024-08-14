@@ -1,7 +1,7 @@
 package org.dweb_browser.dwebview
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import kotlinx.cinterop.BetaInteropApi
@@ -210,30 +210,13 @@ class DWebView private constructor(
     DWebMessageChannel(port1, port2)
   }
 
-  private var contentScale = 1f
-  override suspend fun setContentScale(scale: Float, width: Float, height: Float, density: Float) =
-    withMainContext {
-      if (contentScale != scale) {
-        contentScale = scale
-        effectEngineScale()
-      }
-    }
-
   private var renderScale = 1f
 
   @Composable
-  override fun ScaleRender(scale: Float) {
+  override fun ScaleEffect(scale: Float, modifier: Modifier) {
     if (renderScale != scale) {
       renderScale = scale
-      effectEngineScale()
-    }
-  }
-
-  internal val viewScale = mutableFloatStateOf(1f)
-  private fun effectEngineScale() {
-    (renderScale * contentScale).also { s ->
-      viewScale.floatValue = s
-      engine.setScale(s)
+      engine.setScale(scale)
     }
   }
 

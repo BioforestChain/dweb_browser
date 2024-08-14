@@ -278,12 +278,38 @@ class DWebViewEngine internal constructor(
     )
     setUA()
 
+    /**
+     * 是否启用 宽视口模式
+     * =false 就是标准模式。
+     *      但值得注意的是，如果此时通过 setInitialScale(!=0)，那么就会进入到“移动设备浏览器里的桌面模式”。
+     *      它会无视开发者定义的 meta-viewport，同时将会网页以硬件分辨率来渲染，此时用户可以自由缩放网页
+     *
+     * =true 那么就是强行模式，将强行使用 meta-viewport 来决定视图的大小，如果没有 meta-viewport，那么就使用webview的大小，
+     *    （此时 setInitialScale 将完全失效）
+     *
+     */
+    settings.useWideViewPort = false
+    /**
+     * 是否启用 概览模式
+     *
+     * 这是我能找到的官方对于 概览模式 的解释：
+     * [OverviewMode 概览模式](https://github.com/chromium/chromium/tree/cd77a10d7e6929e168da60723cbc7ac82262187c/ash/wm/overview#readme)
+     * OverviewMode shrinks all windows on the desktop so that they're simultaneously visible and interactable. It's activated by pressing the button where F5 would be on a normal keyboard. It's similar in effect to swiping three fingers on macOS.
+     * OverviewMode 会缩小桌面上的所有窗口，以便它们同时可见和可交互。它可以通过按下普通键盘上的 F5 按钮来激活。它的效果类似于在 macOS 上滑动三个手指。
+     *
+     * 也就是说，该值的设计，是用在网页进入小视图的预览模式时使用的，在小视窗里，为了尽可能好地展示网页内容，就会启用该值。
+     */
+    settings.loadWithOverviewMode = true
+    // 在 html 声明了 viewport 的情况下，允许根据 viewport 的声明来进行网页缩放
+    settings.setSupportZoom(true)
+    settings.builtInZoomControls = true
+    settings.displayZoomControls = false
+
     settings.domStorageEnabled = true
     settings.databaseEnabled = true
 
     settings.javaScriptEnabled = true
     settings.safeBrowsingEnabled = true
-    settings.loadWithOverviewMode = true
     settings.loadsImagesAutomatically = true
     settings.setSupportMultipleWindows(true)
     settings.allowFileAccess = true

@@ -18,7 +18,7 @@ import androidx.compose.ui.interop.UIKitView
 import androidx.compose.ui.platform.LocalDensity
 import kotlinx.cinterop.ExperimentalForeignApi
 import org.dweb_browser.browser.BrowserI18nResource
-import org.dweb_browser.dwebview.UnScaleBox
+import org.dweb_browser.helper.compose.UnScaleBox
 import platform.UIKit.UIView
 
 

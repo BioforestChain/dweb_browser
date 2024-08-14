@@ -17,6 +17,7 @@ import org.dweb_browser.helper.SafeInt
 import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.windowAdapterManager
+import org.dweb_browser.sys.window.core.withRenderScope
 
 typealias WEBVIEW_ID = String
 
@@ -48,7 +49,7 @@ class MultiWebViewController(
     val rid = win.id
     /// 提供渲染适配
     windowAdapterManager.provideRender(rid) { modifier ->
-      Render(modifier, scale, width, height) // 开始渲染
+      Render(modifier.withRenderScope(this), scale) // 开始渲染
     }
     /// 窗口销毁的时候
     win.onClose {
