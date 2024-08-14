@@ -157,41 +157,40 @@ class DWebView private constructor(internal val engine: DWebViewEngine, initUrl:
 
   private var renderScale = 1f
 
+  /**
+   * 以下是官方关于 setInitialScale 介绍：
+   * https://developer.android.com/reference/android/webkit/WebView#setInitialScale(int)
+   * ```md
+   * 1. setInitialScale 方法：该方法用于设置 WebView 的初始缩放级别。你提供的值决定了 WebView 首次加载时的缩放比例。
+   * 2. 值为 0：如果将初始缩放值设置为 0，则使用默认的缩放行为。
+   * 3. 默认缩放行为：
+   *    - 默认的缩放行为依赖于 WebView 的设置：
+   *    - useWideViewPort：如果启用了这个设置，WebView 将使用宽视口。
+   *    - loadWithOverviewMode：如果启用了这个设置，WebView 将以概览模式加载内容，使内容宽度适应 WebView 的宽度。
+   * 4. 缩放行为：
+   *    - 如果内容的宽度适合 WebView，则默认缩放级别设置为 100%。
+   *    - 对于宽内容，是否进行缩放取决于 loadWithOverviewMode 设置：
+   *    - 为真（True）：内容会被缩小以适应 WebView 的宽度。
+   *    - 为假（False）：内容不会被缩小，它会保持自然大小。
+   * 5. 自定义初始缩放：
+   *    - 如果设置一个大于 0 的初始缩放值，WebView 将以该缩放级别开始显示内容。
+   * 6. 关于屏幕密度的说明：
+   *    - 与 HTML 中的 viewport meta 标签设置不同，setInitialScale 方法不会考虑设备的屏幕密度。
+   *
+   * 总结来说，setInitialScale 方法允许你控制 WebView 的初始缩放级别。如果使用默认值（0），缩放级别将根据 WebView 的设置和内容宽度处理方式来确定。
+   * ```
+   *
+   * 配合我在代码中注释里对于 settings.useWideViewPort 与 settings.loadWithOverviewMode 的解释。
+   * 这里给出如下方案来实现网页缩放需求：
+   *
+   * 1. 如果scale==100，那么使用标准模式
+   * 2. 如果scale!=100，那么使用概览模式
+   *    使用概览模式的缺陷在于，用户能强行进行手势对网页进行缩放操作，缩放到标准模式的大小
+   *
+   * 注意，网页的缩放不可以用 view.scaleX/scaleY，它会导致一些原生控件未知的渲染异常，比方说 text-range 的选择器错位
+   */
   @Composable
   override fun ScaleEffect(scale: Float, modifier: Modifier) {
-
-    /**
-     * 以下是官方关于 setInitialScale 介绍：
-     * https://developer.android.com/reference/android/webkit/WebView#setInitialScale(int)
-     * ```md
-     * 1. setInitialScale 方法：该方法用于设置 WebView 的初始缩放级别。你提供的值决定了 WebView 首次加载时的缩放比例。
-     * 2. 值为 0：如果将初始缩放值设置为 0，则使用默认的缩放行为。
-     * 3. 默认缩放行为：
-     *    - 默认的缩放行为依赖于 WebView 的设置：
-     *    - useWideViewPort：如果启用了这个设置，WebView 将使用宽视口。
-     *    - loadWithOverviewMode：如果启用了这个设置，WebView 将以概览模式加载内容，使内容宽度适应 WebView 的宽度。
-     * 4. 缩放行为：
-     *    - 如果内容的宽度适合 WebView，则默认缩放级别设置为 100%。
-     *    - 对于宽内容，是否进行缩放取决于 loadWithOverviewMode 设置：
-     *    - 为真（True）：内容会被缩小以适应 WebView 的宽度。
-     *    - 为假（False）：内容不会被缩小，它会保持自然大小。
-     * 5. 自定义初始缩放：
-     *    - 如果设置一个大于 0 的初始缩放值，WebView 将以该缩放级别开始显示内容。
-     * 6. 关于屏幕密度的说明：
-     *    - 与 HTML 中的 viewport meta 标签设置不同，setInitialScale 方法不会考虑设备的屏幕密度。
-     *
-     * 总结来说，setInitialScale 方法允许你控制 WebView 的初始缩放级别。如果使用默认值（0），缩放级别将根据 WebView 的设置和内容宽度处理方式来确定。
-     * ```
-     *
-     * 配合我在代码中注释里对于 settings.useWideViewPort 与 settings.loadWithOverviewMode 的解释。
-     * 这里给出如下方案来实现网页缩放需求：
-     *
-     * 1. 如果scale==100，那么使用标准模式
-     * 2. 如果scale!=100，那么使用概览模式
-     *    使用概览模式的缺陷在于，用户能强行进行手势对网页进行缩放操作，缩放到标准模式的大小
-     *
-     * 注意，网页的缩放不可以用 view.scaleX/scaleY，它会导致一些原生控件未知的渲染异常，比方说 text-range 的选择器错位
-     */
     if (renderScale != scale) {
       renderScale = scale
       if (scale == 1f) {
