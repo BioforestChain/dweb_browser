@@ -4,7 +4,7 @@ import { doBundleCommand } from "./bundle.ts";
 import { doConfigCommand } from "./config.ts";
 import { Command } from "./deps/cliffy.ts";
 import { doInitCommand } from "./init.ts";
-import { doServeCommand } from "./serve.ts";
+import { doLiveCommand } from "./live.ts";
 import { doWebAdvCommand } from "./web-dav.ts";
 // import { doHookServer } from "./server/index.ts";
 
@@ -40,8 +40,8 @@ await new Command()
   .example("init app name", "plaoc init xxx-app")
   .example("init current workspace", "plaoc init")
 
-  .command("serve", doServeCommand)
-  .example("developer service", "plaoc serve http://xx.xx.xx.xx:xxxx/")
+  .command("live", doLiveCommand)
+  .example("live edit mode", "plaoc live http://xx.xx.xx.xx:xxxx/")
 
   .command("bundle", doBundleCommand)
   .example("Packaging can only deliver static folders", "plaoc bundle ./dist")

@@ -1,19 +1,17 @@
 import { Command } from "./deps/cliffy.ts";
 import { node_crypto, node_fs, node_path } from "./deps/node.ts";
-import type { $BundleOptions } from "./helper/const.ts";
-import {
-  BackendServerGenerator,
-  BundleZipGenerator,
-  MetadataJsonGenerator,
-  NameFlagHelper,
-  PlaocJsonGenerator,
-} from "./helper/generator.ts";
+import { SERVE_MODE, type $BundleOptions, type $ServeOptions } from "./helper/const.ts";
+import { BundleResourceNameHelper, MetadataJsonGenerator, injectPrepare } from "./helper/generator.ts";
+import { startServe } from "./serve.ts";
 
 export const doBundleCommand = new Command()
   .arguments("<web_public:string>")
   .description("Packaged source code folder.")
   .option("-o --out <out:string>", "Output directory.", {
     default: "bundle",
+  })
+  .option("-p --port <port:string>", "Service port.", {
+    default: "8096",
   })
   .option("--id <id:string>", "Set app id")
   .option("-v --version <version:string>", "Set app packaging version.")
@@ -23,9 +21,13 @@ export const doBundleCommand = new Command()
   )
   .option("-s --web-server <serve:string>", "Specify the path of the programmable backend. ")
   .option("--clear <clear:boolean>", "Empty the cache.", { default: true })
-  .option("-d --dev <dev:boolean>", "Enable development mode.")
+  .option("-w --watch <dev:boolean>", "Enable serve mode.", { default: false })
   .action((options, arg1) => {
-    doBundle({ ...options, webPublic: arg1 } satisfies $BundleOptions);
+    if (options.watch) {
+      startServe({ ...options, webPublic: arg1 } satisfies $ServeOptions);
+    } else {
+      doBundle({ ...options, webPublic: arg1, mode: SERVE_MODE.PROD } satisfies $BundleOptions);
+    }
   });
 
 /**
@@ -36,13 +38,7 @@ export const doBundleCommand = new Command()
  */
 export const doBundle = async (flags: $BundleOptions) => {
   const metadataFlagHelper = new MetadataJsonGenerator(flags);
-  // 注入plaoc.json
-  const plaocHelper = new PlaocJsonGenerator(flags);
-  // 尝试注入可编程后端
-  const injectServer = new BackendServerGenerator(flags);
-  const data = metadataFlagHelper.readMetadata();
-  const bundleFlagHelper = new BundleZipGenerator(flags, plaocHelper, injectServer, data.id);
-  const nameFlagHelper = new NameFlagHelper(flags, metadataFlagHelper);
+  const { bundleFlagHelper, bundleResourceNameHelper } = injectPrepare(flags, metadataFlagHelper);
 
   const outDir = node_path.resolve(Deno.cwd(), flags.out);
 
@@ -59,7 +55,7 @@ export const doBundle = async (flags: $BundleOptions) => {
   }
   /// 先写入bundle.zip
   node_fs.writeFileSync(
-    node_path.resolve(outDir, nameFlagHelper.bundleName),
+    node_path.resolve(outDir, bundleResourceNameHelper.bundleName()),
     await (
       await bundleFlagHelper.bundleZip()
     ).generateAsync({ type: "nodebuffer", compression: "DEFLATE", compressionOptions: { level: 9 } })
@@ -75,9 +71,12 @@ export const doBundle = async (flags: $BundleOptions) => {
   const metadata = metadataFlagHelper.readMetadata(true);
   metadata.bundle_size = zipData.byteLength;
   metadata.bundle_hash = "sha256:" + hasher.digest("hex");
-  metadata.bundle_url = `./${nameFlagHelper.bundleName}`;
+  metadata.bundle_url = `./${bundleResourceNameHelper.bundleName()}`;
   /// 写入metadata.json
-  node_fs.writeFileSync(node_path.resolve(outDir, nameFlagHelper.metadataName), JSON.stringify(metadata, null, 2));
+  node_fs.writeFileSync(
+    node_path.resolve(outDir, BundleResourceNameHelper.metadataName),
+    JSON.stringify(metadata, null, 2)
+  );
   /// jszip 会导致程序一直开着，需要手动关闭
   Deno.exit();
 };

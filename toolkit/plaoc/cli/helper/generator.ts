@@ -301,19 +301,31 @@ export class BundleZipGenerator {
   }
 }
 
-export type $NameFlagHelperOptions = {
-  id?: string;
-  version?: string;
-  _?: unknown[];
-};
-export class NameFlagHelper {
-  get bundleName() {
-    const metadata = this.metadataFlagHelper.readMetadata();
+export class BundleResourceNameHelper {
+  static readonly metadataName = "metadata.json";
+
+  constructor(readonly metadataFlagHelper: MetadataJsonGenerator) {}
+
+  bundleName(force: boolean = false) {
+    const metadata = this.metadataFlagHelper.readMetadata(force);
     return `${metadata.id}-${metadata.version}.zip`;
   }
-  readonly bundleMime = "application/zip";
-  readonly metadataName = "metadata.json";
-  readonly metadataMime = "application/json";
-
-  constructor(readonly flags: $NameFlagHelperOptions, readonly metadataFlagHelper: MetadataJsonGenerator) {}
 }
+
+/**
+ * 注入plaoc.json 和 可编程后端
+ * @param flags 
+ * @param metadataFlagHelper 
+ * @returns 
+ */
+export const injectPrepare = (flags: $MetadataJsonGeneratorOptions, metadataFlagHelper: MetadataJsonGenerator) => {
+  // 注入plaoc.json
+  const plaocHelper = new PlaocJsonGenerator(flags);
+  // 尝试注入可编程后端
+  const injectServer = new BackendServerGenerator(flags);
+  const data = metadataFlagHelper.readMetadata();
+  const bundleFlagHelper = new BundleZipGenerator(flags, plaocHelper, injectServer, data.id);
+  const bundleResourceNameHelper = new BundleResourceNameHelper(metadataFlagHelper);
+
+  return { bundleFlagHelper, bundleResourceNameHelper };
+};

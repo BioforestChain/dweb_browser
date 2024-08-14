@@ -2,19 +2,17 @@ import type { $JmmAppInstallManifest } from "../deps/dweb-browser/core.ts";
 
 export type $BundleOptions = $MetadataJsonGeneratorOptions & {
   clear?: boolean;
-  dev?: boolean;
+  watch?: boolean;
   out: string;
 };
 
 export type $ServeOptions = $MetadataJsonGeneratorOptions & {
   port: string;
-  mode?: string;
-  dev: boolean;
 };
 
 export type $MetadataJsonGeneratorOptions = {
   webPublic: string;
-  mode?: unknown;
+  mode?: SERVE_MODE;
   dev?: boolean;
   version?: string;
   id?: string;
