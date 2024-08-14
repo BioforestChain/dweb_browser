@@ -1,7 +1,7 @@
 package org.dweb_browser.helper
 
-fun android.graphics.RectF.toRect() = PureRect(x = left, y = top, width = width(), height = height())
-fun android.graphics.Rect.toRect(density: Float = 1f) = PureRect(
+public fun android.graphics.RectF.toRect(): PureRect = PureRect(x = left, y = top, width = width(), height = height())
+public fun android.graphics.Rect.toRect(density: Float = 1f): PureRect = PureRect(
   x = left / density,
   y = top / density,
   width = width() / density,

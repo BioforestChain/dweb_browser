@@ -6,11 +6,11 @@ import java.security.MessageDigest
 
 private val shaLock = Mutex()
 
-actual suspend fun sha256(data: ByteArray) = shaLock.withLock { common_sha256(data) }
-actual suspend fun sha256(data: String) = shaLock.withLock { common_sha256(data) }
-actual fun sha256Sync(data: ByteArray) = jvmSha256(data)
+public actual suspend fun sha256(data: ByteArray): ByteArray = shaLock.withLock { common_sha256(data) }
+public actual suspend fun sha256(data: String): ByteArray = shaLock.withLock { common_sha256(data) }
+public actual fun sha256Sync(data: ByteArray): ByteArray = jvmSha256(data)
 
-fun jvmSha256(data: ByteArray): ByteArray {
+public fun jvmSha256(data: ByteArray): ByteArray {
   val sha256Digest = MessageDigest.getInstance("SHA-256")
   sha256Digest.update(data)
   return sha256Digest.digest()

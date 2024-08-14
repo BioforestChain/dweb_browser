@@ -90,7 +90,7 @@ allprojects {
     
     public object CommonBuildConfig {
       public val switchMaps: Map<String, String> = mapOf(
-      ${keyValuePairCodes.joinToString(",\n    ")}
+        ${keyValuePairCodes.joinToString(",\n        ")}
       )
     }
     """.trimIndent()

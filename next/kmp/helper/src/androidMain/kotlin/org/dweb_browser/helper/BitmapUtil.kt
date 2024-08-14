@@ -18,12 +18,12 @@ import java.io.FileOutputStream
 
 @Deprecated("should not use BitmapUtil")
 @Suppress("DEPRECATION")
-object BitmapUtil {
+public object BitmapUtil {
   /**
    * 获取手机里视频缩略图
    */
   @SuppressLint("Range")
-  fun getVideoThumbnail(cr: ContentResolver, uri: Uri): Bitmap? {
+  public fun getVideoThumbnail(cr: ContentResolver, uri: Uri): Bitmap? {
     val options = BitmapFactory.Options()
     options.inDither = false
     options.inPreferredConfig = Bitmap.Config.ARGB_8888
@@ -55,7 +55,7 @@ object BitmapUtil {
    * @param height 指定输出图像的高度
    * @return 生成的缩略图
    */
-  fun getImageThumbnail(imagePath: String, width: Int, height: Int): Bitmap? {
+  public fun getImageThumbnail(imagePath: String, width: Int, height: Int): Bitmap? {
     var options = BitmapFactory.Options()
     options.inJustDecodeBounds = true
     // 获取这个图片的宽和高，注意此处的bitmap为null
@@ -97,7 +97,7 @@ object BitmapUtil {
    * 其中，MINI_KIND: 512 x 384，MICRO_KIND: 96 x 96
    * @return 指定大小的视频缩略图
    */
-  fun getVideoThumbnail(
+  public fun getVideoThumbnail(
     videoPath: String, width: Int, height: Int, kind: Int = MINI_KIND,
   ): Bitmap? {
     // 获取视频的缩略图
@@ -119,7 +119,7 @@ object BitmapUtil {
    * 其中，MINI_KIND: 512 x 384，MICRO_KIND: 96 x 96
    * @return 指定大小的视频缩略图
    */
-  fun getVideoThumbnail(videoPath: String, size: Int, kind: Int = MINI_KIND): Bitmap? {
+  public fun getVideoThumbnail(videoPath: String, size: Int, kind: Int = MINI_KIND): Bitmap? {
     // 获取视频的缩略图
     return ThumbnailUtils.extractThumbnail(
       ThumbnailUtils.createVideoThumbnail(videoPath, kind),
@@ -129,7 +129,7 @@ object BitmapUtil {
     )
   }
 
-  fun decodeBitmapFromResource(context: Context, @DrawableRes drawableId: Int): Bitmap? {
+  public fun decodeBitmapFromResource(context: Context, @DrawableRes drawableId: Int): Bitmap? {
     return ContextCompat.getDrawable(context, drawableId)?.let { drawable ->
       Bitmap.createBitmap(
         drawable.intrinsicWidth, drawable.intrinsicHeight, Bitmap.Config.ARGB_8888
@@ -141,7 +141,7 @@ object BitmapUtil {
     }
   }
 
-  fun saveBitmapToIcons(context: Context, bitmap: Bitmap): String? {
+  public fun saveBitmapToIcons(context: Context, bitmap: Bitmap): String? {
     try {
       val fileName = "${System.currentTimeMillis()}.png"
       val fos = FileOutputStream(getIconsFile(context, fileName))
@@ -165,7 +165,7 @@ object BitmapUtil {
     }
   }
 
-  fun saveBase64ToFile(filePath: String, data: String) {
+  public fun saveBase64ToFile(filePath: String, data: String) {
     val fos = FileOutputStream(filePath)
     fos.write(data.base64Binary)
     fos.flush()
