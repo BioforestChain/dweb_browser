@@ -368,6 +368,7 @@ class DWebViewEngine internal constructor(
   internal val createWebMessagePortPicker = setupWebMessagePicker(this)
   val iconBitmapFlow = setupIconBitmapFlow(this)
   internal val fileChooser = setupFileChooser(this)
+  val startNavigationHooks = setupStartNavigationHooks(this)
 
   init {
 

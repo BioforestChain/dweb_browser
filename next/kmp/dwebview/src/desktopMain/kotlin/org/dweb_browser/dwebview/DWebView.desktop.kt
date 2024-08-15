@@ -65,6 +65,10 @@ class DWebView(
     return viewEngine.getOriginalUrl()
   }
 
+  override fun overrideUrlLoading(onUrlLoading: (url: String) -> UrlLoadingPolicy) {
+    viewEngine.startNavigationHooks.add(onUrlLoading)
+  }
+
   override suspend fun resolveUrl(url: String): String = viewEngine.resolveUrl(url)
 
   override suspend fun getOriginalUrl(): String {
