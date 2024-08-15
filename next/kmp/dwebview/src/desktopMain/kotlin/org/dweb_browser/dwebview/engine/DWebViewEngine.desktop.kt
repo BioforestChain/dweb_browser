@@ -28,9 +28,9 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.dwebview.CloseWatcher
 import org.dweb_browser.dwebview.DWebViewOptions
@@ -180,12 +180,23 @@ class DWebViewEngine internal constructor(
     return deferred.await()
   }
 
-  suspend fun loadUrl(url: String) {
+  fun loadUrl(url: String) {
     val safeUrl = resolveUrl(url)
-    browser.navigation().loadUrl(safeUrl)
+    browser.navigation().apply {
+      when {
+        canGoBack() -> loadUrl(safeUrl)
+        // 因为桌面端的起始url是 about:blank ，所以这里用 replace 来加载出事页面
+        url == "about:blank" -> replaceUrl(url)
+        else -> loadUrl(safeUrl)
+      }
+    }
   }
 
-  suspend fun loadUrl(url: String, additionalHttpHeaders: MutableMap<String, String>) {
+  private fun replaceUrl(url: String) {
+    evaluateSyncJavascriptFunctionBody("location.replace(${Json.encodeToString(url)})")
+  }
+
+  fun loadUrl(url: String, additionalHttpHeaders: MutableMap<String, String>) {
     val safeUrl = resolveUrl(url)
     val loadUrlParams = LoadUrlParams.newBuilder(safeUrl)
     additionalHttpHeaders.forEach { (key, value) ->
@@ -429,15 +440,11 @@ class DWebViewEngine internal constructor(
     })
 
     if (options.url.isNotEmpty()) {
-      lifecycleScope.launch {
-        loadUrl(options.url)
-      }
+      loadUrl(options.url)
     }
     if (options.openDevTools) {
       browser.devTools().show()
     }
   }
-
-
 }
 
