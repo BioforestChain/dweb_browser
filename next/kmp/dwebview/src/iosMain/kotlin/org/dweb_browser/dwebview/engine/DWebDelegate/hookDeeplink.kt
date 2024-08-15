@@ -11,7 +11,7 @@ import org.dweb_browser.dwebview.engine.DWebViewEngine
 import platform.Foundation.NSURLRequest
 
 internal fun DWebNavigationDelegate.hookDeeplink() {
-  decidePolicyForNavigationActionHooks.add { _, decidePolicyForNavigationAction ->
+  decidePolicyForNavigationActionHooks.add {
     when (engine.hookDeeplink(decidePolicyForNavigationAction.request)) {
       true -> UrlLoadingPolicy.Block
       else -> UrlLoadingPolicy.Allow
@@ -22,7 +22,7 @@ internal fun DWebNavigationDelegate.hookDeeplink() {
 
 internal fun DWebUIDelegate.hookDeeplink() {
   createWebViewHooks.add {
-    return@add when (engine.hookDeeplink( forNavigationAction.request)) {
+    return@add when (engine.hookDeeplink(forNavigationAction.request)) {
       true -> DWebUIDelegate.CreateWebViewHookPolicyDeny
       else -> DWebUIDelegate.CreateWebViewHookPolicyContinue
     }

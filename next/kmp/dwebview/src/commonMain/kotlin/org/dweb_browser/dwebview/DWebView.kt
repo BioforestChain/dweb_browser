@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -131,7 +132,7 @@ abstract class IDWebView(initUrl: String?) {
   internal abstract suspend fun startLoadUrl(url: String): String
 
   private val urlState by lazy {
-    UrlState(this@IDWebView, if (initUrl.isNullOrEmpty()) "about:blank" else initUrl, true)
+    UrlState(this@IDWebView)
   }
 
   suspend fun loadUrl(url: String, force: Boolean = false): String {
@@ -226,8 +227,10 @@ abstract class IDWebView(initUrl: String?) {
   abstract suspend fun setSafeAreaInset(bounds: PureBounds)
 
   abstract val onDestroy: Signal.Listener<Unit>
-  abstract val onLoadStateChange: Signal.Listener<WebLoadState>
-  abstract val onReady: Signal.Listener<String>
+  abstract val loadStateFlow: StateFlow<WebLoadState>
+  val onReady
+    get() = loadStateFlow.mapNotNull { if (it is WebLoadSuccessState) it.url else null }
+
   abstract val onBeforeUnload: Signal.Listener<WebBeforeUnloadArgs>
   abstract val loadingProgressFlow: StateFlow<Float>
   internal abstract val closeWatcherLazy: RememberLazy<ICloseWatcher>
@@ -267,15 +270,13 @@ abstract class IDWebView(initUrl: String?) {
           started = SharingStarted.Eagerly,
           initialValue = "${getUrl()} - ${getTitle()}"
         );
-        registryDevtoolsTray(
-          remoteMM as NativeMicroModule.NativeRuntime,
+        registryDevtoolsTray(remoteMM as NativeMicroModule.NativeRuntime,
           devtoolsItemTrayId,
           trayTitleFlow,
           openDevTool = ::openDevTool,
           onDestroy = { handler ->
             onDestroy { handler() }
-          }
-        )
+          })
       }
     }
   }
@@ -326,17 +327,13 @@ class WebBeforeUnloadHook(val message: String) {
 }
 
 enum class UrlLoadingPolicy {
-  Allow,
-  Block,
+  Allow, Block,
 }
 
-sealed class WebLoadState {};
-class WebLoadStartState(val url: String) : WebLoadState();
-class WebLoadSuccessState(val url: String) : WebLoadState();
-class WebLoadErrorState(val url: String, val errorMessage: String) : WebLoadState();
-
-fun Signal<WebLoadState>.toReadyListener() =
-  createChild({ if (it is WebLoadSuccessState) it else null }, { it.url }).toListener()
+sealed class WebLoadState(val url: String) {};
+class WebLoadStartState(url: String) : WebLoadState(url)
+class WebLoadSuccessState(url: String) : WebLoadState(url)
+class WebLoadErrorState(url: String, val errorMessage: String) : WebLoadState(url)
 
 enum class WebColorScheme {
   Normal, Dark, Light,

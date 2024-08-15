@@ -24,14 +24,11 @@ import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.ProfileNameV1
 import org.dweb_browser.dwebview.WKWebViewProfile
-import org.dweb_browser.dwebview.WebBeforeUnloadArgs
 import org.dweb_browser.dwebview.WebDownloadArgs
-import org.dweb_browser.dwebview.WebLoadState
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcherScriptMessageHandler
 import org.dweb_browser.dwebview.closeWatcher.hookCloseWatcher
 import org.dweb_browser.dwebview.debugDWebView
-import org.dweb_browser.dwebview.engine.DWebDelegate.hookBeforeUnload
 import org.dweb_browser.dwebview.engine.DWebDelegate.hookCreateWindow
 import org.dweb_browser.dwebview.engine.DWebDelegate.hookDeeplink
 import org.dweb_browser.dwebview.messagePort.DWebViewWebMessage
@@ -39,7 +36,6 @@ import org.dweb_browser.dwebview.polyfill.DWebViewWebSocketMessageHandler
 import org.dweb_browser.dwebview.polyfill.DwebViewIosPolyfill
 import org.dweb_browser.dwebview.polyfill.FaviconPolyfill
 import org.dweb_browser.dwebview.proxy.DwebViewProxy
-import org.dweb_browser.dwebview.toReadyListener
 import org.dweb_browser.dwebview.wkWebsiteDataStore
 import org.dweb_browser.helper.JsonLoose
 import org.dweb_browser.helper.PureBounds
@@ -47,6 +43,7 @@ import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.platform.toImageBitmap
+import org.dweb_browser.helper.some
 import org.dweb_browser.helper.toIosUIEdgeInsets
 import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.platform.ios.DwebHelper
@@ -67,6 +64,7 @@ import platform.WebKit.WKContentWorld
 import platform.WebKit.WKFrameInfo
 import platform.WebKit.WKPreferences
 import platform.WebKit.WKURLSchemeHandlerProtocol
+import platform.WebKit.WKUserContentController
 import platform.WebKit.WKUserScript
 import platform.WebKit.WKUserScriptInjectionTime
 import platform.WebKit.WKWebViewConfiguration
@@ -86,8 +84,7 @@ class DWebViewEngine(
   configuration: WKWebViewConfiguration,
 
   private val profile: WKWebViewProfile = ProfileNameV1(
-    remoteMM.mmid,
-    options.profile
+    remoteMM.mmid, options.profile
   ).let { profileName ->
     when (val sessionId = options.incognitoSessionId) {
       // 开启WKWebView数据隔离
@@ -123,9 +120,6 @@ class DWebViewEngine(
   val mainScope = CoroutineScope(mainAsyncExceptionHandler + SupervisorJob())
   val lifecycleScope = CoroutineScope(remoteMM.getRuntimeScope().coroutineContext + SupervisorJob())
 
-  val loadStateChangeSignal = Signal<WebLoadState>()
-  val onReady by lazy { loadStateChangeSignal.toReadyListener() }
-  val beforeUnloadSignal = Signal<WebBeforeUnloadArgs>()
   val loadingProgressStateFlow = MutableStateFlow<Float>(1f)
   val closeSignal = SimpleSignal()
   val createWindowSignal = Signal<IDWebView>()
@@ -245,11 +239,16 @@ class DWebViewEngine(
   }
   internal val dwebNavigationDelegate = DWebNavigationDelegate(this).apply {
     hookDeeplink()
-    hookBeforeUnload()
   }
   internal val dwebUIScrollViewDelegate = DWebUIScrollViewDelegate(this)
   private val estimatedProgressObserver = DWebEstimatedProgressObserver(this)
   internal val titleObserver = DWebTitleObserver(this)
+
+  internal val urlObserver = DWebUrlObserver(this)
+  val loadStateFlow =
+    setupLoadStateFlow(this, dwebNavigationDelegate, urlObserver, configuration, options.url)
+  val beforeUnloadSignal =
+    setupBeforeUnloadSignal(this, dwebNavigationDelegate, loadStateFlow)
 
   init {
     // https://stackoverflow.com/questions/77078328/warning-prints-in-console-when-using-webkit-to-load-youtube-video
@@ -261,44 +260,52 @@ class DWebViewEngine(
     scrollView.setDelegate(dwebUIScrollViewDelegate)
 
     configuration.userContentController.apply {
-      removeAllScriptMessageHandlers()
-      removeAllScriptMessageHandlersFromContentWorld(DWebViewWebMessage.webMessagePortContentWorld)
-      removeAllUserScripts()
+//      removeAllScriptMessageHandlers()
+//      removeAllScriptMessageHandlersFromContentWorld(DWebViewWebMessage.webMessagePortContentWorld)
+//      removeAllUserScripts()
 
-      addUserScript(
-        WKUserScript(
-          DwebViewIosPolyfill.CloseWatcher,
-          WKUserScriptInjectionTime.WKUserScriptInjectionTimeAtDocumentStart,
-          false,
+      ifNoDefineUserScript(DwebViewIosPolyfill.CloseWatcher) {
+        addUserScript(
+          WKUserScript(
+            source = DwebViewIosPolyfill.CloseWatcher,
+            injectionTime = WKUserScriptInjectionTime.WKUserScriptInjectionTimeAtDocumentStart,
+            forMainFrameOnly = false,
+          )
         )
-      )
-      addScriptMessageHandler(CloseWatcherScriptMessageHandler(this@DWebViewEngine), "closeWatcher")
-      addScriptMessageHandler(
-        DWebViewWebMessage.WebMessagePortMessageHandler(),
-        DWebViewWebMessage.webMessagePortContentWorld,
-        "webMessagePort"
-      )
-      addUserScript(
-        WKUserScript(
-          DWebViewWebMessage.WebMessagePortPrepareCode,
-          WKUserScriptInjectionTime.WKUserScriptInjectionTimeAtDocumentEnd,
-          false,
-          DWebViewWebMessage.webMessagePortContentWorld
+        addScriptMessageHandler(
+          scriptMessageHandler = CloseWatcherScriptMessageHandler(this@DWebViewEngine),
+          name = "closeWatcher"
         )
-      )
-
-      addUserScript(
-        WKUserScript(
-          DwebViewIosPolyfill.WebSocket,
-          WKUserScriptInjectionTime.WKUserScriptInjectionTimeAtDocumentStart,
-          false,
+      }
+      ifNoDefineUserScript(DWebViewWebMessage.WebMessagePortPrepareCode) {
+        addScriptMessageHandler(
+          scriptMessageHandler = DWebViewWebMessage.WebMessagePortMessageHandler(),
+          contentWorld = DWebViewWebMessage.webMessagePortContentWorld,
+          name = "webMessagePort"
         )
-      )
-      addScriptMessageHandlerWithReply(
-        scriptMessageHandlerWithReply = DWebViewWebSocketMessageHandler(this@DWebViewEngine),
-        contentWorld = WKContentWorld.pageWorld,
-        name = "websocket"
-      )
+        addUserScript(
+          WKUserScript(
+            source = DWebViewWebMessage.WebMessagePortPrepareCode,
+            injectionTime = WKUserScriptInjectionTime.WKUserScriptInjectionTimeAtDocumentEnd,
+            forMainFrameOnly = false,
+            inContentWorld = DWebViewWebMessage.webMessagePortContentWorld
+          )
+        )
+      }
+      ifNoDefineUserScript(DwebViewIosPolyfill.WebSocket) {
+        addUserScript(
+          WKUserScript(
+            source = DwebViewIosPolyfill.WebSocket,
+            injectionTime = WKUserScriptInjectionTime.WKUserScriptInjectionTimeAtDocumentStart,
+            forMainFrameOnly = false,
+          )
+        )
+        addScriptMessageHandlerWithReply(
+          scriptMessageHandlerWithReply = DWebViewWebSocketMessageHandler(this@DWebViewEngine),
+          contentWorld = WKContentWorld.pageWorld,
+          name = "websocket"
+        )
+      }
     }
 
     // 初始化设置 userAgent
@@ -353,8 +360,7 @@ class DWebViewEngine(
   override fun setFrame(frame: CValue<CGRect>) {
     super.setFrame(frame)
     scrollView.contentInset = cValue { UIEdgeInsetsZero };
-    if (!UIEdgeInsetsEqualToEdgeInsets(
-        scrollView.adjustedContentInset,
+    if (!UIEdgeInsetsEqualToEdgeInsets(scrollView.adjustedContentInset,
         cValue { UIEdgeInsetsZero })
     ) {
       val insetToAdjust = scrollView.adjustedContentInset;
@@ -520,4 +526,11 @@ class DWebViewEngine(
     mainScope.cancel(null)
     lifecycleScope.cancel(null)
   }
+}
+
+fun WKUserContentController.ifNoDefineUserScript(source: String, handler: () -> Unit) {
+  if (userScripts.some { (it as WKUserScript).source == source }) {
+    return
+  }
+  handler()
 }

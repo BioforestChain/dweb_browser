@@ -15,22 +15,24 @@ import platform.WebKit.WKUserScriptInjectionTime
 
 fun setupIconFlow(engine: DWebViewEngine) = MutableStateFlow("").also { stateFlow ->
   engine.configuration.userContentController.apply {
-    addScriptMessageHandler(
-      scriptMessageHandler = DWebViewFaviconMessageHandler { iconHref ->
-        stateFlow.value = iconHref
-        engine.setIcon(iconHref)
-      },
-      contentWorld = FaviconPolyfill.faviconContentWorld,
-      name = "favicons"
-    )
-    addUserScript(
-      WKUserScript(
-        DwebViewIosPolyfill.Favicon,
-        WKUserScriptInjectionTime.WKUserScriptInjectionTimeAtDocumentStart,
-        true,
-        FaviconPolyfill.faviconContentWorld,
-      ),
-    )
+    ifNoDefineUserScript(DwebViewIosPolyfill.Favicon) {
+      addScriptMessageHandler(
+        scriptMessageHandler = DWebViewFaviconMessageHandler { iconHref ->
+          stateFlow.value = iconHref
+          engine.setIcon(iconHref)
+        },
+        contentWorld = FaviconPolyfill.faviconContentWorld,
+        name = "favicons"
+      )
+      addUserScript(
+        WKUserScript(
+          source = DwebViewIosPolyfill.Favicon,
+          injectionTime = WKUserScriptInjectionTime.WKUserScriptInjectionTimeAtDocumentStart,
+          forMainFrameOnly = true,
+          inContentWorld = FaviconPolyfill.faviconContentWorld,
+        ),
+      )
+    }
   }
 }
 

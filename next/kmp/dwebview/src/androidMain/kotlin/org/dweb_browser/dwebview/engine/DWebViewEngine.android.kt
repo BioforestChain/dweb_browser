@@ -115,10 +115,6 @@ class DWebViewEngine internal constructor(
 
   internal val lifecycleScope = remoteMM.getRuntimeScope() + SupervisorJob()
 
-  suspend fun waitReady() {
-    dWebViewClient.onReady.awaitOnce()
-  }
-
   private val evaluator = WebViewEvaluator(this, lifecycleScope)
   suspend fun getUrlInMain() = withMainContext { url }
 
@@ -234,6 +230,8 @@ class DWebViewEngine internal constructor(
   }
 
   internal val dWebDownloadListener = DWebDownloadListener(this)
+
+  val loadStateFlow = setupLoadStateFlow(this, options.url)
 
   fun addDownloadListener(listener: DownloadListener): () -> Boolean {
     dWebDownloadListener.addDownloadListener(listener)

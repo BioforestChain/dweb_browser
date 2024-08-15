@@ -281,8 +281,7 @@ class DWebView private constructor(internal val engine: DWebViewEngine, initUrl:
 
   override val onDestroy by lazy { engine.destroyStateSignal.onDestroy }
   override val titleFlow by lazy { engine.titleFlow }
-  override val onLoadStateChange by lazy { engine.dWebViewClient.loadStateChangeSignal.toListener() }
-  override val onReady get() = engine.dWebViewClient.onReady
+  override val loadStateFlow by lazy { engine.loadStateFlow.asStateFlow() }
 
   override val onBeforeUnload by lazy { engine.dWebChromeClient.beforeUnloadSignal.toListener() }
   override val loadingProgressFlow by lazy { engine.dWebChromeClient.loadingProgressStateFlow.asStateFlow() }

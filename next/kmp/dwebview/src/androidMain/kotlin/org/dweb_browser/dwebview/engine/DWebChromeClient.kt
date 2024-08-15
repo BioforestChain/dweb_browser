@@ -189,7 +189,7 @@ class DWebChromeClient(val engine: DWebViewEngine) : WebChromeClient() {
           result.confirm()
         } else {
           result.cancel()
-          engine.dWebViewClient.loadStateChangeSignal.emit(
+          engine.loadStateFlow.emit(
             WebLoadSuccessState(engine.url ?: "about:blank")
           )
         }

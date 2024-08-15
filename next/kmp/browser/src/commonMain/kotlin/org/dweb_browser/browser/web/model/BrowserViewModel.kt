@@ -270,7 +270,10 @@ class BrowserViewModel(
   suspend fun openSearchPanelUI(searchText: String, target: AppBrowserTarget) {
     // 先判断search是否不为空，然后在判断search是否是地址，
     debugBrowser("openSearchPanelUI", "searchText=$searchText, target=$target")
-    deepLinkDoSearch(DwebLinkSearchItem(link = searchText, target = target)) // TODO 调用Ios 接口，实现功能
+    /// 目前iOS禁用了原生的浏览器实现，使用common，所以下面这行代码是走不过去的，因为等不到浏览器初始化
+    if (false) {
+      deepLinkDoSearch(DwebLinkSearchItem(link = searchText, target = target))
+    }
     // android 实现仍然在 commonMain这边
     hideAllPanel() // 先将该内容置为空，然后修改 searchKeyWord 的值，出发 ViewModelEffect 监听，来确认是否需要再次显示
     searchKeyWord = searchText // 上面 ViewModelEffect 监听 searchKeyWord 状态，

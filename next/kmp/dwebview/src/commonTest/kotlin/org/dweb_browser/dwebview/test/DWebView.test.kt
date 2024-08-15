@@ -3,6 +3,7 @@ package org.dweb_browser.dwebview.test
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.onTimeout
 import kotlinx.coroutines.selects.select
@@ -178,7 +179,7 @@ class DWebViewTest {
     launch {
       dwebview.loadUrl("https://example.com")
     }
-    dwebview.onReady.awaitOnce()
+    dwebview.onReady.first()
     assertEquals("https://example.com/", dwebview.getOriginalUrl())
   }
 
@@ -222,10 +223,7 @@ class DWebViewTest {
       }
     }
     dwebview.loadUrl("https://example.com")
-    val ready = CompletableDeferred<Boolean>()
-    dwebview.onReady {
-      ready.complete(true)
-    }
+    dwebview.onReady.first()
 
     println("TEST progressList=${progressList.joinToString { "$it" }}")
     assertTrue(progressList.isNotEmpty())

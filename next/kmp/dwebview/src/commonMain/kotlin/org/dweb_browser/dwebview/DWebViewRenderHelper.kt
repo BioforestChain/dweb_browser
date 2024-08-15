@@ -15,6 +15,7 @@ import kotlinx.coroutines.launch
 fun IDWebView.rememberCanGoBack(): Boolean {
   val canClose = rememberCloseWatcherCanClose()
   val canBack = rememberHistoryCanGoBack()
+  debugDWebView("rememberCanGoBack") { "canClose=$canClose; canBack=$canBack" }
   return canClose || canBack
 }
 
@@ -29,10 +30,12 @@ fun IDWebView.rememberHistoryCanGoBack(): Boolean {
     launch {
       value = historyCanGoBack()
     }
-    val off = onLoadStateChange {
-      value = historyCanGoBack()
+    val job = launch {
+      loadStateFlow.collect {
+        value = historyCanGoBack()
+      }
     }
-    awaitDispose { off() }
+    awaitDispose { job.cancel() }
   }.value
 }
 
@@ -42,10 +45,12 @@ fun IDWebView.rememberHistoryCanGoForward(): Boolean {
     launch {
       value = historyCanGoForward()
     }
-    val off = onLoadStateChange {
-      value = historyCanGoForward()
+    val job = launch {
+      loadStateFlow.collect {
+        value = historyCanGoForward()
+      }
     }
-    awaitDispose { off() }
+    awaitDispose { job.cancel() }
   }.value
 }
 

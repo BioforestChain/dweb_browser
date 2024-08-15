@@ -96,7 +96,7 @@ class CompactDWebProfileStore private constructor() : AndroidWebProfileStore {
         val visitedUrls = SuspendOnce {
           keyValueStore.getValues(visitedUrlsKey)?.toMutableSet() ?: mutableSetOf()
         }
-        engine.dWebViewClient.loadStateChangeSignal.listen { state ->
+        engine.loadStateFlow.collect { state ->
           if (state is WebLoadStartState) {
             val webUrl = state.url.toWebUrl()
             if (webUrl?.host?.endsWith(mmid) == true) {
@@ -118,6 +118,7 @@ class CompactDWebProfileStore private constructor() : AndroidWebProfileStore {
 
       profile.bindingJobs += job
       engine.destroyStateSignal.onDestroy {
+        job.cancel()
         profile.bindingJobs -= job
       }
     }

@@ -17,15 +17,7 @@ import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import io.ktor.http.Url
-import kotlinx.coroutines.launch
-import org.dweb_browser.dwebview.WebLoadErrorState
-import org.dweb_browser.dwebview.WebLoadStartState
-import org.dweb_browser.dwebview.WebLoadState
-import org.dweb_browser.dwebview.WebLoadSuccessState
 import org.dweb_browser.dwebview.debugDWebView
-import org.dweb_browser.dwebview.toReadyListener
-import org.dweb_browser.helper.Signal
-import org.dweb_browser.helper.launchWithMain
 import org.dweb_browser.helper.mapFindNoNull
 import org.dweb_browser.helper.one
 import org.dweb_browser.helper.someOrNull
@@ -66,21 +58,13 @@ class DWebViewClient(val engine: DWebViewEngine) : WebViewClient() {
     super.onPageCommitVisible(view, url)
   }
 
-  val loadStateChangeSignal = Signal<WebLoadState>()
-  val onReady by lazy { loadStateChangeSignal.toReadyListener() }
 
   override fun onPageFinished(view: WebView, url: String?) {
-    scope.launch {
-      loadStateChangeSignal.emit(WebLoadSuccessState(url ?: "about:blank"))
-    }
     inners("onPageFinished").forEach { it.onPageFinished(view, url) };
     super.onPageFinished(view, url)
   }
 
   override fun onPageStarted(view: WebView, url: String?, favicon: Bitmap?) {
-    scope.launch {
-      loadStateChangeSignal.emit(WebLoadStartState(url ?: "about:blank"))
-    }
     inners("onPageStarted").forEach { it.onPageStarted(view, url, favicon) };
     super.onPageStarted(view, url, favicon)
   }
@@ -91,26 +75,14 @@ class DWebViewClient(val engine: DWebViewEngine) : WebViewClient() {
   }
 
   override fun onReceivedError(
-    view: WebView, request: WebResourceRequest?, error: WebResourceError?
+    view: WebView, request: WebResourceRequest?, error: WebResourceError?,
   ) {
-    // url必须相等，否则一些网页内资源异常会导致下一个网页无法正常加载
-    if (request?.url?.toString()?.trimEnd('/') == view.url?.trimEnd('/')) {
-      scope.launchWithMain {
-        loadStateChangeSignal.emit(
-          WebLoadErrorState(
-            view.url ?: "about:blank",
-            error?.let { "[${it.errorCode}]${it.description}" } ?: ""
-          )
-        )
-      }
-    }
-
     inners("onReceivedError").forEach { it.onReceivedError(view, request, error) }
     super.onReceivedError(view, request, error)
   }
 
   override fun onReceivedHttpAuthRequest(
-    view: WebView?, handler: HttpAuthHandler?, host: String?, realm: String?
+    view: WebView?, handler: HttpAuthHandler?, host: String?, realm: String?,
   ) {
     inners("onReceivedHttpAuthRequest").one {
       it.onReceivedHttpAuthRequest(
@@ -120,7 +92,7 @@ class DWebViewClient(val engine: DWebViewEngine) : WebViewClient() {
   }
 
   override fun onReceivedHttpError(
-    view: WebView?, request: WebResourceRequest?, errorResponse: WebResourceResponse?
+    view: WebView?, request: WebResourceRequest?, errorResponse: WebResourceResponse?,
   ) {
     debugDWebView("onReceivedHttpError", "${request?.url} error:${errorResponse}")
     inners("onReceivedHttpError").one { it.onReceivedHttpError(view, request, errorResponse) }
@@ -128,7 +100,7 @@ class DWebViewClient(val engine: DWebViewEngine) : WebViewClient() {
   }
 
   override fun onReceivedLoginRequest(
-    view: WebView?, realm: String?, account: String?, args: String?
+    view: WebView?, realm: String?, account: String?, args: String?,
   ) {
     inners("onReceivedLoginRequest").one {
       it.onReceivedLoginRequest(
@@ -165,7 +137,7 @@ class DWebViewClient(val engine: DWebViewEngine) : WebViewClient() {
     view: WebView?,
     request: WebResourceRequest?,
     threatType: Int,
-    callback: SafeBrowsingResponse?
+    callback: SafeBrowsingResponse?,
   ) {
     inners("onSafeBrowsingHit").one {
       it.onSafeBrowsingHit(
@@ -189,7 +161,7 @@ class DWebViewClient(val engine: DWebViewEngine) : WebViewClient() {
   }
 
   override fun shouldInterceptRequest(
-    view: WebView?, request: WebResourceRequest?
+    view: WebView?, request: WebResourceRequest?,
   ): WebResourceResponse? {
     return inners("shouldInterceptRequest").mapFindNoNull {
       it.shouldInterceptRequest(
@@ -213,7 +185,7 @@ class DWebViewClient(val engine: DWebViewEngine) : WebViewClient() {
 
   @Deprecated("Deprecated in Java")
   override fun onReceivedError(
-    view: WebView?, errorCode: Int, description: String?, failingUrl: String?
+    view: WebView?, errorCode: Int, description: String?, failingUrl: String?,
   ) {
     inners("onReceivedError").one {
       it.onReceivedError(

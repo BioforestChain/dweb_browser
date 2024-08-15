@@ -4,6 +4,7 @@ import kotlinx.serialization.Serializable
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.byChannel
 import org.dweb_browser.helper.Observable
+import org.dweb_browser.helper.PureBounds
 import org.dweb_browser.helper.PureRect
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.pure.http.PureMethod
@@ -53,6 +54,37 @@ suspend fun DeskNMM.DeskRuntime.windowProtocol() {
           } catch (e: Exception) {
             e.printStackTrace()
             close(cause = e)
+          }
+        }.also {
+          it.removeWhen(onClose)
+          it.emitSelf(
+            Observable.Change(
+              WindowPropertyKeys.Constants, null, null
+            )
+          )
+        }
+      },
+      "/observe-keyboard" byChannel { ctx ->
+        val win = getWindow()
+        debugWindow("/observe-keyboard", "wid: ${win.id} ,mmid: ${ipc.remote.mmid}")
+        @Serializable
+        data class KeyboardState(
+          val insets: PureBounds,
+          val overlay: Boolean,
+        )
+        win.state.observable.onChange {
+          if (it.key == WindowPropertyKeys.KeyboardInsetBottom || it.key == WindowPropertyKeys.KeyboardOverlaysContent) {
+            try {
+              ctx.sendJsonLine(
+                KeyboardState(
+                  insets = PureBounds.Zero.copy(bottom = win.state.keyboardInsetBottom),
+                  overlay = win.state.keyboardOverlaysContent
+                )
+              )
+            } catch (e: Exception) {
+              e.printStackTrace()
+              close(cause = e)
+            }
           }
         }.also {
           it.removeWhen(onClose)

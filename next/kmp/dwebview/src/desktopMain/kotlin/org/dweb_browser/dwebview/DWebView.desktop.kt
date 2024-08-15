@@ -162,11 +162,10 @@ class DWebView(
   private val _engineLazy = RememberLazy(viewEngine) { viewEngine }
 
   override val onDestroy by _engineLazy.then { viewEngine.destroyStateSignal.onDestroy }
-  override val onLoadStateChange by _engineLazy.then { viewEngine.loadStateChangeSignal.toListener() }
+  override val loadStateFlow by _engineLazy.then { viewEngine.loadStateFlow.asStateFlow() }
   override val titleFlow by _engineLazy.then { viewEngine.titleFlow }
   override val iconFlow by _engineLazy.then { viewEngine.dwebFavicon.urlFlow }
   override val iconBitmapFlow by _engineLazy.then { viewEngine.iconBitmapFlow }
-  override val onReady get() = viewEngine.onReady
   override val onBeforeUnload by _engineLazy.then { viewEngine.beforeUnloadSignal.toListener() }
   override val loadingProgressFlow by _engineLazy.then { viewEngine.loadingProgressStateFlow.asStateFlow() }
   override val closeWatcherLazy: RememberLazy<ICloseWatcher> = _engineLazy.then {

@@ -1,17 +1,13 @@
 package org.dweb_browser.dwebview.engine
 
-import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.ObjCSignatureOverride
 import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import org.dweb_browser.dwebview.UrlLoadingPolicy
 import org.dweb_browser.dwebview.WebDownloadArgs
-import org.dweb_browser.dwebview.WebLoadErrorState
-import org.dweb_browser.dwebview.WebLoadStartState
-import org.dweb_browser.dwebview.WebLoadSuccessState
+import org.dweb_browser.dwebview.debugDWebView
 import org.dweb_browser.helper.globalMainScope
 import platform.Foundation.NSError
 import platform.Foundation.NSURLAuthenticationChallenge
@@ -58,32 +54,47 @@ class DWebNavigationDelegate(internal val engine: DWebViewEngine) : NSObject(),
     }
   }
 
-  val decidePolicyForNavigationActionHooks = mutableListOf<suspend (
-    webView: WKWebView,
-    decidePolicyForNavigationAction: WKNavigationAction,
-  ) -> UrlLoadingPolicy>()
+  class DecidePolicyForNavigationActionContext(
+    val webView: WKWebView,
+    val decidePolicyForNavigationAction: WKNavigationAction,
+    val preferences: WKWebpagePreferences?,
+  ) {
+    val loadedUrl by lazy {
+      decidePolicyForNavigationAction.request.URL?.absoluteString
+    }
+  }
 
-  @OptIn(ExperimentalCoroutinesApi::class)
+  val decidePolicyForNavigationActionHooks =
+    mutableListOf<suspend DecidePolicyForNavigationActionContext.() -> UrlLoadingPolicy>()
+
   private fun decidePolicyForNavigationAction(
     webView: WKWebView,
     decidePolicyForNavigationAction: WKNavigationAction,
+    preferences: WKWebpagePreferences?,
     decisionHandler: (WKNavigationActionPolicy) -> Unit,
   ) {
-    engine.lifecycleScope.launch(start = CoroutineStart.UNDISPATCHED) {
-      var allAllow = true
-      decidePolicyForNavigationActionHooks.map { hook ->
-        launch {
-          if (UrlLoadingPolicy.Block == hook(webView, decidePolicyForNavigationAction)) {
-            allAllow = false
+    debugDWebView("Nav/decidePolicyForNavigationAction") { "loadedUrl=${decidePolicyForNavigationAction.request.URL?.absoluteString}" }
+    DecidePolicyForNavigationActionContext(
+      webView,
+      decidePolicyForNavigationAction,
+      preferences
+    ).apply {
+      engine.lifecycleScope.launch(start = CoroutineStart.UNDISPATCHED) {
+        var allAllow = true
+        decidePolicyForNavigationActionHooks.map { hook ->
+          launch {
+            if (UrlLoadingPolicy.Block == hook()) {
+              allAllow = false
+            }
           }
-        }
-      }.joinAll()
-      decisionHandler(
-        when {
-          allAllow -> WKNavigationActionPolicy.WKNavigationActionPolicyAllow
-          else -> WKNavigationActionPolicy.WKNavigationActionPolicyCancel
-        }
-      )
+        }.joinAll()
+        decisionHandler(
+          when {
+            allAllow -> WKNavigationActionPolicy.WKNavigationActionPolicyAllow
+            else -> WKNavigationActionPolicy.WKNavigationActionPolicyCancel
+          }
+        )
+      }
     }
   }
 
@@ -95,8 +106,7 @@ class DWebNavigationDelegate(internal val engine: DWebViewEngine) : NSObject(),
     preferences: WKWebpagePreferences,
     decisionHandler: (WKNavigationActionPolicy, WKWebpagePreferences?) -> Unit,
   ) {
-    if (decidePolicyForNavigationAction.shouldPerformDownload) {
-      /*
+    if (decidePolicyForNavigationAction.shouldPerformDownload) {/*
       * 为了拿到download需要的MIME, suggestedFilename, content-lenght等数据，
       * 先妥协将download标签标识的href链接的处理放置在decidePolicyForNavigationResponse阶段。
       * 这边先做保存需要download的url。
@@ -106,7 +116,7 @@ class DWebNavigationDelegate(internal val engine: DWebViewEngine) : NSObject(),
       }
     }
 
-    decidePolicyForNavigationAction(webView, decidePolicyForNavigationAction) {
+    decidePolicyForNavigationAction(webView, decidePolicyForNavigationAction, preferences) {
       decisionHandler(it, null)
     }
   }
@@ -129,37 +139,70 @@ class DWebNavigationDelegate(internal val engine: DWebViewEngine) : NSObject(),
     decidePolicyForNavigationAction: WKNavigationAction,
     decisionHandler: (WKNavigationActionPolicy) -> Unit,
   ) {
-    decidePolicyForNavigationAction(webView, decidePolicyForNavigationAction, decisionHandler)
+    decidePolicyForNavigationAction(webView, decidePolicyForNavigationAction, null, decisionHandler)
   }
+
+  class DidStartProvisionalNavigationContext(
+    val webView: WKWebView, val didStartProvisionalNavigation: WKNavigation?,
+  ) {
+    val loadedUrl by lazy { webView.URL?.absoluteString ?: "about:blank" }
+  }
+
+  val didStartProvisionalNavigationHooks =
+    mutableListOf<suspend DidStartProvisionalNavigationContext.() -> Unit>()
 
   @ObjCSignatureOverride
   override fun webView(
     webView: WKWebView, didStartProvisionalNavigation: WKNavigation?,
   ) {
-    val loadedUrl = webView.URL?.absoluteString ?: "about:blank"
-    engine.mainScope.launch { engine.loadStateChangeSignal.emit(WebLoadStartState(loadedUrl)) }
-  }
-
-  @ObjCSignatureOverride
-  override fun webView(webView: WKWebView, didFinishNavigation: WKNavigation?) {
-    val loadedUrl = webView.URL?.absoluteString ?: "about:blank"
-    engine.mainScope.launch {
-      engine.loadStateChangeSignal.emit(WebLoadSuccessState(loadedUrl))
+    DidStartProvisionalNavigationContext(webView, didStartProvisionalNavigation).apply {
+      debugDWebView("Nav/didStartProvisionalNavigation") { "loadedUrl=$loadedUrl" }
+      engine.mainScope.launch {
+        for (hook in didStartProvisionalNavigationHooks) {
+          launch { hook() }
+        }
+      }
     }
   }
 
-  override fun webView(
-    webView: WKWebView, didFailNavigation: WKNavigation?, withError: NSError,
+  class DidFinishNavigation(
+    val webView: WKWebView, val didFinishNavigation: WKNavigation?,
   ) {
-    val currentUrl = webView.URL?.absoluteString ?: "about:blank"
-    val errorMessage = "[${withError.code}]$currentUrl\n${withError.description}"
-    engine.mainScope.launch {
-      engine.loadStateChangeSignal.emit(
-        WebLoadErrorState(
-          currentUrl,
-          errorMessage
-        )
-      )
+    val loadedUrl by lazy { webView.URL?.absoluteString ?: "about:blank" }
+  }
+
+  val didFinishNavigationHooks = mutableListOf<suspend DidFinishNavigation.() -> Unit>()
+
+  @ObjCSignatureOverride
+  override fun webView(webView: WKWebView, didFinishNavigation: WKNavigation?) {
+    DidFinishNavigation(webView, didFinishNavigation).apply {
+      debugDWebView("Nav/didFinishNavigation") { "loadedUrl=$loadedUrl" }
+      engine.mainScope.launch {
+        for (hook in didFinishNavigationHooks) {
+          launch { hook() }
+        }
+      }
+    }
+  }
+
+  class DidFailNavigation(
+    val webView: WKWebView,
+    val didFailNavigation: WKNavigation?,
+    val withError: NSError,
+  ) {
+    val currentUrl by lazy { webView.URL?.absoluteString ?: "about:blank" }
+  }
+
+  val didFailNavigationHooks = mutableListOf<suspend DidFailNavigation.() -> Unit>()
+
+  override fun webView(webView: WKWebView, didFailNavigation: WKNavigation?, withError: NSError) {
+    DidFailNavigation(webView, didFailNavigation, withError).apply {
+      debugDWebView("Nav/didFailNavigation") { "currentUrl=$currentUrl" }
+      engine.mainScope.launch {
+        for (hook in didFailNavigationHooks) {
+          launch { hook() }
+        }
+      }
     }
   }
 
@@ -171,7 +214,7 @@ class DWebNavigationDelegate(internal val engine: DWebViewEngine) : NSObject(),
 //    shouldAllowDeprecatedTLS(true)
 //  }
 
-  @OptIn(BetaInteropApi::class, ExperimentalForeignApi::class)
+  @OptIn(ExperimentalForeignApi::class)
   override fun webView(
     webView: WKWebView,
     didReceiveAuthenticationChallenge: NSURLAuthenticationChallenge,

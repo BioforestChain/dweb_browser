@@ -63,7 +63,7 @@ fun setupBeforeUnloadSignal(engine: DWebViewEngine) = Signal<WebBeforeUnloadArgs
       when {
         isKeep -> {
           tell.stay()
-          engine.loadStateChangeSignal.emit(WebLoadSuccessState(engine.getOriginalUrl()))
+          engine.loadStateFlow.emit(WebLoadSuccessState(engine.getOriginalUrl()))
         }
 
         else -> tell.leave()

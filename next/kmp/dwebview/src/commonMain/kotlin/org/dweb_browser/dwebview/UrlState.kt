@@ -1,24 +1,32 @@
 package org.dweb_browser.dwebview
 
-import kotlinx.atomicfu.locks.SynchronizedObject
-import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import org.dweb_browser.helper.collectIn
 
 @OptIn(ExperimentalCoroutinesApi::class)
 internal class UrlState(
   val dwebView: IDWebView,
-  private var startUrl: String,
-  ended: Boolean = false,
 ) {
-  private val urlLock = SynchronizedObject()
-  private var endLoadUrl = CompletableDeferred<String>().also {
+  private var startUrl = dwebView.loadStateFlow.value.url
+  private var endLoadUrl = CompletableDeferred<String>()
+
+  init {
+    val ended = when (val state = dwebView.loadStateFlow.value) {
+      is WebLoadSuccessState, is WebLoadErrorState -> true
+      is WebLoadStartState -> false
+    }
     if (ended) {
-      it.complete(startUrl)
+      endLoadUrl.complete(startUrl)
     }
   }
+
+
+  private val urlLock = Mutex()
   val currentUrl get() = endLoadUrl.let { if (it.isCompleted) it.getCompleted() else startUrl }
 
   suspend fun awaitUrl() = endLoadUrl.await()
@@ -33,7 +41,7 @@ internal class UrlState(
     return false
   }
 
-  private fun effectWebLoadErrorState(state: WebLoadErrorState) = synchronized(urlLock) {
+  private suspend fun effectWebLoadErrorState(state: WebLoadErrorState) = urlLock.withLock {
     debugDWebView("onLoadStateChange") {
       "WebLoadErrorState url=${state.url} error=${state.errorMessage}"
     }
@@ -42,7 +50,7 @@ internal class UrlState(
     }
   }
 
-  private fun effectWebLoadStartState(state: WebLoadStartState) = synchronized(urlLock) {
+  private suspend fun effectWebLoadStartState(state: WebLoadStartState) = urlLock.withLock {
     debugDWebView("WebLoadStartState") { "WebLoadStartState url=${state.url}" }
     if (state.url != startUrl || endLoadUrl.isCompleted) {
       if (endLoadUrl.isActive) {
@@ -51,27 +59,17 @@ internal class UrlState(
       startUrl = state.url
       endLoadUrl = CompletableDeferred()
 
-      stateFlow.tryEmit(state.url)
+      stateFlow.value = state.url
     }
   }
 
-  fun effectWebLoadSuccessState(state: WebLoadSuccessState) = synchronized(urlLock) {
+  private suspend fun effectWebLoadSuccessState(state: WebLoadSuccessState) = urlLock.withLock {
     debugDWebView("WebLoadStartState") { "WebLoadSuccessState url=${state.url}" }
     endLoadUrl.complete(state.url)
     if (endLoadUrl.getCompleted() != state.url) {
       endLoadUrl = CompletableDeferred(state.url)
     }
-    stateFlow.tryEmit(state.url)
-  }
-
-  init {
-    dwebView.onLoadStateChange {
-      when (it) {
-        is WebLoadErrorState -> effectWebLoadErrorState(it)
-        is WebLoadStartState -> effectWebLoadStartState(it)
-        is WebLoadSuccessState -> effectWebLoadSuccessState(it)
-      }
-    }
+    stateFlow.value = state.url
   }
 
   suspend fun forceLoadUrl(url: String) {
@@ -79,4 +77,14 @@ internal class UrlState(
   }
 
   val stateFlow = MutableStateFlow(startUrl)
+
+  init {
+    dwebView.loadStateFlow.collectIn(dwebView.lifecycleScope) {
+      when (it) {
+        is WebLoadErrorState -> effectWebLoadErrorState(it)
+        is WebLoadStartState -> effectWebLoadStartState(it)
+        is WebLoadSuccessState -> effectWebLoadSuccessState(it)
+      }
+    }
+  }
 }

@@ -7,6 +7,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
@@ -83,13 +84,12 @@ class AboutNMM : NativeMicroModule("about.browser.dweb", "About") {
           .toString()))
 
       _html5testWebView.complete(webview)
-      webview.onReady {
-        scopeLaunch(cancelable = true) {
-          val scoreMessageChannel = webview.createMessageChannel()
-          webview.postMessage("score-channel", listOf(scoreMessageChannel.port2))
-          for (event in scoreMessageChannel.port1.onMessage) {
-            _html5testScore.value = event.text
-          }
+      webview.onReady.first()
+      scopeLaunch(cancelable = true) {
+        val scoreMessageChannel = webview.createMessageChannel()
+        webview.postMessage("score-channel", listOf(scoreMessageChannel.port2))
+        for (event in scoreMessageChannel.port1.onMessage) {
+          _html5testScore.value = event.text
         }
       }
     }

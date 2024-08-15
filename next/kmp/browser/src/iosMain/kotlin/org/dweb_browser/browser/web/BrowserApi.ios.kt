@@ -21,8 +21,8 @@ import org.dweb_browser.browser.web.ui.BrowserRender
 import org.dweb_browser.dwebview.DWebView
 import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
 import org.dweb_browser.helper.compose.envSwitch
+import org.dweb_browser.helper.getCompletedOrNull
 import org.dweb_browser.helper.globalDefaultScope
-import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.platform.ios_browser.DwebWebView
 import org.dweb_browser.platform.ios_browser.browserActiveOn
 import org.dweb_browser.platform.ios_browser.browserClear
@@ -49,7 +49,7 @@ private var iOSViewDelegateHolder: BrowserIosDelegate? = null
 private var iOSViewDataSourceHolder: BrowserIosDataSource? = null
 
 @OptIn(ExperimentalForeignApi::class)
-private var iOSViewHolderDeferred = CompletableDeferred<Unit>()
+private var iOSViewHolderDeferred = CompletableDeferred<DwebWebView>()
 
 private var browserObserver = BrowserIosWinObserver(::winVisibleChange, ::winClose)
 
@@ -65,16 +65,14 @@ private fun winClose() {
 
 @OptIn(ExperimentalForeignApi::class)
 private fun winVisibleChange(isVisible: Boolean) {
-  iOSViewHolderDeferred.isCompleted.trueAlso {
-    iOSViewHolder!!.browserActiveOn(isVisible)
+  iOSViewHolderDeferred.getCompletedOrNull()?.also {
+    it.browserActiveOn(isVisible)
   }
 }
 
 @OptIn(ExperimentalForeignApi::class)
 actual suspend fun deepLinkDoSearch(dwebLinkSearchItem: DwebLinkSearchItem) {
-  iOSViewHolderDeferred.await()
-
-  iOSViewHolder!!.let { iOSView ->
+  iOSViewHolderDeferred.await().also { iOSView ->
     if (dwebLinkSearchItem.link.isNotEmpty()) {
       when (dwebLinkSearchItem.target) {
         AppBrowserTarget.BLANK, AppBrowserTarget.SYSTEM -> iOSView.doNewTabUrlWithUrl(
@@ -141,7 +139,7 @@ fun NativeBrowserView(
       else -> webView
     }.also {
       it.prepareToKmp()
-      iOSViewHolderDeferred.complete(Unit)
+      iOSViewHolderDeferred.complete(it)
     }
   }
 

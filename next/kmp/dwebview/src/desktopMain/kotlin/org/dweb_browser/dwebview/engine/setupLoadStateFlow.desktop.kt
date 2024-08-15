@@ -11,19 +11,28 @@ import com.teamdev.jxbrowser.navigation.event.NavigationFinished
 import com.teamdev.jxbrowser.navigation.event.NavigationRedirected
 import com.teamdev.jxbrowser.navigation.event.NavigationStarted
 import com.teamdev.jxbrowser.navigation.event.NavigationStopped
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.dweb_browser.dwebview.WebLoadErrorState
 import org.dweb_browser.dwebview.WebLoadStartState
 import org.dweb_browser.dwebview.WebLoadState
 import org.dweb_browser.dwebview.WebLoadSuccessState
 import org.dweb_browser.dwebview.debugDWebView
-import org.dweb_browser.helper.Signal
 
-fun setupLoadStateChangeSignal(engine: DWebViewEngine) = Signal<WebLoadState>().also { signal ->
+fun setupLoadStateFlow(engine: DWebViewEngine, initUrl: String) = MutableStateFlow(
+  when (initUrl) {
+    "", "about:blank" -> WebLoadSuccessState("about:blank")
+    else -> WebLoadStartState(initUrl)
+  }
+).also {
+  setupLoadStateFlow(engine, it)
+}
+
+private fun setupLoadStateFlow(
+  engine: DWebViewEngine,
+  flow: MutableStateFlow<WebLoadState>,
+) {
   fun emitSignal(state: WebLoadState) {
-    engine.lifecycleScope.launch {
-      signal.emit(state)
-    }
+    flow.value = state
   }
   engine.browser.navigation().apply {
     if (debugDWebView.isEnable) {

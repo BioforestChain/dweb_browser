@@ -26,6 +26,7 @@ import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.compose.toComposeColor
 import org.dweb_browser.helper.compose.toUIColor
+import org.dweb_browser.helper.encodeURIComponent
 import org.dweb_browser.helper.globalDefaultScope
 import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.helper.platform.setScale
@@ -123,7 +124,7 @@ class DWebView private constructor(
   }
 
   override fun overrideUrlLoading(onUrlLoading: (url: String) -> UrlLoadingPolicy) {
-    engine.dwebNavigationDelegate.decidePolicyForNavigationActionHooks.add { _, decidePolicyForNavigationAction ->
+    engine.dwebNavigationDelegate.decidePolicyForNavigationActionHooks.add {
       val url = decidePolicyForNavigationAction.request.URL.toString()
       onUrlLoading(url)
     }
@@ -152,10 +153,9 @@ class DWebView private constructor(
   private val destroyStateSignal = DestroyStateSignal(lifecycleScope)
 
   override val onDestroy = destroyStateSignal.onDestroy
-  override val onLoadStateChange by _engineLazy.then {
-    engine.loadStateChangeSignal.toListener()
+  override val loadStateFlow by _engineLazy.then {
+    engine.loadStateFlow.asStateFlow()
   }
-  override val onReady get() = engine.onReady
   override val onBeforeUnload by _engineLazy.then {
     engine.beforeUnloadSignal.toListener()
   }
@@ -179,7 +179,7 @@ class DWebView private constructor(
 
   private suspend inline fun doDestroy(getOriginUrl: () -> String) {
     if (destroyStateSignal.doDestroy()) {
-      loadUrl("about:blank?from=${getOriginUrl()}", true)
+      loadUrl("about:blank?destroy-from=${getOriginUrl().encodeURIComponent()}", true)
       withMainContext {
         engine.destroy()
         _engine = null
