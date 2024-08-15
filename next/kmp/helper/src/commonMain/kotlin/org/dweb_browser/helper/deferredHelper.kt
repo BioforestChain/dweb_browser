@@ -5,6 +5,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CompletableJob
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.DisposableHandle
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.Job
@@ -15,9 +16,9 @@ import kotlinx.coroutines.job
 /**
  * for alternative try-finally
  */
-suspend fun <T> Deferred<T>.awaitResult() = runCatching { await() }
+public suspend fun <T> Deferred<T>.awaitResult(): Result<T> = runCatching { await() }
 @OptIn(ExperimentalCoroutinesApi::class)
-fun <T> Deferred<T>.getCompletedOrNull() = when {
+public fun <T> Deferred<T>.getCompletedOrNull(): T? = when {
   isCompleted -> getCompleted()
   else -> null
 }
@@ -25,9 +26,9 @@ fun <T> Deferred<T>.getCompletedOrNull() = when {
 /**
  * 一个 Deferred，但是可以用来做回调监听
  */
-class DeferredSignal<T>(val deferred: Deferred<T>) : Deferred<T> by deferred {
+public class DeferredSignal<T>(public val deferred: Deferred<T>) : Deferred<T> by deferred {
   @OptIn(InternalCoroutinesApi::class, ExperimentalCoroutinesApi::class)
-  inline operator fun invoke(crossinline handler: (result: Result<T>) -> Unit) =
+  public inline operator fun invoke(crossinline handler: (result: Result<T>) -> Unit): DisposableHandle =
     invokeOnCompletion(onCancelling = true, invokeImmediately = true) {
       if (deferred.isCompleted) {
         handler(Result.success(deferred.getCompleted()))
@@ -38,7 +39,7 @@ class DeferredSignal<T>(val deferred: Deferred<T>) : Deferred<T> by deferred {
 
 }
 
-suspend inline fun Job.await() {
+public suspend inline fun Job.await() {
   val deferred = CompletableDeferred<Unit>(SupervisorJob())
   // job.join()
   invokeOnCompletion {
@@ -55,7 +56,7 @@ suspend inline fun Job.await() {
   deferred.await()
 }
 
-fun CompletableJob.cancelOrThrow(cause: Throwable? = null) {
+public fun CompletableJob.cancelOrThrow(cause: Throwable? = null) {
   when (cause) {
     is CancellationException -> cancel(cause)
     null -> cancel()
@@ -63,7 +64,7 @@ fun CompletableJob.cancelOrThrow(cause: Throwable? = null) {
   }
 }
 
-fun CoroutineScope.cancelOrThrow(cause: Throwable? = null) {
+public fun CoroutineScope.cancelOrThrow(cause: Throwable? = null) {
   when (cause) {
     is CancellationException -> cancel(cause)
     null -> cancel()

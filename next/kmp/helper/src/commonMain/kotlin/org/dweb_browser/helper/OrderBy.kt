@@ -4,24 +4,25 @@ import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlin.coroutines.CoroutineContext
 
 
-val debugOrder = Debugger("order")
+public val debugOrder: Debugger = Debugger("order")
 
-class OrderDeferred(var current: Job? = null) {
-  val lock = SynchronizedObject()
-  val keys = SafeLinkList<Any?>()
-  fun <T> queue(scope: CoroutineScope, key: Any?, handler: suspend () -> T) = synchronized(lock) {
-    val preJob = current;
+public class OrderDeferred(public var current: Job? = null) {
+  public val lock: SynchronizedObject = SynchronizedObject()
+  public val keys: SafeLinkList<Any?> = SafeLinkList()
+  public fun <T> queue(scope: CoroutineScope, key: Any?, handler: suspend () -> T): Deferred<T> = synchronized(lock) {
+    val preJob = current
     keys.add(key)
     val clearTimeout =
       debugOrder.timeout(scope, 1000, "queue@${hashCode()}") { "key=$key keys=${keys}" }
     scope.async(start = CoroutineStart.UNDISPATCHED) {
-      preJob?.join();
+      preJob?.join()
       clearTimeout()
       handler()
     }.also { job ->
@@ -57,17 +58,17 @@ class OrderDeferred(var current: Job? = null) {
     }
   }
 
-  fun <T> queue(context: CoroutineContext, key: Any?, handler: suspend () -> T) =
+  public fun <T> queue(context: CoroutineContext, key: Any?, handler: suspend () -> T): Deferred<T> =
     queue(CoroutineScope(context), key, handler)
 
-  suspend fun <T> queueAndAwait(key: Any?, handler: suspend () -> T) = coroutineScope {
+  public suspend fun <T> queueAndAwait(key: Any?, handler: suspend () -> T): T = coroutineScope {
     queue(this, key, handler).await()
   }
 }
 
-class OrderInvoker {
+public class OrderInvoker {
   private val queues = SafeHashMap<Int, OrderDeferred>()
-  suspend fun <T> tryInvoke(param: Any?, key: Any? = param, invoker: suspend () -> T) = tryInvoke(
+  public suspend fun <T> tryInvoke(param: Any?, key: Any? = param, invoker: suspend () -> T): T = tryInvoke(
     order = when (param) {
       is OrderBy -> param.order
       else -> null
@@ -76,13 +77,13 @@ class OrderInvoker {
     invoker,
   )
 
-  suspend fun <T> tryInvoke(order: Int?, key: Any? = null, invoker: suspend () -> T) =
+  public suspend fun <T> tryInvoke(order: Int?, key: Any? = null, invoker: suspend () -> T): T =
     when (order) {
       null -> invoker()
       else -> queues.getOrPut(order) { OrderDeferred() }.queueAndAwait(key = key, handler = invoker)
     }
 }
 
-interface OrderBy {
-  val order: Int?
+public interface OrderBy {
+  public val order: Int?
 }

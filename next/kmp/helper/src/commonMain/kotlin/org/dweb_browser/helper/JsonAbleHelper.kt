@@ -16,49 +16,50 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.encoding.decodeStructure
 import kotlinx.serialization.encoding.encodeStructure
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.serializer
 import kotlin.properties.Delegates
 import kotlin.reflect.KProperty
 
 
-inline fun <reified T> T.toJsonElement() = Json.encodeToJsonElement<T>(this)
-inline fun <reified T> T.toJsonElement(serializer: KSerializer<T>) =
-  Json.encodeToJsonElement<T>(serializer, this)
+public inline fun <reified T> T.toJsonElement(): JsonElement = Json.encodeToJsonElement<T>(this)
+public inline fun <reified T> T.toJsonElement(serializer: KSerializer<T>): JsonElement =
+  Json.encodeToJsonElement(serializer, this)
 
-inline fun <reified T> String.decodeTo() = Json.decodeFromString<T>(this)
+public inline fun <reified T> String.decodeTo(): T = Json.decodeFromString<T>(this)
 
 
-val JsonLoose = Json {
+public val JsonLoose: Json = Json {
   ignoreUnknownKeys = true
 }
 
 
-open class StringEnumSerializer<T>(
-  serialName: String, val ALL_VALUES: Map<String, T>, val getValue: T.() -> String
+public open class StringEnumSerializer<T>(
+  serialName: String, private val allValues: Map<String, T>, private val getValue: T.() -> String
 ) : KSerializer<T> {
-  override val descriptor = PrimitiveSerialDescriptor(serialName, PrimitiveKind.STRING)
-  override fun deserialize(decoder: Decoder) = ALL_VALUES.getValue(decoder.decodeString())
-  override fun serialize(encoder: Encoder, value: T) = encoder.encodeString(value.getValue())
+  override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor(serialName, PrimitiveKind.STRING)
+  override fun deserialize(decoder: Decoder): T = allValues.getValue(decoder.decodeString())
+  override fun serialize(encoder: Encoder, value: T): Unit = encoder.encodeString(value.getValue())
 }
 
-open class IntEnumSerializer<T>(
-  serialName: String, val ALL_VALUES: Map<Int, T>, val getValue: T.() -> Int
+public open class IntEnumSerializer<T>(
+  serialName: String, private val allValues: Map<Int, T>, private val getValue: T.() -> Int
 ) : KSerializer<T> {
-  override val descriptor = PrimitiveSerialDescriptor(serialName, PrimitiveKind.STRING)
-  override fun deserialize(decoder: Decoder) = ALL_VALUES.getValue(decoder.decodeInt())
-  override fun serialize(encoder: Encoder, value: T) = encoder.encodeInt(value.getValue())
+  override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor(serialName, PrimitiveKind.STRING)
+  override fun deserialize(decoder: Decoder): T = allValues.getValue(decoder.decodeInt())
+  override fun serialize(encoder: Encoder, value: T): Unit = encoder.encodeInt(value.getValue())
 }
 
-open class ByteEnumSerializer<T>(
-  serialName: String, val ALL_VALUES: Map<Byte, T>, val getValue: T.() -> Byte
+public open class ByteEnumSerializer<T>(
+  serialName: String, private val allValues: Map<Byte, T>, private val getValue: T.() -> Byte
 ) : KSerializer<T> {
-  override val descriptor = PrimitiveSerialDescriptor(serialName, PrimitiveKind.STRING)
-  override fun deserialize(decoder: Decoder) = ALL_VALUES.getValue(decoder.decodeByte())
-  override fun serialize(encoder: Encoder, value: T) = encoder.encodeByte(value.getValue())
+  override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor(serialName, PrimitiveKind.STRING)
+  override fun deserialize(decoder: Decoder): T = allValues.getValue(decoder.decodeByte())
+  override fun serialize(encoder: Encoder, value: T): Unit = encoder.encodeByte(value.getValue())
 }
 
-open class ProxySerializer<T, P>(
+public open class ProxySerializer<T, P>(
   serialName: String,
   private val serializer: KSerializer<P>,
   private val valueToProxy: T.() -> P,
@@ -73,7 +74,7 @@ open class ProxySerializer<T, P>(
 }
 
 
-open class PropMetasSerializer<T : PropMetas.Constructor<T>>(
+public open class PropMetasSerializer<T : PropMetas.Constructor<T>>(
   private val propMeta: PropMetas<T>,
 ) : KSerializer<T> {
 
@@ -83,7 +84,7 @@ open class PropMetasSerializer<T : PropMetas.Constructor<T>>(
     }
   }
 
-  @OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
+  @OptIn(ExperimentalSerializationApi::class)
   override fun deserialize(decoder: Decoder): T {
     val propValues = propMeta.buildValues()
     decoder.decodeStructure(descriptor) {
@@ -119,9 +120,9 @@ open class PropMetasSerializer<T : PropMetas.Constructor<T>>(
     return propMeta.factory(propValues)
   }
 
-  @OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
+  @OptIn(ExperimentalSerializationApi::class)
   override fun serialize(encoder: Encoder, value: T) {
-    val propValues = value.p
+    val propValues = value.pv
     encoder.encodeStructure(descriptor) {
       for ((idx, field) in propMeta.metas.withIndex()) {
         val propValue = propValues.data[field.propName]
@@ -139,68 +140,68 @@ open class PropMetasSerializer<T : PropMetas.Constructor<T>>(
 }
 
 
-open class PropMetas<T : PropMetas.Constructor<T>>(
-  val serialName: String,
+public open class PropMetas<T : PropMetas.Constructor<T>>(
+  public val serialName: String,
   internal val factory: (propValues: PropValues) -> T,
 ) {
-  val metas = mutableListOf<PropMeta<*, *>>()
+  public val metas: MutableList<PropMeta<*, *>> = mutableListOf()
 
-  val superMetas = mutableSetOf<PropMetas<*>>()
-  fun extends(superMeta: PropMetas<*>): PropMetas<T> {
+  private val superMetas: MutableSet<PropMetas<*>> = mutableSetOf()
+  public fun extends(superMeta: PropMetas<*>): PropMetas<T> {
     superMetas.add(superMeta)
     metas += superMeta.metas
     return this
   }
 
-  class PropMeta<T : Any, V : Any?>(
-    private val propMap: PropMetas<*>,
-    val propName: String,
-    val initValue: V,
-    val nullable: Boolean,
-    val serializer: KSerializer<T>
+  public class PropMeta<T : Any, V : Any?>(
+    propMap: PropMetas<*>,
+    public val propName: String,
+    public val initValue: V,
+    public val nullable: Boolean,
+    public val serializer: KSerializer<T>
   ) {
-    val descriptor = serializer.descriptor
+    public val descriptor: SerialDescriptor = serializer.descriptor
 
     @OptIn(ExperimentalSerializationApi::class)
-    val annotations = descriptor.annotations
+    public val annotations: List<Annotation> = descriptor.annotations
 
     init {
       propMap.metas += this
     }
 
-    operator fun invoke(
+    public operator fun invoke(
       propValues: PropValues, initConfig: (PropValueConfig<V>.() -> Unit)? = null
-    ) = PropValue(propName, propValues, initConfig)
+    ): PropValue<V> = PropValue(propName, propValues, initConfig)
 
   }
 
-  class PropValues(internal val data: MutableMap<String, Any?>) {
-    fun clone() = PropValues(data.toMutableMap())
-    fun set(propName: String, value: Any?) = if (data.containsKey(propName)) {
+  public class PropValues(internal val data: MutableMap<String, Any?>) {
+    public fun clone(): PropValues = PropValues(data.toMutableMap())
+    public fun set(propName: String, value: Any?): Boolean = if (data.containsKey(propName)) {
       data[propName] = value
       true
     } else false
 
-    fun get(propName: String) = data[propName]
-    fun remove(propName: String) = data.remove(propName)
+    public fun get(propName: String): Any? = data[propName]
+    public fun remove(propName: String): Any? = data.remove(propName)
   }
 
-  class PropValueConfig<T : Any?>(private val propValue: PropValue<T>) {
-    var value: T
+  public class PropValueConfig<T : Any?>(private val propValue: PropValue<T>) {
+    public var value: T
       get() = propValue.get()
       set(value) {
         propValue.set(value, false)
       }
-    var beforeWrite by Delegates.observable(propValue.beforeWrite) { _, _, newVal ->
+    public var beforeWrite: ((newValue: T, oldValue: T) -> T)? by Delegates.observable(propValue.beforeWrite) { _, _, newVal ->
       propValue.beforeWrite = newVal
     }
-    var afterWrite by Delegates.observable(propValue.afterWrite) { _, _, newVal ->
+    public var afterWrite: ((newValue: T) -> Unit)? by Delegates.observable(propValue.afterWrite) { _, _, newVal ->
       propValue.afterWrite = newVal
     }
   }
 
-  class PropValue<T : Any?>(
-    val propName: String, val propValues: PropValues, initConfig: (PropValueConfig<T>.() -> Unit)?
+  public class PropValue<T : Any?>(
+    private val propName: String, private val propValues: PropValues, initConfig: (PropValueConfig<T>.() -> Unit)?
   ) {
     internal var beforeWrite: ((newValue: T, oldValue: T) -> T)? = null
     internal var afterWrite: ((newValue: T) -> Unit)? = null
@@ -214,7 +215,7 @@ open class PropMetas<T : PropMetas.Constructor<T>>(
       }
     }
 
-    fun set(newValue: T, force: Boolean) {
+    public fun set(newValue: T, force: Boolean) {
       val oldValue = get()
       val inputValue = beforeWrite?.invoke(newValue, oldValue) ?: newValue
       if (force || oldValue != inputValue) {
@@ -223,62 +224,62 @@ open class PropMetas<T : PropMetas.Constructor<T>>(
       }
     }
 
-    fun get() = propValues.data[propName] as T
-    operator fun setValue(thisRef: Any, property: KProperty<*>, newValue: T) = set(newValue, false)
+    public fun get(): T = propValues.data[propName] as T
+    public operator fun setValue(thisRef: Any, property: KProperty<*>, newValue: T): Unit = set(newValue, false)
 
-    operator fun getValue(thisRef: Any, property: KProperty<*>) = get()
+    public operator fun getValue(thisRef: Any, property: KProperty<*>): T = get()
   }
 
-  abstract class Constructor<T : Constructor<T>>(val p: PropValues, private val P: PropMetas<T>) {
-    fun assign(other: Constructor<*>) {
-      for ((key, value) in other.p.data) {
-        if (p.data.containsKey(key)) {
-          p.data[key] = value
+  public abstract class Constructor<T : Constructor<T>>(public val pv: PropValues, private val pm: PropMetas<T>) {
+    public fun assign(other: Constructor<*>) {
+      for ((key, value) in other.pv.data) {
+        if (pv.data.containsKey(key)) {
+          pv.data[key] = value
         }
       }
     }
 
-    fun clone(): T {
-      return P.factory(p.clone())
+    public fun clone(): T {
+      return pm.factory(pv.clone())
     }
   }
 
-  fun <T : Any> getRequired(propName: String) =
+  public fun <T : Any> getRequired(propName: String): PropMeta<T, T> =
     metas.first { it.propName == propName } as PropMeta<T, T>
 
-  fun <T : Any> getOptional(propName: String) =
+  public fun <T : Any> getOptional(propName: String): PropMeta<T, T?> =
     metas.first { it.propName == propName } as PropMeta<T, T?>
 
   @OptIn(InternalSerializationApi::class)
-  inline fun <reified T : Any> required(
+  public inline fun <reified T : Any> required(
     propName: String, initValue: T, serializer: KSerializer<T> = T::class.serializer()
-  ) = PropMeta(this, propName, initValue, false, serializer)
+  ): PropMeta<T, T> = PropMeta(this, propName, initValue, false, serializer)
 
   @OptIn(InternalSerializationApi::class)
-  inline fun <reified T : Any> optional(
+  public inline fun <reified T : Any> optional(
     propName: String, initValue: T? = null, serializer: KSerializer<T> = T::class.serializer()
-  ) = PropMeta(this, propName, initValue, true, serializer)
+  ): PropMeta<T, T?> = PropMeta(this, propName, initValue, true, serializer)
 
 
   @OptIn(InternalSerializationApi::class)
-  inline fun <reified T : Any> list(
+  public inline fun <reified T : Any> list(
     propName: String,
     initValue: List<T> = listOf(),
     serializer: KSerializer<T> = T::class.serializer()
-  ) = PropMeta(
+  ): PropMeta<List<T>, List<T>> = PropMeta(
     this, propName, initValue, false, ListSerializer(serializer)
   )
 
   @OptIn(InternalSerializationApi::class)
-  inline fun <reified T : Any> mutableListOptional(
+  public inline fun <reified T : Any> mutableListOptional(
     propName: String,
     initValue: List<T>? = null,
     serializer: KSerializer<T> = T::class.serializer()
-  ) = PropMeta(
+  ): PropMeta<List<T>, List<T>?> = PropMeta(
     this, propName, initValue, true, ListSerializer(serializer)
   )
 
-  fun buildValues() = PropValues(mutableMapOf<String, Any?>().also {
+  public fun buildValues(): PropValues = PropValues(mutableMapOf<String, Any?>().also {
     for (propMeta in metas) {
       it[propMeta.propName] = propMeta.initValue
     }

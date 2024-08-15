@@ -5,7 +5,7 @@ import io.ktor.http.decodeURLQueryComponent
 import io.ktor.http.encodeURLPath
 import io.ktor.http.encodeURLQueryComponent
 
-fun String.encodeURIComponent(): String = this.encodeURLQueryComponent()
-fun String.decodeURIComponent(): String = this.decodeURLQueryComponent()
-fun String.encodeURI(): String = this.encodeURLPath()
-fun String.decodeURI(): String = this.decodeURLPart()
+public fun String.encodeURIComponent(): String = this.encodeURLQueryComponent()
+public fun String.decodeURIComponent(): String = this.decodeURLQueryComponent()
+public fun String.encodeURI(): String = this.encodeURLPath()
+public fun String.decodeURI(): String = this.decodeURLPart()

@@ -1,6 +1,6 @@
 package org.dweb_browser.helper
 
-fun <E> List<E>.one(function: (it: E) -> Unit): E? {
+public fun <E> List<E>.one(function: (it: E) -> Unit): E? {
   for (item in this) {
     function(item)
     return item
@@ -8,7 +8,7 @@ fun <E> List<E>.one(function: (it: E) -> Unit): E? {
   return null
 }
 
-fun <E, R> List<E>.mapFindNoNull(function: (it: E) -> R): R? {
+public fun <E, R> List<E>.mapFindNoNull(function: (it: E) -> R): R? {
   for (item in this) {
     val res = function(item)
     if (res != null) {
@@ -18,7 +18,7 @@ fun <E, R> List<E>.mapFindNoNull(function: (it: E) -> R): R? {
   return null
 }
 
-fun <E> List<E>.someOrNull(function: (it: E) -> Boolean): Boolean? {
+public fun <E> List<E>.someOrNull(function: (it: E) -> Boolean): Boolean? {
   for (item in this) {
     val res = function(item)
     if (res) {
@@ -28,9 +28,9 @@ fun <E> List<E>.someOrNull(function: (it: E) -> Boolean): Boolean? {
   return null
 }
 
-fun <E> List<E>.some(function: (it: E) -> Boolean) = this.someOrNull(function) ?: false
+public fun <E> List<E>.some(function: (it: E) -> Boolean): Boolean = this.someOrNull(function) ?: false
 
-fun <E> List<E>.safeSubList(fromIndex: Int, toIndex: Int): List<E> {
+public fun <E> List<E>.safeSubList(fromIndex: Int, toIndex: Int): List<E> {
   if(isEmpty()) return emptyList()
   val validFromIndex = fromIndex.coerceIn(0, this.size - 1)
   val validToIndex = toIndex.coerceIn(0, this.size)

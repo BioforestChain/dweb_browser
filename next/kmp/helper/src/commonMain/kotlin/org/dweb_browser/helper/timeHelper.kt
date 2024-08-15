@@ -10,24 +10,24 @@ import kotlinx.datetime.toLocalDateTime
 /**
  * Epoch Milliseconds
  */
-fun datetimeNow() = Clock.System.now().toEpochMilliseconds()
+public fun datetimeNow(): Long = Clock.System.now().toEpochMilliseconds()
 
 /**
  * 获取从1970到现在的天数
  */
-fun datetimeNowToEpochDay() = Clock.System.now().toEpochDay()
+public fun datetimeNowToEpochDay(): Long = Clock.System.now().toEpochDay()
 
 /**
  * 转为天数
  */
-fun Long.toEpochDay(): Long {
+public fun Long.toEpochDay(): Long {
   return Instant.fromEpochMilliseconds(this).toEpochDay()
 }
 
 /**
  * 比对天数差，返回0表示同一天，正数表示大于当前时间的天数，负数表示小于当前时间的天数
  */
-fun Long.compareNowDayByMilliseconds(): Long {
+public fun Long.compareNowDayByMilliseconds(): Long {
   val lastInstant = Instant.fromEpochMilliseconds(this)
   val nowInstant = Clock.System.now()
   return lastInstant.minus(nowInstant, DateTimeUnit.DAY, TimeZone.currentSystemDefault())
@@ -36,7 +36,7 @@ fun Long.compareNowDayByMilliseconds(): Long {
 /**
  * 转化为时间格式
  */
-fun Long.formatTimestampByMilliseconds(): String {
+public fun Long.formatTimestampByMilliseconds(): String {
   val instant = Instant.fromEpochMilliseconds(this)
   val localDateTime = instant.toLocalDateTime(TimeZone.currentSystemDefault())
   return "${localDateTime.date} ${localDateTime.time}"
@@ -45,13 +45,13 @@ fun Long.formatTimestampByMilliseconds(): String {
 /**
  * 转化为日期格式
  */
-fun Long.formatDatestampByMilliseconds(): String {
+public fun Long.formatDatestampByMilliseconds(): String {
   val instant = Instant.fromEpochMilliseconds(this)
   val localDateTime = instant.toLocalDateTime(TimeZone.currentSystemDefault())
   return localDateTime.date.toString()
 }
 
-fun Long.formatDatestampByEpochDay(): String {
+public fun Long.formatDatestampByEpochDay(): String {
   val instant = Instant.fromEpochDays(this)
   val localDateTime = instant.toLocalDateTime(TimeZone.currentSystemDefault())
   return localDateTime.date.toString()
@@ -79,7 +79,7 @@ private fun Instant.toEpochDay(): Long {
   var total = 0L
   total += 365 * year
   if (year >= 0) {
-    total += (year + 3) / 4 - (year + 99) / 100 + (year + 399) / 400;
+    total += (year + 3) / 4 - (year + 99) / 100 + (year + 399) / 400
   } else {
     total -= year / -4 - year / -100 + year / -400
   }
@@ -91,7 +91,7 @@ private fun Instant.toEpochDay(): Long {
       total--
     }
   }
-  return total - DAYS_0000_TO_1970;
+  return total - DAYS_0000_TO_1970
 }
 
 private fun isLeapYear(year: Int): Boolean {

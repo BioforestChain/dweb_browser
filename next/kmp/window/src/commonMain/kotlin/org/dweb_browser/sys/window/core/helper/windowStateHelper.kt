@@ -31,7 +31,7 @@ fun WindowController.setStateFromManifest(manifest: ICommonAppManifest) {
 }
 
 private val comparableBuilder =
-  ComparableWrapper.Builder<StrictImageResource> { imageResource ->
+  ComparableWrapper.builder<StrictImageResource> { imageResource ->
     mapOf(
       "purpose" to enumToComparable(
         imageResource.purpose,

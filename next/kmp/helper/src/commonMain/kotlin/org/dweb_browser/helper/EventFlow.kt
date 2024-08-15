@@ -1,15 +1,15 @@
 package org.dweb_browser.helper
 
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.DisposableHandle
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 
-typealias Callback<T> = suspend (args: T) -> Unit
-typealias SimpleCallback = suspend (Unit) -> Unit
+public typealias Callback<T> = suspend (args: T) -> Unit
+public typealias SimpleCallback = suspend (Unit) -> Unit
 
 
 /**
@@ -17,9 +17,9 @@ typealias SimpleCallback = suspend (Unit) -> Unit
  * isAwaitEmit 是否等待listen 全部触发完成才返回emit
  * tip 标识，用于调试
  */
-open class EventFlow<T>(
-  val scope: CoroutineScope,
-  val tip: String = ""
+public open class EventFlow<T>(
+  public val scope: CoroutineScope,
+  public val tip: String = ""
 ) {
   //用于存储和发送事件
   private val eventEmitter = MutableSharedFlow<T>(
@@ -36,7 +36,7 @@ open class EventFlow<T>(
   private var awaitEmit = CompletableDeferred<Unit>()
 
 
-  suspend fun emit(event: T) {
+  public suspend fun emit(event: T) {
     eventEmitter.emit(event)
     if (eventCollect.value > 0) {
 //      println("🍄 emit-start $tip ${eventCollect.value}")
@@ -46,50 +46,47 @@ open class EventFlow<T>(
   }
 
   // 监听数据
-  fun listen(cb: Callback<T>) {
+  public fun listen(cb: Callback<T>) {
     eventCollect++
     scope.launch(start = CoroutineStart.UNDISPATCHED) {
-      try {
-        eventEmitter.collect {
-          cb.invoke(it)
-          if (eventCollect.value > 0) {
-            eventCollect--
-            if (eventCollect.value == 0) {
-              awaitEmit.complete(Unit)
-            }
+      eventEmitter.collect {
+        cb.invoke(it)
+        if (eventCollect.value > 0) {
+          eventCollect--
+          if (eventCollect.value == 0) {
+            awaitEmit.complete(Unit)
           }
         }
-      } catch (e: CancellationException) {
       }
     }
 
   }
 
-  fun toListener() = Listener(this)
+  public fun toListener(): Listener<T> = Listener(this)
 }
 
-class SimpleEventFlow(
+public class SimpleEventFlow(
   scope: CoroutineScope,
   tip: String = ""
 ) : EventFlow<Unit>(scope, tip) {
-  suspend fun emit() {
+  public suspend fun emit() {
     this.emit(Unit)
   }
 
 }
 
 // 监听生成器
-class Listener<Args>(private val eventFlow: EventFlow<Args>) {
-  operator fun invoke(cb: Callback<Args>) = eventFlow.listen(cb)
+public class Listener<Args>(private val eventFlow: EventFlow<Args>) {
+  public operator fun invoke(cb: Callback<Args>): Unit = eventFlow.listen(cb)
 }
 
-typealias Remover = () -> Boolean
+public typealias Remover = () -> Boolean
 
-fun Remover.removeWhen(listener: Signal.Listener<*>) = listener {
+public fun Remover.removeWhen(listener: Signal.Listener<*>): OffListener<out Any?> = listener {
   this@removeWhen()
 }
 
-fun Remover.removeWhen(lifecycleScope: CoroutineScope) = lifecycleScope.launch {
+public fun Remover.removeWhen(lifecycleScope: CoroutineScope): DisposableHandle = lifecycleScope.launch {
   CompletableDeferred<Unit>().await()
 }.invokeOnCompletion {
   this@removeWhen()

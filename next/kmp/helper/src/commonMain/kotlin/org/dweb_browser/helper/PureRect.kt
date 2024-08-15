@@ -8,34 +8,33 @@ import kotlinx.serialization.Serializable
  * 默认值是NaN，这种情况下，窗口构建者需要自己对其进行赋值
  */
 @Serializable
-data class PureRect(
+public data class PureRect(
   val x: Float = Float.NaN,
   val y: Float = Float.NaN,
   val width: Float = Float.NaN,
   val height: Float = Float.NaN,
 ) {
-  companion object {
-    val Zero = PureRect(0f, 0f, 0f, 0f)
+  public companion object {
+    public val Zero: PureRect = PureRect(0f, 0f, 0f, 0f)
   }
 
-  fun toMutable() = Mutable(x, y, width, height)
-  fun mutable(apply: Mutable.() -> Unit) = toMutable().run {
+  public fun toMutable(): Mutable = Mutable(x, y, width, height)
+  public fun mutable(apply: Mutable.() -> Unit): PureRect = toMutable().run {
     apply()
     toImmutable()
   }
-
-  class Mutable(
-    var x: Float,
-    var y: Float,
-    var width: Float,
-    var height: Float,
+  public class Mutable(
+    public var x: Float,
+    public var y: Float,
+    public var width: Float,
+    public var height: Float,
   ) {
-    fun toImmutable() = PureRect(x, y, width, height)
+    public fun toImmutable(): PureRect = PureRect(x, y, width, height)
   }
 
-  fun toPureBounds() = PureBounds(top = y, left = x, bottom = y + height, right = x + width)
+  public fun toPureBounds(): PureBounds = PureBounds(top = y, left = x, bottom = y + height, right = x + width)
 
-  fun timesToInt(times: Float) = PureIntRect(
+  public fun timesToInt(times: Float): PureIntRect = PureIntRect(
     x = (x * times).toInt(),
     y = (y * times).toInt(),
     width = (width * times).toInt(),
@@ -44,13 +43,13 @@ data class PureRect(
 }
 
 @Serializable
-data class PureIntRect(
+public data class PureIntRect(
   val x: Int,
   val y: Int,
   val width: Int,
   val height: Int,
 ) {
-  fun divToFloat(times: Float) = PureRect(
+  public fun divToFloat(times: Float): PureRect = PureRect(
     x = x / times,
     y = y / times,
     width = width / times,

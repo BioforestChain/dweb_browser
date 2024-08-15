@@ -18,6 +18,7 @@ if (localPropertiesFile.exists()) {
 kotlin {
 
   kmpCommonTarget(project) {
+    explicitApi()
     dependencies {
       api(libs.kotlinx.datetime)
       api(libs.ktor.http)

@@ -8,7 +8,7 @@ import io.ktor.http.parseQueryString
 
 //import io.ktor.http.Url
 
-fun URLBuilder.buildUnsafeString(): String {
+public fun URLBuilder.buildUnsafeString(): String {
   val originProtocol = protocol
   return when (originProtocol.name) {
     fileProtocol.name -> {
@@ -24,9 +24,9 @@ fun URLBuilder.buildUnsafeString(): String {
   }
 }
 
-val fileProtocol = URLProtocol.createOrDefault("file")
-val dwebProtocol = URLProtocol.createOrDefault("dweb")
-fun String.toIpcUrl(builder: (URLBuilder.() -> Unit)? = null) =
+public val fileProtocol: URLProtocol = URLProtocol.createOrDefault("file")
+public val dwebProtocol: URLProtocol = URLProtocol.createOrDefault("dweb")
+public fun String.toIpcUrl(builder: (URLBuilder.() -> Unit)? = null): Url =
   (if (startsWith(fileProtocol.name + ":")) {
     URLBuilder(this).apply {
       val index = indexOf("?")
@@ -41,8 +41,8 @@ fun String.toIpcUrl(builder: (URLBuilder.() -> Unit)? = null) =
     build()
   }
 
-fun buildUrlString(url: String, builder: URLBuilder.() -> Unit) = URLBuilder(url).run {
-  builder();
+public fun buildUrlString(url: String, builder: URLBuilder.() -> Unit): String = URLBuilder(url).run {
+  builder()
   buildUnsafeString()
 }
 
@@ -96,12 +96,12 @@ fun buildUrlString(url: String, builder: URLBuilder.() -> Unit) = URLBuilder(url
 //  }
 //}
 
-fun Url.build(block: URLBuilder.() -> Unit) = URLBuilder(this).run { block(); build() }
+public fun Url.build(block: URLBuilder.() -> Unit): Url = URLBuilder(this).run { block(); build() }
 
 /**
- * 参考 [URLBuilder.encodedPath]
+ * 参考 [URLBuilder.encodedPathSegments]
  */
-fun URLBuilder.resolvePath(path: String) {
+public fun URLBuilder.resolvePath(path: String) {
   if (path.isBlank() || path.isEmpty()) {
     return
   }
@@ -122,7 +122,7 @@ fun URLBuilder.resolvePath(path: String) {
   pathSegments += segments.filterNot { it == "" }
 }
 
-fun String.toWebUrl() = try {
+public fun String.toWebUrl(): Url? = try {
   val url = Url(this)
   if (url.toString().startsWith(this)) url else null
 } catch (_: Throwable) {
@@ -130,21 +130,21 @@ fun String.toWebUrl() = try {
 }
 
 // 由于 isRealDomain() 走 DNS 校验，耗时较长，这边改为 isMaybeDomain()
-fun String.toNoProtocolWebUrl() =
+public fun String.toNoProtocolWebUrl(): Url? =
   if (this.split("/").first().isMaybeDomain()) "https://$this".toWebUrl() else null
 
 /**尝试转换成webUrl*/
-fun String.toWebUrlOrWithoutProtocol() = toWebUrl() ?: toNoProtocolWebUrl()
+public fun String.toWebUrlOrWithoutProtocol(): Url? = toWebUrl() ?: toNoProtocolWebUrl()
 
 /**
  * 判断输入内容是否是域名或者有效的网址
  * 基于ktor的UrlBuilder函数，支持 http https ws wss socks 这几种协议( ftp/sftp 也许支持)
  */
-fun String.isWebUrl() = toWebUrl() != null
-fun String.isNoProtocolWebUrl() = toNoProtocolWebUrl() != null
-fun String.isWebUrlOrWithoutProtocol() = toWebUrlOrWithoutProtocol() != null
+public fun String.isWebUrl(): Boolean = toWebUrl() != null
+public fun String.isNoProtocolWebUrl(): Boolean = toNoProtocolWebUrl() != null
+public fun String.isWebUrlOrWithoutProtocol(): Boolean = toWebUrlOrWithoutProtocol() != null
 
-fun String.isDwebDeepLink() = try {
+public fun String.isDwebDeepLink(): Boolean = try {
   URLBuilder(this).buildUnsafeString().startsWith("dweb://")
 } catch (_: Throwable) {
   false

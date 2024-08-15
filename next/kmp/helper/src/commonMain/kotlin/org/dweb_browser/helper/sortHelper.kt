@@ -1,17 +1,17 @@
 package org.dweb_browser.helper
 
-class ComparableWrapper<T>(val value: T, val getScore: (T) -> Map<String, Int>) :
+public class ComparableWrapper<T>(public val value: T, public val getScore: (T) -> Map<String, Int>) :
   Comparable<ComparableWrapper<T>> {
-  companion object {
-    fun <T> Builder(getScore: (T) -> Map<String, Int>) = ComparableWrapperBuilder(getScore)
+  public companion object {
+    public fun <T> builder(getScore: (T) -> Map<String, Int>): ComparableWrapperBuilder<T> = ComparableWrapperBuilder(getScore)
 
-    class ComparableWrapperBuilder<T>(val getScore: (T) -> Map<String, Int>) {
-      fun build(value: T) = ComparableWrapper(value, getScore)
+    public class ComparableWrapperBuilder<T>(private val getScore: (T) -> Map<String, Int>) {
+      public fun build(value: T): ComparableWrapper<T> = ComparableWrapper(value, getScore)
     }
   }
 
   private var _score: Map<String, Int>? = null
-  val score: Map<String, Int>
+  public val score: Map<String, Int>
     get() {
       if (_score == null) {
         _score = getScore(value)
@@ -39,6 +39,6 @@ class ComparableWrapper<T>(val value: T, val getScore: (T) -> Map<String, Int>) 
   }
 }
 
-fun <T> enumToComparable(enumValue: T, enumList: List<T>) = enumList.indexOf(enumValue)
-fun <T> enumToComparable(enumValues: Iterable<T>, enumList: List<T>) =
+public fun <T> enumToComparable(enumValue: T, enumList: List<T>): Int = enumList.indexOf(enumValue)
+public fun <T> enumToComparable(enumValues: Iterable<T>, enumList: List<T>): List<Int> =
   enumValues.map { enumList.indexOf(it) }.sorted()

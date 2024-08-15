@@ -1,6 +1,6 @@
 package org.dweb_browser.helper
 
-class RememberLazy<T : Any?>(key: Any?, private val initializer: () -> T) : MemoryChain(key),
+public class RememberLazy<T : Any?>(key: Any?, private val initializer: () -> T) : MemoryChain(key),
   Lazy<T> {
   private var _lazy = lazy(initializer)
 
@@ -12,10 +12,10 @@ class RememberLazy<T : Any?>(key: Any?, private val initializer: () -> T) : Memo
     }
   }
 
-  fun <R : Any?> then(key: Any? = null, initializer: () -> R) =
+  public fun <R : Any?> then(key: Any? = null, initializer: () -> R): RememberLazy<R> =
     RememberLazy(key, initializer).also { it.follow(this) }
 
-  val lazy: Lazy<T>
+  public val lazy: Lazy<T>
     get() = _lazy
   override val value: T
     get() = lazy.value
@@ -23,22 +23,22 @@ class RememberLazy<T : Any?>(key: Any?, private val initializer: () -> T) : Memo
   override fun isInitialized(): Boolean = lazy.isInitialized()
 }
 
-open class MemoryChain(key: Any?) {
+public open class MemoryChain(key: Any?) {
   private val leaders = mutableSetOf<MemoryChain>()
   private val followers = mutableSetOf<MemoryChain>()
-  fun follow(leader: MemoryChain) {
+  public fun follow(leader: MemoryChain) {
     leader.followers.add(this)
     leaders.add(leader)
   }
 
-  fun unfollow(leader: MemoryChain) {
+  public fun unfollow(leader: MemoryChain) {
     leader.followers.remove(this)
     leaders.remove(leader)
   }
 
   private var _key = key
-  val key get() = _key
-  suspend fun setKey(value: Any?) {
+  public val key: Any? get() = _key
+  public suspend fun setKey(value: Any?) {
     if (value != _key) {
       _key = value
       emitChanges()
@@ -47,7 +47,7 @@ open class MemoryChain(key: Any?) {
 
 
   private val onChangeSignal = SimpleSignal()
-  val onChange = onChangeSignal.toListener()
+  public val onChange: Signal.Listener<Unit> = onChangeSignal.toListener()
 
   /**
    * 触发变更，跟随者递归该触发行为

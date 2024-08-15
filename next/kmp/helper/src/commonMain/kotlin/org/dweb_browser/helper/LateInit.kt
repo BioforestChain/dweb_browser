@@ -4,9 +4,9 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 
-class LateInit<T : Any>(private var value: T? = null) {
+public class LateInit<T : Any>(private var value: T? = null) {
   private val lock = Mutex()
-  fun getOrInitSync(initFun: () -> T): T {
+  public fun getOrInitSync(initFun: () -> T): T {
     while (value == null) {
       if (lock.tryLock()) {
         val result = value ?: initFun().also { value = it }
@@ -17,11 +17,11 @@ class LateInit<T : Any>(private var value: T? = null) {
     return value as T
   }
 
-  suspend fun getOrInit(initFun: suspend () -> T) = lock.withLock {
+  public suspend fun getOrInit(initFun: suspend () -> T): T = lock.withLock {
     value ?: initFun().also { value = it }
   }
 
-  fun set(value: T) {
+  public fun set(value: T) {
     this.value = value
   }
 }

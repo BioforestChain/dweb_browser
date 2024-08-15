@@ -4,7 +4,7 @@ import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.bits.copyTo
 import io.ktor.utils.io.read
 
-actual suspend inline fun ByteReadChannel.consumeEachArrayRange(
+public actual suspend inline fun ByteReadChannel.consumeEachArrayRange(
   visitor: ConsumeEachArrayVisitor,
 ) {
   val controller = ChannelConsumeEachController()

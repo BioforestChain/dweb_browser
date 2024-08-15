@@ -3,7 +3,7 @@ package org.dweb_browser.helper
 /**
  * 比较版本的大小
  */
-fun String.isGreaterThan(compare: String): Boolean {
+public fun String.isGreaterThan(compare: String): Boolean {
   if (this.isEmpty()) return false
   if (compare.isEmpty()) return true
   val thisSplit = this.split(".")

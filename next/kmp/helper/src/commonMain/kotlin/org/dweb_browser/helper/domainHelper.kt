@@ -1,21 +1,21 @@
 package org.dweb_browser.helper
 
-expect fun String.isRealDomain(): Boolean
-expect fun String.toPunyCode(): String
+public expect fun String.isRealDomain(): Boolean
+public expect fun String.toPunyCode(): String
 
 /**
  * 参考阿里云的js解析代码实现的域名格式解析
  *
  * https://www.sojson.com/blog/312.html
  */
-fun String.parseAsDomain() = DomainParser(this.toPunyCode()).apply { parse() }
+public fun String.parseAsDomain(): DomainParser = DomainParser(this.toPunyCode()).apply { parse() }
 
-fun String.isMaybeDomain() = parseAsDomain().hasError.not()
+public fun String.isMaybeDomain(): Boolean = parseAsDomain().hasError.not()
 
 /**
  * 裁掉url末尾的/后进行比较是否相等
  */
-fun String.isTrimEndSlashEqual(url: String) = this.trimEnd('/') == url.trimEnd('/')
+public fun String.isTrimEndSlashEqual(url: String): Boolean = this.trimEnd('/') == url.trimEnd('/')
 
 
 /**
@@ -50,17 +50,17 @@ private val twoTopLevel =
     // 切分
     .split(',').map { it.toPunyCode() }
 
-class DomainParser(domainName: String) {
+public class DomainParser(domainName: String) {
   private var input = domainName
 
   /**
    * 二级域名
    */
-  var secondLevelDomain = ""
+  public var secondLevelDomain: String = ""
     private set
-  var hasError = false
+  public var hasError: Boolean = false
     private set
-  var errorMessage = ""
+  public var errorMessage: String = ""
     private set
 
   internal fun parse() {

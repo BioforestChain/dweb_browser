@@ -1,9 +1,9 @@
 package org.dweb_browser.helper
 
-fun now() = datetimeNow().formatTimestampByMilliseconds()
+public fun now(): String = datetimeNow().formatTimestampByMilliseconds()
   .padEndAndSub(23) // kmp中LocalDateTime跟android不一样 // LocalDateTime.toString().padEndAndSub(23)
 
-fun printError(tag: String, msg: Any?, err: Any? = null) {
+public fun printError(tag: String, msg: Any?, err: Any? = null) {
   when (err) {
     null -> println("${tag.padEnd(60, ' ')} $msg")
     is Throwable -> {
@@ -15,13 +15,13 @@ fun printError(tag: String, msg: Any?, err: Any? = null) {
   }
 }
 
-fun debugger(@Suppress("UNUSED_PARAMETER") vararg params: Any?) {
+public fun debugger(@Suppress("UNUSED_PARAMETER") vararg params: Any?) {
   println("DEBUGGER 请打断点")
 }
 
-expect fun eprintln(message: String)
+public expect fun eprintln(message: String)
 
-fun WARNING(message: Any?) {
+public fun WARNING(message: Any?) {
   val msg = if (message is Throwable) {
     message.stackTraceToString()
   } else message.toString()
@@ -30,7 +30,7 @@ fun WARNING(message: Any?) {
 }
 
 
-fun printDebug(
+public fun printDebug(
   scope: String,
   tag: String,
   message: Any?,
@@ -62,8 +62,8 @@ fun printDebug(
 }
 
 
-fun String.padEndAndSub(length: Int): String {
+public fun String.padEndAndSub(length: Int): String {
   return this.padEnd(length, ' ').substring(0, length)
 }
 
-val debugTest = Debugger("test")
+public val debugTest: Debugger = Debugger("test")

@@ -1,5 +1,5 @@
 package org.dweb_browser.helper
 
-expect fun randomUUID(): UUID
+public expect fun randomUUID(): UUID
 
-typealias UUID = String
+public typealias UUID = String

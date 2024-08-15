@@ -16,70 +16,71 @@ import kotlin.reflect.KProperty
  * val id = idAcc++
  * val id = ++idAcc
  */
-class SafeInt(
+public class SafeInt(
   field: Int = 0,
 ) : SafeNumber<Int, SafeInt>(field) {
 
 
   override fun addInt(v: Int) {
-    field += v
+    value += v
   }
 
   override fun addNumber(v: Int) {
-    field += v
+    value += v
   }
 }
 
-class SafeFloat(
+public class SafeFloat(
   field: Float = 0f,
 ) : SafeNumber<Float, SafeFloat>(field) {
 
   override fun addInt(v: Int) {
-    field += v
+    value += v
   }
 
   override fun addNumber(v: Float) {
-    field += v
+    value += v
   }
 
 }
 
 
 @Suppress("UNCHECKED_CAST")
-sealed class SafeNumber<T : Number, Self : SafeNumber<T, Self>>(
-  protected var field: T,
+public sealed class SafeNumber<T : Number, Self : SafeNumber<T, Self>>(
+   field: T,
 ) {
   protected val sync: SynchronizedObject = SynchronizedObject()
 
-  operator fun getValue(thisRef: Any?, property: KProperty<*>) = value
+  public operator fun getValue(thisRef: Any?, property: KProperty<*>): T = value
 
-  operator fun setValue(thisRef: Any?, property: KProperty<*>, value: T) = synchronized(sync) {
-    this.field = value
+  public operator fun setValue(thisRef: Any?, property: KProperty<*>, value: T): Unit = synchronized(sync) {
+    this.value = value
   }
 
-  val value get() = synchronized(sync) { field }
+  public var value: T = field
+    protected set
 
   protected abstract fun addInt(v: Int)
   protected abstract fun addNumber(v: T)
 
-  operator fun inc() = synchronized(sync) { addInt(1);this as Self }
-  operator fun dec() = synchronized(sync) { addInt(-1);this as Self }
+  public operator fun  inc(): Self = synchronized(sync) { addInt(1);this as Self }
+  public operator fun dec(): Self = synchronized(sync) { addInt(-1);this as Self }
 
-  operator fun plusAssign(value: T) {
+  public operator fun plusAssign(value: T) {
     synchronized(sync) { addNumber(value);this }
   }
 
-  operator fun minusAssign(value: T) {
+  public operator fun minusAssign(value: T) {
     synchronized(sync) { addNumber(value);this }
   }
 
   override fun equals(other: Any?): Boolean = when (other) {
-    is SafeNumber<*, *> -> other.field == field
-    is Number -> other == field
+    is SafeNumber<*, *> -> other.value == value
+    is Number -> other == value
     else -> false
   }
 
-  override fun hashCode() = value.hashCode()
+  override fun hashCode(): Int = value.hashCode()
   override fun toString(): String {
     return "SafeNumber($value)"
   }

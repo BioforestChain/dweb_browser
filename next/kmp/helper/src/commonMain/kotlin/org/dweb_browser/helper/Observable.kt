@@ -6,47 +6,47 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlin.reflect.KProperty
 
-class Observable<K : Any> {
-  data class Change<K, V>(val key: K, val newValue: V, val oldValue: V)
+public class Observable<K : Any> {
+  public data class Change<K, V>(val key: K, val newValue: V, val oldValue: V)
 
   private var customCoroutineScope: CoroutineScope? = null
-  var coroutineScope
+  public var coroutineScope: CoroutineScope
     get() = (if (customCoroutineScope?.isActive == true) customCoroutineScope else null)
       ?: globalDefaultScope
     set(value) {
       customCoroutineScope = value
     }
 
-  val changeSignal = Signal<Change<K, *>>();
-  val onChange = changeSignal.toListener()
+  public val changeSignal: Signal<Change<K, *>> = Signal()
+  public val onChange: Signal.Listener<Change<K, *>> = changeSignal.toListener()
 
-  class TransformContext<K : Any, T : Any?>(val key: K, val value: T, var targetValue: T) {
+  public class TransformContext<K : Any, T : Any?>(public val key: K, public val value: T, public var targetValue: T) {
     /**
      * 将该值标记成 true，将会让 setValue 取消赋值操作
      */
-    var preventDefault = false
+    public var preventDefault: Boolean = false
   }
 
   private val _observers = mutableListOf<Observer<K, *>>()
 
   /// 只读列表
-  val observers get() = _observers.associateBy { it.key }
+  public val observers: Map<K, Observer<K, *>> get() = _observers.associateBy { it.key }
 
-  class Observer<K : Any, T : Any?>(
+  public class Observer<K : Any, T : Any?>(
     private val ob: Observable<K>,
-    val key: K,
-    var value: T,
-    val transform: (TransformContext<K, T>.() -> Unit)? = null,
+    public val key: K,
+    public var value: T,
+    public val transform: (TransformContext<K, T>.() -> Unit)? = null,
   ) {
     init {
       ob._observers.add(this)
     }
 
-    operator fun setValue(thisRef: Any, property: KProperty<*>, newValue: T) {
+    public operator fun setValue(thisRef: Any, property: KProperty<*>, newValue: T) {
       set(newValue)
     }
 
-    fun set(newValue: T) {
+    public fun set(newValue: T) {
       val inputValue = if (transform != null) {
         val context = TransformContext(key, value, newValue)
         transform.invoke(context)
@@ -70,20 +70,20 @@ class Observable<K : Any> {
       }
     }
 
-    operator fun getValue(thisRef: Any, property: KProperty<*>) = value
+    public operator fun getValue(thisRef: Any, property: KProperty<*>): T = value
   }
 
-  fun <T : Any> observe(
+  public fun <T : Any> observe(
     key: K,
     initValue: T,
     transform: (TransformContext<K, T>.() -> Unit)? = null,
-  ) = Observer(this, key, initValue, transform)
+  ): Observer<K, T> = Observer(this, key, initValue, transform)
 
 
-  fun <T : Any?> observeNullable(
+  public fun <T : Any?> observeNullable(
     key: K,
     initValue: T,
     transform: (TransformContext<K, T>.() -> Unit)? = null,
-  ) = Observer(this, key, initValue, transform)
+  ): Observer<K, T> = Observer(this, key, initValue, transform)
 }
 

@@ -3,24 +3,24 @@ package org.dweb_browser.helper
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class PurePoint(val x: Float, val y: Float) {
-  companion object {
-    val Zero = PurePoint(0f, 0f)
+public data class PurePoint(val x: Float, val y: Float) {
+  public companion object {
+    public val Zero: PurePoint = PurePoint(0f, 0f)
   }
 
-  fun toMutable() = Mutable(x, y)
-  class Mutable(
-    var x: Float,
-    var y: Float,
+  public fun toMutable(): Mutable = Mutable(x, y)
+  public class Mutable(
+    public var x: Float,
+    public var y: Float,
   ) {
-    fun toImmutable() = PurePoint(x, y)
+    public fun toImmutable(): PurePoint = PurePoint(x, y)
   }
 
-  fun timesToInt(times: Float) = PureIntPoint((times * x).toInt(), (times * y).toInt())
+  public fun timesToInt(times: Float): PureIntPoint = PureIntPoint((times * x).toInt(), (times * y).toInt())
 }
 
 @Serializable
-data class PureIntPoint(
+public data class PureIntPoint(
   val x: Int,
   val y: Int,
 )

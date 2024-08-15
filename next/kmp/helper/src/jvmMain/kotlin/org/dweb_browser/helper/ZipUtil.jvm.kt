@@ -10,15 +10,15 @@ import java.util.*
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 
-val debugZip = Debugger("zip")
+public val debugZip: Debugger = Debugger("zip")
 
-object ZipUtil {
+public object ZipUtil {
   private val TAG = ZipUtil::class.simpleName!!
 
   private val BUFFER_SIZE = 1024 * 100
 
 
-  fun ergodicDecompress(
+  public fun ergodicDecompress(
     filePath: String, outputDir: String, isDeleted: Boolean = true, mmid: String? = null,
   ): Boolean {
     debugZip(TAG, "ergodicDecompress->$filePath, $outputDir, $isDeleted, $mmid")

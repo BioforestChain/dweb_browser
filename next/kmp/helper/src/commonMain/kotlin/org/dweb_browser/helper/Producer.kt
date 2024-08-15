@@ -6,9 +6,11 @@ import kotlinx.coroutines.CompletableJob
 import kotlinx.coroutines.CompletionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.DisposableHandle
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
@@ -26,14 +28,14 @@ import kotlin.coroutines.CoroutineContext
 /**
  * 消息生产者，彻底的消费掉消息需要显示调用consume()
  */
-class Producer<T>(val name: String, parentContext: CoroutineContext) {
-  constructor(name: String, parentScope: CoroutineScope) : this(name, parentScope.coroutineContext)
+public class Producer<T>(public val name: String, parentContext: CoroutineContext) {
+  public constructor(name: String, parentScope: CoroutineScope) : this(name, parentScope.coroutineContext)
 
   private val job = SupervisorJob()
-  val coroutineContext = parentContext + job
-  val scope by lazy { CoroutineScope(coroutineContext) }
-  val debugProducer by lazy { Debugger(this.toString()) }
-  val join = job::join
+  public val coroutineContext: CoroutineContext = parentContext + job
+  public val scope: CoroutineScope by lazy { CoroutineScope(coroutineContext) }
+  public val debugProducer: Debugger by lazy { Debugger(this.toString()) }
+  public suspend fun join(): Unit = job.join()
 
   init {
     parentContext.job.invokeOnCompletion {
@@ -67,14 +69,14 @@ class Producer<T>(val name: String, parentContext: CoroutineContext) {
   }
 
   /**生产者构造的事件*/
-  inner class Event(val data: T, order: Int?, private val eventJob: CompletableJob = Job()) :
+  public inner class Event(public val data: T, order: Int?, private val eventJob: CompletableJob = Job()) :
     OrderBy, Job by eventJob {
-    override val order = when {
+    override val order: Int? = when {
       order == null && data is OrderBy -> data.order
       else -> order
     }
     private var consumeTimes = SafeInt(0)
-    val consumed get() = consumeTimes.value > 0
+    public val consumed: Boolean get() = consumeTimes.value > 0
 
     /**
      * 这个锁用来确保消息的执行，同一时间有且只能有一个消费者在消费
@@ -88,12 +90,12 @@ class Producer<T>(val name: String, parentContext: CoroutineContext) {
      * 默认情况下，事件会被缓存，直到被消费
      * 但是这并不会停止向当前已有的其它消费器继续传播
      */
-    fun consume(): T {
+    public fun consume(): T {
       consumeTimes++
       return data
     }
 
-    var stoped = false
+    public var stoped: Boolean = false
       private set
 
     /**
@@ -101,7 +103,7 @@ class Producer<T>(val name: String, parentContext: CoroutineContext) {
      *
      * 事件消费，并停止向其它消费器继续传播
      */
-    fun stopImmediatePropagation() {
+    public fun stopImmediatePropagation() {
       consume()
       stoped = true
     }
@@ -115,21 +117,21 @@ class Producer<T>(val name: String, parentContext: CoroutineContext) {
     }
 
     /**将其消耗转换为R对象 以返回值形式继续传递*/
-    inline fun <reified R : T> consumeAs(): R? {
+    public inline fun <reified R : T> consumeAs(): R? {
       if (R::class.isInstance(data)) {
         return consume() as R
       }
       return null
     }
 
-    inline fun consumeFilter(filter: (T) -> Boolean): T? {
+    public inline fun consumeFilter(filter: (T) -> Boolean): T? {
       if (filter(data)) {
         return consume()
       }
       return null
     }
 
-    inline fun <R> consumeMapNotNull(mapNotNull: (T) -> R?): R? {
+    public inline fun <R> consumeMapNotNull(mapNotNull: (T) -> R?): R? {
       val result = mapNotNull(data)
       if (result != null) {
         consume()
@@ -139,7 +141,7 @@ class Producer<T>(val name: String, parentContext: CoroutineContext) {
     }
 
     /**将其消耗转换为R对象 以回调形式继续传递*/
-    inline fun <reified R : T> consumeAs(block: (R) -> Unit) {
+    public inline fun <reified R : T> consumeAs(block: (R) -> Unit) {
       if (R::class.isInstance(data)) {
         block(consume() as R)
       }
@@ -192,7 +194,7 @@ class Producer<T>(val name: String, parentContext: CoroutineContext) {
     }
   }
 
-  suspend fun send(value: T, order: Int? = null) = actionQueue.queueAndAwait("send=$value") {
+  public suspend fun send(value: T, order: Int? = null): Unit = actionQueue.queueAndAwait("send=$value") {
     ensureOpen()
     doSend(value, order)
   }
@@ -208,7 +210,7 @@ class Producer<T>(val name: String, parentContext: CoroutineContext) {
     )
   }
 
-  var warningThreshold = 10
+  public var warningThreshold: Int = 10
   private fun doSend(value: T, order: Int?) {
     val event = Event(value, order)
     val consumers = this.consumers.toList()
@@ -221,7 +223,7 @@ class Producer<T>(val name: String, parentContext: CoroutineContext) {
     }
   }
 
-  suspend fun sendBeacon(value: T, order: Int? = null) = actionQueue.queueAndAwait("sendBeacon") {
+  public suspend fun sendBeacon(value: T, order: Int? = null): Unit = actionQueue.queueAndAwait("sendBeacon") {
     doSendBeacon(value, order)
   }
 
@@ -234,7 +236,7 @@ class Producer<T>(val name: String, parentContext: CoroutineContext) {
     }
   }
 
-  suspend fun trySend(value: T, order: Int? = null) = actionQueue.queueAndAwait("trySend") {
+  public suspend fun trySend(value: T, order: Int? = null): Unit = actionQueue.queueAndAwait("trySend") {
     if (isClosedForSend) {
       doSendBeacon(value, order)
     } else {
@@ -265,23 +267,23 @@ class Producer<T>(val name: String, parentContext: CoroutineContext) {
   }
 
   /**创建消费者*/
-  fun consumer(name: String): Consumer {
+  public fun consumer(name: String): Consumer {
     ensureOpen()
     return Consumer(name)
   }
 
-  inner class Consumer internal constructor(
-    val name: String,
+  public inner class Consumer internal constructor(
+    public val name: String,
   ) : Flow<Event> {
     internal val input: MutableSharedFlow<Event?> = MutableSharedFlow()
-    val debugConsumer by lazy { Debugger(this.toString()) }
+    public val debugConsumer: Debugger by lazy { Debugger(this.toString()) }
     override fun toString(): String {
       return "Consumer<[$producerName]$name>"
     }
 
-    val producerName get() = this@Producer.name
+    public val producerName: String get() = this@Producer.name
 
-    var started = false
+    public var started: Boolean = false
       private set
 
     internal var startingBuffers: List<Event>? = null
@@ -319,7 +321,7 @@ class Producer<T>(val name: String, parentContext: CoroutineContext) {
           errorCatcher.onAwait { it }
         }
 
-        job.cancel()
+        job.cancel("collector emit error",error)
 
       }
       actionQueue.queueAndAwait("add-consumer") {
@@ -353,16 +355,16 @@ class Producer<T>(val name: String, parentContext: CoroutineContext) {
       collectOnce(collector)
     }
 
-    suspend fun close(cause: Throwable? = null) {
+    public suspend fun close(cause: Throwable? = null) {
       errorCatcher.complete(cause)
     }
   }
 
-  var isClosedForSend = false
+  public var isClosedForSend: Boolean = false
     private set
 
 
-  fun close(cause: Throwable? = null) {
+  public fun close(cause: Throwable? = null) {
     @Suppress("DeferredResultUnused") doClose(cause)
   }
 
@@ -415,12 +417,12 @@ class Producer<T>(val name: String, parentContext: CoroutineContext) {
     }
   }
 
-  suspend fun closeAndJoin(cause: Throwable? = null) {
+  public suspend fun closeAndJoin(cause: Throwable? = null) {
     runCatching {// 这里会抛出 job was cancelled 的异常
       doClose(cause).await()
     }
   }
 
   /**调用监听关闭*/
-  fun invokeOnClose(handler: CompletionHandler) = job.invokeOnCompletion(handler)
+  public fun invokeOnClose(handler: CompletionHandler): DisposableHandle = job.invokeOnCompletion(handler)
 }

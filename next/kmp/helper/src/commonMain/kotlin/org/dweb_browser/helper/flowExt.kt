@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlin.reflect.KProperty
 
 
-operator fun <T> MutableStateFlow<T>.setValue(
+public operator fun <T> MutableStateFlow<T>.setValue(
   target: Any,
   property: KProperty<*>,
   t: T,
@@ -14,6 +14,6 @@ operator fun <T> MutableStateFlow<T>.setValue(
 }
 
 
-operator fun <T> StateFlow<T>.getValue(target: Any, property: KProperty<*>): T {
+public operator fun <T> StateFlow<T>.getValue(target: Any, property: KProperty<*>): T {
   return value
 }

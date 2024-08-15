@@ -3,17 +3,17 @@ package org.dweb_browser.helper
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlin.coroutines.CoroutineContext
 
-open class ChangeableListBase<T> : MutableList<T> by ArrayList()
+public open class ChangeableListBase<T> : MutableList<T> by ArrayList()
 
-class ChangeableList<T>(context: CoroutineContext = defaultAsyncExceptionHandler) :
+public class ChangeableList<T>(context: CoroutineContext = defaultAsyncExceptionHandler) :
   ChangeableListBase<T>() {
   private val changeable = Changeable(this, context)
-  fun setContext(context: CoroutineContext) {
+  public fun setContext(context: CoroutineContext) {
     changeable.context = context
   }
 
-  val onChange get() = changeable.onChange
-  suspend fun emitChange() = changeable.emitChange()
+  public val onChange: Signal.Listener<ChangeableList<T>> get() = changeable.onChange
+  public suspend fun emitChange(): Unit = changeable.emitChange()
 
   override fun clear() {
     return super.clear().also { changeable.emitChangeBackground() }
@@ -35,7 +35,7 @@ class ChangeableList<T>(context: CoroutineContext = defaultAsyncExceptionHandler
     return super.add(element).also { if (it) changeable.emitChangeBackground() }
   }
 
-  fun lastOrNull(): T? {
+  public fun lastOrNull(): T? {
     return if (isEmpty()) null else this[size - 1]
   }
 
@@ -60,7 +60,7 @@ class ChangeableList<T>(context: CoroutineContext = defaultAsyncExceptionHandler
   }
 
   /** 重置 清空所有的事件监听，清空所有的数据  */
-  fun reset() {
+  public fun reset() {
     changeable.clear()
     this.clear()
   }

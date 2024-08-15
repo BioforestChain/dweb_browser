@@ -8,33 +8,33 @@ import kotlinx.serialization.Serializable
  * 默认值是NaN，这种情况下，窗口构建者需要自己对其进行赋值
  */
 @Serializable
-data class PureBounds(
+public data class PureBounds(
   val top: Float = Float.NaN,
   val left: Float = Float.NaN,
   val bottom: Float = Float.NaN,
   val right: Float = Float.NaN,
 ) {
-  companion object {
-    val Zero = PureBounds(0f, 0f, 0f, 0f)
+  public companion object {
+    public val Zero: PureBounds = PureBounds(0f, 0f, 0f, 0f)
   }
 
-  fun toMutable() = Mutable(top, left, bottom, right)
-  class Mutable(
-    var top: Float,
-    var left: Float,
-    var bottom: Float,
-    var right: Float,
+  public fun toMutable(): Mutable = Mutable(top, left, bottom, right)
+  public class Mutable(
+    public var top: Float,
+    public var left: Float,
+    public var bottom: Float,
+    public var right: Float,
   ) {
-    fun toImmutable() = PureBounds(top, left, bottom, right)
+    public fun toImmutable(): PureBounds = PureBounds(top, left, bottom, right)
   }
 
-  val width get() = right - left
-  val height get() = bottom - top
-  val centerX get() = (left + right) / 2
-  val centerY get() = (top + bottom) / 2
+  val width: Float get() = right - left
+  val height: Float get() = bottom - top
+  val centerX: Float get() = (left + right) / 2
+  val centerY: Float get() = (top + bottom) / 2
 
-  fun toPureRect() = PureRect(x = left, y = top, width = right - left, height = bottom - top)
-  fun centerScale(scale: Float): PureBounds {
+  public fun toPureRect(): PureRect = PureRect(x = left, y = top, width = right - left, height = bottom - top)
+  public fun centerScale(scale: Float): PureBounds {
     val scaleWidthDiff = width * (scale - 1) / 2
     val scaleHeightDiff = height * (scale - 1) / 2
     return PureBounds(
@@ -45,7 +45,7 @@ data class PureBounds(
     )
   }
 
-  fun timesToPureIntBounds(value: Float) = PureIntBounds(
+  public fun timesToPureIntBounds(value: Float): PureIntBounds = PureIntBounds(
     top = (top * value).toInt(),
     left = (left * value).toInt(),
     bottom = (bottom * value).toInt(),
@@ -53,17 +53,16 @@ data class PureBounds(
   )
 }
 
-data class PureIntBounds(
+public data class PureIntBounds(
   val top: Int = 0,
   val left: Int = 0,
   val bottom: Int = 0,
   val right: Int = 0,
 ) {
-  fun divToPureBounds(value: Float) = PureBounds(
+  public fun divToPureBounds(value: Float): PureBounds = PureBounds(
     top = top / value,
     left = left / value,
     bottom = bottom / value,
     right = right / value,
   )
-  val bounds by lazy {  }
 }

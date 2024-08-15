@@ -3,10 +3,11 @@ package org.dweb_browser.helper
 import io.ktor.http.URLBuilder
 import io.ktor.http.Url
 import io.ktor.http.takeFrom
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class ImageResource(
+public data class ImageResource(
   val src: String,
   val sizes: String? = null,
   val type: String? = null,
@@ -15,51 +16,53 @@ data class ImageResource(
 )
 
 @Serializable
-data class ShortcutItem(
+public data class ShortcutItem(
   val name: String,
-  val short_name: String? = null,
+  @SerialName("short_name")
+  val shortName: String? = null,
   val description: String? = null,
   val url: String,
   val icons: MutableList<ImageResource>? = null,
 )
 
 
-object DisplayMode_Serializer :
+@Suppress("ClassName")
+public object DisplayMode_Serializer :
   StringEnumSerializer<DisplayMode>("DisplayMode", DisplayMode.ALL_VALUES, { mode })
 
 
 @Serializable(with = DisplayMode_Serializer::class)
-enum class DisplayMode(val mode: String) {
+public enum class DisplayMode(public val mode: String) {
   Fullscreen("fullscreen"), Standalone("standalone"), MinimalUi("minimal_ui"), Browser("browser"),
   ;
 
-  companion object {
-    val ALL_VALUES = entries.associateBy { it.mode }
+  public companion object {
+    public val ALL_VALUES: Map<String, DisplayMode> = entries.associateBy { it.mode }
   }
 }
 
 @Serializable
-enum class ImageResourcePurposes(val purpose: String) {
+public enum class ImageResourcePurposes(public val purpose: String) {
   Monochrome("monochrome"), Maskable("maskable"), Any("any"),
   ;
 
-  companion object {
-    val ALL_VALUES = entries.associateBy { it }
+  public companion object {
+    public val ALL_VALUES: Map<ImageResourcePurposes, ImageResourcePurposes> = entries.associateBy { it }
   }
 }
 
 @Serializable
-data class ImageResourceSize(val width: Int, val height: Int)
+public data class ImageResourceSize(val width: Int, val height: Int)
 
 @Serializable
-data class StrictImageResource(
+public data class StrictImageResource(
   val src: String,
   val purpose: Set<ImageResourcePurposes>,
   val type: String,
   val sizes: List<ImageResourceSize>,
 ) {
-  companion object {
-    fun from(img: ImageResource, baseUrl: String? = null): StrictImageResource {
+  public companion object {
+    public fun from(img: ImageResource, baseUrl: String? = null): StrictImageResource {
       var imageType = img.type
       val imgFullHref = if (img.src.startsWith("data:")) {
         if (imageType == null) {
@@ -75,7 +78,7 @@ data class StrictImageResource(
           val imageUrlExt = imgUrl.runCatching { encodedPath.substringAfterLast(".") }.getOrNull()
           imageType = when (imageUrlExt) {
             "jpg", "jpeg" -> "image/jpeg"
-            "webp", "png", "avif", "apng" -> "image/$imageType"
+            "webp", "png", "avif", "apng" -> "image/$imageUrlExt"
             "svg" -> "image/svg+xml"
             else -> "image/*"
           }

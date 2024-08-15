@@ -5,7 +5,7 @@ plugins {
 }
 kotlin {
   kmpCommonTarget(project)
-
+  
   kmpComposeTarget(project) {
     dependencies {
       implementation(projects.helper)
@@ -61,7 +61,7 @@ kotlin {
       implementation(libs.camera.zxing.javase)
     }
   }
-
+  
   @OptIn(ExperimentalKotlinGradlePluginApi::class)
   applyHierarchyPlatformTemplate {
     common {

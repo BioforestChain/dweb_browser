@@ -4,25 +4,25 @@ import kotlinx.serialization.Serializable
 import kotlin.coroutines.CoroutineContext
 
 @Serializable
-data class ChangeState<K>(val adds: Set<K>, val updates: Set<K>, val removes: Set<K>);
+public data class ChangeState<K>(val adds: Set<K>, val updates: Set<K>, val removes: Set<K>);
 
-class ChangeableMap<K, V>(
+public class ChangeableMap<K, V>(
   context: CoroutineContext = defaultAsyncExceptionHandler,
   private val origin: MutableMap<K, V> = mutableMapOf(),
 ) :
   MutableMap<K, V> by origin {
-  data class Changes<K, V>(
+  public data class Changes<K, V>(
     val origin: ChangeableMap<K, V>, val adds: Set<K>, val updates: Set<K>, val removes: Set<K>,
   )
 
   private val changeable = Changeable(Changes(this, setOf(), setOf(), setOf()), context)
-  fun setContext(context: CoroutineContext) {
+  public fun setContext(context: CoroutineContext) {
     changeable.context = context
   }
 
-  val onChange get() = changeable.onChange
-  suspend fun emitChange() = changeable.emitChange()
-  fun emitChangeBackground(
+  public val onChange: Signal.Listener<Changes<K, V>> get() = changeable.onChange
+  public suspend fun emitChange(): Unit = changeable.emitChange()
+  public fun emitChangeBackground(
     adds: Set<K> = setOf(),
     updates: Set<K> = setOf(),
     removes: Set<K> = setOf(),
@@ -37,7 +37,7 @@ class ChangeableMap<K, V>(
     }
   }
 
-  override fun put(key: K, value: V) = origin.put(key, value).also {
+  override fun put(key: K, value: V): V? = origin.put(key, value).also {
     if (it != null) {// 有前置的值，那么就触发 update
       emitChangeBackground(updates = setOf(key))
     } else {// 没有前置的值，那么就触发 add
@@ -45,7 +45,7 @@ class ChangeableMap<K, V>(
     }
   }
 
-  operator fun set(key: K, value: V) {
+  public operator fun set(key: K, value: V) {
     this.put(key, value)
   }
 
@@ -62,19 +62,19 @@ class ChangeableMap<K, V>(
     origin.putAll(from).also { emitChangeBackground(updates, adds) }
   }
 
-  override fun remove(key: K) =
+  override fun remove(key: K): V? =
     origin.remove(key)?.also { emitChangeBackground(removes = setOf(key)) }
 
-  fun remove(key: K, value: V) =
+  fun remove(key: K, value: V): Boolean =
     (this as MutableMap<K, V>).remove(key, value)
 
-  fun delete(key: K) = remove(key) != null
+  public fun delete(key: K): Boolean = remove(key) != null
 
 
   /** 重置 清空所有的事件监听，清空所有的数据
    * 注意，这里不会触发任何事件，如果有需要，请使用 clear ，然后再 reset
    */
-  fun reset() {
+  public fun reset() {
     changeable.clear()
     this.clear()
   }

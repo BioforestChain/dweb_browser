@@ -16,15 +16,15 @@ import kotlin.coroutines.CoroutineContext
  * 2. 与之前排队的合并成一个
  * 3. 不合并，排队执行
  */
-class Queue<R>(
+public class Queue<R>(
   private val strategy: StrategyContext<R>.() -> Deferred<R>,
   private val block: suspend () -> R,
 ) {
-  class StrategyContext<R>(
+  public class StrategyContext<R>(
     override val coroutineContext: CoroutineContext,
-    val enqueue: () -> Deferred<R>,
-    val current: Deferred<R>,
-    val pending: List<Deferred<R>>,
+    public val enqueue: () -> Deferred<R>,
+    public val current: Deferred<R>,
+    public val pending: List<Deferred<R>>,
   ) : CoroutineScope
 
   private val _all = mutableListOf<Deferred<R>>()
@@ -47,7 +47,7 @@ class Queue<R>(
       else -> async { block() }
     }
 
-  suspend operator fun invoke(): R {
+  public suspend operator fun invoke(): R {
     return mutex.withLock {
       coroutineScope {
         create().also { result ->
@@ -61,16 +61,16 @@ class Queue<R>(
       }
     }.await()
   }
-  companion object {
+  public companion object {
     /**
      * 放弃排队
      */
-    fun <R> drop(block: suspend () -> R) = Queue({ current }, block)
+    public fun <R> drop(block: suspend () -> R): Queue<R> = Queue({ current }, block)
 
     /**
      * 与之前排队的合并成一个
      */
-    fun <R> merge(block: suspend () -> R) = Queue({
+    public fun <R> merge(block: suspend () -> R): Queue<R> = Queue({
       when (val last = pending.firstOrNull()) {
         null -> enqueue()
         else -> last
@@ -80,7 +80,7 @@ class Queue<R>(
     /**
      * 不合并，排队执行
      */
-    fun <R> enqueue(block: suspend () -> R) = Queue({
+    public fun <R> enqueue(block: suspend () -> R): Queue<R> = Queue({
       enqueue()
     }, block)
   }

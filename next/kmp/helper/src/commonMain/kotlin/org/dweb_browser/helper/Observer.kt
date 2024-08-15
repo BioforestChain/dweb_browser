@@ -3,17 +3,17 @@ package org.dweb_browser.helper
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableStateFlow
 
-open class Observer<T>(initValue: T) {
-  protected val state = MutableStateFlow(initValue)
-  suspend fun emit(v: T) {
+public open class Observer<T>(initValue: T) {
+  protected val state: MutableStateFlow<T> = MutableStateFlow(initValue)
+  public suspend fun emit(v: T) {
     state.emit(v)
   }
 
-  suspend fun observe(cb: FlowCollector<T>): Nothing = state.collect(cb)
+  public suspend fun observe(cb: FlowCollector<T>): Nothing = state.collect(cb)
 }
 
-class SimpleObserver : Observer<Int>(0) {
-  fun next() {
+public class SimpleObserver : Observer<Int>(0) {
+  public fun next() {
     state.value += 1
   }
 }

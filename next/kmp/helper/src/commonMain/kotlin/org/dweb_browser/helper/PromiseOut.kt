@@ -9,42 +9,42 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
 
-open class PromiseOut<T> : SynchronizedObject() {
+public open class PromiseOut<T> : SynchronizedObject() {
 
-  companion object {
+  public companion object {
     private val defaultScope by lazy { CoroutineScope(defaultAsyncExceptionHandler + CoroutineName("PromiseOut")) }
-    fun <T : Any> resolve(value: T) = PromiseOut<T>().also { it.resolve(value) }
-    fun <T : Any> reject(e: Throwable) = PromiseOut<T>().also { it.reject(e) }
+    public fun <T : Any> resolve(value: T): PromiseOut<T> = PromiseOut<T>().also { it.resolve(value) }
+    public fun <T : Any> reject(e: Throwable): PromiseOut<T> = PromiseOut<T>().also { it.reject(e) }
   }
 
   private val _future = CompletableDeferred<T>()
 
-  open fun resolve(value: T) {
+  public open fun resolve(value: T) {
     synchronized(this) {
       _future.complete(value)
     }
   }
 
-  open fun resolve(value: Deferred<T>, scope: CoroutineScope = defaultScope) {
+  public open fun resolve(value: Deferred<T>, scope: CoroutineScope = defaultScope) {
     scope.launch {
       resolve(value.await())
     }
   }
 
-  open fun reject(e: Throwable) {
+  public open fun reject(e: Throwable) {
     synchronized(this) {
       _future.completeExceptionally(e)
     }
   }
 
-  val isFinished get() = synchronized(this) { _future.isCompleted || _future.isCancelled }
+  public val isFinished: Boolean get() = synchronized(this) { _future.isCompleted || _future.isCancelled }
 
-  val isResolved get() = synchronized(this) { _future.isCompleted }
+  public val isResolved: Boolean get() = synchronized(this) { _future.isCompleted }
 
-  val isRejected get() = synchronized(this) { _future.isCancelled }
+  public val isRejected: Boolean get() = synchronized(this) { _future.isCancelled }
 
   @OptIn(ExperimentalCoroutinesApi::class)
-  var value
+  public var value: T?
     get() = synchronized(this) { if (_future.isCompleted) _future.getCompleted() else null }
     set(value) {
       if (value != null) {
@@ -52,12 +52,13 @@ open class PromiseOut<T> : SynchronizedObject() {
       }
     }
 
-  suspend fun waitPromise(): T = _future.await()
+  public suspend fun waitPromise(): T = _future.await()
 
-  fun alsoLaunchIn(scope: CoroutineScope, block: suspend CoroutineScope.() -> T) =
+  public fun alsoLaunchIn(scope: CoroutineScope, block: suspend CoroutineScope.() -> T): PromiseOut<T> =
     this.also { launchIn(scope, block) }
 
-  fun launchIn(scope: CoroutineScope, block: suspend CoroutineScope.() -> T) {
+  @Suppress("MemberVisibilityCanBePrivate")
+  public fun launchIn(scope: CoroutineScope, block: suspend CoroutineScope.() -> T) {
     scope.launch {
       try {
         resolve(block())
@@ -69,7 +70,7 @@ open class PromiseOut<T> : SynchronizedObject() {
 }
 
 
-inline fun <T> CompletableDeferred<T>.launchIn(
+public inline fun <T> CompletableDeferred<T>.launchIn(
   scope: CoroutineScope,
   crossinline block: suspend CoroutineScope.() -> T,
 ) {
@@ -82,7 +83,7 @@ inline fun <T> CompletableDeferred<T>.launchIn(
   }
 }
 
-inline fun <T> CompletableDeferred<T>.alsoLaunchIn(
+public inline fun <T> CompletableDeferred<T>.alsoLaunchIn(
   scope: CoroutineScope,
   crossinline block: suspend CoroutineScope.() -> T,
-) = also { launchIn(scope, block) }
+): CompletableDeferred<T> = also { launchIn(scope, block) }

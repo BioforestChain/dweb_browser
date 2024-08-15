@@ -1,8 +1,8 @@
 package org.dweb_browser.helper
 
-interface IFrom {
-  val from: Any?
-  fun <T> findFrom(filter: (Any) -> T?): T? {
+public interface IFrom {
+  public val from: Any?
+  public fun <T> findFrom(filter: (Any) -> T?): T? {
     var current = from;
     while (current != null) {
       val found = filter(current)

@@ -121,20 +121,20 @@ private data class DebugTags(
   fun canTimeout(scope: String) = canDebug(scope)
 }
 
-fun addDebugTags(tags: Iterable<String>) {
+public fun addDebugTags(tags: Iterable<String>) {
   DebugTags.from(tags)
 }
 
-class Debugger(val scope: String) {
+public class Debugger(public val scope: String) {
   init {
     println("Debugger scope: $scope")
   }
 
-  fun print(tag: String, msg: Any? = "", err: Any?, symbol: String) {
+  public fun print(tag: String, msg: Any? = "", err: Any?, symbol: String) {
     printDebug(scope, tag, msg, err, symbol)
   }
 
-  inline fun print2(
+  public inline fun print2(
     tag: String,
     err: Throwable,
     msgGetter: () -> Any?,
@@ -148,7 +148,7 @@ class Debugger(val scope: String) {
     print(tag, msg, err, symbol)
   }
 
-  inline fun print3(tag: String, msgGetter: () -> Any?, symbol: String) {
+  public inline fun print3(tag: String, msgGetter: () -> Any?, symbol: String) {
     var err: Throwable? = null
     val msg = try {
       msgGetter()
@@ -159,17 +159,17 @@ class Debugger(val scope: String) {
     print(tag, msg, err, symbol)
   }
 
-  operator fun invoke(tag: String, msg: Any? = "", err: Any? = null) {
+  public operator fun invoke(tag: String, msg: Any? = "", err: Any? = null) {
     if (err != null || isEnable) {
       print(tag, msg, err, "│")
     }
   }
 
-  inline operator fun invoke(tag: String, err: Throwable, msgGetter: () -> Any?) {
+  public inline operator fun invoke(tag: String, err: Throwable, msgGetter: () -> Any?) {
     print2(tag, err, msgGetter, "│")
   }
 
-  inline operator fun invoke(tag: String, msgGetter: () -> Any?) {
+  public inline operator fun invoke(tag: String, msgGetter: () -> Any?) {
     if (isEnable) {
       print3(tag, msgGetter, "│")
     }
@@ -181,7 +181,7 @@ class Debugger(val scope: String) {
 //    }
 //  }
 
-  fun forceEnable(enable: Boolean = true) {
+  public fun forceEnable(enable: Boolean = true) {
     if (enable) {
       DebugTags.add(scope)
     } else {
@@ -190,24 +190,24 @@ class Debugger(val scope: String) {
   }
 
 
-  inline fun verbose(tag: String, msgGetter: () -> Any?) {
+  public inline fun verbose(tag: String, msgGetter: () -> Any?) {
     if (isEnableVerbose) {
       print3(tag, msgGetter, "░")
     }
   }
 
-  fun verbose(tag: String, msg: Any? = "") {
+  public fun verbose(tag: String, msg: Any? = "") {
     if (isEnableVerbose) {
       print(tag, msg, null, "░")
     }
   }
 
-  suspend inline fun <R> timeout(
+  public suspend inline fun <R> timeout(
     ms: Long,
     tag: String = "traceTimeout",
     crossinline log: () -> Any? = { "" },
     crossinline block: suspend () -> R,
-  ) = if (isEnableTimeout) {
+  ): R = if (isEnableTimeout) {
     val timeoutJob = CoroutineScope(currentCoroutineContext()).launch {
       delay(ms);
       printDebug(scope, tag, message = lazy { log() }, error = "⏲️ TIMEOUT!!")
@@ -221,12 +221,12 @@ class Debugger(val scope: String) {
     block()
   }
 
-  inline fun timeout(
+  public inline fun timeout(
     scope: CoroutineScope,
     ms: Long,
     tag: String = "traceTimeout",
     crossinline log: () -> Any? = { "" },
-  ) = CompletableDeferred<Unit>().let { deferred ->
+  ): () -> Boolean = CompletableDeferred<Unit>().let { deferred ->
     scope.launch(start = CoroutineStart.UNDISPATCHED) {
       timeout(ms, tag, log) {
         deferred.await()
@@ -238,7 +238,7 @@ class Debugger(val scope: String) {
     }
   }
 
-  var isEnableVerbose: Boolean = false
+  public var isEnableVerbose: Boolean = false
     get() {
       if (debugTags !== DebugTags.singleton) {
         debugTags = DebugTags.singleton
@@ -246,7 +246,7 @@ class Debugger(val scope: String) {
       return field
     }
     private set
-  var isEnableTimeout: Boolean = false
+  public var isEnableTimeout: Boolean = false
     get() {
       if (debugTags !== DebugTags.singleton) {
         debugTags = DebugTags.singleton
@@ -254,7 +254,7 @@ class Debugger(val scope: String) {
       return field
     }
     private set
-  var isEnable: Boolean = false
+  public var isEnable: Boolean = false
     get() {
       if (debugTags !== DebugTags.singleton) {
         debugTags = DebugTags.singleton

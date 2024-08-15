@@ -1,3 +1,3 @@
 package org.dweb_browser.helper
 
-actual fun eprintln(message: String) = System.err.println(message)
+public actual fun eprintln(message: String): Unit = System.err.println(message)

@@ -1,3 +1,3 @@
 package org.dweb_browser.helper
 
-actual fun randomUUID() = java.util.UUID.randomUUID().toString()
+public actual fun randomUUID(): String = java.util.UUID.randomUUID().toString()

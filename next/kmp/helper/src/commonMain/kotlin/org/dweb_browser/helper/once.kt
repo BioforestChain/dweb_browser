@@ -1,5 +1,3 @@
-@file:Suppress("UNCHECKED_CAST")
-
 package org.dweb_browser.helper
 
 import kotlinx.atomicfu.locks.SynchronizedObject
@@ -17,8 +15,8 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 
-sealed class SuspendOnceBase<R> {
-  companion object {
+public sealed class SuspendOnceBase<R> {
+  public companion object {
     internal val noRun = CompletableDeferred<Nothing>().apply {
       completeExceptionally(
         Throwable("no run")
@@ -28,14 +26,14 @@ sealed class SuspendOnceBase<R> {
 
   internal val lock = SynchronizedObject()
   internal var runned = noRun as Deferred<R>
-  val haveRun get() = runned !== noRun
-  suspend fun getResult() = this.runned.await()
-  fun getResultOrNull() = when {
+  public val haveRun: Boolean get() = runned !== noRun
+  public suspend fun getResult(): R = this.runned.await()
+  public fun getResultOrNull(): R? = when {
     haveRun -> this.runned.getCompletedOrNull()
     else -> null
   }
 
-  fun reset(cause: Throwable? = null, doCancel: Boolean = true) {
+  public fun reset(cause: Throwable? = null, doCancel: Boolean = true) {
     synchronized(lock) {
       if (doCancel && this.runned !== noRun) {
         this.runned.cancel("reset", cause)
@@ -56,11 +54,11 @@ sealed class SuspendOnceBase<R> {
   }
 }
 
-class SuspendOnce<R>(
+public class SuspendOnce<R>(
   private val before: (suspend (SuspendOnce<R>.() -> Unit))? = null,
-  val runnable: suspend CoroutineScope.() -> R,
+  public val runnable: suspend CoroutineScope.() -> R,
 ) : SuspendOnceBase<R>() {
-  suspend operator fun invoke(): R {
+  public suspend operator fun invoke(): R {
     before?.invoke(this)
     return doInvoke {
       async(SupervisorJob(), start = CoroutineStart.UNDISPATCHED) {
@@ -70,12 +68,12 @@ class SuspendOnce<R>(
   }
 }
 
-class SuspendOnce1<A1, R>(
+public class SuspendOnce1<A1, R>(
   private val before: (suspend (SuspendOnce1<A1, R>.(A1) -> Unit))? = null,
-  val runnable: suspend CoroutineScope.(A1) -> R,
+  public val runnable: suspend CoroutineScope.(A1) -> R,
 ) : SuspendOnceBase<R>() {
 
-  suspend operator fun invoke(arg1: A1): R {
+  public suspend operator fun invoke(arg1: A1): R {
     before?.invoke(this, arg1)
     return doInvoke {
       async(start = CoroutineStart.UNDISPATCHED) {
@@ -85,17 +83,18 @@ class SuspendOnce1<A1, R>(
   }
 }
 
-sealed class OnceBase<R> {
-  companion object {
+public sealed class OnceBase<R> {
+  public companion object {
     internal val noRun = Result.failure<Nothing>(Throwable("no run"))
   }
 
   internal val lock = SynchronizedObject()
   internal var hasRun = false
   private var result: Result<R> = noRun
-  val haveRun get() = hasRun
-  suspend fun getResult() = result.getOrThrow()
-  fun reset() {
+  public val haveRun: Boolean get() = hasRun
+  
+  public fun getResult(): R = result.getOrThrow()
+  public fun reset() {
     synchronized(lock) {
       result = noRun
       hasRun = false
@@ -116,11 +115,11 @@ sealed class OnceBase<R> {
 /**
  * 这里的 before 参数用来做一些前置判断，一般用来检查状态、检查参数，然后抛出异常
  */
-class Once<R>(
-  val before: (Once<R>.() -> Unit)? = null,
-  val runnable: () -> R,
+public class Once<R>(
+  public val before: (Once<R>.() -> Unit)? = null,
+  public val runnable: () -> R,
 ) : OnceBase<R>() {
-  operator fun invoke(): R {
+  public operator fun invoke(): R {
     before?.invoke(this)
     return doInvoke { runnable() }
   }
@@ -129,22 +128,22 @@ class Once<R>(
 /**
  * 这里的 before 参数用来做一些前置判断，一般用来检查状态、检查参数，然后抛出异常
  */
-class Once1<A1, R>(
-  val before: ((Once1<A1, R>.(A1) -> Unit))? = null,
-  val runnable: (A1) -> R,
+public class Once1<A1, R>(
+  public val before: ((Once1<A1, R>.(A1) -> Unit))? = null,
+  public val runnable: (A1) -> R,
 ) : OnceBase<R>() {
 
-  operator fun invoke(arg1: A1): R {
+  public operator fun invoke(arg1: A1): R {
     before?.invoke(this, arg1)
     return doInvoke { runnable(arg1) }
   }
 }
 
-class SuspendOnceWithKey(private val coroutineScope: CoroutineScope) {
+public class SuspendOnceWithKey(private val coroutineScope: CoroutineScope) {
   private val executedKeys = mutableSetOf<String>()
   private val mutex = Mutex()
 
-  suspend fun executeOnce(key: String, action: suspend () -> Unit) = mutex.withLock {
+  public suspend fun executeOnce(key: String, action: suspend () -> Unit): Unit = mutex.withLock {
     if (key !in executedKeys) {
       executedKeys.add(key)
       coroutineScope.launch {

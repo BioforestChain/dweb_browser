@@ -4,6 +4,6 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.cbor.Cbor
 
 @OptIn(ExperimentalSerializationApi::class)
-val CborLoose = Cbor {
+public val CborLoose: Cbor = Cbor {
   ignoreUnknownKeys = true
 }

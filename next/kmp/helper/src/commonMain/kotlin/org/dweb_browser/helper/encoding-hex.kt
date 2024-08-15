@@ -1,7 +1,7 @@
 package org.dweb_browser.helper
 
 @OptIn(ExperimentalStdlibApi::class)
-val String.hexBinary get() = hexToByteArray()
+public val String.hexBinary: ByteArray get() = hexToByteArray()
 
 @OptIn(ExperimentalStdlibApi::class)
-val ByteArray.hexString get() = toHexString()
+public val ByteArray.hexString: String get() = toHexString()

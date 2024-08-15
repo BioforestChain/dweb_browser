@@ -3,8 +3,8 @@ package org.dweb_browser.helper
 
 import java.awt.Point
 
-fun PurePoint.toAwtPoint(times: Float) = timesToInt(times).toAwtPoint()
+public fun PurePoint.toAwtPoint(times: Float): Point = timesToInt(times).toAwtPoint()
 
-fun PureIntPoint.toAwtPoint() = Point(x, y)
+public fun PureIntPoint.toAwtPoint(): Point = Point(x, y)
 
-fun Point.toPureIntPoint() = PureIntPoint(x, y)
+public fun Point.toPureIntPoint(): PureIntPoint = PureIntPoint(x, y)

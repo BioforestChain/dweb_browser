@@ -2,10 +2,10 @@ package org.dweb_browser.helper
 
 import kotlin.reflect.KProperty
 
-class AsyncSetter<T>(private var _value: T, val onChanged: suspend (T) -> Unit) {
-  val value get() = _value
-  operator fun getValue(thisRef: Any, property: KProperty<*>) = _value
-  suspend fun set(newValue: T) {
+public class AsyncSetter<T>(private var _value: T, public val onChanged: suspend (T) -> Unit) {
+  public val value: T get() = _value
+  public operator fun getValue(thisRef: Any, property: KProperty<*>): T = _value
+  public suspend fun set(newValue: T) {
     if (_value != newValue) {
       _value = newValue
       onChanged(newValue)

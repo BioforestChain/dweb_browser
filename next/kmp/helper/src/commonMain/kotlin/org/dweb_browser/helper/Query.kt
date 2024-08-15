@@ -14,12 +14,12 @@ import kotlinx.serialization.modules.EmptySerializersModule
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.serializer
 
-class Query {
+public class Query {
 
-  companion object {
-    val serializersModule: SerializersModule = EmptySerializersModule()
+  public companion object {
+    public val serializersModule: SerializersModule = EmptySerializersModule()
 
-    class QueryValueItemDecoder(private val value: String) : Decoder {
+    public class QueryValueItemDecoder(private val value: String) : Decoder {
       override val serializersModule: SerializersModule = Query.serializersModule
       override fun beginStructure(descriptor: SerialDescriptor): CompositeDecoder {
         TODO("Not yet implemented beginStructure")
@@ -80,8 +80,8 @@ class Query {
       }
     }
 
-    class QueryValuesDecoder(private val values: List<String>) : Decoder, CompositeDecoder {
-      private var walkIndex = 0;
+    public class QueryValuesDecoder(private val values: List<String>) : Decoder, CompositeDecoder {
+      private var walkIndex = 0
       override val serializersModule: SerializersModule = Query.serializersModule
       override fun beginStructure(descriptor: SerialDescriptor): CompositeDecoder {
         return this
@@ -90,28 +90,27 @@ class Query {
       private val firstValue get() = values.first()
       private val firstValueOrNull get() = values.firstOrNull()
 
-      override fun decodeBoolean() = firstValue.toBoolean()
+      override fun decodeBoolean(): Boolean = firstValue.toBoolean()
 
-      override fun decodeByte() = firstValue.toByte()
+      override fun decodeByte(): Byte = firstValue.toByte()
 
-      override fun decodeChar() = firstValue[0]
+      override fun decodeChar(): Char = firstValue[0]
 
-      override fun decodeDouble() = firstValue.toDouble()
+      override fun decodeDouble(): Double = firstValue.toDouble()
 
-      @OptIn(ExperimentalSerializationApi::class)
       override fun decodeEnum(enumDescriptor: SerialDescriptor): Int {
         TODO("Not yet implemented decodeEnum")
       }
 
-      override fun decodeFloat() = firstValue.toFloat()
+      override fun decodeFloat(): Float = firstValue.toFloat()
 
       override fun decodeInline(descriptor: SerialDescriptor): Decoder {
         TODO("Not yet implemented decodeInline")
       }
 
-      override fun decodeInt() = firstValue.toInt()
+      override fun decodeInt(): Int = firstValue.toInt()
 
-      override fun decodeLong() = firstValue.toLong()
+      override fun decodeLong(): Long = firstValue.toLong()
 
       @ExperimentalSerializationApi
       override fun decodeNotNullMark(): Boolean {
@@ -126,9 +125,9 @@ class Query {
         }
       }
 
-      override fun decodeShort() = firstValue.toShort()
+      override fun decodeShort(): Short = firstValue.toShort()
 
-      override fun decodeString() = firstValue
+      override fun decodeString(): String = firstValue
 
       override fun decodeBooleanElement(descriptor: SerialDescriptor, index: Int): Boolean {
         TODO("Not yet implemented decodeBooleanElement")
@@ -202,9 +201,9 @@ class Query {
       }
     }
 
-    class QueryDecoder(params: Parameters) : Decoder, CompositeDecoder {
+    public class QueryDecoder(params: Parameters) : Decoder, CompositeDecoder {
       private val paramList = params.entries().toList()
-      private var walkIndex = -1;
+      private var walkIndex = -1
       override val serializersModule: SerializersModule = Query.serializersModule
       private fun takeList() = paramList[walkIndex].value
       private fun takeFist() = paramList[walkIndex].value.first()
@@ -347,11 +346,11 @@ class Query {
     }
 
 
-    inline fun <reified T> decodeFromSearch(searchString: String) =
+    public inline fun <reified T> decodeFromSearch(searchString: String): T =
       decodeFromUrlParameters<T>(searchString.parseUrlEncodedParameters())
 
-    inline fun <reified T> decodeFromUrl(url: Url) = decodeFromUrlParameters<T>(url.parameters)
-    inline fun <reified T> decodeFromUrlParameters(parameters: Parameters): T {
+    public inline fun <reified T> decodeFromUrl(url: Url): T = decodeFromUrlParameters<T>(url.parameters)
+    public inline fun <reified T> decodeFromUrlParameters(parameters: Parameters): T {
       val decoder = QueryDecoder(parameters)
       return serializersModule.serializer<T>().deserialize(decoder)
     }

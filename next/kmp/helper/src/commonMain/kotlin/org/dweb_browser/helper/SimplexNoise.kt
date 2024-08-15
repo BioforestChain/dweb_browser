@@ -19,8 +19,9 @@ import kotlin.math.sqrt
  *
  */
 
-class SimplexNoise(private val seed: Int = 0) {  // Simplex noise in 2D, 3D and 4D
-  companion object {
+@Suppress("unused", "MemberVisibilityCanBePrivate", "LocalVariableName")
+public class SimplexNoise(private val seed: Int = 0) {  // Simplex noise in 2D, 3D and 4D
+  public companion object {
 
     private val grad3 = arrayOf(
       Grad(1.0, 1.0, 0.0),
@@ -91,8 +92,8 @@ class SimplexNoise(private val seed: Int = 0) {  // Simplex noise in 2D, 3D and 
     // Skewing and unskewing factors for 2, 3, and 4 dimensions
     private val F2 = 0.5 * (sqrt(3.0) - 1.0)
     private val G2 = (3.0 - sqrt(3.0)) / 6.0
-    private val F3 = 1.0 / 3.0
-    private val G3 = 1.0 / 6.0
+    private const val F3 = 1.0 / 3.0
+    private const val G3 = 1.0 / 6.0
     private val F4 = (sqrt(5.0) - 1.0) / 4.0
     private val G4 = (5.0 - sqrt(5.0)) / 20.0
 
@@ -123,15 +124,15 @@ class SimplexNoise(private val seed: Int = 0) {  // Simplex noise in 2D, 3D and 
 
   }
 
-  fun n1d(xin: Int): Double = n1d(xin.toDouble())
+  public fun n1d(xin: Int): Double = n1d(xin.toDouble())
 
-  fun n1d(xin: Double): Double = n2d(xin, 0.0)
+  public fun n1d(xin: Double): Double = n2d(xin, 0.0)
 
-  fun n2d(xin: Int, yin: Int): Double = n2d(xin.toDouble(), yin.toDouble())
-  fun n2d(xin: Float, yin: Float): Double = n2d(xin.toDouble(), yin.toDouble())
+  public fun n2d(xin: Int, yin: Int): Double = n2d(xin.toDouble(), yin.toDouble())
+  public fun n2d(xin: Float, yin: Float): Double = n2d(xin.toDouble(), yin.toDouble())
 
   // 2D simplex noise
-  fun n2d(xin: Double, yin: Double): Double {
+  public fun n2d(xin: Double, yin: Double): Double {
     val n0: Double
     val n1: Double
     val n2: Double
@@ -262,7 +263,7 @@ class SimplexNoise(private val seed: Int = 0) {  // Simplex noise in 2D, 3D and 
     return toSingleUnitDecimal(32.0 * (n0 + n1 + n2 + n3))
   }
 
-  fun rand(n: Double, start: Float, end: Float) = ((n + 1) / 2 * (end - start) + start).toFloat()
+  public fun rand(n: Double, start: Float, end: Float): Float = ((n + 1) / 2 * (end - start) + start).toFloat()
 
   /**
    * SimplexNoise normally hits +&- 0.8679777777778225
@@ -276,18 +277,18 @@ class SimplexNoise(private val seed: Int = 0) {  // Simplex noise in 2D, 3D and 
   // (In Java, array access is a lot slower than member access)
   private class Grad {
 
-    internal var x: Double = 0.0
-    internal var y: Double = 0.0
-    internal var z: Double = 0.0
-    internal var w: Double = 0.0
+    var x: Double = 0.0
+    var y: Double = 0.0
+    var z: Double = 0.0
+    var w: Double = 0.0
 
-    internal constructor(x: Double, y: Double, z: Double) {
+    constructor(x: Double, y: Double, z: Double) {
       this.x = x
       this.y = y
       this.z = z
     }
 
-    internal constructor(x: Double, y: Double, z: Double, w: Double) {
+    constructor(x: Double, y: Double, z: Double, w: Double) {
       this.x = x
       this.y = y
       this.z = z
