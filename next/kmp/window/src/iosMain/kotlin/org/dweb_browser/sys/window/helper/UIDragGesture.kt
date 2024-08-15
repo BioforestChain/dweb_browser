@@ -18,6 +18,11 @@ class UIDragGesture(
   var draggableDelegate: DraggableDelegate,
   var density: Float,
 ) : NSObject() {
+  fun setParams(draggableDelegate: DraggableDelegate, density: Float) {
+    this.draggableDelegate = draggableDelegate
+    this.density = density
+  }
+
   @OptIn(ExperimentalForeignApi::class)
   fun getPoint(gesture: UIPanGestureRecognizer): Offset {
     val point = gesture.translationInView(view = view)

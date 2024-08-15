@@ -85,8 +85,9 @@ class TaskbarV1View(
         density = density,
       )
     }
-    dragGesture.draggableDelegate = draggableDelegate
-    dragGesture.density = density
+
+    // 不能对NSObject的子类对象的属性直接赋值，否则编译器会报没有setter异常，需要通过函数进行赋值
+    dragGesture.setParams(draggableDelegate, density)
 
     val dragGestureRecognizer = remember {
       UIPanGestureRecognizer(target = dragGesture, action = NSSelectorFromString("dragView:"))
