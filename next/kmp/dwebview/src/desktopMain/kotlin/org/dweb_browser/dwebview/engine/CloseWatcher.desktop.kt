@@ -41,6 +41,14 @@ class CloseWatcher(val engine: DWebViewEngine) : ICloseWatcher {
     engine.addJavascriptInterface(
       object {
         /**
+         * 一个文档的初始化：重置所有
+         */
+        @JsAccessible
+        fun init() {
+          reset()
+        }
+
+        /**
          * js 创建 CloseWatcher
          */
         @JsAccessible
@@ -112,7 +120,7 @@ class CloseWatcher(val engine: DWebViewEngine) : ICloseWatcher {
   fun applyWatcher(isUserGesture: Boolean): ICloseWatcher.IWatcher {
     if (isUserGesture || watchers.size == 0) {
       watchers.add(Watcher()).trueAlso {
-        tryEmitCanCloseMutableFlow()
+        emitCanClose()
       }
     }
     return watchers.last()
@@ -131,10 +139,8 @@ class CloseWatcher(val engine: DWebViewEngine) : ICloseWatcher {
   override val canClose get() = watchers.isNotEmpty()
 
   private val canCloseMutableFlow = MutableStateFlow(canClose)
-  private fun tryEmitCanCloseMutableFlow() {
-    engine.lifecycleScope.launch {
-      canCloseMutableFlow.emit(canClose)
-    }
+  private fun emitCanClose() {
+    canCloseMutableFlow.value = canClose
   }
 
   override val canCloseFlow by lazy { canCloseMutableFlow.asStateFlow() }
@@ -145,11 +151,17 @@ class CloseWatcher(val engine: DWebViewEngine) : ICloseWatcher {
   override suspend fun close(watcher: ICloseWatcher.IWatcher): Boolean {
     if (watcher.tryClose()) {
       return watchers.remove(watcher).trueAlso {
-        tryEmitCanCloseMutableFlow()
+        emitCanClose()
       }
     }
     return false
   }
 
   override suspend fun close() = close(watchers.last())
+
+  override fun reset() {
+    debugDWebView("CloseWatcher/reset")
+    watchers.clear()
+    emitCanClose()
+  }
 }

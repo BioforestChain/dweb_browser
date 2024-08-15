@@ -12,9 +12,12 @@ internal class CloseWatcherScriptMessageHandler(private val engine: DWebViewEngi
   WKScriptMessageHandlerProtocol {
   override fun userContentController(
     userContentController: WKUserContentController,
-    didReceiveScriptMessage: WKScriptMessage
+    didReceiveScriptMessage: WKScriptMessage,
   ) {
     val message = didReceiveScriptMessage.body as NSObject
+    if ("init" == message.valueForKey("cmd")) {
+      engine.closeWatcher.reset()
+    }
 
     (message.valueForKey("token") as String?)?.also { consumeToken ->
       if (consumeToken.isNotEmpty()) {

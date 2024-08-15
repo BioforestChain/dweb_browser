@@ -7,6 +7,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.dwebview.ICloseWatcher
+import org.dweb_browser.dwebview.debugDWebView
 import org.dweb_browser.dwebview.engine.DWebUIDelegate
 import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.helper.SafeInt
@@ -76,7 +77,7 @@ internal class CloseWatcher(val engine: DWebViewEngine) : ICloseWatcher {
   fun applyWatcher(isUserGesture: Boolean): ICloseWatcher.IWatcher {
     if (isUserGesture || watchers.size == 0) {
       watchers.add(Watcher()).trueAlso {
-        tryEmitCanCloseMutableFlow()
+        emitCanClose()
       }
     }
     return watchers.last()
@@ -96,10 +97,8 @@ internal class CloseWatcher(val engine: DWebViewEngine) : ICloseWatcher {
   override val canClose get() = watchers.isNotEmpty()
 
   private val canCloseMutableFlow = MutableStateFlow(canClose)
-  private fun tryEmitCanCloseMutableFlow() {
-    engine.lifecycleScope.launch {
-      canCloseMutableFlow.emit(canClose)
-    }
+  private fun emitCanClose() {
+    canCloseMutableFlow.value = canClose
   }
 
   override val canCloseFlow by lazy { canCloseMutableFlow.asStateFlow() }
@@ -110,7 +109,7 @@ internal class CloseWatcher(val engine: DWebViewEngine) : ICloseWatcher {
    */
   override suspend fun close(watcher: ICloseWatcher.IWatcher): Boolean {
     if (watcher.tryClose()) {
-      return watchers.remove(watcher).trueAlso { tryEmitCanCloseMutableFlow() }
+      return watchers.remove(watcher).trueAlso { emitCanClose() }
     }
     return false
   }
@@ -135,6 +134,12 @@ internal class CloseWatcher(val engine: DWebViewEngine) : ICloseWatcher {
       watchers.remove(it)
       it.destroy()
     }
+  }
+
+  override fun reset() {
+    debugDWebView("CloseWatcher/reset")
+    watchers.clear()
+    emitCanClose()
   }
 }
 

@@ -15,32 +15,34 @@ const __close_watcher__ = (() => {
   if (!native_close_watcher_kit && typeof webkit !== "undefined" && webkit.messageHandlers) {
     const closeWatcherChannel = webkit.messageHandlers.closeWatcher;
     native_close_watcher_kit = {
+      init() {
+        closeWatcherChannel.postMessage({ cmd: "init" });
+      },
       registryToken(token: string) {
-        closeWatcherChannel.postMessage({ token });
+        closeWatcherChannel.postMessage({ cmd: "registryToken", token });
       },
       tryClose(id: string) {
-        closeWatcherChannel.postMessage({ id });
+        closeWatcherChannel.postMessage({ cmd: "tryClose", id });
       },
       tryDestroy(id: string) {
-        closeWatcherChannel.postMessage({ destroy: id });
+        closeWatcherChannel.postMessage({ cmd: "tryDestroy", destroy: id });
       },
     };
   }
+  // 在脚本初始化阶段，重置状态
+  native_close_watcher_kit.init();
 
-  /// 假如导航的支持
-  // @ts-ignore
-  if (typeof navigation === "object") {
-    // @ts-ignore
-    navigation.addEventListener("navigate", (event) => {
-      if (native_close_watcher_exports.watchers.size > 0) {
-        event.intercept({
-          async hanlder() {
-            await [...native_close_watcher_exports.watchers.values()].pop()?.requestClose();
-          },
-        });
-      }
-    });
-  }
+  // @ts-ignore 假如导航的支持
+  (typeof navigation === "object" ? navigation : null)?.addEventListener("navigate", (event) => {
+    if (native_close_watcher_exports.watchers.size > 0) {
+      event.intercept({
+        async hanlder() {
+          await [...native_close_watcher_exports.watchers.values()].pop()?.requestClose();
+        },
+      });
+    }
+  });
+
   /// 假如键盘的支持
   if (typeof document === "object")
     document.addEventListener("keypress", (event) => {

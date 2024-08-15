@@ -125,9 +125,7 @@ class DWebView private constructor(
   override fun overrideUrlLoading(onUrlLoading: (url: String) -> UrlLoadingPolicy) {
     engine.dwebNavigationDelegate.decidePolicyForNavigationActionHooks.add { _, decidePolicyForNavigationAction ->
       val url = decidePolicyForNavigationAction.request.URL.toString()
-      onUrlLoading(url).also {
-        println("QAQ overrideUrlLoading url=$url policy=$it")
-      }
+      onUrlLoading(url)
     }
   }
 

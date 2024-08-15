@@ -12,6 +12,10 @@ declare global {
 
   interface CloseWatcherKit {
     /**
+     * 文档初始化，清理上一个文档的状态
+     */
+    init(): void;
+    /**
      * 将一个url注册成token，在拦截到要打开此url的时候，覆盖原本open的行为，改成 创建一个 CloseWatcher
      * 基于 open 接口，原因是 CloseWatcher 的创建本身要基于浏览器的 UserActivation 中“消耗用户激活”的机制
      */

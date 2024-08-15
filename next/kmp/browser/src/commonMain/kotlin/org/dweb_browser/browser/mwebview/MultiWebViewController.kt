@@ -128,7 +128,7 @@ class MultiWebViewController(
       }
       // 拦截当前页面的跳转
       dWebView.overrideUrlLoading { url ->
-        println("QAQ overrideUrlLoading url=$url")
+        remoteMM.debugMM("MultiViewItem/overrideUrlLoading") { url }
         when (filterSafeUrl(url)) {
           null -> UrlLoadingPolicy.Block
           else -> UrlLoadingPolicy.Allow
@@ -136,7 +136,7 @@ class MultiWebViewController(
       }
       // 拦截打开新窗口
       dWebView.onCreateWindow { newWebView ->
-        println("QAQ onCreateWindow url=${newWebView.getUrl()}")
+        remoteMM.debugMM("MultiViewItem/onCreateWindow") { newWebView.getUrl() }
         when (filterSafeUrl(newWebView.getUrl())) {
           null -> newWebView.destroy()
           else -> appendWebViewAsItem(newWebView)
