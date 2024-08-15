@@ -61,7 +61,9 @@ class DWebUIDelegate(internal val engine: DWebViewEngine) : NSObject(), WKUIDele
     val createWebViewWithConfiguration: WKWebViewConfiguration,
     val forNavigationAction: WKNavigationAction,
     val windowFeatures: WKWindowFeatures,
-  )
+  ){
+    val navigationUrl by lazy { forNavigationAction.request.URL?.absoluteString }
+  }
 
   sealed interface CreateWebViewHookPolicy;
   class CreateWebViewHookPolicyAllow(val webView: WKWebView) : CreateWebViewHookPolicy
@@ -76,7 +78,6 @@ class DWebUIDelegate(internal val engine: DWebViewEngine) : NSObject(), WKUIDele
     forNavigationAction: WKNavigationAction,
     windowFeatures: WKWindowFeatures,
   ): WKWebView? {
-    println("QAQ createWebView!! url=${forNavigationAction.request.URL?.absoluteString}")
     if (createWebViewHooks.isEmpty()) {
       return null
     }

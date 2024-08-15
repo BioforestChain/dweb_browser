@@ -11,6 +11,7 @@ import org.dweb_browser.dwebview.debugDWebView
 import org.dweb_browser.dwebview.engine.DWebUIDelegate
 import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.helper.SafeInt
+import org.dweb_browser.helper.launchWithMain
 import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.helper.withMainContext
 
@@ -145,10 +146,19 @@ internal class CloseWatcher(val engine: DWebViewEngine) : ICloseWatcher {
 
 fun DWebUIDelegate.hookCloseWatcher() {
   createWebViewHooks.add {
-    when (forNavigationAction.request.URL?.absoluteString?.let { url ->
-      engine.closeWatcher.consuming.remove(url)
-    }) {
-      true -> DWebUIDelegate.CreateWebViewHookPolicyDeny
+    val url = navigationUrl
+    when (url != null && engine.closeWatcher.consuming.remove(url)) {
+      true -> {
+        val isUserGesture =
+          forNavigationAction.targetFrame == null || !forNavigationAction.targetFrame!!.mainFrame
+        val watcher = engine.closeWatcher.applyWatcher(isUserGesture)
+
+        engine.mainScope.launchWithMain {
+          engine.closeWatcher.resolveToken(url, watcher)
+        }
+        DWebUIDelegate.CreateWebViewHookPolicyDeny
+      }
+
       else -> DWebUIDelegate.CreateWebViewHookPolicyContinue
     }
   }
