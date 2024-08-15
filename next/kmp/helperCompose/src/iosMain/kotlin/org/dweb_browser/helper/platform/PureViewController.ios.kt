@@ -30,6 +30,7 @@ import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.compose.LocalCompositionChain
 import org.dweb_browser.helper.compose.compositionChainOf
 import org.dweb_browser.helper.globalDefaultScope
+import org.dweb_browser.helper.globalMainScope
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.platform.NativeViewController.Companion.nativeViewController
 import org.dweb_browser.helper.withMainContext
@@ -119,7 +120,7 @@ class PureViewController(
   }
 
   init {
-    globalDefaultScope.launch {
+    globalMainScope.launch {
       waitInit()
       val rootView = uiViewControllerInMain.view
       boundsFlow.combine(viewAppearFlow) { bounds, viewAppear ->
