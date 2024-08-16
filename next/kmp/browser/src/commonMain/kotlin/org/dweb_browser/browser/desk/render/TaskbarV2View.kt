@@ -1,9 +1,10 @@
 package org.dweb_browser.browser.desk.render
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -15,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import org.dweb_browser.browser.desk.TaskbarV2Controller
 import org.dweb_browser.helper.clamp
 import org.dweb_browser.sys.window.helper.DraggableDelegate
@@ -70,37 +72,44 @@ abstract class ITaskbarV2View(protected val taskbarController: TaskbarV2Controll
       }
     }
 
-    Column(
+    LazyColumn(
       modifier = modifier.fillMaxSize(),
       verticalArrangement = Arrangement.Center,
       horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
-      apps.forEach { app ->
+      itemsIndexed(apps, key = { _, it -> it.mmid }) { index, app ->
         @Suppress("DeferredResultUnused")
         TaskBarAppIcon(
           app = app,
           microModule = taskbarController.deskNMM,
           padding = paddingValue.dp,
           openAppOrActivate = {
-            taskbarController.openAppOrActivate(app.mmid)
+            app.opening = true
+            taskbarController.openAppOrActivate(app.mmid).invokeOnCompletion {
+              app.opening = false
+            }
           },
           quitApp = {
-            taskbarController.quit(app.mmid)
+            taskbarController.closeApp(app.mmid)
           },
           toggleWindow = {
             taskbarController.toggleWindowMaximize(app.mmid)
           },
+          modifier = Modifier.animateItem().zIndex(apps.size - index - 1f)
         )
       }
 
       if (apps.isNotEmpty()) {
-        TaskBarDivider(paddingValue.dp)
+        item(key = "divider") {
+          TaskBarDivider(paddingValue.dp)
+        }
       }
 
-      taskBarHomeButton.Render({
-        taskbarController.toggleDesktopView()
-      }, Modifier.padding(paddingValue.dp))
+      item(key = "home") {
+        taskBarHomeButton.Render({
+          taskbarController.toggleDesktopView()
+        }, Modifier.padding(paddingValue.dp).zIndex(apps.size.toFloat()))
+      }
     }
   }
 

@@ -1,6 +1,9 @@
 package org.dweb_browser.browser.desk.render
 
-import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
@@ -13,8 +16,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
@@ -40,76 +43,85 @@ internal fun TaskBarAppIcon(
   modifier: Modifier = Modifier,
 ) {
 
-  val scaleValue = remember { Animatable(1f) }
   val scope = rememberCoroutineScope()
   var showQuit by remember(app.isShowClose) { mutableStateOf(app.isShowClose) }
 
+  var isHover by remember { mutableStateOf(false) }
+
+  val scaleTargetValue = when {
+    app.opening -> 0.9f
+    isHover -> when {
+      app.running -> 1.05f
+      else -> 0.9f
+    }
+
+    else -> 1f
+  }
+
   BoxWithConstraints(
     contentAlignment = Alignment.Center,
-    modifier = modifier.graphicsLayer {
-      scaleX = scaleValue.value
-      scaleY = scaleValue.value
-    }.padding(start = padding, top = padding, end = padding)
-      .desktopAppItemActions(
-        onHoverStart = {
+    modifier = modifier.padding(start = padding, top = padding, end = padding).scale(
+      animateFloatAsState(
+        scaleTargetValue, when {
+          scaleTargetValue >= 1f -> spring(Spring.DampingRatioHighBouncy)
+          else -> tween(200)
+        }
+      ).value
+    ).desktopAppItemActions(
+      onHoverStart = {
+        scope.launch {
+          microModule.vibrateImpact()
+        }
+        isHover = true
+      },
+      onHoverEnd = {
+        isHover = false
+      },
+      onOpenApp = {
+        openAppOrActivate()
+      },
+      onDoubleTap = {
+        scope.launch {
+          microModule.vibrateImpact()
+        }
+        openAppOrActivate()
+        if (app.running) {
+          toggleWindow()
+        }
+      },
+      onOpenAppMenu = {
+        if (app.running) {
           scope.launch {
-            microModule.vibrateImpact()
+            microModule.vibrateHeavyClick()
           }
-          scope.launch {
-            scaleValue.animateTo(1.05f)
-          }
-        },
-        onHoverEnd = {
-          scope.launch {
-            scaleValue.animateTo(1.0f)
-          }
-        },
-        onOpenApp = {
-          openAppOrActivate()
-        },
-        onDoubleTap = {
-          scope.launch {
-            microModule.vibrateImpact()
-          }
-          openAppOrActivate()
-          if (app.running) {
-            toggleWindow()
-          }
-        },
-        onOpenAppMenu = {
-          if (app.running) {
-            scope.launch {
-              microModule.vibrateHeavyClick()
-            }
-            showQuit = !showQuit
-          }
-        },
-      ),
+          showQuit = !showQuit
+        }
+      },
+    ),
   ) {
-    AppLogo.from(app.icon, fetchHook = microModule.blobFetchHook)
-      .toDeskAppIcon(
-        AppIconContainer(shadow = if (app.running) 2.dp else null),
-        containerColor = if (app.running) null else LocalColorful.current.Gray.Shade_100,
-        containerAlpha = if (app.running) 1f else 0.8f,
-      ).Render(
-        logoModifier = if (showQuit) Modifier.blur(4.dp) else Modifier,
-        innerContent = {
-          if (showQuit) {
-            Popup(
-              onDismissRequest = {
+    AppLogo.from(app.icon, fetchHook = microModule.blobFetchHook).toDeskAppIcon(
+      AppIconContainer(shadow = if (app.running) 2.dp else null),
+      containerColor = if (app.running) null else LocalColorful.current.Gray.Shade_100,
+      containerAlpha = if (app.running) 1f else 0.8f,
+    ).Render(
+      logoModifier = if (showQuit) Modifier.blur(4.dp) else Modifier,
+      innerContent = {
+        if (showQuit) {
+          Popup(
+            onDismissRequest = {
+              showQuit = false
+            },
+          ) {
+            CloseButton(
+              Color.Black,
+              Modifier.requiredSize(size = maxWidth).clickableWithNoEffect {
+                quitApp()
                 showQuit = false
               },
-            ) {
-              CloseButton(
-                Color.Black,
-                Modifier.requiredSize(size = maxWidth).clickableWithNoEffect {
-                  quitApp()
-                  showQuit = false
-                },
-              )
-            }
+            )
           }
-        },
-      )
+        }
+      },
+    )
   }
 }

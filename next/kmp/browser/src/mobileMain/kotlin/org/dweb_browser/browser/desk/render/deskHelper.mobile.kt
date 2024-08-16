@@ -43,12 +43,12 @@ actual fun Modifier.desktopAppItemActions(
         hoverStart()
       },
       onTap = {
-        hoverEnd()
         openApp()
+        hoverEnd()
       },
       onLongPress = {
-        hoverEnd()
         openAppMenu()
+        hoverEnd()
       },
       onDoubleTap = { doubleTap() },
     )

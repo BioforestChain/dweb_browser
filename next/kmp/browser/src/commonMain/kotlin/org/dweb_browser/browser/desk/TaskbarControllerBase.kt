@@ -33,7 +33,7 @@ sealed class TaskbarControllerBase(
     deskNMM.openAppOrActivate(mmid)
   }
 
-  fun quit(mmid: MMID) = deskNMM.scopeLaunch(cancelable = true) {
+  fun closeApp(mmid: MMID) = deskNMM.scopeLaunch(cancelable = true) {
     deskNMM.closeApp(mmid)
   }
 
@@ -145,10 +145,11 @@ sealed class TaskbarControllerBase(
 
         val apps = (newApps + runningApps).distinct()
 
+        // 我们会尝试保留上一次打开过的记录
+        val keepSize = 4
         appsFlow.value = when {
-          // 我们会尝试保留3个记录
-          apps.size < 3 -> (apps + appsFlow.value).distinct().safeSubList(0, 5)
-          // 如果超过5个，那么就只显示正在运行中的
+          apps.size < keepSize -> (apps + appsFlow.value).distinct().safeSubList(0, keepSize)
+          // 如果超过，那么就只显示正在运行中的
           else -> apps
         }
 

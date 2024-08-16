@@ -12,4 +12,5 @@ internal class TaskbarAppModel(
   var isShowClose: Boolean = false,
 ) {
   var running by mutableStateOf(running)
+  var opening by mutableStateOf(false)
 }
