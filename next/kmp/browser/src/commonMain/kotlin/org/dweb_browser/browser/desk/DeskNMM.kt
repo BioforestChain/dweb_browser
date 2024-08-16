@@ -197,20 +197,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       /// 等待主视图启动完成
       deskController.awaitReady()
     }
-
     override suspend fun _shutdown() {
-    }
-
-    suspend fun open(mmid: MMID) {
-      nativeFetch(buildUrlString("file://desk.browser.dweb/openAppOrActivate") {
-        parameters["app_id"] = mmid
-      })
-    }
-
-    suspend fun quit(mmid: MMID) {
-      nativeFetch(buildUrlString("file://desk.browser.dweb/closeApp") {
-        parameters["app_id"] = mmid
-      })
     }
   }
 
@@ -218,3 +205,15 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
 }
 
 expect suspend fun DeskNMM.DeskRuntime.startDeskView(deskSessionId: String)
+
+suspend fun NativeMicroModule.NativeRuntime.openAppOrActivate(mmid: MMID) {
+  nativeFetch(buildUrlString("file://desk.browser.dweb/openAppOrActivate") {
+    parameters["app_id"] = mmid
+  })
+}
+
+suspend fun NativeMicroModule.NativeRuntime.closeApp(mmid: MMID) {
+  nativeFetch(buildUrlString("file://desk.browser.dweb/closeApp") {
+    parameters["app_id"] = mmid
+  })
+}

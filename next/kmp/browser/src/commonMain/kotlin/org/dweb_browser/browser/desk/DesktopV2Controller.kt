@@ -46,7 +46,7 @@ class DesktopV2Controller private constructor(
     }
   }
 
-  override suspend fun open(mmid: MMID) {
+  override suspend fun openAppOrActivate(mmid: MMID) {
     val app = appsFlow.value.find { it.mmid == mmid } ?: return
     when (val webLink = app.webLink) {
       null -> {
@@ -54,8 +54,8 @@ class DesktopV2Controller private constructor(
           app.running = DesktopAppModel.DesktopAppRunStatus.Opening
           openingApps.add(mmid)
         }
-        // 不论如何都进行 open，因为这本质是 openAppOrActivate
-        super.open(mmid)
+        // 激活应用
+        super.openAppOrActivate(mmid)
       }
 
       else -> {
@@ -65,9 +65,9 @@ class DesktopV2Controller private constructor(
     }
   }
 
-  override suspend fun quit(mmid: MMID) {
+  override suspend fun closeApp(mmid: MMID) {
     openingApps.remove(mmid)
-    super.quit(mmid)
+    super.closeApp(mmid)
   }
 
   @Composable

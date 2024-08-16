@@ -29,12 +29,12 @@ sealed class TaskbarControllerBase(
   private val appsFlow = MutableStateFlow(listOf<String>())
   private fun getTaskbarShowAppList() = appsFlow.value
   private fun getFocusApp() = getTaskbarShowAppList().firstOrNull()
-  fun open(mmid: MMID) = deskNMM.scopeLaunch(cancelable = true) {
-    deskNMM.open(mmid)
+  fun openAppOrActivate(mmid: MMID) = deskNMM.scopeLaunch(cancelable = true) {
+    deskNMM.openAppOrActivate(mmid)
   }
 
   fun quit(mmid: MMID) = deskNMM.scopeLaunch(cancelable = true) {
-    deskNMM.quit(mmid)
+    deskNMM.closeApp(mmid)
   }
 
   // 触发状态更新

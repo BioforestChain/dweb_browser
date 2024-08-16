@@ -58,7 +58,7 @@ actual class VibrateManage actual constructor() {
    * 触碰轻质量物体
    */
   actual fun impact(type: HapticsImpactType) {
-    mVibrate.vibrate(VibrationEffect.createWaveform(type.timings, type.amplitudes, -1))
+    mVibrate.vibrate(VibrationEffect.createOneShot(type.milliseconds, type.amplitude))
   }
 
   /**

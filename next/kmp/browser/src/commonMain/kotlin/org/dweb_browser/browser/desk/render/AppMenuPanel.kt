@@ -104,7 +104,7 @@ internal class AppMenuPanel(
 
   fun doQuit(mmid: String) {
     microModule.scopeLaunch(cancelable = true) {
-      desktopController.quit(mmid)
+      desktopController.closeApp(mmid)
     }
   }
 

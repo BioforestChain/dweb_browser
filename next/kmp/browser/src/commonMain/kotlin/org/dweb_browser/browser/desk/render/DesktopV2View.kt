@@ -121,7 +121,7 @@ fun DesktopV2Controller.RenderImpl() {
               modifier = Modifier.desktopAppItemActions(
                 onOpenApp = {
                   scope.launch {
-                    desktopController.open(app.mmid)
+                    desktopController.openAppOrActivate(app.mmid)
                   }
 //                  searchBar.close()
 //                  desktopWallpaper.play()

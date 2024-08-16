@@ -104,12 +104,12 @@ sealed class DesktopControllerBase(
   }
 
 
-  open suspend fun open(mmid: MMID) {
-    deskNMM.open(mmid)
+  open suspend fun openAppOrActivate(mmid: MMID) {
+    deskNMM.openAppOrActivate(mmid)
   }
 
-  open suspend fun quit(mmid: MMID) {
-    deskNMM.quit(mmid)
+  open suspend fun closeApp(mmid: MMID) {
+    deskNMM.closeApp(mmid)
   }
 
   // val newVersionController = NewVersionController(deskNMM, this)

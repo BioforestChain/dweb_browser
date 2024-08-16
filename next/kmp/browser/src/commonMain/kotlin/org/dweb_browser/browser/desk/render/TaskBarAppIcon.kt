@@ -21,10 +21,11 @@ import androidx.compose.ui.window.Popup
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.desk.model.TaskbarAppModel
 import org.dweb_browser.core.module.NativeMicroModule
-import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.file.ext.blobFetchHook
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.platform.theme.LocalColorful
+import org.dweb_browser.sys.haptics.ext.vibrateHeavyClick
+import org.dweb_browser.sys.haptics.ext.vibrateImpact
 import org.dweb_browser.sys.window.render.AppIconContainer
 import org.dweb_browser.sys.window.render.AppLogo
 
@@ -33,7 +34,7 @@ internal fun TaskBarAppIcon(
   app: TaskbarAppModel,
   microModule: NativeMicroModule.NativeRuntime,
   padding: Dp,
-  openApp: () -> Unit,
+  openAppOrActivate: () -> Unit,
   quitApp: () -> Unit,
   toggleWindow: () -> Unit,
   modifier: Modifier = Modifier,
@@ -42,11 +43,6 @@ internal fun TaskBarAppIcon(
   val scaleValue = remember { Animatable(1f) }
   val scope = rememberCoroutineScope()
   var showQuit by remember(app.isShowClose) { mutableStateOf(app.isShowClose) }
-  fun doHaptics() {
-    scope.launch {
-      microModule.nativeFetch("file://haptics.sys.dweb/vibrateHeavyClick")
-    }
-  }
 
   BoxWithConstraints(
     contentAlignment = Alignment.Center,
@@ -57,6 +53,9 @@ internal fun TaskBarAppIcon(
       .desktopAppItemActions(
         onHoverStart = {
           scope.launch {
+            microModule.vibrateImpact()
+          }
+          scope.launch {
             scaleValue.animateTo(1.05f)
           }
         },
@@ -66,20 +65,22 @@ internal fun TaskBarAppIcon(
           }
         },
         onOpenApp = {
-          if (!app.running) {
-            openApp()
-          }
+          openAppOrActivate()
         },
         onDoubleTap = {
+          scope.launch {
+            microModule.vibrateImpact()
+          }
+          openAppOrActivate()
           if (app.running) {
             toggleWindow()
-          } else {
-            openApp()
           }
         },
         onOpenAppMenu = {
           if (app.running) {
-            doHaptics()
+            scope.launch {
+              microModule.vibrateHeavyClick()
+            }
             showQuit = !showQuit
           }
         },

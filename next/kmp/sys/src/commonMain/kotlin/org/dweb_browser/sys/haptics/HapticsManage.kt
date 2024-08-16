@@ -26,12 +26,11 @@ enum class HapticsNotificationType(
 }
 
 enum class HapticsImpactType(
-  val type: String, val timings: LongArray, val amplitudes: IntArray, val oldSDKPattern: LongArray,
+  val type: String, val milliseconds: Long, val amplitude: Int,
 ) {
-  LIGHT("LIGHT", longArrayOf(0, 25), intArrayOf(0, 110), longArrayOf(0, 20)), MEDIUM(
-    "MEDIUM", longArrayOf(0, 43), intArrayOf(0, 180), longArrayOf(0, 43)
-  ),
-  HEAVY("HEAVY", longArrayOf(0, 60), intArrayOf(0, 255), longArrayOf(0, 61)),
+  LIGHT("LIGHT", 5, 64),
+  MEDIUM("MEDIUM", 10, 128),
+  HEAVY("HEAVY", 20, 255),
   ;
 
   companion object {

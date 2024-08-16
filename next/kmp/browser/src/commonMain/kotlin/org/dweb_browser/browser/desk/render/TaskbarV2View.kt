@@ -82,8 +82,8 @@ abstract class ITaskbarV2View(protected val taskbarController: TaskbarV2Controll
           app = app,
           microModule = taskbarController.deskNMM,
           padding = paddingValue.dp,
-          openApp = {
-            taskbarController.open(app.mmid)
+          openAppOrActivate = {
+            taskbarController.openAppOrActivate(app.mmid)
           },
           quitApp = {
             taskbarController.quit(app.mmid)

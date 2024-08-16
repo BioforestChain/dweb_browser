@@ -77,25 +77,25 @@ actual class VibrateManage actual constructor() {
 
   private fun impactVibrate(style: HapticsImpactType) {
 
-    var impactType = when (style) {
+    val impactType = when (style) {
       HapticsImpactType.MEDIUM -> UIImpactFeedbackStyle.UIImpactFeedbackStyleMedium
       HapticsImpactType.HEAVY -> UIImpactFeedbackStyle.UIImpactFeedbackStyleHeavy
       else -> UIImpactFeedbackStyle.UIImpactFeedbackStyleLight
     }
 
-    var impact = UIImpactFeedbackGenerator(impactType)
+    val impact = UIImpactFeedbackGenerator(impactType)
     impact.prepare()
     impact.impactOccurred()
   }
 
   private fun notificationVibrate(style: HapticsNotificationType) {
-    var notiType = when (style) {
+    val notiType = when (style) {
       HapticsNotificationType.SUCCESS -> UINotificationFeedbackType.UINotificationFeedbackTypeSuccess
       HapticsNotificationType.WARNING -> UINotificationFeedbackType.UINotificationFeedbackTypeWarning
       else -> UINotificationFeedbackType.UINotificationFeedbackTypeError
     }
 
-    var notification = UINotificationFeedbackGenerator()
+    val notification = UINotificationFeedbackGenerator()
     notification.prepare()
     notification.notificationOccurred(notiType)
   }
@@ -104,7 +104,7 @@ actual class VibrateManage actual constructor() {
     if (!capabilities.supportsHaptics) {
       return
     }
-    var durationArr: MutableList<Long> = when (style) {
+    val durationArr: MutableList<Long> = when (style) {
       VibrateType.CLICK -> mutableListOf(1)
       VibrateType.DISABLED -> mutableListOf(1, 63, 1, 119, 1, 129, 1)
       VibrateType.DOUBLE_CLICK -> mutableListOf(10, 1)
@@ -121,7 +121,7 @@ actual class VibrateManage actual constructor() {
     val engine = CHHapticEngine(null)
     engine.startAndReturnError(null)
 
-    var events = mutableListOf<CHHapticEvent>()
+    val events = mutableListOf<CHHapticEvent>()
     var relativeTime: CGFloat = 0.0
 
     durationArr.forEachIndexed { index, duration ->
