@@ -75,7 +75,7 @@ benchmark-macro-junit4 = "1.2.4"
 roomKtx = "2.6.1"
 log4j12 = "2.0.12"
 
-filekit = "0.7.0"
+filekit = "0.8.0"
 
 [libraries]
 
