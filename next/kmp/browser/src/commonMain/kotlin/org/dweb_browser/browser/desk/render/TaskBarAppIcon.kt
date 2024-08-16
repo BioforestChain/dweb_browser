@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import kotlinx.coroutines.launch
@@ -31,6 +32,7 @@ import org.dweb_browser.sys.window.render.AppLogo
 internal fun TaskBarAppIcon(
   app: TaskbarAppModel,
   microModule: NativeMicroModule.NativeRuntime,
+  padding: Dp,
   openApp: () -> Unit,
   quitApp: () -> Unit,
   toggleWindow: () -> Unit,
@@ -51,7 +53,7 @@ internal fun TaskBarAppIcon(
     modifier = modifier.graphicsLayer {
       scaleX = scaleValue.value
       scaleY = scaleValue.value
-    }.padding(start = PADDING_VALUE.dp, top = PADDING_VALUE.dp, end = PADDING_VALUE.dp)
+    }.padding(start = padding, top = padding, end = padding)
       .desktopAppItemActions(
         onHoverStart = {
           scope.launch {

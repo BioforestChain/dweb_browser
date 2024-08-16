@@ -10,12 +10,12 @@ import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
-import org.dweb_browser.sys.window.helper.FloatBarState
 import org.dweb_browser.browser.desk.types.DeskAppMetaData
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.helper.SafeHashSet
 import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.safeSubList
+import org.dweb_browser.sys.window.helper.FloatBarState
 
 sealed class TaskbarControllerBase(
   internal val deskNMM: DeskNMM.DeskRuntime,
@@ -146,8 +146,8 @@ sealed class TaskbarControllerBase(
         val apps = (newApps + runningApps).distinct()
 
         appsFlow.value = when {
-          // 我们会尝试保留5个记录
-          apps.size < 5 -> (apps + appsFlow.value).distinct().safeSubList(0, 5)
+          // 我们会尝试保留3个记录
+          apps.size < 3 -> (apps + appsFlow.value).distinct().safeSubList(0, 5)
           // 如果超过5个，那么就只显示正在运行中的
           else -> apps
         }

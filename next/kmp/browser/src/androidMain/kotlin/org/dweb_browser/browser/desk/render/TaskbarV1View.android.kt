@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.platform.LocalContext
 import org.dweb_browser.browser.desk.AndroidTaskbarView
 import org.dweb_browser.browser.desk.TaskbarActivity
@@ -45,9 +46,10 @@ class TaskbarV1View(
         })
       }
     } else {
-      FloatBarShell(state) {  modifier ->
+      val displaySize = rememberAndroidDisplaySize()
+      FloatBarShell(state) { modifier ->
         FloatBarMover(draggableDelegate, modifier) {
-          InnerRender()
+          InnerRender(displaySize)
         }
       }
     }
@@ -55,7 +57,7 @@ class TaskbarV1View(
 
   @SuppressLint("ClickableViewAccessibility")
   @Composable
-  override fun InnerRender() {
+  override fun InnerRender(displaySize: Size) {
     taskbarDWebView.Render(onCreate = {
       setHorizontalScrollBarVisible(false)
       asAndroidWebView().setOnTouchListener { _, _ ->

@@ -8,12 +8,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 @Composable
-internal fun TaskBarDivider() {
+internal fun TaskBarDivider(padding: Dp) {
   HorizontalDivider(
-    Modifier.padding(start = PADDING_VALUE.dp, top = PADDING_VALUE.dp, end = PADDING_VALUE.dp)
+    Modifier.padding(start = padding, top = padding, end = padding)
       .background(
         Brush.horizontalGradient(
           listOf(

@@ -444,6 +444,7 @@ fun KotlinMultiplatformExtension.kmpComposeTarget(
     // jetbrains-compose-runtime
     implementation(libs.jetbrains.compose.runtime)
     implementation(libs.jetbrains.compose.foundation)
+    implementation(libs.jetbrains.compose.ui)
     implementation(libs.jetbrains.compose.components.resources)
 
     // jetbrains-compose-material

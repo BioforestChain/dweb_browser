@@ -10,6 +10,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalDensity
 import androidx.core.view.WindowCompat
 import org.dweb_browser.browser.R
+import org.dweb_browser.browser.desk.render.rememberAndroidDisplaySize
 import org.dweb_browser.helper.android.ActivityBlurHelper
 import org.dweb_browser.helper.compose.NativeBackHandler
 import org.dweb_browser.helper.platform.PureViewController
@@ -73,7 +74,7 @@ class TaskbarActivity : PureViewController() {
         }
 
         fun toPx(dp: Float) = (density * dp).toInt()
-        window.attributes = window.attributes.also { attributes ->
+        window.attributes.also { attributes ->
           taskbarController.state.apply {
             val layoutWidth by layoutWidthFlow.collectAsState()
             val layoutHeight by layoutHeightFlow.collectAsState()
@@ -81,20 +82,32 @@ class TaskbarActivity : PureViewController() {
             val layoutY by layoutYFlow.collectAsState()
             val layoutLeftPadding by layoutLeftPaddingFlow.collectAsState()
             val layoutTopPadding by layoutTopPaddingFlow.collectAsState()
-            window.setLayout(
-              toPx(layoutWidth),
-              toPx(layoutHeight),
-            )
+            LaunchedEffect(
+              layoutWidth,
+              layoutHeight,
+              layoutX,
+              layoutY,
+              layoutLeftPadding,
+              layoutTopPadding
+            ) {
+              window.setLayout(
+                toPx(layoutWidth),
+                toPx(layoutHeight),
+              )
 
-            attributes.gravity = Gravity.TOP or Gravity.START
-            attributes.x = toPx(layoutX - layoutLeftPadding)
-            attributes.y = toPx(layoutY - layoutTopPadding)
+              attributes.gravity = Gravity.TOP or Gravity.START
+              attributes.x = toPx(layoutX - layoutLeftPadding)
+              attributes.y = toPx(layoutY - layoutTopPadding)
+              window.attributes = attributes
+            }
           }
         }
         DwebBrowserAppTheme {
           NativeBackHandler { finish() }
           /// 任务栏视图
-          remember { taskbarController.getAndroidTaskbarView() }.InnerRender()
+          remember { taskbarController.getAndroidTaskbarView() }.InnerRender(
+            rememberAndroidDisplaySize()
+          )
         }
       }
 

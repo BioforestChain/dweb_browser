@@ -61,6 +61,9 @@ fun FloatBarShell(
   },
   moverContent: @Composable FloatBarContext.(modifier: Modifier) -> Unit,
 ) {
+  if (displaySize == Size.Zero) {
+    return
+  }
 
   val screenWidth = displaySize.width
   val screenHeight = displaySize.height
@@ -144,6 +147,13 @@ fun FloatBarShell(
       )
     ).floatBarBackground(isDark, floatBarDefaultShape)
   )
+}
+
+@Composable
+fun rememberDisplaySize() = rememberPureViewBox().let { viewBox ->
+  produceState(Size.Zero) {
+    value = viewBox.getDisplaySize()
+  }.value
 }
 
 fun Modifier.floatBarBackground(isDark: Boolean, shape: Shape = floatBarDefaultShape) =

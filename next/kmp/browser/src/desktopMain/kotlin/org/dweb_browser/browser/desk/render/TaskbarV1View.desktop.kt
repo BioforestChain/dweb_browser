@@ -50,6 +50,9 @@ class TaskbarV1View(
   }
 }
 
+/**
+ * 桌面端的通用 taskbar 渲染器
+ */
 @Composable
 internal fun CommonTaskbarRender(
   taskbarController: TaskbarControllerBase,

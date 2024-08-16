@@ -17,6 +17,7 @@ import org.dweb_browser.helper.platform.rememberPureViewBox
 import org.dweb_browser.helper.toPureRect
 import org.dweb_browser.sys.window.helper.DraggableDelegate
 import org.dweb_browser.sys.window.helper.FloatBarShell
+import org.dweb_browser.sys.window.helper.rememberDisplaySize
 
 actual fun ITaskbarV2View.Companion.create(taskbarController: TaskbarV2Controller): ITaskbarV2View {
   return TaskbarV2View(taskbarController)
@@ -64,7 +65,8 @@ private fun TaskbarMover(
 class TaskbarV2View(taskbarController: TaskbarV2Controller) : ITaskbarV2View(taskbarController) {
   private val pvc = PureViewController(fullscreen = false).also { pvc ->
     pvc.addContent {
-      FloatBarShell(state, effectBounds = { bounds ->
+      val displaySize = rememberDisplaySize()
+      FloatBarShell(state, displaySize = displaySize, effectBounds = { bounds ->
         LaunchedEffect(bounds) {
           pvc.setBounds(bounds)
         }
@@ -72,7 +74,7 @@ class TaskbarV2View(taskbarController: TaskbarV2Controller) : ITaskbarV2View(tas
       }) { modifier ->
         TaskbarMover(pvc, draggableDelegate, modifier) {
           /// 渲染内容
-          RenderContent(draggableDelegate)
+          RenderContent(draggableDelegate, displaySize = displaySize)
         }
       }
     }
