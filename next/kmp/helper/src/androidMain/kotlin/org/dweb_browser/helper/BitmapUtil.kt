@@ -8,13 +8,16 @@ import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.media.ThumbnailUtils
 import android.net.Uri
+import android.os.Build
 import android.provider.MediaStore
 import android.provider.MediaStore.Images.Thumbnails.MINI_KIND
 import android.util.Log
+import android.util.Size
 import androidx.annotation.DrawableRes
 import androidx.core.content.ContextCompat
 import java.io.File
 import java.io.FileOutputStream
+import java.nio.file.Paths
 
 @Deprecated("should not use BitmapUtil")
 @Suppress("DEPRECATION")
@@ -27,7 +30,7 @@ public object BitmapUtil {
     val options = BitmapFactory.Options()
     options.inDither = false
     options.inPreferredConfig = Bitmap.Config.ARGB_8888
-    var cursor = cr.query(uri, arrayOf(MediaStore.Video.Media._ID), null, null)
+    val cursor = cr.query(uri, arrayOf(MediaStore.Video.Media._ID), null, null)
     if (cursor != null) {
       if (cursor.moveToFirst()) {
         val videoId =
@@ -38,7 +41,6 @@ public object BitmapUtil {
         )
       }
       cursor.close()
-      cursor = null
     }
     return null
   }
@@ -56,7 +58,7 @@ public object BitmapUtil {
    * @return 生成的缩略图
    */
   public fun getImageThumbnail(imagePath: String, width: Int, height: Int): Bitmap? {
-    var options = BitmapFactory.Options()
+    val options = BitmapFactory.Options()
     options.inJustDecodeBounds = true
     // 获取这个图片的宽和高，注意此处的bitmap为null
     BitmapFactory.decodeFile(imagePath, options)
@@ -101,6 +103,9 @@ public object BitmapUtil {
     videoPath: String, width: Int, height: Int, kind: Int = MINI_KIND,
   ): Bitmap? {
     // 获取视频的缩略图
+//    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+//      return ThumbnailUtils.createVideoThumbnail(Paths.get(videoPath).toFile(), Size(width,height),null)
+//    }
     return ThumbnailUtils.extractThumbnail(
       ThumbnailUtils.createVideoThumbnail(videoPath, kind),
       width,

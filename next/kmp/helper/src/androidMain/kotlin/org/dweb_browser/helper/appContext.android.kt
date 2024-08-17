@@ -6,23 +6,23 @@ import android.os.Bundle
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
-val androidAppContextDeferred = CompletableDeferred<Context>()
+public val androidAppContextDeferred: CompletableDeferred<Context> = CompletableDeferred()
 
 @OptIn(ExperimentalCoroutinesApi::class)
-fun getAppContextUnsafe() = androidAppContextDeferred.getCompleted()
+public fun getAppContextUnsafe(): Context = androidAppContextDeferred.getCompleted()
 
-suspend fun getAppContext() = androidAppContextDeferred.await()
+public suspend fun getAppContext(): Context = androidAppContextDeferred.await()
 
 private val startActivityOptions = SafeLinkList<Pair<Activity, (() -> Bundle?)?>>()
-fun addStartActivityOptions(activity: Activity, optionsBuilder: (() -> Bundle?)? = null) {
+public fun addStartActivityOptions(activity: Activity, optionsBuilder: (() -> Bundle?)? = null) {
   startActivityOptions.sync {
     removeAll { it.first == activity }
     add(activity to optionsBuilder)
   }
 }
 
-fun removeStartActivityOptions(activity: Activity) {
+public fun removeStartActivityOptions(activity: Activity) {
   startActivityOptions.removeAll { it.first == activity }
 }
 
-fun getStartActivityOptions() = startActivityOptions.lastOrNull()
+public fun getStartActivityOptions(): Pair<Activity, (() -> Bundle?)?>? = startActivityOptions.lastOrNull()

@@ -3,6 +3,7 @@ package org.dweb_browser.helper
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.ByteReadChannel
 
+@Suppress("DEPRECATION")
 public fun createByteChannel(): ByteChannel = ByteChannel(true)
 
 

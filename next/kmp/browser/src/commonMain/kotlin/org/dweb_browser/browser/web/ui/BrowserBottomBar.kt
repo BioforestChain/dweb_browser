@@ -76,7 +76,7 @@ fun BrowserBottomBar(modifier: Modifier) {
         LazyRow(
           state = viewModel.pagerStates.tabsBarLazyState,
           contentPadding = PaddingValues(8.dp),
-          horizontalArrangement = Arrangement.spacedBy(4.dp)
+          horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
           items(
             viewModel.pageSize,

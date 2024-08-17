@@ -3,14 +3,14 @@ package org.dweb_browser.helper
 import android.graphics.Rect
 import androidx.core.graphics.Insets
 
-fun PureBounds.toAndroidXInsets() = Insets.of(
+public fun PureBounds.toAndroidXInsets(): Insets = Insets.of(
   left.toInt(),
   top.toInt(),
   right.toInt(),
   bottom.toInt(),
 )
 
-fun PureBounds.toAndroidRect() = Rect(
+public fun PureBounds.toAndroidRect(): Rect = Rect(
   left.toInt(),
   top.toInt(),
   right.toInt(),

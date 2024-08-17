@@ -4,7 +4,7 @@ import java.io.InputStream
 
 private fun InputStream.tryReadByteArray(size: Int): Pair<ByteArray, Int> {
   val bytes = ByteArray(size)
-  var offset = 0;
+  var offset = 0
   while (offset < size && available() >= 0) {
     val readLen = read(bytes, offset, size)
     offset += readLen
@@ -12,7 +12,7 @@ private fun InputStream.tryReadByteArray(size: Int): Pair<ByteArray, Int> {
   return Pair(bytes, offset)
 }
 
-fun InputStream.readInt(): Int {
+public fun InputStream.readInt(): Int {
   val (bytes, readLen) = tryReadByteArray(4)
   if (readLen < 4) {
     throw Exception("fail to read int($readLen/4 byte) in stream")
@@ -20,7 +20,7 @@ fun InputStream.readInt(): Int {
   return bytes.toLittleEndianInt()
 }
 
-fun InputStream.readByteArray(size: Int): ByteArray {
+public fun InputStream.readByteArray(size: Int): ByteArray {
   val (bytes, readLen) = tryReadByteArray(size)
   if (readLen < size) {
     throw Exception("fail to read bytes($readLen/$size byte) in stream")
@@ -28,14 +28,14 @@ fun InputStream.readByteArray(size: Int): ByteArray {
   return bytes
 }
 
-operator fun InputStream.iterator(): Iterator<ByteArray> {
+public operator fun InputStream.iterator(): Iterator<ByteArray> {
   return object : Iterator<ByteArray> {
     override fun hasNext(): Boolean = available() > 0
     override fun next(): ByteArray = readByteArray(available())
   }
 }
 
-fun InputStream.readByteArray(): ByteArray {
+public fun InputStream.readByteArray(): ByteArray {
   var bytes = ByteArray(0)
   while (true) {
     val availableSize = available()
