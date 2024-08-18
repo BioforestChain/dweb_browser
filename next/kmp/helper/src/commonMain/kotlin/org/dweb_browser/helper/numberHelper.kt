@@ -32,5 +32,3 @@ public fun Number.scale(
 ): Double = this.scale(fromRange.start to fromRange.endInclusive, toRange.start to toRange.endInclusive)
 
 public fun Number.scale(toRange: ClosedFloatingPointRange<Double>): Double = scale(0.0..1.0, toRange)
-
-

@@ -3,12 +3,13 @@ package org.dweb_browser.browser.desk
 import android.os.Build
 import android.provider.Settings.Global
 import android.transition.Fade
+import android.view.ViewTreeObserver
 import android.view.Window
 import android.webkit.WebView
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.imeAnimationTarget
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.platform.LocalDensity
 import androidx.core.view.WindowCompat
 import com.qiniu.android.storage.UploadManager
@@ -48,9 +49,13 @@ class DesktopActivity : PureViewController() {
       val imeVisibleState = LocalWindowsImeVisible.current
       val density = LocalDensity.current
       val imeInsets = WindowInsets.imeAnimationTarget // 直接使用ime，数据不稳定，会变化，改为imeAnimationTarget就是固定值
-      LaunchedEffect(imeInsets, density) {
-        window.decorView.viewTreeObserver.addOnGlobalLayoutListener {
+      DisposableEffect(imeInsets, density) {
+        val listener = ViewTreeObserver.OnGlobalLayoutListener {
           imeVisibleState.value = imeInsets.getBottom(density) != 0
+        }
+        window.decorView.viewTreeObserver.addOnGlobalLayoutListener(listener)
+        onDispose {
+          window.decorView.viewTreeObserver.removeOnGlobalLayoutListener(listener)
         }
       }
     }

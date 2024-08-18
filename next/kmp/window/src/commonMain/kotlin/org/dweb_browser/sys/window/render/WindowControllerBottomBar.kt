@@ -187,6 +187,9 @@ internal fun WindowBottomImmersionThemeBar(
   }
 }
 
+@Composable
+expect fun windowBottomNavigationThemeBarMaximizedModifier(): Modifier
+
 /**
  * 导航模式
  *
@@ -215,9 +218,13 @@ internal fun WindowBottomNavigationThemeBar(
       paddingTop = max(0f, totalPadding - boxSafeAreaInsets.bottom)
       paddingBottom = totalPadding - paddingTop
     }
+    val buttonsModifier = when {
+      isMaximized -> windowBottomNavigationThemeBarMaximizedModifier()
+      else -> Modifier
+    }
     /// 按钮
     Row(
-      modifier = Modifier.zIndex(1f).pointerInput(Unit) {
+      modifier = buttonsModifier.zIndex(1f).pointerInput(Unit) {
         detectTapGestures(onDoubleTap = {
           scope.launch {
             win.unMaximize()
@@ -265,7 +272,6 @@ internal fun WindowBottomNavigationThemeBar(
             NativeBackHandler(isFocus && btnCanGoBack) {
               goBackOrClose()
             }
-
             /// 返回按钮
             TextButton(
               onClick = {
@@ -342,7 +348,6 @@ internal fun WindowBottomNavigationThemeBar(
         }
       }
     }
-
     /// 底部文本
     WindowBottomBarInfoText(
       win,
@@ -351,7 +356,6 @@ internal fun WindowBottomNavigationThemeBar(
 //        .pointerInteropFilter { false },
     )
   }
-
 }
 
 // desktop的Menu使用图标，因此需要分开实现

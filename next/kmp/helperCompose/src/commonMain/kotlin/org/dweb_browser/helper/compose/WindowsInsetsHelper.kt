@@ -5,11 +5,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.Density
 import org.dweb_browser.helper.PureBounds
 
 @Composable
-fun WindowInsets.asPureBounds(): PureBounds {
-  val density = LocalDensity.current
+fun WindowInsets.asPureBounds(density: Density = LocalDensity.current): PureBounds {
   val direction = LocalLayoutDirection.current
   return remember(density, direction, this) {
     PureBounds(

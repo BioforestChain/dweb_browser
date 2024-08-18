@@ -16,13 +16,13 @@ class DWebCustomView(
   private var customViewCallback: CustomViewCallback? = null
   private var originalOrientation: Int =
     activity?.requestedOrientation ?: ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+  private var beforeSystemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_DEFAULT
 
   override fun onHideCustomView() {
     activity?.also { fullscreenVideoActivity ->
       if (customView == null) {
         return
       }
-
       val window = fullscreenVideoActivity.window
       fullscreenVideoActivity.requestedOrientation = originalOrientation
       val decor = window.decorView as FrameLayout
@@ -33,7 +33,7 @@ class DWebCustomView(
       customViewCallback = null
 
       with(WindowInsetsControllerCompat(window, window.decorView)) {
-        systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_DEFAULT
+        systemBarsBehavior = beforeSystemBarsBehavior
         show(WindowInsetsCompat.Type.systemBars())
       }
     }
@@ -60,6 +60,7 @@ class DWebCustomView(
         )
 
         with(WindowInsetsControllerCompat(window, window.decorView)) {
+          beforeSystemBarsBehavior = systemBarsBehavior
           systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
           hide(WindowInsetsCompat.Type.systemBars())
         }

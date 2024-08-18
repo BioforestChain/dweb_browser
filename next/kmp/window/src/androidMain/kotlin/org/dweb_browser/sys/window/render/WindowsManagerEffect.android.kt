@@ -7,15 +7,14 @@ import androidx.compose.foundation.layout.imeAnimationTarget
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
-import androidx.core.view.WindowInsetsControllerCompat
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import org.dweb_browser.helper.PureRect
+import org.dweb_browser.helper.platform.InsetsController
 import org.dweb_browser.helper.platform.asAndroid
+import org.dweb_browser.helper.platform.rememberInsetsController
 import org.dweb_browser.helper.platform.rememberPureViewBox
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.WindowsManager
@@ -43,30 +42,31 @@ private fun <T : WindowController> WindowsManager<T>.EffectKeyboard() {
     } else {
       PureRect.Zero
     }
-
     // 输入法高度即为 heightDiff
     debugWindow(
       "ManagerState/IME", "imeVisible:${state.imeVisible}, imeBounds:${state.imeBoundingRect}"
     )
   }
-
 }
 
-@Suppress("DEPRECATION")
 @Composable
 private fun <T : WindowController> WindowsManager<T>.EffectNavigationBar() {
-  val systemUiController = rememberSystemUiController()
-  val maximizedWins by maximizedWinsFlow.collectAsState(maximizedWinsFlow.value)
-  SideEffect {
-    systemUiController.systemBarsBehavior =
-      WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-  }
-  DisposableEffect(maximizedWins) {
-    val noMaximized = maximizedWins.isEmpty();
-    /// 如果有窗口处于全屏模式，将操作系统的导航栏标记为隐藏，反之显示
-    systemUiController.isNavigationBarVisible = !noMaximized
-    onDispose {
-      systemUiController.isNavigationBarVisible = true
+  rememberInsetsController()?.apply {
+    val hasWin = winListFlow.collectAsState().value.isNotEmpty()
+    // TODO 如果有最大化窗口，根据当前窗口改变系统导航栏按钮的颜色
+    LaunchedEffect(hasWin) {
+      navigationBarsBehavior = when {
+        hasWin -> {
+          hideNavigationBars() // 立刻隐藏导航栏
+          InsetsController.NavigationBarsBehavior.ShowBySwipe
+        }
+
+        else -> InsetsController.NavigationBarsBehavior.Show
+      }
+    }
+    Effect()
+    if (false) {
+      DebugDemo()
     }
   }
 }

@@ -49,7 +49,7 @@ abstract class ITaskbarV2View(protected val taskbarController: TaskbarV2Controll
     LaunchedEffect(displaySize) {
       taskbarIconSize = clamp(
         TASKBAR_ICON_MIN_SIZE,
-        min(displaySize.width, displaySize.height) * 0.12f,
+        min(displaySize.width, displaySize.height) * 0.14f,
         TASKBAR_ICON_MAX_SIZE
       )
       paddingValue = TASKBAR_PADDING_VALUE * taskbarIconSize / TASKBAR_ICON_MAX_SIZE

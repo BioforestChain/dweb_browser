@@ -32,7 +32,7 @@ actual fun SetSystemBarsColor(bgColor: Color, fgColor: Color) {
 }
 
 @Composable
-private fun findWindow(): Window? = LocalView.current.let { view ->
+fun findWindow(): Window? = LocalView.current.let { view ->
   remember {
     (view.parent as? DialogWindowProvider)?.window ?: view.context.findWindow()
   }

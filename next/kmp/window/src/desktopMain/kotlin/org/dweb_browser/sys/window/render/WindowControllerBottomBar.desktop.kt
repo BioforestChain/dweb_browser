@@ -30,7 +30,6 @@ actual fun RowScope.WindowBottomBarMenuPanel(win: WindowController) {
     modifier = Modifier.weight(1f).fillMaxWidth(),
   ) {
     val iconSize = maxHeight
-
     /// 渲染菜单面板
     WindowMenuPanel(win)
     TextButton(
@@ -49,3 +48,6 @@ actual fun RowScope.WindowBottomBarMenuPanel(win: WindowController) {
     }
   }
 }
+
+@Composable
+actual fun windowBottomNavigationThemeBarMaximizedModifier(): Modifier = Modifier

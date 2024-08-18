@@ -1,6 +1,5 @@
 package org.dweb_browser.sys.window.core
 
-
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -35,11 +34,9 @@ expect class WindowsManagerDelegate<T : WindowController>(
   suspend fun addedWindow(win: T, offListenerList: MutableList<OffListener<*>>)
 }
 
-
 class WindowsManagerDelegate2<T : WindowController>(
   manager: WindowsManager<T>,
 ) {}
-
 
 /**
  * 窗口管理器，存储查询窗口，并根据行为委托器来对窗口进行操控管理
@@ -49,13 +46,9 @@ open class WindowsManager<T : WindowController>(
   internal val viewBox: IPureViewBox,
 ) {
   private val delegate by lazy { WindowsManagerDelegate(this) }
-
   val state = WindowsManagerState(viewBox)
-
-
   val allWindowsFlow = MutableStateFlow(mapOf<T, WindowsManagerScope>())
   val allWindows get() = allWindowsFlow.value.keys
-
   private val reCombFlow = MutableSharedFlow<Unit>()
 
   /**
@@ -77,11 +70,11 @@ open class WindowsManager<T : WindowController>(
   /**
    * 存储最大化的窗口
    */
-  val maximizedWinsFlow =
-    allWindowsFlow.map { windows -> windows.keys.filter { it.isMaximized && it.isVisible }.toSet() }
-      .stateIn(viewBox.lifecycleScope, started = SharingStarted.Eagerly, initialValue = setOf())
+  val maximizedWinsFlow = allWindowsFlow.map { windows ->
+    windows.keys.filter { it.isMaximized && it.isVisible }.toSet()
+  }
+    .stateIn(viewBox.lifecycleScope, started = SharingStarted.Eagerly, initialValue = setOf())
   val maximizedWins get() = maximizedWinsFlow.value
-
 
   /**
    * 将一个窗口添加进来管理
@@ -91,8 +84,6 @@ open class WindowsManager<T : WindowController>(
     win.upsetManager(this@WindowsManager);
     /// 对窗口做一些启动准备
     val offListenerList = mutableListOf<OffListener<*>>()
-
-
     /// 窗口销毁的时候，做引用释放
     offListenerList += win.onClose {
       removeWindow(win)
@@ -105,7 +96,6 @@ open class WindowsManager<T : WindowController>(
       }
     }
     delegate.addedWindow(win, offListenerList)
-
     /// 第一次装载窗口，默认将它聚焦到最顶层
     if (autoFocus) {
       delegate.focusWindow(win) // void job
@@ -203,15 +193,14 @@ open class WindowsManager<T : WindowController>(
    * 顺序执行窗口相关的操作，避免并发异常
    */
   private val orderDeferred = OrderDeferred()
-//  internal fun <R> withWindowLifecycleScopeAsync(block: suspend CoroutineScope.() -> R) =
+
+  //  internal fun <R> withWindowLifecycleScopeAsync(block: suspend CoroutineScope.() -> R) =
 //    viewBox.lifecycleScope.async(start = CoroutineStart.UNDISPATCHED) {
 //      orderDeferred.queueAndAwait(null) {
 //        // TODO 检测 win 的所属权
 //        block()
 //      }
 //    }
-
-
   private var inQueue by atomic(false)
   internal suspend fun <R> withWindowLifecycleScope(block: suspend CoroutineScope.() -> R) =
     withScope(viewBox.lifecycleScope) {
@@ -229,12 +218,9 @@ open class WindowsManager<T : WindowController>(
         }
       }
     }
-
-
   /**
    * 对一个窗口做失焦操作
    */
-
   /**
    * 对一些窗口做聚焦操作
    */

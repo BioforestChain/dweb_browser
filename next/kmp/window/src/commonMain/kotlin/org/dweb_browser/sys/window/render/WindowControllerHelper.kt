@@ -72,7 +72,6 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
 
-
 /**
  * 提供一个计算函数，来获得一个在Compose中使用的 state
  */
@@ -175,17 +174,14 @@ fun WindowController.watchedIsFullscreen() =
 @Composable
 fun WindowController.watchedBounds() = watchedState(watchKey = WindowPropertyKeys.Bounds) { bounds }
 
-
 @Composable
 fun WindowController.calcWindowByLimits(
   limits: WindowLimits,
 ): WindowPadding {
-
   /**
    * 窗口大小
    */
   val winBounds = calcWindowBoundsByLimits(limits)
-
   /**
    * 窗口边距
    */
@@ -269,7 +265,6 @@ private fun WindowController.calcWindowPaddingByLimits(
 ): WindowPadding {
   val maximize by watchedIsMaximized()
   val bottomBarTheme by watchedState(watchKey = WindowPropertyKeys.BottomBarTheme) { bottomBarTheme }
-
   val topHeight: Float
   val bottomHeight: Float
   val leftWidth: Float
@@ -278,7 +273,6 @@ private fun WindowController.calcWindowPaddingByLimits(
   val contentRounded: WindowPadding.CornerRadius
   val boxSafeAreaInsets: PureBounds
   val contentSafeAreaInsets: PureBounds
-
   /// 一些共有的计算
   val windowFrameSize = if (maximize) 3f else 5f
 
@@ -287,40 +281,39 @@ private fun WindowController.calcWindowPaddingByLimits(
    */
   val bottomThemeHeight = when (bottomBarTheme) {
     WindowBottomBarTheme.Immersion -> limits.bottomBarBaseHeight// 因为底部要放置一些信息按钮，所以我们会给到底部一个基本的高度
-    WindowBottomBarTheme.Navigation -> max(limits.bottomBarBaseHeight, 32f) // 要有足够的高度放按钮和基本信息
+    WindowBottomBarTheme.Navigation -> max(limits.bottomBarBaseHeight, 48f) // 要有足够的高度放按钮和基本信息
   }
 
   if (maximize) {
     val layoutDirection = LocalLayoutDirection.current
-    val density = LocalDensity.current.density
+    val density = LocalDensity.current
+    val d = LocalDensity.current.density
 
     /**
      * safeGestures = systemGestures + mandatorySystemGestures + waterfall + tappableElement.
      */
+    val safeGestures = WindowInsets.safeGestures
     val safeGesturesPadding = WindowInsets.safeGestures.asPaddingValues()
 
     /**
      * safeDrawing = systemBars + displayCutout + ime
      */
+    val safeDrawing = WindowInsets.safeDrawing
     val safeDrawingPadding = WindowInsets.safeDrawing.asPaddingValues()
-
 //    /**
 //     *  safeContent = safeDrawing + safeGestures
 //     */
 //    val safeContentPadding = WindowInsets.safeContent.asPaddingValues()
 //    val safeContentPaddingBottom = safeContentPadding.calculateBottomPadding().value
-    val safeDrawingPaddingTop = safeDrawingPadding.calculateTopPadding().value
-    val safeGesturesPaddingBottom = safeGesturesPadding.calculateBottomPadding().value
-
+    val safeDrawingPaddingTop = safeDrawing.getTop(density) / d
+    val safeGesturesPaddingBottom = safeGestures.getBottom(density) / d
     // 顶部的高度，可以理解为状态栏的高度
     topHeight = max(safeDrawingPaddingTop, windowFrameSize)
-
     /**
      * 底部是系统导航栏，这里我们使用触摸安全的区域来控制底部高度，这样可以避免底部抖动
      * 不该使用 safeDrawing，它会包含 ime 的高度
      */
-    bottomHeight = max(bottomThemeHeight + safeGesturesPaddingBottom, windowFrameSize)
-
+    bottomHeight = max(max(bottomThemeHeight, safeGesturesPaddingBottom), windowFrameSize)
     /**
      * 即便是最大化模式下，我们仍然需要有一个强调边框。
      * 这个边框存在的意义有：
@@ -328,14 +321,13 @@ private fun WindowController.calcWindowPaddingByLimits(
      * 2. 养成用户的视觉习惯，避免某些情况下有人使用视觉手段欺骗用户，窗口模式的存在将一切限定在一个规则内，可以避免常规视觉诈骗
      * 3. 全屏模式虽然会移除窗口，但是会有一些其它限制，比如但需要进行多窗口交互的时候，这些窗口边框仍然会显示出来
      */
-    leftWidth = max(safeDrawingPadding.calculateLeftPadding(layoutDirection).value, windowFrameSize)
-    rightWidth =
-      max(safeDrawingPadding.calculateRightPadding(layoutDirection).value, windowFrameSize)
+    leftWidth = max(safeDrawing.getLeft(density, layoutDirection) / d, windowFrameSize)
+    rightWidth = max(safeDrawing.getRight(density, layoutDirection) / d, windowFrameSize)
     borderRounded = getWindowControllerBorderRounded(true) // 全屏模式下，外部不需要圆角
     val platformViewController = rememberPureViewBox()
     contentRounded = WindowPadding.CornerRadius.from(
-      getCornerRadiusTop(platformViewController, density, 16f),
-      getCornerRadiusBottom(platformViewController, density, 16f)
+      getCornerRadiusTop(platformViewController, d, 16f),
+      getCornerRadiusBottom(platformViewController, d, 16f)
     )
 
     boxSafeAreaInsets =
@@ -366,7 +358,6 @@ expect fun getWindowControllerBorderRounded(isMaximize: Boolean): WindowPadding.
 
 val LocalWindowPadding = compositionChainOf<WindowPadding>("WindowPadding")
 
-
 /**
  * 窗口边距布局配置
  */
@@ -380,7 +371,6 @@ data class WindowPadding(
    * 内容圆角
    */
   val contentRounded: CornerRadius,
-
 //  /**
 //   * 内容的安全绘制区域
 //   */
@@ -432,7 +422,6 @@ data class WindowPadding(
       val Default = from(16)
       val Medium = from(24)
       val Large = from(32)
-
     }
   }
 
@@ -495,8 +484,7 @@ class WindowControllerTheme(
   val topContentDisableColor by lazy { topContentColor.copy(alpha = topContentColor.alpha * 0.2f) }
   val bottomContentDisableColor by lazy { bottomContentColor.copy(alpha = bottomContentColor.alpha * 0.2f) }
 
-
-//  val themeButtonColors by lazy {
+  //  val themeButtonColors by lazy {
 //    ButtonColors(
 //      contentColor = themeContentColor,
 //      containerColor = themeColor,
@@ -512,7 +500,6 @@ class WindowControllerTheme(
 //      disabledContainerColor = themeContentDisableColor,
 //    )
 //  }
-
   @Composable
   fun ThemeButtonColors() = ButtonDefaults.buttonColors(
     themeContentColor, themeColor, themeContentDisableColor, themeDisableColor
@@ -586,14 +573,11 @@ fun WindowController.buildTheme(): WindowControllerTheme {
       md_theme_light_surface, md_theme_dark_surface, isDark
     )
 
-
     val smartThemeColor = if (isDark) themeDarkColor.asWindowStateColorOr {
       getThemeColor().convertToDark()
     } else getThemeColor()
     val themeContentColor = calcContentColor(smartThemeColor)
-
     val themeOklabColor = smartThemeColor.convert(ColorSpaces.Oklab)
-
     val onThemeColor =
       themeOklabColor.copy(red = sqrt(themeOklabColor.red), alpha = 0.5f).convert(ColorSpaces.Srgb)
         .compositeOver(themeContentColor)
@@ -603,7 +587,6 @@ fun WindowController.buildTheme(): WindowControllerTheme {
   }
   val (themeColor, themeContentColor) = themeColors.first
   val (onThemeColor, onThemeContentColor) = themeColors.second
-
   val topBackgroundColor by watchedState(
     isDark, watchKey = WindowPropertyKeys.TopBarBackgroundColor
   ) {
@@ -622,7 +605,6 @@ fun WindowController.buildTheme(): WindowControllerTheme {
       topBarContentDarkColor.asWindowStateColorOr { getTopBarContentColor().convertToLight() }
     } else getTopBarContentColor()
   }
-
   val bottomBackgroundColor by watchedState(
     isDark, watchKey = WindowPropertyKeys.BottomBarBackgroundColor
   ) {
@@ -678,7 +660,6 @@ fun WindowController.IconRender(
   primaryContainerColor: Color? = null,
 ) {
   val iconUrl by watchedState { iconUrl }
-
   val iconMaskable by watchedState { iconMaskable }
   val iconMonochrome by watchedState { iconMonochrome }
   val microModule by state.constants.microModule
@@ -717,7 +698,6 @@ fun WindowController.IdRender(
  * 用来窗口渲染的唯一标识
  */
 val WindowController.incForRender get() = state.constants.owner
-
 
 /**
  * 提供一个计算函数，来获得一个在Compose中使用的 state
