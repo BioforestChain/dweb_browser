@@ -8,7 +8,7 @@ import platform.CoreGraphics.CGRect
 import platform.CoreGraphics.CGRectMake
 
 @OptIn(ExperimentalForeignApi::class)
-fun CValue<CGRect>.toRect() = useContents {
+public fun CValue<CGRect>.toRect(): PureRect = useContents {
   PureRect(
     origin.x.toFloat(),
     origin.y.toFloat(),
@@ -18,7 +18,7 @@ fun CValue<CGRect>.toRect() = useContents {
 }
 
 // 定义乘法扩展操作符
-operator fun PureRect.times(density: Float): PureRect {
+public operator fun PureRect.times(density: Float): PureRect {
   return PureRect(
     x = this.x * density,
     y = this.y * density,
@@ -29,5 +29,5 @@ operator fun PureRect.times(density: Float): PureRect {
 
 
 @OptIn(ExperimentalForeignApi::class)
-fun PureRect.toIosRect() =
+public fun PureRect.toIosRect(): CValue<CGRect> =
   CGRectMake(x.toDouble(), y.toDouble(), width.toDouble(), height.toDouble())

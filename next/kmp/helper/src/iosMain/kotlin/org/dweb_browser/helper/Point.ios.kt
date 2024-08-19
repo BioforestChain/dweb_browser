@@ -29,9 +29,9 @@ import platform.Foundation.numberWithInt
 import platform.Foundation.stringWithUTF8String
 
 @OptIn(ExperimentalForeignApi::class)
-fun CValue<CGPoint>.toPoint() = useContents { PurePoint(x.toFloat(), y.toFloat()) }
+public fun CValue<CGPoint>.toPoint(): PurePoint = useContents { PurePoint(x.toFloat(), y.toFloat()) }
 
-fun PurePoint.toIosPoint() = CGPointMake(x.toDouble(), y.toDouble())
+public fun PurePoint.toIosPoint(): CValue<CGPoint> = CGPointMake(x.toDouble(), y.toDouble())
 
 @OptIn(ExperimentalUnsignedTypes::class, ExperimentalForeignApi::class)
 internal fun ByteArray.bridgingRetain() = asUByteArray().let {

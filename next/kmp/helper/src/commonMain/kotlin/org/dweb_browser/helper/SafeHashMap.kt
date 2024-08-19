@@ -15,7 +15,7 @@ public class SafeHashMap<K, V>(public val origin: MutableMap<K, V> = mutableMapO
   override fun isEmpty(): Boolean = sync { isEmpty() }
 
   override fun remove(key: K): V? = sync { remove(key) }
-  fun remove(key: K, value: V): Boolean = sync { remove(key, value) }
+  public fun remove(key: K, value: V): Boolean = sync { remove(key, value) }
 
   override fun putAll(from: Map<out K, V>): Unit = sync { putAll(from) }
 
@@ -27,7 +27,7 @@ public class SafeHashMap<K, V>(public val origin: MutableMap<K, V> = mutableMapO
 
   override fun containsKey(key: K): Boolean = sync { containsKey(key) }
   public inline fun getOrPut(key: K, defaultValue: () -> V): V = sync { getOrPut(key, defaultValue) }
-  fun getOrDefault(key: K, defaultValue: V): V = sync { getOrDefault(key, defaultValue) }
+  public fun getOrDefault(key: K, defaultValue: V): V = sync { getOrDefault(key, defaultValue) }
   public inline fun getOrElse(key: K, defaultValue: () -> V): V = sync { getOrElse(key, defaultValue) }
 
   override fun toString(): String {

@@ -1,5 +1,7 @@
 package org.dweb_browser.helper
 
+import cnames.structs.__CFDictionary
+import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.alloc
 import kotlinx.cinterop.memScoped
@@ -21,7 +23,6 @@ import platform.Security.SecKeyCreateDecryptedData
 import platform.Security.SecKeyCreateEncryptedData
 import platform.Security.SecKeyCreateRandomKey
 import platform.Security.SecKeyRef
-import platform.Security.errSecItemNotFound
 import platform.Security.errSecSuccess
 import platform.Security.kSecAccessControlBiometryCurrentSet
 import platform.Security.kSecAccessControlPrivateKeyUsage
@@ -43,11 +44,11 @@ import platform.Security.kSecPrivateKeyAttrs
 import platform.Security.kSecReturnRef
 
 @OptIn(ExperimentalForeignApi::class)
-object KeyStore {
+public object KeyStore {
   private val LABEL_ID = NSBundle.mainBundle.bundleIdentifier!!
 
   @OptIn(ExperimentalForeignApi::class)
-  fun dictionary() = memScoped {
+  public fun dictionary(): CPointer<__CFDictionary> = memScoped {
     val dictionary = CFDictionaryCreateMutable(
       kCFAllocatorDefault,
       1,
@@ -65,7 +66,7 @@ object KeyStore {
    * 支持Face ID来获取密钥。之后的加解密数据采用kSecKeyAlgorithmECIESEncryptionCofactorX963SHA256AESGCM算法进行加解密；
    * */
   @OptIn(ExperimentalForeignApi::class)
-  fun generatePrivateKey(): Unit = memScoped {
+  public fun generatePrivateKey(): Unit = memScoped {
     if (findPrivateKeyStatus().first == errSecSuccess) {
       return
     }
@@ -103,7 +104,7 @@ object KeyStore {
 
   @OptIn(ExperimentalForeignApi::class)
   @Suppress("UNCHECKED_CAST")
-  fun findPrivateKeyStatus(): Pair<Int, SecKeyRef?> = memScoped {
+  public fun findPrivateKeyStatus(): Pair<Int, SecKeyRef?> = memScoped {
     val attributes = dictionary()
     CFDictionarySetValue(attributes, kSecAttrKeyClass, kSecAttrKeyClassPrivate)
     CFDictionarySetValue(attributes, kSecAttrKeyType, kSecAttrKeyTypeECSECPrimeRandom)
@@ -120,13 +121,13 @@ object KeyStore {
   }
 
   @OptIn(ExperimentalForeignApi::class)
-  fun getPrivateKey(): SecKeyRef = memScoped {
+  public fun getPrivateKey(): SecKeyRef = memScoped {
     val (code, privateKey) = findPrivateKeyStatus()
     return privateKey ?: throw Exception("Error fetching private key $code")
   }
 
   @OptIn(ExperimentalForeignApi::class)
-  fun encrypt(input: ByteArray): ByteArray = memScoped {
+  public fun encrypt(input: ByteArray): ByteArray = memScoped {
     val privateKey = getPrivateKey()
     val publicKey = SecKeyCopyPublicKey(privateKey)
     val error = alloc<CFErrorRefVar>()
@@ -142,7 +143,7 @@ object KeyStore {
   }
 
   @OptIn(ExperimentalForeignApi::class)
-  fun decrypt(encryptedData: ByteArray): ByteArray = memScoped {
+  public fun decrypt(encryptedData: ByteArray): ByteArray = memScoped {
     val privateKey = getPrivateKey()
     val error = alloc<CFErrorRefVar>()
     val decryptedData = SecKeyCreateDecryptedData(

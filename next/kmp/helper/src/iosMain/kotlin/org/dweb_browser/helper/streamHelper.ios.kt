@@ -13,7 +13,7 @@ import platform.posix.uint8_tVar
 
 
 @OptIn(ExperimentalForeignApi::class)
-fun NSInputStreamToByteReadChannel(
+public fun NSInputStreamToByteReadChannel(
   scope: CoroutineScope,
   nsInputStream: NSInputStream
 ): ByteReadChannel {

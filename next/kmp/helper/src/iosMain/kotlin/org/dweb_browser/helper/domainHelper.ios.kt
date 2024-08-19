@@ -6,14 +6,13 @@ import kotlinx.cinterop.alloc
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.ptr
 import okio.Buffer
-import okio.ByteString.Companion.encodeUtf8
 import platform.posix.AF_INET
 import platform.posix.SOCK_DGRAM
 import platform.posix.addrinfo
 import platform.posix.getaddrinfo
 
 @OptIn(ExperimentalForeignApi::class)
-actual fun String.isRealDomain() = memScoped {
+public actual fun String.isRealDomain(): Boolean = memScoped {
   val hints: addrinfo = alloc()
   hints.ai_family = AF_INET
   hints.ai_socktype = SOCK_DGRAM
@@ -28,7 +27,7 @@ actual fun String.isRealDomain() = memScoped {
  * https://forums.swift.org/t/idn-punycode-in-url/35358/10
  * https://github.com/karwa/base/blob/url/Sources/URL/StringUtils%2BURL.swift
  */
-actual fun String.toPunyCode() = Punycode.encode(this) ?: this.also {
+public actual fun String.toPunyCode(): String = Punycode.encode(this) ?: this.also {
   WARNING("IOS not yet support PunyCode(url26) transform")
 }
 
@@ -46,9 +45,9 @@ actual fun String.toPunyCode() = Punycode.encode(this) ?: this.also {
  * [RFC 5890]: https://datatracker.ietf.org/doc/html/rfc5890
  * [UTS #46]: https://www.unicode.org/reports/tr46/
  */
-object Punycode {
-  val PREFIX_STRING = "xn--"
-  val PREFIX = PREFIX_STRING.encodeUtf8()
+public object Punycode {
+  private val PREFIX_STRING: String = "xn--"
+  private val PREFIX = PREFIX_STRING.utf8Binary
 
   private const val BASE = 36
   private const val TMIN = 1
@@ -63,7 +62,7 @@ object Punycode {
    * integer overflow. This will not return null for labels that fit within the DNS size
    * limits.
    */
-  fun encode(string: String): String? {
+  public fun encode(string: String): String? {
     var pos = 0
     val limit = string.length
     val result = Buffer()
@@ -164,7 +163,7 @@ object Punycode {
    * Converts a punycode-encoded domain name with `.`-separated labels into a human-readable
    * Internationalized Domain Name.
    */
-  fun decode(string: String): String? {
+  public fun decode(string: String): String? {
     var pos = 0
     val limit = string.length
     val result = Buffer()

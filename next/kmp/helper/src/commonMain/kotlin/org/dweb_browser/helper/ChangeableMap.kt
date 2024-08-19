@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 import kotlin.coroutines.CoroutineContext
 
 @Serializable
-public data class ChangeState<K>(val adds: Set<K>, val updates: Set<K>, val removes: Set<K>);
+public data class ChangeState<K>(val adds: Set<K>, val updates: Set<K>, val removes: Set<K>)
 
 public class ChangeableMap<K, V>(
   context: CoroutineContext = defaultAsyncExceptionHandler,
@@ -65,7 +65,7 @@ public class ChangeableMap<K, V>(
   override fun remove(key: K): V? =
     origin.remove(key)?.also { emitChangeBackground(removes = setOf(key)) }
 
-  fun remove(key: K, value: V): Boolean =
+  public fun remove(key: K, value: V): Boolean =
     (this as MutableMap<K, V>).remove(key, value)
 
   public fun delete(key: K): Boolean = remove(key) != null

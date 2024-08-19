@@ -1,14 +1,13 @@
 package org.dweb_browser.helper
 
 import kotlinx.cinterop.ExperimentalForeignApi
-import platform.UIKit.UIDevice
 
 
 @OptIn(ExperimentalForeignApi::class)
-val STDERR = platform.posix.fdopen(2, "w")
+private val STDERR = platform.posix.fdopen(2, "w")
 
 @OptIn(ExperimentalForeignApi::class)
-actual fun eprintln(message: String) {
+public actual fun eprintln(message: String) {
   platform.posix.fprintf(STDERR, "%s\n", message)
   platform.posix.fflush(STDERR)
 }
