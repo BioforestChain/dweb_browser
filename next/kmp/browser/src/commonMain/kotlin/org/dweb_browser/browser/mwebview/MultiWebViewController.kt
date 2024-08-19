@@ -127,8 +127,12 @@ class MultiWebViewController(
         return null
       }
       // 拦截当前页面的跳转
-      dWebView.overrideUrlLoading { url ->
+      dWebView.overrideUrlLoadingHooks.add {
         remoteMM.debugMM("MultiViewItem/overrideUrlLoading") { url }
+        /// 如果是iframe中的请求，那么允许跳转。因为 iframe 网站可以自己去做 origin 策略，这属于web的范畴
+        if (!isMainFrame) {
+          return@add UrlLoadingPolicy.Allow
+        }
         when (filterSafeUrl(url)) {
           null -> UrlLoadingPolicy.Block
           else -> UrlLoadingPolicy.Allow

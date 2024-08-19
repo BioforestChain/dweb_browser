@@ -487,4 +487,5 @@ class DWebViewEngine internal constructor(
   val scrollSignal = setupScrollSignal(this)
   val titleFlow = setupTitleFlow(this)
   val iconBitmapFlow = setupIconBitmapFlow(this)
+  val overrideUrlLoadingHooks by lazy { setupOverrideUrlLoadingHooks(this) }
 }

@@ -123,13 +123,6 @@ class DWebView private constructor(
     engine.loadUrl(url)
   }
 
-  override fun overrideUrlLoading(onUrlLoading: (url: String) -> UrlLoadingPolicy) {
-    engine.dwebNavigationDelegate.decidePolicyForNavigationActionHooks.add {
-      val url = decidePolicyForNavigationAction.request.URL.toString()
-      onUrlLoading(url)
-    }
-  }
-
   override suspend fun historyGoBack(): Boolean = withMainContext {
     engine.canGoBack.trueAlso {
       engine.goBack()
@@ -167,6 +160,9 @@ class DWebView private constructor(
   }
   override val onCreateWindow by _engineLazy.then {
     engine.createWindowSignal.toListener()
+  }
+  override val overrideUrlLoadingHooks by _engineLazy.then {
+    engine.overrideUrlLoadingHooks
   }
   override val onDownloadListener by _engineLazy.then { engine.downloadSignal.toListener() }
   override val titleFlow by _engineLazy.then { engine.titleObserver.titleFlow }

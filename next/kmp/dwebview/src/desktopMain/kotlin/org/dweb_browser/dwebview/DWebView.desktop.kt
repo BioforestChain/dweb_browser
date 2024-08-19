@@ -65,10 +65,6 @@ class DWebView(
     return viewEngine.getOriginalUrl()
   }
 
-  override fun overrideUrlLoading(onUrlLoading: (url: String) -> UrlLoadingPolicy) {
-    viewEngine.startNavigationHooks.add(onUrlLoading)
-  }
-
   override suspend fun resolveUrl(url: String): String = viewEngine.resolveUrl(url)
 
   override suspend fun getOriginalUrl(): String {
@@ -172,6 +168,7 @@ class DWebView(
     viewEngine.closeWatcher
   }
   override val onCreateWindow by _engineLazy.then { viewEngine.createWindowSignal.toListener() }
+  override val overrideUrlLoadingHooks by _engineLazy.then { viewEngine.overrideUrlLoadingHooks }
   override val onDownloadListener by _engineLazy.then { viewEngine.downloadSignal.toListener() }
   override val onScroll by _engineLazy.then { viewEngine.scrollSignal.toListener() }
   override suspend fun openDevTool() {

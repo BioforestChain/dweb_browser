@@ -148,10 +148,6 @@ abstract class IDWebView(initUrl: String?) {
     }
   }
 
-  /**
-   * 拦截跳转
-   */
-  abstract fun overrideUrlLoading(onUrlLoading: (url: String) -> UrlLoadingPolicy)
 
   suspend fun reload() = loadUrl(getUrl(), true)
 
@@ -236,6 +232,12 @@ abstract class IDWebView(initUrl: String?) {
   internal abstract val closeWatcherLazy: RememberLazy<ICloseWatcher>
   val closeWatcher get() = closeWatcherLazy.value
   abstract val onCreateWindow: Signal.Listener<IDWebView>
+
+  /**
+   * 拦截跳转
+   */
+  abstract val overrideUrlLoadingHooks: MutableList<OverrideUrlLoadingParams.() -> UrlLoadingPolicy>
+
   abstract val onDownloadListener: Signal.Listener<WebDownloadArgs>
   abstract val onScroll: Signal.Listener<ScrollChangeEvent>
 
@@ -325,6 +327,11 @@ class WebBeforeUnloadHook(val message: String) {
   fun unloadDocument() = result.complete(true)
   fun keepDocument() = result.complete(false)
 }
+
+data class OverrideUrlLoadingParams(
+  var url: String,
+  var isMainFrame: Boolean,
+)
 
 enum class UrlLoadingPolicy {
   Allow, Block,

@@ -249,6 +249,7 @@ class DWebViewEngine(
     setupLoadStateFlow(this, dwebNavigationDelegate, urlObserver, configuration, options.url)
   val beforeUnloadSignal =
     setupBeforeUnloadSignal(this, dwebNavigationDelegate, loadStateFlow)
+  val overrideUrlLoadingHooks by lazy { setupOverrideUrlLoadingHooks(this, dwebNavigationDelegate) }
 
   init {
     // https://stackoverflow.com/questions/77078328/warning-prints-in-console-when-using-webkit-to-load-youtube-video

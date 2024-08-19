@@ -3,9 +3,6 @@ package org.dweb_browser.dwebview
 import android.annotation.SuppressLint
 import android.content.Context
 import android.net.Uri
-import android.webkit.WebResourceRequest
-import android.webkit.WebView
-import android.webkit.WebViewClient
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -99,20 +96,6 @@ class DWebView private constructor(internal val engine: DWebViewEngine, initUrl:
   override suspend fun startLoadUrl(url: String) = withMainContext {
     engine.loadUrl(url)
     url
-  }
-
-  override fun overrideUrlLoading(onUrlLoading: (url: String) -> UrlLoadingPolicy) {
-    engine.dWebViewClient.addWebViewClient(object : WebViewClient() {
-      override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
-        return when (onUrlLoading(request.url.toString())) {
-          UrlLoadingPolicy.Allow -> super.shouldOverrideUrlLoading(view, request)
-          // https://developer.android.com/reference/android/webkit/WebViewClient#shouldOverrideUrlLoading(android.webkit.WebView,%20android.webkit.WebResourceRequest)
-          // returning true causes the current WebView to abort loading the URL,
-          // while returning false causes the WebView to continue loading the URL as usual.
-          UrlLoadingPolicy.Block -> true
-        }
-      }
-    })
   }
 
   override suspend fun resolveUrl(url: String) = engine.resolveUrl(url)
@@ -290,6 +273,7 @@ class DWebView private constructor(internal val engine: DWebViewEngine, initUrl:
     engine.closeWatcher
   }
   override val onCreateWindow by lazy { engine.createWindowSignal.toListener() }
+  override val overrideUrlLoadingHooks by lazy { engine.overrideUrlLoadingHooks }
   override val onDownloadListener by lazy { engine.dWebDownloadListener.downloadSignal.toListener() }
   override val onScroll by lazy { engine.scrollSignal.toListener() }
   override val iconBitmapFlow by lazy { engine.iconBitmapFlow }
