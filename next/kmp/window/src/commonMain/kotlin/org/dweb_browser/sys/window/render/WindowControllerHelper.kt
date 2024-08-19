@@ -47,8 +47,11 @@ import org.dweb_browser.helper.compose.AutoResizeTextContainer
 import org.dweb_browser.helper.compose.AutoSizeText
 import org.dweb_browser.helper.compose.compositionChainOf
 import org.dweb_browser.helper.getOrPut
+import org.dweb_browser.helper.platform.IPureViewController
 import org.dweb_browser.helper.platform.getCornerRadiusBottom
 import org.dweb_browser.helper.platform.getCornerRadiusTop
+import org.dweb_browser.helper.platform.isAndroid
+import org.dweb_browser.helper.platform.isIOS
 import org.dweb_browser.helper.platform.rememberPureViewBox
 import org.dweb_browser.helper.platform.theme.DwebBrowserAppTheme
 import org.dweb_browser.helper.platform.theme.md_theme_dark_inverseOnSurface
@@ -274,32 +277,64 @@ private fun WindowController.calcWindowPaddingByLimits(
   val boxSafeAreaInsets: PureBounds
   val contentSafeAreaInsets: PureBounds
   /// 一些共有的计算
-  val windowFrameSize = if (maximize) 3f else 5f
+  val windowFrameSize = if (maximize) 2f else 3f
+
+  /**
+   * safeGestures = systemGestures + mandatorySystemGestures + waterfall + tappableElement.
+   */
+  val safeGestures = WindowInsets.safeGestures
+
+  /**
+   * safeDrawing = systemBars + displayCutout + ime
+   */
+  val safeDrawing = WindowInsets.safeDrawing
+  val density = LocalDensity.current
+  val d = LocalDensity.current.density
+
+  val safeGesturesBottom = safeGestures.getBottom(density) / d
 
   /**
    * 不同的底部栏风格有不同的高度
    */
   val bottomThemeHeight = when (bottomBarTheme) {
     WindowBottomBarTheme.Immersion -> limits.bottomBarBaseHeight// 因为底部要放置一些信息按钮，所以我们会给到底部一个基本的高度
-    WindowBottomBarTheme.Navigation -> max(limits.bottomBarBaseHeight, 48f) // 要有足够的高度放按钮和基本信息
+    WindowBottomBarTheme.Navigation -> {
+      /* 要有足够的高度放按钮和基本信息 */
+      val baseHeight = 32f
+      max(
+        limits.bottomBarBaseHeight, when {
+          // 如果最大化，那么要考虑操作系统的导航栏高度
+          maximize -> when {
+            IPureViewController.isAndroid -> when {
+
+              /**
+               * 如果用户使用了按钮导航栏，那么直接使用按钮导航栏的高度作为我们底部导航栏的高度
+               */
+              safeGesturesBottom >= 40f -> safeGesturesBottom
+              /**
+               * 如果用户使用了全面屏手势，那么尝试将 baseHeight 加上 导航栏的高度作为我们的底部导航栏高度
+               */
+              else -> min(48f, safeGesturesBottom + baseHeight)
+            }
+
+            IPureViewController.isIOS -> when {
+              /// IOS 的全屏导航栏高度是 34f，这里的取值是确保 基本信息是在导航条的下方，按钮在导航条的上方
+              safeGesturesBottom > 0f -> 48f
+              else -> baseHeight
+            }
+
+            else -> baseHeight
+          }
+
+          else -> baseHeight
+        }
+      )
+    }
   }
 
   if (maximize) {
     val layoutDirection = LocalLayoutDirection.current
-    val density = LocalDensity.current
-    val d = LocalDensity.current.density
 
-    /**
-     * safeGestures = systemGestures + mandatorySystemGestures + waterfall + tappableElement.
-     */
-    val safeGestures = WindowInsets.safeGestures
-    val safeGesturesPadding = WindowInsets.safeGestures.asPaddingValues()
-
-    /**
-     * safeDrawing = systemBars + displayCutout + ime
-     */
-    val safeDrawing = WindowInsets.safeDrawing
-    val safeDrawingPadding = WindowInsets.safeDrawing.asPaddingValues()
 //    /**
 //     *  safeContent = safeDrawing + safeGestures
 //     */
