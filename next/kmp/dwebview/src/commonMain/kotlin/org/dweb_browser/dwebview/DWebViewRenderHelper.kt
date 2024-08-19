@@ -2,6 +2,7 @@ package org.dweb_browser.dwebview
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -15,7 +16,9 @@ import kotlinx.coroutines.launch
 fun IDWebView.rememberCanGoBack(): Boolean {
   val canClose = rememberCloseWatcherCanClose()
   val canBack = rememberHistoryCanGoBack()
-  debugDWebView("rememberCanGoBack") { "canClose=$canClose; canBack=$canBack" }
+  LaunchedEffect(canClose, canBack) {
+    debugDWebView("rememberCanGoBack") { "canClose=$canClose; canBack=$canBack" }
+  }
   return canClose || canBack
 }
 

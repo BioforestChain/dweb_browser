@@ -18,7 +18,6 @@ import org.dweb_browser.helper.ChangeableList
 import org.dweb_browser.helper.SafeInt
 import org.dweb_browser.helper.buildUrlString
 import org.dweb_browser.helper.toWebUrlOrWithoutProtocol
-import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.windowAdapterManager
 import org.dweb_browser.sys.window.core.withRenderScope
@@ -158,9 +157,7 @@ class MultiWebViewController(
   suspend fun closeWebView(webViewId: String) =
     webViewList.find { it.webviewId == webViewId }?.let { viewItem ->
       webViewList.remove(viewItem)
-      withMainContext {
-        viewItem.webView.destroy()
-      }
+      viewItem.webView.destroy()
       return true
     } ?: false
 

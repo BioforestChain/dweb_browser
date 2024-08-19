@@ -256,8 +256,6 @@ internal fun WindowController.safeBounds(limits: WindowLimits): PureBounds {
   return PureBounds(top = top, left = left, bottom = bottom, right = right)
 }
 
-expect val WindowController.canOverlayNavigationBar: Boolean
-
 /**
  * 根据约束配置，计算出最终的窗口边距布局
  */

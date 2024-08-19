@@ -26,7 +26,6 @@ import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.compose.toComposeColor
 import org.dweb_browser.helper.compose.toUIColor
-import org.dweb_browser.helper.encodeURIComponent
 import org.dweb_browser.helper.globalDefaultScope
 import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.helper.platform.setScale
@@ -170,12 +169,11 @@ class DWebView private constructor(
   override val iconBitmapFlow by _engineLazy.then { engine.iconBitmapFlow }
 
   override suspend fun destroy() {
-    doDestroy { getUrl() }
+    doDestroy()
   }
 
-  private suspend inline fun doDestroy(getOriginUrl: () -> String) {
+  private suspend inline fun doDestroy() {
     if (destroyStateSignal.doDestroy()) {
-      loadUrl("about:blank?destroy-from=${getOriginUrl().encodeURIComponent()}", true)
       withMainContext {
         engine.destroy()
         _engine = null
@@ -311,10 +309,9 @@ class DWebView private constructor(
   }
 
   override suspend fun requestClose() {
-    val originUrl = getOriginalUrl()
     val destroyUrl = "about:blank#${randomUUID()}"
     if (loadUrl(destroyUrl) == destroyUrl) {
-      doDestroy { originUrl }
+      doDestroy()
     }
   }
 

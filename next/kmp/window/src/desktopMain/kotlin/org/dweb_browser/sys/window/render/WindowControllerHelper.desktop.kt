@@ -26,10 +26,6 @@ import java.awt.image.BufferedImage
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
-
-actual val WindowController.canOverlayNavigationBar: Boolean
-  get() = false
-
 actual fun getWindowControllerBorderRounded(isMaximize: Boolean) = when {
   PureViewController.isMacOS -> WindowPadding.CornerRadius.Small
   /**

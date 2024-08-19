@@ -29,7 +29,10 @@ import kotlin.coroutines.CoroutineContext
  * 消息生产者，彻底的消费掉消息需要显示调用consume()
  */
 public class Producer<T>(public val name: String, parentContext: CoroutineContext) {
-  public constructor(name: String, parentScope: CoroutineScope) : this(name, parentScope.coroutineContext)
+  public constructor(name: String, parentScope: CoroutineScope) : this(
+    name,
+    parentScope.coroutineContext
+  )
 
   private val job = SupervisorJob()
   public val coroutineContext: CoroutineContext = parentContext + job
@@ -69,7 +72,11 @@ public class Producer<T>(public val name: String, parentContext: CoroutineContex
   }
 
   /**生产者构造的事件*/
-  public inner class Event(public val data: T, order: Int?, private val eventJob: CompletableJob = Job()) :
+  public inner class Event(
+    public val data: T,
+    order: Int?,
+    private val eventJob: CompletableJob = Job(),
+  ) :
     OrderBy, Job by eventJob {
     override val order: Int? = when {
       order == null && data is OrderBy -> data.order
@@ -188,16 +195,17 @@ public class Producer<T>(public val name: String, parentContext: CoroutineContex
 
   private val orderInvoker = OrderInvoker()
 
-  private fun ensureOpen() {
+  private fun ensureOpen(reason: String) {
     if (isClosedForSend) {
-      throw Exception("$this already close for emit.")
+      throw Exception("$this fail to '$reason', already close for emit.")
     }
   }
 
-  public suspend fun send(value: T, order: Int? = null): Unit = actionQueue.queueAndAwait("send=$value") {
-    ensureOpen()
-    doSend(value, order)
-  }
+  public suspend fun send(value: T, order: Int? = null): Unit =
+    actionQueue.queueAndAwait("send=$value") {
+      ensureOpen("send=$value")
+      doSend(value, order)
+    }
 
   private val warn = Once {
     WARNING(
@@ -223,9 +231,10 @@ public class Producer<T>(public val name: String, parentContext: CoroutineContex
     }
   }
 
-  public suspend fun sendBeacon(value: T, order: Int? = null): Unit = actionQueue.queueAndAwait("sendBeacon") {
-    doSendBeacon(value, order)
-  }
+  public suspend fun sendBeacon(value: T, order: Int? = null): Unit =
+    actionQueue.queueAndAwait("sendBeacon") {
+      doSendBeacon(value, order)
+    }
 
   private suspend fun doSendBeacon(value: T, order: Int?) {
     val event = Event(value, order)
@@ -236,13 +245,14 @@ public class Producer<T>(public val name: String, parentContext: CoroutineContex
     }
   }
 
-  public suspend fun trySend(value: T, order: Int? = null): Unit = actionQueue.queueAndAwait("trySend") {
-    if (isClosedForSend) {
-      doSendBeacon(value, order)
-    } else {
-      doSend(value, order)
+  public suspend fun trySend(value: T, order: Int? = null): Unit =
+    actionQueue.queueAndAwait("trySend") {
+      if (isClosedForSend) {
+        doSendBeacon(value, order)
+      } else {
+        doSend(value, order)
+      }
     }
-  }
 
 
   private suspend fun doEmit(event: Event, consumers: List<Consumer> = this.consumers.toList()) {
@@ -268,7 +278,7 @@ public class Producer<T>(public val name: String, parentContext: CoroutineContex
 
   /**创建消费者*/
   public fun consumer(name: String): Consumer {
-    ensureOpen()
+    ensureOpen("consumer($name)")
     return Consumer(name)
   }
 
@@ -321,7 +331,7 @@ public class Producer<T>(public val name: String, parentContext: CoroutineContex
           errorCatcher.onAwait { it }
         }
 
-        job.cancel("collector emit error",error)
+        job.cancel("collector emit error", error)
 
       }
       actionQueue.queueAndAwait("add-consumer") {
@@ -424,5 +434,6 @@ public class Producer<T>(public val name: String, parentContext: CoroutineContex
   }
 
   /**调用监听关闭*/
-  public fun invokeOnClose(handler: CompletionHandler): DisposableHandle = job.invokeOnCompletion(handler)
+  public fun invokeOnClose(handler: CompletionHandler): DisposableHandle =
+    job.invokeOnCompletion(handler)
 }

@@ -15,10 +15,10 @@ import org.dweb_browser.core.std.http.HttpDwebServer
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.create
-import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
 import org.dweb_browser.helper.SafeInt
 import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.build
+import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
 import org.dweb_browser.helper.compose.envSwitch
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.resolvePath
@@ -66,7 +66,7 @@ class JsProcessWebApi(internal val dWebView: IDWebView) {
     val processNameStr = Json.encodeToString(processName)
     val gatewayPort = dwebHttpGatewayServer.startServer()
 
-    val onTerminateCallbackId = randomUUID()
+    val onTerminateCallbackId = "onTerminate-${randomUUID()}"
     val onTerminateCallbackReady = CompletableDeferred<Unit>()
     dWebView.lifecycleScope.launch {
       dWebView.evaluateAsyncJavascriptCode("(window['$onTerminateCallbackId'] = new PromiseOut()).promise") {
@@ -151,7 +151,7 @@ class JsProcessWebApi(internal val dWebView: IDWebView) {
     autoStart: Boolean? = null,
     onClose: suspend () -> Unit,
   ) {
-    val onCloseCallbackId = randomUUID()
+    val onCloseCallbackId = "onClose-${randomUUID()}"
     // 连接方关闭
     val onTerminateCallbackReady = CompletableDeferred<Unit>()
     dWebView.lifecycleScope.launch {

@@ -412,7 +412,18 @@ class DWebViewEngine(
       if (error == null) {
         deferred.complete(result as T)
       } else {
-        deferred.completeExceptionally(Throwable(error.localizedDescription))
+        fun String.linesPadStart(pad: String) =
+          split("\n").mapIndexed { index, line -> if (index == 0) line else pad + line }
+        deferred.completeExceptionally(
+          Throwable(
+            """
+            NSError: [code] ${error.code}
+              [domain] ${error.domain?.linesPadStart("  [domain] ")}
+              [description] ${(error.description ?: error.localizedDescription).linesPadStart("  [description] ")}
+              [code] ${functionBody.linesPadStart("  [code] ")}
+            """.trimIndent()
+          )
+        )
       }
     }
     afterEval?.invoke()

@@ -9,6 +9,7 @@ import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.SharingStarted
@@ -369,10 +370,8 @@ class DestroyStateSignal(val scope: CoroutineScope) {
     }
     debugDWebView("DESTROY")
     isDestroyed = true
-    scope.launch {
+    scope.launch(start = CoroutineStart.UNDISPATCHED) {
       _destroySignal.emitAndClear()
-//      delay(2000)
-//      coroutineContext.cancel(CancellationException("destroy"))
     }
     return true
   }
