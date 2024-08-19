@@ -16,6 +16,7 @@
     "plaoc:watch": "deno task plaoc --watch",
     "plaoc:hack": "deno run -A ./toolkit/scripts/hack-plaoc-server.ts",
     "plaoc:demo": "node ./npm/@plaoc__cli/esm/plaoc.js live ./npm/@plaoc__examples/plugin-demo -s ./npm/@plaoc__examples/plaoc-server",
+    "plaoc:demo:serve": "node ./npm/@plaoc__cli/esm/plaoc.js bundle ./npm/@plaoc__examples/plugin-demo -s ./npm/@plaoc__examples/plaoc-server --watch=true",
     "plaoc:demo2": "node ./npm/@plaoc__cli/esm/plaoc.js bundle ./npm/@plaoc__examples/html-demo --watch=true --port 8097",
     "plaoc:html": "node ./npm/@plaoc__cli/esm/plaoc.js bundle ./npm/@plaoc__examples/html-demo --watch=true --port 8097",
     "pub": "deno run -A ./scripts/pub.ts",

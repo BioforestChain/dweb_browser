@@ -10,7 +10,7 @@
 [plaoc-badge]: https://img.shields.io/badge/plaoc-doc-blue
 [plaoc-url]: https://github.com/BioforestChain/dweb_browser-docs
 
-dweb-browser 是一个遵循 Dweb 标准构建起来的浏览器平台，并将浏览器的能力、以及浏览器相关的系统原生系统能力通过各种 dweb 模块暴露出来。目前我们实现了 Android、IOS、MacOS、Windows、Linux 这些主流平台的支持。
+dweb-browser 是一个遵循 Dweb 标准构建起来的浏览器平台，并将浏览器的能力、以及浏览器相关的系统原生系统能力通过各种 dweb 模块暴露出来。目前我们实现了 Android、IOS、MacOS、Windows 这些主流平台的支持。
 
 - 下载地址： [桌面端](https://docs.dweb-browser.org/downloads.html)，移动端到各大应用商城下载。
 - 应用开发者文档：[docs](https://docs.dweb-browser.org/)
@@ -19,7 +19,7 @@ dweb-browser 是一个遵循 Dweb 标准构建起来的浏览器平台，并将�
 
 # Plaoc
 
-plaoc 是基于 dweb-browser 平台的一个对标 Cordova、Capacitor、Tauri 的“跨平台 Web 应用”开发工具包，包含打包工具`@plaoc/cli`，前端插件`@plaoc/plguins`。
+plaoc 是基于 dweb-browser 平台的一个对标 Cordova、Capacitor、Tauri 的“跨平台 Web 应用”开发工具包，包含打包工具`@plaoc/cli`，前端插件`@plaoc/plugins`。
 
 ## cli
 
@@ -49,14 +49,15 @@ plaoc serve ./dist
 
 ```bash
 using metadata file: /Volumes/developer/waterbang/deno/dweb_browser/npm/@plaoc__examples/html-demo/manifest.json
-metadata: 	dweb://install?url=http://127.0.0.1:8097/metadata.json
-metadata: 	dweb://install?url=http://172.30.95.93:8097/metadata.json
+0: 	dweb://install?url=http://127.0.0.1:8097/metadata.json
+1: 	dweb://install?url=http://172.30.95.93:8097/metadata.json
+[? Enter the corresponding number to generate a QR code. (0) ›
 ```
 
 第一行的 `using metadata file`将指定您的 app 配置文件目录，方便直接知晓是哪个 app。
 
-第二行和第三行的`metadata`为 `deeplink` 的形式，在桌面端可以直接粘贴到 dweb-browser 中进行安装。
-而移动端可以使用转成二维码，使用扫码的形式进行安装应用。
+第二行和第三行的`metadata`为 `deeplink` 的形式，输入前面的序号如0，则生成相对应的二维码，在桌面端可以直接粘贴到 dweb-browser 中进行安装。
+而移动端使用扫码的形式进行安装应用。
 
 ### 打包成可部署的 app 包
 

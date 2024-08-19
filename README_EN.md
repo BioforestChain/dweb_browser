@@ -20,7 +20,7 @@ dweb-browser is a browser platform built in accordance with Dweb standards, and 
 
 # Plaoc
 
-plaoc is a "cross-platform web application" development toolkit based on the dweb-browser platform that is comparable to Cordova, Capacitor, and Tauri, including the packaging tool `@plaoc/cli` and the front-end plug-in `@plaoc/plguins`.
+plaoc is a "cross-platform web application" development toolkit based on the dweb-browser platform that is comparable to Cordova, Capacitor, and Tauri, including the packaging tool `@plaoc/cli` and the front-end plug-in `@plaoc/plugins`.
 
 ## cli
 
@@ -50,14 +50,15 @@ The above two commands will output the following lines:
 
 ```bash
 using metadata file: /Volumes/developer/waterbang/deno/dweb_browser/npm/@plaoc__examples/html-demo/manifest.json
-metadata: dweb://install?url=http://127.0.0.1:8097/metadata.json
-metadata: dweb://install?url=http://172.30.95.93:8097/metadata.json
+0: dweb://install?url=http://127.0.0.1:8097/metadata.json
+1: dweb://install?url=http://172.30.95.93:8097/metadata.json
+[? Enter the corresponding number to generate a QR code. (0) ›
 ```
 
 The first line `using metadata file` will specify your app configuration file directory, so you can know which app it is directly.
 
-The second and third lines `metadata` are in the form of `deeplink`, which can be directly pasted into dweb-browser for installation on the desktop.
-On the mobile side, you can use the QR code and scan the code to install the application.
+The second and third lines `metadata` are in the form of `deeplink`, enter the preceding serial number such as 0 to generate the corresponding QR code, which can be directly pasted into dweb-browser for installation on the desktop.
+On the mobile side, you can scan the code to install the application.
 
 ### Package into deployable app package
 
