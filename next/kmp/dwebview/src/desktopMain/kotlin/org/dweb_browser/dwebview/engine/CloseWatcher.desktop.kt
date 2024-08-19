@@ -23,18 +23,6 @@ class CloseWatcher(val engine: DWebViewEngine) : ICloseWatcher {
 
   val consuming = mutableSetOf<String>()
 
-  private val install = Once {
-    engine.beforeCreateWindowSignal.listen { event ->
-      val consumeToken = event.url
-      engine.closeWatcher.apply {
-        if (consuming.remove(consumeToken)) {
-          event.consume()
-          resolveToken(consumeToken, applyWatcher(event.isUserGesture))
-        }
-      }
-    }
-  }
-
   private val openLock = Mutex()
 
   init {
@@ -57,7 +45,6 @@ class CloseWatcher(val engine: DWebViewEngine) : ICloseWatcher {
             throw Exception("CloseWatcher.registryToken invalid arguments");
           }
           consuming.add(consumeToken)
-          install()
           engine.lifecycleScope.launch {
             // TODO: 使用 evaluateAsyncJavascriptCode 会卡住，导致 openLock 不释放，下一次无法再 open
             openLock.withLock {

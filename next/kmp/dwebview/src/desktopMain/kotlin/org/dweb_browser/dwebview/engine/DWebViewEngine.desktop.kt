@@ -35,7 +35,10 @@ import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.dwebview.CloseWatcher
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.IDWebView
+import org.dweb_browser.dwebview.UrlLoadingPolicy
 import org.dweb_browser.dwebview.debugDWebView
+import org.dweb_browser.dwebview.engine.decidePolicyHook.hookCloseWatcher
+import org.dweb_browser.dwebview.engine.decidePolicyHook.hookDeeplink
 import org.dweb_browser.dwebview.polyfill.DwebViewDesktopPolyfill
 import org.dweb_browser.dwebview.polyfill.FaviconPolyfill
 import org.dweb_browser.dwebview.proxy.DwebViewProxy
@@ -368,7 +371,6 @@ class DWebViewEngine internal constructor(
   val titleFlow = setupTitleFlow(this)
   val dwebFavicon = FaviconPolyfill(this)
   private val _setupCreateWindowSignals = setupCreateWindowSignals(this)
-  val beforeCreateWindowSignal = _setupCreateWindowSignals.beforeCreateWindowSignal
   val createWindowSignal = _setupCreateWindowSignals.createWindowSignal
   val closeWatcher = CloseWatcher(this)
   val beforeUnloadSignal = setupBeforeUnloadSignal(this)
@@ -378,10 +380,16 @@ class DWebViewEngine internal constructor(
   val iconBitmapFlow = setupIconBitmapFlow(this)
   internal val fileChooser = setupFileChooser(this)
   val overrideUrlLoadingHooks by lazy { setupOverrideUrlLoadingHooks(this) }
+  val decidePolicyForCreateWindowHooks = mutableListOf<(url: String) -> UrlLoadingPolicy>()
 
   init {
 
     setUA()
+
+    //#region
+    hookDeeplink()
+    hookCloseWatcher()
+    //#endregion
 
     // 设置
     browser.settings().apply {

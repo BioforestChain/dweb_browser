@@ -4,31 +4,19 @@ import com.teamdev.jxbrowser.browser.callback.CreatePopupCallback
 import com.teamdev.jxbrowser.browser.callback.OpenPopupCallback
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.IDWebView
+import org.dweb_browser.dwebview.UrlLoadingPolicy
 import org.dweb_browser.dwebview.create
 import org.dweb_browser.helper.Signal
 
 fun setupCreateWindowSignals(engine: DWebViewEngine) =
-  CreateWindowSignals(Signal(), Signal()).also { (beforeCreateWindowSignal, createWindowSignal) ->
+  CreateWindowSignals(Signal()).also { (createWindowSignal) ->
     engine.browser.set(CreatePopupCallback::class.java, CreatePopupCallback { event ->
-      // 如果是dweb deeplink链接，直接发起nativeFetch并返回suppress，否则OpenPopupCallback中的browser无法获取到url会导致无限循环
-      if (event.targetUrl().startsWith("dweb://")) {
-        engine.lifecycleScope.launch {
-          engine.remoteMM.nativeFetch(event.targetUrl())
-        }
-        return@CreatePopupCallback CreatePopupCallback.Response.suppress()
-      }
-
-      if (beforeCreateWindowSignal.isNotEmpty()) {
-        val beforeCreateWindowEvent = BeforeCreateWindow(event.targetUrl())
-        runBlocking {
-          beforeCreateWindowSignal.emit(beforeCreateWindowEvent)
-        }
-        if (beforeCreateWindowEvent.isConsumed) {
-          return@CreatePopupCallback CreatePopupCallback.Response.suppress()
+      for (hook in engine.decidePolicyForCreateWindowHooks) {
+        when (hook(event.targetUrl())) {
+          UrlLoadingPolicy.Allow -> continue
+          UrlLoadingPolicy.Block -> return@CreatePopupCallback CreatePopupCallback.Response.suppress()
         }
       }
       CreatePopupCallback.Response.create()
@@ -49,16 +37,5 @@ fun setupCreateWindowSignals(engine: DWebViewEngine) =
   }
 
 data class CreateWindowSignals(
-  val beforeCreateWindowSignal: Signal<BeforeCreateWindow>,
   val createWindowSignal: Signal<IDWebView>,
 )
-
-class BeforeCreateWindow(val url: String) {
-  val isUserGesture = true
-  var isConsumed = false
-    private set
-
-  fun consume() {
-    isConsumed = true
-  }
-}
