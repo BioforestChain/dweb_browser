@@ -46,7 +46,7 @@ abstract class ITaskbarV2View(protected val taskbarController: TaskbarV2Controll
     var taskbarIconSize by remember { mutableStateOf(TASKBAR_ICON_MAX_SIZE) }
     var paddingValue by remember { mutableStateOf(TASKBAR_PADDING_VALUE) }
     var dividerHeight by remember { mutableStateOf(TASKBAR_DIVIDER_HEIGHT) }
-    LaunchedEffect(displaySize) {
+    LaunchedEffect(appCount, displaySize) {
       taskbarIconSize = clamp(
         TASKBAR_ICON_MIN_SIZE,
         min(displaySize.width, displaySize.height) * 0.14f,
@@ -54,8 +54,7 @@ abstract class ITaskbarV2View(protected val taskbarController: TaskbarV2Controll
       )
       paddingValue = TASKBAR_PADDING_VALUE * taskbarIconSize / TASKBAR_ICON_MAX_SIZE
       dividerHeight = TASKBAR_DIVIDER_HEIGHT * taskbarIconSize / TASKBAR_ICON_MAX_SIZE
-    }
-    remember(appCount, displaySize) {
+
       if (displaySize != Size.Zero) {
         taskbarController.state.layoutWidth = taskbarIconSize
         taskbarController.state.layoutHeight = when (appCount) {
