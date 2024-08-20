@@ -121,6 +121,7 @@ private fun BrowserDownloadController.DownloadTopToastBar(downloadItem: BrowserD
           textAlign = TextAlign.Center,
           fontSize = 18.sp,
           fontWeight = FontWeight.Bold,
+          color = MaterialTheme.colorScheme.onBackground,
           maxLines = 1
         )
 
@@ -150,6 +151,7 @@ private fun BrowserDownloadController.DownloadTopToastBar(downloadItem: BrowserD
                 ?: BrowserI18nResource.Download.unknownSize(),
               maxLines = 1,
               style = MaterialTheme.typography.bodySmall,
+              color = MaterialTheme.colorScheme.onBackground,
             )
           }
 
