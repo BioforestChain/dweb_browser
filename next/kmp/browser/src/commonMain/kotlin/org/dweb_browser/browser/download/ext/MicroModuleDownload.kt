@@ -25,7 +25,7 @@ suspend fun NativeMicroModule.NativeRuntime.createDownloadTask(
   // 将 url 转码，避免 url 内容被解析为 parameter，引起下载地址错误
   val response = nativeFetch(buildUrlString("file://download.browser.dweb/create") {
     parameters["url"] = url
-    parameters["total"] = total?.toString() ?: "0L"
+    parameters["total"] = total?.toString() ?: "0"
     parameters["external"] = external?.toString() ?: "false"
   })
   return response.json<DownloadTask>()
