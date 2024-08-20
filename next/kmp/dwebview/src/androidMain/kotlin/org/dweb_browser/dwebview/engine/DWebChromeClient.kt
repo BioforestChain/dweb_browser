@@ -127,6 +127,8 @@ class DWebChromeClient(val engine: DWebViewEngine) : WebChromeClient() {
             delay(5)
             mainUrl = dwebView.url
           }
+          // 初始化时url为空，在这边触发url变更，否则会打开一个about:blank页面
+          dwebView.loadStateFlow.emit(WebLoadSuccessState(mainUrl))
         } catch (e: Throwable) {
           return@launch
         }
