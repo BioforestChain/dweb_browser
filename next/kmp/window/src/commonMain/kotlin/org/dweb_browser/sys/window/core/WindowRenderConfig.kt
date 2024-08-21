@@ -3,40 +3,23 @@ package org.dweb_browser.sys.window.core
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.input.pointer.PointerInputChange
-import org.dweb_browser.sys.window.render.WindowFrameStyle
+import org.dweb_browser.sys.window.core.renderConfig.EffectWindowLayerStyleDelegate
+import org.dweb_browser.sys.window.core.renderConfig.FrameDragDelegate
 
 internal class WindowRenderConfig {
-  class FrameDragDelegate(
-    private val onStart: ((startPoint: Offset) -> Unit)? = null,
-    private val onEnd: (() -> Unit)? = null,
-    private val onMove: ((change: PointerInputChange, dragAmount: Offset) -> Unit)? = null,
-  ) {
-    private var isMoving = false
-    internal fun emitStart(startPoint: Offset) {
-      if (!isMoving) {
-        isMoving = true
-        onStart?.invoke(startPoint)
-      }
-    }
-
-    internal fun emitMove(change: PointerInputChange, dragAmount: Offset) {
-      if (isMoving) {
-        onMove?.invoke(change, dragAmount)
-      }
-    }
-
-    internal fun emitEnd() {
-      if (isMoving) {
-        isMoving = false
-        onEnd?.invoke()
-      }
-    }
-  }
-
+  /**
+   * 基于拖拽，窗口移动
+   */
   var frameMoveDelegate by mutableStateOf<FrameDragDelegate?>(null)
+
+  /**
+   * 基于拖拽，窗口从左下角进行resize
+   */
   var frameLBResizeDelegate by mutableStateOf<FrameDragDelegate?>(null)
+
+  /**
+   * 基于拖拽，窗口从右下角进行resize
+   */
   var frameRBResizeDelegate by mutableStateOf<FrameDragDelegate?>(null)
 
   /**
@@ -50,9 +33,5 @@ internal class WindowRenderConfig {
   var isWindowUseComposeFrame by mutableStateOf(true)
 
 
-  fun interface StyleWindowFrameDelegate {
-    fun effectStyle(windowFrameStyle: WindowFrameStyle)
-  }
-
-  var styleWindowFrameDelegate by mutableStateOf<StyleWindowFrameDelegate?>(null)
+  var effectWindowLayerStyleDelegate by mutableStateOf<EffectWindowLayerStyleDelegate?>(null)
 }

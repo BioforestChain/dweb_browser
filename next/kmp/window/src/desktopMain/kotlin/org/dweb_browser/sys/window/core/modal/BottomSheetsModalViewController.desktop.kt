@@ -24,8 +24,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.debounce
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
 import org.dweb_browser.sys.window.core.windowAdapterManager
-import org.dweb_browser.sys.window.render.LocalWindowLimits
-import org.dweb_browser.sys.window.render.LocalWindowPadding
+import org.dweb_browser.sys.window.helper.LocalWindowFrameStyle
+import org.dweb_browser.sys.window.helper.LocalWindowLimits
 import javax.swing.JDialog
 
 internal class BottomSheetsModalViewController(modal: BottomSheetsModalState) :
@@ -52,11 +52,11 @@ internal class BottomSheetsModalViewController(modal: BottomSheetsModalState) :
           }
         })
 
-    val winPadding = LocalWindowPadding.current
+    val winFrameStyle = LocalWindowFrameStyle.current
 
     /// win/mac 的标准桌面目前不需要提供inset，即便是有刘海屏幕的mac
-    val windowInsetTop = winPadding.top.dp
-    val windowInsetBottom = winPadding.bottom.dp
+    val windowInsetTop = winFrameStyle.frameSize.top.dp
+    val windowInsetBottom = winFrameStyle.frameSize.bottom.dp
     val density = LocalDensity.current.density
 
     val windowLimits = LocalWindowLimits.current
@@ -85,17 +85,19 @@ internal class BottomSheetsModalViewController(modal: BottomSheetsModalState) :
       /// 显示内容
       BoxWithConstraints(
         Modifier.padding(
-          start = winPadding.start.dp,
-          end = winPadding.end.dp,
+          start = winFrameStyle.startWidth.dp,
+          end = winFrameStyle.endWidth.dp,
         ).onGloballyPositioned { coordinates ->
           desktopFixScrollBugFlow.value = coordinates.positionInWindow().y
         }
       ) {
-        val windowRenderScope = remember(winPadding, maxWidth, maxHeight) {
+        val windowRenderScope = remember(winFrameStyle, maxWidth, maxHeight) {
           WindowContentRenderScope(maxWidth, maxHeight)
         }
         windowAdapterManager.Renderer(
-          renderId, windowRenderScope, Modifier.clip(winPadding.contentRounded.roundedCornerShape)
+          renderId,
+          windowRenderScope,
+          Modifier.clip(winFrameStyle.contentRounded.roundedCornerShape)
         )
       }
     }

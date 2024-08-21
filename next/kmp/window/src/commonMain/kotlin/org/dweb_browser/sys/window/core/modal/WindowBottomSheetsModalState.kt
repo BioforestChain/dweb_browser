@@ -48,10 +48,10 @@ import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.constant.LocalWindowMM
 import org.dweb_browser.sys.window.core.constant.LowLevelWindowAPI
 import org.dweb_browser.sys.window.core.windowAdapterManager
+import org.dweb_browser.sys.window.helper.LocalWindowControllerTheme
+import org.dweb_browser.sys.window.helper.LocalWindowFrameStyle
 import org.dweb_browser.sys.window.render.IconRender
 import org.dweb_browser.sys.window.render.IdRender
-import org.dweb_browser.sys.window.render.LocalWindowControllerTheme
-import org.dweb_browser.sys.window.render.LocalWindowPadding
 
 
 //#region BottomSheet
@@ -216,7 +216,7 @@ internal fun BottomSheetsModalState.CommonRenderImpl(emitModalVisibilityChange: 
     WindowInsets(0, 0, 0, 0)
   }
 
-  val winPadding = LocalWindowPadding.current
+  val winFrameStyle = LocalWindowFrameStyle.current
 
   // TODO 这个在Android/IOS上有BUG，会变成两倍大小，需要官方修复
   // https://issuetracker.google.com/issues/307160202
@@ -228,7 +228,9 @@ internal fun BottomSheetsModalState.CommonRenderImpl(emitModalVisibilityChange: 
   }
   ModalBottomSheet(
     sheetState = sheetState,
-    modifier = Modifier.padding(top = WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding()),
+    modifier = Modifier.padding(
+      top = WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding()
+    ),
     dragHandle = {
       TitleBarWithOnClose({
         if (emitModalVisibilityChange(EmitModalVisibilityState.TryClose)) {
@@ -246,18 +248,18 @@ internal fun BottomSheetsModalState.CommonRenderImpl(emitModalVisibilityChange: 
     /// 显示内容
     BoxWithConstraints(
       Modifier.padding(
-        start = winPadding.start.dp,
-        end = winPadding.end.dp,
+        start = winFrameStyle.startWidth.dp,
+        end = winFrameStyle.endWidth.dp,
         bottom = windowInsetBottom + windowInsetTop
       )
     ) {
-      val windowRenderScope = remember(winPadding, maxWidth, maxHeight) {
+      val windowRenderScope = remember(winFrameStyle, maxWidth, maxHeight) {
         WindowContentRenderScope(maxWidth, maxHeight)
       }
       windowAdapterManager.Renderer(
         renderId,
         windowRenderScope,
-        Modifier.clip(winPadding.contentRounded.roundedCornerShape)
+        Modifier.clip(winFrameStyle.contentRounded.roundedCornerShape)
       )
     }
   }

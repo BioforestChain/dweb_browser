@@ -260,7 +260,11 @@ data class AppLogo(
       when (val loadingContent = logoOptions.loadingContent) {
         null -> logoOptions.placeholder?.also { painter ->
           Box(iconModifier, contentAlignment = Alignment.Center) {
-            Image(painter, contentDescription = logoOptions.safeDescription, iconModifier.scale(0.62f))
+            Image(
+              painter,
+              contentDescription = logoOptions.safeDescription,
+              iconModifier.scale(0.62f)
+            )
           }
         }
 

@@ -43,10 +43,24 @@ import org.dweb_browser.helper.platform.LocalPureViewController
 import org.dweb_browser.helper.platform.bindPureViewController
 import org.dweb_browser.helper.platform.unbindPureViewController
 import org.dweb_browser.helper.toRect
+import org.dweb_browser.sys.window.core.LocalWindowController
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.constant.LocalWindowMM
+import org.dweb_browser.sys.window.core.renderConfig.WindowLayerStyle
 import org.dweb_browser.sys.window.core.windowAdapterManager
+import org.dweb_browser.sys.window.helper.LocalWindowControllerTheme
+import org.dweb_browser.sys.window.helper.LocalWindowFrameStyle
+import org.dweb_browser.sys.window.helper.LocalWindowLimits
+import org.dweb_browser.sys.window.helper.WindowFrameStyle
+import org.dweb_browser.sys.window.helper.WindowLimits
+import org.dweb_browser.sys.window.helper.buildTheme
+import org.dweb_browser.sys.window.helper.calcWindowContentScale
+import org.dweb_browser.sys.window.helper.calcWindowFrameStyle
+import org.dweb_browser.sys.window.helper.watchedBounds
+import org.dweb_browser.sys.window.helper.watchedIsMaximized
+import org.dweb_browser.sys.window.helper.watchedState
+import org.dweb_browser.sys.window.helper.windowTouchFocusable
 
 @Composable
 fun WindowController.Prepare(
@@ -79,12 +93,12 @@ fun WindowController.Prepare(
   /**
    * 窗口边距
    */
-  val winPadding = win.calcWindowByLimits(limits)
+  val winFrameStyle = win.calcWindowFrameStyle(limits)
 
   val theme = win.buildTheme();
   CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onPrimary) {
     LocalCompositionChain.current.Provider(
-      LocalWindowPadding provides winPadding,
+      LocalWindowFrameStyle provides winFrameStyle,
       LocalWindowLimits provides limits,
       LocalWindowControllerTheme provides theme,
       LocalWindowController provides win,
@@ -154,7 +168,7 @@ fun WindowController.WindowRender(modifier: Modifier) {
   /**
    * 窗口边距
    */
-  val winPadding = LocalWindowPadding.current
+  val winFrameStyle = LocalWindowFrameStyle.current
 
   /**
    * 窗口层级
@@ -203,7 +217,7 @@ fun WindowController.WindowRender(modifier: Modifier) {
     LocalWindowMM provides (win.state.constants.microModule.value ?: LocalWindowMM.current),
   ) {
     /// 开始绘制窗口
-    win.state.safePadding = winPadding.boxSafeAreaInsets
+    win.state.safePadding = winFrameStyle.frameSafeAreaInsets
     val inResizeFrame by win.inResize
     val winBounds by win.watchedBounds()
     var inResizeAnimation by remember { mutableStateOf(false) }
@@ -223,10 +237,10 @@ fun WindowController.WindowRender(modifier: Modifier) {
      */
     val windowCornerRadius =
       when {
-        windowRectNoTranslate -> winPadding.boxRounded// roundedCornerShape
-        else -> winPadding.boxRounded.run {
+        windowRectNoTranslate -> winFrameStyle.frameRounded// roundedCornerShape
+        else -> winFrameStyle.frameRounded.run {
           val aniSpec = iosTween<Float>(durationIn = isMaximized)
-          WindowPadding.CornerRadius(
+          WindowFrameStyle.CornerRadius(
             topStart = animateFloatAsState(topStart, aniSpec).value,
             topEnd = animateFloatAsState(topEnd, aniSpec).value,
             bottomStart = animateFloatAsState(bottomStart, aniSpec).value,
@@ -239,8 +253,8 @@ fun WindowController.WindowRender(modifier: Modifier) {
       modifier = when {
         // 如果使用 原生窗口的边框，那么只需要填充满画布即可
         win.state.renderConfig.isSystemWindow -> {
-          win.state.renderConfig.styleWindowFrameDelegate?.effectStyle(
-            WindowFrameStyle(scale, opacity, windowElevation, windowCornerRadius)
+          win.state.renderConfig.effectWindowLayerStyleDelegate?.effectStyle(
+            WindowLayerStyle(scale, opacity, windowElevation, windowCornerRadius)
           )
           modifier.fillMaxSize()
         }
@@ -288,13 +302,15 @@ fun WindowController.WindowRender(modifier: Modifier) {
         var topBarHeight by remember { mutableFloatStateOf(Float.NaN) }
         var bottomBarHeight by remember { mutableFloatStateOf(Float.NaN) }
         /// 标题栏
-        WindowTopBar(win, Modifier.height(winPadding.top.dp).fillMaxWidth().onGloballyPositioned {
-          topBarHeight = it.size.height / density
-        })
+        WindowTopBar(
+          win,
+          Modifier.height(winFrameStyle.frameSize.top.dp).fillMaxWidth().onGloballyPositioned {
+            topBarHeight = it.size.height / density
+          })
         /// 内容区域
         BoxWithConstraints(
           Modifier.weight(1f).padding(start = 0.dp, end = 0.dp)
-            .clip(winPadding.contentRounded.roundedCornerShape)
+            .clip(winFrameStyle.contentRounded.roundedCornerShape)
         ) {
           /// 底部安全区域
           val keyboardInsetBottom by win.watchedState { keyboardInsetBottom }
@@ -331,7 +347,7 @@ fun WindowController.WindowRender(modifier: Modifier) {
             WindowContentRenderScope(
               widthDp = targetWidth,
               heightDp = targetHeight,
-              scale = win.calcContentScale(limits, targetWidth.value, targetHeight.value),
+              scale = calcWindowContentScale(limits, targetWidth.value, targetHeight.value),
               isResizing = isResizing
             )
           }
@@ -348,7 +364,7 @@ fun WindowController.WindowRender(modifier: Modifier) {
         }
         /// 显示底部控制条
         WindowBottomBar(win,
-          Modifier.height(winPadding.bottom.dp).fillMaxWidth().onGloballyPositioned {
+          Modifier.height(winFrameStyle.frameSize.bottom.dp).fillMaxWidth().onGloballyPositioned {
             bottomBarHeight = it.size.height / density
           })
       }

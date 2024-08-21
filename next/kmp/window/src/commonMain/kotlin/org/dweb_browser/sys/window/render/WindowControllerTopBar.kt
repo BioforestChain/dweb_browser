@@ -29,6 +29,9 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.helper.compose.AutoResizeTextContainer
 import org.dweb_browser.helper.compose.AutoSizeText
 import org.dweb_browser.sys.window.core.WindowController
+import org.dweb_browser.sys.window.helper.LocalWindowControllerTheme
+import org.dweb_browser.sys.window.helper.LocalWindowFrameStyle
+import org.dweb_browser.sys.window.helper.watchedState
 
 // 这里是窗口顶部，分成移动端和桌面端实现，桌面端将使用原生的窗口并且绑定事件
 @Composable
@@ -41,7 +44,7 @@ fun WindowTopControllerBar(
 ) {
   val scope = rememberCoroutineScope()
   val contentColor = LocalWindowControllerTheme.current.topContentColor
-  val topBarHeight = LocalWindowPadding.current.top
+  val topBarHeight = LocalWindowFrameStyle.current.frameSize.top
   Box {
     /// 菜单面板居中定位，主要为了适配锚点，目前范围是窗口的正行
     Box(modifier = Modifier.align(Alignment.BottomCenter)) {

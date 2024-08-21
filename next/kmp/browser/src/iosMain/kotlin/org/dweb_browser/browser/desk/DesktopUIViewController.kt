@@ -8,7 +8,7 @@ import androidx.compose.ui.platform.LocalDensity
 import kotlinx.cinterop.ExperimentalForeignApi
 import org.dweb_browser.helper.platform.PureViewController
 import org.dweb_browser.pure.image.compose.rememberOffscreenWebCanvas
-import org.dweb_browser.sys.window.render.LocalWindowsImeVisible
+import org.dweb_browser.sys.window.helper.LocalWindowsImeVisible
 
 @OptIn(ExperimentalForeignApi::class)
 class DesktopUIViewController(val vc: PureViewController) {

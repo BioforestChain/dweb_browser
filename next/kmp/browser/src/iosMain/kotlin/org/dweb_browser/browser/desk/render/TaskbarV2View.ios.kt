@@ -15,9 +15,9 @@ import org.dweb_browser.helper.platform.NativeViewController.Companion.nativeVie
 import org.dweb_browser.helper.platform.PureViewController
 import org.dweb_browser.helper.platform.rememberPureViewBox
 import org.dweb_browser.helper.toPureRect
-import org.dweb_browser.sys.window.helper.DraggableDelegate
-import org.dweb_browser.sys.window.helper.FloatBarShell
-import org.dweb_browser.sys.window.helper.rememberDisplaySize
+import org.dweb_browser.sys.window.floatBar.DraggableDelegate
+import org.dweb_browser.sys.window.floatBar.FloatBarShell
+import org.dweb_browser.sys.window.floatBar.rememberDisplaySize
 
 actual fun ITaskbarV2View.Companion.create(taskbarController: TaskbarV2Controller): ITaskbarV2View {
   return TaskbarV2View(taskbarController)

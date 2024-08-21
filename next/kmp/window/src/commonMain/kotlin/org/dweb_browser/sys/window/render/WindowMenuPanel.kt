@@ -13,6 +13,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.dweb_browser.sys.window.core.WindowController
+import org.dweb_browser.sys.window.helper.LocalWindowControllerTheme
+import org.dweb_browser.sys.window.helper.watchedState
 
 @Composable
 internal expect fun WindowMenuPanel(

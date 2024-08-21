@@ -70,8 +70,8 @@ import org.dweb_browser.browser.web.model.couldBeUrlStart
 import org.dweb_browser.browser.web.model.page.BrowserPage
 import org.dweb_browser.browser.web.ui.common.BrowserTopBar
 import org.dweb_browser.helper.format
-import org.dweb_browser.sys.window.render.LocalWindowController
-import org.dweb_browser.sys.window.render.LocalWindowsImeVisible
+import org.dweb_browser.sys.window.core.LocalWindowController
+import org.dweb_browser.sys.window.helper.LocalWindowsImeVisible
 
 class BrowserSearchPanel(val viewModel: BrowserViewModel) {
   private var showSearchPage by mutableStateOf<BrowserPage?>(null) // 用于显示搜索框的

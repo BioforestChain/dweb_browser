@@ -12,7 +12,8 @@ import org.dweb_browser.helper.PureRect
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.getOrPut
 import org.dweb_browser.sys.window.core.WindowController
-import org.dweb_browser.sys.window.core.WindowRenderConfig
+import org.dweb_browser.sys.window.core.renderConfig.FrameDragDelegate
+import org.dweb_browser.sys.window.helper.WindowLimits
 import kotlin.math.max
 
 val inResizeStore = WeakHashMap<WindowController, MutableState<Boolean>>()
@@ -23,18 +24,18 @@ val WindowController.inResize get() = inResizeStore.getOrPut(this) { mutableStat
 /** 基于窗口左下角进行调整大小 */
 internal fun Modifier.windowResizeByLeftBottom(
   win: WindowController,
-  frameResizeDelegate: WindowRenderConfig.FrameDragDelegate? = win.state.renderConfig.frameLBResizeDelegate,
+  frameResizeDelegate: FrameDragDelegate? = win.state.renderConfig.frameLBResizeDelegate,
 ) = windowResize(win, frameResizeDelegate)
 
 /** 基于窗口右下角进行调整大小 */
 internal fun Modifier.windowResizeByRightBottom(
   win: WindowController,
-  frameResizeDelegate: WindowRenderConfig.FrameDragDelegate? = win.state.renderConfig.frameRBResizeDelegate,
+  frameResizeDelegate: FrameDragDelegate? = win.state.renderConfig.frameRBResizeDelegate,
 ) = windowResize(win, frameResizeDelegate)
 
 private fun Modifier.windowResize(
   win: WindowController,
-  frameResizeDelegate: WindowRenderConfig.FrameDragDelegate?,
+  frameResizeDelegate: FrameDragDelegate?,
 ) = this.pointerInput(win, frameResizeDelegate) {
   var inResize by win.inResize
   detectDragGestures(

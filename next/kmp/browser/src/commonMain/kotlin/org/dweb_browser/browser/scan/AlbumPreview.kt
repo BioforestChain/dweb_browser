@@ -43,7 +43,7 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.compose.div
-import org.dweb_browser.sys.window.render.LocalWindowController
+import org.dweb_browser.sys.window.core.LocalWindowController
 
 
 /**选中文件时候的反馈*/

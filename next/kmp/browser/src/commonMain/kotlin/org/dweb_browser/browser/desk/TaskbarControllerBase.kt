@@ -15,7 +15,7 @@ import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.helper.SafeHashSet
 import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.safeSubList
-import org.dweb_browser.sys.window.helper.FloatBarState
+import org.dweb_browser.sys.window.floatBar.FloatBarState
 
 sealed class TaskbarControllerBase(
   internal val deskNMM: DeskNMM.DeskRuntime,

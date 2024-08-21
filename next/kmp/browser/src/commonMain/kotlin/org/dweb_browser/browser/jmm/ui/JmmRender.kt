@@ -9,17 +9,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.jmm.JmmI18nResource
 import org.dweb_browser.browser.jmm.JmmRenderController
-import org.dweb_browser.browser.jmm.JmmStatus
 import org.dweb_browser.helper.compose.ListDetailPaneScaffold
 import org.dweb_browser.helper.compose.rememberListDetailPaneScaffoldNavigator
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
 import org.dweb_browser.sys.window.core.WindowContentScaffoldWithTitleText
 import org.dweb_browser.sys.window.core.WindowSurface
 import org.dweb_browser.sys.window.core.withRenderScope
-import org.dweb_browser.sys.window.render.LocalWindowController
+import org.dweb_browser.sys.window.core.LocalWindowController
 
 
 @Composable

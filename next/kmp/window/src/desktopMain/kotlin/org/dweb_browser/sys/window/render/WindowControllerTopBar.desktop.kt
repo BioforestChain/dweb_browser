@@ -12,7 +12,7 @@ import org.dweb_browser.sys.window.core.WindowController
 @Composable
 actual fun WindowTopBar(
   win: WindowController,
-  modifier: Modifier
+  modifier: Modifier,
 ) {
   win.bindNativeViewController()
 }

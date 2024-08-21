@@ -14,13 +14,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.dweb_browser.sys.window.core.WindowController
+import org.dweb_browser.sys.window.helper.LocalWindowControllerTheme
+import org.dweb_browser.sys.window.helper.LocalWindowFrameStyle
+import org.dweb_browser.sys.window.helper.LocalWindowLimits
 import kotlin.math.min
 
 @Composable
 actual fun RowScope.WindowBottomBarMenuPanel(win: WindowController) {
   val scope = rememberCoroutineScope()
-  val winPadding = LocalWindowPadding.current
-  val bottomBarHeight = winPadding.bottom
+  val winFrameStyle = LocalWindowFrameStyle.current
+  val bottomBarHeight = winFrameStyle.frameSize.bottom
   val winTheme = LocalWindowControllerTheme.current
   val contentColor = winTheme.bottomContentColor
   val infoHeight = min(bottomBarHeight * 0.25f, LocalWindowLimits.current.bottomBarBaseHeight)

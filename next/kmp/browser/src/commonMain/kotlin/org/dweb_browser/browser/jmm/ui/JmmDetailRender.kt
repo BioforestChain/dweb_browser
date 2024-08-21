@@ -52,8 +52,8 @@ import org.dweb_browser.helper.compose.LocalCompositionChain
 import org.dweb_browser.helper.compose.SimpleI18nResource
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
 import org.dweb_browser.sys.window.core.WindowContentScaffoldWithTitle
-import org.dweb_browser.sys.window.render.LocalWindowController
-import org.dweb_browser.sys.window.render.watchedState
+import org.dweb_browser.sys.window.core.LocalWindowController
+import org.dweb_browser.sys.window.helper.watchedState
 
 
 enum class JmmDetailTabs(val i18n: SimpleI18nResource) {

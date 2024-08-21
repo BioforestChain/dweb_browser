@@ -27,6 +27,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.dweb_browser.sys.window.core.WindowController
+import org.dweb_browser.sys.window.helper.LocalWindowControllerTheme
+import org.dweb_browser.sys.window.helper.LocalWindowFrameStyle
+import org.dweb_browser.sys.window.helper.watchedIsMaximized
+import org.dweb_browser.sys.window.helper.watchedState
 
 @Composable
 internal actual fun WindowMenuPanel(
@@ -40,7 +44,7 @@ internal actual fun WindowMenuPanel(
 internal fun WindowMenuPanelByRichTooltip(
   win: WindowController,
 ) {
-  val winPadding = LocalWindowPadding.current
+  val winFrameStyle = LocalWindowFrameStyle.current
   val winTheme = LocalWindowControllerTheme.current
   val isShowMenuPanel by win.watchedState { showMenuPanel }
   val tooltipState = rememberTooltipState(isPersistent = true)
@@ -63,9 +67,9 @@ internal fun WindowMenuPanelByRichTooltip(
     }
   }
   val isMaximized by win.watchedIsMaximized()
-  val shape = remember(winPadding, isMaximized) {
-    if (isMaximized) winPadding.contentRounded.roundedCornerShape
-    else winPadding.boxRounded.roundedCornerShape
+  val shape = remember(winFrameStyle, isMaximized) {
+    if (isMaximized) winFrameStyle.contentRounded.roundedCornerShape
+    else winFrameStyle.frameRounded.roundedCornerShape
   }
   val colors = remember(winTheme) {
     RichTooltipColors(

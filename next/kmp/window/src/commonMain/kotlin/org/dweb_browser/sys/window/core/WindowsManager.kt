@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.stateIn
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.helper.OffListener
 import org.dweb_browser.helper.OrderDeferred
+import org.dweb_browser.helper.compose.compositionChainOf
 import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.helper.platform.IPureViewController
 import org.dweb_browser.helper.some
@@ -33,10 +34,6 @@ expect class WindowsManagerDelegate<T : WindowController>(
   fun focusDesktop()
   suspend fun addedWindow(win: T, offListenerList: MutableList<OffListener<*>>)
 }
-
-class WindowsManagerDelegate2<T : WindowController>(
-  manager: WindowsManager<T>,
-) {}
 
 /**
  * 窗口管理器，存储查询窗口，并根据行为委托器来对窗口进行操控管理
@@ -274,3 +271,5 @@ open class WindowsManager<T : WindowController>(
     delegate.focusDesktop()
   }
 }
+
+val LocalWindowsManager = compositionChainOf<WindowsManager<*>>("WindowsManager")

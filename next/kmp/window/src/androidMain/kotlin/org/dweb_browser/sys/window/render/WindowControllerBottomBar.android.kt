@@ -9,15 +9,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalDensity
+import org.dweb_browser.sys.window.helper.LocalWindowFrameStyle
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 actual fun windowBottomNavigationThemeBarMaximizedModifier(): Modifier {
-  val winPadding = LocalWindowPadding.current
+  val winFrameStyle = LocalWindowFrameStyle.current
   val density = LocalDensity.current
   val navigationBarsIgnoringVisibility = WindowInsets.navigationBarsIgnoringVisibility
   val navigationBarsHeight = navigationBarsIgnoringVisibility.getBottom(density)
-  if (winPadding.bottom > navigationBarsHeight / 2) {
+  if (winFrameStyle.frameSize.bottom > navigationBarsHeight / 2) {
     return Modifier
   }
   val navigationBars = WindowInsets.navigationBars

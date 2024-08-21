@@ -7,10 +7,10 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.awt.ComposePanel
 import androidx.compose.ui.unit.dp
 import org.dweb_browser.browser.desk.TaskbarV2Controller
-import org.dweb_browser.sys.window.helper.DraggableDelegate
-import org.dweb_browser.sys.window.helper.FloatBarMover
-import org.dweb_browser.sys.window.helper.FloatBarShell
-import org.dweb_browser.sys.window.helper.rememberDisplaySize
+import org.dweb_browser.sys.window.floatBar.DraggableDelegate
+import org.dweb_browser.sys.window.floatBar.FloatBarMover
+import org.dweb_browser.sys.window.floatBar.FloatBarShell
+import org.dweb_browser.sys.window.floatBar.rememberDisplaySize
 
 actual fun ITaskbarV2View.Companion.create(taskbarController: TaskbarV2Controller): ITaskbarV2View {
   return TaskbarV2View(taskbarController)

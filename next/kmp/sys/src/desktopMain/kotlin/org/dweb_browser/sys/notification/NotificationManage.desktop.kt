@@ -1,7 +1,7 @@
 package org.dweb_browser.sys.notification
 
 import org.dweb_browser.core.module.MicroModule
-import org.dweb_browser.sys.window.render.awtIconImage
+import org.dweb_browser.sys.window.ext.awtIconImage
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import java.awt.SystemTray
 import java.awt.TrayIcon

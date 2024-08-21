@@ -14,6 +14,8 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.sys.window.WindowI18nResource
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.constant.LowLevelWindowAPI
+import org.dweb_browser.sys.window.helper.LocalWindowControllerTheme
+import org.dweb_browser.sys.window.helper.watchedState
 
 @OptIn(LowLevelWindowAPI::class)
 @Composable

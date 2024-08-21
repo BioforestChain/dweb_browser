@@ -139,15 +139,16 @@ sealed class ModalState() {
   }
 
 
-  fun sendCallback(mm: MicroModule.Runtime, callbackData: ModalCallback) = callbackUrl?.also { url ->
-    mm.scopeLaunch(cancelable = true) {
-      mm.nativeFetch(
-        PureClientRequest.fromJson(
-          url, PureMethod.POST, body = callbackData
+  fun sendCallback(mm: MicroModule.Runtime, callbackData: ModalCallback) =
+    callbackUrl?.also { url ->
+      mm.scopeLaunch(cancelable = true) {
+        mm.nativeFetch(
+          PureClientRequest.fromJson(
+            url, PureMethod.POST, body = callbackData
+          )
         )
-      )
+      }
     }
-  }
 
   /**
    * 关闭modal指令的发送器

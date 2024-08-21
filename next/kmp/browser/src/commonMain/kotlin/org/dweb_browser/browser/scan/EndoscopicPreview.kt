@@ -2,7 +2,7 @@ package org.dweb_browser.browser.scan
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import org.dweb_browser.sys.window.render.LocalWindowController
+import org.dweb_browser.sys.window.core.LocalWindowController
 
 ///内窥镜渲染模块
 

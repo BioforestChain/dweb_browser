@@ -9,7 +9,7 @@ import org.dweb_browser.helper.platform.DesktopPureDialogState
 import org.dweb_browser.helper.platform.LocalPureViewController
 import org.dweb_browser.helper.platform.ModalDialog
 import org.dweb_browser.helper.platform.asDesktop
-import org.dweb_browser.sys.window.render.LocalWindowController
+import org.dweb_browser.sys.window.core.LocalWindowController
 import org.dweb_browser.sys.window.render.WithMaterialTheme
 import javax.swing.JDialog
 

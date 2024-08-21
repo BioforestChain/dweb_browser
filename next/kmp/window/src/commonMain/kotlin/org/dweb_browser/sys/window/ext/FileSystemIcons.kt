@@ -23,7 +23,7 @@ import org.dweb_browser.helper.utf8String
 import org.dweb_browser.pure.image.compose.ImageLoadResult
 import org.dweb_browser.pure.image.compose.PureImageLoader
 import org.dweb_browser.pure.image.compose.SmartLoad
-import org.dweb_browser.sys.window.render.LocalWindowControllerTheme
+import org.dweb_browser.sys.window.helper.LocalWindowControllerTheme
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 
 object FileSystemIcons {

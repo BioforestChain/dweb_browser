@@ -6,7 +6,7 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.platform.getComposeWindowBoundsOrNull
-import org.dweb_browser.sys.window.render.awtIconRoundedImage
+import org.dweb_browser.sys.window.ext.awtIconRoundedImage
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.Graphics

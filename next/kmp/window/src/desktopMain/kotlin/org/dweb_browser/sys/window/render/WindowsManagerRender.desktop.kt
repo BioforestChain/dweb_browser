@@ -15,9 +15,11 @@ import org.dweb_browser.helper.compose.LocalCompositionChain
 import org.dweb_browser.helper.platform.PureViewController
 import org.dweb_browser.helper.platform.asDesktop
 import org.dweb_browser.helper.platform.rememberPureViewBox
+import org.dweb_browser.sys.window.core.LocalWindowsManager
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.WindowsManager
 import org.dweb_browser.sys.window.core.constant.debugWindow
+import org.dweb_browser.sys.window.helper.watchedIsFullscreen
 
 @Composable
 actual fun <T : WindowController> WindowsManager<T>.SceneRender(modifier: Modifier) {

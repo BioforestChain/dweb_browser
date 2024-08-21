@@ -39,7 +39,7 @@ import org.dweb_browser.sys.device.model.Battery
 import org.dweb_browser.sys.device.model.DeviceData
 import org.dweb_browser.sys.device.model.DeviceInfo
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
-import org.dweb_browser.sys.window.render.LocalWindowController
+import org.dweb_browser.sys.window.core.LocalWindowController
 
 data class AndroidSystemInfo(
   val os: String = "Android",

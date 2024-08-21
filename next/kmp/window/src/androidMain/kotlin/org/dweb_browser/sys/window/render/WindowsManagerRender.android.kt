@@ -10,10 +10,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.zIndex
 import org.dweb_browser.helper.compose.LocalCompositionChain
+import org.dweb_browser.sys.window.core.LocalWindowsManager
 import org.dweb_browser.sys.window.core.WindowController
-import org.dweb_browser.sys.window.core.WindowRenderConfig
 import org.dweb_browser.sys.window.core.WindowsManager
 import org.dweb_browser.sys.window.core.constant.debugWindow
+import org.dweb_browser.sys.window.core.renderConfig.FrameDragDelegate
+import org.dweb_browser.sys.window.helper.LocalWindowLimits
+import org.dweb_browser.sys.window.helper.safeBounds
+import org.dweb_browser.sys.window.helper.watchedState
 
 @Composable
 actual fun <T : WindowController> WindowsManager<T>.SceneRender(modifier: Modifier) {
@@ -85,17 +89,17 @@ private fun AndroidWindowPrepare(
     val density = LocalDensity.current.density
     LaunchedEffect(win, limits, density) {
       win.state.renderConfig.apply {
-        frameMoveDelegate = WindowRenderConfig.FrameDragDelegate { _, dragAmount ->
+        frameMoveDelegate = FrameDragDelegate { _, dragAmount ->
           win.state.updateBounds {
             moveWindowBoundsInSafeBounds(this, safeBounds, dragAmount / density)
           }
         }
-        frameLBResizeDelegate = WindowRenderConfig.FrameDragDelegate { _, dragAmount ->
+        frameLBResizeDelegate = FrameDragDelegate { _, dragAmount ->
           win.state.updateBounds {
             resizeWindowBoundsInLeftBottom(this, limits, dragAmount / density)
           }
         }
-        frameRBResizeDelegate = WindowRenderConfig.FrameDragDelegate { _, dragAmount ->
+        frameRBResizeDelegate = FrameDragDelegate { _, dragAmount ->
           win.state.updateBounds {
             resizeWindowBoundsInRightBottom(this, limits, dragAmount / density)
           }

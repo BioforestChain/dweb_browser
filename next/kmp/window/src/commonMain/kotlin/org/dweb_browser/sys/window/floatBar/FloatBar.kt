@@ -1,4 +1,4 @@
-package org.dweb_browser.sys.window.helper
+package org.dweb_browser.sys.window.floatBar
 
 import androidx.compose.animation.core.animateOffset
 import androidx.compose.animation.core.updateTransition

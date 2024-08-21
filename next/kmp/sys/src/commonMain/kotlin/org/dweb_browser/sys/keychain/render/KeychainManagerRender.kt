@@ -16,7 +16,7 @@ import org.dweb_browser.sys.keychain.KeychainManager
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
 import org.dweb_browser.sys.window.core.WindowSurface
 import org.dweb_browser.sys.window.core.withRenderScope
-import org.dweb_browser.sys.window.render.LocalWindowController
+import org.dweb_browser.sys.window.core.LocalWindowController
 
 
 @Composable

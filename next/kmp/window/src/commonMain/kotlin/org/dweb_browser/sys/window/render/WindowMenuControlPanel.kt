@@ -60,10 +60,15 @@ import androidx.compose.ui.unit.dp
 import org.dweb_browser.helper.compose.LocalCompositionChain
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.constant.WindowColorScheme
+import org.dweb_browser.sys.window.helper.LocalWindowControllerTheme
+import org.dweb_browser.sys.window.helper.LocalWindowFrameStyle
+import org.dweb_browser.sys.window.helper.watchedBounds
+import org.dweb_browser.sys.window.helper.watchedIsMaximized
+import org.dweb_browser.sys.window.helper.watchedState
 
 @Composable
 fun WindowControlPanel(win: WindowController, modifier: Modifier = Modifier) {
-  val winPadding = LocalWindowPadding.current
+  val winFrameStyle = LocalWindowFrameStyle.current
   val winTheme = LocalWindowControllerTheme.current
   val isMaximized by win.watchedIsMaximized()
   val winBounds by win.watchedBounds()
@@ -74,7 +79,7 @@ fun WindowControlPanel(win: WindowController, modifier: Modifier = Modifier) {
     LazyVerticalGrid(
       columns = GridCells.Adaptive(68.dp),
       modifier = modifier.clip(
-        winPadding.boxRounded.roundedCornerShape
+        winFrameStyle.frameRounded.roundedCornerShape
       ).background(winTheme.onThemeColor)
 //      .verticalScroll(rememberScrollState()),
         .then(if (isMaximized) Modifier else Modifier.height(maxHeight - 120.dp)), // 由于窗口模式时，LazyVerticalGrid适配整个窗口，导致action显示不全。

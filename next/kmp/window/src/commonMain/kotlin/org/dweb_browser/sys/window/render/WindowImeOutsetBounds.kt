@@ -7,10 +7,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.unit.dp
+import org.dweb_browser.sys.window.core.LocalWindowController
+import org.dweb_browser.sys.window.core.LocalWindowsManager
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.WindowsManager
 import org.dweb_browser.sys.window.core.WindowsManagerState.Companion.watchedState
 import org.dweb_browser.sys.window.core.constant.WindowManagerPropertyKeys
+import org.dweb_browser.sys.window.helper.LocalWindowFrameStyle
+import org.dweb_browser.sys.window.helper.watchedBounds
 import kotlin.math.max
 
 @Composable
@@ -60,9 +64,9 @@ fun calcWindowImeOutsetBounds(
       } else {
         // 将顶部全部用作修正的量
         modifierOffsetY = -winBounds.y
-        val winPadding = LocalWindowPadding.current
+        val winFrameStyle = LocalWindowFrameStyle.current
         // 窗口可以牺牲底部区域的显示，剩余的就是内容需要偏移的量
-        val contentOffsetY = requestOffsetY - winPadding.bottom
+        val contentOffsetY = requestOffsetY - winFrameStyle.frameSize.bottom
         // 内容偏移量 加上 修正量，就是键盘的插入高度
         keyboardInsetBottom = max(contentOffsetY + modifierOffsetY, 0f)
       }

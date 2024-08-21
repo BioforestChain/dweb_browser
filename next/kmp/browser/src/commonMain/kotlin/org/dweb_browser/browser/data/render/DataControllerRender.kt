@@ -11,7 +11,7 @@ import org.dweb_browser.helper.compose.collectAsMutableState
 import org.dweb_browser.helper.compose.rememberListDetailPaneScaffoldNavigator
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
 import org.dweb_browser.sys.window.core.withRenderScope
-import org.dweb_browser.sys.window.render.LocalWindowController
+import org.dweb_browser.sys.window.core.LocalWindowController
 
 @Composable
 fun DataController.Render(modifier: Modifier, windowRenderScope: WindowContentRenderScope) {

@@ -10,8 +10,8 @@ import org.dweb_browser.browser.web.ui.BrowserRender
 import org.dweb_browser.helper.platform.LocalPureViewController
 import org.dweb_browser.helper.platform.asDesktop
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
-import org.dweb_browser.sys.window.render.LocalWindowController
-import org.dweb_browser.sys.window.render.watchedState
+import org.dweb_browser.sys.window.core.LocalWindowController
+import org.dweb_browser.sys.window.helper.watchedState
 
 @Composable
 actual fun CommonBrowserView(

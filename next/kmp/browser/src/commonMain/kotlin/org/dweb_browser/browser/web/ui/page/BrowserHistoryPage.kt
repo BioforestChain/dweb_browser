@@ -35,7 +35,7 @@ import org.dweb_browser.browser.web.model.page.BrowserHistoryPage
 import org.dweb_browser.browser.web.ui.common.BrowserTopBar
 import org.dweb_browser.helper.compose.NoDataRender
 import org.dweb_browser.helper.datetimeNowToEpochDay
-import org.dweb_browser.sys.window.render.LocalWindowController
+import org.dweb_browser.sys.window.core.LocalWindowController
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

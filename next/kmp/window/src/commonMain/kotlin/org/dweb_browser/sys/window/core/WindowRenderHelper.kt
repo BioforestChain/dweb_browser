@@ -33,8 +33,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.randomUUID
-import org.dweb_browser.sys.window.render.LocalWindowController
-import org.dweb_browser.sys.window.render.watchedState
+import org.dweb_browser.sys.window.helper.watchedState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

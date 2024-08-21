@@ -21,7 +21,7 @@ import kotlin.test.assertIs
 
 class ModalStateTest {
   class SimpleWindowController(
-    override val lifecycleScope: CoroutineScope = CoroutineScope(defaultAsyncExceptionHandler)
+    override val lifecycleScope: CoroutineScope = CoroutineScope(defaultAsyncExceptionHandler),
   ) : WindowController(WindowState(WindowConstants(owner = "", ownerVersion = ""))) {
     override val viewBox: IPureViewBox get() = TODO("???")
   }

@@ -8,10 +8,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import org.dweb_browser.sys.window.core.WindowController
+import org.dweb_browser.sys.window.helper.LocalWindowControllerTheme
+import org.dweb_browser.sys.window.helper.watchedIsMaximized
 
 @Composable
 actual fun WindowTopBar(
-  win: WindowController, modifier: Modifier
+  win: WindowController, modifier: Modifier,
 ) {
   val contentColor = LocalWindowControllerTheme.current.topContentColor
   Box(

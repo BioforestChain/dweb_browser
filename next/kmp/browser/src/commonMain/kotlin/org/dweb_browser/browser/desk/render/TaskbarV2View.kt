@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import org.dweb_browser.browser.desk.TaskbarV2Controller
 import org.dweb_browser.helper.clamp
-import org.dweb_browser.sys.window.helper.DraggableDelegate
+import org.dweb_browser.sys.window.floatBar.DraggableDelegate
 import kotlin.math.min
 
 private const val TASKBAR_ICON_MIN_SIZE = 32f

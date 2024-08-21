@@ -22,9 +22,9 @@ import org.dweb_browser.helper.platform.LocalUIKitBackgroundView
 import org.dweb_browser.helper.platform.NativeViewController.Companion.nativeViewController
 import org.dweb_browser.helper.platform.PureViewController
 import org.dweb_browser.helper.withMainContext
-import org.dweb_browser.sys.window.helper.DraggableDelegate
-import org.dweb_browser.sys.window.helper.FloatBarShell
-import org.dweb_browser.sys.window.helper.UIDragGesture
+import org.dweb_browser.sys.window.floatBar.DraggableDelegate
+import org.dweb_browser.sys.window.floatBar.FloatBarShell
+import org.dweb_browser.sys.window.floatBar.UIDragGesture
 import platform.CoreGraphics.CGRectMake
 import platform.Foundation.NSSelectorFromString
 import platform.QuartzCore.kCALayerMaxXMaxYCorner

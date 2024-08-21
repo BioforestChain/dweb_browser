@@ -4,9 +4,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import org.dweb_browser.dwebview.IDWebView
-import org.dweb_browser.sys.window.render.LocalWindowController
-import org.dweb_browser.sys.window.render.LocalWindowControllerTheme
-import org.dweb_browser.sys.window.render.watchedState
+import org.dweb_browser.sys.window.core.LocalWindowController
+import org.dweb_browser.sys.window.helper.LocalWindowControllerTheme
+import org.dweb_browser.sys.window.helper.watchedState
 
 @Composable
 fun IDWebView.WindowControllerBinding() {

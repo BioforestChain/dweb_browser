@@ -1,6 +1,7 @@
 package org.dweb_browser.sys.window.render
 
 import kotlinx.cinterop.ExperimentalForeignApi
+import org.dweb_browser.sys.window.core.renderConfig.WindowLayerStyle
 import platform.CoreGraphics.CGAffineTransformMakeScale
 import platform.CoreGraphics.CGSizeMake
 import platform.UIKit.UIColor
@@ -16,7 +17,7 @@ fun UIView.setTransform(scale: Double) {
 fun UIView.unsetTransform() = setTransform(1.0)
 
 @OptIn(ExperimentalForeignApi::class)
-fun UIView.effectWindowFrameStyle(style: WindowFrameStyle) {
+fun UIView.effectWindowFrameStyle(style: WindowLayerStyle) {
   style.opacity.toDouble().also { double ->
     alpha = double
   }

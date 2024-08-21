@@ -33,7 +33,7 @@ import org.dweb_browser.platform.ios_browser.gobackIfCanDo
 import org.dweb_browser.platform.ios_browser.loadPullMenuConfigWithIsActived
 import org.dweb_browser.platform.ios_browser.prepareToKmp
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
-import org.dweb_browser.sys.window.render.LocalWindowController
+import org.dweb_browser.sys.window.core.LocalWindowController
 import platform.CoreGraphics.CGRectMake
 import kotlin.experimental.ExperimentalNativeApi
 

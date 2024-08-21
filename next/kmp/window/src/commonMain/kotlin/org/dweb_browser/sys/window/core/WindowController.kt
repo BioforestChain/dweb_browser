@@ -10,6 +10,7 @@ import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.helper.Observable
 import org.dweb_browser.helper.PureRect
 import org.dweb_browser.helper.ReasonLock
+import org.dweb_browser.helper.compose.compositionChainOf
 import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.helper.platform.IPureViewController
 import org.dweb_browser.sys.window.core.constant.LowLevelWindowAPI
@@ -22,7 +23,6 @@ import org.dweb_browser.sys.window.core.constant.debugWindow
 import org.dweb_browser.sys.window.core.helper.WindowNavigation
 import org.dweb_browser.sys.window.core.helper.setDefaultFloatWindowBounds
 import org.dweb_browser.sys.window.core.modal.ModalState
-
 
 open class WindowController(
   val state: WindowState,
@@ -433,16 +433,6 @@ open class WindowController(
   suspend fun enableAlwaysOnTop() = toggleAlwaysOnTop(true)
   suspend fun disableKeepBackground() = toggleKeepBackground(false)
   suspend fun enableKeepBackground() = toggleKeepBackground(true)
-
 }
 
-//expect fun windowController(
-//  /**
-//   * 窗口的基本信息
-//   */
-//  state: WindowState,
-//  /**
-//   * 传入多窗口管理器，可以不提供，那么由 Controller 自身以缺省的逻辑对 WindowState 进行修改
-//   */
-//  manager: WindowsManager<*>? = null,
-//): WindowController<M>
+val LocalWindowController = compositionChainOf<WindowController>("WindowController")

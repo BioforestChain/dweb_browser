@@ -50,8 +50,8 @@ import org.dweb_browser.sys.window.core.WindowContentRenderScope
 import org.dweb_browser.sys.window.core.WindowContentScaffoldWithTitleText
 import org.dweb_browser.sys.window.core.constant.LocalWindowMM
 import org.dweb_browser.sys.window.core.windowAdapterManager
-import org.dweb_browser.sys.window.render.LocalWindowController
-import org.dweb_browser.sys.window.render.LocalWindowControllerTheme
+import org.dweb_browser.sys.window.core.LocalWindowController
+import org.dweb_browser.sys.window.helper.LocalWindowControllerTheme
 
 internal fun provideAboutRender(
   wid: UUID,

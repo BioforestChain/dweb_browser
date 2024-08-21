@@ -41,6 +41,11 @@ import org.dweb_browser.helper.compose.NativeBackHandler
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.constant.WindowBottomBarTheme
 import org.dweb_browser.sys.window.core.constant.WindowPropertyKeys
+import org.dweb_browser.sys.window.helper.LocalWindowControllerTheme
+import org.dweb_browser.sys.window.helper.LocalWindowFrameStyle
+import org.dweb_browser.sys.window.helper.LocalWindowLimits
+import org.dweb_browser.sys.window.helper.watchedIsMaximized
+import org.dweb_browser.sys.window.helper.watchedState
 import kotlin.math.max
 import kotlin.math.min
 
@@ -88,12 +93,12 @@ internal fun WindowBottomResizeBar(
   content: @Composable () -> Unit,
 ) {
   val contentColor = LocalWindowControllerTheme.current.bottomContentColor
-  val windowEdge = LocalWindowPadding.current
+  val windowEdge = LocalWindowFrameStyle.current
   val resizable by win.watchedState { resizable }
   Row(
     modifier = Modifier.fillMaxSize().padding(
-      start = if (resizable) 0.dp else windowEdge.start.dp,
-      end = if (resizable) 0.dp else windowEdge.end.dp
+      start = if (resizable) 0.dp else windowEdge.startWidth.dp,
+      end = if (resizable) 0.dp else windowEdge.endWidth.dp
     )
   ) {
     // 如果使用 原生窗口，那么不显示这两个角标
@@ -101,7 +106,7 @@ internal fun WindowBottomResizeBar(
     /// 左下角 视窗 Resize
     if (showResizeIcon) {
       Box(
-        modifier = Modifier.fillMaxHeight().width(windowEdge.bottom.dp)
+        modifier = Modifier.fillMaxHeight().width(windowEdge.frameSize.bottom.dp)
           .windowResizeByLeftBottom(win)
       ) {
         Icon(
@@ -121,7 +126,7 @@ internal fun WindowBottomResizeBar(
     /// 视窗 Resize
     if (showResizeIcon) {
       Box(
-        modifier = Modifier.fillMaxHeight().width(windowEdge.bottom.dp)
+        modifier = Modifier.fillMaxHeight().width(windowEdge.frameSize.bottom.dp)
           .windowResizeByRightBottom(win)
       ) {
         Icon(
@@ -140,9 +145,10 @@ internal fun WindowBottomMaximizedBar(
   @Suppress("UNUSED_PARAMETER") win: WindowController,
   content: @Composable () -> Unit,
 ) {
-  val windowEdge = LocalWindowPadding.current
+  val windowEdge = LocalWindowFrameStyle.current
   Box(
-    modifier = Modifier.fillMaxSize().padding(start = windowEdge.start.dp, end = windowEdge.end.dp),
+    modifier = Modifier.fillMaxSize()
+      .padding(start = windowEdge.startWidth.dp, end = windowEdge.endWidth.dp),
   ) {
     content()
   }
@@ -202,9 +208,9 @@ internal fun WindowBottomNavigationThemeBar(
   val winTheme = LocalWindowControllerTheme.current
   val contentColor = winTheme.bottomContentColor
   val contentDisableColor = winTheme.bottomContentDisableColor
-  val winPadding = LocalWindowPadding.current
-  val bottomBarHeight = winPadding.bottom
-  val boxSafeAreaInsets = winPadding.boxSafeAreaInsets
+  val winFrameStyle = LocalWindowFrameStyle.current
+  val bottomBarHeight = winFrameStyle.frameSize.bottom
+  val boxSafeAreaInsets = winFrameStyle.frameSafeAreaInsets
   val infoHeight = min(bottomBarHeight * 0.25f, LocalWindowLimits.current.bottomBarBaseHeight)
   val isMaximized by win.watchedIsMaximized()
   val buttonRoundedSize = infoHeight * 2

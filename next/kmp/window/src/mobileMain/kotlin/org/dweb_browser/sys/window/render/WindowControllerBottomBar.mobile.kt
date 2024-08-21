@@ -24,6 +24,11 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.compose.iosTween
 import org.dweb_browser.sys.window.core.WindowController
+import org.dweb_browser.sys.window.helper.LocalWindowControllerTheme
+import org.dweb_browser.sys.window.helper.LocalWindowFrameStyle
+import org.dweb_browser.sys.window.helper.LocalWindowLimits
+import org.dweb_browser.sys.window.helper.watchedIsMaximized
+import org.dweb_browser.sys.window.helper.watchedState
 import kotlin.math.min
 
 @Composable
@@ -31,8 +36,8 @@ actual fun RowScope.WindowBottomBarMenuPanel(win: WindowController) {
   val scope = rememberCoroutineScope()
   val winTheme = LocalWindowControllerTheme.current
   val contentColor = winTheme.bottomContentColor
-  val winPadding = LocalWindowPadding.current
-  val bottomBarHeight = winPadding.bottom
+  val winFrameStyle = LocalWindowFrameStyle.current
+  val bottomBarHeight = winFrameStyle.frameSize.bottom
   val infoHeight = min(bottomBarHeight * 0.25f, LocalWindowLimits.current.bottomBarBaseHeight)
   val isMaximized by win.watchedIsMaximized()
   val buttonRoundedSize = infoHeight * 2

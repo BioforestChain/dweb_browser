@@ -8,7 +8,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import org.dweb_browser.helper.PureBounds
 import org.dweb_browser.helper.PureRect
 import org.dweb_browser.sys.window.core.WindowController
-import org.dweb_browser.sys.window.core.WindowRenderConfig
+import org.dweb_browser.sys.window.core.renderConfig.FrameDragDelegate
 
 
 /**
@@ -16,7 +16,7 @@ import org.dweb_browser.sys.window.core.WindowRenderConfig
  */
 internal fun Modifier.windowMoveAble(
   win: WindowController,
-  frameMoveDelegate: WindowRenderConfig.FrameDragDelegate? = win.state.renderConfig.frameMoveDelegate,
+  frameMoveDelegate: FrameDragDelegate? = win.state.renderConfig.frameMoveDelegate,
 ) = this.pointerInput(win, frameMoveDelegate) {
   /// 触摸窗口的时候，聚焦，并且提示可以移动
   detectTapGestures(

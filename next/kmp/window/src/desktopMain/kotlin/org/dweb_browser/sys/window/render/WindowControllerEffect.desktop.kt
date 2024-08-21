@@ -20,10 +20,12 @@ import org.dweb_browser.helper.platform.asDesktop
 import org.dweb_browser.pure.image.compose.PureImageLoader
 import org.dweb_browser.pure.image.compose.SmartLoad
 import org.dweb_browser.sys.window.core.WindowController
-import org.dweb_browser.sys.window.core.WindowRenderConfig
 import org.dweb_browser.sys.window.core.WindowState
 import org.dweb_browser.sys.window.core.constant.WindowMode
 import org.dweb_browser.sys.window.core.constant.WindowPropertyKeys
+import org.dweb_browser.sys.window.core.renderConfig.FrameDragDelegate
+import org.dweb_browser.sys.window.helper.watchedIsMaximized
+import org.dweb_browser.sys.window.helper.watchedState
 import java.awt.Point
 
 @Composable
@@ -46,8 +48,11 @@ fun WindowController.WindowControllerEffect() {
      * 拖动窗口的起点 输入位置（相对窗口的位置）
      */
     var dragStartPoint: Point? = null
-    renderConfig.frameMoveDelegate = WindowRenderConfig.FrameDragDelegate(
+    renderConfig.frameMoveDelegate = FrameDragDelegate(
       onStart = {
+        /**
+         * composeWindow.mousePosition 是指鼠标相对于窗口左上角的位置，会有负数
+         */
         /**
          * composeWindow.mousePosition 是指鼠标相对于窗口左上角的位置，会有负数
          */

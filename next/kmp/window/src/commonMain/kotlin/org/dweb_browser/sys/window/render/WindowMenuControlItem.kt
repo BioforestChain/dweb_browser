@@ -15,6 +15,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.compose.compositionChainOf
+import org.dweb_browser.sys.window.helper.LocalWindowControllerTheme
+import org.dweb_browser.sys.window.helper.WindowControllerTheme
 
 internal val LocalWindowMenuItemColor =
   compositionChainOf<IconToggleButtonColors?>("WindowMenuItemColor") { null }
@@ -38,7 +40,7 @@ fun WindowMenuItem(
   selected: Boolean = false,
   selectedIconVector: ImageVector = iconVector,
   enabled: Boolean = true,
-  onSelectedChange: suspend (Boolean) -> Unit = {}
+  onSelectedChange: suspend (Boolean) -> Unit = {},
 ) {
   val scope = rememberCoroutineScope()
   val winTheme = LocalWindowControllerTheme.current

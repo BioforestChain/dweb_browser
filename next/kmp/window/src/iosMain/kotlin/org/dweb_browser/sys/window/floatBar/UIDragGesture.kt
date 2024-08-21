@@ -1,4 +1,4 @@
-package org.dweb_browser.sys.window.helper
+package org.dweb_browser.sys.window.floatBar
 
 import androidx.compose.ui.geometry.Offset
 import kotlinx.cinterop.BetaInteropApi

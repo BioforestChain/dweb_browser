@@ -1,4 +1,4 @@
-package org.dweb_browser.sys.window.render
+package org.dweb_browser.sys.window.preview
 
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.BoxWithConstraintsScope
@@ -18,6 +18,8 @@ import org.dweb_browser.sys.window.core.WindowRenderProvider
 import org.dweb_browser.sys.window.core.WindowState
 import org.dweb_browser.sys.window.core.constant.WindowConstants
 import org.dweb_browser.sys.window.core.windowAdapterManager
+import org.dweb_browser.sys.window.render.Prepare
+import org.dweb_browser.sys.window.render.WindowRender
 
 @Composable
 fun WindowPreviewer(

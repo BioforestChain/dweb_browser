@@ -1,4 +1,4 @@
-package org.dweb_browser.sys.window.render
+package org.dweb_browser.sys.window.ext
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.toAwtImage
@@ -14,9 +14,9 @@ import org.dweb_browser.helper.platform.PureViewController
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.pure.image.compose.PureImageLoader
 import org.dweb_browser.pure.image.compose.SmartLoad
-import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.helper.pickLargest
 import org.dweb_browser.sys.window.core.helper.toStrict
+import org.dweb_browser.sys.window.render.appIcon
 import java.awt.AlphaComposite
 import java.awt.Color
 import java.awt.Image
@@ -25,14 +25,6 @@ import java.awt.geom.RoundRectangle2D
 import java.awt.image.BufferedImage
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
-
-actual fun getWindowControllerBorderRounded(isMaximize: Boolean) = when {
-  PureViewController.isMacOS -> WindowPadding.CornerRadius.Small
-  /**
-   * Windows 操作系统背景不透明，所以始终为0
-   */
-  else -> WindowPadding.CornerRadius.Zero
-}
 
 suspend fun MicroModule.Runtime.loadSourceToImageBitmap(src: String, width: Int, height: Int) =
   suspendCoroutine { con ->
@@ -63,7 +55,6 @@ val MicroModule.Runtime.awtIconImage
     }
   }
 
-
 fun BufferedImage.rounded(roundX: Float, roundY: Float = roundX): BufferedImage {
   val input = this
   val output = BufferedImage(input.width, input.height, BufferedImage.TYPE_INT_ARGB)
@@ -90,7 +81,6 @@ fun BufferedImage.rounded(roundX: Float, roundY: Float = roundX): BufferedImage 
 }
 
 val MMR_awtIconRoundedImage_WM = WeakHashMap<MicroModule.Runtime, Deferred<BufferedImage>>()
-
 val MicroModule.Runtime.awtIconRoundedImage: Deferred<BufferedImage>
   get() = MMR_awtIconRoundedImage_WM.getOrPut(this) {
     getRuntimeScope().async {

@@ -19,7 +19,7 @@ import org.dweb_browser.dwebview.RenderWithScale
 import org.dweb_browser.helper.platform.IPureViewController
 import org.dweb_browser.helper.platform.isDesktop
 import org.dweb_browser.helper.withScope
-import org.dweb_browser.sys.window.render.LocalWindowController
+import org.dweb_browser.sys.window.core.LocalWindowController
 
 @Composable
 internal fun BrowserWebPage.Effect() {

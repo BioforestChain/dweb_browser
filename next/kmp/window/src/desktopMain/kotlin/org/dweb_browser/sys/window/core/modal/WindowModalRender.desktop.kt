@@ -6,7 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import org.dweb_browser.helper.compose.compositionChainOf
-import org.dweb_browser.sys.window.render.LocalWindowLimits
+import org.dweb_browser.sys.window.helper.LocalWindowLimits
 import kotlin.math.max
 
 @Composable
@@ -17,7 +17,7 @@ internal actual fun ModalState.RenderCloseTipImpl(onConfirmToClose: () -> Unit) 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal actual fun BottomSheetsModalState.RenderImpl(
-  emitModalVisibilityChange: (state: EmitModalVisibilityState) -> Boolean
+  emitModalVisibilityChange: (state: EmitModalVisibilityState) -> Boolean,
 ) {
   val mvc = remember {
     ModalViewController.from(this)

@@ -82,7 +82,7 @@ import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.compose.div
 import org.dweb_browser.helper.compose.hoverCursor
 import org.dweb_browser.helper.getCompletedOrNull
-import org.dweb_browser.sys.window.render.LocalWindowController
+import org.dweb_browser.sys.window.core.LocalWindowController
 import squircleshape.CornerSmoothing
 import squircleshape.SquircleShape
 

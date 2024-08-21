@@ -24,10 +24,17 @@ import org.dweb_browser.helper.platform.NativeViewController.Companion.nativeVie
 import org.dweb_browser.helper.platform.PureViewController
 import org.dweb_browser.helper.toPureRect
 import org.dweb_browser.helper.toRect
+import org.dweb_browser.sys.window.core.LocalWindowsManager
 import org.dweb_browser.sys.window.core.WindowController
-import org.dweb_browser.sys.window.core.WindowRenderConfig
 import org.dweb_browser.sys.window.core.WindowsManager
 import org.dweb_browser.sys.window.core.constant.debugWindow
+import org.dweb_browser.sys.window.core.renderConfig.EffectWindowLayerStyleDelegate
+import org.dweb_browser.sys.window.core.renderConfig.FrameDragDelegate
+import org.dweb_browser.sys.window.helper.LocalWindowLimits
+import org.dweb_browser.sys.window.helper.safeBounds
+import org.dweb_browser.sys.window.helper.watchedBounds
+import org.dweb_browser.sys.window.helper.watchedIsMaximized
+import org.dweb_browser.sys.window.helper.watchedState
 
 
 @Composable
@@ -135,10 +142,9 @@ private fun IosWindowPrepare(
       win.state.renderConfig.isWindowUseComposeFrame = true
       /// 应用窗口样式
       val vc = pvc.uiViewControllerInMain
-      win.state.renderConfig.styleWindowFrameDelegate =
-        WindowRenderConfig.StyleWindowFrameDelegate {
-          vc.view.effectWindowFrameStyle(it)
-        }
+      win.state.renderConfig.effectWindowLayerStyleDelegate = EffectWindowLayerStyleDelegate {
+        vc.view.effectWindowFrameStyle(it)
+      }
     }
     /// 键盘视图的交叉渲染
     val windowImeOutsetBounds = calcWindowImeOutsetBounds(windowsManager, win)
@@ -159,10 +165,10 @@ private fun IosWindowPrepare(
     val density = LocalDensity.current.density
     LaunchedEffect(win, limits, density) {
       val rootView = pvc.uiViewControllerInMain.view
-      fun buildPvcDragDelegate(onMove: (dragAmount: Offset) -> Unit): WindowRenderConfig.FrameDragDelegate {
+      fun buildPvcDragDelegate(onMove: (dragAmount: Offset) -> Unit): FrameDragDelegate {
         var prevPosition = Offset.Zero
         var prevViewPosition = Offset.Zero
-        return WindowRenderConfig.FrameDragDelegate(
+        return FrameDragDelegate(
           onStart = { pointerPositionPx ->
             val viewPosition = pvc.getPosition().toOffset()
             val pointerPosition = pointerPositionPx / density

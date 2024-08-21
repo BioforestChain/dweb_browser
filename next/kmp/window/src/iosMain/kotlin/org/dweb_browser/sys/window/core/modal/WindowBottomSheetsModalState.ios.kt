@@ -29,8 +29,8 @@ import org.dweb_browser.helper.platform.PureViewController
 import org.dweb_browser.helper.platform.addMmid
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
 import org.dweb_browser.sys.window.core.windowAdapterManager
-import org.dweb_browser.sys.window.render.LocalWindowControllerTheme
-import org.dweb_browser.sys.window.render.LocalWindowPadding
+import org.dweb_browser.sys.window.helper.LocalWindowControllerTheme
+import org.dweb_browser.sys.window.helper.LocalWindowFrameStyle
 import org.dweb_browser.sys.window.render.incForRender
 import platform.UIKit.UIAction
 import platform.UIKit.UIBarButtonItem
@@ -61,8 +61,7 @@ internal fun BottomSheetsModalState.RenderImplNative(emitModalVisibilityChange: 
   val uiScope = rememberCoroutineScope()
   val sheetUiDelegate by remember {
     lazy {
-      object : NSObject(),
-        UISheetPresentationControllerDelegateProtocol {
+      object : NSObject(), UISheetPresentationControllerDelegateProtocol {
         val onResize = SimpleSignal()
 
         /**
@@ -88,52 +87,50 @@ internal fun BottomSheetsModalState.RenderImplNative(emitModalVisibilityChange: 
       }
     }
   }
-  @Suppress("NAME_SHADOWING", "UNCHECKED_CAST") val pureViewController =
-    remember {
-      PureViewController(
-        params = mapOf(
-          "compositionChain" to compositionChain,
-          "afterDismiss" to sheetUiDelegate.afterDismiss,
-        )
-      ).also { pvc ->
-        pvc.onCreate { params ->
-          pvc.addContent {
-            val compositionChain by params["compositionChain"] as State<CompositionChain>
-            (compositionChain + LocalCompositionChain.current).Provider {
-              val winPadding = LocalWindowPadding.current
-              Column {
-                /// banner
-                TitleBarWithCustomCloseButton(
-                  /// 使用原生的UIKitView来做关闭按钮，所以这里只是做一个简单的占位
-                  { modifier ->
-                    Box(modifier)
-                  }) {
-                }
+  @Suppress("NAME_SHADOWING", "UNCHECKED_CAST") val pureViewController = remember {
+    PureViewController(
+      params = mapOf(
+        "compositionChain" to compositionChain,
+        "afterDismiss" to sheetUiDelegate.afterDismiss,
+      )
+    ).also { pvc ->
+      pvc.onCreate { params ->
+        pvc.addContent {
+          val compositionChain by params["compositionChain"] as State<CompositionChain>
+          (compositionChain + LocalCompositionChain.current).Provider {
+            val winFrameStyle = LocalWindowFrameStyle.current
+            Column {
+              /// banner
+              TitleBarWithCustomCloseButton(
+                /// 使用原生的UIKitView来做关闭按钮，所以这里只是做一个简单的占位
+                { modifier ->
+                  Box(modifier)
+                }) {}
 
-                /// 显示内容
-                BoxWithConstraints(
-                  Modifier.padding(
-                    start = winPadding.start.dp,
-                    end = winPadding.end.dp,
-                    bottom = winPadding.bottom.dp
-                  )
-                ) {
-                  val windowRenderScope = remember(winPadding, maxWidth, maxHeight) {
-                    WindowContentRenderScope(maxWidth, maxHeight)
-                  }
-                  windowAdapterManager.Renderer(
-                    renderId,
-                    windowRenderScope,
-                    Modifier.clip(winPadding.contentRounded.roundedCornerShape)
-                  )
+              /// 显示内容
+              BoxWithConstraints(
+                Modifier.padding(
+                  start = winFrameStyle.startWidth.dp,
+                  end = winFrameStyle.endWidth.dp,
+                  bottom = winFrameStyle.frameSize.bottom.dp
+                )
+              ) {
+                val windowRenderScope = remember(winFrameStyle, maxWidth, maxHeight) {
+                  WindowContentRenderScope(maxWidth, maxHeight)
                 }
+                windowAdapterManager.Renderer(
+                  renderId,
+                  windowRenderScope,
+                  Modifier.clip(winFrameStyle.contentRounded.roundedCornerShape)
+                )
               }
             }
           }
         }
       }
     }
-  val winPadding = LocalWindowPadding.current
+  }
+  val winFrameStyle = LocalWindowFrameStyle.current
   val winTheme = LocalWindowControllerTheme.current
   /// 关闭按钮
   // 关闭按钮的事件
@@ -151,8 +148,7 @@ internal fun BottomSheetsModalState.RenderImplNative(emitModalVisibilityChange: 
   // 菜单关闭按钮的样式
   val closeButton = remember(gestureRecognizer) {
     UIBarButtonItem(
-      primaryAction = gestureRecognizer,
-      menu = null
+      primaryAction = gestureRecognizer, menu = null
     ).also {
       it.title = "Close Bottom Sheet"
       it.image = closeButtonImage
@@ -174,7 +170,7 @@ internal fun BottomSheetsModalState.RenderImplNative(emitModalVisibilityChange: 
           UISheetPresentationControllerDetent.largeDetent(),
         )
       )
-      sheet.preferredCornerRadius = winPadding.contentRounded.topStart.toDouble()
+      sheet.preferredCornerRadius = winFrameStyle.contentRounded.topStart.toDouble()
       // 当滚动到边缘时，滚动扩展
       sheet.prefersScrollingExpandsWhenScrolledToEdge = true
       // 显示可拖动的手柄
@@ -190,8 +186,7 @@ internal fun BottomSheetsModalState.RenderImplNative(emitModalVisibilityChange: 
     /// 配置关闭按钮
     vc.navigationItem.rightBarButtonItem = closeButton
     val afterPresent = CompletableDeferred<Unit>()
-    uiViewController.presentViewController(
-      viewControllerToPresent = nav,
+    uiViewController.presentViewController(viewControllerToPresent = nav,
       animated = true,
       completion = {
         emitModalVisibilityChange(EmitModalVisibilityState.Open)

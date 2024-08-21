@@ -29,9 +29,8 @@ import org.dweb_browser.helper.compose.MetaBallLoadingView
 import org.dweb_browser.helper.compose.SlideNavAnimations
 import org.dweb_browser.helper.defaultAsyncExceptionHandler
 import org.dweb_browser.helper.platform.theme.DwebBrowserAppTheme
-import org.dweb_browser.sys.window.render.LocalWindowController
-import org.dweb_browser.sys.window.render.LocalWindowControllerTheme
-import org.dweb_browser.sys.window.render.watchedState
+import org.dweb_browser.sys.window.helper.LocalWindowControllerTheme
+import org.dweb_browser.sys.window.helper.watchedState
 
 typealias CreateWindowAdapter = suspend (winState: WindowState) -> WindowController?
 

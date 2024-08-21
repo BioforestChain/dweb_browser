@@ -18,7 +18,7 @@ import androidx.compose.ui.zIndex
 import org.dweb_browser.browser.web.model.LocalBrowserViewModel
 import org.dweb_browser.helper.capturable.capturable2
 import org.dweb_browser.helper.compose.clickableWithNoEffect
-import org.dweb_browser.sys.window.render.LocalWindowController
+import org.dweb_browser.sys.window.core.LocalWindowController
 
 @Composable
 fun BrowserContentPager(contentScaled: Float) {
