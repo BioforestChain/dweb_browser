@@ -8,7 +8,18 @@ import org.dweb_browser.browser.jmm.JmmMetadata
 import org.dweb_browser.browser.jmm.JmmStatus
 import org.dweb_browser.browser.jmm.JmmStatusEvent
 import org.dweb_browser.browser.jmm.JsMicroModule
+import org.dweb_browser.browser.resources.Res
+import org.dweb_browser.browser.resources.install_button_downloading
+import org.dweb_browser.browser.resources.install_button_install
+import org.dweb_browser.browser.resources.install_button_installing
+import org.dweb_browser.browser.resources.install_button_jump_home
+import org.dweb_browser.browser.resources.install_button_lower
+import org.dweb_browser.browser.resources.install_button_open
+import org.dweb_browser.browser.resources.install_button_paused
+import org.dweb_browser.browser.resources.install_button_retry
+import org.dweb_browser.browser.resources.install_button_update
 import org.dweb_browser.helper.toSpaceSize
+import org.jetbrains.compose.resources.stringResource
 
 /**
  * 通过 JmmStatusEvent，返回需要显示的状态和文件大小或者进度值
@@ -25,18 +36,19 @@ internal class JmmUiKit(
 ) {
   val jmmStatusEvent get() = metadata.state
   val jmmStatus get() = jmmStatusEvent.state
+
   val labelStart
-    get() = if (!canSupportTarget) {
-      BrowserI18nResource.install_button_jump_home.text
+    @Composable get() = if (!canSupportTarget) {
+      stringResource(Res.string.install_button_jump_home)
     } else when (jmmStatus) {
-      JmmStatus.Init, JmmStatus.Canceled -> BrowserI18nResource.install_button_install.text
-      JmmStatus.NewVersion -> BrowserI18nResource.install_button_update.text
-      JmmStatus.Downloading -> BrowserI18nResource.install_button_downloading.text
-      JmmStatus.Paused -> BrowserI18nResource.install_button_paused.text
-      JmmStatus.Completed -> BrowserI18nResource.install_button_installing.text
-      JmmStatus.INSTALLED -> BrowserI18nResource.install_button_open.text
-      JmmStatus.Failed -> BrowserI18nResource.install_button_retry.text
-      JmmStatus.VersionLow -> BrowserI18nResource.install_button_lower.text
+      JmmStatus.Init, JmmStatus.Canceled -> stringResource(Res.string.install_button_install)
+      JmmStatus.NewVersion -> stringResource(Res.string.install_button_update)
+      JmmStatus.Downloading -> stringResource(Res.string.install_button_downloading)
+      JmmStatus.Paused -> stringResource(Res.string.install_button_paused)
+      JmmStatus.Completed -> stringResource(Res.string.install_button_installing)
+      JmmStatus.INSTALLED -> stringResource(Res.string.install_button_open)
+      JmmStatus.Failed -> stringResource(Res.string.install_button_retry)
+      JmmStatus.VersionLow -> stringResource(Res.string.install_button_lower)
     }
   val labelEnd
     get() = when (jmmStatus) {

@@ -1,7 +1,7 @@
 package org.dweb_browser.browser.desk
 
 import androidx.compose.runtime.Composable
-import dweb_browser_kmp.browser.generated.resources.Res
+import org.dweb_browser.browser.resources.Res
 import io.ktor.http.Url
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.filter

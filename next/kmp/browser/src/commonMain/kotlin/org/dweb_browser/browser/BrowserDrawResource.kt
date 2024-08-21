@@ -3,21 +3,19 @@ package org.dweb_browser.browser
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.ColorFilter
-import dweb_browser_kmp.browser.generated.resources.Res
-import dweb_browser_kmp.browser.generated.resources.ic_engine_360
-import dweb_browser_kmp.browser.generated.resources.ic_engine_baidu
-import dweb_browser_kmp.browser.generated.resources.ic_engine_bing
-import dweb_browser_kmp.browser.generated.resources.ic_engine_sogou
-import dweb_browser_kmp.browser.generated.resources.ic_launcher_foreground
-import dweb_browser_kmp.browser.generated.resources.ic_main_star
-import dweb_browser_kmp.browser.generated.resources.ic_scanner
-import dweb_browser_kmp.browser.generated.resources.ic_web
+import org.dweb_browser.browser.resources.Res
+import org.dweb_browser.browser.resources.ic_engine_360
+import org.dweb_browser.browser.resources.ic_engine_baidu
+import org.dweb_browser.browser.resources.ic_engine_bing
+import org.dweb_browser.browser.resources.ic_engine_sogou
+import org.dweb_browser.browser.resources.ic_launcher_foreground
+import org.dweb_browser.browser.resources.ic_main_star
+import org.dweb_browser.browser.resources.ic_scanner
+import org.dweb_browser.browser.resources.ic_web
 import org.jetbrains.compose.resources.DrawableResource
-import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 
 
-@OptIn(ExperimentalResourceApi::class)
 enum class BrowserDrawResource(
   val urls: List<String>,
   val res: DrawableResource,

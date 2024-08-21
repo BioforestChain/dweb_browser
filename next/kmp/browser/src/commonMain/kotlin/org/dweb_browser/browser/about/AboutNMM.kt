@@ -1,6 +1,6 @@
 package org.dweb_browser.browser.about
 
-import dweb_browser_kmp.browser.generated.resources.Res
+import org.dweb_browser.browser.resources.Res
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.path
 import kotlinx.coroutines.CompletableDeferred

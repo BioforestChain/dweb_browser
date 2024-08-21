@@ -4,7 +4,11 @@ plugins {
   id("kmp-compose")
 }
 kotlin {
-  kmpCommonTarget(project)
+  kmpCommonTarget(project) {
+    dependencies {
+      implementation(compose.components.resources)
+    }
+  }
   
   kmpComposeTarget(project) {
     dependencies {
@@ -82,4 +86,12 @@ kotlin {
       withIosTarget()
     }
   }
+}
+
+compose.resources {
+  publicResClass = true
+  packageOfResClass = "org.dweb_browser.browser.resources"
+//  generateResClass = always
+//  this.customDirectory()
+//  customDirectory("iosMain", )
 }
