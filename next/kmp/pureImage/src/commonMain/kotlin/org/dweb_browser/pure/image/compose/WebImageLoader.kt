@@ -68,7 +68,11 @@ class WebImageLoader : PureImageLoader {
             execToImageBitmap()
           }
           PureImageLoader.urlErrorCount.remove(task.url)
-          ImageLoadResult.success(imageBitmap)
+          imageBitmap?.let {
+            ImageLoadResult.success(it)
+          } ?: run {
+            ImageLoadResult.error(Throwable("image is null"))
+          }
         } catch (e: Throwable) {
           val failTimes = PureImageLoader.urlErrorCount.getOrPut(task.url) { 0 } + 1
           PureImageLoader.urlErrorCount[task.url] = failTimes

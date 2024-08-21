@@ -13,9 +13,11 @@ import org.dweb_browser.core.ipc.helper.IpcEvent
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.channelRequest
+import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.ChangeState
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.ImageResource
+import org.dweb_browser.helper.buildUrlString
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureTextFrame
 import org.dweb_browser.sys.window.core.helper.setStateFromManifest
@@ -73,7 +75,7 @@ class ShortcutNMM : NativeMicroModule("shortcut.sys.dweb", ShortcutI18nResource.
           // 移除重复的
           val remove =
             shortcutList.removeAll { it.title == systemShortcut.title && it.mmid == systemShortcut.mmid }
-          debugShortcut("/registry=>", "remove=$remove")
+          debugShortcut("/registry=>", "remove=$remove >> ${shortcutList.size}")
           if (remove) {
             store.delete(systemShortcut.title)
           }
@@ -84,9 +86,15 @@ class ShortcutNMM : NativeMicroModule("shortcut.sys.dweb", ShortcutI18nResource.
         "shortcutopen" bindDwebDeeplink defineEmptyResponse {
           val mmid = request.query("mmid")
           val data = request.query("data")
-          val ipc = connect(mmid)
-          debugShortcut("shortcut-open=>", "${ipc.remote.mmid}=> $data")
-          ipc.postMessage(IpcEvent.fromUtf8("shortcut", data))
+          if (mmid == this@ShortcutNMM.mmid) { // 如果本身mmid就是自己的话，直接打开应用
+            nativeFetch(buildUrlString("file://desk.browser.dweb/openAppOrActivate") {
+              parameters["app_id"] = mmid
+            })
+          } else {
+            val ipc = connect(mmid)
+            debugShortcut("shortcut-open=>", "${ipc.remote.mmid}=> $data")
+            ipc.postMessage(IpcEvent.fromUtf8("shortcut", data))
+          }
         }
       )
 

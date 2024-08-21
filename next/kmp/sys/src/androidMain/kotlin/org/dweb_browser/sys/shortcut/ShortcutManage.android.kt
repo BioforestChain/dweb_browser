@@ -12,8 +12,10 @@ import kotlinx.serialization.json.Json
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.ImageResource
+import org.dweb_browser.helper.buildUrlString
 import org.dweb_browser.helper.getAppContextUnsafe
 import org.dweb_browser.helper.platform.toAndroidBitmap
+import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.saveString
 import org.dweb_browser.sys.R
 
@@ -31,11 +33,12 @@ actual class ShortcutManage {
   private fun setDynamicShortcuts(shortcutList: List<SystemShortcut>): Boolean {
     val list = mutableListOf<ShortcutInfoCompat>()
     list.addAll(getDefaultShortcuts())
+    debugShortcut("setDynamicShortcuts", "size=${shortcutList.size}")
     shortcutList.forEach { shortcutItem ->
-      val build = ShortcutInfoCompat.Builder(context, shortcutItem.data)
+      val build = ShortcutInfoCompat.Builder(context, randomUUID())
       build.setShortLabel(shortcutItem.title)
-      shortcutItem.icon?.let { icon ->
-        build.setIcon(IconCompat.createWithBitmap(icon.toAndroidBitmap()))
+      shortcutItem.icon?.toAndroidBitmap()?.let { bitmap ->
+        build.setIcon(IconCompat.createWithBitmap(bitmap))
       } ?: run {
         build.setIcon(IconCompat.createWithResource(context, R.drawable.ic_launcher_foreground))
       }
@@ -43,7 +46,10 @@ actual class ShortcutManage {
         action = Intent.ACTION_VIEW
         `package` = context.packageName
         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        data = Uri.parse("dweb://shortcutopen?mmid=${shortcutItem.mmid}&data=${shortcutItem.data}")
+        data = Uri.parse(buildUrlString("dweb://shortcutopen") {
+          parameters["mmid"] = shortcutItem.mmid
+          parameters["data"] = shortcutItem.data
+        })
       })
       list.add(build.build())
     }
@@ -80,9 +86,13 @@ actual class ShortcutManage {
       .setShortLabel(ShortcutI18nResource.default_qrcode_title.text)
       .setIcon(IconCompat.createWithResource(context, R.drawable.ic_main_qrcode_scan))
       .setIntent(Intent().apply {
-        action = "info.bagen.dwebbrowser.scan"
+        action = Intent.ACTION_VIEW // "info.bagen.dwebbrowser.scan"
         `package` = context.packageName
         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        data = Uri.parse(buildUrlString("dweb://shortcutopen") {
+          parameters["mmid"] = "scan.browser.dweb"
+          parameters["data"] = "null"
+        })
       })
       .build()
     return mutableListOf(qrcodeShortcut)
@@ -92,10 +102,19 @@ actual class ShortcutManage {
     return ShortcutInfoCompat.Builder(context, "more")
       .setShortLabel(ShortcutI18nResource.more_title.text)
       .setIcon(IconCompat.createWithResource(context, R.drawable.ic_shutcut_more))
-      .setIntent(Intent(context, ShortcutManageActivity::class.java).apply {
-        action = "${context.packageName}.shortcut.more"
+//      .setIntent(Intent(context, ShortcutManageActivity::class.java).apply {
+//        action = "${context.packageName}.shortcut.more"
+//        `package` = context.packageName
+//        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+//      })
+      .setIntent(Intent().apply {
+        action = Intent.ACTION_VIEW
         `package` = context.packageName
         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        data = Uri.parse(buildUrlString("dweb://shortcutopen") {
+          parameters["mmid"] = "shortcut.sys.dweb"
+          parameters["data"] = "null"
+        })
       })
       .build()
   }

@@ -78,7 +78,11 @@ class ResvgImageLoader : PureImageLoader {
               fitMode = FitMode.CONTAIN
             )
           )
-          imageResultState.emit(ImageLoadResult.success(pngData.toImageBitmap()))
+          pngData.toImageBitmap()?.let {
+            imageResultState.emit(ImageLoadResult.success(it))
+          } ?: run {
+            imageResultState.emit(ImageLoadResult.error(Exception("image decode fail")))
+          }
         }.getOrElse {
           debugResvg("load", "fail", it)
           val failTimes = PureImageLoader.urlErrorCount.getOrPut(task.url) { 0 } + 1

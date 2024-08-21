@@ -10,7 +10,7 @@ import platform.UIKit.UIImage
 import platform.UIKit.UIImagePNGRepresentation
 import platform.posix.memcpy
 
-actual fun ByteArray.toImageBitmap() = skikoToImageBitmap()
+actual fun ByteArray.toImageBitmap(): ImageBitmap? = skikoToImageBitmap()
 
 actual fun ImageBitmap.toByteArray() = skikoToByteArray()
 

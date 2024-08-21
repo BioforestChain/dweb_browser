@@ -2,6 +2,7 @@ package org.dweb_browser.sys.shortcut
 
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import kotlinx.serialization.cbor.ByteString
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.module.NativeMicroModule
@@ -24,6 +25,7 @@ data class SystemShortcut(
   var order: Long = datetimeNow(), // 用于排序，按照时间顺序来，如果后面调整顺序，就修改这个值
   var mmid: MMID = "",
 ) {
+  @Transient
   val iconImage get() = icon?.toImageBitmap()
 
   override fun toString(): String {

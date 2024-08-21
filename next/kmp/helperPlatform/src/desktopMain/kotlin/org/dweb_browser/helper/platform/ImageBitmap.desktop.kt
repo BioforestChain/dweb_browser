@@ -5,7 +5,7 @@ import androidx.compose.ui.graphics.toComposeImageBitmap
 import com.teamdev.jxbrowser.ui.Bitmap
 import com.teamdev.jxbrowser.view.swing.graphics.BitmapImage
 
-actual fun ByteArray.toImageBitmap() = skikoToImageBitmap()
+actual fun ByteArray.toImageBitmap(): ImageBitmap? = skikoToImageBitmap()
 
 actual fun ImageBitmap.toByteArray() = skikoToByteArray()
 

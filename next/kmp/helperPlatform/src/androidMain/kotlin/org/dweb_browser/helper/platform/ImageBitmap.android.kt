@@ -8,10 +8,14 @@ import androidx.compose.ui.graphics.asImageBitmap
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
 
-actual fun ByteArray.toImageBitmap(): ImageBitmap = toAndroidBitmap().asImageBitmap()
+actual fun ByteArray.toImageBitmap(): ImageBitmap? = toAndroidBitmap()?.asImageBitmap()
 
-fun ByteArray.toAndroidBitmap(): Bitmap {
-  return BitmapFactory.decodeByteArray(this, 0, size)
+fun ByteArray.toAndroidBitmap(): Bitmap? {
+  return try {
+    BitmapFactory.decodeByteArray(this, 0, size)
+  } catch (e: Exception) {
+    null
+  }
 }
 
 fun ByteBuffer.toByteArray(): ByteArray {

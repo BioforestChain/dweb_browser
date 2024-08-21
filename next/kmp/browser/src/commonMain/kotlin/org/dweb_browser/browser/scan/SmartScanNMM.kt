@@ -3,15 +3,18 @@ package org.dweb_browser.browser.scan
 import io.ktor.http.HttpStatusCode
 import io.ktor.utils.io.CancellationException
 import org.dweb_browser.browser.BrowserI18nResource
+import org.dweb_browser.browser.desk.openAppOrActivate
 import org.dweb_browser.core.help.types.DwebPermission
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.permission.AuthorizationStatus
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.DisplayMode
 import org.dweb_browser.helper.ImageResource
+import org.dweb_browser.helper.listen
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.sys.permission.SystemPermissionName
 import org.dweb_browser.sys.permission.SystemPermissionTask
@@ -82,6 +85,15 @@ class SmartScanNMM : NativeMicroModule("scan.browser.dweb", "Smart Scan") {
           scanController.saningResult.await()
         },
       )
+
+      // 获取ShortcutManage发起的open操作
+      ipcConnectedProducer.consumer("for-shortcut-scan").listen { connectEvent ->
+        val (ipc) = connectEvent.consume()
+        ipc.onEvent("shortcut").collect {
+          debugSCAN("shortcut", "open scan")
+          openAppOrActivate(this.mmid) // 打开界面
+        }
+      }
     }
 
     private suspend fun requestSystemPermission(): Boolean {
