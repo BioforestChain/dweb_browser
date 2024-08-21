@@ -1,17 +1,11 @@
 package org.dweb_browser.helper.compose
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.text.intl.Locale
 import org.dweb_browser.helper.Debugger
 
 val debugI18n = Debugger("i18n")
-
-@Composable
-private fun i18nResource(res: SimpleI18nResource): String {
-  val language = Locale.current.language
-  return res.valuesMap[Language.getLanguage(language)]
-    ?: res.i18nValues.firstOrNull()?.second ?: "Undefined"
-}
 
 @Composable
 private fun <T> i18nResource(res: OneParamI18nResource<T>, param: T): String {
@@ -30,7 +24,7 @@ enum class Language(val code: String) {
      */
     val current get() = Language.getLanguage(Locale.current.language)
     private val languageMap = entries.associateBy { it.code }
-    fun getLanguage(language: String) = languageMap[language] ?: ZH
+    fun getLanguage(language: String) = languageMap[language] ?: EN
   }
 }
 
@@ -51,19 +45,29 @@ class SimpleI18nResource(
   internal val valuesMap = i18nValues.toMap()
 
   @Composable
-  operator fun invoke() = i18nResource(this)
+  operator fun invoke(): String {
+    val language = Locale.current.language
+    return remember(language, this) {
+      getByLang(Language.getLanguage(language))
+    }
+  }
 
   /**
    * 这个值不能用于Compose界面显示，目前仅用于实时获取的文本。
    */
-  val text get() = valuesMap[Language.current] ?: i18nValues.firstOrNull()?.second ?: "Undefined"
+  val text get() = getByLang(Language.current)
+
+  fun getByLang(lang: Language, secondLanguage: Language = Language.EN): String {
+    return valuesMap[lang] ?: valuesMap[secondLanguage]
+    ?: i18nValues.firstOrNull()?.second ?: ""
+  }
 }
 
 open class I18n {
   companion object {
     fun zh(zh: String, en: String) = SimpleI18nResource(Language.ZH to zh, Language.EN to en)
 
-    data class Zh1(var value: String,)
+    data class Zh1(var value: String)
 
     fun zh1(zh: Zh1.() -> String, en: Zh1.() -> String) =
       OneParamI18nResource({ Zh1("") }, Language.ZH to zh, Language.EN to en)
@@ -97,23 +101,35 @@ class OneParamI18nResource<T>(
   }
 
   @Composable
-  operator fun invoke(buildParam: T.() -> Unit) = paramBuilder().let {
-    it.buildParam()
-    i18nResource(this, it)
+  operator fun invoke(buildParam: @Composable T.() -> Unit): String {
+    val param = paramBuilder().also {
+      it.buildParam()
+    }
+    return invoke(param)
   }
 
   @Composable
-  operator fun invoke(param: T) = i18nResource(this, param)
+  operator fun invoke(param: T): String {
+    val language = Locale.current.language
+    return remember(language, this) {
+      getByLang(Language.getLanguage(language))(param)
+    }
+  }
 
 
   /**
    * 这个值不能用于Compose界面显示，目前仅用于实时获取的文本。
    */
-  fun text(param: T) =
-    (valuesMap[Language.current] ?: i18nValues.firstOrNull()?.second)?.invoke(param) ?: "Undefined"
+  fun text(param: T) = getByLang(Language.current)(param)
 
   fun text(buildParam: T.() -> Unit) = paramBuilder().let {
     it.buildParam()
     text(it)
+  }
+
+
+  fun getByLang(lang: Language, secondLanguage: Language = Language.EN): OneParam<T> {
+    return valuesMap[lang] ?: valuesMap[secondLanguage]
+    ?: i18nValues.firstOrNull()?.second ?: { "" }
   }
 }
