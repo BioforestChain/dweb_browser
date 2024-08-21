@@ -1,6 +1,5 @@
-import { INCOME } from "@dweb-browser/core/ipc/ipc-message/channel/PureChannel.ts";
 import type { $Core, $Ipc, $IpcRequest, $MMID } from "../deps.ts";
-import { ChannelEndpoint, streamRead } from "../deps.ts";
+import { ChannelEndpoint, INCOME, streamRead } from "../deps.ts";
 
 type CreateDuplexIpcType = (ipcPool: $Core.IpcPool, subdomain: string, mmid: $MMID, ipcRequest: $IpcRequest) => $Ipc;
 

@@ -13,6 +13,13 @@
     "@dweb-browser/js-process": "workspace:^",
     "@dweb-browser/polyfill": "workspace:^"
   },
+  "compilerOptions": {
+    "lib": [
+      "esnext",
+      "dom",
+      "dom.iterable"
+    ]
+  },
   "keywords": [],
   "author": "",
   "license": "ISC"

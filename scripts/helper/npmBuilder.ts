@@ -121,7 +121,7 @@ export const npmBuilder = async (config: {
     test: false,
     importMap: importMap,
     compilerOptions: {
-      lib: ["DOM", "ES2020"],
+      lib: ["DOM", "ESNext", "DOM.Iterable"],
       target: "ES2020",
       emitDecoratorMetadata: true,
     },

@@ -19,6 +19,9 @@ export type { $Core };
 
 import type * as $Core from "@dweb-browser/js-process/std-dweb-core.ts";
 
+import { INCOME, OUTGOING } from "@dweb-browser/core/ipc/ipc-message/channel/PureChannel.ts";
+export { INCOME, OUTGOING };
+
 export const { jsProcess, http, ipc, core } = navigator.dweb;
 export const {
   IpcFetchError,

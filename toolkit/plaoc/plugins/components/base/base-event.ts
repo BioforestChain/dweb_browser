@@ -107,8 +107,7 @@ export interface WindowListenerHandle {
   handler: (event: any) => void;
 }
 
-// deno-lint-ignore no-explicit-any
-export type ListenerCallback<K> = (args: K) => any;
+export type ListenerCallback<T> = (event: T) => void | null;
 
 export type Tkit = {
   /**
