@@ -96,7 +96,6 @@ private fun calcWindowFrameStyle(
   bounds: PureRect,// 这里这个不要通过 watchBounds 获得，这会有延迟，应该是直接通过传递参数获得
 ): WindowFrameStyle {
   val maximize by win.watchedIsMaximized()
-  println("QAQ maximize=$maximize")
   val bottomBarTheme by win.watchedState(watchKey = WindowPropertyKeys.BottomBarTheme) { bottomBarTheme }
   val topHeight: Float
   val bottomHeight: Float

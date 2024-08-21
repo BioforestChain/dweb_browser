@@ -22,7 +22,6 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -30,7 +29,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -299,14 +297,13 @@ fun WindowController.WindowRender(modifier: Modifier) {
           }
         }
 
-        var topBarHeight by remember { mutableFloatStateOf(Float.NaN) }
-        var bottomBarHeight by remember { mutableFloatStateOf(Float.NaN) }
+        val topBarHeight = winFrameStyle.frameSize.top
+        val bottomBarHeight = winFrameStyle.frameSize.bottom
         /// 标题栏
         WindowTopBar(
           win,
-          Modifier.height(winFrameStyle.frameSize.top.dp).fillMaxWidth().onGloballyPositioned {
-            topBarHeight = it.size.height / density
-          })
+          Modifier.height(topBarHeight.dp).fillMaxWidth()
+        )
         /// 内容区域
         BoxWithConstraints(
           Modifier.weight(1f).padding(start = 0.dp, end = 0.dp)
@@ -363,10 +360,10 @@ fun WindowController.WindowRender(modifier: Modifier) {
           }
         }
         /// 显示底部控制条
-        WindowBottomBar(win,
-          Modifier.height(winFrameStyle.frameSize.bottom.dp).fillMaxWidth().onGloballyPositioned {
-            bottomBarHeight = it.size.height / density
-          })
+        WindowBottomBar(
+          win,
+          Modifier.height(bottomBarHeight.dp).fillMaxWidth()
+        )
       }
       //#endregion
 

@@ -184,7 +184,7 @@ class JsProcessWebApi(internal val dWebView: IDWebView) {
             addEventListener("message", async function doCreateIpc(event) {
                 if (event.data.startsWith(prefix)) {
                   const manifest_json = event.data.slice(prefix.length);
-                  try{
+                  try {
                       removeEventListener("message", doCreateIpc);
                       const ipc_port = event.ports[0];
                       const on_close_po = window['$onCloseCallbackId'];

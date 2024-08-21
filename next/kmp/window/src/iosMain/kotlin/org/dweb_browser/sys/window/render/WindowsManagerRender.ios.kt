@@ -5,11 +5,11 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.State
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
-import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalDensity
@@ -30,6 +30,7 @@ import org.dweb_browser.sys.window.core.WindowsManager
 import org.dweb_browser.sys.window.core.constant.debugWindow
 import org.dweb_browser.sys.window.core.renderConfig.EffectWindowLayerStyleDelegate
 import org.dweb_browser.sys.window.core.renderConfig.FrameDragDelegate
+import org.dweb_browser.sys.window.helper.LocalWindowFrameStyle
 import org.dweb_browser.sys.window.helper.LocalWindowLimits
 import org.dweb_browser.sys.window.helper.safeBounds
 import org.dweb_browser.sys.window.helper.watchedBounds
@@ -62,17 +63,17 @@ actual fun <T : WindowController> WindowsManager<T>.SceneRender(modifier: Modifi
 }
 
 private class IosWindowNativeView(
-  params: Map<String, Any?>,
   private val win: WindowController,
   private val windowsManager: WindowsManager<*>,
+  val compositionChainState: MutableState<CompositionChain>,
 ) {
-  val pvc = PureViewController(params, false).also { pvc ->
+  val pvc = PureViewController(fullscreen = false).also { pvc ->
     win.onClose {
       nativeViewController.remove(pvc)
     }
-    pvc.onCreate { params ->
-      @Suppress("UNCHECKED_CAST") pvc.addContent {
-        val compositionChain by params["compositionChain"] as State<CompositionChain>
+    pvc.onCreate {
+      pvc.addContent {
+        val compositionChain by compositionChainState
         (compositionChain + LocalCompositionChain.current).Provider(LocalWindowsManager provides windowsManager) {
           /// 渲染窗口
           win.WithMaterialTheme {
@@ -85,15 +86,17 @@ private class IosWindowNativeView(
 
   companion object {
     private val INSTANCES = WeakHashMap<WindowController, IosWindowNativeView>()
+
+    @Composable
     fun from(
       win: WindowController,
       windowsManager: WindowsManager<*>,
-      compositionChain: State<CompositionChain>,
+      createCompositionChainState: @Composable () -> MutableState<CompositionChain>,
     ) = IosWindowNativeView.INSTANCES.getOrPut(win) {
       IosWindowNativeView(
-        mutableMapOf(
-          "compositionChain" to compositionChain,
-        ), win, windowsManager
+        win = win,
+        windowsManager = windowsManager,
+        compositionChainState = createCompositionChainState(),
       )
     }
   }
@@ -111,11 +114,13 @@ private fun IosWindowPrepare(
     winMaxWidth = sceneMaxWidth,
     winMaxHeight = sceneMaxHeight,
   ) {
-    val pvc = IosWindowNativeView.from(
+    val iosWindowNativeView = IosWindowNativeView.from(
       win = win,
       windowsManager = windowsManager,
-      compositionChain = rememberUpdatedState(LocalCompositionChain.current)
-    ).pvc
+      createCompositionChainState = { mutableStateOf(LocalCompositionChain.current) }
+    )
+    iosWindowNativeView.compositionChainState.value = LocalCompositionChain.current
+    val pvc = iosWindowNativeView.pvc
     val zIndex by win.watchedState(zIndexBase) { zIndex + zIndexBase }
     /// 视图的显示与关闭
     DisposableEffect(pvc) {
