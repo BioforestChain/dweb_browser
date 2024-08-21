@@ -24,6 +24,12 @@
     "sync": "deno run -A ./scripts/sync_npm.ts",
     "toolkit:fix-import": "deno run -A ./scripts/toolKitFix.ts"
   },
+  "workspace": [
+    "./toolkit/dweb-core",
+    "./toolkit/dweb-helper",
+    "./toolkit/plaoc/server",
+    "./toolkit/dweb-js-process-assets"
+  ],
   "imports": {
     "@deno/dnt": "jsr:@deno/dnt@^0.41.1",
     "@dweb-browser/core": "./toolkit/dweb-core/index.ts",
@@ -67,9 +73,11 @@
   },
   "exclude": [
     "npm",
+    "node_modules",
     "toolkit/dweb-desk-assets",
     "toolkit/dweb-offscreen-web-canvas-assets",
     "toolkit/dweb-profile",
     "toolkit/plaoc/examples/plugin-demo"
-  ]
+  ],
+  "nodeModulesDir": false
 }
