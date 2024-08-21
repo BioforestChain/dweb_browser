@@ -78,8 +78,10 @@ sealed class DesktopControllerBase(
            * 移除桌面快捷方式
            */
           "/removeWebLink" bind PureMethod.GET by defineBooleanResponse {
-            val mmid = request.queryOrNull("app_id")
-              ?: throwException(HttpStatusCode.BadRequest, "not found app_id")
+            val mmid = request.queryOrNull("app_id") ?: throwException(
+              HttpStatusCode.BadRequest,
+              "not found app_id"
+            )
             debugDesk("removeWebLink", "called => mmid=$mmid")
             desktopController.removeWebLink(mmid)
           },
@@ -88,8 +90,7 @@ sealed class DesktopControllerBase(
            */
           "/openBrowser" bind PureMethod.GET by defineBooleanResponse {
             val url = request.queryOrNull("url") ?: throwException(
-              HttpStatusCode.BadRequest,
-              "not found url"
+              HttpStatusCode.BadRequest, "not found url"
             )
             debugDesk("openBrowser", "called => url=$url")
             try {
@@ -171,7 +172,12 @@ sealed class DesktopControllerBase(
   }
 
   suspend fun search(words: String) {
-    deskNMM.nativeFetch("file://web.browser.dweb/search?q=$words")
+    deskNMM.nativeFetch(
+      when (words.startsWith("dweb://")) {
+        true -> words
+        else -> "file://web.browser.dweb/search?q=$words"
+      }
+    )
   }
 
   suspend fun getDesktopApps(): List<DeskAppMetaData> {
@@ -202,8 +208,7 @@ sealed class DesktopControllerBase(
 //    _desktopView.await()
 //    val vc = this.activity!!
     DesktopWindowsManager.getOrPutInstance(
-      viewController,
-      IPureViewBox.from(viewController)
+      viewController, IPureViewBox.from(viewController)
     ) { dwm ->
       val watchWindows = mutableMapOf<WindowController, OffListener<*>>()
       fun watchAllWindows() {
