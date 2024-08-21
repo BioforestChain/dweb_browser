@@ -24,7 +24,7 @@ object DwebViewProxy {
   }
 
   init {
-    dwebHttpGatewayService.server.onPortChange("DwebViewProxy") {
+    dwebHttpGatewayService.server.onPortChange("DwebViewProxy", emitOnInit = false) {
       debugDWebView("reverse_proxy", "reset")
       prepare.reset()
       reverseProxyServer.close()
