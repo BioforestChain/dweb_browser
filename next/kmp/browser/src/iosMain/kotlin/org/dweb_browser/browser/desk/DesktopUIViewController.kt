@@ -24,11 +24,13 @@ class DesktopUIViewController(val vc: PureViewController) {
         imeVisibleState.value = imeInsets.getBottom(density) != 0
       }
     }
-    @OptIn(InternalComposeApi::class)
-    vc.addContent {
-      val offscreenWebCanvas = rememberOffscreenWebCanvas()
-      LaunchedEffect(offscreenWebCanvas) {
-        vc.getUiViewController().view.addSubview(offscreenWebCanvas.webview)
+    if (false) {
+      @OptIn(InternalComposeApi::class)
+      vc.addContent {
+        val offscreenWebCanvas = rememberOffscreenWebCanvas()
+        LaunchedEffect(offscreenWebCanvas) {
+          vc.getUiViewController().view.addSubview(offscreenWebCanvas.webview)
+        }
       }
     }
   }

@@ -20,7 +20,6 @@ import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import kotlinx.serialization.encodeToString
@@ -390,10 +389,16 @@ class DWebViewEngine internal constructor(
 
   override fun onDetachedFromWindow() {
     if (options.detachedStrategy == DWebViewOptions.DetachedStrategy.Default) {
-      attachedStateFlow.value = false
       super.onDetachedFromWindow()
     }
   }
+
+//  /**
+//   * onAttachedToWindow yi
+//   */
+//  override fun onAttachedToWindow() {
+//    super.onAttachedToWindow()
+//  }
 
   override fun onPause() {
     if (options.detachedStrategy == DWebViewOptions.DetachedStrategy.Default) {
@@ -401,19 +406,6 @@ class DWebViewEngine internal constructor(
     }
   }
 
-  /**
-   * onAttachedToWindow yi
-   */
-  override fun onAttachedToWindow() {
-    val url = originalUrl
-//    println("QAQ onAttachedToWindow isAttachedToWindow=${super.isAttachedToWindow()} url=$url progress=$progress")
-//    if (!attachedStateFlow.value) {
-    attachedStateFlow.value = url != null
-    super.onAttachedToWindow()
-//    }
-  }
-
-  val attachedStateFlow = MutableStateFlow(false);
   val closeWatcher = CloseWatcher(this)
   val dwebFavicon = FaviconPolyfill(this)
 

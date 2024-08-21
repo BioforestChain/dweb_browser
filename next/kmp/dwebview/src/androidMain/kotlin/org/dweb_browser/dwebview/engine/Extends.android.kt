@@ -1,5 +1,7 @@
 package org.dweb_browser.dwebview.engine
 
+import org.dweb_browser.helper.SafeHashMap
+
 class Extends<T : Any> {
   class Config(val order: Int = 0)
 
@@ -19,8 +21,8 @@ class Extends<T : Any> {
     } ?: false
   }
 
-  private val instanceMap = mutableMapOf<T, Config>()
-  private val methodCache = mutableMapOf<String, List<T>>()
+  private val instanceMap = SafeHashMap<T, Config>()
+  private val methodCache = SafeHashMap<String, List<T>>()
   private fun resetCacheBy(instance: T) {
     for (method in instance.javaClass.declaredMethods) {
       methodCache.remove(method.name)

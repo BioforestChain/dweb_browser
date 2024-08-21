@@ -68,7 +68,7 @@ class BrowserPagerStates(val viewModel: BrowserViewModel) {
     LaunchedEffect(Unit) {
       delay(200)
       isFirstView = false
-      println("QAQ isFirstView done")
+      println("QWQ isFirstView done")
     }
   }
 

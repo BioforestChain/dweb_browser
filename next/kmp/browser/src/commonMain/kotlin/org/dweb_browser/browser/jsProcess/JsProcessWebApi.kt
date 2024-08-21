@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.browser.kit.GlobalWebMessageEndpoint
-import org.dweb_browser.core.http.dwebHttpGatewayServer
+import org.dweb_browser.core.http.dwebHttpGatewayService
 import org.dweb_browser.core.ipc.helper.IWebMessagePort
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.http.HttpDwebServer
@@ -23,6 +23,7 @@ import org.dweb_browser.helper.compose.envSwitch
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.resolvePath
 import org.dweb_browser.helper.withMainContext
+import org.dweb_browser.pure.http.onPortChange
 
 @Serializable
 data class ProcessInfo(@SerialName("process_id") val processId: Int, var portId: Int = -1)
@@ -32,6 +33,19 @@ data class CreateProcessReturn(val processToken: UUID, val portId: Int)
 
 data class RunProcessMainOptions(val main_url: String)
 class JsProcessWebApi(internal val dWebView: IDWebView) {
+  init {
+    dwebHttpGatewayService.server.onPortChange("updateGatewayPort", false) { port ->
+      debugJsProcess("updateGatewayPort/start", port)
+      runCatching {
+        dWebView.evaluateAsyncJavascriptCode(
+          "updateGatewayPort($port)"
+        )
+      }.getOrElse {
+        debugJsProcess("updateGatewayPort/error", port, it)
+      }
+      debugJsProcess("updateGatewayPort/end", port)
+    }
+  }
 
   /**
    * 执行js"多步骤"代码时的并发编号
@@ -64,7 +78,7 @@ class JsProcessWebApi(internal val dWebView: IDWebView) {
     val metadataJsonStr = Json.encodeToString(metadataJson)
     val envJsonStr = Json.encodeToString(envJson)
     val processNameStr = Json.encodeToString(processName)
-    val gatewayPort = dwebHttpGatewayServer.startServer()
+    val gatewayPort = dwebHttpGatewayService.getPort()
 
     val onTerminateCallbackId = "onTerminate-${randomUUID()}"
     val onTerminateCallbackReady = CompletableDeferred<Unit>()

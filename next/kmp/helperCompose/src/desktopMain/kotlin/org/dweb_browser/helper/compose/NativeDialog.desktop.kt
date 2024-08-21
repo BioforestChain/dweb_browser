@@ -12,7 +12,6 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeDialog
 import androidx.compose.ui.graphics.toAwtImage
-import androidx.compose.ui.layout.onGloballyPositioned
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.platform.LocalPureViewController
 import org.dweb_browser.helper.platform.PureViewController
@@ -77,10 +76,7 @@ actual fun NativeDialog(
   dialog.compositionLocalContext = currentCompositionLocalContext
   remember(setContent, onCloseRequest) {
     dialog.setContent {
-      Box(Modifier.sizeIn(minWidth = DialogMinWidth, maxWidth = DialogMaxWidth)
-        .onGloballyPositioned {
-          println("QAQ window content size=${it.size}")
-        }) {
+      Box(Modifier.sizeIn(minWidth = DialogMinWidth, maxWidth = DialogMaxWidth)) {
         setContent()
       }
     }

@@ -27,7 +27,7 @@ suspend fun main(vararg args: String) {
   // 先预先加载jxbrowser engine，避免第一次加载webview时需要解压jxbrowser导致启动慢
   if (envSwitch.isEnabled(ENV_SWITCH_KEY.DESKTOP_STYLE_COMPOSE)) {
     globalEmptyScope.launch {
-      println("QAQ chromiumDir=${webViewEngine.offScreenEngine.options().chromiumDir()}")
+      println("QWQ chromiumDir=${webViewEngine.offScreenEngine.options().chromiumDir()}")
     }
   }
 

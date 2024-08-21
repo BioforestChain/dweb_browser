@@ -9,7 +9,6 @@ fun setupOverrideUrlLoadingHooks(engine: DWebViewEngine) =
     engine.browser.navigation()
       .set(StartNavigationCallback::class.java, StartNavigationCallback { navParams ->
         val params = OverrideUrlLoadingParams(navParams.url(), navParams.isMainFrame)
-        println("QAQ OverrideUrlLoadingHooks params=$params")
         for (hook in hooks) {
           return@StartNavigationCallback when (params.hook()) {
             UrlLoadingPolicy.Allow -> continue

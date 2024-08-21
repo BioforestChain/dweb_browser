@@ -19,17 +19,14 @@ import io.ktor.utils.io.CancellationException
 import io.ktor.websocket.Frame
 import io.ktor.websocket.close
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import org.dweb_browser.helper.Debugger
-import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.commonAsyncExceptionHandler
 import org.dweb_browser.helper.consumeEachArrayRange
 import org.dweb_browser.helper.globalDefaultScope
@@ -39,17 +36,16 @@ import org.dweb_browser.pure.http.PureChannel
 import org.dweb_browser.pure.http.PureFrame
 import org.dweb_browser.pure.http.PureResponse
 import org.dweb_browser.pure.http.WS_BAD_GATEWAY
-
-val debugHttpPureServer = Debugger("httpPureServer")
-
+import org.dweb_browser.pure.http.debugHttpPureServer
+import kotlin.coroutines.CoroutineContext
 
 open class KtorPureServer<out TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
-  val serverEngine: ApplicationEngineFactory<TEngine, TConfiguration>,
+  private val serverEngineFactory: ApplicationEngineFactory<TEngine, TConfiguration>,
   val onRequest: HttpPureServerOnRequest,
 ) {
-  protected var serverDeferred = CompletableDeferred<ApplicationEngine>()
+  protected var serverEngine: ApplicationEngine? = null
   protected val serverLock = Mutex()
-  protected fun createServer(
+  protected open fun createServer(
     config: TConfiguration.() -> Unit = {},
     envBuilder: ApplicationEngineEnvironmentBuilder.() -> Unit,
   ): ApplicationEngine {
@@ -122,19 +118,10 @@ open class KtorPureServer<out TEngine : ApplicationEngine, TConfiguration : Appl
       })
     }
     return embeddedServer(
-      factory = serverEngine,
+      factory = serverEngineFactory,
       //
       environment = applicationEngineEnvironment {
-        parentCoroutineContext = ioAsyncExceptionHandler + CoroutineExceptionHandler { ctx, e ->
-          if (e.message?.contains("ENOTCONN (57)") == true) {
-            WARNING(e.message)
-            globalDefaultScope.launch(start = CoroutineStart.UNDISPATCHED) {
-              close()
-            }
-          } else {
-            commonAsyncExceptionHandler.handleException(ctx, e)
-          }
-        }
+        parentCoroutineContext = ioAsyncExceptionHandler + getCoroutineExceptionHandler()
         log = KtorSimpleLogger("pure-server")
         watchPaths = emptyList()
         module(applicationModule)
@@ -145,20 +132,32 @@ open class KtorPureServer<out TEngine : ApplicationEngine, TConfiguration : Appl
     )
   }
 
+  protected open fun getCoroutineExceptionHandler(): CoroutineContext = commonAsyncExceptionHandler
+
   protected suspend inline fun startServer(createServer: () -> ApplicationEngine) =
     serverLock.withLock {
-      if (!serverDeferred.isCompleted) {
-        createServer().also {
-          it.start(wait = false)
-          serverDeferred.complete(it)
-          it.addShutdownHook {
-            globalDefaultScope.launch(start = CoroutineStart.UNDISPATCHED) {
-              close()
+      val engine = when (val engine = serverEngine) {
+        null -> {
+          createServer().also { newEngine ->
+            newEngine.start(wait = false)
+            this.serverEngine = newEngine
+            newEngine.addShutdownHook {
+              debugHttpPureServer("startServer/addShutdownHook", "shutdown")
+              globalDefaultScope.launch(start = CoroutineStart.UNDISPATCHED) {
+                close()
+              }
             }
           }
         }
+
+        else -> engine
       }
-      getPort().also { serverStateFlow.value = it }
+      serverStateFlow.value ?: engine.getPort().also {
+        debugHttpPureServer("serverStateFlow/emit") {
+          "${this@KtorPureServer}/$serverStateFlow emit($it)"
+        }
+        serverStateFlow.emit(it)
+      }
     }
 
   open suspend fun start(port: UShort) = startServer {
@@ -169,40 +168,26 @@ open class KtorPureServer<out TEngine : ApplicationEngine, TConfiguration : Appl
       }
     }
   }
-//  serverLock.withLock {
-//    if (!serverDeferred.isCompleted) {
-//      createServer {
-//        connector {
-//          this.port = port.toInt()
-//          this.host = "0.0.0.0"
-//        }
-//      }.also {
-//        println("QAQ KtorStart 1")
-//        it.start(wait = false)
-//        println("QAQ KtorStart 2")
-//        serverDeferred.complete(it)
-//        it.addShutdownHook {
-//          println("QAQ KtorStart 3")
-//          serverStateFlow.value = null
-//        }
-//      }
-//    }
-//
-//    getPort().also { serverStateFlow.value = it }
-//  }
 
-  protected suspend fun getPort() =
-    serverDeferred.await().resolvedConnectors().first().port.toUShort()
+  protected suspend fun getPort() = serverEngine?.getPort()
 
-  @OptIn(ExperimentalCoroutinesApi::class)
   suspend fun close() = serverLock.withLock {
-    if (serverDeferred.isCompleted) {
-      serverDeferred.getCompleted().stop()
-      serverDeferred = CompletableDeferred()
-      serverStateFlow.value = null
+    serverEngine?.also { engine ->
+      serverEngine = null
+      engine.stop()
+      serverStateFlow.emit(null)
     }
+    Unit
   }
 
   protected val serverStateFlow = MutableStateFlow<UShort?>(null)
-  val stateFlow = serverStateFlow.asStateFlow()
+  val stateFlow2 by lazy { serverStateFlow.asStateFlow() }
+  val stateFlow = serverStateFlow as StateFlow<UShort?>
+}
+
+
+suspend fun ApplicationEngine.getPort(): UShort {
+  val connectors = resolvedConnectors()
+  debugHttpPureServer("getPort") { connectors.joinToString(",") { "${it.type.name.lowercase()}://${it.host}:${it.port}" } }
+  return connectors.first().port.toUShort()
 }

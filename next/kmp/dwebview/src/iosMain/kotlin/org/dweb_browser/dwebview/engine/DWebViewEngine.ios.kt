@@ -18,7 +18,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import org.dweb_browser.core.help.types.MMID
-import org.dweb_browser.core.http.dwebHttpGatewayServer
+import org.dweb_browser.core.http.dwebHttpGatewayService
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.IDWebView
@@ -207,7 +207,7 @@ class DWebViewEngine(
           } else inputUrl
         } else {
           /// 处理 http://{*.dweb}-{port}.localhost:{gateway-port} ，直接翻译成 dweb+http://{*.dweb}:{port}
-          val httpLocalhostGatewaySuffix = dwebHttpGatewayServer.getHttpLocalhostGatewaySuffix()
+          val httpLocalhostGatewaySuffix = dwebHttpGatewayService.getHttpLocalhostGatewaySuffix()
           val inputHostWithPort = url.hostWithPort
           if (url.protocol == URLProtocol.HTTP && inputHostWithPort.endsWith(
               httpLocalhostGatewaySuffix

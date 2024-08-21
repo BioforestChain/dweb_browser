@@ -33,6 +33,7 @@ declare global {
     brands: { brand: string; version: string; fullVersion?: string };
     version: number;
     patch: number;
+    gatewayPort: number;
   }
   interface WorkerNavigator {
     readonly dweb: DWebCore;
@@ -528,6 +529,7 @@ export const installEnv = async (metadata: Metadata, gatewayPort: number) => {
     brands,
     version,
     patch,
+    gatewayPort,
   } satisfies DWebCore;
   // Object.assign(globalThis, dweb);
   Object.assign(navigator, { dweb });
@@ -545,7 +547,7 @@ export const installEnv = async (metadata: Metadata, gatewayPort: number) => {
         constructor(url: string | URL, protocols?: string | string[] | undefined) {
           let input = "wss://http.std.dweb/websocket";
           if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-            input = `ws://localhost:${gatewayPort}?X-Dweb-Url=${input.replace("wss:", "ws:")}`;
+            input = `ws://localhost:${dweb.gatewayPort}?X-Dweb-Url=${input.replace("wss:", "ws:")}`;
           }
 
           if (typeof url === "string") {
@@ -562,7 +564,15 @@ export const installEnv = async (metadata: Metadata, gatewayPort: number) => {
 
   /// 安装完成，告知外部
   workerGlobal.postMessage(["env-ready"]);
-
+  workerGlobal.addEventListener("message", async function updateGatewayPort(event) {
+    const data = event.data;
+    if (Array.isArray(event.data) === false) {
+      return;
+    }
+    if (data[0] === "updateGatewayPort") {
+      dweb.gatewayPort = data[1];
+    }
+  });
   workerGlobal.addEventListener("message", async function runMain(event) {
     const data = event.data;
     if (Array.isArray(event.data) === false) {

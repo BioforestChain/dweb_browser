@@ -1,12 +1,15 @@
 package org.dweb_browser.helper.platform
 
 import android.os.Environment
+import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.getAppContextUnsafe
 import org.dweb_browser.helper.utf8Binary
 import org.dweb_browser.helper.utf8String
 import org.dweb_browser.pure.crypto.hash.jvmSha256
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
+
+val debugDeviceKeyValueStore = Debugger("DeviceKeyValueStore")
 
 /**
  * 一个不依赖外部存储权限，能在外部存储写入数据的工具类
@@ -25,7 +28,7 @@ actual class DeviceKeyValueStore actual constructor(
     val externalDir by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
       Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
         .resolve("dweb-kv/${getAppContextUnsafe().packageName}")
-        .also { println("QAQ DeviceKeyValueStore.externalDir=$it") }
+        .also { debugDeviceKeyValueStore("externalDir", it) }
     }
   }
 

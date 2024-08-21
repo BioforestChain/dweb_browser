@@ -16,6 +16,11 @@ const ALL_PROCESS_MAP = new ChangeableMap<
 let acc_process_id = 0;
 const allocProcessId = () => acc_process_id++;
 
+const updateGatewayPort = (gatewayPort: number) => {
+  for (const { worker } of ALL_PROCESS_MAP.values()) {
+    worker.postMessage(["updateGatewayPort", gatewayPort]);
+  }
+};
 /**
  * 创建 woker 线程 同样是当做一个程序角色
  * @param env_script_url 需要导入的环境目录 *** bootstramp.js 也就是 js-prcess.woker.cts 代码部分
@@ -216,6 +221,7 @@ export const APIS = {
   runProcessMain,
   createIpc,
   destroyProcess,
+  updateGatewayPort,
   PromiseOut,
 };
 export type $RunMainConfig = {

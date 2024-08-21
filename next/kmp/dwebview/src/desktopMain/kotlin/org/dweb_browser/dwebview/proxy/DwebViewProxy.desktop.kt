@@ -2,18 +2,19 @@ package org.dweb_browser.dwebview.proxy
 
 
 import kotlinx.coroutines.async
-import org.dweb_browser.core.http.dwebHttpGatewayServer
+import org.dweb_browser.core.http.dwebHttpGatewayService
 import org.dweb_browser.dwebview.debugDWebView
 import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.globalIoScope
 import org.dweb_browser.pure.http.ReverseProxyServer
+import org.dweb_browser.pure.http.onPortChange
 
 object DwebViewProxy {
   private val reverseProxyServer = ReverseProxyServer()
   val prepare = SuspendOnce {
     proxyUrl = globalIoScope.async {
       debugDWebView("reverse_proxy", "starting")
-      val backendServerPort = dwebHttpGatewayServer.startServer().toUShort()
+      val backendServerPort = dwebHttpGatewayService.getPort()
       val proxyPort = reverseProxyServer.start(backendServerPort)
       debugDWebView("reverse_proxy") {
         "running proxyPort=${proxyPort},  backendServerPort=${backendServerPort}"
@@ -23,7 +24,7 @@ object DwebViewProxy {
   }
 
   init {
-    dwebHttpGatewayServer.onClosed {
+    dwebHttpGatewayService.server.onPortChange("DwebViewProxy") {
       debugDWebView("reverse_proxy", "reset")
       prepare.reset()
       reverseProxyServer.close()
