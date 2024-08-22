@@ -29,6 +29,7 @@
     "./toolkit/plaoc/server",
     "./toolkit/plaoc/plugins",
     "./toolkit/plaoc/cli",
+    "./toolkit/plaoc/is-dweb",
     "./toolkit/dweb-js-process-assets"
   ],
   "imports": {
