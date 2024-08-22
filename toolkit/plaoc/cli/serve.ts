@@ -1,3 +1,4 @@
+import Mime from "mime";
 import crypto from "node:crypto";
 import fs from "node:fs";
 import http from "node:http";
@@ -5,9 +6,8 @@ import os from "node:os";
 import { generate, QRErrorCorrectLevel } from "npm:ts-qrcode-terminal";
 import { colors, NumberPrompt } from "./deps/cliffy.ts";
 import { SERVE_MODE, type $ServeOptions } from "./helper/const.ts";
-import { injectPrepare, MetadataJsonGenerator, BundleResourceNameHelper } from "./helper/generator.ts";
+import { BundleResourceNameHelper, injectPrepare, MetadataJsonGenerator } from "./helper/generator.ts";
 import { startStaticFileServer, staticServe } from "./helper/http-static-helper.ts";
-import Mime from "mime";
 
 // deno-lint-ignore require-await
 const doServe = async (flags: $ServeOptions, staticFileServerPort?: number) => {
@@ -30,7 +30,7 @@ const doServe = async (flags: $ServeOptions, staticFileServerPort?: number) => {
   let { bundleFlagHelper, bundleResourceNameHelper } = injectPrepare(flags, metadataFlagHelper);
 
   /// 启动http服务器
-  const server = http.createServer().listen(port, async () => {
+  const server = http.createServer().listen(port, "0.0.0.0", async () => {
     const map: { hostname: string; dwebLink: string }[] = [];
     let index = 0;
     for (const info of Object.values(os.networkInterfaces())

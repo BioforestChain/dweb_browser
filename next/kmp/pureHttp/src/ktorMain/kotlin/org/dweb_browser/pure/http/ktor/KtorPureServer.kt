@@ -23,7 +23,6 @@ import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -154,7 +153,7 @@ open class KtorPureServer<out TEngine : ApplicationEngine, TConfiguration : Appl
       }
       serverStateFlow.value ?: engine.getPort().also {
         debugHttpPureServer("serverStateFlow/emit") {
-          "${this@KtorPureServer}/$serverStateFlow emit($it)"
+          "emit($it) in ${this@KtorPureServer}"
         }
         serverStateFlow.emit(it)
       }
@@ -180,8 +179,13 @@ open class KtorPureServer<out TEngine : ApplicationEngine, TConfiguration : Appl
     Unit
   }
 
+  suspend fun getDebugInfo(): String {
+    return serverEngine?.resolvedConnectors()?.joinToString(", ") {
+      "${it.type.name.lowercase()}://${it.host}:${it.port}"
+    } ?: "No Start Yet."
+  }
+
   protected val serverStateFlow = MutableStateFlow<UShort?>(null)
-  val stateFlow2 by lazy { serverStateFlow.asStateFlow() }
   val stateFlow = serverStateFlow as StateFlow<UShort?>
 }
 

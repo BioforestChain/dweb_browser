@@ -11,6 +11,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -283,8 +284,12 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
   }
 
   private val runtimeLock = Mutex()
-  var runtimeOrNull: Runtime? = null
-    private set
+  val runtimeFlow = MutableStateFlow<Runtime?>(null)
+  var runtimeOrNull
+    get() = runtimeFlow.value
+    private set(value) {
+      runtimeFlow.value = value
+    }
   val isRunning get() = runtimeOrNull?.isRunning != true
   open val runtime get() = runtimeOrNull ?: throw IllegalStateException("$this is no running")
   suspend fun bootstrap(bootstrapContext: BootstrapContext) = runtimeLock.withLock {

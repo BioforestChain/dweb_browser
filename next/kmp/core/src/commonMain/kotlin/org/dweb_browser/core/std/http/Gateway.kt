@@ -11,8 +11,8 @@ import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureResponse
 import org.dweb_browser.pure.http.PureServerRequest
 
-data class Gateway(
-  val listener: PortListener, val urlInfo: HttpNMM.ServerUrlInfo, val token: String,
+internal data class Gateway(
+  val listener: PortListener, val urlInfo: ServerUrlInfo, val token: String,
 ) {
 
   data class PortListener(

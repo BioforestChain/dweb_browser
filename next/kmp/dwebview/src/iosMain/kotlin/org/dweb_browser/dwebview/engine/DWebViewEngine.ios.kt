@@ -19,6 +19,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.http.dwebHttpGatewayService
+import org.dweb_browser.core.http.dwebProxyService
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.IDWebView
@@ -35,12 +36,12 @@ import org.dweb_browser.dwebview.messagePort.DWebViewWebMessage
 import org.dweb_browser.dwebview.polyfill.DWebViewWebSocketMessageHandler
 import org.dweb_browser.dwebview.polyfill.DwebViewIosPolyfill
 import org.dweb_browser.dwebview.polyfill.FaviconPolyfill
-import org.dweb_browser.dwebview.proxy.DwebViewProxy
 import org.dweb_browser.dwebview.wkWebsiteDataStore
 import org.dweb_browser.helper.JsonLoose
 import org.dweb_browser.helper.PureBounds
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
+import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.platform.toImageBitmap
 import org.dweb_browser.helper.some
@@ -98,14 +99,6 @@ class DWebViewEngine(
   registryDwebHttpUrlSchemeHandler(remoteMM, it)
   registryDwebSchemeHandler(remoteMM, it)
 
-  // TODO 监听 DwebViewProxy.proxyUrlFlow 变动，自动重启 WKWebView
-  // 需要在 websiteDataStore 上设置代理
-  val url = Url(DwebViewProxy.proxyUrl)
-  dwebHelper.setProxyWithWebsiteDataStore(
-    profile.store,
-    url.host,
-    url.port.toUShort(),
-  )
   /// 必须在 WKWebView 得到 configuration 之前，就要进行 websiteDataStore 的配置
   configuration.websiteDataStore = profile.store
   val preferences = WKPreferences()
@@ -119,6 +112,21 @@ class DWebViewEngine(
 }) {
   val mainScope = CoroutineScope(mainAsyncExceptionHandler + SupervisorJob())
   val lifecycleScope = CoroutineScope(remoteMM.getRuntimeScope().coroutineContext + SupervisorJob())
+
+  init {
+    /// 监听 DwebViewProxy.proxyUrlFlow 变动，自动更新 WKWebView 代理
+    dwebProxyService.proxyUrl.collectIn(lifecycleScope) { proxyUrl ->
+      if (proxyUrl != null) {
+        debugDWebView("setProxyWithWebsiteDataStore", proxyUrl)
+        val url = Url(proxyUrl)
+        dwebHelper.setProxyWithWebsiteDataStore(
+          profile.store,
+          url.host,
+          url.port.toUShort(),
+        )
+      }
+    }
+  }
 
   val loadingProgressStateFlow = MutableStateFlow<Float>(1f)
   val closeSignal = SimpleSignal()

@@ -4,6 +4,7 @@ import org.dweb_browser.browser.about.AboutNMM
 import org.dweb_browser.browser.data.DataNMM
 import org.dweb_browser.browser.desk.DeskNMM
 import org.dweb_browser.browser.download.DownloadNMM
+import org.dweb_browser.browser.http.installDevRenderer
 import org.dweb_browser.browser.jmm.JmmNMM
 import org.dweb_browser.browser.jsProcess.JsProcessNMM
 import org.dweb_browser.browser.mwebview.MultiWebViewNMM
@@ -95,6 +96,7 @@ class DwebBrowserLauncher(
     val jsProcessNMM = JsProcessNMM().setup()
     val multiWebViewNMM = MultiWebViewNMM().setup()
     val httpNMM = HttpNMM().setup()
+    httpNMM.installDevRenderer()
 
     /// 安装系统桌面
     val browserNMM = BrowserNMM().setup()

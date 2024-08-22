@@ -11,6 +11,8 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import org.dweb_browser.core.http.dwebProxyService
+import org.dweb_browser.core.http.waitReady
 import org.dweb_browser.core.ipc.helper.IWebMessagePort
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.dwebview.engine.DWebViewEngine
@@ -18,7 +20,6 @@ import org.dweb_browser.dwebview.messagePort.DWebMessageChannel
 import org.dweb_browser.dwebview.messagePort.DWebMessagePort
 import org.dweb_browser.dwebview.messagePort.DWebViewWebMessage
 import org.dweb_browser.dwebview.polyfill.DwebViewIosPolyfill
-import org.dweb_browser.dwebview.proxy.DwebViewProxy
 import org.dweb_browser.helper.PureBounds
 import org.dweb_browser.helper.RememberLazy
 import org.dweb_browser.helper.Signal
@@ -84,7 +85,7 @@ class DWebView private constructor(
     val prepare = SuspendOnce {
       coroutineScope {
         launch { DwebViewIosPolyfill.prepare(); }
-        DwebViewProxy.waitReady();
+        dwebProxyService.waitReady();
       }
     }
 

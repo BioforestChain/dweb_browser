@@ -9,6 +9,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import org.dweb_browser.core.http.dwebProxyService
+import org.dweb_browser.core.http.waitReady
 import org.dweb_browser.core.ipc.helper.IWebMessageChannel
 import org.dweb_browser.core.ipc.helper.IWebMessagePort
 import org.dweb_browser.core.module.MicroModule
@@ -17,7 +19,6 @@ import org.dweb_browser.dwebview.engine.window
 import org.dweb_browser.dwebview.messagePort.DWebMessageChannel
 import org.dweb_browser.dwebview.messagePort.DWebMessagePort
 import org.dweb_browser.dwebview.polyfill.DwebViewDesktopPolyfill
-import org.dweb_browser.dwebview.proxy.DwebViewProxy
 import org.dweb_browser.helper.PureBounds
 import org.dweb_browser.helper.RememberLazy
 import org.dweb_browser.helper.WARNING
@@ -45,7 +46,7 @@ class DWebView(
         launch {
           DwebViewDesktopPolyfill.prepare();
         }
-        DwebViewProxy.prepare()
+        dwebProxyService.waitReady()
       }
     }
 

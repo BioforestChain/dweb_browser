@@ -5,18 +5,7 @@ plugins {
 }
 
 kotlin {
-//  @OptIn(ExperimentalKotlinGradlePluginApi::class)
-//  compilerOptions {
-//    languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_0)
-//    apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_0)
-//  }
   kmpCommonTarget(project)
-  val mobileMain by sourceSets.creating {
-    dependencies {
-      // ssl代理。因为桌面端直接支持 ssl 服务，所以不需要这一层 rust 提供ssl代理转发
-      implementation(projects.libReverseProxy)
-    }
-  }
   kmpComposeTarget(project) {
     dependencies {
       implementation(projects.helper)
@@ -49,26 +38,5 @@ kotlin {
   }
   kmpIosTarget(project)
   kmpDesktopTarget(project)
-
-  @OptIn(ExperimentalKotlinGradlePluginApi::class)
-  applyHierarchyPlatformTemplate {
-    common {
-      group("mobile") {
-        withAndroidTarget()
-        withIosTarget()
-      }
-      withDesktopTarget()
-    }
-  }
-
-  @OptIn(ExperimentalKotlinGradlePluginApi::class)
-  applyHierarchyPlatformTemplate {
-    common {
-      withAndroidTarget()
-      withIosTarget()
-      withDesktopTarget()
-    }
-  }
-
 }
 

@@ -25,19 +25,19 @@ class HttpDwebServer(
   private val httpIpc: Ipc,
   private val options: DwebHttpServerOptions,
 ) {
-  suspend fun startHttpDwebServer(options: DwebHttpServerOptions): HttpNMM.ServerStartResult {
+  suspend fun startHttpDwebServer(options: DwebHttpServerOptions): ServerStartResult {
     val urlString = URLBuilder("file://http.std.dweb/start").apply {
       parameters["subdomain"] = options.subdomain
     }.buildUnsafeString()
 
-    return httpIpc.request(urlString).json<HttpNMM.ServerStartResult>()
+    return httpIpc.request(urlString).json<ServerStartResult>()
   }
 
-  lateinit var startResult: HttpNMM.ServerStartResult
+  lateinit var startResult: ServerStartResult
     internal set
 
   suspend fun listenHttpDwebServer(
-    startResult: HttpNMM.ServerStartResult,
+    startResult: ServerStartResult,
     routes: Array<CommonRoute> = arrayOf(
       CommonRoute(pathname = "", method = PureMethod.ALL_VALUES.keys.joinToString("|")),
     ),

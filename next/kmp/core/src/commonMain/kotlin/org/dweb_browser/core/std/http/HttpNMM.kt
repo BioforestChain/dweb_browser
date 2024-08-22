@@ -2,7 +2,6 @@ package org.dweb_browser.core.std.http
 
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.URLBuilder
 import io.ktor.http.URLProtocol
 import io.ktor.http.Url
 import io.ktor.http.hostWithPort
@@ -10,7 +9,6 @@ import io.ktor.http.protocolWithAuthority
 import io.ktor.util.decodeBase64String
 import io.ktor.utils.io.CancellationException
 import kotlinx.coroutines.launch
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.ResponseException
@@ -28,7 +26,6 @@ import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.SafeHashMap
 import org.dweb_browser.helper.base64UrlString
 import org.dweb_browser.helper.decodeURIComponent
-import org.dweb_browser.helper.encodeURI
 import org.dweb_browser.helper.falseAlso
 import org.dweb_browser.helper.removeWhen
 import org.dweb_browser.helper.toJsonElement
@@ -52,46 +49,13 @@ val debugHttp = Debugger("http")
 class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
   init {
     short_name = "HTTP"
-    categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Protocol_Service)
+    categories = listOf(
+      MICRO_MODULE_CATEGORY.Service,
+      MICRO_MODULE_CATEGORY.Protocol_Service,
+    ) + if (debugHttp.isEnable) listOf(MICRO_MODULE_CATEGORY.Application) else emptyList()
   }
 
   private val dwebServer = Http1Server()
-
-  @Serializable
-  data class ServerUrlInfo(
-    /**
-     * 标准host，是一个站点的key，只要站点过来时用某种我们认可的方式（x-host/user-agent）携带了这个信息，那么我们就依次作为进行网关路由
-     */
-    val host: String,
-    /**
-     * 内部链接，带有特殊的协议头，方便自定义解析器对其进行加工
-     */
-    val internal_origin: String,
-    /**
-     * 相对公网的链接（这里只是相对标准网络访问，当然目前本地只支持localhost链接，所以这里只是针对webview来使用）
-     */
-    val public_origin: String,
-  ) {
-    fun buildPublicUrl(): Url {
-      val builder = URLBuilder(public_origin);
-//      builder.encodedParameters.caseInsensitiveName = true
-      builder.parameters.append("X-Dweb-Host", host)
-      return builder.build()
-    }
-
-    fun buildPublicHtmlUrl(): Url {
-      val builder = URLBuilder(public_origin);
-      builder.user = host.encodeURI()
-      return builder.build()
-    }
-
-    fun buildInternalUrl(builder: (URLBuilder.() -> Unit)? = null): Url {
-      return when (builder) {
-        null -> Url(internal_origin)
-        else -> URLBuilder(internal_origin).run { builder();build() };
-      }
-    }
-  }
 
   private fun getServerUrlInfo(ipc: Ipc, options: DwebHttpServerOptions): ServerUrlInfo {
     val mmid = ipc.remote.mmid
@@ -103,15 +67,10 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
     return ServerUrlInfo(host, internal_origin, public_origin)
   }
 
-  @Serializable
-  data class ServerStartResult(val token: String, val urlInfo: ServerUrlInfo)
-
   inner class HttpRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
-
-
     /// 注册的域名与对应的 token
-    private val tokenMap = SafeHashMap</* token */ String, Gateway>();
-    private val gatewayMap = SafeHashMap</* host */ String, Gateway>();
+    private val tokenMap = SafeHashMap</* token */ String, Gateway>()
+    private val gatewayMap = SafeHashMap</* host */ String, Gateway>()
 
     /**
      * 监听请求
@@ -233,8 +192,14 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
         } else null
       }.removeWhen(mmScope)
 
+      /**
+       * 安装PINGPONG嗅探服务
+       */
+      installHttpServerPingPong()
+
       /// 模块 API 接口
       routes(
+        // 等待环境初始化完毕
         "/ready" bind PureMethod.GET by defineEmptyResponse {
           initJob.join()
         },
@@ -309,13 +274,9 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
             }
 
             val pureRequest = PureClientRequest(
-              href = url.toString(),
-              method = request.method,
-              headers = request.headers.apply {
+              href = url.toString(), method = request.method, headers = request.headers.apply {
                 set("Host", url.hostWithPort)
-              },
-              body = request.body,
-              from = request.from
+              }, body = request.body, from = request.from
             )
             httpFetch(pureRequest).also {
               it.headers.apply {
@@ -351,13 +312,9 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
             )
           }
           val pureRequest = PureClientRequest(
-            href = url.toString(),
-            method = request.method,
-            headers = request.headers.apply {
+            href = url.toString(), method = request.method, headers = request.headers.apply {
               set("Host", url.hostWithPort)
-            },
-            body = request.body,
-            from = request.from
+            }, body = request.body, from = request.from
           )
 
           val isSameOrigin =

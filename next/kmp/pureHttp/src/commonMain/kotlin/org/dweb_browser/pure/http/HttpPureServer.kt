@@ -1,7 +1,6 @@
 package org.dweb_browser.pure.http
 
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.Debugger
@@ -16,6 +15,7 @@ expect class HttpPureServer(onRequest: HttpPureServerOnRequest) {
   val stateFlow: StateFlow<UShort?>
   suspend fun start(port: UShort): UShort
   suspend fun close()
+  suspend fun getDebugInfo(): String
 }
 
 fun HttpPureServer.onPortChange(
@@ -29,34 +29,11 @@ fun HttpPureServer.onPortChange(
       else -> stateFlow.value
     }
 
-    suspend fun emitChange(newPort: UShort, by: String) {
-      if (currentPort != newPort) {
-        debugHttpPureServer("onPortChange/emit") { "${this@onPortChange}/${stateFlow} onPortChange $currentPort=>$newPort (task=$task by=$by)" }
+    stateFlow.collect { newPort ->
+      if (newPort != null && currentPort != newPort) {
+        debugHttpPureServer("onPortChange/emit") { "onPortChange $currentPort=>$newPort task=$task (in ${this@onPortChange})" }
         currentPort = newPort
         onPortChange(newPort)
-      }
-    }
-    if (false) {
-      launch {
-        while (true) {
-          delay(10000)
-          debugHttpPureServer("onPortChange/loop/debug") { "${this@onPortChange}/${stateFlow} currentPort=$currentPort task=$task" }
-        }
-      }
-      launch {
-        while (true) {
-          delay(1000)
-          stateFlow.value.also { newPort ->
-            if (newPort != null) {
-              emitChange(newPort, "loop")
-            }
-          }
-        }
-      }
-    }
-    stateFlow.collect { newPort ->
-      if (newPort != null) {
-        emitChange(newPort, "collect")
       }
     }
   }

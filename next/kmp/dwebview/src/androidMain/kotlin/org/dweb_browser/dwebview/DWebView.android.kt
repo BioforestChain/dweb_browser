@@ -28,7 +28,7 @@ import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.dwebview.DWebMessagePort.Companion.into
 import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.dwebview.polyfill.DwebViewAndroidPolyfill
-import org.dweb_browser.dwebview.proxy.DwebViewProxyOverride
+import org.dweb_browser.dwebview.proxy.DWebViewProxyOverride
 import org.dweb_browser.helper.PureBounds
 import org.dweb_browser.helper.RememberLazy
 import org.dweb_browser.helper.SuspendOnce
@@ -73,7 +73,7 @@ class DWebView private constructor(internal val engine: DWebViewEngine, initUrl:
     val prepare = SuspendOnce {
       coroutineScope {
         launch { DwebViewAndroidPolyfill.prepare() }
-        DwebViewProxyOverride.prepare()
+        DWebViewProxyOverride.prepare()
       }
     }
 
