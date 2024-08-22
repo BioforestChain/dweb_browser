@@ -18,6 +18,7 @@ import org.dweb_browser.core.http.router.byChannel
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.core.module.generateDwebDevIcons
 import org.dweb_browser.core.std.dns.debugFetch
 import org.dweb_browser.core.std.dns.httpFetch
 import org.dweb_browser.core.std.dns.nativeFetchAdaptersManager
@@ -53,6 +54,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
       MICRO_MODULE_CATEGORY.Service,
       MICRO_MODULE_CATEGORY.Protocol_Service,
     ) + if (debugHttp.isEnable) listOf(MICRO_MODULE_CATEGORY.Application) else emptyList()
+    icons = generateDwebDevIcons("HTTP")
   }
 
   private val dwebServer = Http1Server()
