@@ -38,6 +38,7 @@ import org.dweb_browser.browser.download.model.DownloadState
 import org.dweb_browser.browser.web.BrowserDownloadController
 import org.dweb_browser.browser.web.data.BrowserDownloadItem
 import org.dweb_browser.helper.compose.AutoResizeTextContainer
+import org.dweb_browser.helper.compose.TextCenterEllipsis
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.toSpaceSize
 import org.dweb_browser.helper.valueIn
@@ -140,9 +141,8 @@ private fun BrowserDownloadController.DownloadTopToastBar(downloadItem: BrowserD
             modifier = Modifier.weight(1f).height(56.dp),
             verticalArrangement = Arrangement.SpaceAround
           ) {
-            Text(
+            TextCenterEllipsis(
               text = downloadItem.fileName,
-              maxLines = 1,
               style = MaterialTheme.typography.bodyMedium,
               color = MaterialTheme.colorScheme.onBackground
             )

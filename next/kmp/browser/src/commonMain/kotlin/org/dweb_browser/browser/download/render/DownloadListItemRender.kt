@@ -11,12 +11,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Android
-import androidx.compose.material.icons.filled.AudioFile
-import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.MoreHoriz
-import androidx.compose.material.icons.filled.Photo
-import androidx.compose.material.icons.filled.VideoFile
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.FileOpen
 import androidx.compose.material.icons.twotone.PauseCircle
@@ -42,18 +37,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.rememberTextMeasurer
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import org.dweb_browser.browser.download.DownloadI18n
 import org.dweb_browser.browser.download.model.DownloadListModel
@@ -61,6 +47,7 @@ import org.dweb_browser.browser.download.model.DownloadState
 import org.dweb_browser.browser.download.model.DownloadTask
 import org.dweb_browser.helper.compose.CommonI18n
 import org.dweb_browser.helper.compose.SwipeToViewBox
+import org.dweb_browser.helper.compose.TextCenterEllipsis
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.compose.hoverComposed
 import org.dweb_browser.helper.compose.hoverCursor
@@ -68,7 +55,6 @@ import org.dweb_browser.helper.compose.rememberSwipeToViewBoxState
 import org.dweb_browser.helper.toSpaceSize
 import org.dweb_browser.sys.window.ext.AlertDeleteDialog
 import org.dweb_browser.sys.window.ext.FileIconByFilename
-import kotlin.math.roundToInt
 
 
 @Composable
@@ -194,7 +180,7 @@ fun DownloadListModel.DownloadItem(
     ListItem(
       modifier = Modifier.clickableWithNoEffect { onClick() },
       headlineContent = { // 主标题
-        MiddleEllipsisText(text = downloadTask.filename)
+        TextCenterEllipsis(text = downloadTask.filename)
       },
       supportingContent = { // 副标题
         Column {
@@ -266,64 +252,5 @@ fun DownloadListModel.DownloadItem(
         }
       },
     )
-  }
-}
-
-@Composable
-private fun MiddleEllipsisText(
-  text: String,
-  modifier: Modifier = Modifier,
-  color: Color = Color.Unspecified,
-  fontSize: TextUnit = TextUnit.Unspecified,
-  fontStyle: FontStyle? = null,
-  fontWeight: FontWeight? = null,
-  fontFamily: FontFamily = FontFamily.Default,
-  letterSpacing: TextUnit = TextUnit.Unspecified,
-  textDecoration: TextDecoration? = null,
-  textAlign: TextAlign = TextAlign.Start,
-  lineHeight: TextUnit = TextUnit.Unspecified,
-) {
-  val textMeasure = rememberTextMeasurer()
-  var measuredText by remember { mutableStateOf(text) }
-  val textStyle by remember {
-    mutableStateOf(
-      TextStyle(
-        color = color,
-        fontSize = fontSize,
-        fontStyle = fontStyle,
-        fontWeight = fontWeight,
-        fontFamily = fontFamily,
-        letterSpacing = letterSpacing,
-        textDecoration = textDecoration,
-        textAlign = textAlign,
-        lineHeight = lineHeight
-      )
-    )
-  }
-
-  Text(text = measuredText,
-    modifier = modifier,
-    overflow = TextOverflow.Ellipsis,
-    maxLines = 1,
-    style = textStyle,
-    onTextLayout = { layoutResult ->
-      val isLineEllipsized = layoutResult.isLineEllipsized(0)
-      val measureWidth = textMeasure.measure(measuredText, textStyle).size.width
-      if (isLineEllipsized && measureWidth > layoutResult.size.width) {
-        val fontRadio = measuredText.length * 1.0f / measureWidth
-        val maxLength = (layoutResult.size.width * fontRadio).roundToInt() - 2
-        measuredText = text.take(maxLength / 2) + "...." + text.takeLast(maxLength / 2)
-      }
-    })
-}
-
-
-private fun getIconByMime(mime: String): ImageVector {
-  return when (mime) {
-    "mp4", "avi", "rmvb", "" -> Icons.Default.VideoFile
-    "mp3" -> Icons.Default.AudioFile
-    "jpg", "png", "bmp", "svg" -> Icons.Default.Photo
-    "apk" -> Icons.Default.Android
-    else -> Icons.Default.FileDownload
   }
 }
