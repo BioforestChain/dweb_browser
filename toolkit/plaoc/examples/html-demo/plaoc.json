@@ -1,9 +1,9 @@
 {
-  "usePublicUrl":true,
-  "defaultConfig":{
+  "usePublicUrl": true,
+  "defaultConfig": {
     "lang": "zh"
   },
-  "redirect":[
+  "redirect": [
     {
       "matchMethod": ["*"],
       "matchUrl": {
@@ -16,15 +16,14 @@
       }
     },
     {
-      "matchMethod":["*","GET"],
-      "matchUrl":{
-        "pathname":"*"
+      "matchMethod": ["*", "GET"],
+      "matchUrl": {
+        "pathname": "*"
       },
       "to": {
         "url": "/{{lang}}{{pattern.pathname.input}}",
-        "appendHeaders":{
-        },
-        "removeHeaders":[".*"]
+        "appendHeaders": {},
+        "removeHeaders": [".*"]
       }
     }
   ]

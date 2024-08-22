@@ -29,14 +29,7 @@ const items = routes;
   </v-card>
 </template>
 <style>
-.my-card {
-  /* background: linear-gradient(256deg, #00a6ff2f, #00ffe175) !important; */
-}
 .my-list {
-  /* background: unset;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5em; */
   background: unset !important;
   column-count: 1;
 }

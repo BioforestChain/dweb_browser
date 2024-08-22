@@ -112,5 +112,11 @@ export const routes = [
     path: "/clipboard",
     component: () => import("./pages/Clipboard.vue"),
   },
+  {
+    title: "Middlewares",
+    icon: "mdi-motion-sensor",
+    path: "/middlewares",
+    component: () => import("./pages/Middlewares.vue"),
+  },
 ];
 //satisfies (RouteRecordRaw & { title: string })[];
