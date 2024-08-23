@@ -1,16 +1,25 @@
 package org.dweb_browser.helper.platform
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.awt.ComposeWindow
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.toComposeImageBitmap
+import androidx.compose.ui.input.key.key
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.window.ApplicationScope
 import androidx.compose.ui.window.Window
+import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.awaitApplication
 import androidx.compose.ui.window.rememberWindowState
 import kotlinx.coroutines.CompletableDeferred
@@ -23,9 +32,13 @@ import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
 import org.dweb_browser.helper.compose.LocalCompositionChain
+import org.dweb_browser.helper.compose.ScreenCapture
 import org.dweb_browser.helper.compose.envSwitch
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.platform.desktop.os.WindowsRegistry
+import java.awt.Rectangle
+import java.awt.Robot
+import java.awt.Toolkit
 
 
 class PureViewController(
@@ -121,13 +134,65 @@ class PureViewController(
       prepared.complete(Unit)
     }
 
+    // 控制截屏窗口的显示
+    private var screenBitmap by mutableStateOf<ImageBitmap?>(null)
+    private var captureDeferred = CompletableDeferred<ImageBitmap>()
+
+    @Composable
+    private fun ApplicationScope.CaptureWindow() {
+      // 1. 打开一个置顶的窗口，全屏显示
+      // 2. 点击后获取第一个位置，根据鼠标移动来获取矩形区域
+      // 3. 针对第二步选择的矩形区域进行截屏操作
+      screenBitmap?.let { imageBitmap ->
+        Window(
+          onCloseRequest = { screenBitmap = null },
+          state = rememberWindowState(placement = WindowPlacement.Fullscreen),
+          visible = screenBitmap != null,
+          title = "Capture",
+          undecorated = true, // 表示窗口无边框
+          transparent = true, // 窗口背景透明
+          resizable = false,
+          alwaysOnTop = true,
+          onKeyEvent = { keyEvent ->
+            if (keyEvent.key == androidx.compose.ui.input.key.Key.Escape) {
+              screenBitmap = null
+              true
+            } else false
+          }
+        ) {
+          Box {
+            // 显示原始截图
+            Image(bitmap = imageBitmap, contentDescription = "Screenshot")
+            // 显示十字线以及截屏矩形框
+            ScreenCapture(imageBitmap) { imageBitmap ->
+              // 获取截图信息，并调用SmartScan进行解析
+              captureDeferred.complete(imageBitmap)
+              screenBitmap = null
+            }
+          }
+        }
+      }
+    }
+
     suspend fun startApplication(extContent: @Composable ApplicationScope.() -> Unit = {}) =
       awaitApplication {
         Prepare()
         Contents()
         Windows()
         extContent()
+        CaptureWindow()
       }
+
+    /**
+     * 截屏操作
+     */
+    suspend fun awaitScreenCapture(): ImageBitmap {
+      captureDeferred = CompletableDeferred()
+      val screenSize = Toolkit.getDefaultToolkit().screenSize
+      val rectangle = Rectangle(screenSize)
+      screenBitmap = Robot().createScreenCapture(rectangle).toComposeImageBitmap()
+      return captureDeferred.await()
+    }
   }
 
   override var lifecycleScope = CoroutineScope(mainAsyncExceptionHandler + SupervisorJob())

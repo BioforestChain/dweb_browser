@@ -85,6 +85,17 @@ class TrayNMM : NativeMicroModule("tray.sys.dweb", "tray") {
       Tray(icon = painterResource(Res.drawable.tray_dweb_browser), menu = {
         RenderNodeList(trayRootTree.children.collectAsState().value)
 
+        Item(
+          text = SysI18nResource.capture(),
+          // shortcut = KeyShortcut(key = Key.PrintScreen, ctrl = true) // 有异常
+        ) {
+          runtime.scopeLaunch(cancelable = false) {
+            val imageBitmap = PureViewController.awaitScreenCapture()
+            // TODO 打开扫码
+            // val response = runtime.nativeFetch("file://scan.browser.dweb/open")
+          }
+        }
+
         Item(SysI18nResource.exit_app()) {
           runBlocking {
             PureViewController.exitDesktop()

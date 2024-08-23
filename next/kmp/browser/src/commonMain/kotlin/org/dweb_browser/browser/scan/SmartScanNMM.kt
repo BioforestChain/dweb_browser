@@ -9,7 +9,6 @@ import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
-import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.permission.AuthorizationStatus
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.DisplayMode
@@ -49,7 +48,7 @@ class SmartScanNMM : NativeMicroModule("scan.browser.dweb", "Smart Scan") {
       val scanningController = ScanningController(mmScope)
       // 实现barcodeScanning协议
       barcodeScanning(scanningController)
-      val scanController = SmartScanController(this,scanningController)
+      val scanController = SmartScanController(this, scanningController)
       onRenderer {
         val isPermission = requestSystemPermission()
         if (isPermission) {
@@ -82,7 +81,14 @@ class SmartScanNMM : NativeMicroModule("scan.browser.dweb", "Smart Scan") {
               BrowserI18nResource.QRCode.permission_denied.text
             )
           }
-          scanController.saningResult.await()
+          try {
+            scanController.saningResult.await()
+          } catch (e: Exception) {
+            throwException(
+              HttpStatusCode.InternalServerError,
+              e.message
+            )
+          }
         },
       )
 

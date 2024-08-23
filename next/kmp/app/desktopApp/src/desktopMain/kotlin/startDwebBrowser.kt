@@ -26,6 +26,7 @@ suspend fun startDwebBrowser(debugTags: String?): DnsNMM {
   )
 
   val dnsRuntime = launcher.launch()
+  dnsRuntime.open("tray.sys.dweb") // 由于快捷功能增加了截屏后，直接打开SmartScan功能，所以这边手动启动
 
   // TODO fuck this
   DeepLinkHook.instance.onLink {
