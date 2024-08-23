@@ -94,4 +94,6 @@ class DeskController(val deskNMM: DeskNMM.DeskRuntime) {
   suspend fun awaitReady() {
     vcDeferred.await()
   }
+
+  val activityController = ActivityController(deskNMM)
 }

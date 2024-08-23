@@ -149,8 +149,11 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         controllersMap.remove(deskController.sessionId)
       }
 
-      /// 实现协议
+      /// 窗口协议
       windowProtocol()
+
+      /// 实时活动协议
+      activityProtocol()
 
       /// 内部接口
       routes(
@@ -197,6 +200,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       /// 等待主视图启动完成
       deskController.awaitReady()
     }
+
     override suspend fun _shutdown() {
     }
   }

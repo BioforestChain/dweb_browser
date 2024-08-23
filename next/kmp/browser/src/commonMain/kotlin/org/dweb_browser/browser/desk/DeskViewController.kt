@@ -31,6 +31,7 @@ class DeskViewController(val viewController: IPureViewController) {
     desktopController: DesktopControllerBase,
     taskbarController: TaskbarControllerBase,
     alertController: AlertController,
+    activityController: ActivityController,
   ) {
     val pureViewController = LocalPureViewController.current
     DisposableEffect(pureViewController) {
@@ -66,6 +67,9 @@ class DeskViewController(val viewController: IPureViewController) {
           // 恢复 taskbarFloatView
           if (resumeState) taskbarController.toggleFloatWindow(false).await()
         }
+
+        /// 渲染实时活动
+        activityController.Render()
       }
     }
   }
@@ -84,7 +88,13 @@ class DeskViewController(val viewController: IPureViewController) {
       val desktopController = deskController.getDesktopController()
       val taskbarController = deskController.getTaskbarController()
       viewController.addContent {
-        Render(runtime, desktopController, taskbarController, deskController.alertController)
+        Render(
+          runtime = runtime,
+          desktopController = desktopController,
+          taskbarController = taskbarController,
+          alertController = deskController.alertController,
+          activityController = deskController.activityController
+        )
       }
     }
 

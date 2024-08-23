@@ -17,7 +17,7 @@ data class PureResponse(
 
   val isOk get() = status.value in 200..299 || status.value == 101
   internal suspend fun requestOk(): PureResponse =
-    if (!isOk) throw Exception("PureResponse not ok: [${status.value}] ${status.description}\n${body.toPureString()}")
+    if (!isOk) throw PureResponseException(status, body.toPureString())
     else this
 
   suspend fun stream() = requestOk().body.toPureStream()
@@ -90,3 +90,7 @@ data class PureResponse(
   }
 
 }
+
+
+class PureResponseException(status: HttpStatusCode, message: String) :
+  Exception("PureResponse not ok: [${status.value}] ${status.description}\n${message}")

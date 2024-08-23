@@ -9,17 +9,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
@@ -29,6 +26,7 @@ import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -235,21 +233,21 @@ private fun DownloadMoreDropMenu(onDelete: () -> Unit, onShare: () -> Unit) {
       expanded = expandMenu,
       onDismissRequest = { expandMenu = false }
     ) {
-      DropdownMenuItem(onClick = onShare) {
-        Icon(imageVector = Icons.Default.Share, contentDescription = "Share")
-        Spacer(modifier = Modifier.width(8.dp))
+      DropdownMenuItem(text = {
         Text(text = BrowserI18nResource.Download.dropdown_share())
-      }
+      }, onClick = onShare, leadingIcon = {
+        Icon(imageVector = Icons.Default.Share, contentDescription = "Share")
+      })
 //      DropdownMenuItem(onClick = onDelete) {
 //        Icon(imageVector = Icons.Default.Replay, contentDescription = "Rename")
 //        Spacer(modifier = Modifier.width(8.dp))
 //        Text(text = BrowserI18nResource.Download.dropdown_rename())
 //      }
-      DropdownMenuItem(onClick = onDelete) {
-        Icon(imageVector = Icons.Default.Delete, contentDescription = "Delete")
-        Spacer(modifier = Modifier.width(8.dp))
+      DropdownMenuItem(text = {
         Text(text = BrowserI18nResource.Download.dropdown_delete())
-      }
+      }, onClick = onDelete, leadingIcon = {
+        Icon(imageVector = Icons.Default.Delete, contentDescription = "Delete")
+      })
     }
   }
 }

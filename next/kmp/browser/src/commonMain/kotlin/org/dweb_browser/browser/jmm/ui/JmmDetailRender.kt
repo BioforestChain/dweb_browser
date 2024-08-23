@@ -50,9 +50,9 @@ import org.dweb_browser.browser.jmm.render.app.NewVersionInfoView
 import org.dweb_browser.browser.jmm.render.app.OtherInfoView
 import org.dweb_browser.helper.compose.LocalCompositionChain
 import org.dweb_browser.helper.compose.SimpleI18nResource
+import org.dweb_browser.sys.window.core.LocalWindowController
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
 import org.dweb_browser.sys.window.core.WindowContentScaffoldWithTitle
-import org.dweb_browser.sys.window.core.LocalWindowController
 import org.dweb_browser.sys.window.helper.watchedState
 
 
