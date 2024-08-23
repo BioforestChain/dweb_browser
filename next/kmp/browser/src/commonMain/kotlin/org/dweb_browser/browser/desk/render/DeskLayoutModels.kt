@@ -14,7 +14,7 @@ data class NFCacalaterParams(
 ) {
 
   init {
-    require(column >= 4) {"ERRPR: column must be greater than or equal to 4"}
+    require(column >= 1) {"ERRPR: column must be greater than or equal to 1"}
   }
 
   val itemSize: IntSize by lazy {

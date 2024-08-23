@@ -57,6 +57,12 @@ import org.dweb_browser.helper.clamp
 import org.dweb_browser.helper.compose.LocalCompositionChain
 import org.dweb_browser.helper.compose.compositionChainOf
 import org.dweb_browser.pure.image.compose.CoilAsyncImage
+import org.mkdesklayout.project.NFCacalaterParams
+import org.mkdesklayout.project.NFCaculater
+import org.mkdesklayout.project.NFData
+import org.mkdesklayout.project.NFDataType
+import org.mkdesklayout.project.NFGeometry
+import org.mkdesklayout.project.NFLayoutData
 import kotlin.math.max
 
 private val imageSizeCache = mutableMapOf<String, GridItem<String>>()
@@ -83,22 +89,31 @@ internal fun CaptureListView(
   }
   BoxWithConstraints(Modifier.fillMaxWidth()) {
     val cells = max(1, (maxWidth.value / 160).toInt())
-    val layoutList =
-      waterfallCalc(columns = cells, items = waterfallItems.map { it.sizeState.value })
-    val unitSize = maxWidth / cells
-    val gridHeight = unitSize * (waterfallItems.mapIndexed { index, gridItem ->
-      gridItem.sizeState.value.height + (layoutList?.getOrNull(index)?.y ?: 0)
-    }.maxOrNull() ?: 0)
 
-    Box(Modifier.fillMaxWidth().requiredHeight(gridHeight)) {
+    val layoutData = NFCaculater.layout(
+      layouts = waterfallItems.mapIndexed { _, gridItem ->
+        NFLayoutData(
+          NFData(
+            gridItem.key, NFDataType(
+              row = gridItem.sizeState.value.height, column = gridItem.sizeState.value.width
+            )
+          ), NFGeometry(IntOffset.Zero, IntSize.Zero)
+        )
+      },
+      blockAreas = emptyList(),
+      params = NFCacalaterParams(cells, maxWidth.value.toInt(), 8, 8),
+      refresh = true
+    )
+
+    val gridHeight = layoutData.last().geo.offset.y + layoutData.last().geo.size.height
+    Box(Modifier.fillMaxWidth().requiredHeight(gridHeight.dp)) {
       waterfallItems.forEachIndexed { index, gridItem ->
         LocalCompositionChain.current.Provider(LocalSizeState provides gridItem.sizeState) {
-          val layout = layoutList?.get(index) ?: IntOffset(0, 0)
+          val layout = layoutData[index].geo
           Box(
-            Modifier.offset(unitSize * layout.x, unitSize * layout.y)
-              .requiredSize(with(gridItem.sizeState.value) {
-                DpSize(unitSize * width, unitSize * height)
-              }).animateContentSize().padding(8.dp)
+            Modifier.offset(layout.offset.x.dp, layout.offset.y.dp)
+              .requiredSize(DpSize(layout.size.width.dp, layout.size.height.dp))
+              .animateContentSize()
           ) {
             CaptureItemContext(src = gridItem.key, index = index).itemContent()
           }
