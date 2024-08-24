@@ -5,7 +5,6 @@ import coil3.Image
 import coil3.ImageLoader
 import coil3.PlatformContext
 import coil3.annotation.ExperimentalCoilApi
-//import coil3.gif.GifDecoder
 import coil3.svg.SvgDecoder
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
@@ -18,7 +17,7 @@ fun PlatformContext.getCoilImageLoader() = synchronized(synchronizedObject) {
   contextImageLoaderCache.getOrPut(this) {
     ImageLoader(this).newBuilder().components {
       add(SvgDecoder.Factory())
-//      add(GifDecoder.Factory())
+      addPlatformComponents()
     }.build()
   }
 }

@@ -8,15 +8,18 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.dweb_browser.core.module.MicroModule
+import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.sys.window.core.helper.pickLargest
 import org.dweb_browser.sys.window.core.helper.toStrict
 
 data class ActivityItem(
-  val id: String,
+  val id: String = randomUUID(),
   val owner: MicroModule.Runtime,
-  val icon: Icon,
-  val content: Content,
-  val action: Action,
+  val leadingIcon: Icon,
+  val trailingIcon: Icon,
+  val centerTitle: Content,
+  val centerWidth: Float = 96f,
+  val bottomActions: List<Action>,
 ) {
   @Serializable
   sealed interface Icon
@@ -25,6 +28,9 @@ data class ActivityItem(
   @SerialName("none")
   data object NoneIcon : Icon
 
+  /**
+   * 支持动态图片，比如 Gif/WebP
+   */
   @Serializable
   @SerialName("image")
   class ImageIcon(val url: String) : Icon
@@ -34,14 +40,10 @@ data class ActivityItem(
 
   @Serializable
   @SerialName("text")
-  class TextContent(val shortText: String, val fullText: String) : Content
+  class TextContent(val text: String) : Content
 
   @Serializable
   sealed interface Action
-
-  @Serializable
-  @SerialName("none")
-  data object NoneAction : Action
 
   @Serializable
   @SerialName("cancel")
@@ -55,10 +57,8 @@ data class ActivityItem(
   @SerialName("link")
   class LinkAction(val text: String, val uri: String) : Action
 
-
   @Transient
   val renderProp = ActivityItemRenderProp()
-
   val appIcon by lazy { owner.icons.toStrict().pickLargest() }
 }
 
@@ -67,4 +67,6 @@ class ActivityItemRenderProp {
   val viewAni = Animatable(0f)
   var showDetail by mutableStateOf(false)
   val detailAni = Animatable(0f)
+  val canView get() = open || viewAni.isRunning || viewAni.value != 0f
+  val canViewDetail get() = showDetail || detailAni.isRunning || detailAni.value != 0f
 }

@@ -20,6 +20,7 @@ kotlin {
       api(libs.coil.compose)
       implementation(libs.coil.network.ktor)
       implementation(libs.coil.svg)
+      implementation(libs.coil.gif)
 
       // ext
 

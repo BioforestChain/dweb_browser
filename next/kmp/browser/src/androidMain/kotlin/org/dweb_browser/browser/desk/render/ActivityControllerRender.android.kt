@@ -2,8 +2,6 @@ package org.dweb_browser.browser.desk.render
 
 import android.annotation.SuppressLint
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Box
@@ -28,14 +26,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.lerp
 import org.dweb_browser.browser.desk.ActivityController
 import org.dweb_browser.browser.desk.model.ActivityItem
 import org.dweb_browser.browser.desk.render.activity.ActivityItemContentRender
+import org.dweb_browser.browser.desk.render.activity.activityEnterAnimationSpec
+import org.dweb_browser.browser.desk.render.activity.activityExitAnimationSpec
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import squircleshape.CornerSmoothing
 import squircleshape.SquircleShape
@@ -53,20 +55,22 @@ actual fun ActivityController.Render() {
   ) {
     Button(onClick = {
       request(
-        deskNMM,
-        icon = ActivityItem.NoneIcon,
-        content = ActivityItem.TextContent("Hello", "Hello Gaubee, This is Long Text!!!"),
-        action = ActivityItem.NoneAction,
+        ActivityItem(
+          owner = deskNMM,
+          leadingIcon = ActivityItem.NoneIcon,
+          trailingIcon = ActivityItem.ImageIcon("http://192.168.2.14:14433/animated-webp-supported.webp"),
+          centerTitle = ActivityItem.TextContent("Hello Gaubee, This is Long Text!!!"),
+          bottomActions = emptyList(),
+        )
       )
     }, modifier = Modifier.align(Alignment.BottomCenter)) {
       Text(text = "创建活动")
     }
     val activityList by list.collectAsState()
-
     val showList = mutableListOf<ActivityItem>()
     for (index in activityList.indices.reversed()) {
       val activity = activityList[index]
-      if (!activity.renderProp.open && activity.renderProp.viewAni.value == 0f) {
+      if (!activity.renderProp.canView) {
         break
       }
       showList.add(activity)
@@ -78,16 +82,6 @@ actual fun ActivityController.Render() {
     }
   }
 }
-
-private fun <T> enterAnimationSpec() = spring<T>(
-  dampingRatio = Spring.DampingRatioLowBouncy,
-  stiffness = Spring.StiffnessMedium / 100,
-)
-
-private fun <T> exitAnimationSpec() = spring<T>(
-  dampingRatio = Spring.DampingRatioNoBouncy,
-  stiffness = Spring.StiffnessLow / 100,
-)
 
 @SuppressLint("RestrictedApi")
 @Composable
@@ -101,16 +95,14 @@ private fun ActivityItemRender(
 
   LaunchedEffect(renderProp.open) {
     if (renderProp.open) {
-      renderProp.viewAni.animateTo(1f, enterAnimationSpec())
+      renderProp.viewAni.animateTo(1f, activityEnterAnimationSpec())
     } else {
-      renderProp.viewAni.animateTo(0f, exitAnimationSpec())
+      renderProp.viewAni.animateTo(0f, activityExitAnimationSpec())
     }
   }
-
-  if (p1 == 0f) {
+  if (!renderProp.canView) {
     return
   }
-
   val toastModifier: Modifier = when {
     renderProp.viewAni.isRunning -> {
       val blur = ((1f - p1) * 16f).coerceAtLeast(0f)
@@ -134,37 +126,42 @@ private fun ActivityItemRender(
 
     else -> Modifier
   }
-
-  val elevation = (16 * p1).dp
   val contentPadding = 16f
-  val innerPaddingDp = (contentPadding / 4).dp
+  val innerPadding1 = contentPadding / 2
+  val innerPadding2 = innerPadding1 / 2
+  val innerPaddingDp = lerp(innerPadding2, innerPadding1, renderProp.detailAni.value).dp
+  val elevation = lerp(0f, contentPadding, renderProp.detailAni.value)
   val shape = SquircleShape(
-    (contentPadding + renderProp.detailAni.value * contentPadding).dp,
+    lerp(contentPadding, contentPadding * 2, renderProp.detailAni.value).dp,
     CornerSmoothing.Medium
   )
 
   Box(
-    toastModifier.background(Color.Black, shape = shape),
+    toastModifier
+      .shadow(
+        elevation.dp, shape = shape,
+      )
+      .background(Color.Black, shape = shape),
     contentAlignment = Alignment.Center,
   ) {
     Box(
       Modifier
-        .animateContentSize()
-        .then(
+        .wrapContentSize()
+        .let { modifier ->
           when {
+            !renderProp.viewAni.isRunning -> modifier
             p1 < 0.5f -> {
-              Modifier
+              modifier
+                .animateContentSize()
                 .size(0.dp)
                 .alpha(0f)
             }
 
-            p1 == 1f -> Modifier.wrapContentSize()
-
-            else -> Modifier
-              .wrapContentSize()
+            else -> modifier
+              .animateContentSize()
               .alpha((p1 - 0.5f) * 2)
           }
-        )
+        }
         .padding(innerPaddingDp)
         .composed {
           var dragMove by remember { mutableFloatStateOf(0f) }

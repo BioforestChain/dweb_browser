@@ -4,26 +4,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import org.dweb_browser.browser.desk.model.ActivityItem
 import org.dweb_browser.core.module.MicroModule
-import org.dweb_browser.helper.randomUUID
 
 class ActivityController(val deskNMM: DeskNMM.DeskRuntime) {
   private val listFlow = MutableStateFlow(emptyList<ActivityItem>())
   val list = listFlow.asStateFlow()
-  fun request(
-    owner: MicroModule.Runtime,
-    icon: ActivityItem.Icon,
-    content: ActivityItem.Content,
-    action: ActivityItem.Action,
-  ): String {
-    val activityItem = ActivityItem(
-      id = randomUUID(),
-      owner = owner,
-      icon = icon,
-      content = content,
-      action = action,
-    )
-    listFlow.value += activityItem
 
+  fun request(activityItem: ActivityItem): String {
+    listFlow.value += activityItem
     return activityItem.id
   }
 
@@ -36,16 +23,18 @@ class ActivityController(val deskNMM: DeskNMM.DeskRuntime) {
   fun update(
     owner: MicroModule.Runtime,
     id: String,
-    icon: ActivityItem.Icon?,
-    content: ActivityItem.Content?,
-    action: ActivityItem.Action?,
+    leadingIcon: ActivityItem.Icon?,
+    trailingIcon: ActivityItem.Icon?,
+    centerTitle: ActivityItem.Content?,
+    bottomActions: List<ActivityItem.Action>?,
   ): Boolean {
     val activityItem = find(owner, id) ?: return false
     val newActivityItem = activityItem.run {
       copy(
-        icon = icon ?: this.icon,
-        content = content ?: this.content,
-        action = action ?: this.action,
+        leadingIcon = leadingIcon ?: this.leadingIcon,
+        trailingIcon = trailingIcon ?: this.trailingIcon,
+        centerTitle = centerTitle ?: this.centerTitle,
+        bottomActions = bottomActions ?: this.bottomActions,
       )
     }
     listFlow.value = listFlow.value - activityItem + newActivityItem

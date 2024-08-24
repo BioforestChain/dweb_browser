@@ -13,19 +13,23 @@ suspend fun DeskNMM.DeskRuntime.activityProtocol() {
       /// 请求一次实时活动
       "/requestActivity" bind PureMethod.GET by defineStringResponse {
         activityController.request(
-          owner = getRemoteRuntime(),
-          icon = request.queryAsOrNull("icon") ?: ActivityItem.NoneIcon,
-          content = request.queryAs("content"),
-          action = request.queryAsOrNull("action") ?: ActivityItem.NoneAction,
+          ActivityItem(
+            owner = getRemoteRuntime(),
+            leadingIcon = request.queryAsOrNull("leadingIcon") ?: ActivityItem.NoneIcon,
+            trailingIcon = request.queryAsOrNull("trailingIcon") ?: ActivityItem.NoneIcon,
+            centerTitle = request.queryAs("centerTitle"),
+            bottomActions = request.queryAsOrNull("bottomActions") ?: emptyList(),
+          )
         )
       },
       "/updateActivity" bind PureMethod.GET by defineBooleanResponse {
         activityController.update(
           owner = getRemoteRuntime(),
           id = request.query("id"),
-          icon = request.queryAsOrNull("icon"),
-          content = request.queryAsOrNull("content"),
-          action = request.queryAsOrNull("action"),
+          leadingIcon = request.queryAsOrNull("leadingIcon"),
+          trailingIcon = request.queryAsOrNull("trailingIcon"),
+          centerTitle = request.queryAsOrNull("centerTitle"),
+          bottomActions = request.queryAsOrNull("bottomActions"),
         )
       },
       "/endActivity" bind PureMethod.GET by defineBooleanResponse {
