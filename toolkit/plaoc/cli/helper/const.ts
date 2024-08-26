@@ -1,19 +1,28 @@
 import type { $JmmAppInstallManifest } from "../deps/dweb-browser/core.ts";
 
+/**plaoc bundle */
 export type $BundleOptions = $MetadataJsonGeneratorOptions & {
+  dir?: string;
   clear?: boolean;
   watch?: boolean;
   out: string;
 };
 
+/**plaoc serve */
 export type $ServeOptions = $MetadataJsonGeneratorOptions & {
   port: string;
+  webLink?: string;
+};
+
+/**plaoc live */
+export type $LiveOptions = $MetadataJsonGeneratorOptions & {
+  port: string;
+  dir?: string;
 };
 
 export type $MetadataJsonGeneratorOptions = {
   webPublic: string;
   mode?: SERVE_MODE;
-  dev?: boolean;
   version?: string;
   id?: string;
   configDir?: string;
@@ -29,7 +38,7 @@ export enum SERVE_MODE {
   /** 将本地文件夹使用动态服务器进行启, usr/www 会存在一个 index.html 中来进行跳转 */
   LIVE = "live",
   /** 对将打包后的文件直接进行服务启动 */
-  PROD = "prod",
+  ZIP = "zip",
 }
 export const defaultMetadata: $JmmAppInstallManifest = {
   id: "app-test.plaoc.dweb",

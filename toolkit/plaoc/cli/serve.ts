@@ -4,19 +4,36 @@ import fs from "node:fs";
 import http from "node:http";
 import os from "node:os";
 import { generate, QRErrorCorrectLevel } from "npm:ts-qrcode-terminal";
-import { colors, NumberPrompt } from "./deps/cliffy.ts";
+import { colors, Command, EnumType, NumberPrompt } from "./deps/cliffy.ts";
 import { SERVE_MODE, type $ServeOptions } from "./helper/const.ts";
 import { BundleResourceNameHelper, injectPrepare, MetadataJsonGenerator } from "./helper/generator.ts";
 import { startStaticFileServer, staticServe } from "./helper/http-static-helper.ts";
 
-// deno-lint-ignore require-await
-const doServe = async (flags: $ServeOptions, staticFileServerPort?: number) => {
+const serveMode = new EnumType(SERVE_MODE);
+
+export const doServeCommand = new Command()
+  .type("serveMode", serveMode)
+  .arguments("<link:string>")
+  .description("Developer Service Extension Directive.")
+  .option("-p --port <port:string>", "Specify the service port. default:8096.", {
+    default: "8096",
+  })
+  .option(
+    "-c --config-dir <config_dir:string>",
+    "The config directory is set to automatically traverse upwards when searching for configuration files (manifest.json/plaoc.json). The default setting for the target directory is <web_public>"
+  )
+  .option("-s --web-server <serve:string>", "Specify the path of the programmable backend. ")
+  .action((options, arg1) => {
+    startServe({ ...options, webPublic: arg1 } satisfies $ServeOptions);
+  });
+
+const doServe = (flags: $ServeOptions, staticFileServerPort?: number) => {
   const port = +flags.port;
   if (Number.isFinite(port) === false) {
     throw new Error(`need input '--port 8080'`);
   }
 
-  const serveTarget = flags.webPublic;
+  const serveTarget = flags.webLink;
   if (typeof serveTarget !== "string") {
     throw new Error(`need input 'YOUR/FOLDER/FOR/BUNDLE'`);
   }
@@ -46,7 +63,6 @@ const doServe = async (flags: $ServeOptions, staticFileServerPort?: number) => {
         hostname: info?.address ?? "",
         dwebLink: `dweb://install?url=http://${info?.address}:${port}/${BundleResourceNameHelper.metadataName}`,
       });
-      // console.log(`package: \thttp://${info?.address}:${port}/${nameFlagHelper.bundleName}`)
     }
 
     const selectNumber = await NumberPrompt.prompt({
@@ -60,7 +76,7 @@ const doServe = async (flags: $ServeOptions, staticFileServerPort?: number) => {
       // 启动静态文件服务器
       if (staticFileServerPort) {
         flags.mode = SERVE_MODE.LIVE;
-        flags.webPublic = `http://${hostname}:${staticFileServerPort}`;
+        flags.webLink = `http://${hostname}:${staticFileServerPort}`;
         const injectResult = injectPrepare(flags, metadataFlagHelper);
         bundleFlagHelper = injectResult.bundleFlagHelper;
         bundleResourceNameHelper = injectResult.bundleResourceNameHelper;
@@ -127,11 +143,11 @@ const doServe = async (flags: $ServeOptions, staticFileServerPort?: number) => {
   return { server, manifestFilePath };
 };
 
-export const startServe = async (flags: $ServeOptions, staticFileServerPort?: number) => {
-  const { server, manifestFilePath } = await doServe(flags, staticFileServerPort);
+export const startServe = (flags: $ServeOptions, staticFileServerPort?: number) => {
+  const { server, manifestFilePath } = doServe(flags, staticFileServerPort);
   server.once("restart", () => {
-    server.once("close", async () => {
-      await startServe(flags, staticFileServerPort);
+    server.once("close", () => {
+      startServe(flags, staticFileServerPort);
     });
     server.close();
   });

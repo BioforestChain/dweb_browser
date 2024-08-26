@@ -1,8 +1,7 @@
 import { Command } from "./deps/cliffy.ts";
 import { node_crypto, node_fs, node_path } from "./deps/node.ts";
-import { SERVE_MODE, type $BundleOptions, type $ServeOptions } from "./helper/const.ts";
+import { type $BundleOptions } from "./helper/const.ts";
 import { BundleResourceNameHelper, MetadataJsonGenerator, injectPrepare } from "./helper/generator.ts";
-import { startServe } from "./serve.ts";
 
 export const doBundleCommand = new Command()
   .arguments("<web_public:string>")
@@ -21,13 +20,9 @@ export const doBundleCommand = new Command()
   )
   .option("-s --web-server <serve:string>", "Specify the path of the programmable backend. ")
   .option("--clear <clear:boolean>", "Empty the cache.", { default: true })
-  .option("-w --watch <dev:boolean>", "Enable serve mode.", { default: false })
+  // .option("-w --watch <dev:boolean>", "Enable serve mode.", { default: false })
   .action((options, arg1) => {
-    if (options.watch) {
-      startServe({ ...options, webPublic: arg1 } satisfies $ServeOptions);
-    } else {
-      doBundle({ ...options, webPublic: arg1, mode: SERVE_MODE.PROD } satisfies $BundleOptions);
-    }
+    doBundle({ ...options, webPublic: arg1 } satisfies $BundleOptions);
   });
 
 /**
@@ -37,15 +32,17 @@ export const doBundleCommand = new Command()
  * --dir 指定项目根目录(可选)
  */
 export const doBundle = async (flags: $BundleOptions) => {
+  // 构造生成metadata
   const metadataFlagHelper = new MetadataJsonGenerator(flags);
+  // 注入可编程后端和plaoc.json 生产打包资源
   const { bundleFlagHelper, bundleResourceNameHelper } = injectPrepare(flags, metadataFlagHelper);
-
+  // 指定输出目录
   const outDir = node_path.resolve(Deno.cwd(), flags.out);
-
+  // 清空目录
   if (flags.clear && node_fs.existsSync(outDir)) {
     node_fs.rmSync(outDir, { recursive: true });
   }
-
+  // 看看需不需要创建打包目录
   if (node_fs.existsSync(outDir)) {
     if (node_fs.statSync(outDir).isDirectory() === false) {
       throw new Error(`output should be an directory`);

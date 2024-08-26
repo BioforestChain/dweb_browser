@@ -6,7 +6,7 @@ import process from "node:process";
 import { colors } from "../deps/cliffy.ts";
 import type { $JmmAppInstallManifest, $MMID } from "../deps/dweb-browser/core.ts";
 import { SERVE_MODE, defaultMetadata, type $MetadataJsonGeneratorOptions } from "./const.ts";
-import { GenerateTryFilepaths } from "./util.ts";
+import { GenerateTryFilepaths, isUrl } from "./util.ts";
 import { WalkFiles } from "./walk-dir.ts";
 import { walkDirToZipEntries, zipEntriesToZip, type $ZipEntry } from "./zip.ts";
 const internalRequest = createRequire(import.meta.url);
@@ -148,7 +148,7 @@ export class BundleZipGenerator {
   private zipGetter: () => Promise<JSZip> = () => {
     throw new Error("no implement");
   };
-  readonly www_dir: undefined | string;
+  www_dir: undefined | string;
   constructor(
     readonly flags: $MetadataJsonGeneratorOptions,
     readonly plaoc: PlaocJsonGenerator,
@@ -159,67 +159,76 @@ export class BundleZipGenerator {
     /// 实时预览模式，使用代理html
     if (
       flags.mode === SERVE_MODE.LIVE ||
-      (flags.mode === undefined && bundleTarget !== undefined && /^http[s]{0,1}:\/\//.test(bundleTarget))
+      (flags.mode === undefined && bundleTarget !== undefined && isUrl(bundleTarget))
     ) {
-      const liveUrl = bundleTarget;
-      if (liveUrl === undefined) {
-        throw new Error(`no found live-url when serve-mode is '${flags.mode}'`);
-      }
-      const html = String.raw;
-      const index_html_file_entry = {
-        dir: false,
-        path: `usr/www/index.html`,
-        data: html`<script>
-          const proxyUrl = new URL(location.href);
-          proxyUrl.searchParams.set("X-Plaoc-Proxy", ${JSON.stringify(liveUrl)});
-          location.replace(proxyUrl.href);
-        </script>`,
-        time: new Date(0),
-      } satisfies $ZipEntry;
-      this.zipGetter = async () => {
-        return zipEntriesToZip(
-          this.normalizeZipEntries([
-            ...(await this.getBaseZipEntries(flags.dev)),
-            index_html_file_entry,
-            ...plaoc.tryReadPlaoc(),
-            ...(await server.tryWriteServer()),
-          ])
-        );
-      };
+      this.liveMode(bundleTarget);
     }
-    /// 生产模式
-    else if (flags.mode === SERVE_MODE.PROD) {
+    /// 对将打包后的文件直接进行服务启动
+    else if (flags.mode === SERVE_MODE.ZIP) {
       const bundle_file = bundleTarget;
       if (bundle_file === undefined) {
-        throw new Error(`no found bundle-file when serve-mode is '${flags.mode}'`);
+        throw new Error(`You must be passing a 'zip' archive.`);
       }
       this.zipGetter = () => JSZip.loadAsync(bundle_file);
     }
     /// 默认使用 本地文件夹模式
     else {
-      const www_dir = bundleTarget;
-      if (www_dir === undefined) {
-        throw new Error(`no found dir when serve-mode is '${flags.mode}'`);
-      }
-      this.www_dir = www_dir;
-      this.zipGetter = async () => {
-        return zipEntriesToZip(
-          this.normalizeZipEntries([
-            ...(await server.tryWriteServer()),
-            ...(await this.getBaseZipEntries(flags.dev)),
-            ...plaoc.tryReadPlaoc(),
-            ...walkDirToZipEntries(www_dir).map((entry) => {
-              return {
-                ...entry,
-                path: (`usr/www/` + entry.path).replace(/\\/g, "/"),
-              };
-            }),
-          ])
-        );
-      };
+      this.localMode(bundleTarget);
     }
   }
-  async getBaseZipEntries(dev = false) {
+  /**实时预览模式: plaoc serve http://xxxx */
+  private liveMode(bundleTarget: string) {
+    const liveUrl = bundleTarget;
+    if (liveUrl === undefined) {
+      throw new Error(`no found live-url。example:plaoc serve http://xxxx`);
+    }
+    const html = String.raw;
+    const index_html_file_entry = {
+      dir: false,
+      path: `usr/www/index.html`,
+      data: html`<script>
+        const proxyUrl = new URL(location.href);
+        proxyUrl.searchParams.set("X-Plaoc-Proxy", ${JSON.stringify(liveUrl)});
+        location.replace(proxyUrl.href);
+      </script>`,
+      time: new Date(0),
+    } satisfies $ZipEntry;
+    this.zipGetter = async () => {
+      return zipEntriesToZip(
+        this.normalizeZipEntries([
+          ...(await this.getBaseZipEntries()),
+          index_html_file_entry,
+          ...this.plaoc.tryReadPlaoc(),
+          ...(await this.server.tryWriteServer()),
+        ])
+      );
+    };
+  }
+
+  /**本地模式，直接打包本地源码 */
+  private localMode(www_dir: string) {
+    if (www_dir === undefined) {
+      throw new Error(`no found dir. example:plaoc serve ./dir`);
+    }
+    this.www_dir = www_dir;
+    this.zipGetter = async () => {
+      return zipEntriesToZip(
+        this.normalizeZipEntries([
+          ...(await this.server.tryWriteServer()),
+          ...(await this.getBaseZipEntries()),
+          ...this.plaoc.tryReadPlaoc(),
+          ...walkDirToZipEntries(www_dir).map((entry) => {
+            return {
+              ...entry,
+              path: (`usr/www/` + entry.path).replace(/\\/g, "/"),
+            };
+          }),
+        ])
+      );
+    };
+  }
+
+  async getBaseZipEntries() {
     const entries: $ZipEntry[] = [];
 
     const addFiles_DistToUsr = async (addpath_full: string, pathalias: string, pathbase = "usr/") => {
@@ -248,7 +257,7 @@ export class BundleZipGenerator {
       });
     };
     const distDir = node_path.dirname(
-      internalRequest.resolve(dev ? "@plaoc/server/plaoc.server.dev.js" : "@plaoc/server/plaoc.server.js")
+      internalRequest.resolve("@plaoc/server/plaoc.server.js") //false ? "@plaoc/server/plaoc.server.dev.js" :
     );
     for (const entry of WalkFiles(distDir)) {
       await addFiles_DistToUsr(entry.entrypath, `server/${entry.relativepath}`);
@@ -260,7 +269,7 @@ export class BundleZipGenerator {
    * @param entries
    * @returns
    */
-  normalizeZipEntries(entries: $ZipEntry[]) {
+  private normalizeZipEntries(entries: $ZipEntry[]) {
     const entryMap = new Map<string, $ZipEntry>();
     function* ReadParentPaths(entrypath: string) {
       while (true) {
@@ -314,9 +323,9 @@ export class BundleResourceNameHelper {
 
 /**
  * 注入plaoc.json 和 可编程后端
- * @param flags 
- * @param metadataFlagHelper 
- * @returns 
+ * @param flags
+ * @param metadataFlagHelper
+ * @returns
  */
 export const injectPrepare = (flags: $MetadataJsonGeneratorOptions, metadataFlagHelper: MetadataJsonGenerator) => {
   // 注入plaoc.json

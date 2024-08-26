@@ -69,3 +69,7 @@ export function getManifestFilePath(cwd?: string) {
 
   return node_path.join(process.cwd(), "manifest.json");
 }
+
+export function isUrl(target: string) {
+  return /^http[s]{0,1}:\/\//.test(target);
+}

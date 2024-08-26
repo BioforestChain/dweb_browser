@@ -5,12 +5,10 @@ import { doConfigCommand } from "./config.ts";
 import { Command } from "./deps/cliffy.ts";
 import { doInitCommand } from "./init.ts";
 import { doLiveCommand } from "./live.ts";
+import { doServeCommand } from "./serve.ts";
 import { doWebAdvCommand } from "./web-dav.ts";
 // import { doHookServer } from "./server/index.ts";
 
-//node --trace-warnings
-// const cliNpm = import.meta.resolve(`../scripts/npm.cli.json`);
-// const npmConfigs = (await import(cliNpm, { assert: { type: "json" } })).default;
 const findPackageJson = async () => {
   let deep = 1;
   let cur = import.meta.url;
@@ -20,7 +18,6 @@ const findPackageJson = async () => {
       const newCur = await import.meta.resolve(`${"../".repeat(deep)}package.json`);
       pre = cur;
       cur = newCur;
-      // return await import(cur, { assert: { type: "json" } });
       return JSON.parse(fs.readFileSync(url.fileURLToPath(cur), "utf-8"));
     } catch {
       deep++;
@@ -39,6 +36,9 @@ await new Command()
   .command("init", doInitCommand)
   .example("init app name", "plaoc init xxx-app")
   .example("init current workspace", "plaoc init")
+
+  .command("serve", doServeCommand)
+  .example("developer service", "plaoc serve http://xx.xx.xx.xx:xxxx/")
 
   .command("live", doLiveCommand)
   .example("live edit mode", "plaoc live http://xx.xx.xx.xx:xxxx/")
