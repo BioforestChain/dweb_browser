@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
+import org.mkdesklayout.project.NFCacalaterParams
 import squircleshape.CornerSmoothing
 import squircleshape.SquircleShape
 import kotlin.math.max
@@ -45,3 +46,8 @@ expect fun Modifier.desktopAppItemActions(
   onOpenApp: () -> Unit = {},
   onOpenAppMenu: () -> Unit = {},
 ): Modifier
+
+
+expect fun getLayoutParams(width: Int, height: Int): NFCacalaterParams
+
+expect fun layoutSaveStrategyIsMultiple(): Boolean

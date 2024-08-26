@@ -8,73 +8,68 @@ class NFCaculater() {
   companion object {
     fun sizeReq(toPlaceType: NFDataType, params: NFCacalaterParams): IntSize {
       return IntSize(
-        params.itemSize.width * toPlaceType.column + params.hSpace * (toPlaceType.column-1),
-        params.itemSize.height * toPlaceType.row + params.vSpace* (toPlaceType.row-1),
+        params.itemSize.width * toPlaceType.width + params.hSpace * (toPlaceType.width - 1).coerceAtLeast(
+          0
+        ),
+        params.itemSize.height * toPlaceType.height + params.vSpace * (toPlaceType.height - 1).coerceAtLeast(
+          0
+        ),
       )
     }
 
-    fun searchAreas1(
+    fun <T> searchAreas(
       offset: IntOffset,
-      size: IntSize,
+      layout: NFLayoutData<T>,
       params: NFCacalaterParams,
-    ): NFGeometry {
+    ): NFLayoutData<T> {
 
       val triggler = IntOffset(
         params.itemSize.width / 2,
         params.itemSize.height / 2
       )
 
-      val indexX = (offset.x + triggler.x) / (params.itemSize.width + params.hSpace)
-      val indexY = (offset.y + triggler.y) / (params.itemSize.height + params.vSpace)
+      var indexX = (offset.x + triggler.x) / (params.itemSize.width + params.hSpace)
+      var indexY = (offset.y + triggler.y) / (params.itemSize.height + params.vSpace)
 
-      return NFGeometry(
-        IntOffset(
-          indexX * (params.itemSize.width + params.hSpace),
-          indexY * (params.itemSize.height + params.vSpace)
-        ),
-        size
+      indexX = indexX.coerceIn(0 until params.column)
+      indexY = indexY.coerceAtLeast(0)
+
+      return if (indexX == layout.sCGeo.x && indexY == layout.sCGeo.y) {
+        layout
+      } else {
+        val geo = layout.geo.copy(
+          x = indexX * (params.itemSize.width + params.hSpace),
+          y = indexY * (params.itemSize.height + params.vSpace)
+        )
+        val scGeo = layout.sCGeo.copy(indexX, indexY)
+        layout.copy(sCGeo = scGeo, geo = geo)
+      }
+    }
+
+    fun <T> getLayout(
+      value: T,
+      spaceCoordinateLayout: NFSpaceCoordinateLayout,
+      params: NFCacalaterParams
+    ): NFLayoutData<T> {
+
+      val offX = spaceCoordinateLayout.offset.x
+      val offY = spaceCoordinateLayout.offset.y
+
+      val offset = IntOffset(
+        x = offX * (params.itemSize.width + params.hSpace),
+        y = offY * (params.itemSize.height + params.vSpace)
       )
+
+      val sizeW = spaceCoordinateLayout.size.width
+      val sizeH = spaceCoordinateLayout.size.height
+
+      val size = IntSize(
+        params.itemSize.width * sizeW + params.hSpace * (sizeW - 1).coerceAtLeast(0),
+        params.itemSize.height * sizeH + params.vSpace * (sizeH - 1).coerceAtLeast(0),
+      )
+
+      return NFLayoutData(value, spaceCoordinateLayout, NFGeometry.from(offset, size))
     }
-
-    //
-    fun getSapceCoordinates(geo: NFGeometry, params: NFCacalaterParams): List<Pair<Int, Int>> {
-      var c = geo.offset.x / (params.itemSize.width + params.hSpace)
-      var r = geo.offset.y / (params.itemSize.height + params.vSpace)
-
-      //防止溢出边界
-      c = c.coerceIn(0, params.column - 1)
-      r = r.coerceAtLeast(0)
-
-      val w = geo.size.width / (params.itemSize.width + params.hSpace) + 1
-      val h = geo.size.height / (params.itemSize.height + params.vSpace) + 1
-
-      val result = mutableListOf<Pair<Int, Int>>()
-
-      for (sr in r until r + h) {
-        for (sc in c until c + w) {
-          result.add(Pair(sr, sc))
-        }
-      }
-
-      return result.filter {
-        it.second < params.column //防止溢出边界
-      }
-    }
-
-    fun getSpaceCoordinateRequest(geo: NFGeometry, params: NFCacalaterParams): Pair<Pair<Int, Int>, NFDataType> {
-      var c = geo.offset.x / (params.itemSize.width + params.hSpace)
-      var r = geo.offset.y / (params.itemSize.height + params.vSpace)
-
-      //防止溢出边界
-      c = c.coerceIn(0, params.column - 1)
-      r = r.coerceAtLeast(0)
-
-      val w = geo.size.width / (params.itemSize.width + params.hSpace) + 1
-      val h = geo.size.height / (params.itemSize.height + params.vSpace) + 1
-
-      return Pair(Pair(r, c), NFDataType(h, w))
-    }
-
 
     fun logBoard(board: MutableList<BooleanArray>, tag: String = "") {
       println("FUUU logBoard: <<<<<< $tag >>>>>>>")
@@ -88,31 +83,30 @@ class NFCaculater() {
 
     // 检查是否指点位置，指定的类似的子board是否可用。
     fun checkIsUseful(
-      position: Pair<Int, Int>,
-      toPlaceType: NFDataType,
+      offset: NFSpaceCoordinateOffSet,
+      size: NFSpaceCoordinateSize,
       inBoard: MutableList<BooleanArray>,
       column: Int
     ): Boolean {
 //    println("FUUU checkIsUseful ${position.first}-${position.second}")
-      val req = getSpaceRequest(toPlaceType)
       val toFillSet = mutableSetOf<Pair<Int, Int>>()
-      var r = position.first
+      var r = offset.y
 
-      while (r < position.first + req.first) {
+      while (r < offset.y + size.height) {
 
         while (r >= inBoard.size) {
           spaceBoardExpand(inBoard, column)
         }
 
         val row = inBoard[r]
-        var c = position.second
+        var c = offset.x
 
-        if (c + req.second > row.size) {
+        if (c + size.width > row.size) {
           return false
         }
 
         var count = 0
-        while (c < row.size && count < req.second) {
+        while (c < row.size && count < size.width) {
           count++
           if (!row[c]) {
             return false
@@ -131,53 +125,44 @@ class NFCaculater() {
       return true
     }
 
-    fun getSpaceRequest(toPlaceType: NFDataType): Pair<Int, Int> {
-      return toPlaceType.row to toPlaceType.column
-    }
-
     fun spaceBoardExpand(inBoard: MutableList<BooleanArray>, column: Int) {
       inBoard.add(BooleanArray(column) { true })
     }
 
     fun <T> layout(
       layouts: List<NFLayoutData<T>>,
-      blockAreas: List<NFGeometry>,
+      blockLayouts: List<NFLayoutData<T>>,
       params: NFCacalaterParams,
       refresh: Boolean
     ): List<NFLayoutData<T>> {
-      println("FUUU layout, refresh: $refresh, count: ${layouts.size} ,${layouts.joinToString { "${it.data.value}, " }}")
-      println("FUUU layout block, ${blockAreas.joinToString { "${it}, " }}")
       val spaceBoard = MutableList(8) { BooleanArray(params.column) { true } }
 
-      blockAreas.flatMap {
-        getSapceCoordinates(it, params)
-      }.forEach {
-        while (it.first >= spaceBoard.count()) {
+      blockLayouts.forEach {
+        val scGeo = it.sCGeo
+        while (scGeo.y >= spaceBoard.count()) {
           spaceBoardExpand(spaceBoard, params.column)
         }
-        spaceBoard[it.first][it.second] = false
+        spaceBoard[scGeo.y][scGeo.x] = false
       }
 
-      logBoard(spaceBoard, "SYNC BLOCKS")
+//      logBoard(spaceBoard, "SYNC BLOCKS")
 
       //从指定位置开始遍历所有指类型的子board，找出第一个可用位置。
       fun findNextAvailablePosition(
-        start: Pair<Int, Int>,
-        toPlaceType: NFDataType
-      ): Pair<IntOffset, Pair<Int, Int>> {
-        var r = start.first
+        startOffSet: NFSpaceCoordinateOffSet,
+        size: NFSpaceCoordinateSize
+      ): Pair<IntOffset, NFSpaceCoordinateOffSet> {
+        var r = startOffSet.y
         while (true) {
-          var c = if (r == start.first) start.second else 0
+          var c = if (r == startOffSet.y) startOffSet.x else 0
           while (c < params.column) {
-            val isUseFull = checkIsUseful(Pair(r, c), toPlaceType, spaceBoard, params.column)
+            val isUseFull = checkIsUseful(IntOffset(c, r), size, spaceBoard, params.column)
             if (isUseFull) {
               val offset = IntOffset(
                 c * (params.itemSize.width + params.hSpace),
                 r * (params.itemSize.height + params.vSpace)
               )
-
-              val next = Pair(r, c)
-              return Pair(offset, next)
+              return Pair(offset, IntOffset(c, r))
             }
             c++
           }
@@ -185,23 +170,35 @@ class NFCaculater() {
         }
       }
 
-      var result = mutableListOf<NFLayoutData<T>>()
-      var start = Pair(0, 0)
-      for (index in 0 until layouts.count()) {
-        val layout = layouts[index]
+      fun resort(): List<NFLayoutData<T>> {
+        return layouts.sortedBy {
+          it.sCGeo.x + it.sCGeo.y * params.column
+        }
+      }
 
+      val result = mutableListOf<NFLayoutData<T>>()
+      var start = NFSpaceCoordinateOffSet.Zero
+      val resortLayouts = resort()
+      for (index in 0 until resortLayouts.count()) {
+        val layout = resortLayouts[index]
         if (!refresh) {
-          val toPlaceReq = getSpaceCoordinateRequest(layout.geo, params)
-          val isCanUse = checkIsUseful(toPlaceReq.first, toPlaceReq.second, spaceBoard, params.column)
-          if (isCanUse) {
-            result.add(NFLayoutData(layout.data, layout.geo.copy(size = sizeReq(layout.data.type, params))))
+          val isCanInsert =
+            checkIsUseful(layout.sCGeo.offset, layout.sCGeo.size, spaceBoard, params.column)
+          if (isCanInsert) {
+            result.add(layout)
             continue
           }
         }
 
-        var r = findNextAvailablePosition(start, layout.data.type)
-        val s = sizeReq(layout.data.type, params)
-        result.add(NFLayoutData(layout.data, NFGeometry(r.first, s)))
+        val r = findNextAvailablePosition(start, layout.sCGeo.size)
+        val s = sizeReq(layout.sCGeo.size, params)
+        result.add(
+          NFLayoutData(
+            layout.data,
+            NFGeometry.from(r.second, layout.sCGeo.size),
+            NFGeometry.from(r.first, s)
+          )
+        )
         start = r.second
       }
       return result

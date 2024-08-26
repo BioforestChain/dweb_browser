@@ -59,10 +59,10 @@ import org.dweb_browser.helper.compose.compositionChainOf
 import org.dweb_browser.pure.image.compose.CoilAsyncImage
 import org.mkdesklayout.project.NFCacalaterParams
 import org.mkdesklayout.project.NFCaculater
-import org.mkdesklayout.project.NFData
 import org.mkdesklayout.project.NFDataType
 import org.mkdesklayout.project.NFGeometry
 import org.mkdesklayout.project.NFLayoutData
+import org.mkdesklayout.project.NFSpaceCoordinateLayout
 import kotlin.math.max
 
 private val imageSizeCache = mutableMapOf<String, GridItem<String>>()
@@ -92,15 +92,11 @@ internal fun CaptureListView(
 
     val layoutData = NFCaculater.layout(
       layouts = waterfallItems.mapIndexed { _, gridItem ->
-        NFLayoutData(
-          NFData(
-            gridItem.key, NFDataType(
-              row = gridItem.sizeState.value.height, column = gridItem.sizeState.value.width
-            )
-          ), NFGeometry(IntOffset.Zero, IntSize.Zero)
-        )
+        NFLayoutData(gridItem.key,
+          NFGeometry(0,0, gridItem.sizeState.value.width, gridItem.sizeState.value.height),
+          NFGeometry(0, 0, 1, 1))
       },
-      blockAreas = emptyList(),
+      blockLayouts = emptyList(),
       params = NFCacalaterParams(cells, maxWidth.value.toInt(), 8, 8),
       refresh = true
     )

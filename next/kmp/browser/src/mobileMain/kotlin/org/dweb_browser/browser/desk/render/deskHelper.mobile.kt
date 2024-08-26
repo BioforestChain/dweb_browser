@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
+import org.mkdesklayout.project.NFCacalaterParams
 
 
 actual fun desktopGridLayout(): DesktopGridLayout =
@@ -67,3 +68,10 @@ actual fun Modifier.desktopAppItemActions(
       }
     }
 }
+
+actual fun getLayoutParams(width: Int, height: Int): NFCacalaterParams {
+  val column = if (width > height) 8 else 4
+  return NFCacalaterParams(column, width, 8, 16, Pair(10, 12))
+}
+
+actual fun layoutSaveStrategyIsMultiple(): Boolean = true
