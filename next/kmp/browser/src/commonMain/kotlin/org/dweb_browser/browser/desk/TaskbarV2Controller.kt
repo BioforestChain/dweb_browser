@@ -19,14 +19,24 @@ class TaskbarV2Controller(
 
   private suspend fun upsetApps() {
     appsFlow.value = getTaskbarAppList(Int.MAX_VALUE).map { new ->
-      appsFlow.value.find { it.mmid == new.mmid }?.also { it.running = new.running }
-        ?: TaskbarAppModel(
+      var appModel = appsFlow.value.find { it.mmid == new.mmid }?.also { it.running = new.running }
+      if(appModel == null) {
+        appModel = TaskbarAppModel(
           mmid = new.mmid,
           icon = new.icons.toStrict().pickLargest(),
           running = new.running,
           isShowClose = false,
         )
-    }
+      }
+
+      if(new.winStates.isNotEmpty()) {
+        appModel.focus = new.winStates.last().focus
+      } else {
+        appModel.focus = false
+      }
+
+      appModel
+    }.sortedByDescending { it.focus }
 //    updateTaskBarSize(taskbarApps.count())
   }
 

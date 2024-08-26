@@ -10,6 +10,7 @@ internal class TaskbarAppModel(
   val icon: StrictImageResource?,
   running: Boolean,
   var isShowClose: Boolean = false,
+  var focus: Boolean = false,
 ) {
   var running by mutableStateOf(running)
   var opening by mutableStateOf(false)
