@@ -10,6 +10,7 @@
     "@dweb-browser/polyfill/": "npm:@dweb-browser/polyfill/",
     "@plaoc/cli": "npm:@plaoc/cli",
     "@plaoc/server": "npm:@plaoc/server",
+    "@plaoc/server/middlewares": "npm:@plaoc/server/middlewares",
     "@plaoc/is-dweb": "npm:@plaoc/is-dweb",
     "@plaoc/plugins": "npm:@plaoc/plugins"
   }

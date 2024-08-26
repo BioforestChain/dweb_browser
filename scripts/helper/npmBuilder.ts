@@ -118,12 +118,13 @@ export const npmBuilder = async (config: {
       // see JS docs for overview and more options
       deno: false,
     },
-    test: false,
+    test: false, // options?.test ?? false,
     importMap: importMap,
     compilerOptions: {
       lib: ["DOM", "ESNext", "DOM.Iterable"],
-      target: "ES2020",
+      target: "ES2022",
       emitDecoratorMetadata: true,
+      skipLibCheck: true,
     },
     postBuild() {
       Deno.copyFileSync(rootResolve("./LICENSE"), npmResolve("./LICENSE"));

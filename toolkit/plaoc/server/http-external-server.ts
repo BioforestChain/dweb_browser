@@ -1,6 +1,6 @@
 import { onAllIpc } from "@dweb-browser/core/internal/ipcEventExt.ts";
 import type { $Core, $Http, $Ipc, $IpcRequest, $MMID } from "./deps.ts";
-import { IpcEvent, IpcResponse, jsProcess, mapHelper } from "./deps.ts";
+import { IpcEvent, IpcHeaders, IpcResponse, jsProcess, mapHelper } from "./deps.ts";
 import { createDuplexIpc } from "./helper/duplexIpc.ts";
 import { HttpServer } from "./helper/http-helper.ts";
 import { PromiseToggle } from "./helper/promise-toggle.ts";
@@ -133,6 +133,16 @@ export class Server_external extends HttpServer {
       // 接收别人传递过来的消息
       // 等待自己的ipc连接成功
       const ipc = await this.ipcPo.waitOpen();
+      event.ipc.onClosed(() => {
+        // 自己被强行关闭了，给对方一个返回值
+        return IpcResponse.fromText(
+          event.ipcRequest.reqId,
+          500,
+          new IpcHeaders(),
+          "The other person closes the window.",
+          event.ipc
+        );
+      });
       // 发送到前端监听，并去（respondWith）拿返回值
       const response = (await ipc.request(event.request.url, event.request)).toResponse();
       // 构造返回值给对方

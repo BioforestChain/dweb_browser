@@ -1,5 +1,5 @@
 import { assert, test } from "vitest";
-import { findNearColors, getDayHoursConfig, hslToRgb, mixColorsByHsl, rgbToHsl } from "./color-generator";
+import { findNearColors, getDayHoursConfig, hslToRgb, mixColorsByHsl, rgbToHsl } from "./color-generator.ts";
 test("findNearColors", () => {
   console.log(0, findNearColors(0));
   console.log(1, findNearColors(1));

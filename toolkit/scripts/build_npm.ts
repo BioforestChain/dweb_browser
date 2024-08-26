@@ -70,6 +70,8 @@ export const plaocCli = registryNpmBuilder({
   importMap,
   entryPointsDirName: false,
   options: {
+    typeCheck: false,
+    declaration: false,
     scriptModule: false,
     shims: {
       deno: true,

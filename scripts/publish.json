@@ -17,7 +17,7 @@
   "server": {
     "buildToRootDir": "./npm/@plaoc__server",
     "name": "@plaoc/server",
-    "version": "0.4.0"
+    "version": "0.4.1"
   },
   "cli": {
     "buildToRootDir": "./npm/@plaoc__cli",
