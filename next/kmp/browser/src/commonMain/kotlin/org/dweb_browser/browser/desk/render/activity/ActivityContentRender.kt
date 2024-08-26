@@ -11,7 +11,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -20,6 +19,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.dweb_browser.browser.desk.model.ActivityItem
 import org.dweb_browser.browser.desk.model.ActivityItemRenderProp
+import org.dweb_browser.helper.compose.saveBlur
 import org.dweb_browser.sys.window.render.AppIconContainer
 
 @Composable
@@ -48,14 +48,13 @@ fun ActivityItem.TextContent.Render(
       maxLines = 1,
       overflow = TextOverflow.Ellipsis,
       modifier = when {
-        renderProp.detailAni.isRunning -> Modifier
-          .blur(blur)
+        renderProp.detailAniFinished -> Modifier
+        else -> Modifier
+          .saveBlur(blur)
           .graphicsLayer {
             translationY = -8 * density * p3
             alpha = p2.coerceAtLeast(0f)
           }
-
-        else -> Modifier
       }
     )
   }

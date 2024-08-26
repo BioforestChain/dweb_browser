@@ -20,6 +20,7 @@ fun ActivityItem.Icon.Render(
 ) {
   when (val icon = this) {
     is ActivityItem.ImageIcon -> icon.Render(controller, renderProp, modifier)
+    is ActivityItem.ComposeIcon -> icon.Render(controller, renderProp, modifier)
     ActivityItem.NoneIcon -> {}
   }
 }
@@ -45,4 +46,13 @@ fun ActivityItem.ImageIcon.Render(
       Image(painter = painter, contentDescription = null, modifier = modifier)
     } ?: Image(bitmap = it, contentDescription = null, modifier = modifier)
   }
+}
+
+@Composable
+fun ActivityItem.ComposeIcon.Render(
+  controller: ActivityController,
+  renderProp: ActivityItemRenderProp,
+  modifier: Modifier = Modifier,
+) {
+  content(modifier)
 }

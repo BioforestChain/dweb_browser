@@ -1,9 +1,11 @@
 package org.dweb_browser.browser.desk.model
 
 import androidx.compose.animation.core.Animatable
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
@@ -34,6 +36,8 @@ data class ActivityItem(
   @Serializable
   @SerialName("image")
   class ImageIcon(val url: String) : Icon
+
+  class ComposeIcon(val content: @Composable (Modifier) -> Unit) : Icon
 
   @Serializable
   sealed interface Content
@@ -67,6 +71,10 @@ class ActivityItemRenderProp {
   val viewAni = Animatable(0f)
   var showDetail by mutableStateOf(false)
   val detailAni = Animatable(0f)
-  val canView get() = open || viewAni.isRunning || viewAni.value != 0f
-  val canViewDetail get() = showDetail || detailAni.isRunning || detailAni.value != 0f
+  val viewAniRunning get() = viewAni.isRunning || viewAni.value != 0f
+  val viewAniFinished get() = !viewAni.isRunning && viewAni.value == 1f
+  val detailAniRunning get() = detailAni.isRunning || detailAni.value != 0f
+  val detailAniFinished get() = !detailAni.isRunning && detailAni.value == 1f
+  val canView get() = open || viewAniRunning
+  val canViewDetail get() = showDetail || detailAniRunning
 }
