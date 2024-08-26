@@ -17,6 +17,8 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.ApplicationScope
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPlacement
@@ -36,6 +38,7 @@ import org.dweb_browser.helper.compose.ScreenCapture
 import org.dweb_browser.helper.compose.envSwitch
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.platform.desktop.os.WindowsRegistry
+import java.awt.GraphicsEnvironment
 import java.awt.Rectangle
 import java.awt.Robot
 import java.awt.Toolkit
@@ -140,17 +143,17 @@ class PureViewController(
 
     @Composable
     private fun ApplicationScope.CaptureWindow() {
-      // 1. 打开一个置顶的窗口，全屏显示
-      // 2. 点击后获取第一个位置，根据鼠标移动来获取矩形区域
-      // 3. 针对第二步选择的矩形区域进行截屏操作
+      val screenSize = Toolkit.getDefaultToolkit().screenSize
+
       screenBitmap?.let { imageBitmap ->
         Window(
-          onCloseRequest = { screenBitmap = null },
-          state = rememberWindowState(placement = WindowPlacement.Fullscreen),
-          visible = screenBitmap != null,
-          title = "Capture",
-          undecorated = true, // 表示窗口无边框
-          transparent = true, // 窗口背景透明
+          onCloseRequest = ::exitApplication,
+          state = rememberWindowState(
+            placement = WindowPlacement.Fullscreen,
+            size = DpSize(screenSize.width.dp, screenSize.height.dp)
+          ),
+          undecorated = true,
+          transparent = true,
           resizable = false,
           alwaysOnTop = true,
           onKeyEvent = { keyEvent ->
@@ -160,6 +163,8 @@ class PureViewController(
             } else false
           }
         ) {
+          val device = GraphicsEnvironment.getLocalGraphicsEnvironment().defaultScreenDevice
+          device.fullScreenWindow = window
           Box {
             // 显示原始截图
             Image(bitmap = imageBitmap, contentDescription = "Screenshot")
