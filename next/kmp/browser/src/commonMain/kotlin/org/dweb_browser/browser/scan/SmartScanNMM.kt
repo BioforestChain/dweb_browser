@@ -19,6 +19,8 @@ import org.dweb_browser.sys.permission.SystemPermissionName
 import org.dweb_browser.sys.permission.SystemPermissionTask
 import org.dweb_browser.sys.permission.ext.requestSystemPermissions
 import org.dweb_browser.sys.window.ext.onRenderer
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.decodeToImageBitmap
 
 val debugSCAN = Debugger("scan.browser")
 
@@ -44,6 +46,7 @@ class SmartScanNMM : NativeMicroModule("scan.browser.dweb", "Smart Scan") {
   }
 
   inner class ScanRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
+    @OptIn(ExperimentalResourceApi::class)
     override suspend fun _bootstrap() {
       val scanningController = ScanningController(mmScope)
       // 实现barcodeScanning协议
@@ -90,6 +93,11 @@ class SmartScanNMM : NativeMicroModule("scan.browser.dweb", "Smart Scan") {
             )
           }
         },
+        "/parseImage" bind PureMethod.POST by defineEmptyResponse {
+          val controller = scanController.getWindowController()
+          controller.show()
+          scanController.albumImageFlow.tryEmit(request.body.toPureBinary().decodeToImageBitmap())
+        }
       )
 
       // 获取ShortcutManage发起的open操作

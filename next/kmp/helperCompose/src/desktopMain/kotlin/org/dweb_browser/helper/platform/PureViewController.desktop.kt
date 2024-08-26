@@ -3,6 +3,7 @@ package org.dweb_browser.helper.platform
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -164,7 +165,13 @@ class PureViewController(
           }
         ) {
           val device = GraphicsEnvironment.getLocalGraphicsEnvironment().defaultScreenDevice
-          device.fullScreenWindow = window
+          if (!isWindows) {
+            device.fullScreenWindow = window
+          }
+          DisposableEffect(Unit) {
+            onDispose { device.fullScreenWindow = null }
+          }
+
           Box {
             // 显示原始截图
             Image(bitmap = imageBitmap, contentDescription = "Screenshot")

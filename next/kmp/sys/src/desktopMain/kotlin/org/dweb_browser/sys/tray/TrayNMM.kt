@@ -22,8 +22,11 @@ import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.platform.PureViewController
+import org.dweb_browser.helper.platform.toByteArray
 import org.dweb_browser.helper.randomUUID
+import org.dweb_browser.pure.http.PureHeaders
 import org.dweb_browser.pure.http.PureMethod
+import org.dweb_browser.pure.http.buildRequestX
 import org.dweb_browser.pure.http.queryAsOrNull
 import org.dweb_browser.pure.image.compose.PureImageLoader
 import org.dweb_browser.pure.image.compose.SmartLoad
@@ -92,7 +95,14 @@ class TrayNMM : NativeMicroModule("tray.sys.dweb", "tray") {
           runtime.scopeLaunch(cancelable = false) {
             val imageBitmap = PureViewController.awaitScreenCapture()
             // TODO 打开扫码
-            // val response = runtime.nativeFetch("file://scan.browser.dweb/open")
+            runtime.nativeFetch(
+              buildRequestX(
+                url = "file://scan.browser.dweb/parseImage",
+                method = PureMethod.POST,
+                headers = PureHeaders(),
+                body = imageBitmap.toByteArray()
+              )
+            )
           }
         }
 
