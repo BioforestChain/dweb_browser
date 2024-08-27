@@ -1,8 +1,12 @@
 package org.dweb_browser.browser.desk.render
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.runtime.Composable
@@ -11,14 +15,20 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import kotlinx.coroutines.launch
 import org.dweb_browser.browser.desk.TaskbarV2Controller
+import org.dweb_browser.browser.desk.model.TaskbarAppModel
 import org.dweb_browser.helper.clamp
+import org.dweb_browser.sys.window.core.constant.WindowMode
 import org.dweb_browser.sys.window.floatBar.DraggableDelegate
 import kotlin.math.min
 
@@ -40,13 +50,21 @@ abstract class ITaskbarV2View(protected val taskbarController: TaskbarV2Controll
     displaySize: Size,
     modifier: Modifier = Modifier,
   ) {
+    val scope = rememberCoroutineScope()
     val apps by taskbarController.appsFlow.collectAsState()
+    var isExpanded by remember { mutableStateOf(false) }
+    val firstItem = apps.firstOrNull() ?: TaskbarAppModel("", icon = null, running = false)
 
     val appCount = apps.size
+    LaunchedEffect(appCount, firstItem) {
+      isExpanded = apps.firstOrNull()?.mode != WindowMode.MAXIMIZE
+    }
+
     var taskbarIconSize by remember { mutableStateOf(TASKBAR_ICON_MAX_SIZE) }
     var paddingValue by remember { mutableStateOf(TASKBAR_PADDING_VALUE) }
     var dividerHeight by remember { mutableStateOf(TASKBAR_DIVIDER_HEIGHT) }
-    LaunchedEffect(appCount, displaySize) {
+    var appIconsHeight by remember { mutableStateOf(0f) }
+    LaunchedEffect(appCount, displaySize, isExpanded) {
       taskbarIconSize = clamp(
         TASKBAR_ICON_MIN_SIZE,
         min(displaySize.width, displaySize.height) * 0.14f,
@@ -57,9 +75,14 @@ abstract class ITaskbarV2View(protected val taskbarController: TaskbarV2Controll
 
       if (displaySize != Size.Zero) {
         taskbarController.state.layoutWidth = taskbarIconSize
-        taskbarController.state.layoutHeight = when (appCount) {
-          0 -> taskbarIconSize
-          else -> appCount * (taskbarIconSize - paddingValue) + dividerHeight + taskbarIconSize
+        appIconsHeight = when {
+          appCount == 0 -> 0f
+          isExpanded -> appCount * (taskbarIconSize - paddingValue)
+          else -> taskbarIconSize
+        }
+        taskbarController.state.layoutHeight = appIconsHeight + when {
+          appCount == 0 -> taskbarIconSize
+          else -> dividerHeight + taskbarIconSize
         }
       }
     }
@@ -71,44 +94,68 @@ abstract class ITaskbarV2View(protected val taskbarController: TaskbarV2Controll
       }
     }
 
-    LazyColumn(
+    Column(
       modifier = modifier.fillMaxSize(),
-      verticalArrangement = Arrangement.Center,
+      verticalArrangement = Arrangement.SpaceBetween,
       horizontalAlignment = Alignment.CenterHorizontally
     ) {
-      itemsIndexed(apps, key = { _, it -> it.mmid }) { index, app ->
-        @Suppress("DeferredResultUnused")
-        TaskBarAppIcon(
-          app = app,
-          microModule = taskbarController.deskNMM,
-          padding = paddingValue.dp,
-          openAppOrActivate = {
-            app.opening = true
-            taskbarController.openAppOrActivate(app.mmid).invokeOnCompletion {
-              app.opening = false
+      LazyColumn(
+        modifier = modifier.fillMaxWidth().requiredHeight(appIconsHeight.dp).pointerInput(Unit) {
+          scope.launch {
+            awaitPointerEventScope {
+              while (true) {
+                val event = awaitPointerEvent()
+                if (event.changes.any { it.pressed }) {
+                  isExpanded = true
+                }
+              }
             }
-          },
-          quitApp = {
-            taskbarController.closeApp(app.mmid)
-          },
-          toggleWindow = {
-            taskbarController.toggleWindowMaximize(app.mmid)
-          },
-          modifier = Modifier.animateItem().zIndex(apps.size - index - 1f)
-        )
-      }
+          }
+        },
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+      ) {
+        itemsIndexed(
+          apps,
+          key = { _, it -> it.mmid },
+        ) { index, app ->
+          @Suppress("DeferredResultUnused") TaskBarAppIcon(app = app,
+            microModule = taskbarController.deskNMM,
+            padding = paddingValue.dp,
+            openAppOrActivate = {
+              println("QAQ mmid=${app.mmid} openAppOrActivate=${app.focus} mode=${app.mode}")
 
-      if (apps.isNotEmpty()) {
-        item(key = "divider") {
-          TaskBarDivider(paddingValue.dp)
+              app.opening = true
+              taskbarController.openAppOrActivate(app.mmid).invokeOnCompletion {
+                app.opening = false
+              }
+            },
+            quitApp = {
+              taskbarController.closeApp(app.mmid)
+            },
+            toggleWindow = {
+              taskbarController.toggleWindowMaximize(app.mmid)
+            },
+            modifier = Modifier.animateItem().zIndex(apps.size - index - 1f).offset {
+              if (!isExpanded) {
+                IntOffset(
+                  0, ((-taskbarIconSize.toInt() + paddingValue + 2) * index).dp.toPx().toInt()
+                )
+              } else {
+                IntOffset(0, 0)
+              }
+            })
         }
       }
 
-      item(key = "home") {
-        taskBarHomeButton.Render({
-          taskbarController.toggleDesktopView()
-        }, Modifier.padding(paddingValue.dp).zIndex(apps.size.toFloat()))
+      if (appCount > 0) {
+        TaskBarDivider(paddingValue.dp)
       }
+
+      taskBarHomeButton.Render({
+        taskbarController.toggleDesktopView()
+        isExpanded = if (firstItem.focus) firstItem.mode != WindowMode.MAXIMIZE else true
+      }, Modifier.padding(paddingValue.dp).zIndex(apps.size.toFloat()))
     }
   }
 

@@ -20,7 +20,7 @@ class TaskbarV2Controller(
   private suspend fun upsetApps() {
     appsFlow.value = getTaskbarAppList(Int.MAX_VALUE).map { new ->
       var appModel = appsFlow.value.find { it.mmid == new.mmid }?.also { it.running = new.running }
-      if(appModel == null) {
+      if (appModel == null) {
         appModel = TaskbarAppModel(
           mmid = new.mmid,
           icon = new.icons.toStrict().pickLargest(),
@@ -29,8 +29,10 @@ class TaskbarV2Controller(
         )
       }
 
-      if(new.winStates.isNotEmpty()) {
-        appModel.focus = new.winStates.last().focus
+      if (new.winStates.isNotEmpty()) {
+        val state = new.winStates.last()
+        appModel.focus = state.focus
+        appModel.mode = state.mode
       } else {
         appModel.focus = false
       }
