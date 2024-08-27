@@ -26,6 +26,7 @@ class ActivityController(val deskNMM: DeskNMM.DeskRuntime) {
     leadingIcon: ActivityItem.Icon?,
     trailingIcon: ActivityItem.Icon?,
     centerTitle: ActivityItem.Content?,
+    centerWidth: Float?,
     bottomActions: List<ActivityItem.Action>?,
   ): Boolean {
     val activityItem = find(owner, id) ?: return false
@@ -34,6 +35,7 @@ class ActivityController(val deskNMM: DeskNMM.DeskRuntime) {
         leadingIcon = leadingIcon ?: this.leadingIcon,
         trailingIcon = trailingIcon ?: this.trailingIcon,
         centerTitle = centerTitle ?: this.centerTitle,
+        centerWidth = centerWidth ?: this.centerWidth,
         bottomActions = bottomActions ?: this.bottomActions,
       )
     }

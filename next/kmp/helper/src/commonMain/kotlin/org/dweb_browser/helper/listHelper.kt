@@ -40,3 +40,11 @@ public fun <E> List<E>.safeSubList(fromIndex: Int, toIndex: Int): List<E> {
     emptyList()
   }
 }
+
+public fun <E> List<E>.contentEquals(other: List<E>): Boolean {
+  if (this.size != other.size) return false
+  for (i in this.indices) {
+    if (this[i] != other[i]) return false
+  }
+  return true
+}

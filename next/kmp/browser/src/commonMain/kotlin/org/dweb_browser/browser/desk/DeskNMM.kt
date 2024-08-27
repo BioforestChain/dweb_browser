@@ -51,7 +51,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
   }
 
   companion object {
-    val controllersMap = mutableMapOf<String, DeskController>()
+    internal val controllersMap = mutableMapOf<String, DeskController>()
   }
 
   inner class DeskRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {

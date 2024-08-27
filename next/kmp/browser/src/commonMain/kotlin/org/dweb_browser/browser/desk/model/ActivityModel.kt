@@ -20,9 +20,13 @@ data class ActivityItem(
   val leadingIcon: Icon,
   val trailingIcon: Icon,
   val centerTitle: Content,
-  val centerWidth: Float = 96f,
-  val bottomActions: List<Action>,
+  val centerWidth: Float = defaultCenterWidth,
+  val bottomActions: List<Action> = emptyList(),
 ) {
+  companion object {
+    val defaultCenterWidth = 96f
+  }
+
   @Serializable
   sealed interface Icon
 

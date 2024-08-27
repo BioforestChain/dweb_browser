@@ -13,22 +13,14 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.util.fastForEach
-import androidx.compose.ui.util.fastForEachReversed
 import org.dweb_browser.browser.desk.ActivityController
 import org.dweb_browser.browser.desk.model.ActivityItem
-import org.dweb_browser.browser.desk.render.activity.ActivityItemRender
 import kotlin.math.max
 
 @Composable
@@ -77,37 +69,6 @@ actual fun ActivityController.Render() {
         Text(text = "销毁活动")
       }
     }
-    val activityList by list.collectAsState()
-//    var _preShowList by remember { mutableStateOf<List<ActivityItem>>(emptyList()) }
-    var _showList by remember { mutableStateOf<List<ActivityItem>>(emptyList()) }
-
-    val preShowList = _showList.toMutableList()
-    val showList = mutableListOf<ActivityItem>()
-    for (index in activityList.indices.reversed()) {
-      val activity = activityList[index]
-      if (!activity.renderProp.canView) {
-        break
-      }
-      showList += activity
-      if (preShowList.contains(activity)) {
-        preShowList -= activity
-      }
-    }
-    preShowList.fastForEach { activity ->
-      if (activity.renderProp.open || activity.renderProp.viewAniRunning) {
-        activity.renderProp.open = false
-        showList += activity
-      } else {
-        showList -= activity
-      }
-    }
-    showList.fastForEachReversed { activity ->
-      key(activity.id) {
-        ActivityItemRender(this@Render, activity, paddingTop)
-      }
-    }
-    if (!_showList.containsAll(showList)) {
-      _showList = showList
-    }
+    CommonActivityListRender(this@Render, paddingTop)
   }
 }

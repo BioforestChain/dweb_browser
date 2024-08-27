@@ -1,7 +1,11 @@
 package org.dweb_browser.browser.jmm
 
+import androidx.compose.material3.CircularProgressIndicator
 import okio.FileSystem
 import okio.Path
+import org.dweb_browser.browser.desk.ext.endActivity
+import org.dweb_browser.browser.desk.ext.requestActivity
+import org.dweb_browser.browser.desk.model.ActivityItem
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
@@ -69,11 +73,19 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Service") {
 
       val routeInstallHandler = defineEmptyResponse {
         val metadataUrl = request.query("url").removeInvisibleChars().trim()
+        val activityId = requestActivity(
+          trailingIcon = ActivityItem.ComposeIcon { modifier ->
+            CircularProgressIndicator(modifier)
+          },
+          centerTitle = ActivityItem.TextContent(JmmI18n.prepare_install.text),
+        )
         val referrerUrl = request.headers.getOrNull("referrer")
 
         debugJMM("fetchJmmMetadata", metadataUrl)
         // 加载url资源，这一步可能要多一些时间
         val jmmMetadata = jmmController.fetchJmmMetadata(metadataUrl, referrerUrl)
+
+        endActivity(activityId)
         jmmController.openInstallerView(jmmMetadata)
       }
 

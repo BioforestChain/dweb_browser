@@ -29,6 +29,7 @@ suspend fun DeskNMM.DeskRuntime.activityProtocol() {
           leadingIcon = request.queryAsOrNull("leadingIcon"),
           trailingIcon = request.queryAsOrNull("trailingIcon"),
           centerTitle = request.queryAsOrNull("centerTitle"),
+          centerWidth = request.queryAsOrNull("centerWidth"),
           bottomActions = request.queryAsOrNull("bottomActions"),
         )
       },

@@ -1,6 +1,5 @@
 package org.dweb_browser.browser.desk.render.activity
 
-import android.annotation.SuppressLint
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
@@ -16,7 +15,11 @@ import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -45,8 +48,6 @@ import org.dweb_browser.sys.window.render.AppLogo
 import squircleshape.CornerSmoothing
 import squircleshape.SquircleShape
 
-
-@SuppressLint("RestrictedApi")
 @Composable
 internal fun ActivityItemRender(
   controller: ActivityController,
@@ -162,56 +163,61 @@ internal fun ActivityItemLayout(
 ) {
   val renderProp = item.renderProp
   ActivityItemContentEffect(renderProp)
-  Column(horizontalAlignment = Alignment.CenterHorizontally) {
-    Row(
-      horizontalArrangement = Arrangement.SpaceBetween,
-      verticalAlignment = Alignment.CenterVertically,
-    ) {
-      val minSize = lerp(24f, 48f, renderProp.detailAni.value).dp
-      Box(
-        modifier = Modifier
-          .padding(innerPaddingDp)
-          .requiredSize(minSize)
+  CompositionLocalProvider(
+    LocalContentColor provides Color.White,
+    LocalTextStyle provides MaterialTheme.typography.bodySmall,
+  ) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+      Row(
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
       ) {
-        AppLogo.from(
-          resource = item.appIcon,
-          fetchHook = controller.deskNMM.blobFetchHook,
-        ).Render(Modifier.fillMaxWidth())
-        item.leadingIcon.Render(
-          controller,
-          renderProp,
-          modifier = Modifier
-            .align(Alignment.BottomEnd)
-            .requiredSize(lerp(0f, 24f, renderProp.detailAni.value).dp)
-        )
-      }
-      Box(modifier = Modifier.width(item.centerWidth.dp))
-
-      Box(
-        modifier = Modifier
-          .padding(innerPaddingDp)
-          .requiredSize(minSize)
-      ) {
-        item.trailingIcon.Render(controller, renderProp, Modifier.fillMaxSize())
-      }
-    }
-    val aniHeight = lerp(0f, innerPaddingDp.value * 2 + 24, renderProp.detailAni.value)
-    if (aniHeight > 0f) {
-      Box(Modifier.requiredHeight(aniHeight.dp)) {
-        item.centerTitle.Render(
-          renderProp,
+        val minSize = lerp(24f, 48f, renderProp.detailAni.value).dp
+        Box(
           modifier = Modifier
             .padding(innerPaddingDp)
-            .requiredSize(item.centerWidth.dp, 24.dp)
-            .graphicsLayer { scaleY = renderProp.detailAni.value },
-        )
+            .requiredSize(minSize)
+        ) {
+          AppLogo.from(
+            resource = item.appIcon,
+            fetchHook = controller.deskNMM.blobFetchHook,
+          ).Render(Modifier.fillMaxWidth())
+          item.leadingIcon.Render(
+            controller,
+            renderProp,
+            modifier = Modifier
+              .align(Alignment.BottomEnd)
+              .requiredSize(lerp(0f, 24f, renderProp.detailAni.value).dp)
+          )
+        }
+        Box(modifier = Modifier.width(item.centerWidth.dp))
+
+        Box(
+          modifier = Modifier
+            .padding(innerPaddingDp)
+            .requiredSize(minSize)
+        ) {
+          item.trailingIcon.Render(controller, renderProp, Modifier.fillMaxSize())
+        }
       }
-    }
-    if (item.bottomActions.isNotEmpty() && renderProp.canViewDetail) {
-      Row {
-        for (action in item.bottomActions) {
-          key(action) {
-            action.Render(controller, renderProp)
+      val aniHeight = lerp(0f, innerPaddingDp.value * 2 + 24, renderProp.detailAni.value)
+      if (aniHeight > 0f) {
+        Box(Modifier.requiredHeight(aniHeight.dp)) {
+          item.centerTitle.Render(
+            renderProp,
+            modifier = Modifier
+              .padding(innerPaddingDp)
+              .requiredSize(item.centerWidth.dp, 24.dp)
+              .graphicsLayer { scaleY = renderProp.detailAni.value },
+          )
+        }
+      }
+      if (item.bottomActions.isNotEmpty() && renderProp.canViewDetail) {
+        Row {
+          for (action in item.bottomActions) {
+            key(action) {
+              action.Render(controller, renderProp)
+            }
           }
         }
       }
