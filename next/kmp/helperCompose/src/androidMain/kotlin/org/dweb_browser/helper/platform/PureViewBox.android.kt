@@ -1,6 +1,11 @@
 package org.dweb_browser.helper.platform
 
 import android.content.Context
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
 import androidx.lifecycle.lifecycleScope
@@ -39,4 +44,13 @@ class PureViewBox internal constructor(val activity: BaseActivity) : IPureViewBo
 fun IPureViewBox.asAndroid(): PureViewBox {
   require(this is PureViewBox)
   return this
+}
+
+@Composable
+actual fun rememberDisplaySize(): Size {
+  val resources = LocalContext.current.resources
+  val density = LocalDensity.current.density
+  return remember(resources, density) {
+    with(resources.displayMetrics) { Size(widthPixels / density, heightPixels / density) }
+  }
 }

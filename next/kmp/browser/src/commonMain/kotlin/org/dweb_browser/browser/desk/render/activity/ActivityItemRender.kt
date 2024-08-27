@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.requiredSize
@@ -78,7 +77,7 @@ internal fun ActivityItemRender(
    * detailAni == 0 -> screenMarginTop
    */
   val offset = lerp(style.screenMarginTop, style.openScreenMarginTop, renderProp.detailAni.value)
-  Box(Modifier.offset(y = lerp(style.openScreenMarginTop, offset, renderProp.viewAni.value).dp)) {
+  Box(Modifier.padding(top = lerp(style.openScreenMarginTop, offset, renderProp.viewAni.value).dp)) {
     val toastModifier: Modifier = when {
       renderProp.viewAniFinished -> Modifier
       else -> {
@@ -105,7 +104,8 @@ internal fun ActivityItemRender(
     val innerPadding1 = contentPadding / 2
     val innerPadding2 = innerPadding1 / 2
     val innerPaddingDp = lerp(innerPadding2, innerPadding1, renderProp.detailAni.value).dp
-    val elevation = lerp(0f, contentPadding, renderProp.detailAni.value)
+    val elevation =
+      lerp(style.shadowElevation, style.openShadowElevation, renderProp.detailAni.value)
     val shape = SquircleShape(
       lerp(style.radius, style.openRadius, renderProp.detailAni.value).dp,
       CornerSmoothing.Medium
@@ -113,9 +113,7 @@ internal fun ActivityItemRender(
 
     Box(
       toastModifier
-        .shadow(
-          elevation.dp, shape = shape,
-        )
+        .shadow(elevation.dp, shape = shape)
         .background(Color.Black, shape = shape),
       contentAlignment = Alignment.Center,
     ) {

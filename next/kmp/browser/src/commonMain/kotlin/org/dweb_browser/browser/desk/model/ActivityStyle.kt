@@ -15,6 +15,8 @@ class ActivityStyle(
   val openScreenMarginTop: Float,
   val radius: Float,
   val openRadius: Float,
+  val shadowElevation: Float,
+  val openShadowElevation: Float,
 ) {
   companion object {
     val defaultCutoutOrStatusBarTop: Float
@@ -28,6 +30,8 @@ class ActivityStyle(
       radius: Float = 16f,
       openRadius: Float = radius * 2,
       topPadding: Float = 8f,
+      shadowElevation: Float = 0f,
+      openShadowElevation: Float = 16f,
       cutoutOrStatusBarTop: Float,
       canOverlayCutoutHeight: Float,
     ): ActivityStyle {
@@ -47,6 +51,8 @@ class ActivityStyle(
           },
           radius = radius,
           openRadius = openRadius,
+          shadowElevation = shadowElevation,
+          openShadowElevation = openShadowElevation,
         )
       }
     }

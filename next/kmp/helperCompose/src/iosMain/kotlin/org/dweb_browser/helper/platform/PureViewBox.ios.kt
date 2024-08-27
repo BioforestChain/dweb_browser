@@ -1,5 +1,7 @@
 package org.dweb_browser.helper.platform
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import kotlinx.cinterop.ExperimentalForeignApi
@@ -74,4 +76,15 @@ class PureViewBox(
 fun IPureViewBox.asIos(): PureViewBox {
   require(this is PureViewBox)
   return this
+}
+
+@OptIn(ExperimentalForeignApi::class)
+@Composable
+actual fun rememberDisplaySize(): Size {
+  val uiScreen = UIScreen.mainScreen
+  return remember(uiScreen) {
+    uiScreen.bounds.useContents {
+      Size(size.width.toFloat(), size.height.toFloat()).also { println("QAQ rememberDisplaySize=$it") }
+    }
+  }
 }

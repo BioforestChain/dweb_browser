@@ -1,7 +1,9 @@
 package org.dweb_browser.helper.platform
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
 import kotlinx.coroutines.CoroutineScope
@@ -60,3 +62,12 @@ fun rememberPureViewBox(viewController: IPureViewController? = null) =
     ?: LocalPureViewController.current).let { pvc -> remember(pvc) { IPureViewBox.from(pvc) } }
 
 internal val LocalPureViewBox = compositionChainOf<IPureViewBox?>("PureViewBox") { null }
+
+@Composable
+expect fun rememberDisplaySize():Size
+@Composable
+internal fun commonRememberDisplaySize()= rememberPureViewBox().let { viewBox ->
+  produceState(Size.Zero) {
+    value = viewBox.getDisplaySize()
+  }.value
+}

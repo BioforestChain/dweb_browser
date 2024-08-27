@@ -5,17 +5,11 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.produceState
-import androidx.compose.ui.geometry.Size
-import org.dweb_browser.helper.platform.rememberPureViewBox
+import org.dweb_browser.helper.platform.rememberDisplaySize
 
 @Composable
 actual fun rememberActivityStyle(): ActivityStyle {
-  val displaySize = rememberPureViewBox().let { viewBox ->
-    produceState(Size.Zero) {
-      value = viewBox.getDisplaySize()
-    }.value
-  }
+  val displaySize = rememberDisplaySize()
   val cutoutOrStatusBarTop = ActivityStyle.defaultCutoutOrStatusBarTop
   val deviceType = "${Build.BRAND}/${Build.MODEL}"
   println("QAQ deviceType=$deviceType")

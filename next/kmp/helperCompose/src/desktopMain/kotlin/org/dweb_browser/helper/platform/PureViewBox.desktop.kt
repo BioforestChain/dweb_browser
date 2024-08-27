@@ -5,6 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
@@ -87,4 +88,13 @@ class PureViewBox(
 fun IPureViewBox.asDesktop(): PureViewBox {
   require(this is PureViewBox)
   return this
+}
+
+@Composable
+actual fun rememberDisplaySize(): Size {
+  val composeWindow by LocalPureViewController.current.asDesktop().composeWindowAsState()
+  val density = LocalDensity.current.density
+  return remember(density, composeWindow.toolkit) {
+    with(composeWindow.toolkit.screenSize) { Size(width / density, height / density) }
+  }
 }

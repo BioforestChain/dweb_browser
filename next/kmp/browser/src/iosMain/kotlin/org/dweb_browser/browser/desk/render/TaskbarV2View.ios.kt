@@ -13,11 +13,11 @@ import org.dweb_browser.browser.desk.TaskbarV2Controller
 import org.dweb_browser.helper.compose.toOffset
 import org.dweb_browser.helper.platform.NativeViewController.Companion.nativeViewController
 import org.dweb_browser.helper.platform.PureViewController
+import org.dweb_browser.helper.platform.rememberDisplaySize
 import org.dweb_browser.helper.platform.rememberPureViewBox
 import org.dweb_browser.helper.toPureRect
 import org.dweb_browser.sys.window.floatBar.DraggableDelegate
 import org.dweb_browser.sys.window.floatBar.FloatBarShell
-import org.dweb_browser.sys.window.floatBar.rememberDisplaySize
 
 actual fun ITaskbarV2View.Companion.create(taskbarController: TaskbarV2Controller): ITaskbarV2View {
   return TaskbarV2View(taskbarController)

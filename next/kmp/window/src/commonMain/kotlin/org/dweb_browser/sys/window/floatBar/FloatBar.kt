@@ -17,7 +17,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -35,7 +34,7 @@ import org.dweb_browser.helper.PureRect
 import org.dweb_browser.helper.clamp
 import org.dweb_browser.helper.compose.collectAsMutableState
 import org.dweb_browser.helper.getValue
-import org.dweb_browser.helper.platform.rememberPureViewBox
+import org.dweb_browser.helper.platform.rememberDisplaySize
 import org.dweb_browser.helper.setValue
 import squircleshape.CornerSmoothing
 import squircleshape.SquircleShape
@@ -52,11 +51,7 @@ fun FloatBarShell(
   draggableDelegate: DraggableDelegate = remember { DraggableDelegate() },
   modifier: Modifier = Modifier,
   isDark: Boolean = isSystemInDarkTheme(),
-  displaySize: Size = rememberPureViewBox().let { viewBox ->
-    produceState(Size.Zero) {
-      value = viewBox.getDisplaySize()
-    }.value
-  },
+  displaySize: Size = rememberDisplaySize(),
   effectBounds: @Composable Modifier.(PureRect) -> Modifier = { bounds ->
     this.requiredSize(bounds.width.dp, bounds.height.dp).offset(x = bounds.x.dp, y = bounds.y.dp)
   },
@@ -154,12 +149,6 @@ fun FloatBarShell(
   )
 }
 
-@Composable
-fun rememberDisplaySize() = rememberPureViewBox().let { viewBox ->
-  produceState(Size.Zero) {
-    value = viewBox.getDisplaySize()
-  }.value
-}
 
 fun Modifier.floatBarBackground(
   isDark: Boolean,

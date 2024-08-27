@@ -4,18 +4,12 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.produceState
-import androidx.compose.ui.geometry.Size
-import org.dweb_browser.helper.platform.rememberPureViewBox
+import org.dweb_browser.helper.platform.rememberDisplaySize
 import org.dweb_browser.sys.device.model.DeviceInfo
 
 @Composable
 actual fun rememberActivityStyle(): ActivityStyle {
-  val displaySize = rememberPureViewBox().let { viewBox ->
-    produceState(Size.Zero) {
-      value = viewBox.getDisplaySize()
-    }.value
-  }
+  val displaySize = rememberDisplaySize()
   val deviceType = DeviceInfo.deviceName
   println("QAQ deviceType=$deviceType")
   /**
@@ -51,6 +45,9 @@ actual fun rememberActivityStyle(): ActivityStyle {
     radius = 24f,
     openRadius = openRadius,
     topPadding = 0f,
+    // 因为IOS使用原生的图层，所以禁用阴影
+    shadowElevation = 0f,
+    openShadowElevation = 0f,
     cutoutOrStatusBarTop = cutoutOrStatusBarTop,
     canOverlayCutoutHeight = canOverlayCutoutHeight,
   )
