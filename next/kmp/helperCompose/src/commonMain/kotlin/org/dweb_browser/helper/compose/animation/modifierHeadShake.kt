@@ -9,7 +9,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalDensity
 import kotlinx.coroutines.launch
 
 val translationXSpec = keyframes {
@@ -36,7 +35,7 @@ fun Modifier.headShake(play: Boolean, onPlayEnd: () -> Unit) = this.composed {
   val translationX = remember { Animatable(0f) }
   val rotateY = remember { Animatable(0f) }
   LaunchedEffect(play) {
-    if (play) {
+    while (play) {
       translationX.snapTo(7f)
       rotateY.snapTo(10f)
       launch { translationX.animateTo(0f, translationXSpec) }
@@ -44,7 +43,6 @@ fun Modifier.headShake(play: Boolean, onPlayEnd: () -> Unit) = this.composed {
       onPlayEnd()
     }
   }
-  val density = LocalDensity.current.density
   this.graphicsLayer {
     this.translationX = translationX.value * density
     this.rotationY = rotateY.value

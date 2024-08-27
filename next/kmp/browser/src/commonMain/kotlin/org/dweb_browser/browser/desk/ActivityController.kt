@@ -23,23 +23,18 @@ class ActivityController(val deskNMM: DeskNMM.DeskRuntime) {
   fun update(
     owner: MicroModule.Runtime,
     id: String,
-    leadingIcon: ActivityItem.Icon?,
-    trailingIcon: ActivityItem.Icon?,
-    centerTitle: ActivityItem.Content?,
-    centerWidth: Float?,
-    bottomActions: List<ActivityItem.Action>?,
+    leadingIcon: ActivityItem.Icon? = null,
+    trailingIcon: ActivityItem.Icon? = null,
+    centerTitle: ActivityItem.Content? = null,
+    bottomActions: List<ActivityItem.Action>? = null,
   ): Boolean {
     val activityItem = find(owner, id) ?: return false
-    val newActivityItem = activityItem.run {
-      copy(
-        leadingIcon = leadingIcon ?: this.leadingIcon,
-        trailingIcon = trailingIcon ?: this.trailingIcon,
-        centerTitle = centerTitle ?: this.centerTitle,
-        centerWidth = centerWidth ?: this.centerWidth,
-        bottomActions = bottomActions ?: this.bottomActions,
-      )
-    }
-    listFlow.value = listFlow.value - activityItem + newActivityItem
+    leadingIcon?.also { activityItem.leadingIcon = leadingIcon }
+    trailingIcon?.also { activityItem.trailingIcon = trailingIcon }
+    centerTitle?.also { activityItem.centerTitle = centerTitle }
+    bottomActions?.also { activityItem.bottomActions = bottomActions }
+    // 修改后，强制进行显示。可以考虑挪到最前面
+    activityItem.renderProp.open = true
     return true
   }
 

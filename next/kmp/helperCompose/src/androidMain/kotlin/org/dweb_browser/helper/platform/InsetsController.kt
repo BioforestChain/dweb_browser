@@ -174,7 +174,7 @@ class InsetsController(val window: Window) {
   @OptIn(ExperimentalLayoutApi::class)
   @Composable
   fun DebugDemo(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
   ) {
     val density = LocalDensity.current
     LazyColumn(
@@ -358,7 +358,7 @@ fun rememberInsetsController() = findWindow()?.let { window ->
 }
 
 @Composable
-private fun findWindow(): Window? = LocalView.current.let { view ->
+fun findWindow(): Window? = LocalView.current.let { view ->
   remember(view) {
     (view.parent as? DialogWindowProvider)?.window ?: view.context.findWindow()
   }

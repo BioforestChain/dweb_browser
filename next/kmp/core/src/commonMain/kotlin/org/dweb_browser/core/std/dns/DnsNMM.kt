@@ -122,22 +122,22 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
 
     override suspend fun open(mmpt: MMPT): Boolean {
       if (this.dnsMM.getRunningApps(mmpt).isEmpty()) {
-        runCatching {
+        return runCatching {
           dnsMM.runtime.open(mmpt, fromMM)
           true
-        }.getOrElse {
-          false
-        }
+        }.getOrDefault(false)
       }
-      return false
+      return true
     }
 
     override suspend fun close(mmpt: MMPT): Boolean {
       if (this.dnsMM.getRunningApps(mmpt).isNotEmpty()) {
-        dnsMM.runtime.close(mmpt);
-        return true;
+        return runCatching {
+          dnsMM.runtime.close(mmpt)
+          true
+        }.getOrDefault(false)
       }
-      return false;
+      return false
     }
   }
 

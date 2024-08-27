@@ -3,7 +3,6 @@ package org.dweb_browser.browser.desk.ext
 import org.dweb_browser.browser.desk.ActivityController
 import org.dweb_browser.browser.desk.DeskNMM
 import org.dweb_browser.browser.desk.model.ActivityItem
-import org.dweb_browser.browser.desk.model.ActivityItem.Companion.defaultCenterWidth
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.helper.falseAlso
 
@@ -18,7 +17,6 @@ suspend fun MicroModule.Runtime.requestActivity(
   leadingIcon: ActivityItem.Icon = ActivityItem.NoneIcon,
   trailingIcon: ActivityItem.Icon,
   centerTitle: ActivityItem.Content,
-  centerWidth: Float = defaultCenterWidth,
   bottomActions: List<ActivityItem.Action> = emptyList(),
 ): String {
   return getCurrentActivityController().request(
@@ -27,7 +25,6 @@ suspend fun MicroModule.Runtime.requestActivity(
       leadingIcon = leadingIcon,
       trailingIcon = trailingIcon,
       centerTitle = centerTitle,
-      centerWidth = centerWidth,
       bottomActions = bottomActions,
     )
   )
@@ -35,11 +32,10 @@ suspend fun MicroModule.Runtime.requestActivity(
 
 suspend fun MicroModule.Runtime.updateActivity(
   id: String,
-  leadingIcon: ActivityItem.Icon?,
-  trailingIcon: ActivityItem.Icon?,
-  centerTitle: ActivityItem.Content?,
-  centerWidth: Float?,
-  bottomActions: List<ActivityItem.Action>?,
+  leadingIcon: ActivityItem.Icon? = null,
+  trailingIcon: ActivityItem.Icon? = null,
+  centerTitle: ActivityItem.Content? = null,
+  bottomActions: List<ActivityItem.Action>? = null,
 ): Boolean {
   return getCurrentActivityController().update(
     owner = this,
@@ -47,7 +43,6 @@ suspend fun MicroModule.Runtime.updateActivity(
     leadingIcon = leadingIcon,
     trailingIcon = trailingIcon,
     centerTitle = centerTitle,
-    centerWidth = centerWidth,
     bottomActions = bottomActions,
   )
 }

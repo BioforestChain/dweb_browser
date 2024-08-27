@@ -40,7 +40,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
     name = BrowserI18nResource.Desk.short_name.text
     short_name = BrowserI18nResource.Desk.short_name.text
     categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Desktop)
-    dweb_protocols = listOf("window.sys.dweb", "window.std.dweb")
+    dweb_protocols = listOf("window.sys.dweb", "window.std.dweb", "activity.sys.dweb")
     icons = listOf(
       ImageResource(
         src = "file:///sys/browser-icons/desk.browser.dweb.svg",

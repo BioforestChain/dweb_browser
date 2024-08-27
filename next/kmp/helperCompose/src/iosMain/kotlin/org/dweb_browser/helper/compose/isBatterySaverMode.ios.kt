@@ -1,20 +1,20 @@
 package org.dweb_browser.helper.compose
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import kotlinx.cinterop.COpaquePointer
-import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import org.dweb_browser.helper.SafeHashSet
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.getOrPut
-import org.dweb_browser.platform.ios.KeyValueObserverProtocol
-import platform.Foundation.NSKeyValueObservingOptionNew
-import platform.Foundation.addObserver
-import platform.Foundation.removeObserver
+import org.dweb_browser.helper.randomUUID
+import platform.Foundation.NSNotificationCenter
 import platform.UIKit.UIDevice
+import platform.UIKit.UIDeviceBatteryLevelDidChangeNotification
 import platform.UIKit.UIDeviceBatteryState
+import platform.UIKit.UIDeviceBatteryStateDidChangeNotification
 import platform.darwin.NSObject
 
 @Composable
@@ -23,6 +23,18 @@ actual fun isBatterySaverMode(): Boolean {
     UIDevice.currentDevice.let { device ->
       UIDeviceBatteryObserverWM.getOrPut(device) {
         BatteryObserver(device)
+      }
+    }
+  }
+  /// 默认不做销毁，持续监控
+  if (false) {
+    val reason = remember { randomUUID() }
+    DisposableEffect(reason) {
+      batteryObserver.ref.add(reason)
+      onDispose {
+        batteryObserver.ref.remove(reason)
+        batteryObserver.disconnect()
+        UIDeviceBatteryObserverWM.remove(batteryObserver.device)
       }
     }
   }
@@ -36,52 +48,35 @@ actual fun isBatterySaverMode(): Boolean {
 
 private val UIDeviceBatteryObserverWM = WeakHashMap<UIDevice, BatteryObserver>()
 
-@OptIn(ExperimentalForeignApi::class)
-private class BatteryObserver(val device: UIDevice) : NSObject(), KeyValueObserverProtocol {
+private class BatteryObserver(val device: UIDevice) : NSObject() {
   init {
     device.batteryMonitoringEnabled = true
-    device.addObserver(
-      observer = this,
-      forKeyPath = "batteryState",
-      options = NSKeyValueObservingOptionNew,
-      context = null
-    )
-    device.addObserver(
-      observer = this,
-      forKeyPath = "batteryLevel",
-      options = NSKeyValueObservingOptionNew,
-      context = null
-    )
   }
+
+  val ref = SafeHashSet<String>()
 
   val batteryStateFlow = MutableStateFlow(device.batteryState)
   val batteryLevelFlow = MutableStateFlow(device.batteryLevel)
 
-  override fun observeValueForKeyPath(
-    keyPath: String?,
-    ofObject: Any?,
-    change: Map<Any?, *>?,
-    context: COpaquePointer?,
-  ) {
-    if (keyPath == "batteryState") {
-      val batteryState = change?.get("new") as UIDeviceBatteryState
-      batteryStateFlow.value = batteryState
-    } else if (keyPath == "batteryLevel") {
-      val batteryLevel = change?.get("new") as Float
-      batteryLevelFlow.value = batteryLevel
+  val batteryStateObserver = NSNotificationCenter.defaultCenter.addObserverForName(
+    name = UIDeviceBatteryStateDidChangeNotification,
+    `object` = null,
+    queue = null,
+    usingBlock = {
+      batteryStateFlow.value = device.batteryState
     }
-  }
+  )
+  val batteryLevelObserver = NSNotificationCenter.defaultCenter.addObserverForName(
+    name = UIDeviceBatteryLevelDidChangeNotification,
+    `object` = null,
+    queue = null,
+    usingBlock = {
+      batteryLevelFlow.value = device.batteryLevel
+    }
+  )
 
   fun disconnect() {
-    device.removeObserver(
-      observer = this,
-      forKeyPath = "batteryState",
-      context = null
-    )
-    device.removeObserver(
-      observer = this,
-      forKeyPath = "batteryLevel",
-      context = null
-    )
+    NSNotificationCenter.defaultCenter.removeObserver(batteryStateObserver)
+    NSNotificationCenter.defaultCenter.removeObserver(batteryLevelObserver)
   }
 }

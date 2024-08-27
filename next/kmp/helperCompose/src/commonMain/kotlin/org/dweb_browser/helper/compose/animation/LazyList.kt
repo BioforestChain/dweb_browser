@@ -13,16 +13,16 @@ fun <T> LazyList(
   list: List<T>,
   endAnimationFinished: (T) -> Boolean,
   playEndAnimation: (T) -> Unit,
+  getKey: ((T) -> Any?)? = null,
   content: @Composable (List<T>) -> Unit,
 ) {
   var showList by remember { mutableStateOf<List<T>>(emptyList()) }
-  val newShowList = animationList<T>(
+  val newShowList = animationList(
     showList,
     list,
     endAnimationFinished = endAnimationFinished,
     playEndAnimation = playEndAnimation,
   )
-  println("QAQ newShowList=${newShowList.size}")
   content(newShowList)
   if (!showList.contentEquals(newShowList)) {
     showList = newShowList

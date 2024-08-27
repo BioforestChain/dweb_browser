@@ -14,18 +14,19 @@ import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.sys.window.core.helper.pickLargest
 import org.dweb_browser.sys.window.core.helper.toStrict
 
-data class ActivityItem(
-  val id: String = randomUUID(),
+class ActivityItem(
+  val key: String = randomUUID(),
   val owner: MicroModule.Runtime,
-  val leadingIcon: Icon,
-  val trailingIcon: Icon,
-  val centerTitle: Content,
-  val centerWidth: Float = defaultCenterWidth,
-  val bottomActions: List<Action> = emptyList(),
+  leadingIcon: Icon,
+  trailingIcon: Icon,
+  centerTitle: Content,
+  bottomActions: List<Action> = emptyList(),
 ) {
-  companion object {
-    val defaultCenterWidth = 96f
-  }
+  val id get() = "${owner.id}:$key"
+  var leadingIcon by mutableStateOf(leadingIcon)
+  var trailingIcon by mutableStateOf(trailingIcon)
+  var centerTitle by mutableStateOf(centerTitle)
+  var bottomActions by mutableStateOf(bottomActions)
 
   @Serializable
   sealed interface Icon

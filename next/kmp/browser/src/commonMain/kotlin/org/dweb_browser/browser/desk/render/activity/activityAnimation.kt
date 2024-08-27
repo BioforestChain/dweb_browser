@@ -5,10 +5,10 @@ import androidx.compose.animation.core.spring
 
 internal fun <T> activityEnterAnimationSpec() = spring<T>(
   dampingRatio = Spring.DampingRatioLowBouncy,
-  stiffness = Spring.StiffnessMedium / 100,
+  stiffness = Spring.StiffnessMedium,
 )
 
 internal fun <T> activityExitAnimationSpec() = spring<T>(
   dampingRatio = Spring.DampingRatioNoBouncy,
-  stiffness = Spring.StiffnessLow / 100,
+  stiffness = Spring.StiffnessLow,
 )

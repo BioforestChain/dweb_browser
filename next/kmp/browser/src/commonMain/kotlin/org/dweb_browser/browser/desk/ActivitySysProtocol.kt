@@ -2,6 +2,7 @@ package org.dweb_browser.browser.desk
 
 import org.dweb_browser.browser.desk.model.ActivityItem
 import org.dweb_browser.core.http.router.bind
+import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.queryAs
 import org.dweb_browser.pure.http.queryAsOrNull
@@ -14,6 +15,7 @@ suspend fun DeskNMM.DeskRuntime.activityProtocol() {
       "/requestActivity" bind PureMethod.GET by defineStringResponse {
         activityController.request(
           ActivityItem(
+            key = request.queryAsOrNull("key") ?: randomUUID(),
             owner = getRemoteRuntime(),
             leadingIcon = request.queryAsOrNull("leadingIcon") ?: ActivityItem.NoneIcon,
             trailingIcon = request.queryAsOrNull("trailingIcon") ?: ActivityItem.NoneIcon,
@@ -29,7 +31,6 @@ suspend fun DeskNMM.DeskRuntime.activityProtocol() {
           leadingIcon = request.queryAsOrNull("leadingIcon"),
           trailingIcon = request.queryAsOrNull("trailingIcon"),
           centerTitle = request.queryAsOrNull("centerTitle"),
-          centerWidth = request.queryAsOrNull("centerWidth"),
           bottomActions = request.queryAsOrNull("bottomActions"),
         )
       },

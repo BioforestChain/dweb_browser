@@ -1,10 +1,20 @@
 package org.dweb_browser.browser.jmm
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import kotlinx.coroutines.delay
 import okio.FileSystem
 import okio.Path
 import org.dweb_browser.browser.desk.ext.endActivity
 import org.dweb_browser.browser.desk.ext.requestActivity
+import org.dweb_browser.browser.desk.ext.updateActivity
 import org.dweb_browser.browser.desk.model.ActivityItem
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
@@ -19,7 +29,11 @@ import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
+import org.dweb_browser.helper.compose.animation.fadeInOut
+import org.dweb_browser.helper.compose.animation.headShake
+import org.dweb_browser.helper.compose.animation.scaleInOut
 import org.dweb_browser.helper.compose.envSwitch
+import org.dweb_browser.helper.platform.theme.LocalColorful
 import org.dweb_browser.helper.removeInvisibleChars
 import org.dweb_browser.helper.removeWhen
 import org.dweb_browser.pure.http.PureMethod
@@ -83,9 +97,49 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Service") {
 
         debugJMM("fetchJmmMetadata", metadataUrl)
         // 加载url资源，这一步可能要多一些时间
-        val jmmMetadata = jmmController.fetchJmmMetadata(metadataUrl, referrerUrl)
+        val jmmMetadata = runCatching {
+          jmmController.fetchJmmMetadata(metadataUrl, referrerUrl).also {
+            /// 成功
+            scopeLaunch(cancelable = false) {
+              updateActivity(
+                activityId,
+                trailingIcon = ActivityItem.ComposeIcon { modifier ->
+                  var playIn by remember { mutableStateOf(true) }
+                  Icon(
+                    Icons.Rounded.CheckCircle,
+                    null,
+                    modifier = modifier.scaleInOut(playIn) { playIn = false }.fadeInOut(playIn) {},
+                    tint = LocalColorful.current.Green.current
+                  )
+                },
+                centerTitle = ActivityItem.TextContent(JmmI18n.prepare_install_ready.text),
+              )
+              delay(1000)
+              endActivity(activityId)
+            }
+          }
+        }.getOrElse {
+          scopeLaunch(cancelable = false) {
+            /// 失败
+            updateActivity(
+              activityId,
+              trailingIcon = ActivityItem.ComposeIcon { modifier ->
+                var playHeadShake by remember { mutableStateOf(true) }
+                Icon(
+                  Icons.Rounded.ErrorOutline,
+                  null,
+                  modifier = modifier.headShake(playHeadShake) { playHeadShake = false },
+                  tint = LocalColorful.current.Red.current
+                )
+              },
+              centerTitle = ActivityItem.TextContent(JmmI18n.prepare_install_ready.text),
+            )
+            delay(2000)
+            endActivity(activityId)
+          }
+          throw it
+        }
 
-        endActivity(activityId)
         jmmController.openInstallerView(jmmMetadata)
       }
 
