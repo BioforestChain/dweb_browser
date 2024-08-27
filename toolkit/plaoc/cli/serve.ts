@@ -4,15 +4,12 @@ import fs from "node:fs";
 import http from "node:http";
 import os from "node:os";
 import { generate, QRErrorCorrectLevel } from "npm:ts-qrcode-terminal";
-import { colors, Command, EnumType, NumberPrompt } from "./deps/cliffy.ts";
-import { SERVE_MODE, type $ServeOptions } from "./helper/const.ts";
+import { colors, Command, NumberPrompt } from "./deps/cliffy.ts";
+import { type $ServeOptions } from "./helper/const.ts";
 import { BundleResourceNameHelper, injectPrepare, MetadataJsonGenerator } from "./helper/generator.ts";
-import { startStaticFileServer, staticServe } from "./helper/http-static-helper.ts";
-
-const serveMode = new EnumType(SERVE_MODE);
+import { staticServe } from "./helper/http-static-helper.ts";
 
 export const doServeCommand = new Command()
-  .type("serveMode", serveMode)
   .arguments("<link:string>")
   .description("Developer Service Extension Directive.")
   .option("-p --port <port:string>", "Specify the service port. default:8096.", {
@@ -27,13 +24,13 @@ export const doServeCommand = new Command()
     startServe({ ...options, webPublic: arg1 } satisfies $ServeOptions);
   });
 
-const doServe = (flags: $ServeOptions, staticFileServerPort?: number) => {
+const doServe = (flags: $ServeOptions) => {
   const port = +flags.port;
   if (Number.isFinite(port) === false) {
     throw new Error(`need input '--port 8080'`);
   }
 
-  const serveTarget = flags.webLink;
+  const serveTarget = flags.webPublic;
   if (typeof serveTarget !== "string") {
     throw new Error(`need input 'YOUR/FOLDER/FOR/BUNDLE'`);
   }
@@ -44,51 +41,35 @@ const doServe = (flags: $ServeOptions, staticFileServerPort?: number) => {
     (item) => item.endsWith(BundleResourceNameHelper.metadataName) && fs.existsSync(item)
   )?.[0];
 
-  let { bundleFlagHelper, bundleResourceNameHelper } = injectPrepare(flags, metadataFlagHelper);
-
+  const { bundleFlagHelper, bundleResourceNameHelper } = injectPrepare(flags, metadataFlagHelper);
   /// 启动http服务器
   const server = http.createServer().listen(port, "0.0.0.0", async () => {
-    const map: { hostname: string; dwebLink: string }[] = [];
+    const dwebLinks: string[] = [];
     let index = 0;
     for (const info of Object.values(os.networkInterfaces())
-      .flat()
+      .flat() // 返回一个新数组，其中所有子数组元素都以递归方式连接到其中，直到指定的深度。
       .filter((info) => info?.family === "IPv4")) {
+      const hostname = info?.address ?? "";
       console.log(
         `${colors.green(`${index++}:`)} \t ${
           colors.dim("dweb://install?url=") +
-          colors.blue(colors.underline(`http://${info?.address}:${port}/${BundleResourceNameHelper.metadataName}`))
+          colors.blue(colors.underline(`http://${hostname}:${port}/${BundleResourceNameHelper.metadataName}`))
         }`
       );
-      map.push({
-        hostname: info?.address ?? "",
-        dwebLink: `dweb://install?url=http://${info?.address}:${port}/${BundleResourceNameHelper.metadataName}`,
-      });
+      dwebLinks.push(`dweb://install?url=http://${hostname}:${port}/${BundleResourceNameHelper.metadataName}`);
     }
-
     const selectNumber = await NumberPrompt.prompt({
       message: "Enter the corresponding number to generate a QR code.",
       default: 0,
     });
-
-    const { hostname, dwebLink } = map[selectNumber];
-
+    const dwebLink = dwebLinks[selectNumber];
     if (dwebLink) {
-      // 启动静态文件服务器
-      if (staticFileServerPort) {
-        flags.mode = SERVE_MODE.LIVE;
-        flags.webLink = `http://${hostname}:${staticFileServerPort}`;
-        const injectResult = injectPrepare(flags, metadataFlagHelper);
-        bundleFlagHelper = injectResult.bundleFlagHelper;
-        bundleResourceNameHelper = injectResult.bundleResourceNameHelper;
-        startStaticFileServer(serveTarget, hostname, staticFileServerPort);
-      }
       generate(dwebLink, {
         small: true,
         qrErrorCorrectLevel: QRErrorCorrectLevel.L,
       });
     }
   });
-
   server.on("request", async (req, res) => {
     if (req.method && req.url) {
       console.log(colors.blue(req.method), colors.green(req.url));
@@ -143,11 +124,11 @@ const doServe = (flags: $ServeOptions, staticFileServerPort?: number) => {
   return { server, manifestFilePath };
 };
 
-export const startServe = (flags: $ServeOptions, staticFileServerPort?: number) => {
-  const { server, manifestFilePath } = doServe(flags, staticFileServerPort);
+export const startServe = (flags: $ServeOptions) => {
+  const { server, manifestFilePath } = doServe(flags);
   server.once("restart", () => {
     server.once("close", () => {
-      startServe(flags, staticFileServerPort);
+      startServe(flags);
     });
     server.close();
   });

@@ -1,8 +1,8 @@
-import type { $JmmAppInstallManifest } from "../deps/dweb-browser/core.ts";
+import type { $JmmAppInstallManifest } from "@plaoc/server/middlewares";
+export type { $JmmAppInstallManifest, $MMID } from "@plaoc/server/middlewares";
 
 /**plaoc bundle */
 export type $BundleOptions = $MetadataJsonGeneratorOptions & {
-  dir?: string;
   clear?: boolean;
   watch?: boolean;
   out: string;
@@ -11,35 +11,25 @@ export type $BundleOptions = $MetadataJsonGeneratorOptions & {
 /**plaoc serve */
 export type $ServeOptions = $MetadataJsonGeneratorOptions & {
   port: string;
-  webLink?: string;
 };
 
-/**plaoc live */
+/**plaoc live
+ * @alias port plaoc 安装地址
+ * @alias staticPort 监听静态文件地址
+ */
 export type $LiveOptions = $MetadataJsonGeneratorOptions & {
   port: string;
-  dir?: string;
+  staticPort: string;
 };
 
 export type $MetadataJsonGeneratorOptions = {
   webPublic: string;
-  mode?: SERVE_MODE;
   version?: string;
   id?: string;
   configDir?: string;
   webServer?: string;
 };
 
-/**
- * 服务的处理模式
- */
-export enum SERVE_MODE {
-  /** 将文件夹作为 usr/www 的只读文件进行启动 */
-  USR_WWW = "www",
-  /** 将本地文件夹使用动态服务器进行启, usr/www 会存在一个 index.html 中来进行跳转 */
-  LIVE = "live",
-  /** 对将打包后的文件直接进行服务启动 */
-  ZIP = "zip",
-}
 export const defaultMetadata: $JmmAppInstallManifest = {
   id: "app-test.plaoc.dweb",
   server: {

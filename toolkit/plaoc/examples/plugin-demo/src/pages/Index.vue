@@ -9,7 +9,7 @@ const go = (path: string) => {
 const items = routes;
 </script>
 <template>
-  <v-card class="mx-auto pa-2 my-card" variant="tonal" max-width="800" title="导航11 🧭">
+  <v-card class="mx-auto pa-2 my-card" variant="tonal" max-width="800" title="导航🧭">
     <v-list class="my-list">
       <v-list-item
         v-for="(item, i) in items"

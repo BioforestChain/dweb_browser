@@ -4,8 +4,8 @@ import { createRequire } from "node:module";
 import node_path from "node:path";
 import process from "node:process";
 import { colors } from "../deps/cliffy.ts";
-import type { $JmmAppInstallManifest, $MMID } from "../deps/dweb-browser/core.ts";
-import { SERVE_MODE, defaultMetadata, type $MetadataJsonGeneratorOptions } from "./const.ts";
+import type { $JmmAppInstallManifest, $MMID } from "../helper/const.ts";
+import { defaultMetadata, type $MetadataJsonGeneratorOptions } from "./const.ts";
 import { GenerateTryFilepaths, isUrl } from "./util.ts";
 import { WalkFiles } from "./walk-dir.ts";
 import { walkDirToZipEntries, zipEntriesToZip, type $ZipEntry } from "./zip.ts";
@@ -19,7 +19,7 @@ export class MetadataJsonGenerator {
       const tryFilenames = ["metadata.json", "manifest.json", "package.json"];
       // 如果指定了项目目录，到项目目录里面搜索配置文件
       let dirs = [node_path.resolve(process.cwd(), flags.configDir ?? flags.webPublic ?? "")];
-      if (flags.mode === SERVE_MODE.USR_WWW) {
+      if (flags.configDir) {
         const www_dir = flags.configDir;
         if (www_dir) {
           dirs = [www_dir, ...dirs];
@@ -157,19 +157,8 @@ export class BundleZipGenerator {
   ) {
     const bundleTarget = flags.webPublic;
     /// 实时预览模式，使用代理html
-    if (
-      flags.mode === SERVE_MODE.LIVE ||
-      (flags.mode === undefined && bundleTarget !== undefined && isUrl(bundleTarget))
-    ) {
+    if (bundleTarget !== undefined && isUrl(bundleTarget)) {
       this.liveMode(bundleTarget);
-    }
-    /// 对将打包后的文件直接进行服务启动
-    else if (flags.mode === SERVE_MODE.ZIP) {
-      const bundle_file = bundleTarget;
-      if (bundle_file === undefined) {
-        throw new Error(`You must be passing a 'zip' archive.`);
-      }
-      this.zipGetter = () => JSZip.loadAsync(bundle_file);
     }
     /// 默认使用 本地文件夹模式
     else {
@@ -196,7 +185,7 @@ export class BundleZipGenerator {
     this.zipGetter = async () => {
       return zipEntriesToZip(
         this.normalizeZipEntries([
-          ...(await this.getBaseZipEntries()),
+          ...(await this.getBaseZipEntries(true)),
           index_html_file_entry,
           ...this.plaoc.tryReadPlaoc(),
           ...(await this.server.tryWriteServer()),
@@ -215,7 +204,7 @@ export class BundleZipGenerator {
       return zipEntriesToZip(
         this.normalizeZipEntries([
           ...(await this.server.tryWriteServer()),
-          ...(await this.getBaseZipEntries()),
+          ...(await this.getBaseZipEntries(false)),
           ...this.plaoc.tryReadPlaoc(),
           ...walkDirToZipEntries(www_dir).map((entry) => {
             return {
@@ -228,7 +217,7 @@ export class BundleZipGenerator {
     };
   }
 
-  async getBaseZipEntries() {
+  async getBaseZipEntries(isLive = false) {
     const entries: $ZipEntry[] = [];
 
     const addFiles_DistToUsr = async (addpath_full: string, pathalias: string, pathbase = "usr/") => {
@@ -239,7 +228,7 @@ export class BundleZipGenerator {
       }
       /// 本地文件
       else {
-        console.log("addpath_full", addpath_full);
+        // console.log("addpath_full", addpath_full);
         if (fs.statSync(addpath_full).isFile()) {
           data = fs.readFileSync(addpath_full);
         } else {
@@ -257,7 +246,7 @@ export class BundleZipGenerator {
       });
     };
     const distDir = node_path.dirname(
-      internalRequest.resolve("@plaoc/server/plaoc.server.js") //false ? "@plaoc/server/plaoc.server.dev.js" :
+      internalRequest.resolve(isLive ? "@plaoc/server/plaoc.server.dev.js" : "@plaoc/server/plaoc.server.js")
     );
     for (const entry of WalkFiles(distDir)) {
       await addFiles_DistToUsr(entry.entrypath, `server/${entry.relativepath}`);
