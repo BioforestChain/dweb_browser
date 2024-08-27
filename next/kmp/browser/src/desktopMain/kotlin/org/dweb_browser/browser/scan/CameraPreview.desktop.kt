@@ -1,5 +1,7 @@
 package org.dweb_browser.browser.scan
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Camera
 import androidx.compose.material3.AlertDialog
@@ -13,6 +15,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toComposeImageBitmap
 import io.github.vinceglb.filekit.compose.rememberFilePickerLauncher
@@ -53,7 +56,11 @@ actual fun CameraPreviewRender(
 //    return noWebcamDetected(controller)
 //  }
 
-  AlbumPreviewRender(modifier, controller)
+  // TODO 后续需要判断是否有摄像头，来进行处理。
+  // AlbumPreviewRender(modifier, controller)
+  Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+    Text(BrowserI18nResource.QRCode.tip_no_camera())
+  }
 
   LaunchedEffect(Unit) {
     startLoading = false
@@ -88,7 +95,7 @@ private fun noWebcamDetected(controller: SmartScanController) {
     confirmButton = {
       TextButton(
         onClick = {
-          controller.previewTypes.value = SmartModuleTypes.Endoscopic
+          controller.updatePreviewType(SmartModuleTypes.Endoscopic)
         }
       ) {
         Text(BrowserI18nResource.QRCode.confirm.text)
@@ -97,6 +104,9 @@ private fun noWebcamDetected(controller: SmartScanController) {
   )
 }
 
+/**
+ * 打开文件选择器
+ */
 @Composable
 actual fun AlbumPreviewRender(
   modifier: Modifier,
@@ -123,7 +133,7 @@ actual fun AlbumPreviewRender(
             }
           }
         }
-      }
+      } ?: controller.updatePreviewType(SmartModuleTypes.Scanning) // 如果直接返回，没有文件信息，返回空
     }
   )
 

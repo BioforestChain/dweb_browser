@@ -14,7 +14,7 @@ expect fun EndoscopicPreview(modifier: Modifier, controller: SmartScanController
 @Composable
 fun SmartScanController.EndoscopicPreview(modifier: Modifier) {
   LocalWindowController.current.navigation.GoBackHandler {
-    previewTypes.value = SmartModuleTypes.Scanning
+    updatePreviewType(SmartModuleTypes.Scanning)
   }
   EndoscopicPreview(modifier, this)
 }

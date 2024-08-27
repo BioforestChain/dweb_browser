@@ -17,32 +17,20 @@ fun WindowContentRenderScope.RenderBarcodeScanning(
 ) {
   val selectImg by controller.albumImageFlow.collectAsState()
   // 当用户选中文件的时候切换到Album模式
-  selectImg?.let {
-    controller.previewTypes.value = SmartModuleTypes.Album
-  }
+  selectImg?.let { controller.updatePreviewType(SmartModuleTypes.Album) }
   Box(modifier) {
-    when (controller.previewTypes.value) {
+    when (controller.previewTypes) {
       // 视图切换,如果扫描到了二维码
       SmartModuleTypes.Scanning -> {
         // 渲染相机内容
-        CameraPreviewRender(
-          modifier = Modifier.fillMaxSize(), controller = controller
-        )
+        CameraPreviewRender(modifier = Modifier.fillMaxSize(), controller = controller)
         // 扫描线和打开相册，暂时不再桌面端支持
         // TODO 根据设备是否支持摄像头来做这个事情
-        when {
-          IPureViewController.isDesktop -> {
-            controller.DefaultScanningView(Modifier.fillMaxSize().zIndex(2f), false)
-          }
-
-          else -> {
-            controller.DefaultScanningView(Modifier.fillMaxSize().zIndex(2f))
-          }
-        }
-        // 渲染扫码结果
-        controller.RenderScanResultView(
-          Modifier.matchParentSize().zIndex(3f)
+        controller.DefaultScanningView(
+          modifier = Modifier.fillMaxSize().zIndex(2f), showLight = !IPureViewController.isDesktop
         )
+        // 渲染扫码结果
+        controller.RenderScanResultView(Modifier.matchParentSize().zIndex(3f))
       }
       // 相册选择
       SmartModuleTypes.Album -> {

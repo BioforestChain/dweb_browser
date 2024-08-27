@@ -9,13 +9,11 @@ class CameraControllerImpl(private val controller: SmartScanController) : Camera
 //    Webcam.setDriver(WebcamCompositeDriver(ScreenCaptureDriver()))
   }
 
-
   fun startCapture() {
-
   }
 
   override fun openAlbum() {
-    controller.previewTypes.value = SmartModuleTypes.Album
+    controller.updatePreviewType(SmartModuleTypes.Album)
   }
 
   override fun stop() {

@@ -56,7 +56,7 @@ fun SmartScanController.RenderAlbumPreview(
   LocalWindowController.current.navigation.GoBackHandler {
     albumImageFlow.value = null
     barcodeResultFlow.emit(listOf()) // 清空缓存的数据
-    previewTypes.value = SmartModuleTypes.Scanning // 切换成扫码模式
+    updatePreviewType(SmartModuleTypes.Scanning) // 切换成扫码模式
   }
   val density = LocalDensity.current.density
   // 显示选中的图片

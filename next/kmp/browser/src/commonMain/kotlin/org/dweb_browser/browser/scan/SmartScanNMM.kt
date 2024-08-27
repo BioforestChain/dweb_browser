@@ -103,9 +103,11 @@ class SmartScanNMM : NativeMicroModule("scan.browser.dweb", "Smart Scan") {
       // 获取ShortcutManage发起的open操作
       ipcConnectedProducer.consumer("for-shortcut-scan").listen { connectEvent ->
         val (ipc) = connectEvent.consume()
-        ipc.onEvent("shortcut").collect {
-          debugSCAN("shortcut", "open scan")
-          openAppOrActivate(this.mmid) // 打开界面
+        ipc.onEvent("shortcut-open").collect {
+          debugSCAN("shortcut-open", "open scan => from=${ipc.remote.mmid}, name=${it.data.name}")
+          if (it.data.name == "shortcut-open") {
+            openAppOrActivate(this.mmid) // 打开界面
+          }
         }
       }
     }

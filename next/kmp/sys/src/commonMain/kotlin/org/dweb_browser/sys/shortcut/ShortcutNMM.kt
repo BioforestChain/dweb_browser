@@ -86,6 +86,7 @@ class ShortcutNMM : NativeMicroModule("shortcut.sys.dweb", ShortcutI18nResource.
         "shortcutopen" bindDwebDeeplink defineEmptyResponse {
           val mmid = request.query("mmid")
           val data = request.query("data")
+          debugShortcut("shortcutopen", "mmid=$mmid, data=$data")
           if (mmid == this@ShortcutNMM.mmid) { // 如果本身mmid就是自己的话，直接打开应用
             nativeFetch(buildUrlString("file://desk.browser.dweb/openAppOrActivate") {
               parameters["app_id"] = mmid
@@ -93,7 +94,7 @@ class ShortcutNMM : NativeMicroModule("shortcut.sys.dweb", ShortcutI18nResource.
           } else {
             val ipc = connect(mmid)
             debugShortcut("shortcut-open=>", "${ipc.remote.mmid}=> $data")
-            ipc.postMessage(IpcEvent.fromUtf8("shortcut", data))
+            ipc.postMessage(IpcEvent.fromUtf8("shortcut-open", data))
           }
         }
       )

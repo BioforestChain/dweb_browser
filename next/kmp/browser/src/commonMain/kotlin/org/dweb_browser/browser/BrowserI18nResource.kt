@@ -391,6 +391,10 @@ object BrowserI18nResource {
       Language.ZH to "是否切换为内窥模式？",
       Language.EN to "Switch to Endoscopic Mode?"
     )
+    val tip_no_camera = SimpleI18nResource(
+      Language.ZH to "没有检测到摄像头，请连接摄像头或者通过文件选择器选择图片",
+      Language.EN to "No camera detected, please connect camera or use file selector"
+    )
   }
 
   object IconDescription {

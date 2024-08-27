@@ -255,7 +255,7 @@ fun SmartScanController.DefaultScanningView(modifier: Modifier, showLight: Boole
 //    WarpButton(
 //      alignment = Alignment.BottomStart,
 //      openHandle = {
-//        previewTypes.value = SmartModuleTypes.Endoscopic
+//        previewTypes = SmartModuleTypes.Endoscopic
 //      }) {
 //      Icon(
 //        imageVector = Icons.Default.Fullscreen,

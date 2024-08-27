@@ -1,7 +1,9 @@
 package org.dweb_browser.browser.scan
 
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import kotlinx.coroutines.CompletableDeferred
@@ -27,7 +29,12 @@ class SmartScanController(
   private val viewDeferredFlow = MutableStateFlow(CompletableDeferred<WindowController>())
   private val viewDeferred get() = viewDeferredFlow.value
   private val winLock = Mutex()
-  var previewTypes = mutableStateOf(SmartModuleTypes.Scanning)
+  var previewTypes by mutableStateOf(SmartModuleTypes.Scanning)
+    private set
+
+  fun updatePreviewType(type: SmartModuleTypes) {
+    previewTypes = type
+  }
 
   // 用来跟ios形成视图绘画对冲
   internal val scaleFlow = MutableStateFlow(1f)
