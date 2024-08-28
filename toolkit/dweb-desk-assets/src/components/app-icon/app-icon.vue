@@ -149,14 +149,15 @@ const bg_color = computed(() => props.bgColor);
       mask-size: cover;
     }
 
-    border-radius: 16%; // 高斯模糊的圆角
-    width: 100%;
-    height: 100%;
-
-    stroke: rgb(0 0 0 / 50%);
-    stroke-width: 1px;
-    stroke-linejoin: round;
-    z-index: 0;
+    & {
+      border-radius: 16%; // 高斯模糊的圆角
+      width: 100%;
+      height: 100%;
+      stroke: rgb(0 0 0 / 50%);
+      stroke-width: 1px;
+      stroke-linejoin: round;
+      z-index: 0;
+    }
   }
   .fg {
     z-index: 1;
