@@ -36,7 +36,6 @@ const startLive = (flags: $LiveOptions) => {
     console.log(colors.red(`The delivered folder does not exist:${baseDir}`));
     return;
   }
-  node_process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
   // 获取本机ip
   const hostname = getLocalIP();
   // 启动静态文件服务

@@ -1,6 +1,6 @@
 # Dweb Browser
 
-<img align="right" src="./assets/browser-icons/web.browser.dweb.svg" height="150px" alt="跨平台分布式应用浏览器">
+<img align="right" src="./assets/browser-icons/web.browser.dweb.svg" height="150px" alt="Cross-platform distributed application browser">
 
 ![stable-release](https://img.shields.io/badge/dweb-browser-success)
 ![stable-release](https://img.shields.io/badge/dweb-plaoc-orange)
@@ -10,134 +10,147 @@
 [plaoc-badge]: https://img.shields.io/badge/plaoc-doc-blue
 [plaoc-url]: https://github.com/BioforestChain/dweb_browser-docs
 
-[ENGLISH DOC](./README_EN.md)
+[ZH DOC](./README_ZH.md)
 
-dweb-browser 是一个遵循 Dweb 标准构建起来的浏览器平台，并将浏览器的能力、以及浏览器相关的系统原生系统能力通过各种 dweb 模块暴露出来。目前我们实现了 Android、IOS、MacOS、Windows 这些主流平台的支持。
+dweb-browser is a browser platform built in accordance with Dweb standards, and exposes the capabilities of the browser and the native system capabilities of the browser through various dweb modules. Currently, we have implemented support for mainstream platforms such as Android, IOS, MacOS, and Windows.
 
-我们将安装到 `Dweb Browser`中的 app 定义为`dweb app`。通过简单的一个配置文件，就可以将您的 `web app`快速的安装到各个平台当中。
-如何开始开发：[流程](https://docs.dweb-browser.org/plaoc/flow.html)。
+We define the app installed in `Dweb Browser` as a `dweb app`. With a simple configuration file, you can quickly install your `web app` on various platforms.
 
-> - `dweb app`应用开发者文档：[docs](https://docs.dweb-browser.org/)
-> - [桌面端下载地址](https://docs.dweb-browser.org/downloads.html)请下载对应平台的版本。
-> - 移动端到各大应用商城搜索`Dweb Browser`下载使用。
+How to start development: [flow](https://docs.dweb-browser.org/plaoc/flow.html).
 
-## `dweb` 模块
+> - `dweb app` application developer documentation: [docs](https://docs.dweb-browser.org/)
 
-在 `Dweb Browser` 中，我们强调模块的概念，所有的一切功能都是`dweb`模块。
-一个 `dweb app` 可以小到是一个简单功能模块，去专心为分布式网络提供一些能力,也就是说，你本地调用的模块，可以是远程模块。
+> - [Desktop download address](https://docs.dweb-browser.org/downloads.html) Please download the version of the corresponding platform.
 
-模块化的概念将在可编程后端才会有更近一步的体现，模块概念对前端开发者弱化，前端开发者只需要什么功能就简单的调用什么插件。
-提供多梯度的开发需求。
+> - Search for `Dweb Browser` in major app stores on mobile devices to download and use.
 
-模块包含 `std.dweb`,`sys.dweb`,`browser.dweb`，`*.dweb`这些标准。
+## `dweb`
 
-### `std.dweb`
+In `Dweb Browser`, we emphasize the concept of modules, and all functions are `dweb` modules.
 
-全平台标准模块，提供的接口需要在各个平台保持一致性。并且需要获得社区认可。
+A `dweb app` can be as small as a simple functional module to focus on providing some capabilities for the distributed network, that is, the module you call locally can be a remote module.
 
-目前有以下三个：
+The concept of modularity will be further reflected in the programmable backend. The concept of modules is weakened for front-end developers, and front-end developers simply call any plug-in for any function.
 
-- `file.std.dweb`: 文件操作标准模块，提供操作文件夹的标准能力。
-- `http.std.dweb`: http 服务标准模块。
-- `dns.std.dweb`: dns 转发查找模块。
+Provide multi-level development requirements.
 
-### `sys.dweb`
+The module includes `std.dweb`, `sys.dweb`, `browser.dweb`, `*.dweb` and other standards.
 
-系统级模块，提供一些系统级能力，各个平台的能力可能不一致。
-当一些模块在全平台接口保持一致，并且获得社区认可之后，将升级为全平台标准模块。
+### `std.dweb` standard
 
-一些例子：
+The full-platform standard module, the interface provided needs to be consistent on each platform. And it needs to be recognized by the community.
 
-- `haptics.sys.dweb`: 震动模块，提供震动能力，只在移动端实现。
-- `keychain.sys.dweb`: 密钥存储模块。
-- `geolocation.sys.dweb`: 获取经纬度的模块。
+Currently there are three:
+
+- `file.std.dweb`: a standard module for file operations, providing standard capabilities for operating folders.
+
+- `http.std.dweb`: a standard module for http services.
+
+- `dns.std.dweb`: dns forwarding lookup module.
+
+### `sys.dweb` standard
+
+System-level module, providing some system-level capabilities, the capabilities of each platform may be inconsistent.
+When some modules have consistent interfaces across all platforms and are recognized by the community, they will be upgraded to standard modules across all platforms.
+
+Some examples:
+
+- `haptics.sys.dweb`: vibration module, providing vibration capabilities, only implemented on mobile terminals.
+
+- `keychain.sys.dweb`: key storage module.
+
+- `geolocation.sys.dweb`: module for obtaining longitude and latitude.
+
 - ...
 
-### `browser.dweb`
+### `browser.dweb` standard
 
-浏览器级模块，实现一些浏览器级的功能。
+Browser-level module, implementing some browser-level functions.
 
-一些例子：
+Some examples:
 
-- `download.browser.dweb`: 下载模块，提供下载能力。
-- `jmm.browser.dweb`: 它是一个动态 dweb 模块管理器，基于此可以实现类似 PWA 的应用功能。
-- `js.browser.dweb`: 它是一个 javascript-runtime，使用的是 WebWorker 作为底层实现。因此 WebWorker 中的各种标准都可以开箱即用。
+- `download.browser.dweb`: download module, providing download capabilities.
+
+- `jmm.browser.dweb`: It is a dynamic dweb module manager, based on which application functions similar to PWA can be implemented.
+- `js.browser.dweb`: It is a javascript-runtime that uses WebWorker as the underlying implementation. Therefore, various standards in WebWorker can be used out of the box.
 - ...
 
 # Plaoc
 
-plaoc 是基于 `Dweb Browser` 平台的一个对标 Cordova、Capacitor、Tauri 的“跨平台 Web 应用”开发工具包。
-提供全链路的工具，并且能够快速的调用各个平台和系统的能力。
-包含打包工具`@plaoc/cli`，前端插件`@plaoc/plugins`。
+plaoc is a "cross-platform web application" development toolkit based on the `Dweb Browser` platform that is comparable to Cordova, Capacitor, and Tauri.
+
+It provides full-link tools and can quickly call the capabilities of various platforms and systems.
+
+Contains the packaging tool `@plaoc/cli` and the front-end plug-in `@plaoc/plugins`.
 
 ## `@plaoc/cli`
 
-[@plaoc/cli](https://www.npmjs.com/package/@plaoc/cli) 是 `dweb app` 开发并打包应用到 `Dweb Browser` 的命令行工具。
+[@plaoc/cli](https://www.npmjs.com/package/@plaoc/cli) is a command line tool for `dweb app` development and packaging applications to `Dweb Browser`.
 
-### 安装打包工具。
-
-```bash
-npm i -g @plaoc/cli
-```
-
-开发 app 的时候运行` plaoc serve`。
-
-- 第一种方式可以指定您前端工程输出的地址，这样在您代码更新的时候，app 内部的代码也会跟着您的更新而更新。
-
-```bash
-plaoc serve http://localhost:8000
-```
-
-- 第二种是直接指定编译完的源码目录，这种方式相当于直接安装 app，适用您前端工程断开的时候也能访问。
-
-```bash
-plaoc serve ./dist
-```
-
-上面的两个命令会输出如下几行：
-
-```bash
-using metadata file: /Volumes/developer/waterbang/deno/dweb_browser/npm/@plaoc__examples/html-demo/manifest.json
-0: 	dweb://install?url=http://127.0.0.1:8097/metadata.json
-1: 	dweb://install?url=http://172.30.95.93:8097/metadata.json
-[? Enter the corresponding number to generate a QR code. (0) ›
-```
-
-第一行的 `using metadata file`将指定您的 app 配置文件目录，方便直接知晓是哪个 app。
-
-第二行和第三行的`metadata`为 `deeplink` 的形式，输入前面的序号如 0，则生成相对应的二维码，在桌面端可以直接粘贴到 dweb-browser 中进行安装。
-而移动端使用扫码的形式进行安装应用。
-
-### 打包成可部署的 app 包
-
-直接使用 `plaoc bundle` 指定源码目录进行打包，命令如下：
-
-```bash
-plaoc bundle ./dir
-```
-
-会打包并输出一个包含 app ID 和日期组合而成的压缩文件 `.zip` 和一个 `metadata.json`。
-
-这两个文件使用任意的`(http/https)` 服务部署成链接的形式，放于同一文件夹中并且指向`metadata.json` 文件。组成如下形式链接，就可以在的 dweb-browser 中进行安装。
-
-```bash
-dweb://install?url=http://app.dweb.中国/metadata.json
-```
+For specific documents, please refer to [cli document](https://docs.dweb-browser.org/plaoc/cli.html)
 
 ## `@plaoc/plugins`
 
-[@plaoc/plugins](https://www.npmjs.com/package/@plaoc/plugins) 能赋予 web 开发者,直接调用各个平台系统 API 的能力。
+[@plaoc/plugins](https://www.npmjs.com/package/@plaoc/plugins) can give web developers the ability to directly call the API of each platform system.
 
-具体文档查看：[plugins 文档](https://docs.dweb-browser.org/plugins/web-components.html)
+For specific documents, please refer to [plugins document](https://docs.dweb-browser.org/plugins/web-components.html)
+
+## How to contribute code
+
+1. View: [Environment setup document](./GET_START_FOR_DEVELOPER.md)
+
+2. Initialize resource package
+
+```bash
+deno task init
+```
+
+### Contribute to multi-platform applications
+
+Need to compile `Dweb Browser` static resource files.
+
+```bash
+deno task dev
+```
+
+### Contribute to the `Plaoc` toolkit
+
+```bash
+deno task plaoc:watch
+```
+
+### Example project
+
+The project contains front-end and back-end example projects, located in [examples](./toolkit/plaoc/examples/).
+
+You can run the following command to view:
+
+#### Front-end example project
+
+```bash
+plaoc:demo
+```
+
+#### Contains a programmable back-end example project
+
+```bash
+plaoc:demo:serve
+```
+
+### Contribute to static libraries
+
+Some system-level APIs and services of the project are called using [rust-uniffi](https://gitlab.com/trixnity/uniffi-kotlin-multiplatform-bindings).
+
+See the project for details [dweb_browser_libs](https://github.com/BioforestChain/dweb_browser_libs).
 
 ### Q&A
 
-mac 桌面端如果出现： “Dweb Browser” 已损坏，无法打开。 你应该将它移到废纸篓。
+If the Mac desktop client displays: "Dweb Browser" is damaged and cannot be opened. You should move it to the Trash.
 
-可以使用下面命令运行。
+You can run it using the following command.
 
 ```bash
 sudo xattr -d com.apple.quarantine /Applications/Dweb\ Browser.app
 ```
 
-更多问题可以查看文档[dweb_browser](https://docs.dweb-browser.org/)，或者在 issuse 中找到问题或者提问。
+For more questions, please check the document [dweb_browser](https://docs.dweb-browser.org/), or find or ask questions in issuse.

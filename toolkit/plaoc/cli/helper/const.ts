@@ -4,7 +4,6 @@ export type { $JmmAppInstallManifest, $MMID } from "@plaoc/server/middlewares";
 /**plaoc bundle */
 export type $BundleOptions = $MetadataJsonGeneratorOptions & {
   clear?: boolean;
-  watch?: boolean;
   out: string;
 };
 

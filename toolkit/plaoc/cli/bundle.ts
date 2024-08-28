@@ -1,7 +1,7 @@
-import { Command } from "./deps/cliffy.ts";
+import { colors, Command } from "./deps/cliffy.ts";
 import { node_crypto, node_fs, node_path } from "./deps/node.ts";
 import { type $BundleOptions } from "./helper/const.ts";
-import { BundleResourceNameHelper, MetadataJsonGenerator, injectPrepare } from "./helper/generator.ts";
+import { BundleResourceNameHelper, injectPrepare, MetadataJsonGenerator } from "./helper/generator.ts";
 
 export const doBundleCommand = new Command()
   .arguments("<web_public:string>")
@@ -9,16 +9,12 @@ export const doBundleCommand = new Command()
   .option("-o --out <out:string>", "Output directory.", {
     default: "bundle",
   })
-  .option("-p --port <port:string>", "Service port.", {
-    default: "8096",
-  })
   .option("--id <id:string>", "Set app id")
   .option("-v --version <version:string>", "Set app packaging version.")
   .option(
     "-c --config-dir <config_dir:string>",
     "The config directory is set to automatically traverse upwards when searching for configuration files (manifest.json/plaoc.json). The default setting for the target directory is <web_public>"
   )
-  .option("-s --web-server <serve:string>", "Specify the path of the programmable backend. ")
   .option("--clear <clear:boolean>", "Empty the cache.", { default: true })
   // .option("-w --watch <dev:boolean>", "Enable serve mode.", { default: false })
   .action((options, arg1) => {
@@ -74,6 +70,7 @@ export const doBundle = async (flags: $BundleOptions) => {
     node_path.resolve(outDir, BundleResourceNameHelper.metadataName),
     JSON.stringify(metadata, null, 2)
   );
+  console.log(colors.green(`bundle ${metadata.id} success.  version:${metadata.version}`));
   /// jszip 会导致程序一直开着，需要手动关闭
   Deno.exit();
 };

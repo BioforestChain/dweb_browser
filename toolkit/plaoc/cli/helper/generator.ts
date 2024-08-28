@@ -1,6 +1,5 @@
 import JSZip from "jszip";
 import { createRequire } from "node:module";
-import { colors } from "../deps/cliffy.ts";
 import { node_fs, node_path, node_process } from "../deps/node.ts";
 import type { $JmmAppInstallManifest, $MMID } from "../helper/const.ts";
 import { defaultMetadata, type $MetadataJsonGeneratorOptions } from "./const.ts";
@@ -43,7 +42,7 @@ export class MetadataJsonGenerator {
           metadata.author = [metadata.author];
         }
 
-        console.log(colors.gray("using metadata file:"), colors.cyan(filepath));
+        // console.log(colors.gray("using metadata file:"), colors.cyan(filepath));
         return metadata;
         // deno-lint-ignore no-empty
       } catch {}
