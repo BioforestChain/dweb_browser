@@ -20,7 +20,6 @@ import org.dweb_browser.sys.permission.SystemPermissionTask
 import org.dweb_browser.sys.permission.ext.requestSystemPermissions
 import org.dweb_browser.sys.window.ext.onRenderer
 import org.jetbrains.compose.resources.ExperimentalResourceApi
-import org.jetbrains.compose.resources.decodeToImageBitmap
 
 val debugSCAN = Debugger("scan.browser")
 
@@ -96,7 +95,7 @@ class SmartScanNMM : NativeMicroModule("scan.browser.dweb", "Smart Scan") {
         "/parseImage" bind PureMethod.POST by defineEmptyResponse {
           val controller = scanController.getWindowController()
           controller.show()
-          scanController.albumImageFlow.tryEmit(request.body.toPureBinary().decodeToImageBitmap())
+          scanController.albumImageFlow.tryEmit(request.body.toPureBinary())
         }
       )
 

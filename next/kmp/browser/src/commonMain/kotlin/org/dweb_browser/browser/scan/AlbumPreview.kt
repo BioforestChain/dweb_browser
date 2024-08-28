@@ -38,16 +38,13 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.compose.div
 import org.dweb_browser.sys.window.core.LocalWindowController
 
-
 /**选中文件时候的反馈*/
-@OptIn(FlowPreview::class)
 @Composable
 fun SmartScanController.RenderAlbumPreview(
   modifier: Modifier,
@@ -55,7 +52,7 @@ fun SmartScanController.RenderAlbumPreview(
 ) {
   LocalWindowController.current.navigation.GoBackHandler {
     albumImageFlow.value = null
-    barcodeResultFlow.emit(listOf()) // 清空缓存的数据
+    barcodeResultFlow.emit(emptyList()) // 清空缓存的数据
     updatePreviewType(SmartModuleTypes.Scanning) // 切换成扫码模式
   }
   val density = LocalDensity.current.density
@@ -69,41 +66,40 @@ fun SmartScanController.RenderAlbumPreview(
       modifier = Modifier.fillMaxSize(),
     )
     //等待识别
-    val results by barcodeResultFlow.debounce(500).collectAsState(null)
-    if (results?.isEmpty() == true) {
+    val results by barcodeResultFlow.collectAsState()
+    if (results.isEmpty()) {
       RenderEmptyResult()
+      return@BoxWithConstraints
     }
-    results?.let {
-      val offsetImgX = (parentWidth - selectImg.width) / 2f
-      val offsetImgY = (parentHeight - selectImg.height) / 2f
-//      println("offsetImgX:$offsetImgX offsetImgY:$offsetImgY")
-      // 画出识别到的内容
-      for (result in it) {
-        var textSize by remember { mutableStateOf(Size.Zero) }
-        val width by animateFloatAsState(result.boundingBox.width / density)
-        val height by animateFloatAsState(result.boundingBox.height / density)
-        val offsetX by animateFloatAsState(result.boundingBox.x + width - textSize.width)
-        val offsetY by animateFloatAsState(result.boundingBox.y + height - textSize.height)
-//        println("offset=> $density $offsetX $offsetY ")
-        key(result.data) {
-          FilledTonalButton(
-            { onSuccess(result.data) },
-            modifier = Modifier.requiredWidth(width.dp)
-              .graphicsLayer {
-                translationX = offsetX + offsetImgX
-                translationY = offsetY + offsetImgY
-              }.onGloballyPositioned { textSize = it.size.div(density) },
-            colors = ButtonDefaults.filledTonalButtonColors()
-              .run { copy(containerColor = containerColor.copy(alpha = 0.5f)) },
-            border = BorderStroke(width = 0.5.dp, brush = SolidColor(Color.White)),
-            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 3.dp)
-          ) {
-            Text(
-              result.data,
-              maxLines = 1,
-              overflow = TextOverflow.Ellipsis
-            )
-          }
+    val offsetImgX = (parentWidth - selectImg.width) / 2f
+    val offsetImgY = (parentHeight - selectImg.height) / 2f
+//    println("offsetImgX:$offsetImgX offsetImgY:$offsetImgY")
+    // 画出识别到的内容
+    for (result in results) {
+      var textSize by remember { mutableStateOf(Size.Zero) }
+      val width by animateFloatAsState(result.boundingBox.width / density)
+      val height by animateFloatAsState(result.boundingBox.height / density)
+      val offsetX by animateFloatAsState(result.boundingBox.x + width - textSize.width)
+      val offsetY by animateFloatAsState(result.boundingBox.y + height - textSize.height)
+//      println("offset=> $density $offsetX $offsetY ")
+      key(result.data) {
+        FilledTonalButton(
+          { onSuccess(result.data) },
+          modifier = Modifier.requiredWidth(width.dp)
+            .graphicsLayer {
+              translationX = offsetX + offsetImgX
+              translationY = offsetY + offsetImgY
+            }.onGloballyPositioned { textSize = it.size.div(density) },
+          colors = ButtonDefaults.filledTonalButtonColors()
+            .run { copy(containerColor = containerColor.copy(alpha = 0.5f)) },
+          border = BorderStroke(width = 0.5.dp, brush = SolidColor(Color.White)),
+          contentPadding = PaddingValues(horizontal = 4.dp, vertical = 3.dp)
+        ) {
+          Text(
+            result.data,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+          )
         }
       }
     }

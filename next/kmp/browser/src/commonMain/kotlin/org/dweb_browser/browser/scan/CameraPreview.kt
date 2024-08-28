@@ -3,14 +3,20 @@ package org.dweb_browser.browser.scan
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.zIndex
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.debounce
 import org.dweb_browser.helper.platform.IPureViewController
 import org.dweb_browser.helper.platform.isDesktop
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.decodeToImageBitmap
 
+@OptIn(ExperimentalResourceApi::class, FlowPreview::class)
 @Composable
 fun WindowContentRenderScope.RenderBarcodeScanning(
   modifier: Modifier, controller: SmartScanController
@@ -34,14 +40,16 @@ fun WindowContentRenderScope.RenderBarcodeScanning(
       }
       // 相册选择
       SmartModuleTypes.Album -> {
-        if (selectImg == null) {
-          AlbumPreviewRender(modifier, controller)
-        }
-        selectImg?.let {
+        selectImg?.let { byteArray ->
           // 如果是选中图片，渲染选中的图片
-          controller.RenderAlbumPreview(
-            Modifier.fillMaxSize(), it
-          )
+          LaunchedEffect(byteArray) {
+            controller.decodeQrCode {
+              recognize(byteArray, 0)
+            }
+          }
+          controller.RenderAlbumPreview(Modifier.fillMaxSize(), byteArray.decodeToImageBitmap())
+        } ?: run {
+          AlbumPreviewRender(modifier, controller) // 如果图片为空，就打开相册选择器
         }
       }
       // 内窥模式

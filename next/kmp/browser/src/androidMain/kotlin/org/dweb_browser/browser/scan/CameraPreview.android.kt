@@ -54,12 +54,13 @@ actual fun CameraPreviewRender(
           newHeight,
           true
         )
-        controller.albumImageFlow.tryEmit(previewBitmap.asImageBitmap())
-        globalDefaultScope.launch {
-          controller.decodeQrCode {
-            recognize(previewBitmap, 0)
-          }
-        }
+        controller.albumImageFlow.tryEmit(previewBitmap.ninePatchChunk) // (previewBitmap.asImageBitmap())
+        // TODO 这边和桌面端一样，不应该在这里进行识别，而是收到上面tryEmit后，界面渲染时，再执行识别
+//        globalDefaultScope.launch {
+//          controller.decodeQrCode {
+//            recognize(previewBitmap, 0)
+//          }
+//        }
       }
     }
   // 创建相机控制器

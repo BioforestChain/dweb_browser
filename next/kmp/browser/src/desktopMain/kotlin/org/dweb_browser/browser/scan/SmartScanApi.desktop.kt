@@ -39,24 +39,28 @@ actual class ScanningController actual constructor(mmScope: CoroutineScope) {
         val binaryBitmap = BinaryBitmap(HybridBinarizer(source))
         val reader = QRCodeMultiReader()
         deferred.complete(
-          reader.decodeMultiple(binaryBitmap).map { barcode ->
-            // 返回的barcode中，resultPoints有三个标准点，也有可能存在4个，前三个是必定存在的。
-            val topLeft = barcode.resultPoints[1]
-            val bottomLeft = barcode.resultPoints[0]
-            val topRight = barcode.resultPoints[2]
-            val width = abs(topRight.x - topLeft.x)
-            val height = abs(bottomLeft.y - topLeft.y)
-            val boundingBox = PureRect(
-              topLeft.x, topLeft.y, width, height
-            )
-            BarcodeResult(
-              data = barcode.text,
-              boundingBox = boundingBox,
-              topLeft = PurePoint(topLeft.x, topLeft.y),
-              topRight = PurePoint(topRight.x, topRight.y),
-              bottomLeft = PurePoint(bottomLeft.x, bottomLeft.y),
-              bottomRight = PurePoint(topRight.x, bottomLeft.y)
-            )
+          try {
+            reader.decodeMultiple(binaryBitmap).map { barcode ->
+              // 返回的barcode中，resultPoints有三个标准点，也有可能存在4个，前三个是必定存在的。
+              val topLeft = barcode.resultPoints[1]
+              val bottomLeft = barcode.resultPoints[0]
+              val topRight = barcode.resultPoints[2]
+              val width = abs(topRight.x - topLeft.x)
+              val height = abs(bottomLeft.y - topLeft.y)
+              val boundingBox = PureRect(
+                topLeft.x, topLeft.y, width, height
+              )
+              BarcodeResult(
+                data = barcode.text,
+                boundingBox = boundingBox,
+                topLeft = PurePoint(topLeft.x, topLeft.y),
+                topRight = PurePoint(topRight.x, topRight.y),
+                bottomLeft = PurePoint(bottomLeft.x, bottomLeft.y),
+                bottomRight = PurePoint(topRight.x, bottomLeft.y)
+              )
+            }
+          } catch (e: Exception) { // 为了拦截解码异常的弹框
+            emptyList()
           }
         )
       }.getOrElse {

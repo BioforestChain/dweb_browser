@@ -132,13 +132,15 @@ class CameraControllerImpl(
           if (itemProvider.hasItemConformingToTypeIdentifier(UTTypeImage.toString())) {
             itemProvider.loadDataRepresentationForTypeIdentifier(UTTypeImage.toString()) { data, error ->
               if (data != null) {
-                val bitmapFromNsData = Image.makeFromEncoded(data.toByteArray()).toComposeImageBitmap()
-                controller.albumImageFlow.tryEmit(bitmapFromNsData)
-                globalDefaultScope.launch {
-                  controller.decodeQrCode {
-                    recognize(data)
-                  }
-                }
+//                val bitmapFromNsData = Image.makeFromEncoded(data.toByteArray()).toComposeImageBitmap()
+//                controller.albumImageFlow.tryEmit(bitmapFromNsData)
+                controller.albumImageFlow.tryEmit(data.toByteArray())
+                // TODO 这边和桌面端一样，不应该在这里进行识别，而是收到上面tryEmit后，界面渲染时，再执行识别
+//                globalDefaultScope.launch {
+//                  controller.decodeQrCode {
+//                    recognize(data)
+//                  }
+//                }
               } else if (error != null) {
                 // 处理错误
                 WARNING("Error loading data: ${error.localizedDescription}")

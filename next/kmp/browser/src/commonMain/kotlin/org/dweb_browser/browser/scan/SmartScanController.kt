@@ -94,7 +94,7 @@ class SmartScanController(
   val barcodeResultFlow = MutableStateFlow<List<BarcodeResult>>(emptyList())
 
   // 相册选中的图片
-  val albumImageFlow = MutableStateFlow<ImageBitmap?>(null)
+  val albumImageFlow = MutableStateFlow<ByteArray?>(null)
 
   /**识别成功*/
   fun onSuccess(result: String) {

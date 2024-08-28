@@ -17,15 +17,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.toComposeImageBitmap
 import io.github.vinceglb.filekit.compose.rememberFilePickerLauncher
 import io.github.vinceglb.filekit.core.PickerType
 import io.github.vinceglb.filekit.core.PlatformDirectory
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.common.loading.LoadingView
-import org.dweb_browser.helper.globalDefaultScope
-import org.jetbrains.skia.Image
 
 
 // 记忆最后一次打开的路径
@@ -123,15 +120,16 @@ actual fun AlbumPreviewRender(
       file?.let {
         scope.launch {
           val byteArray = file.readBytes()
-          val image = Image.makeFromEncoded(byteArray)
-          // 回调图片
-          controller.albumImageFlow.tryEmit(image.toComposeImageBitmap())
-          // 发送给识别模块
-          globalDefaultScope.launch {
-            controller.decodeQrCode {
-              recognize(byteArray, 0)
-            }
-          }
+//          val image = Image.makeFromEncoded(byteArray)
+//          // 回调图片
+//          controller.albumImageFlow.tryEmit(image.toComposeImageBitmap())
+          controller.albumImageFlow.tryEmit(byteArray)
+          // 发送给识别模块 // TODO 该操作不应该在文件选择器这边执行，而是应该放到图片渲染后，在进行识别图片
+//          globalDefaultScope.launch {
+//            controller.decodeQrCode {
+//              recognize(byteArray, 0)
+//            }
+//          }
         }
       } ?: controller.updatePreviewType(SmartModuleTypes.Scanning) // 如果直接返回，没有文件信息，返回空
     }
