@@ -19,7 +19,10 @@ class TaskbarV2Controller(
 
   private suspend fun upsetApps() {
     appsFlow.value = getTaskbarAppList(Int.MAX_VALUE).map { new ->
-      var appModel = appsFlow.value.find { it.mmid == new.mmid }?.also { it.running = new.running }
+      // 必须创建一个新的TaskbarAppModel引用，否则mode的更改不会触发composable函数变更状态
+      var appModel = appsFlow.value.find { it.mmid == new.mmid }?.let {
+        TaskbarAppModel(it.mmid, it.icon, new.running, it.isShowClose)
+      }
       if (appModel == null) {
         appModel = TaskbarAppModel(
           mmid = new.mmid,
@@ -31,14 +34,17 @@ class TaskbarV2Controller(
 
       if (new.winStates.isNotEmpty()) {
         val state = new.winStates.last()
-        appModel.focus = state.focus
-        appModel.mode = state.mode
+        appModel.state.apply {
+          focus = state.focus
+          visible = state.visible
+          mode = state.mode
+        }
       } else {
-        appModel.focus = false
+        appModel.state.focus = false
       }
 
       appModel
-    }.sortedByDescending { it.focus }
+    }.sortedByDescending { it.state.focus }
 //    updateTaskBarSize(taskbarApps.count())
   }
 

@@ -5,7 +5,6 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -19,6 +18,7 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import kotlinx.coroutines.launch
@@ -36,10 +36,12 @@ import org.dweb_browser.sys.window.render.AppLogo
 internal fun TaskBarAppIcon(
   app: TaskbarAppModel,
   microModule: NativeMicroModule.NativeRuntime,
-  padding: Dp,
   openAppOrActivate: () -> Unit,
   quitApp: () -> Unit,
   toggleWindow: () -> Unit,
+  containerAlpha: Float? = null,
+  shadow: Dp? = null,
+  popupOffset: IntOffset? = null,
   modifier: Modifier = Modifier,
 ) {
 
@@ -60,7 +62,7 @@ internal fun TaskBarAppIcon(
 
   BoxWithConstraints(
     contentAlignment = Alignment.Center,
-    modifier = modifier.padding(start = padding, top = padding, end = padding).scale(
+    modifier = modifier.scale(
       animateFloatAsState(
         scaleTargetValue, when {
           scaleTargetValue >= 1f -> spring(Spring.DampingRatioHighBouncy)
@@ -100,9 +102,9 @@ internal fun TaskBarAppIcon(
     ),
   ) {
     AppLogo.from(app.icon, fetchHook = microModule.blobFetchHook).toDeskAppIcon(
-      AppIconContainer(shadow = if (app.running) 2.dp else null),
+      AppIconContainer(shadow = shadow ?: if (app.running) 2.dp else null),
       containerColor = if (app.running) null else LocalColorful.current.Gray.Shade_100,
-      containerAlpha = if (app.running) 1f else 0.8f,
+      containerAlpha = containerAlpha ?: if (app.running) 1f else 0.8f,
     ).Render(
       logoModifier = if (showQuit) Modifier.blur(4.dp) else Modifier,
       innerContent = {
@@ -111,6 +113,7 @@ internal fun TaskBarAppIcon(
             onDismissRequest = {
               showQuit = false
             },
+            offset = popupOffset ?: IntOffset.Zero
           ) {
             CloseButton(
               Color.Black,

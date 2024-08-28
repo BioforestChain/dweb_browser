@@ -1,16 +1,18 @@
 package org.dweb_browser.sys.window.floatBar
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateOffset
 import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -18,7 +20,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.geometry.Offset
@@ -57,7 +58,7 @@ fun FloatBarShell(
     }.value
   },
   effectBounds: @Composable Modifier.(PureRect) -> Modifier = { bounds ->
-    this.size(bounds.width.dp, bounds.height.dp).offset(x = bounds.x.dp, y = bounds.y.dp)
+    this.requiredSize(bounds.width.dp, bounds.height.dp).offset(x = bounds.x.dp, y = bounds.y.dp)
   },
   moverContent: @Composable FloatBarContext.(modifier: Modifier) -> Unit,
 ) {
@@ -145,7 +146,11 @@ fun FloatBarShell(
         width = boxWidth,
         height = boxHeight,
       )
-    ).floatBarBackground(isDark, floatBarDefaultShape)
+    ).floatBarBackground(
+      isDark = isDark,
+      shape = floatBarDefaultShape,
+      getAlpha = state.backgroundAlphaGetterFlow.collectAsState().value,
+    )
   )
 }
 
@@ -156,14 +161,18 @@ fun rememberDisplaySize() = rememberPureViewBox().let { viewBox ->
   }.value
 }
 
-fun Modifier.floatBarBackground(isDark: Boolean, shape: Shape = floatBarDefaultShape) =
+fun Modifier.floatBarBackground(
+  isDark: Boolean,
+  shape: Shape = floatBarDefaultShape,
+  getAlpha: ((Float) -> Float)? = null
+) =
   this.composed {
-    this.background(remember(isDark) {
+    this.background(animateColorAsState(remember(isDark, getAlpha) {
       when {
-        isDark -> Color.White.copy(alpha = 0.45f)
-        else -> Color.Black.copy(alpha = 0.2f)
+        isDark -> Color.White.copy(alpha = 0.45f.let { getAlpha?.invoke(it) ?: it })
+        else -> Color.Black.copy(alpha = 0.2f.let { getAlpha?.invoke(it) ?: it })
       }
-    }, shape)
+    }).value, shape)
   }
 
 val floatBarDefaultShape = SquircleShape(16.dp, CornerSmoothing.Small)
@@ -175,7 +184,7 @@ val floatBarDefaultShape = SquircleShape(16.dp, CornerSmoothing.Small)
 fun FloatBarMover(
   draggableDelegate: DraggableDelegate,
   modifier: Modifier,
-  content: @Composable () -> Unit,
+  content: @Composable BoxScope.() -> Unit,
 ) {
   Box(
     modifier.pointerInput(draggableDelegate) {
@@ -187,8 +196,7 @@ fun FloatBarMover(
           draggableDelegate.onDrag(dragAmount / density)
         },
       )
-    },
-    contentAlignment = Alignment.Center,
+    }
   ) {
     content()
   }
@@ -246,4 +254,6 @@ class FloatBarState {
    */
   val draggingFlow = MutableStateFlow(false)
   var dragging by draggingFlow
+  val backgroundAlphaGetterFlow = MutableStateFlow<((Float) -> Float)?>(null)
+  var backgroundAlphaGetter by backgroundAlphaGetterFlow
 }
