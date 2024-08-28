@@ -1,9 +1,7 @@
 import JSZip from "jszip";
-import fs from "node:fs";
 import { createRequire } from "node:module";
-import node_path from "node:path";
-import process from "node:process";
 import { colors } from "../deps/cliffy.ts";
+import { node_fs, node_path, node_process } from "../deps/node.ts";
 import type { $JmmAppInstallManifest, $MMID } from "../helper/const.ts";
 import { defaultMetadata, type $MetadataJsonGeneratorOptions } from "./const.ts";
 import { GenerateTryFilepaths, isUrl } from "./util.ts";
@@ -18,7 +16,7 @@ export class MetadataJsonGenerator {
     this.metadataFilepaths = (() => {
       const tryFilenames = ["metadata.json", "manifest.json", "package.json"];
       // 如果指定了项目目录，到项目目录里面搜索配置文件
-      let dirs = [node_path.resolve(process.cwd(), flags.configDir ?? flags.webPublic ?? "")];
+      let dirs = [node_path.resolve(node_process.cwd(), flags.configDir ?? flags.webPublic ?? "")];
       if (flags.configDir) {
         const www_dir = flags.configDir;
         if (www_dir) {
@@ -40,7 +38,7 @@ export class MetadataJsonGenerator {
   tryReadMetadata() {
     for (const filepath of this.metadataFilepaths) {
       try {
-        const metadata = JSON.parse(fs.readFileSync(filepath, "utf-8"));
+        const metadata = JSON.parse(node_fs.readFileSync(filepath, "utf-8"));
         if (typeof metadata.author === "string") {
           metadata.author = [metadata.author];
         }
@@ -77,7 +75,7 @@ export class PlaocJsonGenerator {
     this.plaocFilepaths = (() => {
       const tryFilenames = "plaoc.json";
       // 如果指定了项目目录，到项目目录里面搜索配置文件
-      const file = node_path.resolve(process.cwd(), flags.configDir ?? "", tryFilenames);
+      const file = node_path.resolve(node_process.cwd(), flags.configDir ?? "", tryFilenames);
       return file;
     })();
   }
@@ -85,9 +83,9 @@ export class PlaocJsonGenerator {
   tryReadPlaoc() {
     const entries: $ZipEntry[] = [];
     try {
-      const entry = fs.statSync(this.plaocFilepaths);
+      const entry = node_fs.statSync(this.plaocFilepaths);
       if (entry.isFile()) {
-        const data = fs.readFileSync(this.plaocFilepaths);
+        const data = node_fs.readFileSync(this.plaocFilepaths);
         entries.push({
           dir: false,
           path: `usr/www/plaoc.json`,
@@ -110,18 +108,18 @@ export class BackendServerGenerator {
     this.serverFilepaths = (() => {
       if (flags.webServer == undefined) return null;
       // 如果指定了项目目录，到项目目录里面搜索配置文件
-      return node_path.resolve(process.cwd(), flags.webServer);
+      return node_path.resolve(node_process.cwd(), flags.webServer);
     })();
   }
 
   async tryWriteServer() {
     const entries: $ZipEntry[] = [];
     async function copyFolder(src: string, pathalias: string) {
-      if (fs.statSync(src).isFile()) {
+      if (node_fs.statSync(src).isFile()) {
         entries.push({
           dir: false,
           path: `usr/${pathalias}`.replace(/\\/g, "/"),
-          data: fs.readFileSync(src),
+          data: node_fs.readFileSync(src),
         });
       } else {
         entries.push({
@@ -229,8 +227,8 @@ export class BundleZipGenerator {
       /// 本地文件
       else {
         // console.log("addpath_full", addpath_full);
-        if (fs.statSync(addpath_full).isFile()) {
-          data = fs.readFileSync(addpath_full);
+        if (node_fs.statSync(addpath_full).isFile()) {
+          data = node_fs.readFileSync(addpath_full);
         } else {
           for (const entry of WalkFiles(addpath_full)) {
             const child_addpath = node_path.join(addpath_full, entry.relativepath);

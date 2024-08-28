@@ -1,5 +1,4 @@
-import node_path from "node:path";
-import process from "node:process";
+import { node_path, node_process } from "../deps/node.ts";
 /**
  * 基于指定的roots和filenames，合并生成路径，并且目录会不断向上走。
  * 比如说:
@@ -64,10 +63,10 @@ export function* GenerateTryFilepaths(filenames: string[], dirs: string[]) {
  */
 export function getManifestFilePath(cwd?: string) {
   if (cwd) {
-    return node_path.join(process.cwd(), cwd, "manifest.json");
+    return node_path.join(node_process.cwd(), cwd, "manifest.json");
   }
 
-  return node_path.join(process.cwd(), "manifest.json");
+  return node_path.join(node_process.cwd(), "manifest.json");
 }
 
 export function isUrl(target: string) {

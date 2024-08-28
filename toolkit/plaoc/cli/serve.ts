@@ -1,10 +1,7 @@
 import Mime from "mime";
-import crypto from "node:crypto";
-import fs from "node:fs";
-import http from "node:http";
-import os from "node:os";
 import { generate, QRErrorCorrectLevel } from "npm:ts-qrcode-terminal";
 import { colors, Command, NumberPrompt } from "./deps/cliffy.ts";
+import { createHash, node_fs, node_http, node_os } from "./deps/node.ts";
 import { type $ServeOptions } from "./helper/const.ts";
 import { BundleResourceNameHelper, injectPrepare, MetadataJsonGenerator } from "./helper/generator.ts";
 import { staticServe } from "./helper/http-static-helper.ts";
@@ -38,15 +35,15 @@ const doServe = (flags: $ServeOptions) => {
   const metadataFlagHelper = new MetadataJsonGenerator(flags);
   // 获取manifest.json文件路径，用于监听变化时重启服务
   const manifestFilePath = metadataFlagHelper.metadataFilepaths.filter(
-    (item) => item.endsWith(BundleResourceNameHelper.metadataName) && fs.existsSync(item)
+    (item) => item.endsWith(BundleResourceNameHelper.metadataName) && node_fs.existsSync(item)
   )?.[0];
 
   const { bundleFlagHelper, bundleResourceNameHelper } = injectPrepare(flags, metadataFlagHelper);
   /// 启动http服务器
-  const server = http.createServer().listen(port, "0.0.0.0", async () => {
+  const server = node_http.createServer().listen(port, "0.0.0.0", async () => {
     const dwebLinks: string[] = [];
     let index = 0;
-    for (const info of Object.values(os.networkInterfaces())
+    for (const info of Object.values(node_os.networkInterfaces())
       .flat() // 返回一个新数组，其中所有子数组元素都以递归方式连接到其中，直到指定的深度。
       .filter((info) => info?.family === "IPv4")) {
       const hostname = info?.address ?? "";
@@ -90,7 +87,7 @@ const doServe = (flags: $ServeOptions) => {
         const zip = await bundleFlagHelper.bundleZip(true);
 
         const zipData = await zip.generateAsync({ type: "uint8array" });
-        const hasher = crypto.createHash("sha256").update(zipData);
+        const hasher = createHash("sha256").update(zipData);
         metadata.bundle_size = zipData.byteLength;
         metadata.bundle_hash = "sha256:" + hasher.digest("hex");
         metadata.bundle_url = `./${bundleResourceNameHelper.bundleName()}`;
@@ -133,7 +130,7 @@ export const startServe = (flags: $ServeOptions) => {
     server.close();
   });
   if (manifestFilePath)
-    fs.watch(manifestFilePath, (eventname, filename) => {
+    node_fs.watch(manifestFilePath, (eventname, filename) => {
       if (eventname === "change" && filename?.endsWith("manifest.json")) {
         // \x1b[3J 清除所有内容
         // \x1b[H 把光标移动到行首

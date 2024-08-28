@@ -69,7 +69,7 @@ export const plaocCli = registryNpmBuilder({
   version,
   importMap,
   entryPointsDirName: false,
-  options: {
+  options: (ctx) => ({
     typeCheck: false,
     declaration: false,
     scriptModule: false,
@@ -83,7 +83,11 @@ export const plaocCli = registryNpmBuilder({
         path: import.meta.resolve("../plaoc/cli/plaoc.ts"),
       },
     ],
-  },
+    postBuild: () => {
+      Deno.copyFileSync(ctx.packageResolve("./ws/cert.pem"), ctx.npmResolve("./esm/ws/cert.pem"));
+      Deno.copyFileSync(ctx.packageResolve("./ws/key.pem"), ctx.npmResolve("./esm/ws/key.pem"));
+    },
+  }),
 });
 export const plaocPlugins = registryNpmBuilder({
   packageDir: import.meta.resolve("../plaoc/plugins/"),

@@ -1,6 +1,6 @@
-import fs from "node:fs";
 import { Ajv } from "./deps/ajv.ts";
 import { Checkbox, Command, Input, prompt, } from "./deps/cliffy.ts";
+import { node_fs } from "./deps/node.ts";
 import { getManifestFilePath } from "./helper/util.ts";
 import manifest_schema from "./manifest/manifest-schema.json" with { type: "json" };
 import manifest_json from "./manifest/manifest-template.json" with { type: "json" };
@@ -60,6 +60,6 @@ export const doInitCommand = new Command()
     const validate = ajv.compile(manifest_schema);
     
     if(validate(manifest)) {
-      fs.writeFileSync(getManifestFilePath(arg), JSON.stringify(manifest, null, 2));
+      node_fs.writeFileSync(getManifestFilePath(arg), JSON.stringify(manifest, null, 2));
     }
   });

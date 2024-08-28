@@ -1,8 +1,7 @@
-import fs from "node:fs";
-import url from "node:url";
 import { doBundleCommand } from "./bundle.ts";
 import { doConfigCommand } from "./config.ts";
 import { Command } from "./deps/cliffy.ts";
+import { fileURLToPath, node_fs } from "./deps/node.ts";
 import { doInitCommand } from "./init.ts";
 import { doLiveCommand } from "./live.ts";
 import { doServeCommand } from "./serve.ts";
@@ -18,7 +17,7 @@ const findPackageJson = async () => {
       const newCur = await import.meta.resolve(`${"../".repeat(deep)}package.json`);
       pre = cur;
       cur = newCur;
-      return JSON.parse(fs.readFileSync(url.fileURLToPath(cur), "utf-8"));
+      return JSON.parse(node_fs.readFileSync(fileURLToPath(cur), "utf-8"));
     } catch {
       deep++;
     }
