@@ -91,8 +91,15 @@ class DWebViewEngine internal constructor(
         .set(VerifyCertificateCallback::class.java, VerifyCertificateCallback { params ->
           // SSL Certificate to verify.
           val certificate = params.certificate()
+          val host = params.host().value()
+          // 放行的条件
+          val isPrivateNetwork = isPrivateNetwork(host)
+          val isLocalHost = (host == "127.0.0.1" || host == "localhost")
           // FIXME 这里应该有更加严谨的证书内容判断
-          if (certificate.derEncodedValue().utf8String.contains(".dweb")) {
+          if (certificate.derEncodedValue().utf8String.contains(".dweb")
+            || isPrivateNetwork
+            || isLocalHost
+          ) {
             VerifyCertificateCallback.Response.valid()
           } else {
             VerifyCertificateCallback.Response.defaultAction()
@@ -120,6 +127,12 @@ class DWebViewEngine internal constructor(
         }
       }
       browser
+    }
+    /**工具方法：检查是否属于私有网段*/
+    private fun isPrivateNetwork(ip: String): Boolean {
+      return ip.startsWith("10.")
+          || ip.startsWith("192.168.")
+          || ip.matches(Regex("^172\\.(1[6-9]|2[0-9]|3[0-1])\\..*"))
     }
   }
 
