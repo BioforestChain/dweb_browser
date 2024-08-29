@@ -84,7 +84,7 @@ actual fun rememberDisplaySize(): Size {
   val uiScreen = UIScreen.mainScreen
   return remember(uiScreen) {
     uiScreen.bounds.useContents {
-      Size(size.width.toFloat(), size.height.toFloat()).also { println("QAQ rememberDisplaySize=$it") }
+      Size(size.width.toFloat(), size.height.toFloat())
     }
   }
 }

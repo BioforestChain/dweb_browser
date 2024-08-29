@@ -77,7 +77,6 @@ internal fun ActivityItemRender(
    * detailAni == 0 -> screenMarginTop
    */
   val offset = lerp(style.screenMarginTop, style.openScreenMarginTop, renderProp.detailAni.value)
-  println("QAQ screenMarginTop=${style.screenMarginTop} openScreenMarginTop=${style.openScreenMarginTop}")
   style.containerBox(
     ActivityStyle.ContainerScope(
       lerp(

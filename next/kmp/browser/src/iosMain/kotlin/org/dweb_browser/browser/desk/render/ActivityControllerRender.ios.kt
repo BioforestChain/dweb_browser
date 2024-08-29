@@ -167,7 +167,6 @@ private class ActivityViewController(val controller: ActivityController) {
         }
       }) { measurables, constraints ->
         fun Float.toPx() = (this * density).toInt()
-        println("QAQ constraints=$constraints")
         // MEASUREMENT SCOPE
         val placeables = measurables.map { measurable ->
           measurable.measure(
@@ -178,7 +177,6 @@ private class ActivityViewController(val controller: ActivityController) {
           )
         }
         if (placeables.isEmpty()) {
-          println("QAQ placeables is empty")
           pvc.setBoundsInMain(
             PureRect(0f, 0f, displaySize.width, 1f),
           )
@@ -199,8 +197,6 @@ private class ActivityViewController(val controller: ActivityController) {
           height = boundsHeight,
         )
         pvc.setBoundsInMain(newBounds)
-        println("QAQ layoutWidth=$layoutWidth layoutHeight=$layoutHeight offsetY=$offsetY")
-        println("QAQ placeables=${placeables.fastJoinToString { "${it.width}x${it.height}" }}")
         layout(layoutWidth, layoutHeight) {
           placeables.forEach {
             // 因为 setBoundsInMain 不会立刻生效，所以这里需要先移动到新的位置
