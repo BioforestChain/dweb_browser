@@ -8,15 +8,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.zIndex
-import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.debounce
 import org.dweb_browser.helper.platform.IPureViewController
 import org.dweb_browser.helper.platform.isDesktop
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.decodeToImageBitmap
 
-@OptIn(ExperimentalResourceApi::class, FlowPreview::class)
+@OptIn(ExperimentalResourceApi::class)
 @Composable
 fun WindowContentRenderScope.RenderBarcodeScanning(
   modifier: Modifier, controller: SmartScanController

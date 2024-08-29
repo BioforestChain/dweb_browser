@@ -89,7 +89,7 @@ class TrayNMM : NativeMicroModule("tray.sys.dweb", "tray") {
         RenderNodeList(trayRootTree.children.collectAsState().value)
 
         Item(
-          text = SysI18nResource.capture(),
+          text = "${SysI18nResource.capture()}     Alt+PrtScr",
           // shortcut = KeyShortcut(key = Key.PrintScreen, ctrl = true) // 有异常
         ) {
           runtime.scopeLaunch(cancelable = false) {
