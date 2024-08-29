@@ -265,7 +265,7 @@ abstract class ITaskbarV2View(protected val taskbarController: TaskbarV2Controll
       val layoutHeight = placeables.maxOf { it.height }
       taskbarController.state.layoutWidth = layoutWidth / density
       taskbarController.state.layoutHeight = layoutHeight / density
-      layout(layoutWidth, layoutHeight) {
+      layout(layoutWidth, constraints.maxHeight) {
         for (placeable in placeables) {
           placeable.place(0, 0)
         }
