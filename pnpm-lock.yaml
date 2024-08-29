@@ -9,7 +9,7 @@ importers:
   .:
     devDependencies:
       glob:
-        specifier: npm:glob@^10.3.12
+        specifier: ^10.3.12
         version: 10.4.5
       prettier:
         specifier: ^2.8.8
@@ -59,9 +59,6 @@ importers:
       '@plaoc/server':
         specifier: workspace:~
         version: link:../@plaoc__server
-      '@types/ws':
-        specifier: '*'
-        version: 8.5.12
       ajv:
         specifier: 8.13.0
         version: 8.13.0
@@ -84,6 +81,9 @@ importers:
       '@types/node':
         specifier: ^20.9.0
         version: 20.16.1
+      '@types/ws':
+        specifier: ^8.5.12
+        version: 8.5.12
 
   npm/@plaoc__is-dweb:
     dependencies:

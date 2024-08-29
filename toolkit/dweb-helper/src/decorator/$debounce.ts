@@ -1,3 +1,4 @@
+// deno-lint-ignore-file
 import { PromiseOut } from "../PromiseOut.ts";
 
 export const debounce = <F extends (...args: any[]) => Promise<any> | void>(fun: F, ms = 0) => {

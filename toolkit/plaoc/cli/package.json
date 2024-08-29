@@ -9,6 +9,9 @@
   "dependencies": {
     "@plaoc/server": "workspace:~"
   },
+  "devDependencies": {
+    "@types/ws": "^8.5.12"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC"

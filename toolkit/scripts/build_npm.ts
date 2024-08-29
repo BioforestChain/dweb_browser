@@ -70,11 +70,11 @@ export const plaocCli = registryNpmBuilder({
   importMap,
   entryPointsDirName: false,
   options: (ctx) => ({
-    typeCheck: false,
-    declaration: false,
+    typeCheck: "both",
     scriptModule: false,
     shims: {
       deno: true,
+      webSocket: true,
     },
     entryPoints: [
       {
@@ -83,6 +83,14 @@ export const plaocCli = registryNpmBuilder({
         path: import.meta.resolve("../plaoc/cli/plaoc.ts"),
       },
     ],
+    filterDiagnostic(diagnostic) {
+      const fileName = diagnostic.file?.fileName;
+      if (fileName && fileName.endsWith("_generic_list.ts")) {
+        return false; // ignore all diagnostics in this file
+      }
+      // etc... more checks here
+      return true;
+    },
     postBuild: () => {
       Deno.copyFileSync(ctx.packageResolve("./ws/cert.pem"), ctx.npmResolve("./esm/ws/cert.pem"));
       Deno.copyFileSync(ctx.packageResolve("./ws/key.pem"), ctx.npmResolve("./esm/ws/key.pem"));

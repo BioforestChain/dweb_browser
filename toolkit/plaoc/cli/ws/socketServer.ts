@@ -1,7 +1,10 @@
-import { debounce } from "jsr:@std/async/debounce";
-import type { WebSocketServer as $WebSocketServer } from "npm:@types/ws";
-import { WebSocketServer } from "npm:ws";
+import { WebSocket, WebSocketServer } from "npm:ws";
 import { fileURLToPath, node_fs, node_https, node_path } from "../deps/node.ts";
+import { debounce } from "../helper/debounce.ts";
+
+// 如果需要类型，可以使用TypeScript的类型系统进行类型声明
+type $WebSocketServer = InstanceType<typeof WebSocketServer>;
+type $WebSocket = InstanceType<typeof WebSocket>;
 
 /**创建websocket服务器，该端口从静态端口中加1 */
 export const createListenScoket = (hostname: string, port: number, baseDir: string) => {
@@ -33,7 +36,7 @@ export const createListenScoket = (hostname: string, port: number, baseDir: stri
 
   // 处理 WebSocket 升级请求
   server.on("upgrade", (request, socket, head) => {
-    wss.handleUpgrade(request, socket, head, (ws) => {
+    wss.handleUpgrade(request, socket, head, (ws: $WebSocket) => {
       wss.emit("connection", ws, request);
     });
   });
@@ -58,7 +61,7 @@ export const watcherChange = (baseDir: string, wss: $WebSocketServer) => {
     if (!isReloading) {
       isReloading = true;
       // console.log("size", wss.clients.size);
-      wss.clients.forEach((client) => {
+      wss.clients.forEach((client: $WebSocket) => {
         // console.log("send", client.url);
         if (client.readyState === WebSocket.OPEN) {
           client.send("reload");
