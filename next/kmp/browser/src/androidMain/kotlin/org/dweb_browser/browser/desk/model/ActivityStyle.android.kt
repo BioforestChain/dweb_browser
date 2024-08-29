@@ -13,7 +13,6 @@ actual fun rememberActivityStyle(builder: (ActivityStyle.() -> ActivityStyle)?):
   val displaySize = rememberDisplaySize()
   val cutoutOrStatusBarTop = ActivityStyle.defaultCutoutOrStatusBarTop
   val deviceType = "${Build.BRAND}/${Build.MODEL}"
-  println("QWQ deviceType=$deviceType")
   /// 如果有不适配的机型，就在这里添加特例
   val canOverlayCutoutHeight = when (deviceType) {
     "vivo/V2309A", "vivo/V2308" -> 28f
