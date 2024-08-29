@@ -77,7 +77,16 @@ internal fun ActivityItemRender(
    * detailAni == 0 -> screenMarginTop
    */
   val offset = lerp(style.screenMarginTop, style.openScreenMarginTop, renderProp.detailAni.value)
-  Box(Modifier.padding(top = lerp(style.openScreenMarginTop, offset, renderProp.viewAni.value).dp)) {
+  println("QAQ screenMarginTop=${style.screenMarginTop} openScreenMarginTop=${style.openScreenMarginTop}")
+  style.containerBox(
+    ActivityStyle.ContainerScope(
+      lerp(
+        style.openScreenMarginTop,
+        offset,
+        renderProp.viewAni.value
+      ).dp
+    )
+  ) {
     val toastModifier: Modifier = when {
       renderProp.viewAniFinished -> Modifier
       else -> {
@@ -111,11 +120,12 @@ internal fun ActivityItemRender(
       CornerSmoothing.Medium
     )
 
-    Box(
-      toastModifier
-        .shadow(elevation.dp, shape = shape)
-        .background(Color.Black, shape = shape),
-      contentAlignment = Alignment.Center,
+    style.contentBox(
+      ActivityStyle.ContentScope(
+        toastModifier
+          .shadow(elevation.dp, shape = shape)
+          .background(Color.Black, shape = shape)
+      )
     ) {
       Box(
         Modifier

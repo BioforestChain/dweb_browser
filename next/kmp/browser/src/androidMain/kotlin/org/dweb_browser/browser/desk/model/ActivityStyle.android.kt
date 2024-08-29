@@ -5,10 +5,11 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import org.dweb_browser.helper.platform.rememberDisplaySize
 
 @Composable
-actual fun rememberActivityStyle(): ActivityStyle {
+actual fun rememberActivityStyle(builder: (ActivityStyle.() -> ActivityStyle)?): ActivityStyle {
   val displaySize = rememberDisplaySize()
   val cutoutOrStatusBarTop = ActivityStyle.defaultCutoutOrStatusBarTop
   val deviceType = "${Build.BRAND}/${Build.MODEL}"
@@ -33,9 +34,17 @@ actual fun rememberActivityStyle(): ActivityStyle {
 
   return ActivityStyle.common(
     displayWidth = displaySize.width,
-    radius = radius,
     topPadding = topPadding,
     cutoutOrStatusBarTop = cutoutOrStatusBarTop,
     canOverlayCutoutHeight = canOverlayCutoutHeight,
+    builder = remember(builder) {
+      {
+        copy(
+          radius = radius,
+        ).let {
+          builder?.invoke(it) ?: it
+        }
+      }
+    }
   )
 }

@@ -21,6 +21,11 @@ import org.dweb_browser.browser.desk.model.ActivityStyle
 import org.dweb_browser.browser.desk.render.activity.ActivityItemRender
 import org.dweb_browser.helper.compose.animation.LazyList
 
+/**
+ * 如果你是开发者，可以开启这个常量，来做对ActivityController的调试
+ */
+internal const val DEV_ACTIVITY_CONTROLLER = false
+
 @Composable
 expect fun ActivityController.Render()
 

@@ -29,7 +29,6 @@ import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.compose.LocalCompositionChain
 import org.dweb_browser.helper.compose.compositionChainOf
-import org.dweb_browser.helper.globalDefaultScope
 import org.dweb_browser.helper.globalMainScope
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.platform.NativeViewController.Companion.nativeViewController
@@ -93,7 +92,7 @@ class PureViewController(
 
   fun setBoundsInMain(
     bounds: PureRect,
-    rootView: UIView,
+    rootView: UIView = uiViewControllerInMain.view,
     parentView: UIView? = rootView.superview,
   ) {
     rootView.translatesAutoresizingMaskIntoConstraints = false
@@ -114,8 +113,8 @@ class PureViewController(
           ),
         )
       }
-    }.also {
-      boundsConstraints = it
+      constraints.forEach { it.active = true }
+      boundsConstraints = constraints
     })
   }
 
