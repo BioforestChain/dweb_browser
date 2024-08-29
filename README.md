@@ -97,7 +97,8 @@ For specific documents, please refer to [plugins document](https://docs.dweb-bro
 
 ## How to contribute code
 
-1. View: [Environment setup document](./GET_START_FOR_DEVELOPER.md)
+1. View: [Quick Start](./GET_START_FOR_DEVELOPER.quick.en.md)
+1. Recommended reading: [Complete development environment setup documentation](./GET_START_FOR_DEVELOPER.en.md)
 
 2. Initialize resource package
 

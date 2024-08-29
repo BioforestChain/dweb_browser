@@ -85,7 +85,8 @@ plaoc 是基于 `Dweb Browser` 平台的一个对标 Cordova、Capacitor、Tauri
 
 ## 如何贡献代码
 
-1. 查看： [搭建环境文档](./GET_START_FOR_DEVELOPER.md)
+1. 查看： [快速开始](./GET_START_FOR_DEVELOPER.quick.md)
+1. 建议阅读： [完整的开发环境搭建的文档](./GET_START_FOR_DEVELOPER.md)
 
 2. 初始化资源包
 
