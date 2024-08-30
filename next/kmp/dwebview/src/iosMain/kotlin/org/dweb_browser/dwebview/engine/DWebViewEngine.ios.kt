@@ -115,6 +115,7 @@ class DWebViewEngine(
 
   init {
     /// 监听 DwebViewProxy.proxyUrlFlow 变动，自动更新 WKWebView 代理
+    debugDWebView("initdebugDWebViewProxyWatcher")
     dwebProxyService.proxyUrl.collectIn(lifecycleScope) { proxyUrl ->
       if (proxyUrl != null) {
         debugDWebView("setProxyWithWebsiteDataStore", proxyUrl)

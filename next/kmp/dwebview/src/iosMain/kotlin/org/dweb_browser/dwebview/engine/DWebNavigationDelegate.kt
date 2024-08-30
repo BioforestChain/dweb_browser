@@ -1,5 +1,7 @@
 package org.dweb_browser.dwebview.engine
 
+import androidx.compose.ui.util.fastJoinToString
+import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.ObjCSignatureOverride
 import kotlinx.coroutines.CoroutineStart
@@ -14,6 +16,7 @@ import platform.Foundation.NSURLAuthenticationChallenge
 import platform.Foundation.NSURLAuthenticationMethodServerTrust
 import platform.Foundation.NSURLCredential
 import platform.Foundation.NSURLResponse
+import platform.Foundation.NSURLSessionAuthChallengeCancelAuthenticationChallenge
 import platform.Foundation.NSURLSessionAuthChallengeDisposition
 import platform.Foundation.NSURLSessionAuthChallengePerformDefaultHandling
 import platform.Foundation.NSURLSessionAuthChallengeUseCredential
@@ -156,7 +159,7 @@ class DWebNavigationDelegate(internal val engine: DWebViewEngine) : NSObject(),
     webView: WKWebView, didStartProvisionalNavigation: WKNavigation?,
   ) {
     DidStartProvisionalNavigationContext(webView, didStartProvisionalNavigation).apply {
-      debugDWebView("Nav/didStartProvisionalNavigation") { "loadedUrl=$loadedUrl" }
+      debugDWebView("Nav/didStartProvisionalNavigation") { "loadedUrl=$loadedUrl websiteDataStore=${engine.configuration.websiteDataStore} proxyConfigurations=${engine.configuration.websiteDataStore.proxyConfigurations?.fastJoinToString()}" }
       engine.mainScope.launch {
         for (hook in didStartProvisionalNavigationHooks) {
           launch { hook() }
@@ -220,9 +223,13 @@ class DWebNavigationDelegate(internal val engine: DWebViewEngine) : NSObject(),
     didReceiveAuthenticationChallenge: NSURLAuthenticationChallenge,
     completionHandler: (NSURLSessionAuthChallengeDisposition, NSURLCredential?) -> Unit,
   ) {
+    debugDWebView("Nav/didReceiveAuthenticationChallenge") {
+      "authenticationMethod=${didReceiveAuthenticationChallenge.protectionSpace.authenticationMethod}/${NSURLAuthenticationMethodServerTrust}"
+    }
     /// 这里在IO线程处理，否则会警告：This method should not be called on the main thread as it may lead to UI unresponsiveness.
     engine.lifecycleScope.launch {
       if (didReceiveAuthenticationChallenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodServerTrust) {
+        NSURLSessionAuthChallengeCancelAuthenticationChallenge
         completionHandler(
           NSURLSessionAuthChallengeUseCredential,
           NSURLCredential.create(trust = didReceiveAuthenticationChallenge.protectionSpace.serverTrust)

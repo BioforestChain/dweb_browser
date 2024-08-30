@@ -2,16 +2,18 @@ package org.dweb_browser.pure.http
 
 import kotlinx.coroutines.CompletableDeferred
 
-expect class HttpPureClient() {
+expect class HttpPureClient(config: HttpPureClientConfig = HttpPureClientConfig()) {
   suspend fun fetch(request: PureClientRequest): PureResponse
   suspend fun websocket(request: PureClientRequest): PureChannel
 }
+
+class HttpPureClientConfig(val httpProxyUrl: String? = null)
 
 suspend fun HttpPureClient.fetch(
   url: String,
   method: PureMethod = PureMethod.GET,
   headers: PureHeaders = PureHeaders(),
-  body: IPureBody = IPureBody.Empty
+  body: IPureBody = IPureBody.Empty,
 ): PureResponse {
   return fetch(PureClientRequest(url, method, headers, body))
 }
@@ -19,7 +21,7 @@ suspend fun HttpPureClient.fetch(
 suspend fun HttpPureClient.websocket(
   url: String,
   subProtocol: List<String>? = null,
-  headers: PureHeaders = PureHeaders()
+  headers: PureHeaders = PureHeaders(),
 ): PureChannel {
   val request = PureClientRequest(
     href = url,

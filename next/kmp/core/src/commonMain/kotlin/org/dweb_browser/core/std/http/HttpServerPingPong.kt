@@ -8,19 +8,22 @@ import kotlinx.coroutines.selects.onTimeout
 import kotlinx.coroutines.selects.select
 import org.dweb_browser.core.http.dwebHttpGatewayService
 import org.dweb_browser.core.http.dwebProxyService
+import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.datetimeNow
 import org.dweb_browser.helper.randomUUID
+import org.dweb_browser.pure.http.HttpPureClient
+import org.dweb_browser.pure.http.HttpPureClientConfig
 import org.dweb_browser.pure.http.PureClientRequest
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureResponse
-import org.dweb_browser.pure.http.defaultHttpPureClient
 
 val DWEB_PING_URI = "/--dweb-ping-${randomUUID()}--"
 
 suspend fun HttpNMM.HttpRuntime.installHttpServerPingPong() {
   /// 添加基础响应服务
-  dwebHttpGatewayService.gatewayAdapterManager.append(-1) { request ->
+  dwebHttpGatewayService.gatewayAdapterManager.append(10000) { request ->
     val encodedPath = request.url.encodedPath
+    println("QAQ dwebPingPong $encodedPath")
     if (encodedPath == DWEB_PING_URI || (debugHttp.isEnable && encodedPath == "/--dweb-ping--")) {
       PureResponse.build {
         appendHeaders(CORS_HEADERS)
@@ -37,6 +40,12 @@ suspend fun HttpNMM.HttpRuntime.installHttpServerPingPong() {
       }
     } else null
   }
+  var httpClient =
+    HttpPureClient(HttpPureClientConfig(httpProxyUrl = dwebProxyService.proxyUrl.value))
+  dwebProxyService.proxyUrl.collectIn(this.getRuntimeScope()) {
+    httpClient = HttpPureClient(HttpPureClientConfig(httpProxyUrl = it))
+  }
+
   /**
    * 按需轮训基础响应服务
    * 之所以会有这个功能，是因为程序可能会被冻结内存（IOS平台），唤醒后，端口失去绑定，我们需要有一个机制来发现这个问题
@@ -50,11 +59,10 @@ suspend fun HttpNMM.HttpRuntime.installHttpServerPingPong() {
       val diffTime = nowTime - preTime
       if (diffTime > internalTime + 100) {
         debugHttp("ping-pong-loop") { "internal timeout(${(diffTime / 1000f)}s)!" }
-        @OptIn(ExperimentalCoroutinesApi::class)
-        val response = select {
+        @OptIn(ExperimentalCoroutinesApi::class) val response = select {
           async {
-            defaultHttpPureClient.fetch(
-              PureClientRequest("${dwebHttpGatewayService.getUrl()}$DWEB_PING_URI", PureMethod.GET)
+            httpClient.fetch(
+              PureClientRequest("https://internal.dweb/$DWEB_PING_URI", PureMethod.GET)
             )
           }.onAwait { it }
           onTimeout(100) { PureResponse(HttpStatusCode.RequestTimeout) }

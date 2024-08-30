@@ -4,6 +4,8 @@ import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
 import io.ktor.client.engine.HttpClientEngineConfig
 import io.ktor.client.engine.HttpClientEngineFactory
+import io.ktor.client.engine.ProxyBuilder
+import io.ktor.client.engine.http
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.compression.ContentEncoding
 import io.ktor.client.plugins.websocket.WebSockets
@@ -18,6 +20,7 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.globalIoScope
 import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.pure.http.HttpPureClientConfig
 import org.dweb_browser.pure.http.PureChannel
 import org.dweb_browser.pure.http.PureClientRequest
 import org.dweb_browser.pure.http.PureFrame
@@ -113,3 +116,12 @@ open class KtorPureClient<out T : HttpClientEngineConfig>(
     return channel.await()
   }
 }
+
+fun <T : HttpClientEngineConfig> HttpPureClientConfig.toKtorClientConfig(): HttpClientConfig<T>.() -> Unit =
+  {
+    engine {
+      httpProxyUrl?.also { url ->
+        proxy = ProxyBuilder.http(url)
+      }
+    }
+  }

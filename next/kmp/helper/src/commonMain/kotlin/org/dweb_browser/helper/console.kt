@@ -50,20 +50,22 @@ public fun printDebug(
     else -> message
   }
   printError(
-    "${now()} $symbol ${
-      when (scope.length) {
-        in 0..16 -> scope.padEndAndSub(16)
-        in 16..32 -> scope.padEndAndSub(32)
-        in 32..48 -> scope.padEndAndSub(48)
-        else -> scope.padEndAndSub(60)
-      }
-    } $symbol ${tag.padEndAndSub(22)} $symbol", msg, err
+    "${now()} $symbol ${scope.tabStringify()} $symbol ${tag.tabStringify()} $symbol", msg, err
   )
 }
 
-
 public fun String.padEndAndSub(length: Int): String {
   return this.padEnd(length, ' ').substring(0, length)
+}
+
+private fun String.tabStringify() = when (length) {
+  in 0..8 -> padEndAndSub(8)
+  in 8..16 -> padEndAndSub(16)
+  in 16..24 -> padEndAndSub(24)
+  in 16..32 -> padEndAndSub(32)
+  in 32..40 -> padEndAndSub(40)
+  in 40..48 -> padEndAndSub(48)
+  else -> padEndAndSub(56)
 }
 
 public val debugTest: Debugger = Debugger("test")

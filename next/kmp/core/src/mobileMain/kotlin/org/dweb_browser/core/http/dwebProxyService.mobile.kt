@@ -59,7 +59,7 @@ actual class DwebProxyService actual constructor() {
               }
             }
           }
-          reverse_proxy.start(backendServerPort, proxyReadyCallback)
+          reverse_proxy.start(DWEB_SSL_PEM, backendServerPort, proxyReadyCallback)
           debugHttp("reverse_proxy", "stopped")
         } catch (e: Throwable) {
           debugHttp("reverse_proxy", "error", e)
