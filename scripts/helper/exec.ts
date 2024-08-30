@@ -21,7 +21,7 @@ export const $ = Object.assign(
     }
     const [exec, ...args] = cmd;
     const cmdWhich = useWhich ? (exec.startsWith("./") ? exec : whichSync(exec)) : exec;
-    let cwd = defaultResolveTo(options.cwd ?? "./");
+    const cwd = defaultResolveTo(options.cwd ?? "./");
     if (preCwd !== cwd) {
       preCwd = cwd;
       silent || console.log(picocolors.green(">"), picocolors.magenta(picocolors.bold("cd")), picocolors.magenta(cwd));

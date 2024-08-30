@@ -53,6 +53,9 @@
     "@std/fmt": "jsr:@std/fmt@^0.225.4",
     "@std/fs": "jsr:@std/fs@^0.224.0",
     "@std/path": "jsr:@std/path@^0.224.0",
+    "@cliffy/ansi": "jsr:@cliffy/ansi@1.0.0-rc.5",
+    "@cliffy/command": "jsr:@cliffy/command@1.0.0-rc.5",
+    "@cliffy/prompt": "jsr:@cliffy/prompt@1.0.0-rc.5",
     "@octokit/rest": "npm:@octokit/rest@^21.0.1",
     "@types/web": "npm:@types/web@^0.0.143",
     "canvg": "npm:canvg@^4.0.1",
@@ -61,13 +64,20 @@
     "idb": "npm:idb@^8.0.0",
     "jszip": "npm:jszip@^3.10.1",
     "mime": "npm:mime@^4.0.3",
+    "picocolors": "npm:picocolors@^1.0.1",
     "urlpattern-polyfill": "npm:urlpattern-polyfill@^10.0.0",
     "vitest": "npm:vitest@^2.0.5",
     "webdav-server": "npm:webdav-server@^2.6.2",
     "xmldom": "npm:xmldom@^0.6.0"
   },
   "compilerOptions": {
-    "lib": ["esnext", "dom", "dom.iterable", "deno.ns"],
+    "lib": [
+      "esnext",
+      "dom",
+      "dom.iterable",
+      "deno.ns",
+      "deno.web"
+    ],
     "noImplicitOverride": true,
     "experimentalDecorators": true /* Enable experimental support for legacy experimental decorators. */,
     "emitDecoratorMetadata": true /* Emit design-type metadata for decorated declarations in source files. */,

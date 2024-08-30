@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import node_path from "node:path";
-import picocolors from "npm:picocolors";
+import picocolors from "picocolors";
 import { $ } from "../../scripts/helper/exec.ts";
 import { findAllPackage } from "../../scripts/helper/findAllPackages.ts";
 import { npmNameToFolder } from "../../scripts/helper/npmBuilder.ts";
