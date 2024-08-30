@@ -63,7 +63,7 @@ kotlin {
 }
 
 allprojects {
-  afterEvaluate {
+  beforeEvaluate {
     // 判断编译的时候是否传入了 -PreleaseBuild=true，表示是脚本执行
     val isReleaseBuild = hasProperty("releaseBuild") && property("releaseBuild") == "true"
     val keyValuePairCodes = when {
@@ -98,7 +98,7 @@ allprojects {
 
     file("$buildConfigPath/CommonBuildConfig.kt").also { // 创建父级目录
       if (it.exists()) it.deleteRecursively()
-      it.parentFile.mkdirs()
+      it.parentFile?.mkdirs()
     }.writeText(sourceCode)
   }
 }
