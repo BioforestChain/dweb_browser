@@ -6,7 +6,7 @@ import platform.Foundation.create
 
 // Turn casts into dot calls for better readability
 @OptIn(BetaInteropApi::class)
-public inline fun String.toNSString(): NSString = NSString.create(string = this)
+public fun String.toNSString(): NSString = NSString.create(string = this)
 
 @Suppress("CAST_NEVER_SUCCEEDS")
-public inline fun NSString.toKString(): String = this as String
+public fun NSString.toKString(): String = this as String
