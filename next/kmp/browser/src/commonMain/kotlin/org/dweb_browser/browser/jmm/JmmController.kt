@@ -35,6 +35,7 @@ import org.dweb_browser.helper.datetimeNow
 import org.dweb_browser.helper.falseAlso
 import org.dweb_browser.helper.isGreaterThan
 import org.dweb_browser.helper.isWebUrl
+import org.dweb_browser.helper.resolveBaseUri
 import org.dweb_browser.helper.resolvePath
 import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.helper.valueIn
@@ -134,7 +135,10 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
     }
     // 如果bundle_url没有host
     if (!manifest.bundle_url.isWebUrl()) {
-      manifest.bundle_url = baseURI.replace("metadata.json", manifest.bundle_url.substring(2))
+      manifest.bundle_url = buildUrlString(baseURI) {
+        resolveBaseUri()
+        resolvePath(manifest.bundle_url)
+      }
     }
     return manifest.createJmmMetadata(metadataUrl, referrerUrl, JmmStatus.Init)
   }

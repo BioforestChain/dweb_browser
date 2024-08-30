@@ -3,8 +3,9 @@ package org.dweb_browser.helper
 import io.ktor.http.URLBuilder
 import io.ktor.http.URLProtocol
 import io.ktor.http.Url
-import io.ktor.http.decodeURLPart
+import io.ktor.http.encodedPath
 import io.ktor.http.parseQueryString
+import okio.Path.Companion.toPath
 
 //import io.ktor.http.Url
 
@@ -41,10 +42,11 @@ public fun String.toIpcUrl(builder: (URLBuilder.() -> Unit)? = null): Url =
     build()
   }
 
-public fun buildUrlString(url: String, builder: URLBuilder.() -> Unit): String = URLBuilder(url).run {
-  builder()
-  buildUnsafeString()
-}
+public fun buildUrlString(url: String, builder: URLBuilder.() -> Unit): String =
+  URLBuilder(url).run {
+    builder()
+    buildUnsafeString()
+  }
 
 
 ///**
@@ -98,6 +100,12 @@ public fun buildUrlString(url: String, builder: URLBuilder.() -> Unit): String =
 
 public fun Url.build(block: URLBuilder.() -> Unit): Url = URLBuilder(this).run { block(); build() }
 
+public fun URLBuilder.resolveBaseUri() {
+  if (!encodedPath.endsWith("/")) {
+    resolvePath("../")
+  }
+}
+
 /**
  * 参考 [URLBuilder.encodedPathSegments]
  */
@@ -105,21 +113,23 @@ public fun URLBuilder.resolvePath(path: String) {
   if (path.isBlank() || path.isEmpty()) {
     return
   }
-  val segments = path.split("/").map { it.decodeURLPart() }.filter { it != "." }.toMutableList()
-  while (segments.contains("..")) {
-    val index = segments.indexOf("..")
-    segments.removeAt(index)
-    val preIndex = index - 1
-    if (preIndex >= 0) {
-      segments.removeAt(preIndex)
-    }
-  }
+  encodedPath = encodedPath.toPath().resolve(path, true).toString()
 
-  if (segments.firstOrNull() == "") {
-    pathSegments = segments.filterNot { it == "" }
-    return
-  }
-  pathSegments += segments.filterNot { it == "" }
+//  val segments = path.split("/").map { it.decodeURLPart() }.filter { it != "." }.toMutableList()
+//  while (segments.contains("..")) {
+//    val index = segments.indexOf("..")
+//    segments.removeAt(index)
+//    val preIndex = index - 1
+//    if (preIndex >= 0) {
+//      segments.removeAt(preIndex)
+//    }
+//  }
+//
+//  if (segments.firstOrNull() == "") {
+//    pathSegments = segments.filterNot { it == "" }
+//    return
+//  }
+//  pathSegments += segments.filterNot { it == "" }
 }
 
 public fun String.toWebUrl(): Url? = try {

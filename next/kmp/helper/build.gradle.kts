@@ -23,6 +23,7 @@ kotlin {
       api(libs.kotlinx.datetime)
       api(libs.ktor.http)
       api(libs.ktor.io)
+      implementation(libs.squareup.okio)
       api(projects.libMixCompression)
     }
   }

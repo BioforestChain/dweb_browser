@@ -23,7 +23,6 @@ suspend fun HttpNMM.HttpRuntime.installHttpServerPingPong() {
   /// 添加基础响应服务
   dwebHttpGatewayService.gatewayAdapterManager.append(10000) { request ->
     val encodedPath = request.url.encodedPath
-    println("QAQ dwebPingPong $encodedPath")
     if (encodedPath == DWEB_PING_URI || (debugHttp.isEnable && encodedPath == "/--dweb-ping--")) {
       PureResponse.build {
         appendHeaders(CORS_HEADERS)
