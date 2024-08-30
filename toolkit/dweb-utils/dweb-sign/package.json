@@ -1,0 +1,27 @@
+{
+  "name": "@dweb-browser/sign",
+  "version": "0.0.1",
+  "description": "Signature Tools",
+  "types": "./esm/index.d.ts",
+  "scripts": {
+    "build": "esbuild --bundle src/index.ts  --format=esm --outdir=dist"
+  },
+  "keywords": [
+    "dweb"
+  ],
+  "author": "dweb",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BioforestChain/dweb_browser.git"
+  },
+  "bugs": {
+    "url": "https://github.com/BioforestChain/dweb_browser/issues"
+  },
+  "dependencies": {
+    "@dweb-browser/helper": "workspace:~"
+  },
+  "devDependencies": {
+    "vitest": "^2.0.5"
+  }
+}

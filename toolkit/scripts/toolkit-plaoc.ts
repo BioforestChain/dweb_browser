@@ -9,6 +9,8 @@ import {
   dwebHelper,
   dwebJsProcess,
   dwebPolyfill,
+  dwebSign,
+  dwebTranslate,
   plaocCli,
   plaocIsDweb,
   plaocPlugins,
@@ -40,6 +42,8 @@ const plaocTasks = [
   plaocCli,
   plaocPlugins,
   plaocIsDweb,
+  dwebTranslate,
+  dwebSign,
   Object.assign(
     $once(() => plaocExamples(Deno.args.includes("--watch") ? ["--dev"] : [])),
     {

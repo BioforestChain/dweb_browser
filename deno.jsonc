@@ -30,7 +30,9 @@
     "./toolkit/plaoc/plugins",
     "./toolkit/plaoc/cli",
     "./toolkit/plaoc/is-dweb",
-    "./toolkit/dweb-js-process-assets"
+    "./toolkit/dweb-js-process-assets",
+    "./toolkit/dweb-utils/dweb-translate",
+    "./toolkit/dweb-utils/dweb-sign"
   ],
   "imports": {
     "@deno/dnt": "jsr:@deno/dnt@^0.41.3",
@@ -71,13 +73,7 @@
     "xmldom": "npm:xmldom@^0.6.0"
   },
   "compilerOptions": {
-    "lib": [
-      "esnext",
-      "dom",
-      "dom.iterable",
-      "deno.ns",
-      "deno.web"
-    ],
+    "lib": ["esnext", "dom", "dom.iterable", "deno.ns", "deno.web"],
     "noImplicitOverride": true,
     "experimentalDecorators": true /* Enable experimental support for legacy experimental decorators. */,
     "emitDecoratorMetadata": true /* Emit design-type metadata for decorated declarations in source files. */,

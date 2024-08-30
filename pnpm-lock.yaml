@@ -51,6 +51,32 @@ importers:
 
   npm/@dweb-browser__polyfill: {}
 
+  npm/@dweb-browser__sign:
+    dependencies:
+      '@dweb-browser/helper':
+        specifier: workspace:~
+        version: link:../@dweb-browser__helper
+    devDependencies:
+      vitest:
+        specifier: ^2.0.5
+        version: 2.0.5(@types/node@20.16.1)(sass@1.77.8)
+
+  npm/@dweb-browser__translate:
+    dependencies:
+      '@deno/shim-deno':
+        specifier: ~0.18.0
+        version: 0.18.2
+      '@dweb-browser/helper':
+        specifier: workspace:~
+        version: link:../@dweb-browser__helper
+      translate:
+        specifier: '*'
+        version: 3.0.0
+    devDependencies:
+      '@types/node':
+        specifier: ^20.9.0
+        version: 20.16.1
+
   npm/@plaoc__cli:
     dependencies:
       '@deno/shim-deno':
@@ -2047,6 +2073,9 @@ packages:
     resolution: {integrity: sha512-sf4i37nQ2LBx4m3wB74y+ubopq6W/dIzXg0FDGjsYnZHVa1Da8FH853wlL2gtUhg+xJXjfk3kUZS3BRoQeoQBQ==}
     engines: {node: '>=6'}
 
+  translate@3.0.0:
+    resolution: {integrity: sha512-cGKtG5QuV6ZR3IP9FMlqWMGtYz1f7vMqgPsh441PbvHa11WaN8urLI4Up/UtvIsu2tg3h3f5kHUFJDWKHa4S6w==}
+
   ts-api-utils@1.3.0:
     resolution: {integrity: sha512-UQMIo7pb8WRomKR1/+MFVLTroIvDVtMX3K6OUir8ynLyzB8Jeriont2bTAtmNPa1ekAgN7YPDyf6V+ygrdU+eQ==}
     engines: {node: '>=16'}
@@ -3966,6 +3995,8 @@ snapshots:
       is-number: 7.0.0
 
   totalist@3.0.1: {}
+
+  translate@3.0.0: {}
 
   ts-api-utils@1.3.0(typescript@5.5.4):
     dependencies:

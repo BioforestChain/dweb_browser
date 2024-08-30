@@ -110,6 +110,33 @@ export const plaocIsDweb = registryNpmBuilder({
   entryPointsDirName: false,
 });
 
+export const dwebTranslate = registryNpmBuilder({
+  packageDir: import.meta.resolve("../dweb-utils/dweb-translate/"),
+  version,
+  importMap,
+  entryPointsDirName: false,
+  options: {
+    typeCheck: "both",
+    scriptModule: false,
+    shims: {
+      deno: true,
+    },
+    entryPoints: [
+      {
+        kind: "bin",
+        name: "dwebt",
+        path: import.meta.resolve("../dweb-utils/dweb-translate/index.ts"),
+      },
+    ],
+  },
+});
+
+export const dwebSign = registryNpmBuilder({
+  packageDir: import.meta.resolve("../dweb-utils/dweb-sign/"),
+  version,
+  importMap,
+});
+
 export const doBuildNpm = async () => {
   // 首先要确保所有 npm/package.json 在线，否则 plaoc/examples 这类项目就会寻找异常
   await npmInit();
@@ -117,7 +144,15 @@ export const doBuildNpm = async () => {
   await dwebHelper();
   await dwebCore();
   await dwebJsProcess();
-  await Promise.all([dwebPolyfill(), plaocServer(), plaocCli(), plaocPlugins(), plaocIsDweb()]);
+  await Promise.all([
+    dwebPolyfill(),
+    plaocServer(),
+    plaocCli(),
+    plaocPlugins(),
+    plaocIsDweb(),
+    dwebTranslate(),
+    dwebSign(),
+  ]);
 };
 
 if (import.meta.main) {

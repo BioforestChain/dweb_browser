@@ -1,0 +1,25 @@
+{
+  "name": "@dweb-browser/translate",
+  "version": "0.0.1",
+  "description": "dweb translate",
+  "types": "./esm/index.d.ts",
+  "scripts": {
+    "dwt": "deno run -A ./index.ts"
+  },
+  "keywords": [
+    "dweb"
+  ],
+  "author": "dweb",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BioforestChain/dweb_browser.git"
+  },
+  "bugs": {
+    "url": "https://github.com/BioforestChain/dweb_browser/issues"
+  },
+  "dependencies": {
+    "@dweb-browser/helper": "workspace:~"
+  },
+  "devDependencies": {}
+}
