@@ -155,6 +155,7 @@ if (features.extlibs.enabled) {
   include(":helperCompose")
   include(":helperCapturable")
   include(":helperPlatform")
+  include(":helperKsp")
 
   include(":pureHttp")
   include(":pureIO")

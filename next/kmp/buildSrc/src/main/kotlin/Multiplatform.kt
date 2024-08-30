@@ -10,6 +10,7 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.Copy
@@ -361,6 +362,7 @@ fun KotlinMultiplatformExtension.applyHierarchyPlatformTemplate(template: Kotlin
 
 fun KotlinMultiplatformExtension.kmpCommonTarget(
   project: Project,
+  kspSrcDirs: (SourceDirectorySet.() -> Unit)? = null,
   configure: KmpCommonTargetConfigure = KmpCommonTargetDsl.defaultConfigure,
 ) {
   if (configuredCommonProjects[project].let {
@@ -376,14 +378,20 @@ fun KotlinMultiplatformExtension.kmpCommonTarget(
   dsl.configure()
 
   dsl.provides(sourceSets.commonMain, sourceSets.commonTest)
-  sourceSets.commonMain.dependencies {
-    implementation(kotlin("stdlib"))
-    implementation(libs.kotlinx.coroutines.core)
-    implementation(libs.kotlinx.atomicfu)
-    implementation(libs.kotlinx.io)
+  sourceSets.commonMain {
+    if(kspSrcDirs != null) {
+      kotlin.kspSrcDirs()
+    }
 
-    implementation(libs.kotlin.serialization.json)
-    implementation(libs.kotlin.serialization.cbor)
+    dependencies {
+      implementation(kotlin("stdlib"))
+      implementation(libs.kotlinx.coroutines.core)
+      implementation(libs.kotlinx.atomicfu)
+      implementation(libs.kotlinx.io)
+
+      implementation(libs.kotlin.serialization.json)
+      implementation(libs.kotlin.serialization.cbor)
+    }
   }
 
   sourceSets.commonTest.dependencies {

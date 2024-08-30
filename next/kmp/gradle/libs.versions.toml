@@ -8,6 +8,7 @@ versionName = "3.240829.0"
 kotlinCompilerExtensionVersion = "1.5.15"
 jvmTarget = "17"
 javaVersion = "VERSION_17" # JavaVersion.VERSION_17
+ksp = "2.0.10-1.0.24"
 
 agp = "8.5.2"
 androidx-baselineprofile-version = "1.3.0"
@@ -239,6 +240,10 @@ gradlePlugin-composeCompiler = { group = "org.jetbrains.kotlin", name = "compose
 gradlePlugin-jxbrowser = { group = "com.teamdev.jxbrowser", name = "JxBrowser-Gradle-Plugin", version.ref = "jxbrowser-gradle" }
 # pinpit 用于桌面端多平台打包
 gradlePlugin-pinpit = { group = "de.mobanisto.pinpit", name = "pinpit-gradle-plugin", version = "0.9.0" }
+
+# ksp
+gradlePlugin-ksp = { group = "com.google.devtools.ksp", name = "symbol-processing-gradle-plugin", version.ref = "ksp" }
+google-devtools-ksp = { group = "com.google.devtools.ksp", name = "symbol-processing-api", version.ref = "ksp" }
 
 # 解析plist文件
 dd-plist = { group = "com.googlecode.plist", name = "dd-plist", version = "1.28" }

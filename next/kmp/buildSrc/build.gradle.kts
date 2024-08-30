@@ -35,6 +35,7 @@ dependencies {
   implementation(libs.gradlePlugin.kotlin)
   implementation(libs.gradlePlugin.serialization)
   implementation(libs.gradlePlugin.pinpit)
+  implementation(libs.gradlePlugin.ksp)
   implementation(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
 
   // jxbrowser

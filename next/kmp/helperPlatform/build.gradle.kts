@@ -2,15 +2,14 @@ import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 
 plugins {
   id("kmp-compose")
-}
-dependencies {
-  implementation(project(":pureCrypto"))
-  implementation(project(":pureCrypto"))
-  implementation(project(":pureCrypto"))
+  id("ksp-common")
 }
 
+val buildOutputDir = "build/generated/ksp/metadata/commonMain/kotlin"
 kotlin {
-  kmpCommonTarget(project) {
+  kmpCommonTarget(project, {
+    srcDirs(buildOutputDir)
+  }) {
     dependencies {
       implementation(projects.pureCrypto)
     }
@@ -53,4 +52,22 @@ kotlin {
       withAndroidTarget()
     }
   }
+}
+
+val kspArguments = mutableMapOf<String, String>()
+
+project.properties.forEach { (key, value) ->
+  if (key == "rootDir" || key == "releaseBuild") {
+    kspArguments += key to value.toString()
+  }
+}
+
+ksp {
+  kspArguments.forEach { (key, value) ->
+    arg(key, value)
+  }
+}
+
+dependencies {
+  kspAll(projects.helperKsp)
 }
