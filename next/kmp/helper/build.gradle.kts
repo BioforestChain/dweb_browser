@@ -62,31 +62,30 @@ kotlin {
   }
 }
 
-allprojects {
-  beforeEvaluate {
-    // 判断编译的时候是否传入了 -PreleaseBuild=true，表示是脚本执行
-    val isReleaseBuild = hasProperty("releaseBuild") && property("releaseBuild") == "true"
-    val keyValuePairCodes = when {
-      isReleaseBuild -> emptyList()
-      else -> localProperties.mapNotNull { (key, value) ->
-        val keyStr = key.toString()
-        val valStr = value.toString()
-        // 只针对 dweb- 开头的内容
-        when {
-          keyStr.startsWith("dweb-") && valStr.isNotBlank() -> {
-            """
+tasks.register<Exec>("generateBuildConfig") {
+  // 判断编译的时候是否传入了 -PreleaseBuild=true，表示是脚本执行
+  val isReleaseBuild = hasProperty("releaseBuild") && property("releaseBuild") == "true"
+  val keyValuePairCodes = when {
+    isReleaseBuild -> emptyList()
+    else -> localProperties.mapNotNull { (key, value) ->
+      val keyStr = key.toString()
+      val valStr = value.toString()
+      // 只针对 dweb- 开头的内容
+      when {
+        keyStr.startsWith("dweb-") && valStr.isNotBlank() -> {
+          """
               "$keyStr" to "$valStr"
             """.trimIndent()
-          }
-
-          else -> null
         }
+
+        else -> null
       }
     }
+  }
 
-    // 在 gradle sync，或者编译的时候，会执行当前code
-    // 这个是创建一个配置文件
-    val sourceCode = """
+  // 在 gradle sync，或者编译的时候，会执行当前code
+  // 这个是创建一个配置文件
+  val sourceCode = """
     package org.dweb_browser.helper
     
     public object CommonBuildConfig {
@@ -96,9 +95,13 @@ allprojects {
     }
     """.trimIndent()
 
-    file("$buildConfigPath/CommonBuildConfig.kt").also { // 创建父级目录
-      if (it.exists()) it.deleteRecursively()
-      it.parentFile?.mkdirs()
-    }.writeText(sourceCode)
-  }
+  file("$buildConfigPath/CommonBuildConfig.kt").also { // 创建父级目录
+    if (it.exists()) it.deleteRecursively()
+    it.parentFile?.mkdirs()
+  }.writeText(sourceCode)
+}
+
+// 让 `compileKotlin` 任务依赖 `generateCode` 任务
+tasks.named("compileKotlinMetadata") {
+  dependsOn("generateBuildConfig")
 }
