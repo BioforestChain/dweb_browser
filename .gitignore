@@ -68,5 +68,8 @@ next/kmp/app/androidApp/src/androidMain/generated/baselineProfiles
 /next/kmp/*/src/*/resources/
 /next/kmp/*/src/*/composeResources/
 
+# ksp
+!/next/kmp/helperKsp/src/jvmMain/resources/META-INF/services/com.google.devtools.ksp.processing.SymbolProcessorProvider
+
 # log
 .contribution.txt

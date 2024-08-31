@@ -24,7 +24,7 @@ class CommonBuildConfigProcessor(
 
     logger.warn("CommonBuildConfigProcessor: isReleaseBuild=$isReleaseBuild")
 
-    if (invoked || isReleaseBuild) {
+    if (invoked) {
       return emptyList()
     }
     invoked = true
@@ -34,18 +34,21 @@ class CommonBuildConfigProcessor(
     if (localPropertiesFile.exists()) {
       localProperties.load(localPropertiesFile.inputStream())
     }
-    val keyValuePairCodes = localProperties.mapNotNull { (key, value) ->
-      val keyStr = key.toString()
-      val valStr = value.toString()
-      // 只针对 dweb- 开头的内容
-      when {
-        keyStr.startsWith("dweb-") && valStr.isNotBlank() -> {
-          """
+    val keyValuePairCodes = when {
+      isReleaseBuild -> emptyList()
+      else -> localProperties.mapNotNull { (key, value) ->
+        val keyStr = key.toString()
+        val valStr = value.toString()
+        // 只针对 dweb- 开头的内容
+        when {
+          keyStr.startsWith("dweb-") && valStr.isNotBlank() -> {
+            """
               "$keyStr" to "$valStr"
             """.trimIndent()
-        }
+          }
 
-        else -> null
+          else -> null
+        }
       }
     }
 
