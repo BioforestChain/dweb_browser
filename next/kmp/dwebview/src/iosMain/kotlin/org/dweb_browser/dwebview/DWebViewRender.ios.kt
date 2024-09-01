@@ -36,7 +36,7 @@ actual fun IDWebView.Render(
     },
     properties = UIKitInteropProperties(
       interactionMode = UIKitInteropInteractionMode.NonCooperative,
-      isNativeAccessibilityEnabled = false
+      isNativeAccessibilityEnabled = true
     )
   )
 }

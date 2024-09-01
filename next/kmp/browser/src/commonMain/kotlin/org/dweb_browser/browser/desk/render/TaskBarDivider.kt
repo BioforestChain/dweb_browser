@@ -12,7 +12,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 @Composable
-internal fun TaskBarDivider(padding: Dp) {
+internal fun TaskBarDivider(padding: Dp, topPadding: Dp = padding) {
   HorizontalDivider(
     Modifier.padding(start = padding, top = padding, end = padding)
       .background(

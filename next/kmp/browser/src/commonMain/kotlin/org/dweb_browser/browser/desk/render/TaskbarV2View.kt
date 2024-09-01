@@ -3,7 +3,6 @@ package org.dweb_browser.browser.desk.render
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,7 +26,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -262,7 +260,7 @@ abstract class ITaskbarV2View(protected val taskbarController: TaskbarV2Controll
               }
             }
             /// 发现每次切回1的时候，它就正常一次？
-            Box(Modifier.scale(scale).size(10.dp, 2.dp).background(Color.Red))
+            Box(Modifier.scale(scale).size(10.dp, 1.dp))
           }
           /// 所以这里交叉切换，来强行让popup每一帧都在刷新位置
           FixIosPopupPosition(1f)
@@ -271,7 +269,13 @@ abstract class ITaskbarV2View(protected val taskbarController: TaskbarV2Controll
 
         /// apps 和 底部按钮的分割线
         if (appCount > 0) {
-          TaskBarDivider(paddingValue.dp)
+          TaskBarDivider(
+            paddingValue.dp,
+            when {
+              IPureViewController.isIOS -> (paddingValue - 2).dp
+              else -> paddingValue.dp
+            }
+          )
         }
 
         /// 底部按钮
