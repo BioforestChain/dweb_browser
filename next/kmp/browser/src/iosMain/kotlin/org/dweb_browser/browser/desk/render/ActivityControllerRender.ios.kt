@@ -27,7 +27,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.layout.Layout
-import androidx.compose.ui.util.fastJoinToString
 import org.dweb_browser.browser.desk.ActivityController
 import org.dweb_browser.browser.desk.model.ActivityStyle
 import org.dweb_browser.browser.desk.model.rememberActivityStyle
@@ -182,10 +181,6 @@ private class ActivityViewController(val controller: ActivityController) {
           )
           return@Layout layout(constraints.maxWidth, constraints.maxHeight) {}
         }
-        println(
-          """QAQ maxWidth = ${(displaySize.width * density).toInt()}, maxHeight = ${(displaySize.height * density).toInt()},
-        """.trimIndent()
-        )
         val layoutWidth = placeables.maxOf { it.width }
         val layoutHeight = placeables.maxOf { it.height }
         val boundsWidth = layoutWidth / density
