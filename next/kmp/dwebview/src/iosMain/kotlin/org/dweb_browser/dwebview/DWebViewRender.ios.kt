@@ -1,15 +1,18 @@
 package org.dweb_browser.dwebview
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.interop.UIKitView
+import androidx.compose.ui.viewinterop.UIKitInteropInteractionMode
+import androidx.compose.ui.viewinterop.UIKitInteropProperties
+import androidx.compose.ui.viewinterop.UIKitView
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.launch
 
 /**
  * TODO IOS 如果外部scale了，而IDWebView就得调用 setContentScaleUnsafe，否则IOS平台下，modifier的scale、alpha不能正确适应
  */
-@OptIn(ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class, ExperimentalComposeUiApi::class)
 @Composable
 actual fun IDWebView.Render(
   modifier: Modifier,
@@ -31,5 +34,9 @@ actual fun IDWebView.Render(
         lifecycleScope.launch { onDispose(); }
       }
     },
+    properties = UIKitInteropProperties(
+      interactionMode = UIKitInteropInteractionMode.NonCooperative,
+      isNativeAccessibilityEnabled = false
+    )
   )
 }
