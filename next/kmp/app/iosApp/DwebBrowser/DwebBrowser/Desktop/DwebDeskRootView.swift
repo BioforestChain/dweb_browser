@@ -23,7 +23,7 @@ class DwebComposeRootViewController: UIViewController {
     }
 
     private func addEdgePanGesture() {
-        recongizer = DwebScreenEdgePanGestureRecognizer(view, tigger: {
+        recongizer = DwebScreenEdgePanGestureRecognizer(view, trigger: {
             Main_iosKt.dwebViewController.emitOnGoBack()
         })
     }

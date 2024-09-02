@@ -1,5 +1,5 @@
 //
-//  DwebScreenEdgeIndicator.swift
+//  EdgeSwipeAnimationView.swift
 //  DwebBrowser
 //
 //  Created by instinct on 2024/3/8.
@@ -8,7 +8,7 @@
 
 import UIKit
 
-class DwebScreenEdgeIndicator: UIView {
+class EdgeSwipeAnimationView: UIView {
     lazy var bezLayer: CAShapeLayer = {
         let circle = CAShapeLayer()
         circle.fillColor = UIColor.black.withAlphaComponent(0.5).cgColor
@@ -19,7 +19,7 @@ class DwebScreenEdgeIndicator: UIView {
     }()
     
     lazy var iconView: UIImageView = {
-        let imgV = UIImageView(image: UIImage(systemName: "chevron.left"))
+        let imgV = UIImageView(image: UIImage(systemName: isRight ? "chevron.left" : "chevron.right"))
         imgV.tintColor = .white
         imgV.translatesAutoresizingMaskIntoConstraints = false
         return imgV
