@@ -14,13 +14,38 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.interop.LocalUIViewController
-import androidx.compose.ui.interop.UIKitView
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.viewinterop.UIKitView
+import kotlinx.cinterop.CValue
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.readValue
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.helper.compose.UnScaleBox
+import platform.CoreGraphics.CGRect
+import platform.CoreGraphics.CGRectMake
+import platform.CoreGraphics.CGRectNull
+import platform.Foundation.NSCoder
 import platform.UIKit.UIView
 
+internal class ResizeUIView : UIView {
+  @OptIn(ExperimentalForeignApi::class)
+  var onResize: ((CValue<CGRect>) -> Unit)? = null
+
+  @OptIn(ExperimentalForeignApi::class)
+  override fun layoutSubviews() {
+    onResize?.also { it(frame) }
+    super.layoutSubviews()
+  }
+
+  @Suppress("UNUSED") // required by Objective-C runtime
+  @OverrideInit
+  constructor(coder: NSCoder) : super(coder) {
+    throw UnsupportedOperationException("init(coder: NSCoder) is not supported for ResizeUIView")
+  }
+
+  @OptIn(ExperimentalForeignApi::class)
+  constructor() : super(frame = CGRectNull.readValue())
+}
 
 @OptIn(ExperimentalForeignApi::class)
 @Composable
@@ -30,8 +55,10 @@ actual fun CameraPreviewRender(
 ) {
   val uiViewController = LocalUIViewController.current
   val density = LocalDensity.current.density
+
+
   // 创建一个 UIView 作为相机预览的容器
-  val uiView = remember { UIView() }
+  val uiView = remember { ResizeUIView() }
   // 创建相机控制器
   val cameraController = remember(uiViewController) {
     try {
@@ -58,11 +85,14 @@ actual fun CameraPreviewRender(
   val scale by controller.scaleFlow.collectAsState()
   UnScaleBox(scale, modifier) {
     UIKitView(
-      factory = { uiView },
+      factory = {
+        uiView.also {
+          it.onResize = { frame ->
+            cameraController.onResize(frame)
+          }
+        }
+      },
       modifier = Modifier.fillMaxSize(),
-      onResize = { _, frame ->
-        cameraController.onResize(frame)
-      }
     )
   }
 }

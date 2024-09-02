@@ -4,10 +4,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.interop.LocalUIViewController
-import androidx.compose.ui.interop.UIKitView
 import androidx.compose.ui.uikit.ComposeUIViewControllerDelegate
+import androidx.compose.ui.viewinterop.UIKitInteropInteractionMode
+import androidx.compose.ui.viewinterop.UIKitInteropProperties
+import androidx.compose.ui.viewinterop.UIKitView
 import androidx.compose.ui.window.ComposeUIViewController
 import androidx.compose.ui.zIndex
 import kotlinx.cinterop.ExperimentalForeignApi
@@ -227,13 +230,18 @@ class PureViewController(
     }
   }
 
-  @OptIn(ExperimentalForeignApi::class)
+  @OptIn(ExperimentalForeignApi::class, ExperimentalComposeUiApi::class)
   val uiViewControllerInMain by lazy {
     ComposeUIViewController({
       delegate = uiViewControllerDelegate
     }) {
       UIKitView(
-        factory = { bgPlaceholderView }, Modifier.fillMaxSize().zIndex(0f), interactive = true
+        factory = { bgPlaceholderView },
+        Modifier.fillMaxSize().zIndex(0f),
+        properties = UIKitInteropProperties(
+          interactionMode = UIKitInteropInteractionMode.NonCooperative,
+          isNativeAccessibilityEnabled = true
+        )
       )
 
       LocalCompositionChain.current.Provider(
