@@ -10,7 +10,7 @@ const CONFIG_PREFIX = "/config.sys.dweb/";
 /**给前端的文件服务 */
 export class Server_www extends HttpServer {
   constructor(readonly plaocConfig: PlaocConfig, private handlers: $Core.$OnFetch[] = []) {
-    super("wwww");
+    super("www");
   }
   get jsonPlaoc() {
     return this.plaocConfig.config;
@@ -37,7 +37,10 @@ export class Server_www extends HttpServer {
     const serverIpc = await this.listen(...this.handlers, this._provider.bind(this));
     return serverIpc.noFound();
   }
-  protected async _provider(request: $Core.IpcFetchEvent, root = "www"): Promise<$Core.$OnFetchReturn> {
+  protected async _provider(
+    request: $Core.IpcFetchEvent,
+    root = this.jsonPlaoc.defaultConfig.wwwRoot ?? "www"
+  ): Promise<$Core.$OnFetchReturn> {
     let { pathname } = request;
     // 配置config
     if (pathname.startsWith(CONFIG_PREFIX)) {

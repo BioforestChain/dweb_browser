@@ -23,6 +23,7 @@ export interface $PlaocConfig {
 
 export interface $DefaultConfig {
   lang: string;
+  wwwRoot?: string;
 }
 
 export interface $Redirect {

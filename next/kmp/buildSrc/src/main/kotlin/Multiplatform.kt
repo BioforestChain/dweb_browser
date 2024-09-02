@@ -84,7 +84,7 @@ fun KotlinMultiplatformExtension.kmpBrowserJsTarget(
 
   val browserMain = sourceSets.getByName("browserMain") {
     dependencies {
-      implementationPlatform("Browser")
+      implementationProject("platformBrowser")
     }
   }
   val browserTest = sourceSets.getByName("browserTest") {
@@ -125,7 +125,7 @@ fun KotlinMultiplatformExtension.kmpNodeJsTarget(
   }
   val nodeMain = sourceSets.getByName("nodeMain") {
     dependencies {
-      implementationPlatform("Node")
+      implementationProject("platformNode")
     }
   }
   val nodeTest = sourceSets.getByName("nodeTest") {
@@ -314,6 +314,9 @@ open class KmpBaseTargetDsl(private val kmpe: KotlinMultiplatformExtension) {
     testSourceSet?.run {
       autoLink()
       testDependsOnList.forEach { dependsOn(it.autoLink()) }
+//      testDependencies {
+//        configureTestDependencyList.forEach { it() }
+//      }
       dependencies {
         configureTestDependencyList.forEach { it() }
       }
@@ -329,8 +332,7 @@ open class KmpBaseTargetDsl(private val kmpe: KotlinMultiplatformExtension) {
   }
 }
 
-fun KotlinDependencyHandler.implementationPlatform(platformName: String) {
-  val projectName = "platform$platformName"
+fun KotlinDependencyHandler.implementationProject(projectName: String) {
   if (project.name != projectName) {
     implementation(project(":$projectName"))
   }
@@ -379,7 +381,7 @@ fun KotlinMultiplatformExtension.kmpCommonTarget(
 
   dsl.provides(sourceSets.commonMain, sourceSets.commonTest)
   sourceSets.commonMain {
-    if(kspSrcDirs != null) {
+    if (kspSrcDirs != null) {
       kotlin.kspSrcDirs()
     }
 
@@ -398,7 +400,7 @@ fun KotlinMultiplatformExtension.kmpCommonTarget(
     implementation(kotlin("test"))
     implementation(libs.test.kotlin.coroutines.test)
     implementation(libs.test.kotlin.coroutines.debug)
-    implementationPlatform("Test")
+    implementationProject("platformTest")
   }
   targets.all {
     compilations.all {
@@ -538,10 +540,13 @@ fun KotlinMultiplatformExtension.kmpAndroidTarget(
   val libs = project.the<LibrariesForLibs>()
 
   kmpCommonTarget(project)
-  dsl.provides(sourceSets.androidMain)
+  dsl.provides(sourceSets.androidMain, sourceSets.androidUnitTest)
   sourceSets.androidMain.dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.annotation)
+  }
+  sourceSets.androidUnitTest.dependencies {
+    implementationProject("platformTest")
   }
   androidTarget {
     compilations.all {
@@ -593,7 +598,10 @@ fun KotlinMultiplatformExtension.kmpDesktopTarget(
     // 一定要加 https://github.com/JetBrains/compose-multiplatform/releases/tag/v1.1.1
     implementation(libs.kotlinx.coroutines.swing)
 
-    implementationPlatform("Desktop")
+    implementationProject("platformDesktop")
+  }
+  desktopTest.dependencies {
+    implementationProject("platformTest")
   }
   jvmToolchain {
     languageVersion.set(JavaLanguageVersion.of(JavaVersion.VERSION_17.toString()))
@@ -618,7 +626,10 @@ fun KotlinMultiplatformExtension.kmpIosTarget(
 
   kmpCommonTarget(project)
   sourceSets.iosMain.dependencies {
-    implementationPlatform("Ios")
+    implementationProject("platformIos")
+  }
+  sourceSets.iosTest.dependencies {
+    implementationProject("platformTest")
   }
   dsl.provides(sourceSets.iosMain, sourceSets.iosTest)
 

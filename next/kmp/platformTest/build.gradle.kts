@@ -10,8 +10,8 @@ kotlin {
       implementation(libs.test.kotlin.coroutines.test)
     }
   }
-  kmpAndroidTarget(project){
-    dependencies{
+  kmpAndroidTarget(project) {
+    dependencies {
       api(libs.androidx.test.core)
       api(libs.androidx.test.core.ktx)
     }
