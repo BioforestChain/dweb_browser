@@ -62,9 +62,6 @@ class TaskbarV1View(
   private var showMask by mutableStateOf(false)
   private val pvc = PureViewController(fullscreen = false).also { pvc ->
     pvc.addContent {
-      LaunchedEffect(Unit) {
-        pvc.uiViewControllerInMain.view.backgroundColor = Color.Blue.copy(alpha = .2f).toUIColor()
-      }
       val displaySize = rememberDisplaySize()
       FloatBarShell(state, displaySize = displaySize, effectBounds = { bounds ->
         LaunchedEffect(bounds, displaySize, showMask) {

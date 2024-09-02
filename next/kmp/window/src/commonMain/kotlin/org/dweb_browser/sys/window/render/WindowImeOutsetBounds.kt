@@ -15,13 +15,14 @@ import org.dweb_browser.sys.window.core.WindowsManagerState.Companion.watchedSta
 import org.dweb_browser.sys.window.core.constant.WindowManagerPropertyKeys
 import org.dweb_browser.sys.window.helper.LocalWindowFrameStyle
 import org.dweb_browser.sys.window.helper.watchedBounds
+import org.dweb_browser.sys.window.helper.watchedState
 import kotlin.math.max
 
 @Composable
 fun <T : WindowController> WindowsManager<T>.watchedImeBounds() =
   watchedState(WindowManagerPropertyKeys.ImeBoundingRect) { this.imeBoundingRect }
 
-class WindowImeOutsetBounds(
+data class WindowImeOutsetBounds(
   /**
    * 键盘插入内容的高度
    */
@@ -40,9 +41,10 @@ fun calcWindowImeOutsetBounds(
   val modifierOffsetY: Float
   val keyboardInsetBottom: Float
   val imeVisible by wsm.watchedState { imeVisible }
+  val isWinFocus by win.watchedState { focus }
 
-  // 键盘不显示
-  if (!imeVisible) {
+  // 键盘不显示，或者窗口没聚焦
+  if (!imeVisible || !isWinFocus) {
     modifierOffsetY = 0f
     keyboardInsetBottom = 0f
   } else {

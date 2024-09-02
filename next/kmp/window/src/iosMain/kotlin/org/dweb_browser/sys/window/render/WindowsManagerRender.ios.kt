@@ -30,7 +30,6 @@ import org.dweb_browser.sys.window.core.WindowsManager
 import org.dweb_browser.sys.window.core.constant.debugWindow
 import org.dweb_browser.sys.window.core.renderConfig.EffectWindowLayerStyleDelegate
 import org.dweb_browser.sys.window.core.renderConfig.FrameDragDelegate
-import org.dweb_browser.sys.window.helper.LocalWindowFrameStyle
 import org.dweb_browser.sys.window.helper.LocalWindowLimits
 import org.dweb_browser.sys.window.helper.safeBounds
 import org.dweb_browser.sys.window.helper.watchedBounds
