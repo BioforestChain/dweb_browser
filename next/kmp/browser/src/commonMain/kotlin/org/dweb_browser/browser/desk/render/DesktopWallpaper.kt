@@ -7,6 +7,8 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -24,7 +26,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.datetime.Clock
@@ -96,28 +100,36 @@ class DesktopWallpaper(private val scope: CoroutineScope) {
       }
     }
 
+/// 测试代码 记住当前时间的小时数
+//    var hour by remember { mutableStateOf(0) }
+//    // 使用 LaunchedEffect 实现每两秒钟更换一次配色
+//    LaunchedEffect(Unit) {
+//      while (true) {
+//        delay(1000) // 等待两秒钟
+//        hour = (hour + 1) % 24 // 更新小时数，保持在 0 到 23 之间循环
+//      }
+//    }
+/// 测试代码结束
+
+    // 根据小时数获取颜色列表
     val colors = remember(hour) { desktopBgPrimaryColorStrings(hour) }
-    val nextColors = remember(hour) { desktopBgPrimaryColorStrings(hour + 1) }
-    val circleColors = colors + nextColors
+//    val nextColors = remember(hour) { desktopBgPrimaryColorStrings(hour + 1) }
+//    val circleColors = colors + nextColors
     BoxWithConstraints(modifier.fillMaxSize()) {
       // 预备动画基本参数
-      for (circle in circles) {
-        circle.PrepareAnimation()
-      }
-//      // 背景
-//      RenderBackground(colors, constraints)
-//      // 动圈
 //      for (circle in circles) {
-//        circle.Render(colors, constraints)
+//        circle.PrepareAnimation()
 //      }
       Canvas(Modifier.fillMaxSize()) {
         // 背景
         drawBackground(colors)
         // 动圈
-        for (circle in circles) {
-          circle.drawIntoCanvas(this, circleColors, constraints)
-        }
+//        for (circle in circles) {
+//          circle.drawIntoCanvas(this, circleColors, constraints)
+//        }
       }
+// 测试代码
+//      Text("$hour", modifier.offset(26.dp, 26.dp), fontWeight = FontWeight.Bold)
     }
   }
 
@@ -244,36 +256,38 @@ class DesktopWallpaper(private val scope: CoroutineScope) {
   }
 }
 
+/**
+ * 根据时间输出背景颜色
+ */
 private fun desktopBgPrimaryColorStrings(hour: Int): List<Color> {
   return when (hour % 24) {
-    0 -> listOf("#9c27b0", "#e91e63")
-    1 -> listOf("#3973e1", "#c03074")
-    2 -> listOf("#6b4dc8", "#d4276c")
-    3 -> listOf("#0899f9", "#ab397d")
-    4 -> listOf("#add07a", "#6349a2")
-    5 -> listOf("#5ab4ba", "#874190")
-    6 -> listOf("#ffeb3b", "#3f51b5")
-    7 -> listOf("#55cca1", "#178cdf")
-    8 -> listOf("#aadb6e", "#2b6eca")
-    9 -> listOf("#00bcd4", "#03a9f4")
-    10 -> listOf("#aadb6e", "#179cf3")
-    11 -> listOf("#55cca1", "#0da3f4")
-    12 -> listOf("#ffeb3b", "#2196f3")
-    13 -> listOf("#f6a940", "#38b9e4")
-    14 -> listOf("#faca3d", "#2da7eb")
-    15 -> listOf("#f18842", "#44cadc")
-    16 -> listOf("#fa672d", "#c1a949")
-    17 -> listOf("#f67837", "#82b993")
-    18 -> listOf("#ff5722", "#ff9800")
-    19 -> listOf("#ff7811", "#ffc21e")
-    20 -> listOf("#ff9800", "#ffeb3b")
-    21 -> listOf("#b54384", "#ef5159")
-    22 -> listOf("#ce6058", "#f4854f")
-    23 -> listOf("#e67c2c", "#fab845")
-    else -> listOf("#ffeb3b", "#2196f3")
+    0 -> listOf("#b565c8", "#7b97c8")
+    1 -> listOf("#6b97e8", "#8f71a5")
+    2 -> listOf("#8f7ad5", "#de6a97")
+    3 -> listOf("#4eb3ba", "#bf6da0")
+    4 -> listOf("#bfda9c", "#8875b7")
+    5 -> listOf("#86c7cc", "#a46daa")
+    6 -> listOf("#ffb06b", "#7283cb")
+    7 -> listOf("#fbc15f", "#5caee7")
+    8 -> listOf("#bde391", "#6494d7")
+    9 -> listOf("#6494d7", "#4dd4e6")
+    10 -> listOf("#62bfc1", "#5bb5f6")
+    11 -> listOf("#62b1cf", "#92b1f6")
+    12 -> listOf("#6dcbeb", "#62bfb1")
+    13 -> listOf("#f8bf71", "#6dcbeb")
+    14 -> listOf("#65bfef", "#fbd7a0")
+    15 -> listOf("#f5a771", "#77d7e5")
+    16 -> listOf("#fb8d5f", "#a2cba9")
+    17 -> listOf("#fbc775", "#d1bf7a")
+    18 -> listOf("#faa780", "#c1a949")
+    19 -> listOf("#fb8d5f", "#daa780")
+    20 -> listOf("#daa780", "#da8780")
+    21 -> listOf("#c7729f", "#f37e84")
+    22 -> listOf("#da8780", "#f7a47f")
+    23 -> listOf("#ec9b5f", "#a46daa")
+    else -> listOf("#84d7b9", "#62b1f6")
   }.map { Color.hex(it)!! }
 }
-
 
 //private fun desktopBgPrimaryRandomColor(hour: Int): Color {
 //  val colors = desktopBgPrimaryColorStrings(hour)

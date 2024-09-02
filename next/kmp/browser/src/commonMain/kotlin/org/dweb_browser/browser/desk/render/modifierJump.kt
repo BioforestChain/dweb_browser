@@ -1,16 +1,13 @@
 package org.dweb_browser.browser.desk.render
 
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.EaseOutCirc
+import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.graphics.graphicsLayer
@@ -18,35 +15,49 @@ import androidx.compose.ui.platform.LocalDensity
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+/***
+ * app跳动动画效果
+ */
 fun Modifier.jump(
   enable: Boolean,
   height: Float = 12f,
-  internalDelay: Long = 75
-) = this.composed {
-  val offsetAni = remember { Animatable(0f) }
+  duration: Int = 600,
+  repeatInterval: Int = 700
+) = composed {
+  val offsetY = remember { Animatable(0f) }
   val scope = rememberCoroutineScope()
-  val aniState = rememberUpdatedState(enable)
-  val heightState = rememberUpdatedState(height)
-  val internalDelayState = rememberUpdatedState(internalDelay)
-
-  var animating by remember { mutableStateOf(false) }
-  if (enable && !animating) {
-    remember {
+  LaunchedEffect(enable) {
+    if (enable) {
       scope.launch {
-        animating = true
-        val backSpec = spring<Float>(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow)
-        while (aniState.value) {
-          offsetAni.animateTo(
-            heightState.value,
-            tween((heightState.value * 20).toInt(), easing = EaseOutCirc)
+        while (true) {
+          // 上升动画
+          offsetY.animateTo(
+            targetValue = -height,
+            animationSpec = tween(
+              durationMillis = duration / 2,
+              easing = CubicBezierEasing(0.17f, 0.67f, 0.83f, 0.67f) //给自然的加速和减速效果
+            )
           )
-          offsetAni.animateTo(0f, backSpec)
-          delay(internalDelayState.value)
+          // 下降动画
+          offsetY.animateTo(
+            targetValue = 0f,
+            animationSpec = spring(
+              dampingRatio = Spring.DampingRatioMediumBouncy,
+              stiffness = Spring.StiffnessLow
+            )
+          )
+          // 等待下一次跳跃
+          delay(repeatInterval.toLong() - duration)
         }
-        animating = false
       }
+    } else {
+      // 如果禁用，确保回到初始位置
+      offsetY.animateTo(0f, spring())
     }
   }
+
   val density = LocalDensity.current
-  graphicsLayer { translationY = -offsetAni.value * density.density }
+  Modifier.graphicsLayer {
+    translationY = offsetY.value * density.density
+  }
 }
