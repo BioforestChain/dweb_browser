@@ -14,7 +14,6 @@ import org.dweb_browser.helper.compose.toOffset
 import org.dweb_browser.helper.platform.NativeViewController.Companion.nativeViewController
 import org.dweb_browser.helper.platform.PureViewController
 import org.dweb_browser.helper.platform.rememberDisplaySize
-import org.dweb_browser.helper.platform.rememberPureViewBox
 import org.dweb_browser.helper.toPureRect
 import org.dweb_browser.sys.window.floatBar.DraggableDelegate
 import org.dweb_browser.sys.window.floatBar.FloatBarShell
@@ -83,11 +82,11 @@ class TaskbarV2View(taskbarController: TaskbarV2Controller) : ITaskbarV2View(tas
   @Composable
   override fun Render() {
     /// 切换zIndex
-    val viewBox = rememberPureViewBox()
+    val displaySize = rememberDisplaySize()
     LaunchedEffect(Unit) {
       nativeViewController.addOrUpdate(pvc, Int.MAX_VALUE - 1000)
       /// 需要给一个初始化的bounds，否则compose默认处于一个0x0的区域，是不会触发渲染的
-      pvc.setBounds(viewBox.getDisplaySize().toRect().toPureRect())
+      pvc.setBounds(displaySize.toRect().toPureRect())
     }
   }
 }
