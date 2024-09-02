@@ -25,7 +25,7 @@ class EnvSwitch : EnvSwitchCore() {
   }
 
   fun disable(switch: ENV_SWITCH_KEY) {
-    remove(switch)
+    //    remove(switch)
     /// 如果默认值是 true，那么不能用remove，得直接赋值 false
     if (isEnabled(switch)) {
       set(switch.key, "false")
