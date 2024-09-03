@@ -65,7 +65,7 @@ internal fun AppItem(
   )
 
   Column(
-    modifier = modifier.fillMaxSize().padding(top = 8.dp, bottom = 4.dp),
+    modifier = modifier.fillMaxSize().padding(top = 8.dp),
     verticalArrangement = Arrangement.Center,
     horizontalAlignment = Alignment.CenterHorizontally,
   ) {
@@ -89,7 +89,7 @@ internal fun AppItem(
         textAlign = TextAlign.Center,
         fontWeight = FontWeight.Light,
         shadow = Shadow(Color.Black.copy(alpha = 0.5f), Offset(0f, 2f), 4f)
-      ), modifier = Modifier.weight(0.35f).fillMaxWidth().padding(top = 8.dp)
+      ), modifier = Modifier.weight(0.35f).fillMaxWidth().padding(top = 6.dp)
     )
   }
 }

@@ -129,6 +129,7 @@ fun DesktopV2Controller.RenderImpl() {
           DeskLayoutV6(
             datas = apps,
             modifier = Modifier.fillMaxSize().padding(top = 4.dp).onGloballyPositioned {
+              // 这里是计算app 菜单栏的位置
               val pos = it.positionInWindow()
               appMenuPanel.safeAreaInsets = WindowInsets(
                 top = pos.y.fastRoundToInt(),
@@ -155,7 +156,6 @@ fun DesktopV2Controller.RenderImpl() {
                   geoMaps.mapKeys { it.key.mmid })
               }
             }) { app, geometry, draging ->
-
             val iConModifier = Modifier.run {
               if (edit) {
                 this

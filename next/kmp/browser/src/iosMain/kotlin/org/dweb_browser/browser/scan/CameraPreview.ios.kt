@@ -1,6 +1,8 @@
 package org.dweb_browser.browser.scan
 
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.AlertDialog
@@ -15,6 +17,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.interop.LocalUIViewController
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.UIKitView
 import kotlinx.cinterop.CValue
 import kotlinx.cinterop.ExperimentalForeignApi
@@ -71,7 +74,7 @@ actual fun CameraPreviewRender(
     }
   }
   if (cameraController == null) {
-    return isSimulator(modifier, controller)
+    return controller.isSimulator()
   }
 
   DisposableEffect(Unit) {
@@ -98,9 +101,8 @@ actual fun CameraPreviewRender(
 }
 
 @Composable
-private fun isSimulator(modifier: Modifier, controller: SmartScanController) {
+private fun SmartScanController.isSimulator() {
   AlertDialog(
-    modifier = modifier,
     icon = {
       Icon(Icons.Default.Info, contentDescription = "Example Icon")
     },
@@ -113,12 +115,12 @@ private fun isSimulator(modifier: Modifier, controller: SmartScanController) {
       )
     },
     onDismissRequest = {
-      controller.onCancel("确定")
+      this.onCancel("确定")
     },
     confirmButton = {
       TextButton(
         onClick = {
-          controller.onCancel("确定")
+          this.onCancel("确定")
         }
       ) {
         Text(BrowserI18nResource.QRCode.confirm.text)

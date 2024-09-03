@@ -20,7 +20,7 @@ import kotlinx.coroutines.launch
  */
 fun Modifier.jump(
   enable: Boolean,
-  height: Float = 12f,
+  height: Float = 8f,
   duration: Int = 600,
   repeatInterval: Int = 700
 ) = composed {

@@ -44,6 +44,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.map
 import org.dweb_browser.browser.desk.render.getLayoutParams
+import org.dweb_browser.helper.getOrDefault
 import kotlin.math.abs
 
 class DeskLayoutStateV6<T : Any>(
@@ -61,7 +62,7 @@ class DeskLayoutStateV6<T : Any>(
     calculatorParams = getCalculatorParams(screenWith, screenHeight)
     val recommendLayouts = recommendLayout(calculatorParams.screenWidth)
     flowLayouts = list.map { data ->
-      val scLayout = recommendLayouts[data] ?: NFSpaceCoordinateLayout(0, 0, 1, 1)
+      val scLayout = recommendLayouts.getOrDefault(data,NFSpaceCoordinateLayout(0, 0, 1, 1))
       NFCaculater.getLayout(data, scLayout, calculatorParams)
     }
     calculateBlockLayout()
@@ -124,7 +125,6 @@ fun <T : Any> DeskLayoutStateV6<T>.Render(
   edit: Boolean,
   content: @Composable (T, NFGeometry, Boolean) -> Unit
 ) {
-
   BoxWithConstraints(modifier) {
     val screenWidth = constraints.maxWidth
     val screenHeight = constraints.maxHeight
