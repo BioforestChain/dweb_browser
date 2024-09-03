@@ -55,6 +55,29 @@ private const val TASKBAR_DIVIDER_HEIGHT = 8f
 
 expect fun ITaskbarV2View.Companion.create(taskbarController: TaskbarV2Controller): ITaskbarV2View
 
+/**
+ * Popup 策略
+ */
+private enum class PopupStrategy {
+  /**
+   * 禁用，用于桌面端
+   * 桌面端的popup，渲染起来会有层级错误的问题
+   */
+  DISABLED,
+
+  /**
+   * 按需，用于IOS
+   * 会有一些帧不连贯的、或者残影、或者延迟等问题、性能也比ALWAYS差一些，毕竟会导致内容完全重新渲染
+   * 如果IOS修复了Popup抖动的问题，那么可以改为ALWAYS
+   */
+  REQUIRED,
+
+  /**
+   * 总是，用于Android
+   */
+  ALWAYS,
+}
+
 abstract class ITaskbarV2View(protected val taskbarController: TaskbarV2Controller) {
   companion object {}
 
@@ -72,9 +95,16 @@ abstract class ITaskbarV2View(protected val taskbarController: TaskbarV2Controll
     val appCount = apps.size
 
     /**
-     * 桌面端默认不开启折叠，渲染起来会有问题
+     * popup的渲染策略
      */
-    val disablePopup = IPureViewController.isDesktop
+    val popupStrategy = remember {
+      when {
+        IPureViewController.isAndroid -> PopupStrategy.ALWAYS
+        IPureViewController.isDesktop -> PopupStrategy.DISABLED
+        IPureViewController.isIOS -> PopupStrategy.REQUIRED
+        else -> PopupStrategy.DISABLED
+      }
+    }
 
     /**
      * 能否进行折叠
@@ -82,7 +112,7 @@ abstract class ITaskbarV2View(protected val taskbarController: TaskbarV2Controll
      * 在移动设备上，使用折叠来节省屏幕空间，点击进行展开。
      */
     val canFold = when {
-      disablePopup -> false
+      popupStrategy == PopupStrategy.DISABLED -> false
       else -> when (firstItem.state.mode) {
         WindowMode.MAXIMIZE, WindowMode.FULLSCREEN -> true
         else -> false
@@ -206,7 +236,7 @@ abstract class ITaskbarV2View(protected val taskbarController: TaskbarV2Controll
           }
 
           when {
-            disablePopup -> appsRender()
+            popupStrategy == PopupStrategy.DISABLED || (popupStrategy == PopupStrategy.REQUIRED && !isFocus) -> appsRender()
 
             else -> {
               /// 这里因为是一个新的Popup，所以需要手动记录一下位置，为内部长按的popup提供位置
