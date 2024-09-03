@@ -83,3 +83,4 @@
 -dontwarn javax.imageio.spi.ImageOutputStreamSpi
 -dontwarn javax.imageio.spi.ImageReaderSpi
 -dontwarn javax.imageio.spi.ImageWriterSpi
+-dontwarn androidx.test.platform.app.InstrumentationRegistry
