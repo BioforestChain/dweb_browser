@@ -1,15 +1,13 @@
 package org.dweb_browser.helper.compose
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import kotlinx.coroutines.flow.MutableStateFlow
-import org.dweb_browser.helper.SafeHashSet
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.getOrPut
-import org.dweb_browser.helper.randomUUID
+import org.dweb_browser.helper.platform.Refs
 import platform.Foundation.NSNotificationCenter
 import platform.UIKit.UIDevice
 import platform.UIKit.UIDeviceBatteryLevelDidChangeNotification
@@ -19,24 +17,15 @@ import platform.darwin.NSObject
 
 @Composable
 actual fun isBatterySaverMode(): Boolean {
-  val batteryObserver = remember {
-    UIDevice.currentDevice.let { device ->
-      UIDeviceBatteryObserverWM.getOrPut(device) {
-        BatteryObserver(device)
-      }
+  val uiDevice = UIDevice.currentDevice
+  val batteryObserver = remember(uiDevice) {
+    UIDeviceBatteryObserverWM.getOrPut(uiDevice) {
+      BatteryObserver(uiDevice)
     }
   }
   /// 默认不做销毁，持续监控
   if (false) {
-    val reason = remember { randomUUID() }
-    DisposableEffect(reason) {
-      batteryObserver.ref.add(reason)
-      onDispose {
-        batteryObserver.ref.remove(reason)
-        batteryObserver.disconnect()
-        UIDeviceBatteryObserverWM.remove(batteryObserver.device)
-      }
-    }
+    batteryObserver.refs.RefEffect()
   }
   val batteryState by batteryObserver.batteryStateFlow.collectAsState()
   val batteryLevel by batteryObserver.batteryLevelFlow.collectAsState()
@@ -53,7 +42,7 @@ private class BatteryObserver(val device: UIDevice) : NSObject() {
     device.batteryMonitoringEnabled = true
   }
 
-  val ref = SafeHashSet<String>()
+  val refs = Refs { disconnect() }
 
   val batteryStateFlow = MutableStateFlow(device.batteryState)
   val batteryLevelFlow = MutableStateFlow(device.batteryLevel)

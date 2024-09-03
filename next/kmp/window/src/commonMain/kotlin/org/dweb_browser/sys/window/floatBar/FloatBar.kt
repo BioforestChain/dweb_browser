@@ -8,11 +8,8 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.requiredSize
-import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -30,11 +27,13 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import kotlinx.coroutines.flow.MutableStateFlow
+import org.dweb_browser.helper.PureBounds
 import org.dweb_browser.helper.PureRect
 import org.dweb_browser.helper.clamp
 import org.dweb_browser.helper.compose.collectAsMutableState
 import org.dweb_browser.helper.getValue
 import org.dweb_browser.helper.platform.rememberDisplaySize
+import org.dweb_browser.helper.platform.rememberSafeAreaInsets
 import org.dweb_browser.helper.setValue
 import squircleshape.CornerSmoothing
 import squircleshape.SquircleShape
@@ -52,6 +51,7 @@ fun FloatBarShell(
   modifier: Modifier = Modifier,
   isDark: Boolean = isSystemInDarkTheme(),
   displaySize: Size = rememberDisplaySize(),
+  safePadding: PureBounds = rememberSafeAreaInsets(),
   effectBounds: @Composable Modifier.(PureRect) -> Modifier = { bounds ->
     this.requiredSize(bounds.width.dp, bounds.height.dp).offset(x = bounds.x.dp, y = bounds.y.dp)
   },
@@ -63,18 +63,15 @@ fun FloatBarShell(
 
   val screenWidth = displaySize.width
   val screenHeight = displaySize.height
-  val safePadding = WindowInsets.safeDrawing.asPaddingValues();
   val layoutDirection = LocalLayoutDirection.current
   val safeBounds = remember(screenWidth, screenHeight, layoutDirection, safePadding) {
-    val topPadding = safePadding.calculateTopPadding().value
-    val leftPadding = safePadding.calculateLeftPadding(layoutDirection).value
-    state.layoutTopPadding = topPadding
-    state.layoutLeftPadding = leftPadding
+    state.layoutTopPadding = safePadding.top
+    state.layoutLeftPadding = safePadding.left
     SafeBounds(
-      top = topPadding,
-      left = leftPadding,
-      bottom = screenHeight - safePadding.calculateBottomPadding().value,
-      right = screenWidth - safePadding.calculateRightPadding(layoutDirection).value,
+      top = safePadding.top,
+      left = safePadding.left,
+      bottom = screenHeight - safePadding.bottom,
+      right = screenWidth - safePadding.right,
     )
   }
   var boxX by state.layoutXFlow.collectAsMutableState()
@@ -148,7 +145,6 @@ fun FloatBarShell(
     )
   )
 }
-
 
 fun Modifier.floatBarBackground(
   isDark: Boolean,

@@ -4,16 +4,22 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.geometry.toRect
 import androidx.compose.ui.input.pointer.pointerInput
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.dweb_browser.browser.desk.TaskbarV2Controller
+import org.dweb_browser.helper.PureBounds
 import org.dweb_browser.helper.compose.toOffset
 import org.dweb_browser.helper.platform.NativeViewController.Companion.nativeViewController
 import org.dweb_browser.helper.platform.PureViewController
 import org.dweb_browser.helper.platform.rememberDisplaySize
+import org.dweb_browser.helper.platform.rememberSafeAreaInsets
 import org.dweb_browser.helper.toPureRect
 import org.dweb_browser.sys.window.floatBar.DraggableDelegate
 import org.dweb_browser.sys.window.floatBar.FloatBarShell
@@ -61,16 +67,24 @@ private fun TaskbarMover(
   }
 }
 
-class TaskbarV2View(taskbarController: TaskbarV2Controller) : ITaskbarV2View(taskbarController) {
+class TaskbarV2View(taskbarController: TaskbarV2Controller) :
+  ITaskbarV2View(taskbarController) {
+  private val displaySizeFlow = MutableStateFlow(Size.Zero)
+  private val safePaddingFlow = MutableStateFlow(PureBounds.Zero)
   private val pvc = PureViewController(fullscreen = false).also { pvc ->
     pvc.addContent {
-      val displaySize = rememberDisplaySize()
-      FloatBarShell(state, displaySize = displaySize, effectBounds = { bounds ->
-        LaunchedEffect(bounds) {
-          pvc.setBounds(bounds)
-        }
-        this
-      }) { modifier ->
+      val displaySize by displaySizeFlow.collectAsState()
+      val safePadding by safePaddingFlow.collectAsState()
+      FloatBarShell(
+        state,
+        displaySize = displaySize,
+        safePadding = safePadding,
+        effectBounds = { bounds ->
+          LaunchedEffect(bounds) {
+            pvc.setBounds(bounds)
+          }
+          this
+        }) { modifier ->
         TaskbarMover(pvc, draggableDelegate, modifier) {
           /// 渲染内容
           RenderContent(draggableDelegate, displaySize = displaySize)
@@ -83,6 +97,8 @@ class TaskbarV2View(taskbarController: TaskbarV2Controller) : ITaskbarV2View(tas
   override fun Render() {
     /// 切换zIndex
     val displaySize = rememberDisplaySize()
+    displaySizeFlow.value = displaySize
+    safePaddingFlow.value = rememberSafeAreaInsets()
     LaunchedEffect(Unit) {
       nativeViewController.addOrUpdate(pvc, Int.MAX_VALUE - 1000)
       /// 需要给一个初始化的bounds，否则compose默认处于一个0x0的区域，是不会触发渲染的
