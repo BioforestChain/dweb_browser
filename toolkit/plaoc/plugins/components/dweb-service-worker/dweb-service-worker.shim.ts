@@ -85,13 +85,6 @@ class DwebServiceWorker extends EventTarget {
   get clearCache() {
     return this.plugin.clearCache;
   }
-
-  override addEventListener(
-    type: string,
-    callback: EventListenerOrEventListenerObject | null,
-    options?: boolean | EventListenerOptions
-  ): void;
-
   /**
    *  dwebview 注册一个监听事件
    * @param eventName
@@ -119,12 +112,6 @@ class DwebServiceWorker extends EventTarget {
       }
     }
   }
-  override removeEventListener(
-    type: string,
-    callback: EventListenerOrEventListenerObject | null,
-    options?: boolean | EventListenerOptions
-  ): void;
-
   /**移除监听器 */
   override removeEventListener<K extends keyof DwebWorkerEventMap>(
     eventName: K,

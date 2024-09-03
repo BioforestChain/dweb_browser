@@ -107,7 +107,7 @@ export interface WindowListenerHandle {
   handler: (event: any) => void;
 }
 
-export type ListenerCallback<T> = (event: T) => void | null;
+export type ListenerCallback<T> = (event: T) => Promise<void> | void | null;
 
 export type Tkit = {
   /**
