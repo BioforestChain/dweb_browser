@@ -16,9 +16,15 @@ actual fun WindowTopBar(
   win: WindowController, modifier: Modifier,
 ) {
   val contentColor = LocalWindowControllerTheme.current.topContentColor
+  val maximize by win.watchedIsMaximized()
   Box(
     modifier = modifier
-      .windowMoveAble(win)
+      .run {
+        when {
+          maximize -> this
+          else -> windowMoveAble(win)
+        }
+      }
       .background(
         Brush.verticalGradient(
           colors = listOf(
@@ -28,7 +34,6 @@ actual fun WindowTopBar(
         )
       )
   ) {
-    val maximize by win.watchedIsMaximized()
     if (maximize) {
       WindowTopMaximizedBar(win)
     } else {
