@@ -10,16 +10,22 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.InternalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.uikit.LocalInterfaceOrientation
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.compose.CompositionChain
 import org.dweb_browser.helper.compose.LocalCompositionChain
 import org.dweb_browser.helper.compose.iosTween
 import org.dweb_browser.helper.compose.toOffset
+import org.dweb_browser.helper.datetimeNow
 import org.dweb_browser.helper.getOrPut
+import org.dweb_browser.helper.platform.FixIosLayerRefresh
+import org.dweb_browser.helper.platform.FixRefreshMode
 import org.dweb_browser.helper.platform.NativeViewController.Companion.nativeViewController
 import org.dweb_browser.helper.platform.PureViewController
 import org.dweb_browser.helper.toPureRect
@@ -71,7 +77,18 @@ private class IosWindowNativeView(
       nativeViewController.remove(pvc)
     }
     pvc.onCreate {
+      @OptIn(InternalComposeUiApi::class)
       pvc.addContent {
+        /// 监听屏幕旋转，修复旋转屏幕后 pvc 内的compose 没有进行重新渲染导致的大问题
+        val orientation = LocalInterfaceOrientation.current
+        FixIosLayerRefresh(remember(orientation) {
+          FixRefreshMode.Companion.FixRefreshTimerMode(
+            id = datetimeNow(),
+            time = 100,//16
+            delay = 220,//268
+          )
+        })
+
         val compositionChain by compositionChainState
         (compositionChain + LocalCompositionChain.current).Provider(LocalWindowsManager provides windowsManager) {
           /// 渲染窗口

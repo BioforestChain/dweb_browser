@@ -27,7 +27,6 @@ private class DesktopV2AppLayoutStore(deskNMM: DeskNMM.DeskRuntime) {
 
   suspend fun setStoreAppsLayouts(layouts: List<DeskAppLayoutInfo>) {
     appsLayoutStore.set("layouts", layouts)
-    appsLayoutStore.save()
   }
 }
 

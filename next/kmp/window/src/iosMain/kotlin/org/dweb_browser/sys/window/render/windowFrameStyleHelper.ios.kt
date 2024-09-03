@@ -26,7 +26,7 @@ fun UIView.effectWindowFrameStyle(style: WindowLayerStyle) {
   layer.shadowColor = UIColor.blackColor.CGColor
   layer.shadowOffset = CGSizeMake(width = 0.0, height = style.elevation.value / 3.0)
   layer.shadowRadius = style.elevation.value.toDouble()
-  layer.shadowOpacity = 0.5f
+  layer.shadowOpacity = 0.8f
 
   // 配置圆角
   layer.cornerRadius = style.cornerRadius.topStart.toDouble()

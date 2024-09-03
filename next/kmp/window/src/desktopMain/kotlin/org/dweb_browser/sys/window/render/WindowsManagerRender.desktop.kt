@@ -116,9 +116,7 @@ private class DesktopWindowNativeView(
           win.WindowControllerEffect()
           /// 渲染窗口
           win.WithMaterialTheme {
-            win.WindowRender(
-              modifier = Modifier,
-            )
+            win.WindowRender(Modifier)
           }
         }
       }
