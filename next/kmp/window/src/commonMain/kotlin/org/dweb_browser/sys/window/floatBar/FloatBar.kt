@@ -153,16 +153,15 @@ fun FloatBarShell(
 fun Modifier.floatBarBackground(
   isDark: Boolean,
   shape: Shape = floatBarDefaultShape,
-  getAlpha: ((Float) -> Float)? = null
-) =
-  this.composed {
-    this.background(animateColorAsState(remember(isDark, getAlpha) {
-      when {
-        isDark -> Color.White.copy(alpha = 0.45f.let { getAlpha?.invoke(it) ?: it })
-        else -> Color.Black.copy(alpha = 0.2f.let { getAlpha?.invoke(it) ?: it })
-      }
-    }).value, shape)
-  }
+  getAlpha: ((Float) -> Float)? = null,
+) = this.composed {
+  this.background(animateColorAsState(remember(isDark, getAlpha) {
+    when {
+      isDark -> Color.White.copy(alpha = 0.45f.let { getAlpha?.invoke(it) ?: it })
+      else -> Color.Black.copy(alpha = 0.2f.let { getAlpha?.invoke(it) ?: it })
+    }
+  }).value, shape)
+}
 
 val floatBarDefaultShape = SquircleShape(16.dp, CornerSmoothing.Small)
 

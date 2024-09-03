@@ -235,6 +235,14 @@ abstract class ITaskbarV2View(protected val taskbarController: TaskbarV2Controll
             }
           }
 
+          /// 修改图层的背景颜色
+          LaunchedEffect(isFocus) {
+            taskbarController.state.backgroundAlphaGetter = when {
+              isFocus -> ({ sqrt(it) })
+              else -> null
+            }
+          }
+
           when {
             popupStrategy == PopupStrategy.DISABLED || (popupStrategy == PopupStrategy.REQUIRED && !isFocus) -> appsRender()
 
@@ -250,14 +258,6 @@ abstract class ITaskbarV2View(protected val taskbarController: TaskbarV2Controll
                   )
                 }
               })
-              /// 修改图层的背景颜色
-              LaunchedEffect(isFocus) {
-                taskbarController.state.backgroundAlphaGetter = if (isFocus) {
-                  { sqrt(it) }
-                } else {
-                  null
-                }
-              }
 
               /// 这里Popup需要长期存在，否则如果开关popup，会导致popup渲染残影
               Popup(
