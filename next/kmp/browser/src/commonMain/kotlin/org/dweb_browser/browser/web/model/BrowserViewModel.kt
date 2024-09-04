@@ -136,7 +136,7 @@ class BrowserViewModel(
   fun getHistoryLinks() = browserController.historyStateFlow.value
 
   fun getPageOrNull(currentPage: Int) = pages.getOrNull(currentPage)
-  fun getPage(currentPage: Int) = pages[currentPage]
+  fun getPage(currentPage: Int) = getPageOrNull(currentPage) ?: pages.first()
   fun getPageIndex(page: BrowserPage) = pages.indexOf(page)
 
 //  var focusedPage by mutableStateOf<BrowserPage?>(null)

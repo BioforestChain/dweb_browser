@@ -113,8 +113,10 @@ fun DesktopV2Controller.RenderImpl() {
       ) {
         searchBar.Render(Modifier.padding(vertical = 16.dp))
         LaunchedEffect(Unit) {
-          searchBar.onSearchFlow.collect {
-            desktopController.search(it)
+          searchBar.onSearchFlow.collect { searchWord ->
+            if (searchWord.isNotEmpty()) {
+              desktopController.search(searchWord)
+            }
           }
         }
         val innerPadding = remember(layout.insets, safeGestures) {
