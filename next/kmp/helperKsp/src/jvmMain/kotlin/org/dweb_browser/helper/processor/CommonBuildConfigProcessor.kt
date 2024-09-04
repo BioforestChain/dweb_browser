@@ -82,7 +82,6 @@ public object CommonBuildConfig {
 
 class CommonBuildConfigProvider : SymbolProcessorProvider {
   override fun create(environment: SymbolProcessorEnvironment): SymbolProcessor {
-    environment.options
     return CommonBuildConfigProcessor(
       environment.codeGenerator,
       environment.logger,

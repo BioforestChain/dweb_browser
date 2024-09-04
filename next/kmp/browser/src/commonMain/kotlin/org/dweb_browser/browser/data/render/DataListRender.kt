@@ -79,6 +79,12 @@ fun DataController.ListRender() {
         Text("数据加载中……")
       }
 
+      profileInfos.isEmpty() -> Box(
+        Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center
+      ) {
+        Text("暂无数据")
+      }
+
       else -> LazyColumn(Modifier.fillMaxSize().padding(paddingValues)) {
         itemsIndexed(
           profileInfos,
