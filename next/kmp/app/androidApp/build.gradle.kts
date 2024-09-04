@@ -160,9 +160,9 @@ android {
       } else {
         signingConfig = signingConfigs.getByName("debug")
         configChannel(buildChannel, this)
-        manifestPlaceholders["appIcon"] = "@mipmap/ic_launcher_debug"
         manifestPlaceholders["isTestOnly"] = "true"
       }
+      manifestPlaceholders["appIcon"] = "@mipmap/ic_launcher_debug"
       isDebuggable = true
     }
     create("benchmark") {
