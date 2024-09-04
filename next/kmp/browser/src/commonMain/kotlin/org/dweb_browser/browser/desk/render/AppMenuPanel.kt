@@ -114,16 +114,9 @@ internal class AppMenuPanel(
     }
   }
 
-  fun doUninstall(mmid: String) {
+  fun doRemove(mmid: String, isWebLink: Boolean) {
     microModule.scopeLaunch(cancelable = true) {
-      desktopController.uninstall(mmid)
-    }
-  }
-
-
-  fun doWebLinkDelete(mmid: String) {
-    microModule.scopeLaunch(cancelable = true) {
-      desktopController.removeWebLink(mmid)
+      desktopController.remove(mmid, isWebLink)
     }
   }
 
@@ -177,10 +170,7 @@ internal class AppMenuPanel(
       AnimatedVisibility(isOpenDeleteDialog) {
         DeskDeleteAlert(app, microModule, onDismissRequest = { hide() }, onConfirm = {
           hide()
-          when {
-            app.isWebLink -> doWebLinkDelete(app.mmid)
-            else -> doUninstall(app.mmid)
-          }
+          doRemove(app.mmid, app.isWebLink)
         })
       }
     }

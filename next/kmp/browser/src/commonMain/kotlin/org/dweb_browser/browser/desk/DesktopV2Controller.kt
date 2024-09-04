@@ -3,32 +3,14 @@ package org.dweb_browser.browser.desk
 import androidx.compose.runtime.Composable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filter
-import kotlinx.serialization.Serializable
 import org.dweb_browser.browser.desk.model.DesktopAppModel
 import org.dweb_browser.browser.desk.render.RenderImpl
 import org.dweb_browser.browser.desk.render.layoutSaveStrategyIsMultiple
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.std.dns.nativeFetch
-import org.dweb_browser.core.std.file.ext.createStore
 import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.platform.IPureViewController
 import org.mkdesklayout.project.NFSpaceCoordinateLayout
-
-@Serializable
-data class DeskAppLayoutInfo(val screenWidth: Int, val layouts: Map<MMID, NFSpaceCoordinateLayout>)
-
-private class DesktopV2AppLayoutStore(deskNMM: DeskNMM.DeskRuntime) {
-
-  private val appsLayoutStore = deskNMM.createStore("apps_layout", false)
-
-  suspend fun getStoreAppsLayouts(): List<DeskAppLayoutInfo> {
-    return appsLayoutStore.getOrNull("layouts") ?: emptyList()
-  }
-
-  suspend fun setStoreAppsLayouts(layouts: List<DeskAppLayoutInfo>) {
-    appsLayoutStore.set("layouts", layouts)
-  }
-}
 
 class DesktopV2Controller private constructor(
   viewController: IPureViewController,
@@ -48,10 +30,6 @@ class DesktopV2Controller private constructor(
   private val openingApps = mutableSetOf<MMID>()
   internal val appsFlow = MutableStateFlow(emptyList<DesktopAppModel>())
   internal val appLayoutsFlow = MutableStateFlow(emptyList<DeskAppLayoutInfo>())
-
-  private val appsLayoutStore = DesktopV2AppLayoutStore(deskNMM)
-
-  private suspend fun getAllAppLayouts() = appsLayoutStore.getStoreAppsLayouts()
 
   suspend fun updateAppsLayouts(screenWidth: Int, layouts: Map<MMID, NFSpaceCoordinateLayout>) {
     val allLayouts = appsLayoutStore.getStoreAppsLayouts().toMutableList()
@@ -83,7 +61,9 @@ class DesktopV2Controller private constructor(
         appMetaData = appMetaData, initRunningState = runStatus
       )
     }
-    appLayoutsFlow.value = getAllAppLayouts()
+
+    appsLayoutStore.clearInvaildLayouts(appsFlow.value.map { it.mmid })
+    appLayoutsFlow.value = appsLayoutStore.getStoreAppsLayouts()
   }
 
   override suspend fun openAppOrActivate(mmid: MMID) {

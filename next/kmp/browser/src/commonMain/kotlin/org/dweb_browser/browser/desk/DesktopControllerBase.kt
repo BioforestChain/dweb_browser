@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.dweb_browser.browser.desk.types.DeskAppMetaData
 import org.dweb_browser.browser.web.WebLinkMicroModule
@@ -20,6 +21,7 @@ import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.std.dns.nativeFetch
+import org.dweb_browser.core.std.file.ext.createStore
 import org.dweb_browser.helper.OffListener
 import org.dweb_browser.helper.SafeHashSet
 import org.dweb_browser.helper.SimpleSignal
@@ -29,6 +31,7 @@ import org.dweb_browser.helper.platform.IPureViewController
 import org.dweb_browser.helper.platform.from
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.sys.window.core.WindowController
+import org.mkdesklayout.project.NFSpaceCoordinateLayout
 
 sealed class DesktopControllerBase(
   val viewController: IPureViewController,
@@ -104,6 +107,7 @@ sealed class DesktopControllerBase(
     }
   }
 
+  internal val appsLayoutStore = DesktopV2AppLayoutStore(deskNMM)
 
   open suspend fun openAppOrActivate(mmid: MMID) {
     deskNMM.openAppOrActivate(mmid)
@@ -131,7 +135,7 @@ sealed class DesktopControllerBase(
     return true
   }
 
-  suspend fun removeWebLink(id: MMID): Boolean {
+  private suspend fun removeWebLink(id: MMID): Boolean {
     deskNMM.bootstrapContext.dns.uninstall(id)
     webLinkStore.delete(id)
     return true
@@ -163,8 +167,16 @@ sealed class DesktopControllerBase(
     deskNMM.nativeFetch("file://jmm.browser.dweb/detail?app_id=$mmid")
   }
 
-  suspend fun uninstall(mmid: String) {
+  private suspend fun uninstall(mmid: String) {
     deskNMM.nativeFetch("file://jmm.browser.dweb/uninstall?app_id=$mmid")
+  }
+
+  suspend fun remove(mmid: MMID, isWebLink: Boolean) {
+    when {
+      isWebLink -> removeWebLink(mmid)
+      else -> uninstall(mmid)
+    }
+    appsLayoutStore.removeLayouts(mmid)
   }
 
   suspend fun share(mmid: String) {
@@ -253,5 +265,39 @@ sealed class DesktopControllerBase(
     deskNMM.runningAppsFlow.collectIn(deskNMM.getRuntimeScope()) {
       updateFlow.emit("apps")
     }
+  }
+}
+
+@Serializable
+data class DeskAppLayoutInfo(val screenWidth: Int, val layouts: Map<MMID, NFSpaceCoordinateLayout>)
+
+internal class DesktopV2AppLayoutStore(deskNMM: DeskNMM.DeskRuntime) {
+
+  private val appsLayoutStore = deskNMM.createStore("apps_layout", false)
+
+  suspend fun getStoreAppsLayouts(): List<DeskAppLayoutInfo> {
+    return appsLayoutStore.getOrNull("layouts") ?: emptyList()
+  }
+
+  suspend fun setStoreAppsLayouts(layouts: List<DeskAppLayoutInfo>) {
+    appsLayoutStore.set("layouts", layouts)
+  }
+
+  suspend fun removeLayouts(mmid: MMID) {
+    val result = getStoreAppsLayouts().map { layoutInfo ->
+      layoutInfo.copy(layouts = layoutInfo.layouts.filter { layout ->
+        layout.key != mmid
+      })
+    }
+    setStoreAppsLayouts(result)
+  }
+
+  suspend fun clearInvaildLayouts(list: List<MMID>) {
+    val result = getStoreAppsLayouts().map { layoutInfo ->
+      layoutInfo.copy(layouts = layoutInfo.layouts.filter { layout ->
+        list.contains(layout.key)
+      })
+    }
+    setStoreAppsLayouts(result)
   }
 }
