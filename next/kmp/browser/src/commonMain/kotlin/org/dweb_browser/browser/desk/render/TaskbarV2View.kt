@@ -3,17 +3,22 @@ package org.dweb_browser.browser.desk.render
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredHeight
+import androidx.compose.foundation.layout.requiredHeightIn
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CornerSize
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -24,14 +29,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.fastCoerceIn
 import androidx.compose.ui.util.lerp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
@@ -45,10 +54,11 @@ import org.dweb_browser.helper.platform.isDesktop
 import org.dweb_browser.helper.platform.isIOS
 import org.dweb_browser.sys.window.core.constant.WindowMode
 import org.dweb_browser.sys.window.floatBar.DraggableDelegate
+import org.dweb_browser.sys.window.floatBar.floatBarDefaultShape
 import kotlin.math.min
 import kotlin.math.sqrt
 
-private const val TASKBAR_MIN_WIDTH = 32f
+private const val TASKBAR_MIN_WIDTH = 42f
 private const val TASKBAR_MAX_WIDTH = 54f
 private const val TASKBAR_PADDING_VALUE = 6f
 private const val TASKBAR_DIVIDER_HEIGHT = 8f
@@ -87,6 +97,7 @@ abstract class ITaskbarV2View(protected val taskbarController: TaskbarV2Controll
   protected fun RenderContent(
     draggableDelegate: DraggableDelegate,
     displaySize: Size,
+    scrollMaskColor: Color = Color.Transparent,
     modifier: Modifier = Modifier,
   ) {
     val apps by taskbarController.appsFlow.collectAsState()
@@ -142,6 +153,7 @@ abstract class ITaskbarV2View(protected val taskbarController: TaskbarV2Controll
     var appIconsExpandedHeight by remember { mutableStateOf(0f) }
     var appIconsFoldHeight by remember { mutableStateOf(0f) }
     var iconSize by remember { mutableStateOf(0f) }
+    var taskbarAppsMaxHeight by remember { mutableStateOf(0f) }
     LaunchedEffect(appCount, displaySize, isExpanded) {
       taskbarWidth = clamp(
         TASKBAR_MIN_WIDTH, min(displaySize.width, displaySize.height) * 0.14f, TASKBAR_MAX_WIDTH
@@ -153,9 +165,10 @@ abstract class ITaskbarV2View(protected val taskbarController: TaskbarV2Controll
         appIconsExpandedHeight = 0f
         appIconsFoldHeight = 0f
       } else {
-        appIconsExpandedHeight = appCount * iconSize
-        appIconsFoldHeight = taskbarWidth
+        appIconsExpandedHeight = appCount * iconSize + paddingValue
+        appIconsFoldHeight = taskbarWidth + appCount
       }
+      taskbarAppsMaxHeight = displaySize.height - taskbarWidth - paddingValue
     }
 
     val taskBarHomeButton = rememberTaskBarHomeButton(taskbarController.deskNMM)
@@ -166,100 +179,151 @@ abstract class ITaskbarV2View(protected val taskbarController: TaskbarV2Controll
     }
 
     Layout(modifier = modifier, content = {
+      val taskbarWidthDp = taskbarWidth.dp
       Column(
-        modifier = Modifier.requiredWidth(taskbarWidth.dp),
+        modifier = Modifier.requiredWidth(taskbarWidthDp),
         verticalArrangement = Arrangement.SpaceBetween,
         horizontalAlignment = Alignment.CenterHorizontally
       ) {
-        val taskbarAppsHeightDp =
-          lerp(appIconsFoldHeight, appIconsExpandedHeight, expandedAni.value).dp
+        val taskbarAppsHeight = lerp(appIconsFoldHeight, appIconsExpandedHeight, expandedAni.value)
+        val taskbarAppsHeightDp = taskbarAppsHeight.dp
 
-        Box(
-          modifier = modifier.fillMaxSize().requiredHeight(taskbarAppsHeightDp),
-          contentAlignment = Alignment.TopCenter,
-        ) {
-          /// 让动画计算
-          apps.forEach { app -> app.aniProp.Effect() }
+        val taskbarAppsMaxHeightDp = taskbarAppsMaxHeight.dp
 
-          @Composable
-          fun <T> itemsIndexed(
-            list: List<T>, key: (Int, T) -> Any?, item: @Composable (index: Int, T) -> Unit,
+
+        @Composable
+        fun AppsScrollBox(content: @Composable BoxScope.() -> Unit) {
+          val appsScrollState = rememberScrollState()
+          Box(
+            Modifier.requiredSize(taskbarWidthDp, min(taskbarAppsMaxHeight, taskbarAppsHeight).dp)
+              .clip(
+                floatBarDefaultShape.copy(
+                  bottomStart = CornerSize(0.dp), bottomEnd = CornerSize(0.dp)
+                )
+              )
           ) {
-            list.forEachIndexed { index, item ->
-              key(key(index, item)) {
-                item(index, item)
-              }
+            Box(
+              Modifier.requiredWidth(taskbarWidthDp).requiredHeightIn(max = taskbarAppsMaxHeightDp)
+                .verticalScroll(appsScrollState)
+            ) {
+              Box(
+                modifier = Modifier.requiredSize(taskbarWidthDp, taskbarAppsHeightDp),
+                contentAlignment = Alignment.TopCenter,
+                content = content,
+              )
             }
-          }
-
-          @Composable
-          fun appsRender(popupOffset: IntOffset? = null) {
-            itemsIndexed(
-              apps,
-              key = { _, it -> it.mmid },
-            ) { index, app ->
-              val aniProp = app.aniProp
-              aniProp.setOffsetY(lerp(index.toFloat(), iconSize * index, expandedAni.value))
-
-              @Suppress("DeferredResultUnused") TaskBarAppIcon(
-                app = app,
-                microModule = taskbarController.deskNMM,
-                openAppOrActivate = {
-                  if (canFold) {
-                    isFocus = true
-                  }
-
-                  app.opening = true
-                  taskbarController.openAppOrActivate(app.mmid).invokeOnCompletion {
-                    app.opening = false
-                  }
-                },
-                quitApp = {
-                  taskbarController.closeApp(app.mmid)
-                },
-                toggleWindow = {
-                  taskbarController.toggleWindowMaximize(app.mmid)
-                },
-                modifier = Modifier.zIndex(apps.size - index - 1f).offset(y = aniProp.offsetYDp)
-                  .requiredSize(taskbarWidth.dp).padding(horizontal = paddingValue.dp),
-                containerAlpha = when {
-                  isExpanded -> null
-                  else -> 1f
-                },
-                shadow = when {
-                  isExpanded -> null
-                  else -> 1.dp
-                },
-                popupOffset = popupOffset,
+            val d = LocalDensity.current.density
+            val scrollY = appsScrollState.value / d
+            val scrollMaskHeight = paddingValue * 2
+            val scrollMaskHeightDp = scrollMaskHeight.dp
+            if (scrollY > 0f) {
+              Box(
+                Modifier.fillMaxWidth().height(scrollMaskHeightDp).offset(
+                  y = lerp(
+                    -scrollMaskHeight, 0f, (scrollY / (scrollMaskHeight * 2)).fastCoerceIn(0f, 1f)
+                  ).dp
+                ).background(Brush.verticalGradient(listOf(scrollMaskColor, Color.Transparent)))
+              )
+            }
+            if (taskbarAppsHeight > taskbarAppsMaxHeight) {
+              val maxScrollY = appsScrollState.maxValue / d
+              Box(
+                Modifier.fillMaxWidth().height(scrollMaskHeightDp).offset(
+                  y = lerp(
+                    taskbarAppsMaxHeight - scrollMaskHeight,
+                    taskbarAppsMaxHeight,
+                    (1 - (maxScrollY - scrollY) / (scrollMaskHeight * 2)).fastCoerceIn(0f, 1f)
+                  ).dp
+                ).background(Brush.verticalGradient(listOf(Color.Transparent, scrollMaskColor)))
               )
             }
           }
+        }
 
-          /// 修改图层的背景颜色
-          LaunchedEffect(isFocus) {
-            taskbarController.state.backgroundAlphaGetter = when {
-              isFocus -> ({ sqrt(it) })
-              else -> null
+        @Composable
+        fun <T> itemsIndexed(
+          list: List<T>, getKey: (Int, T) -> Any?, action: @Composable (index: Int, T) -> Unit,
+        ) {
+          list.forEachIndexed { index, item ->
+            key(getKey(index, item)) {
+              action(index, item)
             }
           }
+        }
 
-          when {
-            popupStrategy == PopupStrategy.DISABLED || (popupStrategy == PopupStrategy.REQUIRED && !isFocus) -> appsRender()
+        @Composable
+        fun AppsRender(popupOffset: IntOffset? = null) {
+          itemsIndexed(
+            apps,
+            getKey = { _, it -> it.mmid },
+          ) { index, app ->
+            val aniProp = app.rememberAniProp()
+            aniProp.setOffsetY(lerp(index.toFloat(), iconSize * index, expandedAni.value))
+            /// 让动画计算
+            aniProp.Effect()
 
-            else -> {
-              /// 这里因为是一个新的Popup，所以需要手动记录一下位置，为内部长按的popup提供位置
-              var popupPos by remember { mutableStateOf(IntOffset.Zero) }
-              val density = LocalDensity.current.density
-              Box(Modifier.onGloballyPositioned {
-                popupPos = it.boundsInRoot().run {
-                  IntOffset(
-                    x = (left + taskbarController.state.layoutX * density).toInt(),
-                    y = (top + taskbarController.state.layoutY * density).toInt(),
-                  )
+            @Suppress("DeferredResultUnused") TaskBarAppIcon(
+              app = app,
+              microModule = taskbarController.deskNMM,
+              openAppOrActivate = {
+                if (canFold) {
+                  isFocus = true
                 }
-              })
 
-              /// 这里Popup需要长期存在，否则如果开关popup，会导致popup渲染残影
+                app.opening = true
+                taskbarController.openAppOrActivate(app.mmid).invokeOnCompletion {
+                  app.opening = false
+                }
+              },
+              quitApp = {
+                taskbarController.closeApp(app.mmid)
+              },
+              toggleWindow = {
+                taskbarController.toggleWindowMaximize(app.mmid)
+              },
+              modifier = Modifier.zIndex(apps.size - index - 1f).offset(y = aniProp.offsetYDp)
+                .requiredSize(taskbarWidth.dp).padding(horizontal = paddingValue.dp),
+              containerAlpha = when {
+                isExpanded -> null
+                else -> 1f
+              },
+              shadow = when {
+                isExpanded -> null
+                else -> 1.dp
+              },
+              popupOffset = popupOffset,
+            )
+          }
+        }
+
+        /// 修改图层的背景颜色
+        LaunchedEffect(isFocus) {
+          taskbarController.state.backgroundAlphaGetter = when {
+            isFocus -> ({ sqrt(it) })
+            else -> null
+          }
+        }
+
+        when {
+          popupStrategy == PopupStrategy.DISABLED || (popupStrategy == PopupStrategy.REQUIRED && !isFocus) -> AppsScrollBox { AppsRender() }
+
+          else -> {
+            /// 这里因为是一个新的Popup，所以需要手动记录一下位置，为内部长按的popup提供位置
+            var popupPos by remember { mutableStateOf(IntOffset.Zero) }
+            val density = LocalDensity.current.density
+            Box(Modifier.onGloballyPositioned {
+              popupPos = it.boundsInRoot().run {
+                IntOffset(
+                  x = (left + taskbarController.state.layoutX * density).toInt(),
+                  y = (top + taskbarController.state.layoutY * density).toInt(),
+                )
+              }
+            })
+
+            /// 这里Popup需要长期存在，否则如果开关popup，会导致popup渲染残影
+            Box(
+              Modifier.requiredSize(taskbarWidthDp, min(taskbarAppsMaxHeight, taskbarAppsHeight).dp)
+            ) {
               Popup(
                 onDismissRequest = {
                   isFocus = false
@@ -270,8 +334,8 @@ abstract class ITaskbarV2View(protected val taskbarController: TaskbarV2Controll
                   clippingEnabled = true,
                 )
               ) {
-                Box(Modifier.height(taskbarAppsHeightDp)) {
-                  appsRender(if (IPureViewController.isAndroid) popupPos else null)
+                AppsScrollBox {
+                  AppsRender(if (IPureViewController.isAndroid) popupPos else null)
                 }
               }
             }
@@ -299,13 +363,7 @@ abstract class ITaskbarV2View(protected val taskbarController: TaskbarV2Controll
 
         /// apps 和 底部按钮的分割线
         if (appCount > 0) {
-          TaskBarDivider(
-            paddingValue.dp,
-            when {
-              IPureViewController.isIOS -> (paddingValue - 2).dp
-              else -> paddingValue.dp
-            }
-          )
+          TaskBarDivider(Modifier.padding(horizontal = paddingValue.dp))
         }
 
         /// 底部按钮
@@ -315,7 +373,7 @@ abstract class ITaskbarV2View(protected val taskbarController: TaskbarV2Controll
       }
     }) { measurables, constraints ->
       val placeables = measurables.map { measurable ->
-        measurable.measure(constraints.copy(maxHeight = Int.MAX_VALUE))
+        measurable.measure(constraints.copy(maxHeight = Int.MAX_VALUE, maxWidth = Int.MAX_VALUE))
       }
       val layoutWidth = placeables.maxOf { it.width }
       val layoutHeight = placeables.maxOf { it.height }

@@ -67,16 +67,14 @@ private fun TaskbarMover(
   }
 }
 
-class TaskbarV2View(taskbarController: TaskbarV2Controller) :
-  ITaskbarV2View(taskbarController) {
+class TaskbarV2View(taskbarController: TaskbarV2Controller) : ITaskbarV2View(taskbarController) {
   private val displaySizeFlow = MutableStateFlow(Size.Zero)
   private val safePaddingFlow = MutableStateFlow(PureBounds.Zero)
   private val pvc = PureViewController(fullscreen = false).also { pvc ->
     pvc.addContent {
       val displaySize by displaySizeFlow.collectAsState()
       val safePadding by safePaddingFlow.collectAsState()
-      FloatBarShell(
-        state,
+      FloatBarShell(state,
         displaySize = displaySize,
         safePadding = safePadding,
         effectBounds = { bounds ->
@@ -87,7 +85,11 @@ class TaskbarV2View(taskbarController: TaskbarV2Controller) :
         }) { modifier ->
         TaskbarMover(pvc, draggableDelegate, modifier) {
           /// 渲染内容
-          RenderContent(draggableDelegate, displaySize = displaySize)
+          RenderContent(
+            draggableDelegate,
+            displaySize = safeBounds.size,
+            scrollMaskColor = backgroundColor,
+          )
         }
       }
     }

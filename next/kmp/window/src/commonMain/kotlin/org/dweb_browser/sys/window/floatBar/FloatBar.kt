@@ -38,7 +38,11 @@ import org.dweb_browser.helper.setValue
 import squircleshape.CornerSmoothing
 import squircleshape.SquircleShape
 
-class FloatBarContext(val draggableDelegate: DraggableDelegate)
+class FloatBarContext(
+  val draggableDelegate: DraggableDelegate,
+  val safeBounds: SafeBounds,
+  val backgroundColor: Color,
+)
 
 /**
  * FloatBar 外壳，提供定位渲染的功能
@@ -129,7 +133,13 @@ fun FloatBarShell(
     }
   }
 
-  val ctx = remember(draggableDelegate) { FloatBarContext(draggableDelegate) }
+  val backgroundColor = floatBarBackgroundColor(
+    isDark = isDark,
+    getAlpha = state.backgroundAlphaGetterFlow.collectAsState().value,
+  )
+  val ctx = remember(draggableDelegate, safeBounds, backgroundColor) {
+    FloatBarContext(draggableDelegate, safeBounds, backgroundColor)
+  }
   ctx.moverContent(
     modifier.zIndex(1000f).effectBounds(
       PureRect(
@@ -138,13 +148,23 @@ fun FloatBarShell(
         width = boxWidth,
         height = boxHeight,
       )
-    ).floatBarBackground(
-      isDark = isDark,
+    ).background(
+      color = backgroundColor,
       shape = floatBarDefaultShape,
-      getAlpha = state.backgroundAlphaGetterFlow.collectAsState().value,
     )
   )
 }
+
+@Composable
+private fun floatBarBackgroundColor(
+  isDark: Boolean,
+  getAlpha: ((Float) -> Float)? = null,
+) = animateColorAsState(remember(isDark, getAlpha) {
+  when {
+    isDark -> Color.White.copy(alpha = 0.45f.let { getAlpha?.invoke(it) ?: it })
+    else -> Color.Black.copy(alpha = 0.2f.let { getAlpha?.invoke(it) ?: it })
+  }
+}).value
 
 fun Modifier.floatBarBackground(
   isDark: Boolean,
@@ -186,7 +206,7 @@ fun FloatBarMover(
   }
 }
 
-private class SafeBounds(
+class SafeBounds(
   val left: Float,
   val top: Float,
   val right: Float,
@@ -194,6 +214,9 @@ private class SafeBounds(
 ) {
   val hCenter get() = left + (right - left) / 2
   val vCenter get() = top + (bottom - top) / 2
+  val height get() = bottom - top
+  val width get() = right - left
+  val size get() = Size(width, height)
 }
 
 class DraggableDelegate() {

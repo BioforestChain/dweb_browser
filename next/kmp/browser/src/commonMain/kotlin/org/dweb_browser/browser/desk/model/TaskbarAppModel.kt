@@ -22,7 +22,7 @@ import org.dweb_browser.helper.globalDefaultScope
 import org.dweb_browser.sys.window.core.constant.WindowMode
 
 internal data class TaskbarAppModelState(
-  var focus: Boolean = false, var visible: Boolean = false, var mode: WindowMode = WindowMode.FLOAT
+  var focus: Boolean = false, var visible: Boolean = false, var mode: WindowMode = WindowMode.FLOAT,
 )
 
 internal class TaskbarAppModel(
@@ -30,31 +30,32 @@ internal class TaskbarAppModel(
   val icon: StrictImageResource?,
   running: Boolean,
   var isShowClose: Boolean = false,
-  var state: TaskbarAppModelState = TaskbarAppModelState()
+  var state: TaskbarAppModelState = TaskbarAppModelState(),
 ) {
   var running by mutableStateOf(running)
   var opening by mutableStateOf(false)
-  val aniProp
-    @Composable get() = remember {
-      object : RememberObserver {
-        private val rid = AnimationProp.ridAcc++
-        val prop = AnimationProp.getOrCreate(mmid, rid)
-        private fun free() {
-          prop.unRef(rid)
-        }
 
-        override fun onAbandoned() {
-          free()
-        }
-
-        override fun onForgotten() {
-          free()
-        }
-
-        override fun onRemembered() {
-        }
+  @Composable
+  fun rememberAniProp() = remember {
+    object : RememberObserver {
+      private val rid = AnimationProp.ridAcc++
+      val prop = AnimationProp.getOrCreate(mmid, rid)
+      private fun free() {
+        prop.unRef(rid)
       }
-    }.prop
+
+      override fun onAbandoned() {
+        free()
+      }
+
+      override fun onForgotten() {
+        free()
+      }
+
+      override fun onRemembered() {
+      }
+    }
+  }.prop
 
   class AnimationProp(val mmid: MMID) {
     companion object {
@@ -90,12 +91,12 @@ internal class TaskbarAppModel(
     private var targetOffsetY by mutableStateOf(0f)
     fun setOffsetY(offsetY: Float) {
       targetOffsetY = offsetY
-      offsetYDp = offsetY.dp
+//      offsetYDp = offsetY.dp
     }
 
     @Composable
     internal fun Effect() {
-//      offsetYDp = animateFloatAsState(targetOffsetY, taskbarAppAniSpec()).value.dp
+      offsetYDp = animateFloatAsState(targetOffsetY, taskbarAppAniSpec()).value.dp
     }
   }
 }

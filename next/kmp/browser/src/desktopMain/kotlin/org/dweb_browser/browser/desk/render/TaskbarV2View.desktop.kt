@@ -54,7 +54,11 @@ class TaskbarV2View(taskbarController: TaskbarV2Controller) : ITaskbarV2View(tas
               }
             ) { modifier ->
               FloatBarMover(draggableDelegate, modifier) {
-                RenderContent(draggableDelegate, displaySize = displaySize)
+                RenderContent(
+                  draggableDelegate,
+                  displaySize = safeBounds.size,
+                  scrollMaskColor = backgroundColor,
+                )
               }
             }
           },
