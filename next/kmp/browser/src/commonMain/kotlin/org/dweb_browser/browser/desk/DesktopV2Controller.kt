@@ -45,7 +45,7 @@ class DesktopV2Controller private constructor(
   }
 
   private suspend fun upsetApps() {
-    appsFlow.value = getDesktopApps().map { appMetaData ->
+    val apps = getDesktopApps().map { appMetaData ->
       val runStatus = if (appMetaData.running) {
         openingApps.remove(appMetaData.mmid)
         DesktopAppModel.DesktopAppRunStatus.Opened
@@ -62,8 +62,9 @@ class DesktopV2Controller private constructor(
       )
     }
 
-    appsLayoutStore.clearInvaildLayouts(appsFlow.value.map { it.mmid })
+    appsLayoutStore.clearInvaildLayouts(apps.map { it.mmid })
     appLayoutsFlow.value = appsLayoutStore.getStoreAppsLayouts()
+    appsFlow.value = apps
   }
 
   override suspend fun openAppOrActivate(mmid: MMID) {

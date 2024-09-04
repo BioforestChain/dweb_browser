@@ -172,11 +172,11 @@ sealed class DesktopControllerBase(
   }
 
   suspend fun remove(mmid: MMID, isWebLink: Boolean) {
+    appsLayoutStore.removeLayouts(mmid)
     when {
       isWebLink -> removeWebLink(mmid)
       else -> uninstall(mmid)
     }
-    appsLayoutStore.removeLayouts(mmid)
   }
 
   suspend fun share(mmid: String) {
