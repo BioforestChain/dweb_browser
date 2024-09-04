@@ -148,9 +148,12 @@ class MicroModuleStore(
   suspend fun save() = exec {
     val map = getStore()
 //    mm.debugMM("store-save", queryPath)
-    mm.writeFile(path = queryPath, body = IPureBody.from(Cbor.encodeToByteArray(map).let {
-      cipherKey?.let { key -> cipher_aes_256_gcm(key, it) } ?: it
-    }))
+    mm.writeFile(
+      path = queryPath,
+      body = IPureBody.from(Cbor.encodeToByteArray(map).let {
+        cipherKey?.let { key -> cipher_aes_256_gcm(key, it) } ?: it
+      })
+    )
   }
 
   @OptIn(ExperimentalSerializationApi::class)

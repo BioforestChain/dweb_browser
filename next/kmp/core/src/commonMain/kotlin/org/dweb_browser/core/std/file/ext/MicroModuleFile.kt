@@ -80,6 +80,7 @@ suspend fun MicroModule.Runtime.writeFile(path: String, body: IPureBody) {
       href = buildUrlString("file://file.std.dweb/write") {
         parameters["path"] = path
         parameters["create"] = "true"
+        parameters["backup"] = "true"
       }, method = PureMethod.POST, body = body
     )
   )

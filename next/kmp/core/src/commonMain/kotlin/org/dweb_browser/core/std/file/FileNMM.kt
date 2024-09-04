@@ -281,11 +281,28 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
         "/write" bind PureMethod.POST by defineEmptyResponse {
           val (filepath, fs) = getPath()
           val create = request.queryAsOrNull<Boolean>("create") ?: false
-          if (create) {
-            touchFile(filepath, fs)
+
+          /**
+           * 写入之前备份，避免写入过程中应用中断导致一系列问题，对于文件数据库很有必要
+           */
+          val backup = request.queryAsOrNull<Boolean>("backup") ?: false
+
+          if (backup) {
+            val backupFilepath = "$filepath.${randomUUID()}.bak".toPath()
+            touchFile(backupFilepath, fs)
+            val backupFileSource = fs.sink(backupFilepath, false).buffer()
+            request.body.toPureStream().getReader("write to file").copyTo(backupFileSource)
+            if (fs.exists(filepath)) {
+              fs.delete(filepath, false)
+            }
+            fs.atomicMove(backupFilepath, filepath)
+          } else {
+            if (create) {
+              touchFile(filepath, fs)
+            }
+            val fileSource = fs.sink(filepath, false).buffer()
+            request.body.toPureStream().getReader("write to file").copyTo(fileSource)
           }
-          val fileSource = fs.sink(filepath, false).buffer()
-          request.body.toPureStream().getReader("write to file").copyTo(fileSource)
         },
         // 追加文件，一次性追加
         "/append" bind PureMethod.PUT by defineEmptyResponse {

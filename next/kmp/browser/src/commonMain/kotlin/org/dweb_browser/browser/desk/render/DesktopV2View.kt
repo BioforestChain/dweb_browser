@@ -153,7 +153,8 @@ fun DesktopV2Controller.RenderImpl() {
               scope.launch {
                 desktopController.updateAppsLayouts(
                   screenWidth = layoutScreenWidth,
-                  geoMaps.mapKeys { it.key.mmid })
+                  layouts = geoMaps.mapKeys { it.key.mmid },
+                )
               }
             }) { app, geometry, draging ->
             val iConModifier = Modifier.run {
