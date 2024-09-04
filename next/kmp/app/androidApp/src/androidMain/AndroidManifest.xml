@@ -28,7 +28,7 @@
   <application
     android:name=".DwebBrowserApp"
     android:allowBackup="true"
-    android:testOnly="@bool/isDev"
+    android:testOnly="${isTestOnly}"
     android:hardwareAccelerated="true"
     android:icon="${appIcon}"
     android:label="${appName}"

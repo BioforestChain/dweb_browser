@@ -146,6 +146,7 @@ android {
       setProguardFiles(listOf("proguard-rules.pro"))
       isShrinkResources = true // 移除无用的resource
       configChannel(buildChannel, this)
+      manifestPlaceholders["isTestOnly"] = "false"
     }
     getByName("debug") {
       if (isReleaseBuild) {
@@ -155,10 +156,12 @@ android {
         setProguardFiles(listOf("proguard-rules.pro"))
         isShrinkResources = true // 移除无用的resource
         configChannel(buildChannel, this)
+        manifestPlaceholders["isTestOnly"] = "false"
       } else {
         signingConfig = signingConfigs.getByName("debug")
         configChannel(buildChannel, this)
         manifestPlaceholders["appIcon"] = "@mipmap/ic_launcher_debug"
+        manifestPlaceholders["isTestOnly"] = "true"
       }
       isDebuggable = true
     }
