@@ -46,11 +46,11 @@ import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
 import org.dweb_browser.helper.compose.envSwitch
 import org.dweb_browser.helper.compose.hex
 import org.dweb_browser.helper.getCompletedOrNull
+import org.dweb_browser.sys.window.core.LocalWindowController
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
 import org.dweb_browser.sys.window.core.WindowContentScaffoldWithTitleText
 import org.dweb_browser.sys.window.core.constant.LocalWindowMM
 import org.dweb_browser.sys.window.core.windowAdapterManager
-import org.dweb_browser.sys.window.core.LocalWindowController
 import org.dweb_browser.sys.window.helper.LocalWindowControllerTheme
 
 internal fun provideAboutRender(
@@ -225,7 +225,7 @@ fun AboutAppInfoRender(
         nav.pushPage { modifier ->
           Html5TestRender(modifier)
         }
-      }, labelName = AboutI18nResource.webview(), text = score ?: "", icon = when (score) {
+      }, labelName = AboutI18nResource.html5test(), text = score ?: "", icon = when (score) {
         null -> ({ CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp) })
         else -> null
       }
