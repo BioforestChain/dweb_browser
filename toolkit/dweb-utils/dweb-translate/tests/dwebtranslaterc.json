@@ -1,0 +1,1 @@
+{ "files": ["./manifest.test.json"], "from": "zh", "to": "en", "outDir": "./i18ndir" }
