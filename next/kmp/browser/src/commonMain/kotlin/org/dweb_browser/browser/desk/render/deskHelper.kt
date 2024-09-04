@@ -6,8 +6,6 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import org.mkdesklayout.project.NFCacalaterParams
 import squircleshape.CornerSmoothing
@@ -37,16 +35,6 @@ data class DesktopGridLayout(
 expect fun desktopGridLayout(): DesktopGridLayout
 
 expect fun canSupportModifierBlur(): Boolean
-
-@Composable
-expect fun Modifier.desktopAppItemActions(
-  onHoverStart: () -> Unit = {},
-  onHoverEnd: () -> Unit = {},
-  onDoubleTap: () -> Unit = {},
-  onOpenApp: () -> Unit = {},
-  onOpenAppMenu: () -> Unit = {},
-): Modifier
-
 
 expect fun getLayoutParams(width: Int, height: Int): NFCacalaterParams
 

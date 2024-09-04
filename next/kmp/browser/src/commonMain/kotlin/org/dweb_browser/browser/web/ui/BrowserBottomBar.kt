@@ -81,7 +81,7 @@ fun BrowserBottomBar(modifier: Modifier) {
           items(
             viewModel.pageSize,
             key = { pageIndex -> viewModel.getPage(pageIndex).hashCode() }) { pageIndex ->
-            PagerTab(
+            PageTabWithToolTip(
               viewModel.getPage(pageIndex),
               Modifier.requiredSizeIn(minWidth = 180.dp, maxWidth = 220.dp)
             )
@@ -99,7 +99,7 @@ fun BrowserBottomBar(modifier: Modifier) {
           pageSpacing = 4.dp,
           key = { pageIndex -> viewModel.getPage(pageIndex).hashCode() },
           pageContent = { pageIndex ->
-            PagerTab(viewModel.getPage(pageIndex), Modifier.requiredSizeIn(minWidth = 180.dp))
+            PageTabWithToolTip(viewModel.getPage(pageIndex), Modifier.requiredSizeIn(minWidth = 180.dp))
           },
         )
       }

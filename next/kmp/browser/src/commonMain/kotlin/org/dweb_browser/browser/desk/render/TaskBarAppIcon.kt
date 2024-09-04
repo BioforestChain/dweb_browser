@@ -26,6 +26,7 @@ import org.dweb_browser.browser.desk.model.TaskbarAppModel
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.file.ext.blobFetchHook
 import org.dweb_browser.helper.compose.clickableWithNoEffect
+import org.dweb_browser.helper.compose.pointerActions
 import org.dweb_browser.helper.platform.theme.LocalColorful
 import org.dweb_browser.sys.haptics.ext.vibrateHeavyClick
 import org.dweb_browser.sys.haptics.ext.vibrateImpact
@@ -69,7 +70,7 @@ internal fun TaskBarAppIcon(
           else -> tween(200)
         }
       ).value
-    ).desktopAppItemActions(
+    ).pointerActions(
       onHoverStart = {
         scope.launch {
           microModule.vibrateImpact()
@@ -79,7 +80,7 @@ internal fun TaskBarAppIcon(
       onHoverEnd = {
         isHover = false
       },
-      onOpenApp = {
+      onTap = {
         openAppOrActivate()
       },
       onDoubleTap = {
@@ -91,7 +92,7 @@ internal fun TaskBarAppIcon(
           toggleWindow()
         }
       },
-      onOpenAppMenu = {
+      onMenu = {
         if (app.running) {
           scope.launch {
             microModule.vibrateHeavyClick()

@@ -12,6 +12,10 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 
+@Deprecated(
+  "use material3 HorizontalDivider",
+  replaceWith = ReplaceWith("androidx.compose.material3.HorizontalDivider()")
+)
 @Composable
 fun HorizontalDivider(
   modifier: Modifier = Modifier,
@@ -26,6 +30,10 @@ fun HorizontalDivider(
   )
 }
 
+@Deprecated(
+  "use material3 VerticalDivider",
+  replaceWith = ReplaceWith("androidx.compose.material3.VerticalDivider()")
+)
 @Composable
 fun VerticalDivider(
   modifier: Modifier = Modifier,

@@ -38,6 +38,7 @@ import androidx.compose.ui.util.fastRoundToInt
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.desk.DesktopV2Controller
 import org.dweb_browser.helper.compose.clickableWithNoEffect
+import org.dweb_browser.helper.compose.pointerActions
 import org.mkdesklayout.project.DeskLayoutV6
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -160,17 +161,16 @@ fun DesktopV2Controller.RenderImpl() {
               }
             }) { app, geometry, draging ->
             val iConModifier = Modifier.run {
-              if (edit) {
-                this
-              } else {
-                desktopAppItemActions(
-                  onOpenApp = {
+              when {
+                edit -> this
+                else -> pointerActions(
+                  onMenu = {
+                    appMenuPanel.show(app)
+                  },
+                  onTap = {
                     scope.launch {
                       desktopController.openAppOrActivate(app.mmid)
                     }
-                  },
-                  onOpenAppMenu = {
-                    appMenuPanel.show(app)
                   },
                 )
               }
