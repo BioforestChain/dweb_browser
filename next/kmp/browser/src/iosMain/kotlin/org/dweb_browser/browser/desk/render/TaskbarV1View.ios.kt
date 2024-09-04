@@ -1,7 +1,11 @@
 package org.dweb_browser.browser.desk.render
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -11,11 +15,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.toRect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.ObjCAction
@@ -24,10 +30,9 @@ import org.dweb_browser.browser.desk.TaskbarV1Controller
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.Render
 import org.dweb_browser.dwebview.asIosWebView
+import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.helper.PureRect
-import org.dweb_browser.helper.compose.toUIColor
-import org.dweb_browser.helper.launchWithMain
-import org.dweb_browser.helper.platform.LocalUIKitBackgroundView
+import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.platform.NativeViewController.Companion.nativeViewController
 import org.dweb_browser.helper.platform.PureViewController
 import org.dweb_browser.helper.platform.rememberDisplaySize
@@ -47,7 +52,6 @@ import platform.UIKit.UIBlurEffectStyle
 import platform.UIKit.UIColor
 import platform.UIKit.UIPanGestureRecognizer
 import platform.UIKit.UITapGestureRecognizer
-import platform.UIKit.UIView
 import platform.UIKit.UIVisualEffectView
 import platform.darwin.NSObject
 
@@ -96,6 +100,24 @@ class TaskbarV1View(
     }
   }
 
+  private val visualEffectView =
+    UIVisualEffectView(effect = UIBlurEffect.effectWithStyle(style = UIBlurEffectStyle.UIBlurEffectStyleDark))
+
+  private fun bgViewSwitcher(wkWebView: DWebViewEngine, isShowBgView: Boolean) {
+    showMask = isShowBgView
+    wkWebView.mainScope.launch {
+      // 在背景遮罩显示的时候，取消背景色；反之，背景遮罩消失的时候，显示自己的背景色
+      if (isShowBgView) {
+        wkWebView.backgroundColor = UIColor.clearColor
+        visualEffectView.setHidden(false)
+      } else {
+        wkWebView.backgroundColor = UIColor.blackColor.colorWithAlphaComponent(alpha = 0.2)
+        visualEffectView.setHidden(true)
+      }
+    }
+    Unit
+  }
+
   @OptIn(ExperimentalForeignApi::class)
   @Composable
   private fun RenderImpl(draggableDelegate: DraggableDelegate, modifier: Modifier) {  //创建毛玻璃效果层
@@ -117,27 +139,7 @@ class TaskbarV1View(
     val dragGestureRecognizer = remember {
       UIPanGestureRecognizer(target = dragGesture, action = NSSelectorFromString("dragView:"))
     }
-    val foregroundBgColor = remember { UIColor.blackColor.colorWithAlphaComponent(alpha = 0.2) }
-    val visualEffectView = remember {
-      UIVisualEffectView(effect = UIBlurEffect.effectWithStyle(style = UIBlurEffectStyle.UIBlurEffectStyleLight))
-    }
-    val bgViewSwitcher = remember {
-      { isShowBgView: Boolean ->
-        showMask = isShowBgView
-        wkWebView.mainScope.launch {
-          // 在背景遮罩显示的时候，取消背景色；反之，背景遮罩消失的时候，显示自己的背景色
-          if (isShowBgView) {
-            wkWebView.backgroundColor = UIColor.clearColor
-            visualEffectView.setHidden(false)
-          } else {
-            wkWebView.backgroundColor = foregroundBgColor
-            visualEffectView.setHidden(true)
-          }
-        }
-        Unit
-      }
-    }
-    taskbarDWebView.Render(modifier.onSizeChanged {
+    taskbarDWebView.Render(modifier.clip(RoundedCornerShape(16.dp)).onSizeChanged {
       wkWebView.mainScope.launch {
         val width = (it.width / density).toDouble()
         val height = (it.height / density).toDouble()
@@ -155,7 +157,7 @@ class TaskbarV1View(
         wkWebView.layer.maskedCorners =
           kCALayerMinXMinYCorner + kCALayerMinXMaxYCorner + kCALayerMaxXMinYCorner + kCALayerMaxXMaxYCorner
         wkWebView.layer.masksToBounds = true
-        bgViewSwitcher(false)
+        bgViewSwitcher(wkWebView, false)
 
         visualEffectView.setFrame(wkWebView.frame)
 
@@ -163,50 +165,28 @@ class TaskbarV1View(
         visualEffectView.layer.zPosition = -1.0
       }
     })
-    val backgroundView = LocalUIKitBackgroundView.current
 
-    LaunchedEffect(wkWebView) {
-      lifecycleScope.launchWithMain {}
-    }
-    if (backgroundView != null && isActivityMode) {
-      BackgroundViewRender(backgroundView, bgViewSwitcher)
+    if (isActivityMode) {
+      BackgroundViewRender {
+        bgViewSwitcher(wkWebView, it)
+      }
     }
   }
 
   /**
    * 渲染背景遮罩层，并且提供事件绑定
    */
-  @OptIn(ExperimentalForeignApi::class)
   @Composable
-  private fun BackgroundViewRender(backgroundView: UIView, onToggleBgView: (Boolean) -> Unit) {
-    val bgTapGesture = remember {
-      UIBackgroundViewTapGesture {
+  private fun BackgroundViewRender(onToggleBgView: (Boolean) -> Unit) {
+    Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.5f)).zIndex(-1f)
+      .clickableWithNoEffect {
         @Suppress("DeferredResultUnused")
         taskbarController.toggleFloatWindow(openTaskbar = false)
-      }
-    }
-    val onTap = remember {
-      UITapGestureRecognizer(target = bgTapGesture, action = NSSelectorFromString("tapBackground:"))
-    }
-    /// 背景遮罩的显示与隐藏
+      })
     DisposableEffect(Unit) {
-      val job = lifecycleScope.launchWithMain {
-        onToggleBgView(true)
-        backgroundView.setHidden(false)
-        backgroundView.userInteractionEnabled = true
-
-        backgroundView.addGestureRecognizer(onTap)
-        backgroundView.backgroundColor = UIColor.blackColor.colorWithAlphaComponent(alpha = 0.5)
-      }
+      onToggleBgView(true)
       onDispose {
-        job.cancel()
-        lifecycleScope.launchWithMain {
-          backgroundView.removeGestureRecognizer(onTap)
-          backgroundView.backgroundColor = UIColor.clearColor
-          backgroundView.userInteractionEnabled = false
-          backgroundView.setHidden(true)
-          onToggleBgView(false)
-        }
+        onToggleBgView(false)
       }
     }
   }

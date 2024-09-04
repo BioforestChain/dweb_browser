@@ -55,7 +55,6 @@ private class UIDeviceOrientationObserver(val device: UIDevice) : NSObject() {
     `object` = null,
     queue = null,
     usingBlock = {
-      println("QAQ device.orientation=${device.orientation}")
       orientationFlow.value = device.orientation.toInterfaceOrientation()
     }
   )

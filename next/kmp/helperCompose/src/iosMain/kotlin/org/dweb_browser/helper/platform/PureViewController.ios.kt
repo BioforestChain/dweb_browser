@@ -1,18 +1,11 @@
 package org.dweb_browser.helper.platform
 
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.ExperimentalComposeUiApi
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.interop.LocalUIViewController
 import androidx.compose.ui.uikit.ComposeUIViewControllerDelegate
-import androidx.compose.ui.viewinterop.UIKitInteropInteractionMode
-import androidx.compose.ui.viewinterop.UIKitInteropProperties
-import androidx.compose.ui.viewinterop.UIKitView
 import androidx.compose.ui.window.ComposeUIViewController
-import androidx.compose.ui.zIndex
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
@@ -31,12 +24,10 @@ import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.compose.LocalCompositionChain
-import org.dweb_browser.helper.compose.compositionChainOf
 import org.dweb_browser.helper.globalMainScope
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.platform.NativeViewController.Companion.nativeViewController
 import org.dweb_browser.helper.withMainContext
-import org.dweb_browser.platform.ios.BgPlaceholderView
 import platform.UIKit.NSLayoutConstraint
 import platform.UIKit.UIView
 
@@ -187,17 +178,7 @@ class PureViewController(
 
   private val scope = nativeViewController.scope
 
-  private val backgroundView = mutableStateOf<UIView?>(null)
 
-  @OptIn(ExperimentalForeignApi::class)
-  private val bgPlaceholderView = BgPlaceholderView().also {
-    it.setCallback { bgView ->
-      backgroundView.value = bgView
-      bgView?.apply {
-        bgView.setHidden(true)
-      }
-    }
-  }
   private val uiViewControllerDelegate = object : ComposeUIViewControllerDelegate {
     // 视图被加载后立即调用
     override fun viewDidLoad() {
@@ -212,9 +193,6 @@ class PureViewController(
     // 视图控制器的视图已经被添加到视图层次结构后调用
     override fun viewDidAppear(animated: Boolean) {
       viewAppearFlow.value = true
-      backgroundView.value?.also { bgView ->
-        bgView.superview?.sendSubviewToBack(bgView)
-      }
     }
 
     // 在视图即将从视图层次结构中移除时调用
@@ -235,19 +213,9 @@ class PureViewController(
     ComposeUIViewController({
       delegate = uiViewControllerDelegate
     }) {
-      UIKitView(
-        factory = { bgPlaceholderView },
-        Modifier.fillMaxSize().zIndex(0f),
-        properties = UIKitInteropProperties(
-          interactionMode = UIKitInteropInteractionMode.NonCooperative,
-          isNativeAccessibilityEnabled = true
-        )
-      )
-
       LocalCompositionChain.current.Provider(
         LocalPureViewController provides this@PureViewController,
         LocalPureViewBox provides PureViewBox(LocalUIViewController.current),
-        LocalUIKitBackgroundView provides backgroundView.value,
       ) {
         for (content in contents) {
           content()
@@ -267,8 +235,6 @@ fun IPureViewController.asIosPureViewController(): PureViewController {
   require(this is PureViewController)
   return this
 }
-
-val LocalUIKitBackgroundView = compositionChainOf<UIView?>("UIKitBackgroundView") { null }
 
 class PureViewCreateParams(private val params: Map<String, Any?>) : Map<String, Any?> by params,
   IPureViewCreateParams {
