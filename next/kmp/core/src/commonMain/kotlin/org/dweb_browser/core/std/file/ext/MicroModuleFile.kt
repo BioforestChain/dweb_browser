@@ -74,13 +74,18 @@ suspend fun MicroModule.Runtime.appendFile(path: String, body: IPureBody) {
   )
 }
 
-suspend fun MicroModule.Runtime.writeFile(path: String, body: IPureBody) {
+suspend fun MicroModule.Runtime.writeFile(
+  path: String,
+  body: IPureBody,
+  create: Boolean = true,
+  backup: Boolean = false,
+) {
   nativeFetch(
     PureClientRequest(
       href = buildUrlString("file://file.std.dweb/write") {
         parameters["path"] = path
-        parameters["create"] = "true"
-        parameters["backup"] = "true"
+        parameters["create"] = "$create"
+        parameters["backup"] = "$backup"
       }, method = PureMethod.POST, body = body
     )
   )
