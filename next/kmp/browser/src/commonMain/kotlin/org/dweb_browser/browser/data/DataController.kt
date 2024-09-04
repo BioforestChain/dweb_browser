@@ -65,6 +65,9 @@ class DataController(val storeNMM: DataNMM.DataRuntime) {
 
   fun closeDeleteDialog() {
     deleteProfileFlow.value = null
+    deleteJobFlow.value?.invokeOnCompletion {
+      deleteJobFlow.value = null
+    }
   }
 
   val deleteJobFlow = MutableStateFlow<Job?>(null)
