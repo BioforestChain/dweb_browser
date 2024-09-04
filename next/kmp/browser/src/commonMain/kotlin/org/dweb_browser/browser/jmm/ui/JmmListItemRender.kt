@@ -58,7 +58,7 @@ fun JmmListItem(
         if (showUnInstallAlert) {
           AlertDeleteDialog(
             onDismissRequest = { showUnInstallAlert = false },
-            onDelete = onRemove,
+            onDelete = onUnInstall,
             title = { Text(JmmI18n.uninstall_alert_title()) },
             message = {
               Column(

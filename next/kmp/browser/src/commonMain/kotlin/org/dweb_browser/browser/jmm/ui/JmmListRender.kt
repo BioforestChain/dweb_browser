@@ -14,6 +14,8 @@ import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -51,8 +53,13 @@ fun JmmRenderController.JmmListView(modifier: Modifier, showDetailButton: Boolea
     val all by historyMetadataMap()
     for (jmmTab in JmmTabs.entries) {
       if (curTab == jmmTab) {
-        // TODO 这个后续需要优化，目前下载完成后，历史展示没有直接刷新
-        val list = remember(jmmTab, all) { jmmTab.listFilter(all.values) }
+        var list by remember(jmmTab, all) { mutableStateOf(jmmTab.listFilter(all.values)) }
+        /// 状态变更之后，进行计算，触发重组，重新生成list展示
+        val jmmStatusList = derivedStateOf { list.map { it.state.state } }
+
+        LaunchedEffect(jmmStatusList) {
+          list = jmmTab.listFilter(all.values)
+        }
 
         when (list.size) {
           0 -> Box(
