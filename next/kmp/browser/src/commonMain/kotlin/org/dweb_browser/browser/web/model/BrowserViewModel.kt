@@ -373,17 +373,13 @@ class BrowserViewModel(
     ?: filterShowEngines.firstOrNull()?.searchLinks?.first()?.format(url)?.toWebUrl() // 转换成搜索链接
     debugBrowser("doIOSearchUrl", "url=$url, webUrl=$webUrl, focusedPage=$focusedPage")
     // 当没有搜到需要的数据，给出提示
-    if (webUrl == null) {
-      showToastMessage(BrowserI18nResource.Home.search_error.text)
-      return@launch
-    }
-    webUrl.toString().let { searchUrl ->
+    webUrl?.toString()?.let { searchUrl ->
       if (focusedPage != null && focusedPage is BrowserWebPage) {
         (focusedPage as BrowserWebPage).loadUrl(searchUrl)// 使用当前页面继续搜索
       } else {
         addNewPageUI(searchUrl) { replaceOldPage = true } // 新增 BrowserWebPage 覆盖当前页
       }
-    }
+    } ?: showToastMessage(BrowserI18nResource.Home.search_error.text)
   }
 
   data class AddPageOptions(

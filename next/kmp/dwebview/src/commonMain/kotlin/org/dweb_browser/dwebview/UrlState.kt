@@ -9,14 +9,21 @@ import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.helper.collectIn
 
 @OptIn(ExperimentalCoroutinesApi::class)
-internal class UrlState(
-  val dwebView: IDWebView,
-) {
+internal class UrlState(val dwebView: IDWebView) {
   private var startUrl = dwebView.loadStateFlow.value.url
   private var endLoadUrl = CompletableDeferred<String>()
 
+  // TODO 如果endLoadUrl调用了 cancel 或者 completeExceptionally 之后
+  //  isCompleted是true，但是调用getCompleted会直接抛异常。使用getCompletedOrNull也是报异常???
+  private val endLoadUrlCompletedOrNull
+    get() = try {
+      if (endLoadUrl.isCompleted) endLoadUrl.getCompleted() else null
+    } catch (e: Exception) {
+      null
+    }
+
   init {
-    val ended = when (val state = dwebView.loadStateFlow.value) {
+    val ended = when (dwebView.loadStateFlow.value) {
       is WebLoadSuccessState, is WebLoadErrorState -> true
       is WebLoadStartState -> false
     }
@@ -25,9 +32,8 @@ internal class UrlState(
     }
   }
 
-
   private val urlLock = Mutex()
-  val currentUrl get() = endLoadUrl.let { if (it.isCompleted) it.getCompleted() else startUrl }
+  val currentUrl get() = endLoadUrlCompletedOrNull ?: startUrl
 
   suspend fun awaitUrl() = endLoadUrl.await()
 
@@ -35,10 +41,7 @@ internal class UrlState(
     if (newUrl == startUrl) {
       return true
     }
-    if (endLoadUrl.isCompleted && endLoadUrl.getCompleted() == newUrl) {
-      return true
-    }
-    return false
+    return endLoadUrl.isCompleted && endLoadUrlCompletedOrNull == newUrl
   }
 
   private suspend fun effectWebLoadErrorState(state: WebLoadErrorState) = urlLock.withLock {
@@ -66,7 +69,7 @@ internal class UrlState(
   private suspend fun effectWebLoadSuccessState(state: WebLoadSuccessState) = urlLock.withLock {
     debugDWebView("WebLoadStartState") { "WebLoadSuccessState url=${state.url}" }
     endLoadUrl.complete(state.url)
-    if (endLoadUrl.getCompleted() != state.url) {
+    if (endLoadUrlCompletedOrNull != state.url) {
       endLoadUrl = CompletableDeferred(state.url)
     }
     stateFlow.value = state.url
