@@ -132,7 +132,7 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Service") {
                   tint = LocalColorful.current.Red.current
                 )
               },
-              centerTitle = ActivityItem.TextContent(JmmI18n.prepare_install_ready.text),
+              centerTitle = ActivityItem.TextContent(JmmI18n.prepare_install_fail.text),
             )
             delay(2000)
             endActivity(activityId)
