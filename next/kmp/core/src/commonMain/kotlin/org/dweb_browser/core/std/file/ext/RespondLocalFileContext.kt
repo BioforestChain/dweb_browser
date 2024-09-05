@@ -19,7 +19,6 @@ import org.dweb_browser.pure.http.PureResponse
 import org.dweb_browser.pure.http.PureStream
 import org.dweb_browser.pure.http.PureStreamBody
 import org.dweb_browser.pure.http.PureStringBody
-import org.dweb_browser.pure.io.SystemFileSystem
 import org.dweb_browser.pure.io.toByteReadChannel
 
 open class ResponseLocalFileBase(filePath: String? = null, preferenceStream: Boolean? = null) {
@@ -62,7 +61,7 @@ open class ResponseLocalFileBase(filePath: String? = null, preferenceStream: Boo
     fileSystem.source(filePath).buffer()
       .run { if (scope != null) toByteReadChannel(scope) else toByteReadChannel() },
     headers.apply {
-      headers.setContentLength(SystemFileSystem.metadata(filePath).size ?: 0)
+      headers.setContentLength(fileSystem.metadata(filePath).size ?: 0)
     },
   )
 

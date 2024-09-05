@@ -46,7 +46,6 @@ class DesktopV2Controller private constructor(
 
   private suspend fun upsetApps() {
     val oldApps = appsFlow.value
-    println("QAQ upsetApps start ${oldApps.size}")
     val apps = getDesktopApps().map { appMetaData ->
       val runStatus = when {
         appMetaData.running -> {
@@ -68,7 +67,6 @@ class DesktopV2Controller private constructor(
     appsLayoutStore.clearInvaildLayouts(apps.map { it.mmid })
     appLayoutsFlow.value = appsLayoutStore.getStoreAppsLayouts()
     appsFlow.value = apps
-    println("QAQ upsetApps end ${apps.size}")
   }
 
   override suspend fun openAppOrActivate(mmid: MMID) {

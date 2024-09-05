@@ -27,7 +27,7 @@ actual class DwebProxyService actual constructor() {
     }
     var job: Job? = null
     runningJob = (globalIoScope + CoroutineExceptionHandler { ctx, throwable ->
-      eprintln("QAQ ReverseProxy die~~")
+      eprintln("QWQ ReverseProxy die~~")
       eprintln(throwable.stackTraceToString())
       job?.cancel("ReverseProxy Shutdown", throwable)
     }).launch {

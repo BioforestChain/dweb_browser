@@ -174,13 +174,8 @@ private class ActivityViewController(val controller: ActivityController) {
           )
         }
         if (placeables.isEmpty()) {
-          println("QAQ displaySize= width:${displaySize.width.dp} height:${displaySize.height.dp}")
           return@Layout layout(constraints.maxWidth, constraints.maxHeight) {}
         }
-        println(
-          """QAQ maxWidth = ${(displaySize.width * density).toInt()}, maxHeight = ${(displaySize.height * density).toInt()},
-        """.trimIndent()
-        )
         val layoutWidth = placeables.maxOf { it.width }
         val layoutHeight = placeables.maxOf { it.height }
 
@@ -210,7 +205,6 @@ private class ActivityViewController(val controller: ActivityController) {
 
   @Composable
   fun Launch() {
-    println("QAQ Launch")
     LaunchedEffect(Unit) {
       if (PureViewController.isWindows) {
         dialog.size = Dimension(1, 1)
