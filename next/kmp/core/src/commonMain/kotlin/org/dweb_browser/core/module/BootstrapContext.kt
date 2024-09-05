@@ -25,15 +25,15 @@ interface DnsApi {
   /**
    * 根据 mmid 或者 protocol 查询 模块
    */
-  fun query(mmpt: MMPT): MicroModule?
-  fun queryAll(mmpt: MMPT): List<MicroModule>
+  suspend fun query(mmpt: MMPT): MicroModule?
+  suspend fun queryAll(mmpt: MMPT): List<MicroModule>
 
 
   /**
    * 根据 url 查询能匹配响应的模块
    */
-  fun queryDeeplink(deeplinkUrl: String): MicroModule?;
-  fun queryDeeplinkAll(deeplinkUrl: String): List<MicroModule>;
+  suspend fun queryDeeplink(deeplinkUrl: String): MicroModule?;
+  suspend fun queryDeeplinkAll(deeplinkUrl: String): List<MicroModule>;
 
   /**
    * 根据类目搜索模块
@@ -46,6 +46,7 @@ interface DnsApi {
    * 是否正在运行中
    */
   suspend fun isRunning(mmid: MMID): Boolean
+
   /**
    * 重启应用
    */

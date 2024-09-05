@@ -32,6 +32,7 @@ import org.dweb_browser.core.std.permission.permissionAdapterManager
 import org.dweb_browser.helper.ChangeState
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.Debugger
+import org.dweb_browser.helper.ReentrantReadWriteLock
 import org.dweb_browser.helper.buildUrlString
 import org.dweb_browser.helper.removeWhen
 import org.dweb_browser.helper.some
@@ -70,19 +71,19 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
       return dnsMM.uninstall(mmpt)
     }
 
-    override fun query(mmpt: MMPT): MicroModule? {
+    override suspend fun query(mmpt: MMPT): MicroModule? {
       return dnsMM.queryByIdOrProtocol(mmpt, fromMM)
     }
 
-    override fun queryAll(mmpt: MMPT): List<MicroModule> {
+    override suspend fun queryAll(mmpt: MMPT): List<MicroModule> {
       return dnsMM.queryAllByIdOrProtocol(mmpt, fromMM)
     }
 
-    override fun queryDeeplink(deeplinkUrl: String): MicroModule? {
+    override suspend fun queryDeeplink(deeplinkUrl: String): MicroModule? {
       return dnsMM.queryByDeeplink(deeplinkUrl, fromMM)
     }
 
-    override fun queryDeeplinkAll(deeplinkUrl: String): List<MicroModule> {
+    override suspend fun queryDeeplinkAll(deeplinkUrl: String): List<MicroModule> {
       return dnsMM.queryAllByDeeplink(deeplinkUrl, fromMM)
     }
 
@@ -200,10 +201,10 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
   }
 
 
-  private val installLock = Mutex()
+  private val installLock = ReentrantReadWriteLock()
 
   /** 安装应用 */
-  suspend fun install(mm: MicroModule): Boolean = installLock.withLock {
+  suspend fun install(mm: MicroModule): Boolean = installLock.write {
     if (allApps.containsKey(mm.mmid)) {
       return false
     }
@@ -219,7 +220,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
   }
 
   /** 卸载应用 */
-  suspend fun uninstall(mmid: MMID): Boolean {
+  suspend fun uninstall(mmid: MMID): Boolean = installLock.write {
     val mm = allApps.remove(mmid) ?: return false
     /// 首先进行关闭
     dnsRuntime.close(mmid)
@@ -231,39 +232,43 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
   }
 
   /** 根据mmid查询偏好模块 */
-  fun queryByIdOrProtocol(mmid: MMID, fromMM: IMicroModuleManifest): MicroModule? {
-    return queryInstallApps(mmid).map { it to if (it.mmid != fromMM.mmid) 1 else 0 }
-      .maxByOrNull { it.second }?.first
-  }
+  suspend fun queryByIdOrProtocol(mmid: MMID, fromMM: IMicroModuleManifest): MicroModule? =
+    installLock.read {
+      return queryInstallApps(mmid).map { it to if (it.mmid != fromMM.mmid) 1 else 0 }
+        .maxByOrNull { it.second }?.first
+    }
 
   /** 根据mmid查询所有模块 */
-  fun queryAllByIdOrProtocol(mmid: MMID, fromMM: IMicroModuleManifest): List<MicroModule> {
-    return queryInstallApps(mmid).map { it to if (it.mmid != fromMM.mmid) 1 else 0 }
-      .sortedBy { it.second }.map { it.first }
-  }
+  suspend fun queryAllByIdOrProtocol(mmid: MMID, fromMM: IMicroModuleManifest): List<MicroModule> =
+    installLock.read {
+      return queryInstallApps(mmid).map { it to if (it.mmid != fromMM.mmid) 1 else 0 }
+        .sortedBy { it.second }.map { it.first }
+    }
 
-  fun queryByDeeplink(href: String, fromMM: IMicroModuleManifest): MicroModule? {
-    return allApps.values.firstOrNull { microModule ->
-      microModule.dweb_deeplinks.some { deeplink ->
-        href.startsWith(deeplink)
+  suspend fun queryByDeeplink(href: String, fromMM: IMicroModuleManifest): MicroModule? =
+    installLock.read {
+      return allApps.values.firstOrNull { microModule ->
+        microModule.dweb_deeplinks.some { deeplink ->
+          href.startsWith(deeplink)
+        }
       }
     }
-  }
 
-  fun queryAllByDeeplink(href: String, fromMM: IMicroModuleManifest): List<MicroModule> {
-    return allApps.values.filter { microModule ->
-      microModule.dweb_deeplinks.some { deeplink ->
-        href.startsWith(deeplink)
+  suspend fun queryAllByDeeplink(href: String, fromMM: IMicroModuleManifest): List<MicroModule> =
+    installLock.read {
+      return allApps.values.filter { microModule ->
+        microModule.dweb_deeplinks.some { deeplink ->
+          href.startsWith(deeplink)
+        }
       }
     }
-  }
 
   /**
    * 根据类目搜索模块
    * > 这里暂时不需要支持复合搜索，未来如果有需要另外开接口
    * @param category
    */
-  fun search(category: MICRO_MODULE_CATEGORY): MutableList<MicroModule> {
+  suspend fun search(category: MICRO_MODULE_CATEGORY): MutableList<MicroModule> = installLock.read {
     val categoryList = mutableListOf<MicroModule>()
     for (app in allApps.values) {
       if (app.categories.contains(category)) {

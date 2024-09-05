@@ -3,6 +3,7 @@ package org.dweb_browser.browser.jmm.ui
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.LocalTextStyle
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
@@ -21,12 +22,13 @@ fun JmmAppInstallManifest.IconRender(
   size: Dp = LocalTextStyle.current.fontSize.value.let { if (it.isNaN()) 32f else it * 2 }.dp,
 ) {
   val runtime = LocalWindowMM.current
-  val isLocalApp = remember(id) { runtime.bootstrapContext.dns.query(id)?.mmid == id }
+  val isLocalApp = produceState<Boolean?>(null) {
+    value = runtime.bootstrapContext.dns.query(id)?.mmid == id
+  }.value ?: return
   val fetchHook = when {
     isLocalApp -> runtime.blobFetchHook
     else -> runtime.fetchHook
   }
-  println("QAQ isLocalApp=$isLocalApp")
   when (val icon = remember(icons) { icons.toStrict().pickLargest() }) {
     null -> AppLogo.fromUrl(logo, fetchHook = fetchHook)
     else -> AppLogo.from(icon, fetchHook = fetchHook)

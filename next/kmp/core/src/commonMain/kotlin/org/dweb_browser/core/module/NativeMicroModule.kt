@@ -192,7 +192,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
       }
     }
 
-    fun IHandlerContext.getRemoteRuntime() = (bootstrapContext.dns.query(ipc.remote.mmid)
+    suspend fun IHandlerContext.getRemoteRuntime() = (bootstrapContext.dns.query(ipc.remote.mmid)
       ?: throw IllegalArgumentException("no found microModule ${ipc.remote.mmid}")).runtime
 
   }

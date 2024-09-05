@@ -15,6 +15,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,6 +35,7 @@ import org.dweb_browser.browser.download.DownloadNMM
 import org.dweb_browser.browser.download.model.DecompressModel
 import org.dweb_browser.browser.download.model.DownloadTask
 import org.dweb_browser.browser.web.data.formatToStickyName
+import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.file.ext.blobFetchHook
 import org.dweb_browser.helper.compose.HorizontalDivider
 import org.dweb_browser.helper.compose.clickableWithNoEffect
@@ -94,41 +96,41 @@ private fun DownloadTask.AppHeadInfo(modifier: Modifier = Modifier) {
       createTime.formatToStickyName()
     }
     item {
-      mm.bootstrapContext.dns.query(originMmid).let {
-        when (it) {
-          null -> TableRow(
-            title = DownloadI18n.unzip_label_originMmid(), content = originMmid
-          )
+      when (val microModule = produceState<MicroModule?>(null) {
+        value = mm.bootstrapContext.dns.query(originMmid)
+      }.value) {
+        null -> TableRow(
+          title = DownloadI18n.unzip_label_originMmid(), content = originMmid
+        )
 
-          else ->
-            TableRow(
-              title = DownloadI18n.unzip_label_originMmid(),
-            ) { modifier, style ->
-              Row(
-                modifier,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.Top
+        else ->
+          TableRow(
+            title = DownloadI18n.unzip_label_originMmid(),
+          ) { modifier, style ->
+            Row(
+              modifier,
+              horizontalArrangement = Arrangement.spacedBy(8.dp),
+              verticalAlignment = Alignment.Top
+            ) {
+              AppLogo.fromResources(microModule.icons, fetchHook = mm.blobFetchHook).toDeskAppIcon()
+                .Render(Modifier.size(32.dp))
+              Column(
+                Modifier.padding(start = 4.dp),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
               ) {
-                AppLogo.fromResources(it.icons, fetchHook = mm.blobFetchHook).toDeskAppIcon()
-                  .Render(Modifier.size(32.dp))
-                Column(
-                  Modifier.padding(start = 4.dp),
-                  verticalArrangement = Arrangement.spacedBy(2.dp)
-                ) {
-                  Text(
-                    it.name,
-                    style = MaterialTheme.typography.bodySmall,
-                    fontWeight = FontWeight.Bold
-                  )
-                  Text(
-                    originMmid,
-                    style = MaterialTheme.typography.bodySmall.run { copy(fontSize = fontSize * 0.8f) },
-                    fontStyle = FontStyle.Italic
-                  )
-                }
+                Text(
+                  microModule.name,
+                  style = MaterialTheme.typography.bodySmall,
+                  fontWeight = FontWeight.Bold
+                )
+                Text(
+                  originMmid,
+                  style = MaterialTheme.typography.bodySmall.run { copy(fontSize = fontSize * 0.8f) },
+                  fontStyle = FontStyle.Italic
+                )
               }
             }
-        }
+          }
       }
 
     }

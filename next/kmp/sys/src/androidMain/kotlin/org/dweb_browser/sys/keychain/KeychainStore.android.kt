@@ -134,10 +134,10 @@ actual class KeychainStore actual constructor(val runtime: KeychainNMM.KeyChainR
     }
   }
 
-  private fun buildUseKeyParams(remoteMmid: MMID, title: String, description: String) =
+  private suspend fun buildUseKeyParams(remoteMmid: MMID, title: String, description: String) =
     UseKeyParams(runtime, remoteMmid, buildUseKeyReason(remoteMmid, title, description))
 
-  private fun buildUseKeyReason(remoteMmid: MMID, title: String, description: String) =
+  private suspend fun buildUseKeyReason(remoteMmid: MMID, title: String, description: String) =
     UseKeyParams.UseKeyReason(
       title = title,
       subtitle = "${runtime.bootstrapContext.dns.query(remoteMmid)?.name} ($remoteMmid)",
