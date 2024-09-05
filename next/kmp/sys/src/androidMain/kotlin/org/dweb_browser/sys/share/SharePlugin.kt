@@ -9,7 +9,9 @@ import android.net.Uri
 import android.os.Build
 import android.webkit.MimeTypeMap
 import androidx.core.content.FileProvider
+import io.ktor.http.HttpStatusCode
 import org.dweb_browser.core.help.types.MMID
+import org.dweb_browser.core.http.router.ResponseException
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.getAppContextUnsafe
 import java.io.File
@@ -26,17 +28,15 @@ object SharePlugin {
     controller: ShareController,
     shareOptions: ShareOptions,
     files: List<String>? = null,
-    po: PromiseOut<String>,
+    po: PromiseOut<ResponseException>,
   ) {
-    debugShare(
-      "open_share", "shareOptions==>$shareOptions files==>$files"
-    )
+    debugShare(tag = "open_share", msg = "shareOptions==>$shareOptions files==>$files")
     if (shareOptions.text.isNullOrEmpty() && shareOptions.url.isNullOrEmpty() && (files != null && files.isEmpty())) {
-      po.resolve("Must provide a URL or Message or files")
+      po.resolve(ResponseException(code = HttpStatusCode.ExpectationFailed, message = "Must provide a URL or Message or files"))
       return
     }
     if (!shareOptions.url.isNullOrEmpty() && !isFileUrl(shareOptions.url) && !isHttpUrl(shareOptions.url)) {
-      po.resolve("Unsupported url")
+      po.resolve(ResponseException(code = HttpStatusCode.ExpectationFailed, message = "Unsupported url"))
       return
     }
 
@@ -94,7 +94,7 @@ object SharePlugin {
   }
 
   private fun shareFiles(
-    files: List<String>, intent: Intent, po: PromiseOut<String>
+    files: List<String>, intent: Intent, po: PromiseOut<ResponseException>
   ): ArrayList<Uri> {
     val arrayListFiles = arrayListOf<Uri>()
     try {
@@ -123,7 +123,9 @@ object SharePlugin {
           }
         } else {
           debugShare("shareFiles", "only file urls are supported")
-          po.resolve("only file urls are supported")
+          po.resolve(
+            ResponseException(code = HttpStatusCode.ExpectationFailed, message = "only file urls are supported")
+          )
         }
       }
 
@@ -141,7 +143,11 @@ object SharePlugin {
       intent.flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
     } catch (e: Throwable) {
       debugShare("shareFiles Error", e)
-      po.resolve(e.message ?: "share file error")
+      po.resolve(
+        ResponseException(
+          code = HttpStatusCode.ExpectationFailed, message = e.message ?: "share file error"
+        )
+      )
     }
     return arrayListFiles
   }

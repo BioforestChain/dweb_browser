@@ -3,6 +3,7 @@ package org.dweb_browser.sys.share
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
 import kotlinx.coroutines.CompletableDeferred
+import org.dweb_browser.core.http.router.ResponseException
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SignalCallback
 import org.dweb_browser.helper.getAppContextUnsafe
@@ -20,8 +21,8 @@ class ShareController {
 
   suspend fun waitActivityResultLauncherCreated() = activityResultLauncherTask.await()
 
-  val getShareSignal = Signal<String>()
-  fun getShareData(cb: SignalCallback<String>) = getShareSignal.listen(cb)
+  val getShareSignal = Signal<ResponseException>()
+  fun getShareData(cb: SignalCallback<ResponseException>) = getShareSignal.listen(cb)
 
   var shareLauncher: ActivityResultLauncher<Intent>? = null
     set(value) {
