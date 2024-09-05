@@ -12,7 +12,12 @@ import UIKit
 class TouchThroughView: UIView {
     override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
 //        Log { "SUBVIEWS = \n\(logUIViews(views: Array(subviews), deep: 3))" }
-
+        
+        Log("hitTest: \(point)")
+        if (point.x < 10 || point.x > bounds.width - 10) {
+            return nil
+        }
+        
         for v1 in subviews.reversed() {
             for v2 in v1.subviews.reversed() {
                 if let target = v2.hitTest(v2.convert(point, from: self), with: event) {
