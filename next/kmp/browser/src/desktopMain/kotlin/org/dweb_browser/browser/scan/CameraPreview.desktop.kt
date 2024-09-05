@@ -14,7 +14,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import io.github.vinceglb.filekit.compose.rememberFilePickerLauncher
@@ -22,11 +21,6 @@ import io.github.vinceglb.filekit.core.PickerType
 import io.github.vinceglb.filekit.core.PlatformDirectory
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
-import org.dweb_browser.browser.common.loading.LoadingView
-
-
-// 记忆最后一次打开的路径
-var lastDirectory = mutableStateOf<String?>(null)
 
 /**
  * 桌面端是选择图片文件
@@ -37,9 +31,9 @@ actual fun CameraPreviewRender(
   controller: SmartScanController
 ) {
   // 创建渲染动画
-  var startLoading by remember { mutableStateOf(true) }
-
-  LoadingView(startLoading) {}
+//  var startLoading by remember { mutableStateOf(true) }
+//
+//  LoadingView(startLoading) {}
 
   // 创建相机控制器
   val cameraController = remember {
@@ -59,9 +53,9 @@ actual fun CameraPreviewRender(
     Text(BrowserI18nResource.QRCode.tip_no_camera())
   }
 
-  LaunchedEffect(Unit) {
-    startLoading = false
-  }
+//  LaunchedEffect(Unit) {
+//    startLoading = false
+//  }
 }
 
 
