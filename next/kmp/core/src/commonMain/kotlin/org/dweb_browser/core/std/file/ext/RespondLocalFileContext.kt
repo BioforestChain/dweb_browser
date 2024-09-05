@@ -29,32 +29,45 @@ open class ResponseLocalFileBase(filePath: String? = null, preferenceStream: Boo
     if (preferenceStream) PureStreamBody(binary) else PureBinaryBody(binary)
 
   private fun asModePureBody(binary: PureStream) = PureStreamBody(binary)
-  fun returnFile(body: IPureBody, size: Long?): PureResponse {
-    val headers = PureHeaders()
-    val extension = ContentType.fromFilePath(filePath)
-    if (extension.isNotEmpty()) {
-      headers.set("Content-Type", extension.first().toString())
+  fun returnFile(body: IPureBody, headers: PureHeaders = PureHeaders()): PureResponse {
+    if (!headers.has("Content-Type")) {
+      (ContentType.fromFilePath(filePath).firstOrNull()?.toString())?.also {
+        headers.set("Content-Type", it)
+      }
     }
-    if (size != null) {
-      headers.set("Content-Length", size.toString())
-    }
+//    if (!headers.has("Content-Length")) {
+//    if (size != null) {
+//      headers.set("Content-Length", size.toString())
+//    }
     return PureResponse(headers = headers, body = body)
   }
 
-  fun returnFile(binary: PureBinary) = returnFile(asModePureBody(binary), binary.size.toLong())
-  fun returnFile(stream: PureStream, size: Long?) = returnFile(asModePureBody(stream), size)
-  fun returnFile(byteChannel: ByteReadChannel, size: Long?) =
-    returnFile(PureStream(byteChannel), size)
-
-  internal fun returnFile(fileSystem: FileSystem, filePath: Path, scope: CoroutineScope? = null) =
+  fun returnFile(binary: PureBinary, headers: PureHeaders = PureHeaders()) =
     returnFile(
-      fileSystem.source(filePath).buffer()
-        .run { if (scope != null) toByteReadChannel(scope) else toByteReadChannel() },
-      SystemFileSystem.metadata(filePath).size ?: 0
-    )
+      asModePureBody(binary),
+      headers.apply { headers.setContentLength(binary.size) })
 
-  fun returnFile(root: String, filePath: String) =
-    loadByteChannelByPath(this, root.decodeURIComponent(), filePath.decodeURIComponent())
+  fun returnFile(stream: PureStream, headers: PureHeaders = PureHeaders()) =
+    returnFile(asModePureBody(stream), headers)
+
+  fun returnFile(byteChannel: ByteReadChannel, headers: PureHeaders = PureHeaders()) =
+    returnFile(PureStream(byteChannel), headers)
+
+  internal fun returnFile(
+    fileSystem: FileSystem,
+    filePath: Path,
+    headers: PureHeaders = PureHeaders(),
+    scope: CoroutineScope? = null,
+  ) = returnFile(
+    fileSystem.source(filePath).buffer()
+      .run { if (scope != null) toByteReadChannel(scope) else toByteReadChannel() },
+    headers.apply {
+      headers.setContentLength(SystemFileSystem.metadata(filePath).size ?: 0)
+    },
+  )
+
+  fun returnFile(root: String, filePath: String, headers: PureHeaders = PureHeaders()) =
+    loadByteChannelByPath(this, root.decodeURIComponent(), filePath.decodeURIComponent(), headers)
 
   fun returnNoFound(message: String? = null): PureResponse {
     debugFetchFile("NO-FOUND-FILE", filePath)
@@ -83,4 +96,5 @@ expect fun loadByteChannelByPath(
   context: ResponseLocalFileBase,
   root: String,
   filePath: String,
+  headers: PureHeaders,
 ): PureResponse

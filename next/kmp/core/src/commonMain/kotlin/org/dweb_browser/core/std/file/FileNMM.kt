@@ -47,13 +47,13 @@ val debugFile = Debugger("file")
 class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
 
   companion object {
-    val nativeFileSystem = object : IVirtualFsDirectory {
+    val nativeFileSystem = object : VirtualFsDirectory {
       override fun isMatch(firstSegment: String) = true
       override val fs: FileSystem = SystemFileSystem
       override fun resolveTo(remote: IMicroModuleManifest, virtualFullPath: Path) = virtualFullPath
     }
 
-    internal fun findVfsDirectory(firstSegment: String): IVirtualFsDirectory? {
+    internal fun findVfsDirectory(firstSegment: String): VirtualFsDirectory {
       for (adapter in fileTypeAdapterManager.adapters) {
         if (adapter.isMatch(firstSegment)) {
           return adapter
@@ -100,6 +100,7 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
       /// 提供直接的文件读取
       routesNotFound = {
         /// 为 file:///  请求提供服务
+        /// TODO 跟下面的 order = 3.1 合并在一起
         request.respondLocalFile {
           if (request.method == PureMethod.GET) {
             val vfsPath = getVirtualFsPath(ipc.remote, request.url.encodedPath.decodeURIComponent())
@@ -120,7 +121,10 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
             if (skip != null) {
               fileSource.skip(skip)
             }
-            returnFile(fileSource.toByteReadChannel(mmScope), size)
+            returnFile(
+              fileSource.toByteReadChannel(mmScope),
+              vfsPath.vfsDirectory.getFileHeaders(ipc.remote, vfsPath)
+                .apply { size?.also { setContentLength(size) } })
           } else defaultRoutesNotFound()
         } ?: defaultRoutesNotFound()
       }
@@ -138,13 +142,13 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
       }
     }
 
-    private val sysFileSystem = object : IVirtualFsDirectory {
+    private val sysFileSystem = object : VirtualFsDirectory {
       override fun isMatch(firstSegment: String) = firstSegment == "sys"
       override val fs: FileSystem = ResourceFileSystem.FileSystem
       override fun resolveTo(remote: IMicroModuleManifest, virtualFullPath: Path) =
         virtualFullPath - virtualFullPath.first
     }
-    private val pickerFileSystem = object : IVirtualFsDirectory {
+    private val pickerFileSystem = object : VirtualFsDirectory {
       override fun isMatch(firstSegment: String) = firstSegment == "picker"
       override val fs: FileSystem = PickerFileSystem.FileSystem
       val basePath = "/picker".toPath()
@@ -176,19 +180,22 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
       /// file:///picker/*
       fileTypeAdapterManager.append(adapter = pickerFileSystem).removeWhen(mmScope)
 
-      /// nativeFetch 适配 file:///*/** 的读取请求
-      nativeFetchAdaptersManager.append(order = 2) { fromMM, request ->
+      /// nativeFetch 适配 file:///*/** 的读取请求，这里只处理最简单的请求，不带任何参数的哪种
+      nativeFetchAdaptersManager.append(order = 3.1f) { fromMM, request ->
         return@append request.respondLocalFile {
-          debugFile("read file", "$fromMM => ${request.href}")
-          val (_, firstSegment, contentPath) = filePath.split("/", limit = 3)
+          if (request.method == PureMethod.GET && request.url.parameters.isEmpty()) {
+            debugFile("read file", "$fromMM => ${request.href}")
+            val (_, firstSegment, contentPath) = filePath.split("/", limit = 3)
 
-          return@respondLocalFile when (val vfsDirectory = findVfsDirectory(firstSegment)) {
-            null -> returnNext()
-            else -> {
-              val vfsPath = VirtualFsPath(fromMM, filePath) { vfsDirectory }
-              returnFile(vfsPath.fs, vfsPath.fsFullPath, fromMM.getRuntimeScope())
-            }
-          }
+            val vfsDirectory = findVfsDirectory(firstSegment)
+            val vfsPath = VirtualFsPath(fromMM, filePath) { vfsDirectory }
+            returnFile(
+              vfsPath.fs,
+              vfsPath.fsFullPath,
+              headers = vfsDirectory.getFileHeaders(fromMM, vfsPath),
+              scope = fromMM.getRuntimeScope()
+            )
+          } else returnNext()
         }
       }.removeWhen(mmScope)
 

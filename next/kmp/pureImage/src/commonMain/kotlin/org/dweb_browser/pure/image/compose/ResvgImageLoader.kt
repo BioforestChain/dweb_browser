@@ -10,6 +10,8 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.compose.toCssRgba
 import org.dweb_browser.helper.globalDefaultScope
+import org.dweb_browser.helper.platform.IPureViewController
+import org.dweb_browser.helper.platform.isMobile
 import org.dweb_browser.helper.platform.toImageBitmap
 import org.dweb_browser.helper.utf8Binary
 import org.dweb_browser.pure.http.PureMethod
@@ -75,6 +77,8 @@ class ResvgImageLoader : PureImageLoader {
             RenderOptions(
               width = task.containerWidth.toFloat(),
               height = task.containerHeight.toFloat(),
+              /// 移动端不超过 3mb，桌面端不超过 6mb
+              layerLimitSize = if (IPureViewController.isMobile) 3145728f else 6291456f,
               fitMode = FitMode.CONTAIN
             )
           )

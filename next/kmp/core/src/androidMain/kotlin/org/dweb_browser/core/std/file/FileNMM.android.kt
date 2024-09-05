@@ -17,7 +17,7 @@ actual fun FileNMM.Companion.getApplicationCacheDir() =
 /**
  * 持久化数据
  */
-actual fun FileNMM.getDataVirtualFsDirectory() = object : IVirtualFsDirectory {
+actual fun FileNMM.getDataVirtualFsDirectory() = object : VirtualFsDirectory {
   override fun isMatch(firstSegment: String) = firstSegment == "data"
   override val fs: FileSystem = SystemFileSystem
   val rootDir = FileNMM.getApplicationRootDir()

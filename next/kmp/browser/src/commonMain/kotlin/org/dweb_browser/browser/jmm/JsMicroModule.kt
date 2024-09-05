@@ -113,7 +113,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
           } else null
         } else null
       }
-      nativeFetchAdaptersManager.append(order = 2) { fromMM, request ->
+      nativeFetchAdaptersManager.append(order = 1.1f) { fromMM, request ->
         if (fromMM is JmmRuntime && request.url.protocol.name == "file" && request.url.host.endsWith(
             ".dweb"
           )

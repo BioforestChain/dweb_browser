@@ -39,7 +39,6 @@ internal class OffscreenWebCanvasFetchProxy(private val client: HttpPureClient =
     )
   }
 
-
   private suspend fun defaultProxy(proxyUrl: String, request: PureServerRequest): PureResponse {
     val response = client.fetch(
       url = proxyUrl,

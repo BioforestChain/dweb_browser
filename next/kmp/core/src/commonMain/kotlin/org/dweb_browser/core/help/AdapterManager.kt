@@ -6,7 +6,7 @@ import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.globalDefaultScope
 
 open class AdapterManager<T> {
-  private val adapterOrderMap = SafeHashMap<T, Int>()
+  private val adapterOrderMap = SafeHashMap<T, Float>()
   private var orderAdapters = listOf<T>()
   private val onChangeSignal = Signal<T>()
   private val onChangeLazy = lazy { onChangeSignal.toListener() }
@@ -16,7 +16,7 @@ open class AdapterManager<T> {
   /**
    * order越大，排名越靠前
    */
-  open fun append(order: Int = 0, adapter: T): () -> Boolean {
+  open fun append(order: Float, adapter: T): () -> Boolean {
     adapterOrderMap[adapter] = order
     orderAdapters = adapterOrderMap.toList().sortedBy { (_, b) -> -b }.map { (adapter) -> adapter }
     if (onChangeLazy.isInitialized()) {
@@ -26,6 +26,8 @@ open class AdapterManager<T> {
     }
     return { remove(adapter) }
   }
+
+  open fun append(order: Int = 0, adapter: T) = append(order.toFloat(), adapter)
 
   open fun remove(adapter: T) = adapterOrderMap.remove(adapter) != null
 }

@@ -23,6 +23,7 @@ import org.dweb_browser.pure.http.ext.mime
 
 private val sharedBlobStore by lazy { KeyValueStore("shared-blob-url-key") }
 private val MicroModuleBlobFetchHookCache = WeakHashMap<MicroModule.Runtime, FetchHook>()
+private val MicroModuleFetchHookCache = WeakHashMap<MicroModule.Runtime, FetchHook>()
 private suspend fun MicroModule.Runtime.createBlobFromUrl(
   url: Url,
   onResponse: (PureResponse) -> Unit = {},
@@ -45,6 +46,10 @@ class BlobInfo(val url: String, val dateTime: Long = datetimeNow())
 
 const val CACHE_DURATION = 12 * 60 * 60 * 1000
 
+val MicroModule.Runtime.fetchHook
+  get() = MicroModuleFetchHookCache.getOrPut(this) {
+    { nativeFetch(request.url) }
+  }
 val MicroModule.Runtime.blobFetchHook
   get() = MicroModuleBlobFetchHookCache.getOrPut(this) {
     {

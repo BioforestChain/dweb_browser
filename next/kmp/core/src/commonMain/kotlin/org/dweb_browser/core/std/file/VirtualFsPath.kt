@@ -12,9 +12,9 @@ import org.dweb_browser.core.http.router.ResponseException
 class VirtualFsPath(
   context: IMicroModuleManifest,
   virtualPathString: String,
-  findVfsDirectory: (firstSegment: String) -> IVirtualFsDirectory?,
+  findVfsDirectory: (firstSegment: String) -> VirtualFsDirectory?,
 ) {
-  private val virtualFullPath = virtualPathString.toPath(true).also {
+  val virtualFullPath = virtualPathString.toPath(true).also {
     if (!it.isAbsolute) {
       throw ResponseException(
         HttpStatusCode.BadRequest, "File path should be absolute path"
@@ -26,17 +26,17 @@ class VirtualFsPath(
       )
     }
   }
-  private val virtualFirstSegment = virtualFullPath.segments.first()
-  private val vfsDirectory = findVfsDirectory(virtualFirstSegment) ?: throw ResponseException(
+  val virtualFirstSegment = virtualFullPath.segments.first()
+  val vfsDirectory = findVfsDirectory(virtualFirstSegment) ?: throw ResponseException(
     HttpStatusCode.NotFound, "No found top-folder: $virtualFirstSegment"
   )
   val fsFullPath = vfsDirectory.resolveTo(context, virtualFullPath)
   val fs = vfsDirectory.fs
 
-  private val virtualFirstPath by lazy {
+  val virtualFirstPath by lazy {
     virtualFullPath.first
   }
-  private val fsFirstPath by lazy {
+  val fsFirstPath by lazy {
     vfsDirectory.resolveTo(context, virtualFirstPath)
   }
 

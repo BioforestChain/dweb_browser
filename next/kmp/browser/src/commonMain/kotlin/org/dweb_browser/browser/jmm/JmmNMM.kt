@@ -22,7 +22,7 @@ import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.bindDwebDeeplink
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
-import org.dweb_browser.core.std.file.IVirtualFsDirectory
+import org.dweb_browser.core.std.file.VirtualFsDirectory
 import org.dweb_browser.core.std.file.ext.realPath
 import org.dweb_browser.core.std.file.fileTypeAdapterManager
 import org.dweb_browser.dwebview.IDWebView
@@ -146,7 +146,7 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Service") {
       /// 提供JsMicroModule的文件适配器
       /// file:///usr/*
       val appsDir = realPath("/data/apps")
-      val usr = object : IVirtualFsDirectory {
+      val usr = object : VirtualFsDirectory {
         override fun isMatch(firstSegment: String) = firstSegment == "usr"
         override val fs: FileSystem = SystemFileSystem
         override fun resolveTo(remote: IMicroModuleManifest, virtualFullPath: Path) =

@@ -50,7 +50,11 @@ fun PureImageLoader.Companion.StableSmartLoad(
   val task = LoaderTask.from(fixUrl, maxWidth, maxHeight, currentColor, hook)
   // 如果是 svg，使用 coil-engine 先进行快速渲染，使用 web-engine 来确保正确渲染
   if (fixUrl.endsWith(".svg") || fixUrl.startsWith("data:image/svg+xml;")) {
-    return LocalResvgImageLoader.current.Load(task)
+    val result = LocalResvgImageLoader.current.Load(task)
+    if (result.isError) {
+      return LocalWebImageLoader.current.Load(task)
+    }
+    return result
   }
 
   val result = LocalCoilImageLoader.current.Load(task)

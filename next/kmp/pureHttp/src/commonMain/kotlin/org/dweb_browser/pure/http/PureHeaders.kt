@@ -1,5 +1,6 @@
 package org.dweb_browser.pure.http
 
+import io.ktor.http.ContentType
 import io.ktor.http.Headers
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.MapSerializer
@@ -46,6 +47,11 @@ class PureHeaders() {
   fun set(key: String, value: String) {
     headersMap[key.asKey()] = value
   }
+
+  fun setContentLength(len: Long) = set("Content-Length", len.toString())
+  fun setContentLength(len: Int) = set("Content-Length", len.toString())
+  fun setContentType(type: String) = set("Content-Type", type)
+  fun setContentType(type: ContentType) = set("Content-Type", type.toString())
 
   fun init(key: String, value: String): Boolean {
     val headerKey = key.asKey()

@@ -5,6 +5,7 @@ import okio.Path
 import okio.Path.Companion.toPath
 import org.dweb_browser.core.help.AdapterManager
 import org.dweb_browser.core.help.types.IMicroModuleManifest
+import org.dweb_browser.pure.http.PureHeaders
 import org.dweb_browser.pure.io.SystemFileSystem
 
 /**
@@ -17,6 +18,7 @@ import org.dweb_browser.pure.io.SystemFileSystem
  * 比方说持久化数据和缓存数据
  */
 interface IVirtualFsDirectory {
+
   fun isMatch(firstSegment: String): Boolean
 
   val fs: FileSystem
@@ -26,7 +28,31 @@ interface IVirtualFsDirectory {
    * 获取真实的基本路径
    */
   fun resolveTo(remote: IMicroModuleManifest, virtualFullPath: Path): Path
+
+  fun getFileHeaders(
+    remote: IMicroModuleManifest,
+    virtualFullPath: Path,
+    trueFullPath: Path,
+  ): PureHeaders = PureHeaders()
 }
+
+interface VirtualFsDirectory {
+  fun isMatch(firstSegment: String): Boolean
+
+  val fs: FileSystem
+
+  /**
+   * 如果是文件系统
+   * 获取真实的基本路径
+   */
+  fun resolveTo(remote: IMicroModuleManifest, virtualFullPath: Path): Path
+
+  fun getFileHeaders(
+    remote: IMicroModuleManifest,
+    vfsPath: VirtualFsPath,
+  ): PureHeaders = PureHeaders()
+}
+
 
 /**
  * 一种通用的虚拟文件目录，需要提供真实的物理设备的
@@ -36,20 +62,19 @@ fun commonVirtualFsDirectoryFactory(
   nativeFsPath: Path,
   separated: Boolean = true,
   fs: FileSystem = SystemFileSystem,
-) =
-  object : IVirtualFsDirectory {
-    override fun isMatch(firstSegment: String) = firstSegment == firstSegmentFlags
-    override val fs: FileSystem = fs
-    override fun resolveTo(remote: IMicroModuleManifest, virtualFullPath: Path): Path {
-      val virtualFirstPath = "${virtualFullPath.root ?: "/"}$firstSegmentFlags".toPath()
-      val virtualContentPath = virtualFullPath.relativeTo(virtualFirstPath)
-      if (separated) {
-        return nativeFsPath.resolve(remote.mmid).resolve(virtualContentPath)
-      } else {
-        return nativeFsPath.resolve(virtualContentPath)
-      }
+) = object : VirtualFsDirectory {
+  override fun isMatch(firstSegment: String) = firstSegment == firstSegmentFlags
+  override val fs: FileSystem = fs
+  override fun resolveTo(remote: IMicroModuleManifest, virtualFullPath: Path): Path {
+    val virtualFirstPath = "${virtualFullPath.root ?: "/"}$firstSegmentFlags".toPath()
+    val virtualContentPath = virtualFullPath.relativeTo(virtualFirstPath)
+    if (separated) {
+      return nativeFsPath.resolve(remote.mmid).resolve(virtualContentPath)
+    } else {
+      return nativeFsPath.resolve(virtualContentPath)
     }
   }
+}
 
 fun commonVirtualFsDirectoryFactory(firstSegment: String, nativeFsPath: String) =
   commonVirtualFsDirectoryFactory(firstSegment, nativeFsPath.toPath())
@@ -83,21 +108,21 @@ expect fun FileNMM.Companion.getApplicationCacheDir(): Path
 /**
  * 持久化数据
  */
-expect fun FileNMM.getDataVirtualFsDirectory(): IVirtualFsDirectory
+expect fun FileNMM.getDataVirtualFsDirectory(): VirtualFsDirectory
 
 
 /**
  * 缓存文件夹，这里的空间会被按需回收
  */
-expect fun FileNMM.getCacheVirtualFsDirectory(): IVirtualFsDirectory
+expect fun FileNMM.getCacheVirtualFsDirectory(): VirtualFsDirectory
 
 /**
  * 外部下载文件夹，这里的空间不会被回收
  */
-expect fun FileNMM.getExternalDownloadVirtualFsDirectory(): IVirtualFsDirectory
+expect fun FileNMM.getExternalDownloadVirtualFsDirectory(): VirtualFsDirectory
 
 
-class FileDirectoryAdapterManager internal constructor() : AdapterManager<IVirtualFsDirectory>()
+class FileDirectoryAdapterManager internal constructor() : AdapterManager<VirtualFsDirectory>()
 
 val fileTypeAdapterManager = FileDirectoryAdapterManager()
 

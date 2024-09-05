@@ -5,6 +5,8 @@ import okio.FileHandle
 import okio.ForwardingFileSystem
 import okio.Path
 import okio.Sink
+import org.dweb_browser.core.help.types.IMicroModuleManifest
+import org.dweb_browser.pure.http.PureHeaders
 import org.dweb_browser.pure.io.SystemFileSystem
 
 private const val readonlyErrorMessage = "blob is readonly, use file.std.dweb/blob/create"
@@ -54,9 +56,23 @@ internal val blobReadWriteVirtualFsDirectory = commonVirtualFsDirectoryFactory(
   separated = false
 )
 
-val blobReadonlyVirtualFsDirectory = commonVirtualFsDirectoryFactory(
-  firstSegmentFlags = "blob",
-  nativeFsPath = FileNMM.getApplicationCacheDir().resolve("blob"),
-  separated = false,
-  fs = BlobReadonlyFileSystem
-)
+val blobReadonlyVirtualFsDirectory =
+  object : VirtualFsDirectory by commonVirtualFsDirectoryFactory(
+    firstSegmentFlags = "blob",
+    nativeFsPath = FileNMM.getApplicationCacheDir().resolve("blob"),
+    separated = false,
+    fs = BlobReadonlyFileSystem
+  ) {
+    override fun getFileHeaders(
+      remote: IMicroModuleManifest,
+      vfsPath: VirtualFsPath,
+    ): PureHeaders {
+      val headers = super.getFileHeaders(remote, vfsPath)
+      val segments = vfsPath.virtualFullPath.segments
+      if (segments.getOrNull(1) == "v1") {
+        headers.setContentType("${segments[2]}/${segments[3]}")
+      }
+      return headers
+    }
+
+  }

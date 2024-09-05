@@ -12,6 +12,7 @@ actual fun ByteArray.toImageBitmap(): ImageBitmap? = toAndroidBitmap()?.asImageB
 
 fun ByteArray.toAndroidBitmap(): Bitmap? {
   return try {
+//    isEmpty().trueAlso { return null }
     BitmapFactory.decodeByteArray(this, 0, size)
   } catch (e: Exception) {
     null
