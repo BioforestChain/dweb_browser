@@ -7,6 +7,8 @@ import org.dweb_browser.browser.DwebBrowserLauncher
 import org.dweb_browser.core.module.nativeMicroModuleUIApplication
 import org.dweb_browser.core.std.dns.DnsNMM
 import org.dweb_browser.core.std.dns.nativeFetch
+import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
+import org.dweb_browser.helper.compose.envSwitch
 import org.dweb_browser.helper.platform.DeepLinkHook.Companion.deepLinkHook
 import org.dweb_browser.helper.platform.NativeViewController.Companion.nativeViewController
 import org.dweb_browser.pure.http.PureResponse
@@ -26,6 +28,9 @@ suspend fun startDwebBrowser(
   debugTags: List<String> = listOf("/.+/"),
 ): DnsNMM {
   nativeMicroModuleUIApplication = app;
+
+  /// iOS版本默认启用新版桌面
+  envSwitch.init(ENV_SWITCH_KEY.DESKTOP_STYLE_COMPOSE) { "true" }
 
   val launcher = DwebBrowserLauncher(if (debugMode) debugTags else emptyList())
   dnsNMM = launcher.dnsNMM
