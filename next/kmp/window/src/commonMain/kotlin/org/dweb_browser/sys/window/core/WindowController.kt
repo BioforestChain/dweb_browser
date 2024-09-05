@@ -13,6 +13,7 @@ import org.dweb_browser.helper.ReasonLock
 import org.dweb_browser.helper.compose.compositionChainOf
 import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.helper.platform.IPureViewController
+import org.dweb_browser.helper.platform.isDesktop
 import org.dweb_browser.sys.window.core.constant.LowLevelWindowAPI
 import org.dweb_browser.sys.window.core.constant.WindowBottomBarTheme
 import org.dweb_browser.sys.window.core.constant.WindowColorScheme
@@ -161,9 +162,12 @@ open class WindowController(
       // 看看有没有记忆了之前的窗口大小
       when (val value = beforeMaximizeBounds) {
         null -> {
-          state.setDefaultFloatWindowBounds(
-            state.bounds.width, state.bounds.height, state.zIndex.toFloat(), true
-          )
+          // TODO: 应该使用适配器去处理原生窗口和模拟窗口的窗口大小变更按钮
+          if(!IPureViewController.isDesktop) {
+            state.setDefaultFloatWindowBounds(
+              state.bounds.width, state.bounds.height, state.zIndex.toFloat(), true
+            )
+          }
         }
 
         else -> {
