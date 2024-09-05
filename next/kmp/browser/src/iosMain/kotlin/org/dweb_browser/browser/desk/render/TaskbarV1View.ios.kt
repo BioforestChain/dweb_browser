@@ -139,7 +139,7 @@ class TaskbarV1View(
     val dragGestureRecognizer = remember {
       UIPanGestureRecognizer(target = dragGesture, action = NSSelectorFromString("dragView:"))
     }
-    taskbarDWebView.Render(modifier.clip(RoundedCornerShape(16.dp)).onSizeChanged {
+    taskbarDWebView.Render(modifier.clip(RoundedCornerShape(13.dp)).onSizeChanged {
       wkWebView.mainScope.launch {
         val width = (it.width / density).toDouble()
         val height = (it.height / density).toDouble()

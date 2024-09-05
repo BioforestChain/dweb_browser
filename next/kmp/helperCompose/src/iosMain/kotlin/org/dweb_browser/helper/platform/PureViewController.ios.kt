@@ -1,11 +1,24 @@
 package org.dweb_browser.helper.platform
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.interop.LocalUIViewController
 import androidx.compose.ui.uikit.ComposeUIViewControllerDelegate
+import androidx.compose.ui.viewinterop.UIKitInteropInteractionMode
+import androidx.compose.ui.viewinterop.UIKitInteropProperties
+import androidx.compose.ui.viewinterop.UIKitView
 import androidx.compose.ui.window.ComposeUIViewController
+import androidx.compose.ui.zIndex
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
@@ -28,6 +41,7 @@ import org.dweb_browser.helper.globalMainScope
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.platform.NativeViewController.Companion.nativeViewController
 import org.dweb_browser.helper.withMainContext
+import org.dweb_browser.platform.ios.BgPlaceholderView
 import platform.UIKit.NSLayoutConstraint
 import platform.UIKit.UIView
 
@@ -208,11 +222,66 @@ class PureViewController(
     }
   }
 
+  @OptIn(ExperimentalForeignApi::class)
+  private val bgPlaceholderView = BgPlaceholderView()
+
+  @OptIn(ExperimentalForeignApi::class, ExperimentalComposeUiApi::class)
+  @Composable
+  private fun TransparentBg() {
+    UIKitView(
+      factory = {
+        bgPlaceholderView.apply {
+          setCallback { bgView ->
+            bgView?.setHidden(true)
+          }
+        }
+      },
+      modifier = Modifier.fillMaxSize().zIndex(-1f),
+      properties = UIKitInteropProperties(
+        interactionMode = UIKitInteropInteractionMode.NonCooperative,
+        isNativeAccessibilityEnabled = false
+      )
+    )
+  }
+
+  private var bgViewHidden by mutableStateOf(false)
+
+  /**
+   * TODO 移除 bgPlaceholderView
+   */
+  @OptIn(ExperimentalForeignApi::class)
+  @Composable
+  private fun TransparentBgV2() {
+    if (bgViewHidden) {
+      Box(Modifier.fillMaxSize().zIndex(-1f).drawBehind {
+        drawRect(
+          color = Color.Transparent,
+          blendMode = BlendMode.Clear
+        )
+      })
+    } else {
+      UIKitView(
+        factory = {
+          bgPlaceholderView.apply {
+            setCallback { bgView ->
+              bgViewHidden = true
+              bgView?.setHidden(true)
+            }
+          }
+        },
+      )
+    }
+  }
+
   @OptIn(ExperimentalForeignApi::class, ExperimentalComposeUiApi::class)
   val uiViewControllerInMain by lazy {
     ComposeUIViewController({
       delegate = uiViewControllerDelegate
     }) {
+      /// 因为ComposeUIViewController默认是不透明的，这里放一个全局的UIView，但是它是不可见的，目的只是占位，
+      /// 同时利用生命周期，获取到根部的图层，将它隐藏，从而让Pvc透明
+      TransparentBg()
+
       LocalCompositionChain.current.Provider(
         LocalPureViewController provides this@PureViewController,
         LocalPureViewBox provides PureViewBox(LocalUIViewController.current),
