@@ -34,13 +34,15 @@ import org.dweb_browser.browser.desk.model.rememberActivityStyle
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.compose.rememberMultiGraphicsLayers
 import org.dweb_browser.helper.getOrPut
+import org.dweb_browser.helper.platform.PureViewController
 import java.awt.Dimension
 import java.awt.Point
 import java.awt.Toolkit
-import javax.swing.JFrame
+import javax.swing.JDialog
 
 @Composable
 actual fun ActivityController.Render() {
+  println("QAQ ActivityController Render")
   val avc = activityControllerPvcWM.getOrPut(this) {
     ActivityViewController(this)
   }
@@ -101,7 +103,7 @@ private class ActivityViewController(val controller: ActivityController) {
 
   val devParams = DevParams()
   val composePanel = ComposePanel()
-  val frame = JFrame()
+  val dialog = JDialog()
 
   init {
     composePanel.setContent {
@@ -182,8 +184,11 @@ private class ActivityViewController(val controller: ActivityController) {
         val layoutWidth = placeables.maxOf { it.width }
         val layoutHeight = placeables.maxOf { it.height }
 
-        frame.size = Dimension(layoutWidth, layoutHeight)
-        frame.location = Point((displaySize.width - layoutWidth) / 2, offsetY.toInt())
+        dialog.size = when (PureViewController.isWindows && layoutWidth == 0 && layoutHeight == 0) {
+          true -> Dimension(1, 1)
+          false -> Dimension(layoutWidth, layoutHeight)
+        }
+        dialog.location = Point((displaySize.width - layoutWidth) / 2, offsetY.toInt())
 
         layout(layoutWidth, layoutHeight) {
           placeables.forEach {
@@ -195,7 +200,7 @@ private class ActivityViewController(val controller: ActivityController) {
     }
 
     composePanel.background = java.awt.Color(0, 0, 0, 0)
-    frame.apply {
+    dialog.apply {
       isAlwaysOnTop = true
       isUndecorated = true
       background = java.awt.Color(0, 0, 0, 0)
@@ -205,8 +210,12 @@ private class ActivityViewController(val controller: ActivityController) {
 
   @Composable
   fun Launch() {
+    println("QAQ Launch")
     LaunchedEffect(Unit) {
-      frame.isVisible = true
+      if (PureViewController.isWindows) {
+        dialog.size = Dimension(1, 1)
+      }
+      dialog.isVisible = true
     }
   }
 }
