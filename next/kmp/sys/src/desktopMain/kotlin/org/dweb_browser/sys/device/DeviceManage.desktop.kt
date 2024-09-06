@@ -33,10 +33,14 @@ actual object DeviceManage {
         else -> runtime.exec("cat /sys/class/dmi/id/product_uuid")
       }.inputStream.readAllBytes().decodeToString()
     }.getOrElse {
-      FileNMM.getApplicationRootDir().resolve(".os").toFile().apply { parentFile?.mkdirs() }.resolve("uuid")
+      FileNMM.getApplicationRootDir().resolve(".os").toFile().apply { parentFile?.mkdirs() }
+        .resolve("uuid")
         .run {
           if (exists()) readText()
-          else randomUUID().also { writeText(it) }
+          else randomUUID().also {
+            createNewFile()
+            writeText(it)
+          }
         }
     }
   }
