@@ -52,10 +52,6 @@ importers:
   npm/@dweb-browser__polyfill: {}
 
   npm/@dweb-browser__sign:
-    dependencies:
-      '@dweb-browser/helper':
-        specifier: workspace:~
-        version: link:../@dweb-browser__helper
     devDependencies:
       vitest:
         specifier: ^2.0.5
@@ -66,9 +62,6 @@ importers:
       '@deno/shim-deno':
         specifier: ~0.18.0
         version: 0.18.2
-      '@dweb-browser/helper':
-        specifier: workspace:~
-        version: link:../@dweb-browser__helper
       translate:
         specifier: '*'
         version: 3.0.0

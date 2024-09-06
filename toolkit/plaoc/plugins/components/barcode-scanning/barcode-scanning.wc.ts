@@ -61,15 +61,8 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
           margin: 0;
           width: 100%;
           height: 100%;
-
           user-select: none;
           -webkit-user-select: none;
-        }
-        dialog::backdrop {
-          background-color: rgba(0, 0, 0, 0.5);
-          pointer-events: none;
-          -webkit-backdrop-filter: blur(20px);
-          backdrop-filter: blur(20px);
         }
       </style>`;
     if (HTMLDwebBarcodeScanningElement._support_native_request_full_screen === false) {
