@@ -12,41 +12,39 @@ import SwiftUI
 import UIKit
 
 class DwebComposeRootViewController: UIViewController {
-    private var recongizer: DwebScreenEdgePanGestureRecognizer? = nil
-
+    var vcds: [DwebVCData]
+    
     init(vcds: [DwebVCData]) {
+        self.vcds = vcds
         super.init(nibName: nil, bundle: nil)
+    }
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
         setupTouchDispatchView()
         updateContent(vcds)
-
-        addEdgePanGesture()
+        configScreenEdgeGesture()
     }
-
-    private func addEdgePanGesture() {
-        recongizer = DwebScreenEdgePanGestureRecognizer(view, trigger: {
-            Main_iosKt.dwebViewController.emitOnGoBack()
-        })
-    }
-
+    
     func setupTouchDispatchView() {
         addViewToContainer(subView: touchDispatchView, to: view, fullscreen: true)
     }
-
+    
     @available(*, unavailable)
     required init?(coder: NSCoder) { fatalError("init no iomplememnte") }
-
+    
     private let touchDispatchView = TouchThroughView(frame: .zero)
-
+    
     func updateContent(_ vcds: [DwebVCData]) {
         Log("\(vcds)")
-
+        
         children.forEach { childVc in
             if vcds.contains(where: {vcd in vcd.vc == childVc}) { return }
             childVc.removeFromParent()
             childVc.view.removeFromSuperview()
             childVc.didMove(toParent: nil)
         }
-
+        
         vcds.forEach { vcd in
             if !children.contains(vcd.vc) {
                 addChild(vcd.vc)
@@ -59,12 +57,12 @@ class DwebComposeRootViewController: UIViewController {
             } else {
                 touchDispatchView.sendSubviewToBack(vcd.vc.view)
             }
-
+            
             vcd.vc.view.isHidden = !vcd.prop.visible
             vcd.vc.view.isUserInteractionEnabled = vcd.prop.visible
         }
     }
-
+    
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
@@ -75,7 +73,7 @@ class DwebComposeRootViewController: UIViewController {
         container.addSubview(subView)
         // subView.isOpaque = false
         subView.backgroundColor = .clear
-
+        
         /// 填充父级视图
         if fullscreen {
             subView.translatesAutoresizingMaskIntoConstraints = false
@@ -91,12 +89,48 @@ class DwebComposeRootViewController: UIViewController {
 
 struct DwebDeskRootView: UIViewControllerRepresentable {
     var vcds: [DwebVCData]
-
+    
     func makeUIViewController(context: Context) -> DwebComposeRootViewController {
         return DwebComposeRootViewController(vcds: vcds)
     }
-
+    
     func updateUIViewController(_ uiViewController: DwebComposeRootViewController, context: Context) {
         uiViewController.updateContent(vcds)
     }
+}
+
+//屏幕边缘手势相关
+extension DwebComposeRootViewController: UIGestureRecognizerDelegate {
+    @objc func configScreenEdgeGesture(){
+        let leftAnimationView = EdgeAnimationView(frame: CGRect(x: 0, y: 300, width: 0, height: 200), rectEdge: .left) {
+            Main_iosKt.dwebViewController.emitOnGoBack()
+        }
+        let rightAnimationView = EdgeAnimationView(frame: CGRect(x: view.bounds.width, y: 300, width: 0, height: 200), rectEdge: .right) {
+            Main_iosKt.dwebViewController.emitOnGoBack()
+        }
+        
+        view.addSubview(leftAnimationView)
+        view.addSubview(rightAnimationView)
+        
+        setupEdgePanGesture(target: leftAnimationView, edges: .left)
+        setupEdgePanGesture(target: rightAnimationView, edges: .right)
+    }
+    
+    private func setupEdgePanGesture(target: EdgeAnimationView, edges: UIRectEdge){
+        let edgePan = UIScreenEdgePanGestureRecognizer(target: target, action: #selector( target.handlePanGesture))
+        edgePan.edges = edges
+        edgePan.delegate = self
+        view.addGestureRecognizer(edgePan)
+    }
+    
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldBeRequiredToFailBy otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        if gestureRecognizer is UIScreenEdgePanGestureRecognizer {
+            return true
+        }
+        return false
+    }
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        return gestureRecognizer is UIScreenEdgePanGestureRecognizer || otherGestureRecognizer is UIScreenEdgePanGestureRecognizer
+    }
+    
 }
