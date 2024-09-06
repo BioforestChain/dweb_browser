@@ -1,2 +1,2 @@
 // 版本号
-extra["appVersion"] = "3.7.2400"
+extra["appVersion"] = "3.9.0603"

@@ -4,6 +4,7 @@ public fun now(): String = datetimeNow().formatTimestampByMilliseconds()
   .padEndAndSub(23) // kmp中LocalDateTime跟android不一样 // LocalDateTime.toString().padEndAndSub(23)
 
 public fun printError(tag: String, msg: Any?, err: Any? = null) {
+//  LogPanel.logPanel.print("${tag.padEnd(60, ' ')} $msg ${err ?: ""}")
   when (err) {
     null -> println("${tag.padEnd(60, ' ')} $msg")
     is Throwable -> {

@@ -9,7 +9,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.awt.ComposeDialog
+import androidx.compose.ui.awt.ComposePanel
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.IntSize
@@ -33,10 +33,11 @@ fun PureViewController.ModalDialog(
   System.setProperty("compose.layers.type", "SAMECANVAS")
   val viewBox = rememberPureViewBox()
   val dialog = remember {
-    ComposeDialog(getComposeWindowOrNull(), Dialog.ModalityType.APPLICATION_MODAL).apply {
+    JDialog(getComposeWindowOrNull(), Dialog.ModalityType.APPLICATION_MODAL).apply {
       title = state.title
       isUndecorated = true
-      isTransparent = true
+//      isTransparent = true
+      background = java.awt.Color(0, 0, 0, 0)
       defaultCloseOperation = JDialog.DISPOSE_ON_CLOSE
     }
   }
@@ -71,11 +72,15 @@ fun PureViewController.ModalDialog(
   }
   val uiScope = rememberCoroutineScope()
   DisposableEffect(dialog) {
-    dialog.setContent {
+    val composePanel = ComposePanel().apply {
+      background = java.awt.Color(0, 0, 0, 0)
+    }
+    composePanel.setContent {
       state.chain.Provider {
         content(dialog)
       }
     }
+    dialog.add(composePanel)
     val job = uiScope.launch {
       boundsReady.await()
       SwingUtilities.invokeLater {
@@ -89,6 +94,7 @@ fun PureViewController.ModalDialog(
         // 重置渲染模式为 WINDOW
         System.setProperty("compose.layers.type", "WINDOW")
         dialog.isVisible = false
+        dialog.remove(composePanel)
       }
       requestClose()
     }
