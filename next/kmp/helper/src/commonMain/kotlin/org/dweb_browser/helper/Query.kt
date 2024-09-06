@@ -174,7 +174,7 @@ public class Query {
         descriptor: SerialDescriptor,
         index: Int,
         deserializer: DeserializationStrategy<T?>,
-        previousValue: T?
+        previousValue: T?,
       ): T? {
         TODO("Not yet implemented decodeNullableSerializableElement")
       }
@@ -183,7 +183,7 @@ public class Query {
         descriptor: SerialDescriptor,
         index: Int,
         deserializer: DeserializationStrategy<T>,
-        previousValue: T?
+        previousValue: T?,
       ): T {
         return deserializer.deserialize(QueryValueItemDecoder(values[index]))
       }
@@ -260,7 +260,7 @@ public class Query {
         descriptor: SerialDescriptor,
         index: Int,
         deserializer: DeserializationStrategy<T?>,
-        previousValue: T?
+        previousValue: T?,
       ): T? {
         return deserializer.deserialize(QueryValuesDecoder(takeList()))
       }
@@ -269,7 +269,7 @@ public class Query {
         descriptor: SerialDescriptor,
         index: Int,
         deserializer: DeserializationStrategy<T>,
-        previousValue: T?
+        previousValue: T?,
       ): T {
         return deserializer.deserialize(QueryValuesDecoder(takeList()))
       }
@@ -349,7 +349,9 @@ public class Query {
     public inline fun <reified T> decodeFromSearch(searchString: String): T =
       decodeFromUrlParameters<T>(searchString.parseUrlEncodedParameters())
 
-    public inline fun <reified T> decodeFromUrl(url: Url): T = decodeFromUrlParameters<T>(url.parameters)
+    public inline fun <reified T> decodeFromUrl(url: Url): T =
+      decodeFromUrlParameters<T>(url.parameters)
+
     public inline fun <reified T> decodeFromUrlParameters(parameters: Parameters): T {
       val decoder = QueryDecoder(parameters)
       return serializersModule.serializer<T>().deserialize(decoder)

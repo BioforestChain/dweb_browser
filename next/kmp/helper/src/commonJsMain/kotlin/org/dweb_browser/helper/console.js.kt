@@ -4,5 +4,5 @@ import kotlinx.coroutines.Dispatchers
 import kotlin.coroutines.CoroutineContext
 
 val unconfinedAsyncExceptionHandler: CoroutineContext =
- Dispatchers.Unconfined + commonAsyncExceptionHandler
+  Dispatchers.Unconfined + commonAsyncExceptionHandler
 

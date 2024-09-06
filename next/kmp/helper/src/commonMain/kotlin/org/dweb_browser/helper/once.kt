@@ -92,7 +92,7 @@ public sealed class OnceBase<R> {
   internal var hasRun = false
   private var result: Result<R> = noRun
   public val haveRun: Boolean get() = hasRun
-  
+
   public fun getResult(): R = result.getOrThrow()
   public fun reset() {
     synchronized(lock) {

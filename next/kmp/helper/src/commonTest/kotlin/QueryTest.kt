@@ -14,7 +14,7 @@ class QueryTest {
       val b: Boolean,
       val c: List<Float>,
       val d: List<Int>,
-      val e: List<String>
+      val e: List<String>,
     )
 
     val queryString =

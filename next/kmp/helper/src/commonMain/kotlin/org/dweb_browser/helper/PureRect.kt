@@ -23,6 +23,7 @@ public data class PureRect(
     apply()
     toImmutable()
   }
+
   public class Mutable(
     public var x: Float,
     public var y: Float,
@@ -32,7 +33,8 @@ public data class PureRect(
     public fun toImmutable(): PureRect = PureRect(x, y, width, height)
   }
 
-  public fun toPureBounds(): PureBounds = PureBounds(top = y, left = x, bottom = y + height, right = x + width)
+  public fun toPureBounds(): PureBounds =
+    PureBounds(top = y, left = x, bottom = y + height, right = x + width)
 
   public fun timesToInt(times: Float): PureIntRect = PureIntRect(
     x = (x * times).toInt(),

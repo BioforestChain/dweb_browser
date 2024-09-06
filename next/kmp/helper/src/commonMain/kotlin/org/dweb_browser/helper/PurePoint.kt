@@ -16,7 +16,8 @@ public data class PurePoint(val x: Float, val y: Float) {
     public fun toImmutable(): PurePoint = PurePoint(x, y)
   }
 
-  public fun timesToInt(times: Float): PureIntPoint = PureIntPoint((times * x).toInt(), (times * y).toInt())
+  public fun timesToInt(times: Float): PureIntPoint =
+    PureIntPoint((times * x).toInt(), (times * y).toInt())
 }
 
 @Serializable

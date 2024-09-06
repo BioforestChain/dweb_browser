@@ -36,25 +36,31 @@ public val JsonLoose: Json = Json {
 
 
 public open class StringEnumSerializer<T>(
-  serialName: String, private val allValues: Map<String, T>, private val getValue: T.() -> String
+  serialName: String, private val allValues: Map<String, T>, private val getValue: T.() -> String,
 ) : KSerializer<T> {
-  override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor(serialName, PrimitiveKind.STRING)
+  override val descriptor: SerialDescriptor =
+    PrimitiveSerialDescriptor(serialName, PrimitiveKind.STRING)
+
   override fun deserialize(decoder: Decoder): T = allValues.getValue(decoder.decodeString())
   override fun serialize(encoder: Encoder, value: T): Unit = encoder.encodeString(value.getValue())
 }
 
 public open class IntEnumSerializer<T>(
-  serialName: String, private val allValues: Map<Int, T>, private val getValue: T.() -> Int
+  serialName: String, private val allValues: Map<Int, T>, private val getValue: T.() -> Int,
 ) : KSerializer<T> {
-  override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor(serialName, PrimitiveKind.STRING)
+  override val descriptor: SerialDescriptor =
+    PrimitiveSerialDescriptor(serialName, PrimitiveKind.STRING)
+
   override fun deserialize(decoder: Decoder): T = allValues.getValue(decoder.decodeInt())
   override fun serialize(encoder: Encoder, value: T): Unit = encoder.encodeInt(value.getValue())
 }
 
 public open class ByteEnumSerializer<T>(
-  serialName: String, private val allValues: Map<Byte, T>, private val getValue: T.() -> Byte
+  serialName: String, private val allValues: Map<Byte, T>, private val getValue: T.() -> Byte,
 ) : KSerializer<T> {
-  override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor(serialName, PrimitiveKind.STRING)
+  override val descriptor: SerialDescriptor =
+    PrimitiveSerialDescriptor(serialName, PrimitiveKind.STRING)
+
   override fun deserialize(decoder: Decoder): T = allValues.getValue(decoder.decodeByte())
   override fun serialize(encoder: Encoder, value: T): Unit = encoder.encodeByte(value.getValue())
 }
@@ -63,7 +69,7 @@ public open class ProxySerializer<T, P>(
   serialName: String,
   private val serializer: KSerializer<P>,
   private val valueToProxy: T.() -> P,
-  private val proxyToValue: P.() -> T
+  private val proxyToValue: P.() -> T,
 ) : KSerializer<T> {
   override val descriptor: SerialDescriptor = buildClassSerialDescriptor(serialName)
 
@@ -158,7 +164,7 @@ public open class PropMetas<T : PropMetas.Constructor<T>>(
     public val propName: String,
     public val initValue: V,
     public val nullable: Boolean,
-    public val serializer: KSerializer<T>
+    public val serializer: KSerializer<T>,
   ) {
     public val descriptor: SerialDescriptor = serializer.descriptor
 
@@ -170,7 +176,7 @@ public open class PropMetas<T : PropMetas.Constructor<T>>(
     }
 
     public operator fun invoke(
-      propValues: PropValues, initConfig: (PropValueConfig<V>.() -> Unit)? = null
+      propValues: PropValues, initConfig: (PropValueConfig<V>.() -> Unit)? = null,
     ): PropValue<V> = PropValue(propName, propValues, initConfig)
 
   }
@@ -201,7 +207,9 @@ public open class PropMetas<T : PropMetas.Constructor<T>>(
   }
 
   public class PropValue<T : Any?>(
-    private val propName: String, private val propValues: PropValues, initConfig: (PropValueConfig<T>.() -> Unit)?
+    private val propName: String,
+    private val propValues: PropValues,
+    initConfig: (PropValueConfig<T>.() -> Unit)?,
   ) {
     internal var beforeWrite: ((newValue: T, oldValue: T) -> T)? = null
     internal var afterWrite: ((newValue: T) -> Unit)? = null
@@ -225,12 +233,16 @@ public open class PropMetas<T : PropMetas.Constructor<T>>(
     }
 
     public fun get(): T = propValues.data[propName] as T
-    public operator fun setValue(thisRef: Any, property: KProperty<*>, newValue: T): Unit = set(newValue, false)
+    public operator fun setValue(thisRef: Any, property: KProperty<*>, newValue: T): Unit =
+      set(newValue, false)
 
     public operator fun getValue(thisRef: Any, property: KProperty<*>): T = get()
   }
 
-  public abstract class Constructor<T : Constructor<T>>(public val pv: PropValues, private val pm: PropMetas<T>) {
+  public abstract class Constructor<T : Constructor<T>>(
+    public val pv: PropValues,
+    private val pm: PropMetas<T>,
+  ) {
     public fun assign(other: Constructor<*>) {
       for ((key, value) in other.pv.data) {
         if (pv.data.containsKey(key)) {
@@ -252,12 +264,12 @@ public open class PropMetas<T : PropMetas.Constructor<T>>(
 
   @OptIn(InternalSerializationApi::class)
   public inline fun <reified T : Any> required(
-    propName: String, initValue: T, serializer: KSerializer<T> = T::class.serializer()
+    propName: String, initValue: T, serializer: KSerializer<T> = T::class.serializer(),
   ): PropMeta<T, T> = PropMeta(this, propName, initValue, false, serializer)
 
   @OptIn(InternalSerializationApi::class)
   public inline fun <reified T : Any> optional(
-    propName: String, initValue: T? = null, serializer: KSerializer<T> = T::class.serializer()
+    propName: String, initValue: T? = null, serializer: KSerializer<T> = T::class.serializer(),
   ): PropMeta<T, T?> = PropMeta(this, propName, initValue, true, serializer)
 
 
@@ -265,7 +277,7 @@ public open class PropMetas<T : PropMetas.Constructor<T>>(
   public inline fun <reified T : Any> list(
     propName: String,
     initValue: List<T> = listOf(),
-    serializer: KSerializer<T> = T::class.serializer()
+    serializer: KSerializer<T> = T::class.serializer(),
   ): PropMeta<List<T>, List<T>> = PropMeta(
     this, propName, initValue, false, ListSerializer(serializer)
   )
@@ -274,7 +286,7 @@ public open class PropMetas<T : PropMetas.Constructor<T>>(
   public inline fun <reified T : Any> mutableListOptional(
     propName: String,
     initValue: List<T>? = null,
-    serializer: KSerializer<T> = T::class.serializer()
+    serializer: KSerializer<T> = T::class.serializer(),
   ): PropMeta<List<T>, List<T>?> = PropMeta(
     this, propName, initValue, true, ListSerializer(serializer)
   )

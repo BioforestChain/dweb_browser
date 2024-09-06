@@ -15,7 +15,7 @@ import platform.posix.uint8_tVar
 @OptIn(ExperimentalForeignApi::class)
 public fun NSInputStreamToByteReadChannel(
   scope: CoroutineScope,
-  nsInputStream: NSInputStream
+  nsInputStream: NSInputStream,
 ): ByteReadChannel {
   val byteChannel = createByteChannel()
   val bytes = malloc(4096u) ?: throw Exception("malloc fail");

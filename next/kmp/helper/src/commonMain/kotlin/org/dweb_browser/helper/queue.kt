@@ -61,6 +61,7 @@ public class Queue<R>(
       }
     }.await()
   }
+
   public companion object {
     /**
      * 放弃排队

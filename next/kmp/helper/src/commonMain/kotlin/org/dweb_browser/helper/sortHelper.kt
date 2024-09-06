@@ -1,9 +1,13 @@
 package org.dweb_browser.helper
 
-public class ComparableWrapper<T>(public val value: T, public val getScore: (T) -> Map<String, Int>) :
+public class ComparableWrapper<T>(
+  public val value: T,
+  public val getScore: (T) -> Map<String, Int>,
+) :
   Comparable<ComparableWrapper<T>> {
   public companion object {
-    public fun <T> builder(getScore: (T) -> Map<String, Int>): ComparableWrapperBuilder<T> = ComparableWrapperBuilder(getScore)
+    public fun <T> builder(getScore: (T) -> Map<String, Int>): ComparableWrapperBuilder<T> =
+      ComparableWrapperBuilder(getScore)
 
     public class ComparableWrapperBuilder<T>(private val getScore: (T) -> Map<String, Int>) {
       public fun build(value: T): ComparableWrapper<T> = ComparableWrapper(value, getScore)

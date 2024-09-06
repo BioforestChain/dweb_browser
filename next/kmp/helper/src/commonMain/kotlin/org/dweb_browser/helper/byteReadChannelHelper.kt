@@ -25,7 +25,9 @@ public suspend fun ByteReadChannel.canReadContent(): Boolean {
   } while (true)
 }
 
-public suspend fun ByteReadChannel.readAvailablePacket(): ByteReadPacket = readPacket(availableForRead)
+public suspend fun ByteReadChannel.readAvailablePacket(): ByteReadPacket =
+  readPacket(availableForRead)
+
 public suspend fun ByteReadChannel.readAvailableByteArray(): ByteArray =
   ByteArray(availableForRead).also { readAvailable(it) }// readAvailablePacket().readByteArray()
 

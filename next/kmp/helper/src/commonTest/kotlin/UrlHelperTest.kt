@@ -43,7 +43,16 @@ class UrlHelperTest {
     "baidu.com".let { println("${it.padEnd(36, ' ')} = ${it.parseAsDomain().errorMessage}") }
     "www.baidu.com".let { println("${it.padEnd(36, ' ')} = ${it.parseAsDomain().errorMessage}") }
     "http://baidu.com".let { println("${it.padEnd(36, ' ')} = ${it.parseAsDomain().errorMessage}") }
-    "http://www.baidu.com".let { println("${it.padEnd(36, ' ')} = ${it.parseAsDomain().errorMessage}") }
+    "http://www.baidu.com".let {
+      println(
+        "${
+          it.padEnd(
+            36,
+            ' '
+          )
+        } = ${it.parseAsDomain().errorMessage}"
+      )
+    }
     "-www.baidu.com".let { println("${it.padEnd(36, ' ')} = ${it.parseAsDomain().errorMessage}") }
     "www.baidu.com-".let { println("${it.padEnd(36, ' ')} = ${it.parseAsDomain().errorMessage}") }
     "www.baidu.com/".let { println("${it.padEnd(36, ' ')} = ${it.parseAsDomain().errorMessage}") }

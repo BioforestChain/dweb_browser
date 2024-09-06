@@ -5,7 +5,7 @@ import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
 
 internal class Changeable<T>(
-  private val self: T, var context: CoroutineContext
+  private val self: T, var context: CoroutineContext,
 ) {
   private val scope by lazy { CoroutineScope(context) }
   private val signal = lazy { Signal<T>() }

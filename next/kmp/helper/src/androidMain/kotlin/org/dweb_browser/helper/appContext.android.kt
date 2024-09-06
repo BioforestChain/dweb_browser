@@ -25,4 +25,5 @@ public fun removeStartActivityOptions(activity: Activity) {
   startActivityOptions.removeAll { it.first == activity }
 }
 
-public fun getStartActivityOptions(): Pair<Activity, (() -> Bundle?)?>? = startActivityOptions.lastOrNull()
+public fun getStartActivityOptions(): Pair<Activity, (() -> Bundle?)?>? =
+  startActivityOptions.lastOrNull()

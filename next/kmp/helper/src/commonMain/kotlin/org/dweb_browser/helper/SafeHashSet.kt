@@ -7,7 +7,9 @@ import kotlinx.atomicfu.locks.synchronized
 public class SafeHashSet<T> : MutableSet<T> {
   public val origin: MutableSet<T> = mutableSetOf()
   public val lock: SynchronizedObject = SynchronizedObject()
-  public inline fun <R> sync(block: MutableSet<T>.() -> R): R = synchronized(lock) { origin.block() }
+  public inline fun <R> sync(block: MutableSet<T>.() -> R): R =
+    synchronized(lock) { origin.block() }
+
   override val size: Int get() = sync { size }
   override fun clear(): Unit = sync { clear() }
   override fun isEmpty(): Boolean = sync { isEmpty() }

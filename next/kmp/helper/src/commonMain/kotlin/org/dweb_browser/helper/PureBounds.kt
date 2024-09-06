@@ -33,7 +33,9 @@ public data class PureBounds(
   val centerX: Float get() = (left + right) / 2
   val centerY: Float get() = (top + bottom) / 2
 
-  public fun toPureRect(): PureRect = PureRect(x = left, y = top, width = right - left, height = bottom - top)
+  public fun toPureRect(): PureRect =
+    PureRect(x = left, y = top, width = right - left, height = bottom - top)
+
   public fun centerScale(scale: Float): PureBounds {
     val scaleWidthDiff = width * (scale - 1) / 2
     val scaleHeightDiff = height * (scale - 1) / 2

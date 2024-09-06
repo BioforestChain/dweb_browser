@@ -8,16 +8,13 @@ import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.media.ThumbnailUtils
 import android.net.Uri
-import android.os.Build
 import android.provider.MediaStore
 import android.provider.MediaStore.Images.Thumbnails.MINI_KIND
 import android.util.Log
-import android.util.Size
 import androidx.annotation.DrawableRes
 import androidx.core.content.ContextCompat
 import java.io.File
 import java.io.FileOutputStream
-import java.nio.file.Paths
 
 @Deprecated("should not use BitmapUtil")
 @Suppress("DEPRECATION")

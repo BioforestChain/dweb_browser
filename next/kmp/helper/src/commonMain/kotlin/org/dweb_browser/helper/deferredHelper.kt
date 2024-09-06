@@ -17,6 +17,7 @@ import kotlinx.coroutines.job
  * for alternative try-finally
  */
 public suspend fun <T> Deferred<T>.awaitResult(): Result<T> = runCatching { await() }
+
 @OptIn(ExperimentalCoroutinesApi::class)
 public fun <T> Deferred<T>.getCompletedOrNull(): T? = when {
   isCompleted -> getCompleted()

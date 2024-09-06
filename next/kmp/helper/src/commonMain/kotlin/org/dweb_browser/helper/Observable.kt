@@ -20,7 +20,11 @@ public class Observable<K : Any> {
   public val changeSignal: Signal<Change<K, *>> = Signal()
   public val onChange: Signal.Listener<Change<K, *>> = changeSignal.toListener()
 
-  public class TransformContext<K : Any, T : Any?>(public val key: K, public val value: T, public var targetValue: T) {
+  public class TransformContext<K : Any, T : Any?>(
+    public val key: K,
+    public val value: T,
+    public var targetValue: T,
+  ) {
     /**
      * 将该值标记成 true，将会让 setValue 取消赋值操作
      */

@@ -29,6 +29,8 @@ public fun Number.scale(toRange: LongRange): Double = scale(0L..1L, toRange)
 public fun Number.scale(
   fromRange: ClosedFloatingPointRange<Double>,
   toRange: ClosedFloatingPointRange<Double>,
-): Double = this.scale(fromRange.start to fromRange.endInclusive, toRange.start to toRange.endInclusive)
+): Double =
+  this.scale(fromRange.start to fromRange.endInclusive, toRange.start to toRange.endInclusive)
 
-public fun Number.scale(toRange: ClosedFloatingPointRange<Double>): Double = scale(0.0..1.0, toRange)
+public fun Number.scale(toRange: ClosedFloatingPointRange<Double>): Double =
+  scale(0.0..1.0, toRange)

@@ -5,13 +5,16 @@ import kotlinx.atomicfu.locks.synchronized
 
 public class SafeLinkList<T>(public val origin: MutableList<T> = mutableListOf()) : MutableList<T> {
   public val lock: SynchronizedObject = SynchronizedObject()
-  public inline fun <R> sync(block: MutableList<T>.() -> R): R = synchronized(lock) { origin.block() }
+  public inline fun <R> sync(block: MutableList<T>.() -> R): R =
+    synchronized(lock) { origin.block() }
+
   override val size: Int get() = sync { origin.size }
   override fun clear(): Unit = sync { clear() }
 
   override fun addAll(elements: Collection<T>): Boolean = sync { addAll(elements) }
 
-  override fun addAll(index: Int, elements: Collection<T>): Boolean = sync { addAll(index, elements) }
+  override fun addAll(index: Int, elements: Collection<T>): Boolean =
+    sync { addAll(index, elements) }
 
   override fun add(index: Int, element: T): Unit = sync { add(index, element) }
 
@@ -31,7 +34,8 @@ public class SafeLinkList<T>(public val origin: MutableList<T> = mutableListOf()
 
   override fun removeAt(index: Int): T = sync { removeAt(index) }
 
-  override fun subList(fromIndex: Int, toIndex: Int): MutableList<T> = sync { subList(fromIndex, toIndex) }
+  override fun subList(fromIndex: Int, toIndex: Int): MutableList<T> =
+    sync { subList(fromIndex, toIndex) }
 
   override fun set(index: Int, element: T): T = sync {
     origin.set(index, element)

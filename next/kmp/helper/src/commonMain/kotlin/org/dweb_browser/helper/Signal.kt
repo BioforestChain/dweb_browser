@@ -16,7 +16,12 @@ public typealias SignalCallback<Args> = suspend SignalController<Args>.(args: Ar
 public typealias SignalSimpleCallback = suspend SignalController<Unit>.(Unit) -> Unit
 
 /** 控制器 */
-public class SignalController<Args>(public val args: Args, public val offListener: () -> Unit, public val breakEmit: () -> Unit)
+public class SignalController<Args>(
+  public val args: Args,
+  public val offListener: () -> Unit,
+  public val breakEmit: () -> Unit,
+)
+
 private enum class SignalPolicy {
   /**
    * 返回该值，会解除监听
@@ -30,7 +35,10 @@ private enum class SignalPolicy {
   ;
 }
 
-public class OffListener<Args>(public val origin: Signal<Args>, public val cb: SignalCallback<Args>) {
+public class OffListener<Args>(
+  public val origin: Signal<Args>,
+  public val cb: SignalCallback<Args>,
+) {
   public operator fun invoke(): Boolean = synchronized(origin) { origin.off(cb) }
 
   /**
@@ -54,7 +62,8 @@ public class OffListener<Args>(public val origin: Signal<Args>, public val cb: S
 
 @Suppress("UNCHECKED_CAST")
 public open class Signal<Args>(autoStart: Boolean = true) : SynchronizedObject() {
-  private val listenerSet: ChangeableSet<suspend SignalController<Args>.(args: Args) -> Unit> = ChangeableSet()
+  private val listenerSet: ChangeableSet<suspend SignalController<Args>.(args: Args) -> Unit> =
+    ChangeableSet()
   private var emitCached: MutableList<Args>? = null
 
   init {
@@ -89,28 +98,32 @@ public open class Signal<Args>(autoStart: Boolean = true) : SynchronizedObject()
   }
 
   private val whenNoEmptyCallbacks = lazy { mutableSetOf<() -> Unit>() }
+
   @Suppress("MemberVisibilityCanBePrivate")
-  public fun whenListenerSizeChange(cb: suspend () -> Unit): OffListener<ChangeableSet<suspend SignalController<Args>.(args: Args) -> Unit>> = listenerSet.onChange {
-    cb()
-  }
-
-  public fun whenNoEmpty(cb: () -> Unit): OffListener<ChangeableSet<suspend SignalController<Args>.(args: Args) -> Unit>> = ({
-    if (listenerSet.isNotEmpty()) {
+  public fun whenListenerSizeChange(cb: suspend () -> Unit): OffListener<ChangeableSet<suspend SignalController<Args>.(args: Args) -> Unit>> =
+    listenerSet.onChange {
       cb()
     }
-  }).let { wrappedCb ->
-    wrappedCb()
-    whenListenerSizeChange(wrappedCb)
-  }
 
-  public fun whenEmpty(cb: () -> Unit): OffListener<ChangeableSet<suspend SignalController<Args>.(args: Args) -> Unit>> = ({
-    if (listenerSet.isEmpty()) {
-      cb()
+  public fun whenNoEmpty(cb: () -> Unit): OffListener<ChangeableSet<suspend SignalController<Args>.(args: Args) -> Unit>> =
+    ({
+      if (listenerSet.isNotEmpty()) {
+        cb()
+      }
+    }).let { wrappedCb ->
+      wrappedCb()
+      whenListenerSizeChange(wrappedCb)
     }
-  }).let { wrappedCb ->
-    wrappedCb()
-    whenListenerSizeChange(wrappedCb)
-  }
+
+  public fun whenEmpty(cb: () -> Unit): OffListener<ChangeableSet<suspend SignalController<Args>.(args: Args) -> Unit>> =
+    ({
+      if (listenerSet.isEmpty()) {
+        cb()
+      }
+    }).let { wrappedCb ->
+      wrappedCb()
+      whenListenerSizeChange(wrappedCb)
+    }
 
   internal fun off(cb: SignalCallback<Args>) = synchronized(this) { listenerSet.remove(cb) }
 
@@ -155,7 +168,7 @@ public open class Signal<Args>(autoStart: Boolean = true) : SynchronizedObject()
         }
       }
       if (cbs != null || children.isNotEmpty()) {
-        emit(args, cbs?: setOf())
+        emit(args, cbs ?: setOf())
       }
     }
   }
@@ -207,7 +220,7 @@ public open class Signal<Args>(autoStart: Boolean = true) : SynchronizedObject()
     }
     this.emit(args, cbs)
   }
-  
+
   public fun clear() {
     synchronized(this) {
       listenerSet.clear()

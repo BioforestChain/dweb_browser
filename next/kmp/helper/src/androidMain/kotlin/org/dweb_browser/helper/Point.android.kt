@@ -4,7 +4,8 @@ import android.graphics.Point
 import android.graphics.PointF
 
 public fun android.graphics.PointF.toPoint(): PurePoint = PurePoint(x, y)
-public fun android.graphics.Point.toPoint(density: Float = 1f): PurePoint = PurePoint(x / density, y / density)
+public fun android.graphics.Point.toPoint(density: Float = 1f): PurePoint =
+  PurePoint(x / density, y / density)
 
 
 public fun PurePoint.toAndroidPoint(density: Float = 1f): Point =

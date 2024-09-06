@@ -29,7 +29,8 @@ import platform.Foundation.numberWithInt
 import platform.Foundation.stringWithUTF8String
 
 @OptIn(ExperimentalForeignApi::class)
-public fun CValue<CGPoint>.toPoint(): PurePoint = useContents { PurePoint(x.toFloat(), y.toFloat()) }
+public fun CValue<CGPoint>.toPoint(): PurePoint =
+  useContents { PurePoint(x.toFloat(), y.toFloat()) }
 
 public fun PurePoint.toIosPoint(): CValue<CGPoint> = CGPointMake(x.toDouble(), y.toDouble())
 

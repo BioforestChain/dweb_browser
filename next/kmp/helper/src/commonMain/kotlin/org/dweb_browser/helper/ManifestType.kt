@@ -47,7 +47,8 @@ public enum class ImageResourcePurposes(public val purpose: String) {
   ;
 
   public companion object {
-    public val ALL_VALUES: Map<ImageResourcePurposes, ImageResourcePurposes> = entries.associateBy { it }
+    public val ALL_VALUES: Map<ImageResourcePurposes, ImageResourcePurposes> =
+      entries.associateBy { it }
   }
 }
 

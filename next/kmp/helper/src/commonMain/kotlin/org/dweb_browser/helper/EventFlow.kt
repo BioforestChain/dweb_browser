@@ -19,7 +19,7 @@ public typealias SimpleCallback = suspend (Unit) -> Unit
  */
 public open class EventFlow<T>(
   public val scope: CoroutineScope,
-  public val tip: String = ""
+  public val tip: String = "",
 ) {
   //用于存储和发送事件
   private val eventEmitter = MutableSharedFlow<T>(
@@ -67,7 +67,7 @@ public open class EventFlow<T>(
 
 public class SimpleEventFlow(
   scope: CoroutineScope,
-  tip: String = ""
+  tip: String = "",
 ) : EventFlow<Unit>(scope, tip) {
   public suspend fun emit() {
     this.emit(Unit)
@@ -86,8 +86,9 @@ public fun Remover.removeWhen(listener: Signal.Listener<*>): OffListener<out Any
   this@removeWhen()
 }
 
-public fun Remover.removeWhen(lifecycleScope: CoroutineScope): DisposableHandle = lifecycleScope.launch {
-  CompletableDeferred<Unit>().await()
-}.invokeOnCompletion {
-  this@removeWhen()
-}
+public fun Remover.removeWhen(lifecycleScope: CoroutineScope): DisposableHandle =
+  lifecycleScope.launch {
+    CompletableDeferred<Unit>().await()
+  }.invokeOnCompletion {
+    this@removeWhen()
+  }

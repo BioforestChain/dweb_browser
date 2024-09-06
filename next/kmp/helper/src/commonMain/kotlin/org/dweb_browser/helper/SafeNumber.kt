@@ -47,15 +47,16 @@ public class SafeFloat(
 
 @Suppress("UNCHECKED_CAST")
 public sealed class SafeNumber<T : Number, Self : SafeNumber<T, Self>>(
-   field: T,
+  field: T,
 ) {
   protected val sync: SynchronizedObject = SynchronizedObject()
 
   public operator fun getValue(thisRef: Any?, property: KProperty<*>): T = value
 
-  public operator fun setValue(thisRef: Any?, property: KProperty<*>, value: T): Unit = synchronized(sync) {
-    this.value = value
-  }
+  public operator fun setValue(thisRef: Any?, property: KProperty<*>, value: T): Unit =
+    synchronized(sync) {
+      this.value = value
+    }
 
   public var value: T = field
     protected set
@@ -63,7 +64,7 @@ public sealed class SafeNumber<T : Number, Self : SafeNumber<T, Self>>(
   protected abstract fun addInt(v: Int)
   protected abstract fun addNumber(v: T)
 
-  public operator fun  inc(): Self = synchronized(sync) { addInt(1);this as Self }
+  public operator fun inc(): Self = synchronized(sync) { addInt(1);this as Self }
   public operator fun dec(): Self = synchronized(sync) { addInt(-1);this as Self }
 
   public operator fun plusAssign(value: T) {

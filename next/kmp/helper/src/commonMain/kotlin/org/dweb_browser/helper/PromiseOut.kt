@@ -13,7 +13,9 @@ public open class PromiseOut<T> : SynchronizedObject() {
 
   public companion object {
     private val defaultScope by lazy { CoroutineScope(defaultAsyncExceptionHandler + CoroutineName("PromiseOut")) }
-    public fun <T : Any> resolve(value: T): PromiseOut<T> = PromiseOut<T>().also { it.resolve(value) }
+    public fun <T : Any> resolve(value: T): PromiseOut<T> =
+      PromiseOut<T>().also { it.resolve(value) }
+
     public fun <T : Any> reject(e: Throwable): PromiseOut<T> = PromiseOut<T>().also { it.reject(e) }
   }
 
@@ -54,7 +56,10 @@ public open class PromiseOut<T> : SynchronizedObject() {
 
   public suspend fun waitPromise(): T = _future.await()
 
-  public fun alsoLaunchIn(scope: CoroutineScope, block: suspend CoroutineScope.() -> T): PromiseOut<T> =
+  public fun alsoLaunchIn(
+    scope: CoroutineScope,
+    block: suspend CoroutineScope.() -> T,
+  ): PromiseOut<T> =
     this.also { launchIn(scope, block) }
 
   @Suppress("MemberVisibilityCanBePrivate")
