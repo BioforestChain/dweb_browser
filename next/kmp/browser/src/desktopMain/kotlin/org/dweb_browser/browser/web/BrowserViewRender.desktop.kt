@@ -9,8 +9,8 @@ import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.browser.web.ui.BrowserRender
 import org.dweb_browser.helper.platform.LocalPureViewController
 import org.dweb_browser.helper.platform.asDesktop
-import org.dweb_browser.sys.window.core.WindowContentRenderScope
 import org.dweb_browser.sys.window.core.LocalWindowController
+import org.dweb_browser.sys.window.core.WindowContentRenderScope
 import org.dweb_browser.sys.window.helper.watchedState
 
 @Composable
@@ -22,14 +22,7 @@ actual fun CommonBrowserView(
   BrowserRender(viewModel, modifier, windowRenderScope)
   // TODO 临时方案处理弹出层的一些问题
   val composeWindow by LocalPureViewController.current.asDesktop().composeWindowAsState()
-  LaunchedEffect(viewModel.showMore, composeWindow) {
-    while (true) {
-      delay(100)
-      if (viewModel.showMore && composeWindow.focusOwner != null) {
-        viewModel.showMore = false
-      }
-    }
-  }
+
   val windowController = LocalWindowController.current
   val isShowMenuPanel by windowController.watchedState { showMenuPanel }
   LaunchedEffect(isShowMenuPanel, composeWindow) {

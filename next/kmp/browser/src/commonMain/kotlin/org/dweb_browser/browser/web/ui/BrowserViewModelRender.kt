@@ -31,6 +31,7 @@ internal val dimenBottomHeight = 60.dp
 internal val dimenSearchHeight = 40.dp
 internal val dimenNavigationHeight = 40.dp
 internal val browserShape = SquircleShape(30, CornerSmoothing.Small)
+internal val browserBigShape = SquircleShape(16.dp, CornerSmoothing.Small)
 
 internal fun <T> enterAnimationSpec() = tween<T>(250, easing = IosLeaveEasing)
 internal fun <T> exitAnimationSpec() = tween<T>(300, easing = IosLeaveEasing)
@@ -64,7 +65,7 @@ fun BrowserPagePanel(modifier: Modifier, contentScaled: Float) {
       BrowserContentPager(contentScaled)   // 中间网页主体
     }
     // 工具栏，包括搜索框和导航栏
-    BrowserBottomBar(Modifier.fillMaxWidth().requiredHeight(dimenBottomHeight))
+    BrowserBottomBar(contentScaled, Modifier.fillMaxWidth().requiredHeight(dimenBottomHeight))
   }
 }
 

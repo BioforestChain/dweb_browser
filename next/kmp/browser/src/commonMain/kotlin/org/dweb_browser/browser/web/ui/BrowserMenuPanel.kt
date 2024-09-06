@@ -30,7 +30,6 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -43,18 +42,24 @@ import org.dweb_browser.browser.web.model.page.BrowserWebPage
 import org.dweb_browser.dwebview.rememberHistoryCanGoBack
 import org.dweb_browser.dwebview.rememberHistoryCanGoForward
 import org.dweb_browser.helper.PrivacyUrl
+import org.dweb_browser.helper.compose.ComposeWindowFocusOwnerEffect
+import org.dweb_browser.helper.compose.ScalePopupContent
+import squircleshape.CornerSmoothing
+import squircleshape.SquircleShape
 
 @Composable
-internal fun BrowserMenuPanel(modifier: Modifier = Modifier) {
+internal fun BrowserMenuPanel(scale: Float, modifier: Modifier = Modifier) {
   val uiScope = rememberCoroutineScope()
   val viewModel = LocalBrowserViewModel.current
   val scope = LocalBrowserViewModel.current.browserNMM.getRuntimeScope()
 
-  val hide = remember(viewModel) { { viewModel.showMore = false } }
+  val hide = { viewModel.showMore = false }
+  ComposeWindowFocusOwnerEffect(viewModel.showMore, hide)
   DropdownMenu(
     modifier = modifier,
     expanded = viewModel.showMore,
-    onDismissRequest = { hide() }
+    onDismissRequest = hide,
+    shape = SquircleShape((16 * scale).dp, CornerSmoothing.Small),
   ) {
     val page = viewModel.focusedPage
     // 添加书签
@@ -179,31 +184,33 @@ internal fun BrowserMenuPanel(modifier: Modifier = Modifier) {
 
     if (page is BrowserWebPage) {
       HorizontalDivider()
-      Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-        IconButton(
-          { page.webView.lifecycleScope.launch { page.webView.goBack() } },
-          enabled = page.webView.rememberHistoryCanGoBack()
-        ) {
-          Icon(Icons.AutoMirrored.Rounded.ArrowBackIos, "go back")
-        }
-        VerticalDivider()
-        IconButton(
-          { page.webView.lifecycleScope.launch { page.webView.historyGoForward() } },
-          enabled = page.webView.rememberHistoryCanGoForward()
-        ) {
-          Icon(Icons.AutoMirrored.Rounded.ArrowForwardIos, "go forward")
-        }
-        VerticalDivider()
-        IconButton(
-          { page.webView.lifecycleScope.launch { page.webView.reload() } },
-        ) {
-          Icon(Icons.Rounded.Refresh, "reload web page")
+      ScalePopupContent {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+          IconButton(
+            { page.webView.lifecycleScope.launch { page.webView.goBack() } },
+            enabled = page.webView.rememberHistoryCanGoBack()
+          ) {
+            Icon(Icons.AutoMirrored.Rounded.ArrowBackIos, "go back")
+          }
+          VerticalDivider()
+          IconButton(
+            { page.webView.lifecycleScope.launch { page.webView.historyGoForward() } },
+            enabled = page.webView.rememberHistoryCanGoForward()
+          ) {
+            Icon(Icons.AutoMirrored.Rounded.ArrowForwardIos, "go forward")
+          }
+          VerticalDivider()
+          IconButton(
+            { page.webView.lifecycleScope.launch { page.webView.reload() } },
+          ) {
+            Icon(Icons.Rounded.Refresh, "reload web page")
+          }
         }
       }
     }
   }
-
 }
+
 
 @Composable
 private fun SettingListItem(
@@ -212,12 +219,14 @@ private fun SettingListItem(
   onClick: () -> Unit = {},
   trailingIcon: (@Composable (() -> Unit))? = null,
 ) {
-  DropdownMenuItem(
-    text = { Text(title) },
-    onClick = onClick,
-    leadingIcon = leadingIcon,
-    trailingIcon = trailingIcon
-  )
+  ScalePopupContent {
+    DropdownMenuItem(
+      text = { Text(title) },
+      onClick = onClick,
+      leadingIcon = leadingIcon,
+      trailingIcon = trailingIcon
+    )
+  }
 }
 
 @Composable
@@ -231,13 +240,16 @@ private fun SettingListItem(
     title = title,
     onClick = onClick,
     leadingIcon = { Icon(icon, contentDescription = title) },
-    trailingIcon = trailingContent
+    trailingIcon = trailingContent,
   )
 }
 
 @Composable
 private fun SettingListItem(
-  title: String, icon: ImageVector, onClick: () -> Unit = {}, trailingIcon: ImageVector,
+  title: String,
+  icon: ImageVector,
+  onClick: () -> Unit = {},
+  trailingIcon: ImageVector,
 ) {
   SettingListItem(title, icon, onClick) {
     Icon(trailingIcon, contentDescription = title)

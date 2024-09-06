@@ -35,10 +35,11 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.web.model.LocalBrowserViewModel
 import org.dweb_browser.browser.web.model.LocalShowIme
+import org.dweb_browser.helper.compose.ScalePopupPlaceholder
 import org.dweb_browser.helper.compose.hoverCursor
 
 @Composable
-fun BrowserBottomBar(modifier: Modifier) {
+fun BrowserBottomBar(scale: Float, modifier: Modifier) {
   val viewModel = LocalBrowserViewModel.current
   val uiScope = rememberCoroutineScope()
   val localShowIme = LocalShowIme.current
@@ -99,7 +100,10 @@ fun BrowserBottomBar(modifier: Modifier) {
           pageSpacing = 4.dp,
           key = { pageIndex -> viewModel.getPage(pageIndex).hashCode() },
           pageContent = { pageIndex ->
-            PageTabWithToolTip(viewModel.getPage(pageIndex), Modifier.requiredSizeIn(minWidth = 180.dp))
+            PageTabWithToolTip(
+              viewModel.getPage(pageIndex),
+              Modifier.requiredSizeIn(minWidth = 180.dp)
+            )
           },
         )
       }
@@ -120,7 +124,9 @@ fun BrowserBottomBar(modifier: Modifier) {
 
     // 功能列表
     IconButton(onClick = { viewModel.showMore = true }, Modifier.hoverCursor()) {
-      BrowserMenuPanel()
+      ScalePopupPlaceholder(scale) {
+        BrowserMenuPanel(scale)
+      }
       Icon(
         imageVector = Icons.Rounded.MoreVert,
         contentDescription = "Open Menu Panel",

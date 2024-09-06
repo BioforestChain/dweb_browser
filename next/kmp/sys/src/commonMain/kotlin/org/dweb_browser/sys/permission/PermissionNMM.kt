@@ -19,6 +19,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
@@ -50,9 +51,9 @@ import org.dweb_browser.core.std.permission.PermissionProvider
 import org.dweb_browser.core.std.permission.debugPermission
 import org.dweb_browser.core.std.permission.permissionStdProtocol
 import org.dweb_browser.helper.ImageResource
-import org.dweb_browser.helper.compose.HorizontalDivider
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.pure.http.PureMethod
+import org.dweb_browser.sys.permission.render.PermissionManagerRender
 import org.dweb_browser.sys.window.core.helper.setStateFromManifest
 import org.dweb_browser.sys.window.core.windowAdapterManager
 import org.dweb_browser.sys.window.ext.createBottomSheets
@@ -134,9 +135,7 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", PermissionI18nRes
                 Spacer(Modifier.width(32.dp))
 
                 AppLogo.fromResources(
-                  applicant.icons,
-                  fetchHook = blobFetchHook,
-                  base = AppLogo(errorContent = {
+                  applicant.icons, fetchHook = blobFetchHook, base = AppLogo(errorContent = {
                     Text(applicant.short_name)
                   })
                 ).toIcon().Render(Modifier.size(32.dp))

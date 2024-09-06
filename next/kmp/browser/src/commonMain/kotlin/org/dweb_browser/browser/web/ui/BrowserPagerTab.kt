@@ -8,7 +8,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,20 +21,19 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Refresh
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RichTooltip
 import androidx.compose.material3.Text
-import androidx.compose.material3.TooltipBox
-import androidx.compose.material3.TooltipDefaults
-import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
@@ -60,11 +58,13 @@ import org.dweb_browser.browser.web.model.page.BrowserWebPage
 import org.dweb_browser.dwebview.rememberHistoryCanGoBack
 import org.dweb_browser.dwebview.rememberHistoryCanGoForward
 import org.dweb_browser.dwebview.rememberLoadingProgress
+import org.dweb_browser.helper.compose.ComposeWindowFocusOwnerEffect
+import org.dweb_browser.helper.compose.ScalePopupContent
+import org.dweb_browser.helper.compose.ScalePopupPlaceholder
 import org.dweb_browser.helper.compose.hoverCursor
 import org.dweb_browser.helper.compose.pointerActions
 import org.dweb_browser.helper.isDwebDeepLink
 import org.dweb_browser.helper.toWebUrl
-import org.dweb_browser.sys.window.floatBar.floatBarDefaultShape
 import org.dweb_browser.sys.window.render.AppIconContainer
 
 enum class SearchBoxTheme {
@@ -88,72 +88,39 @@ internal fun Modifier.pagerTabStyle(boxTheme: SearchBoxTheme) = composed {
 }
 
 @Composable
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 internal fun PageTabWithToolTip(page: BrowserPage, modifier: Modifier) {
   val viewModel = LocalBrowserViewModel.current
   val uiScope = rememberCoroutineScope()
-  val tooltipState = rememberTooltipState(isPersistent = true)
-  val isFocused = page == viewModel.focusedPage
   when (page) {
-    is BrowserWebPage -> TooltipBox(
-      positionProvider = TooltipDefaults.rememberRichTooltipPositionProvider(),
-      tooltip = {
-        RichTooltip(shape = floatBarDefaultShape) {
-          fun scopeLaunch(action: suspend () -> Unit) {
-            page.webView.lifecycleScope.launch {
-              launch {
-                delay(150)
-                tooltipState.dismiss()
+    is BrowserWebPage -> {
+      var showActions by remember { mutableStateOf(false) }
+      Box {
+        PagerTab(
+          page, modifier = modifier.pointerActions(
+            onMenu = {
+              uiScope.launch {
+                showActions = true
               }
-              action()
-            }
-          }
-          Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            IconButton(
-              { scopeLaunch { page.webView.goBack() } },
-              enabled = page.webView.rememberHistoryCanGoBack()
-            ) {
-              Icon(Icons.AutoMirrored.Rounded.ArrowBackIos, "go back")
-            }
-            IconButton(
-              { scopeLaunch { page.webView.historyGoForward() } },
-              enabled = page.webView.rememberHistoryCanGoForward()
-            ) {
-              Icon(Icons.AutoMirrored.Rounded.ArrowForwardIos, "go forward")
-            }
-            IconButton(
-              { scopeLaunch { page.webView.reload() } },
-            ) {
-              Icon(Icons.Rounded.Refresh, "reload web page")
-            }
-            IconButton(
-              { scopeLaunch { viewModel.searchPanel.showSearchPanel(page) } },
-            ) {
-              Icon(Icons.Rounded.Edit, "open search panel or edit url")
-            }
-          }
-        }
-      },
-      state = tooltipState,
-    ) {
-      PagerTab(
-        page, modifier = modifier.pointerActions(
-          onMenu = {
-            uiScope.launch {
-              tooltipState.show()
-            }
-          },
-          onTap = {
-            uiScope.launch {
-              if (isFocused) {
-                tooltipState.show()
-              } else {
-                viewModel.focusPageUI(page)
+            },
+            onTap = {
+              uiScope.launch {
+                if (page == viewModel.focusedPage) {
+                  showActions = true
+                } else {
+                  viewModel.focusPageUI(page)
+                }
               }
-            }
-          },
+            },
+          )
         )
-      )
+        ScalePopupPlaceholder(page.scale) {
+          BrowserWebPageTabActions(
+            onDismissRequest = { showActions = false },
+            expanded = showActions,
+            page = page,
+          )
+        }
+      }
     }
 
     else -> PagerTab(page, modifier = modifier.pointerActions(onMenu = {
@@ -161,13 +128,66 @@ internal fun PageTabWithToolTip(page: BrowserPage, modifier: Modifier) {
     }, onTap = {
       uiScope.launch {
         // 如果当前点击的是当前界面，那么就显示搜索框；如果不是，那么进行focus操作
-        if (isFocused) {
+        if (page == viewModel.focusedPage) {
           viewModel.searchPanel.showSearchPanel(page)
         } else {
           viewModel.focusPageUI(page)
         }
       }
     }))
+  }
+}
+
+@Composable
+private fun BrowserWebPageTabActions(
+  onDismissRequest: () -> Unit,
+  expanded: Boolean,
+  page: BrowserWebPage,
+  modifier: Modifier = Modifier,
+) {
+  fun scopeLaunch(action: suspend () -> Unit) {
+    page.webView.lifecycleScope.launch {
+      launch {
+        delay(150)
+        onDismissRequest()
+      }
+      action()
+    }
+  }
+  ComposeWindowFocusOwnerEffect(expanded, onDismissRequest)
+  DropdownMenu(
+    modifier = modifier,
+    expanded = expanded,
+    onDismissRequest = onDismissRequest,
+    containerColor = MaterialTheme.colorScheme.background,
+    shape = browserShape,
+  ) {
+    ScalePopupContent {
+      Row {
+        IconButton(
+          { scopeLaunch { page.browserController.viewModel.searchPanel.showSearchPanel(page) } },
+        ) {
+          Icon(Icons.Rounded.Edit, "open search panel or edit url")
+        }
+        IconButton(
+          { scopeLaunch { page.webView.goBack() } },
+          enabled = page.webView.rememberHistoryCanGoBack()
+        ) {
+          Icon(Icons.AutoMirrored.Rounded.ArrowBackIos, "go back")
+        }
+        IconButton(
+          { scopeLaunch { page.webView.historyGoForward() } },
+          enabled = page.webView.rememberHistoryCanGoForward()
+        ) {
+          Icon(Icons.AutoMirrored.Rounded.ArrowForwardIos, "go forward")
+        }
+        IconButton(
+          { scopeLaunch { page.webView.reload() } },
+        ) {
+          Icon(Icons.Rounded.Refresh, "reload web page")
+        }
+      }
+    }
   }
 }
 
