@@ -79,13 +79,14 @@ class DeskController(val deskNMM: DeskNMM.DeskRuntime) {
         deskNMM.runningApps = deskNMM.runningApps.toMap()
         // 对排序app列表进行更新
         changeState.removes.map {
-          getDesktopController.invoke().updateFlow.emit("delete")
+          getDesktopController().updateFlow.emit("delete")
           appSortList.delete(it)
         }
         changeState.adds.map {
           if (!appSortList.has(it)) {
             appSortList.push(it)
           }
+          getDesktopController().updateFlow.emit("add")
         }
       }
     }

@@ -37,9 +37,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastRoundToInt
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.desk.DesktopV2Controller
+import org.dweb_browser.browser.desk.model.DesktopAppModel
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.compose.pointerActions
 import org.mkdesklayout.project.DeskLayoutV6
+import org.mkdesklayout.project.NFGeometry
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -144,13 +146,16 @@ fun DesktopV2Controller.RenderImpl() {
             edit = edit,
             contentPadding = innerPadding,
             layout = { screen ->
-              appsLayouts.firstOrNull {
+              val layoutInfo = appsLayouts.firstOrNull {
                 it.screenWidth == screen
-              }?.layouts?.mapKeys { entry ->
-                apps.first {
-                  it.mmid == entry.key
+              }
+              val result = mutableMapOf<DesktopAppModel, NFGeometry>()
+              apps.forEach { app ->
+                layoutInfo?.layouts?.get(app.mmid)?.let { layout ->
+                  result[app] = layout
                 }
-              } ?: emptyMap()
+              }
+              result
             },
             relayout = { layoutScreenWidth, geoMaps ->
               scope.launch {

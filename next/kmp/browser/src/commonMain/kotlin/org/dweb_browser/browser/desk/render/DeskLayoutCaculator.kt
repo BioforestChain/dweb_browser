@@ -142,7 +142,11 @@ class NFCaculater() {
         while (scGeo.y >= spaceBoard.count()) {
           spaceBoardExpand(spaceBoard, params.column)
         }
-        spaceBoard[scGeo.y][scGeo.x] = false
+        for (y in scGeo.y until scGeo.y + scGeo.height) {
+          for (x in scGeo.x until scGeo.x + scGeo.width) {
+            spaceBoard[y][x] = false
+          }
+        }
       }
 
 //      logBoard(spaceBoard, "SYNC BLOCKS")
