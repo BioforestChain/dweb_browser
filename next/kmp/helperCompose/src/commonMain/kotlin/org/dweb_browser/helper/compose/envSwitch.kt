@@ -127,7 +127,22 @@ enum class ENV_SWITCH_KEY(
       disableVersion = "1",
       enableVersion = "2",
     )
-  )
+  ),
+  DATA_MANAGER_GUI(
+    "data-manager-gui",
+    experimental = ExperimentalKey(
+      title = SimpleI18nResource(
+        Language.ZH to "数据管理器", Language.EN to "Data Manager GUI"
+      ),
+      description = SimpleI18nResource(
+        Language.ZH to "启用该功能，将在桌面上显示数据管理器入口。如果您不清楚这是做什么，请勿开启",
+        Language.EN to "Enabling this feature will display a data manager entry on the desktop. If you're unsure what it does, please do not turn it on.",
+      ),
+      brand = "dweb-browser-pullmenu",
+      disableVersion = "1",
+      enableVersion = "2",
+    )
+  ),
 //  SCAN_STD(
 //    "lens-nmm",
 //    experimental = ExperimentalKey(

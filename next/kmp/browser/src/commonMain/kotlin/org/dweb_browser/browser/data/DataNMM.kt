@@ -5,6 +5,8 @@ import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.helper.ImageResource
+import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
+import org.dweb_browser.helper.compose.envSwitch
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.sys.window.core.helper.setStateFromManifest
 import org.dweb_browser.sys.window.ext.getMainWindow
@@ -16,10 +18,14 @@ class DataNMM : NativeMicroModule("data.browser.dweb", DataI18n.short_name.text)
   init {
     short_name = DataI18n.short_name.text
     categories = listOf(
-      MICRO_MODULE_CATEGORY.Application,
       MICRO_MODULE_CATEGORY.Service,
       MICRO_MODULE_CATEGORY.Database_Service,
-    )
+    ).let {
+      when {
+        envSwitch.isEnabled(ENV_SWITCH_KEY.DATA_MANAGER_GUI) -> it + MICRO_MODULE_CATEGORY.Application
+        else -> it
+      }
+    }
     icons = listOf(
       ImageResource(
         src = "file:///sys/browser-icons/data.browser.dweb.svg",
