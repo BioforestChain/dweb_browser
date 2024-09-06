@@ -86,7 +86,12 @@ class RespondLocalFileContext(val request: PureRequest) : ResponseLocalFileBase(
   companion object {
     suspend fun PureRequest.respondLocalFile(respond: suspend RespondLocalFileContext.() -> PureResponse?) =
       if (url.protocol.name == "file" && url.host == "") {
-        RespondLocalFileContext(this).respond()
+        runCatching { RespondLocalFileContext(this).respond() }.getOrElse {
+          // jvm FileNotFoundException
+          if (it.message?.contains("No such file or directory") == true) {
+            PureResponse(HttpStatusCode.NotFound)
+          } else null
+        }
       } else null
   }
 }
