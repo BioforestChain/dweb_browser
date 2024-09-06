@@ -1,12 +1,12 @@
 import JSZip from "jszip";
-import { createRequire } from "node:module";
+
 import { node_fs, node_path, node_process } from "../deps/node.ts";
 import type { $JmmAppInstallManifest, $MMID } from "../helper/const.ts";
+import { getPlaocServerDir } from "../platform/plaocServer.deno.ts";
 import { defaultMetadata, type $MetadataJsonGeneratorOptions } from "./const.ts";
 import { GenerateTryFilepaths, isUrl } from "./util.ts";
 import { WalkFiles } from "./walk-dir.ts";
 import { walkDirToZipEntries, zipEntriesToZip, type $ZipEntry } from "./zip.ts";
-const internalRequest = createRequire(import.meta.url);
 
 export class MetadataJsonGenerator {
   readonly metadataFilepaths: string[];
@@ -242,9 +242,8 @@ export class BundleZipGenerator {
         data: data,
       });
     };
-    const distDir = node_path.dirname(
-      internalRequest.resolve(isLive ? "@plaoc/server/plaoc.server.dev.js" : "@plaoc/server/plaoc.server.js")
-    );
+    // 获取后端服务的代码位置，准备写入
+    const distDir = getPlaocServerDir(isLive);
     for (const entry of WalkFiles(distDir)) {
       await addFiles_DistToUsr(entry.entrypath, `server/${entry.relativepath}`);
     }

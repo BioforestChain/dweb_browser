@@ -18,9 +18,8 @@
     "plaoc:demo": "node ./npm/@plaoc__cli/esm/plaoc.js live ./npm/@plaoc__examples/plugin-demo -c ./npm/@plaoc__examples/plugin-demo",
     "plaoc:demo:serve": "node ./npm/@plaoc__cli/esm/plaoc.js serve ./npm/@plaoc__examples/plugin-demo -c ./npm/@plaoc__examples/plugin-demo -s ./npm/@plaoc__examples/plaoc-server ",
     "plaoc:html": "node ./npm/@plaoc__cli/esm/plaoc.js serve ./npm/@plaoc__examples/html-demo  --port 8097",
-    "pub": "deno run -A ./scripts/pub.ts",
-    "pub:all": "deno run -A ./scripts/pub-all.ts",
-    "sync": "deno run -A ./scripts/sync_npm.ts",
+    "pub": "deno run -A ./scripts/pub.ts", // 更改 publish.json 版本，运行deno task pub 就能发布版本
+    "sync": "deno run -A ./scripts/sync_npm.ts", // 用来同步npmmirror
     "toolkit:fix-import": "deno run -A ./scripts/toolKitFix.ts"
   },
   "workspace": [

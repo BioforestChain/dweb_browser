@@ -59,7 +59,7 @@ export const plaocServer = registryNpmBuilder({
       { name: "./middlewares", path: ctx.packageResolve("./middlewares/index.ts") },
     ],
     postBuild: () => {
-      // fs.symlinkSync(ctx.packageResolve("./dist"), ctx.npmResolve("./dist"), "junction");
+      Deno.symlinkSync(ctx.npmResolve("./dist"), ctx.packageResolve("./dist"));
     },
   }),
 });
@@ -75,6 +75,9 @@ export const plaocCli = registryNpmBuilder({
     shims: {
       deno: true,
       webSocket: true,
+    },
+    mappings: {
+      "./toolkit/plaoc/cli/platform/plaocServer.deno.ts": "./toolkit/plaoc/cli/platform/plaocServer.node.ts",
     },
     entryPoints: [
       {
