@@ -11,8 +11,8 @@ export const createListenScoket = (hostname: string, port: number, baseDir: stri
   // 获取入口脚本的绝对路径
   const entryDir = node_path.dirname(fileURLToPath(import.meta.url));
   // 构建相对于入口脚本目录的路径
-  const certPath = node_path.join(entryDir, "./cert.pem");
-  const keyPath = node_path.join(entryDir, "./key.pem");
+  const certPath = node_path.join(entryDir, "./certificate.crt");
+  const keyPath = node_path.join(entryDir, "./private.key");
   // 创建 WebSocket 服务器，依赖现有的 HTTP 服务器
   const wss: $WebSocketServer = new WebSocketServer({ noServer: true });
   //监听文件服务变化
@@ -81,4 +81,13 @@ export const watcherChange = (baseDir: string, wss: $WebSocketServer) => {
   })();
 };
 
-// openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem  -nodes
+/** create x509 v3
+ # 生成私钥
+openssl genrsa -out private.key 2048
+
+# 生成证书签名请求 (CSR)
+openssl req -new -key private.key -out request.csr
+
+# 使用 v3.ext 文件生成 X.509 v3 证书
+openssl x509 -req -in request.csr -signkey private.key -out certificate.crt -days 365 -extfile v3.ext -extensions v3_req
+ */

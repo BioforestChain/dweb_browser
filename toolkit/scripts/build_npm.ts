@@ -92,8 +92,8 @@ export const plaocCli = registryNpmBuilder({
       return true;
     },
     postBuild: () => {
-      Deno.copyFileSync(ctx.packageResolve("./ws/cert.pem"), ctx.npmResolve("./esm/ws/cert.pem"));
-      Deno.copyFileSync(ctx.packageResolve("./ws/key.pem"), ctx.npmResolve("./esm/ws/key.pem"));
+      Deno.copyFileSync(ctx.packageResolve("./ws/certificate.crt"), ctx.npmResolve("./esm/ws/certificate.crt"));
+      Deno.copyFileSync(ctx.packageResolve("./ws/private.key"), ctx.npmResolve("./esm/ws/private.key"));
     },
   }),
 });
