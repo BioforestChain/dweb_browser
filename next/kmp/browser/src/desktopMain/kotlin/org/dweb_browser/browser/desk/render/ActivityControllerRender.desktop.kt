@@ -42,7 +42,6 @@ import javax.swing.JDialog
 
 @Composable
 actual fun ActivityController.Render() {
-  println("QAQ ActivityController Render")
   val avc = activityControllerPvcWM.getOrPut(this) {
     ActivityViewController(this)
   }
