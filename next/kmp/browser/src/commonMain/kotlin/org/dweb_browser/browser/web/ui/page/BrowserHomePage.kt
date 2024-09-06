@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
@@ -27,6 +28,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserDrawResource
@@ -78,21 +80,22 @@ fun BrowserHomePage.BrowserHomePageRender(modifier: Modifier = Modifier) {
           Modifier.clip(AppIconContainer.defaultShape).clickable(onClick = onClick).hoverCursor()
         ) {
           Column(
-            Modifier.padding(8.dp),
+            Modifier.size(size = 80.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            // verticalArrangement = Arrangement.spacedBy(8.dp),
           ) {
             FilledIconButton(onClick, shape = AppIconContainer.defaultShape) {
               Icon(
                 painter = pageType.iconPainter(),
-                contentDescription = pageType.pageTitle(),
+                contentDescription = pageType.pageTitle()
               )
             }
             Text(
               text = pageType.pageTitle(),
               modifier = Modifier.scale(0.8f),
               textAlign = TextAlign.Center,
-              style = MaterialTheme.typography.bodySmall
+              style = MaterialTheme.typography.bodySmall,
+              overflow = TextOverflow.Ellipsis
             )
           }
         }
