@@ -49,7 +49,7 @@ suspend fun main(vararg args: String) {
       System.setProperty("compose.swing.render.on.graphics", "true")
     }
     // 回退到OPENGL，不使用DIRECT3D，否则windows平台的swing操作会崩溃
-    System.setProperty("skiko.renderApi", "DIRECT3D")
+//    System.setProperty("skiko.renderApi", "DIRECT3D")
   }
   // windows平台需要开启单实例，否则会打开多个桌面端
   if (PureViewController.isWindows && !WindowsSingleInstance.requestSingleInstance(
