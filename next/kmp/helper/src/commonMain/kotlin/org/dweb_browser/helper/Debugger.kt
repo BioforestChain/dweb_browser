@@ -8,15 +8,6 @@ import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.awt.BorderLayout
-import javax.swing.JButton
-import javax.swing.JFrame
-import javax.swing.JLabel
-import javax.swing.JPanel
-import javax.swing.JScrollPane
-import javax.swing.JTextArea
-import javax.swing.JTextField
-import javax.swing.text.DefaultHighlighter
 
 /**
  * 可用值：
@@ -286,59 +277,4 @@ public class Debugger(public val scope: String) {
         field = value
       }
     }
-}
-
-internal class LogPanel {
-  companion object {
-    internal val logPanel = LogPanel()
-  }
-
-  private val frame = JFrame("日志面板")
-  private val textArea = JTextArea().apply {
-    isEditable = false
-    lineWrap = true
-//    background = java.awt.Color.BLACK
-  }
-
-  init {
-    frame.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
-    frame.setSize(800, 600)
-
-    val searchField = JTextField(20)
-    val searchButton = JButton("搜索")
-
-    val highlighter = textArea.highlighter
-
-    searchButton.addActionListener {
-      highlighter.removeAllHighlights()
-
-      val keyword = searchField.text.trim()
-      if(keyword.isNotEmpty()) {
-        val text = textArea.text
-        var index = text.indexOf(keyword)
-        while(index >= 0) {
-          try {
-            highlighter.addHighlight(index, index + keyword.length, DefaultHighlighter.DefaultHighlightPainter(java.awt.Color.YELLOW))
-            index = text.indexOf(keyword, index + 1)
-          } catch (e: Exception) {}
-        }
-      }
-    }
-
-    val searchPanel = JPanel()
-    searchPanel.add(JLabel("输入关键字:"))
-    searchPanel.add(searchField)
-    searchPanel.add(searchButton)
-
-    val scrollPane = JScrollPane(textArea)
-    frame.layout = BorderLayout()
-    frame.add(searchPanel, BorderLayout.NORTH)
-    frame.add(scrollPane, BorderLayout.CENTER)
-    frame.isVisible = true
-  }
-
-  fun print(msg: String) {
-    textArea.append("$msg \n")
-    textArea.caretPosition = textArea.document.length
-  }
 }
