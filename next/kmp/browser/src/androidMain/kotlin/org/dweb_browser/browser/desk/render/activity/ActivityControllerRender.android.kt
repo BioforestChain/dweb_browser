@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.desk.render
+package org.dweb_browser.browser.desk.render.activity
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets

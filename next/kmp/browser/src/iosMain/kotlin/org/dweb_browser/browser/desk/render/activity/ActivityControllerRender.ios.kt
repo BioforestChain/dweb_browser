@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.desk.render
+package org.dweb_browser.browser.desk.render.activity
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,23 +22,23 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.awt.ComposePanel
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.layout.Layout
-import androidx.compose.ui.unit.dp
 import org.dweb_browser.browser.desk.ActivityController
 import org.dweb_browser.browser.desk.model.ActivityStyle
 import org.dweb_browser.browser.desk.model.rememberActivityStyle
+import org.dweb_browser.helper.PureRect
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.compose.rememberMultiGraphicsLayers
+import org.dweb_browser.helper.compose.toUIColor
 import org.dweb_browser.helper.getOrPut
+import org.dweb_browser.helper.platform.NativeViewController.Companion.nativeViewController
 import org.dweb_browser.helper.platform.PureViewController
-import java.awt.Dimension
-import java.awt.Point
-import java.awt.Toolkit
-import javax.swing.JDialog
+import org.dweb_browser.helper.platform.rememberDisplaySize
+import platform.UIKit.UIColor
 
 @Composable
 actual fun ActivityController.Render() {
@@ -50,6 +50,7 @@ actual fun ActivityController.Render() {
       copy(
         containerBox = { content ->
           avc.offsetY = offsetDp.value
+          // pvc.setBoundsInMain(pvc.getBounds().copy(y = offsetY))
           Box(content = content)
         },
         contentBox = { content ->
@@ -76,6 +77,10 @@ actual fun ActivityController.Render() {
           Text("打开图层辅助")
           Switch(devParams.showDevLayer, { devParams.showDevLayer = it })
         }
+        Row(horizontalArrangement = Arrangement.SpaceBetween) {
+          Text("使用错帧显示")
+          Switch(devParams.usePreFrame, { devParams.usePreFrame = it })
+        }
         SingleChoiceSegmentedButtonRow {
           DevParams.TranslateMode.entries.forEachIndexed { index, mode ->
             SegmentedButton(
@@ -85,7 +90,7 @@ actual fun ActivityController.Render() {
                 count = DevParams.TranslateMode.entries.size
               ),
               label = { Text(mode.name) },
-              enabled = false,
+              enabled = devParams.usePreFrame,
             )
           }
           SingleChoiceSegmentedButtonRow { }
@@ -97,18 +102,16 @@ actual fun ActivityController.Render() {
 }
 
 private class ActivityViewController(val controller: ActivityController) {
+  val pvc = PureViewController(fullscreen = false)
   var offsetY by mutableStateOf(0f)
   var activityStyle = ActivityStyle()
 
   val devParams = DevParams()
-  val composePanel = ComposePanel()
-  val dialog = JDialog()
 
   init {
-    composePanel.setContent {
-      val displaySize = Toolkit.getDefaultToolkit().screenSize
-
-      Layout(modifier = Modifier, content = {
+    pvc.addContent {
+      val displaySize = rememberDisplaySize()
+      Layout(content = {
         val graphicsLayers = rememberMultiGraphicsLayers(2)
         var frameIndex by remember { mutableStateOf(0) }
         fun getGraphicsLayer(index: Int) = graphicsLayers[index % graphicsLayers.size]
@@ -173,17 +176,22 @@ private class ActivityViewController(val controller: ActivityController) {
           )
         }
         if (placeables.isEmpty()) {
+          pvc.setBoundsInMain(
+            PureRect(0f, 0f, displaySize.width, 1f),
+          )
           return@Layout layout(constraints.maxWidth, constraints.maxHeight) {}
         }
         val layoutWidth = placeables.maxOf { it.width }
         val layoutHeight = placeables.maxOf { it.height }
-
-        dialog.size = when (PureViewController.isWindows && layoutWidth == 0 && layoutHeight == 0) {
-          true -> Dimension(1, 1)
-          false -> Dimension(layoutWidth, layoutHeight)
-        }
-        dialog.location = Point((displaySize.width - layoutWidth) / 2, offsetY.toInt())
-
+        val boundsWidth = layoutWidth / density
+        val boundsHeight = layoutHeight / density
+        val newBounds = PureRect(
+          x = (displaySize.width - boundsWidth) / 2,
+          y = offsetY,
+          width = boundsWidth,
+          height = boundsHeight,
+        )
+        pvc.setBoundsInMain(newBounds)
         layout(layoutWidth, layoutHeight) {
           placeables.forEach {
             // 因为 setBoundsInMain 不会立刻生效，所以这里需要先移动到新的位置
@@ -192,23 +200,23 @@ private class ActivityViewController(val controller: ActivityController) {
         }
       }
     }
-
-    composePanel.background = java.awt.Color(0, 0, 0, 0)
-    dialog.apply {
-      isAlwaysOnTop = true
-      isUndecorated = true
-      background = java.awt.Color(0, 0, 0, 0)
-      add(composePanel)
-    }
   }
 
   @Composable
   fun Launch() {
-    LaunchedEffect(Unit) {
-      if (PureViewController.isWindows) {
-        dialog.size = Dimension(1, 1)
+    val displaySize = rememberDisplaySize()
+    LaunchedEffect(pvc) {
+      nativeViewController.addOrUpdate(pvc, Int.MAX_VALUE - 100)
+      /// 需要给一个初始化的bounds，否则compose默认处于一个0x0的区域，是不会触发渲染的
+      pvc.setBounds(PureRect(0f, 0f, displaySize.width, 1f))
+    }
+    if (DEV_ACTIVITY_CONTROLLER) {
+      LaunchedEffect(devParams.showDevLayer) {
+        pvc.uiViewControllerInMain.view.backgroundColor = when {
+          devParams.showDevLayer -> Color.Blue.copy(alpha = 0.27f).toUIColor()
+          else -> UIColor.clearColor
+        }
       }
-      dialog.isVisible = true
     }
   }
 }
@@ -227,4 +235,3 @@ private class DevParams {
 }
 
 private val activityControllerPvcWM = WeakHashMap<ActivityController, ActivityViewController>()
-

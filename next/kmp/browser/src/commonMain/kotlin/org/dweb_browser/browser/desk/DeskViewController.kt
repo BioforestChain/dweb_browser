@@ -10,6 +10,7 @@ import androidx.compose.runtime.produceState
 import androidx.compose.ui.graphics.Color
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.dweb_browser.browser.desk.render.Render
+import org.dweb_browser.browser.desk.render.activity.Render
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.helper.compose.LocalCompositionChain
 import org.dweb_browser.helper.platform.IPureViewController
