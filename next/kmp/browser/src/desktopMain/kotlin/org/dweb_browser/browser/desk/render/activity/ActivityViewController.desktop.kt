@@ -16,10 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposePanel
 import androidx.compose.ui.awt.ComposeWindow
-import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.translate
-import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.util.fastRoundToInt
 import kotlinx.coroutines.delay
@@ -27,7 +24,6 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.browser.desk.ActivityController
 import org.dweb_browser.browser.desk.model.ActivityStyle
 import org.dweb_browser.browser.desk.model.rememberActivityStyle
-import org.dweb_browser.helper.compose.rememberMultiGraphicsLayers
 import org.dweb_browser.helper.compose.toAwtColor
 import org.dweb_browser.helper.platform.PureViewController
 import java.awt.Dimension
@@ -85,59 +81,7 @@ internal class ActivityViewController(
     var dialogWidth by remember { mutableIntStateOf(dialog.size.width) }
     var dialogHeight by remember { mutableIntStateOf(dialog.size.height) }
     Layout(modifier = Modifier, content = {
-      val graphicsLayers = rememberMultiGraphicsLayers(devParams.preFrames)
-      var frameIndex by remember { mutableStateOf(0) }
-      fun getGraphicsLayer(index: Int) = graphicsLayers[index % graphicsLayers.size]
-      Box(
-        Modifier.drawWithContent {
-          val graphicsLayer = getGraphicsLayer(++frameIndex)
-          val preGraphicsLayer = getGraphicsLayer(frameIndex + 1)
-          graphicsLayer.record {
-            this@drawWithContent.drawContent()
-          }
-          if (devParams.usePreFrame) {
-            val preSize = preGraphicsLayer.size
-            val newSize = graphicsLayer.size
-            val diffX = (newSize.width - preSize.width).toFloat()
-            val diffY = (newSize.height - preSize.height).toFloat()
-            val tx: Float
-            val ty: Float
-
-            when (devParams.useTranslateMode) {
-              ActivityControllerDevParams.TranslateMode.Auto -> {
-                /// 如果图像在放大，那么使用居中定位，否则使用左上角定位。
-                /// 别问我为什么，这是实验得出来的结论。
-                /// 但大概的原因是根 UIView 放置 ComposeView 的行为有关，主要是因为
-                tx = if (diffX > 0) diffX / 2 else 0f
-                ty = if (diffY > 0) diffY / 2 else 0f
-              }
-
-              ActivityControllerDevParams.TranslateMode.TopStart -> {
-                tx = 0f
-                ty = 0f
-              }
-
-              ActivityControllerDevParams.TranslateMode.Center -> {
-                tx = diffX / 2
-                ty = diffY / 2
-              }
-
-              ActivityControllerDevParams.TranslateMode.EndBottom -> {
-                tx = diffX
-                ty = diffY
-              }
-            }
-            translate(tx, ty) {
-              drawLayer(preGraphicsLayer)
-            }
-          } else {
-            drawLayer(graphicsLayer)
-          }
-        },
-        contentAlignment = Alignment.Center,
-      ) {
-        CommonActivityListRender(controller, activityStyle)
-      }
+      CommonActivityListRender(controller, activityStyle)
     }) { measurables, constraints ->
       fun Int.toDp() = (this / density)
       fun Int.toPx() = (this * density).fastRoundToInt()
@@ -184,7 +128,6 @@ internal class ActivityViewController(
         }
         /// 立即resize
         ActivityControllerDevParams.ResizePolicy.Enum.ImmediateResize -> {
-          dialog.minimumSize = Dimension(1, 1)
           setDialogSize(dialogWidth, dialogHeight, offsetY.fastRoundToInt())
         }
         /// 减少reduce
@@ -195,7 +138,6 @@ internal class ActivityViewController(
         }
         /// 自定义宽高
         is ActivityControllerDevParams.ResizePolicy.Enum.CustomResize -> {
-          dialog.minimumSize = Dimension(1, 1)
           setDialogSize(resizePolicy.width, resizePolicy.height)
         }
       }
@@ -215,6 +157,17 @@ internal class ActivityViewController(
       }
 
       else -> {}
+    }
+    val isReduceSize =
+      devParams.resizePolicy is ActivityControllerDevParams.ResizePolicy.Enum.ReduceResize
+    if (!isReduceSize) {
+      LaunchedEffect(Unit) {
+        dialog.minimumSize.apply {
+          if (width * height > 1) {
+            dialog.minimumSize = Dimension(1, 1)
+          }
+        }
+      }
     }
   }
 
@@ -260,8 +213,12 @@ internal class ActivityViewController(
     }
     LaunchedEffect(isVisible) {
       if (dialog.size.width * dialog.size.height == 0) {
-        /// 默认给定一个常见的大小
-        dialog.size = Dimension(DIALOG_COMMON_WIDTH, DIALOG_COMMON_HEIGHT)
+        /// 默认给定一个基础大小
+        if (devParams.resizePolicy is ActivityControllerDevParams.ResizePolicy.Enum.ReduceResize) {
+          setDialogSize(DIALOG_COMMON_WIDTH, DIALOG_COMMON_HEIGHT)
+        } else {
+          setDialogSize(1, 1)
+        }
       }
       dialog.isVisible = true
     }

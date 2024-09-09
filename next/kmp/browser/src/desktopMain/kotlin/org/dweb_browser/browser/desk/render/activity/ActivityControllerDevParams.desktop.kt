@@ -11,10 +11,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.RadioButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -30,16 +26,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.util.fastRoundToInt
 import kotlinx.coroutines.Job
 import squircleshape.SquircleShape
 
 internal class ActivityControllerDevParams {
   var showDevLayer by mutableStateOf(false)
-  var usePreFrame by mutableStateOf(false)
-  var preFrames by mutableIntStateOf(2)
-  var useTranslateMode by mutableStateOf(TranslateMode.Auto)
-
   sealed interface ResizePolicy {
     companion object Enum {
       data object ImmediateResize : ResizePolicy
@@ -119,7 +110,7 @@ internal class ActivityControllerDevParams {
               resizePolicy is ResizePolicy.Enum.LazyResize,
               { resizePolicy = ResizePolicy.Enum.LazyResize(time, safePadding) },
             )
-            Text("Debounce")
+            Text("Lazy")
             TextField(
               "$time", { value -> value.toLongOrNull()?.also { time = it } },
               label = { Text("time") },
@@ -138,6 +129,7 @@ internal class ActivityControllerDevParams {
             )
           }
           Row {
+            Text("Custom")
             var width by remember { mutableIntStateOf(avc.dialog.width) }
             var height by remember { mutableIntStateOf(avc.dialog.height) }
             val isEnabled = resizePolicy is ResizePolicy.Enum.CustomResize
@@ -162,39 +154,6 @@ internal class ActivityControllerDevParams {
                 avc.dialog.setSize(width, height)
               }
             }
-          }
-        }
-        HorizontalDivider()
-        Column(
-          Modifier.background(
-            MaterialTheme.colorScheme.background.copy(alpha = 0.2f), shape = SquircleShape(8.dp)
-          )
-        ) {
-          Row(horizontalArrangement = Arrangement.SpaceBetween) {
-            Text("使用错帧显示")
-            Switch(devParams.usePreFrame, { devParams.usePreFrame = it })
-          }
-          SingleChoiceSegmentedButtonRow {
-            TranslateMode.entries.forEachIndexed { index, mode ->
-              SegmentedButton(
-                devParams.useTranslateMode == mode, { devParams.useTranslateMode = mode },
-                shape = SegmentedButtonDefaults.itemShape(
-                  index = index, count = TranslateMode.entries.size
-                ),
-                label = { Text(mode.name) },
-                enabled = devParams.usePreFrame,
-              )
-            }
-          }
-
-          Row(horizontalArrangement = Arrangement.SpaceBetween) {
-            Text("错帧数 ${devParams.preFrames}")
-            Slider(
-              devParams.preFrames.toFloat(),
-              { devParams.preFrames = it.fastRoundToInt() },
-              valueRange = 2f..10f,
-              enabled = devParams.usePreFrame,
-            )
           }
         }
         HorizontalDivider()
