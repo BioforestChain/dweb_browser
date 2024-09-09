@@ -32,16 +32,18 @@ class DesktopV2Controller private constructor(
   internal val appLayoutsFlow = MutableStateFlow(emptyList<DeskAppLayoutInfo>())
 
   suspend fun updateAppsLayouts(screenWidth: Int, layouts: Map<MMID, NFSpaceCoordinateLayout>) {
-    val allLayouts = appsLayoutStore.getStoreAppsLayouts().toMutableList()
-    val isMultiple = layoutSaveStrategyIsMultiple()
-    if (isMultiple) {
-      allLayouts.removeAll { it.screenWidth == screenWidth }
-    } else {
-      allLayouts.clear()
+    if (isCustomLayout) {
+      val allLayouts = appsLayoutStore.getStoreAppsLayouts().toMutableList()
+      val isMultiple = layoutSaveStrategyIsMultiple()
+      if (isMultiple) {
+        allLayouts.removeAll { it.screenWidth == screenWidth }
+      } else {
+        allLayouts.clear()
+      }
+      allLayouts.add(DeskAppLayoutInfo(screenWidth, layouts))
+      appLayoutsFlow.value = allLayouts
+      appsLayoutStore.setStoreAppsLayouts(allLayouts)
     }
-    allLayouts.add(DeskAppLayoutInfo(screenWidth, layouts))
-    appLayoutsFlow.value = allLayouts
-    appsLayoutStore.setStoreAppsLayouts(allLayouts)
   }
 
   private suspend fun upsetApps() {
@@ -64,8 +66,11 @@ class DesktopV2Controller private constructor(
       )
     }
 
-    appsLayoutStore.clearInvaildLayouts(apps.map { it.mmid })
-    appLayoutsFlow.value = appsLayoutStore.getStoreAppsLayouts()
+    if (isCustomLayout) {
+      appsLayoutStore.clearInvaildLayouts(apps.map { it.mmid })
+      appLayoutsFlow.value = appsLayoutStore.getStoreAppsLayouts()
+    }
+
     appsFlow.value = apps
   }
 

@@ -32,6 +32,8 @@ import org.dweb_browser.helper.platform.from
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.browser.desk.render.NFSpaceCoordinateLayout
+import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
+import org.dweb_browser.helper.compose.envSwitch
 
 sealed class DesktopControllerBase(
   val viewController: IPureViewController,
@@ -107,6 +109,7 @@ sealed class DesktopControllerBase(
     }
   }
 
+  internal val isCustomLayout by lazy { envSwitch.isEnabled(ENV_SWITCH_KEY.DESKTOP_CUSTOM_LAYOUT) }
   internal val appsLayoutStore = DesktopV2AppLayoutStore(deskNMM)
 
   open suspend fun openAppOrActivate(mmid: MMID) {
@@ -172,7 +175,9 @@ sealed class DesktopControllerBase(
   }
 
   suspend fun remove(mmid: MMID, isWebLink: Boolean) {
-    appsLayoutStore.removeLayouts(mmid)
+    if (isCustomLayout) {
+      appsLayoutStore.removeLayouts(mmid)
+    }
     when {
       isWebLink -> removeWebLink(mmid)
       else -> uninstall(mmid)
