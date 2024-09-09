@@ -69,10 +69,9 @@ internal class ActivityViewController(
     }
   }
 
-  private fun setDialogSize(width: Int, height: Int, y: Int = 0) {
-    dialog.size = Dimension(width, height)
+  internal fun setDialogSize(width: Int, height: Int, y: Int = 0) {
     // 窗口相对屏幕居中显示
-    dialog.location = Point((displaySize.width - width) / 2, y)
+    dialog.setBounds((displaySize.width - width) / 2, y, width, height)
   }
 
   @Composable

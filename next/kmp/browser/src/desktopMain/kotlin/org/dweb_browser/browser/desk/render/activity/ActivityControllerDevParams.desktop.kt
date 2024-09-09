@@ -11,9 +11,9 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.RadioButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -31,6 +31,7 @@ import squircleshape.SquircleShape
 
 internal class ActivityControllerDevParams {
   var showDevLayer by mutableStateOf(false)
+
   sealed interface ResizePolicy {
     companion object Enum {
       data object ImmediateResize : ResizePolicy
@@ -69,10 +70,6 @@ internal class ActivityControllerDevParams {
 
   var resizePolicy by mutableStateOf<ResizePolicy>(ResizePolicy.Enum.ImmediateResize)
 
-  enum class TranslateMode {
-    Auto, TopStart, Center, EndBottom,
-  }
-
   @Composable
   fun Render(avc: ActivityViewController) {
     val devParams = this
@@ -106,26 +103,29 @@ internal class ActivityControllerDevParams {
           Row {
             var time by remember { mutableStateOf(ResizePolicy.Enum.LazyResize.defaultTime) }
             var safePadding by remember { mutableStateOf(ResizePolicy.Enum.LazyResize.defaultSafePadding) }
+            val isEnabled = resizePolicy is ResizePolicy.Enum.LazyResize
             RadioButton(
-              resizePolicy is ResizePolicy.Enum.LazyResize,
+              isEnabled,
               { resizePolicy = ResizePolicy.Enum.LazyResize(time, safePadding) },
             )
             Text("Lazy")
-            TextField(
+            OutlinedTextField(
               "$time", { value -> value.toLongOrNull()?.also { time = it } },
               label = { Text("time") },
               keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+              enabled = !isEnabled,
             )
-            TextField(
+            OutlinedTextField(
               "${safePadding.width},${safePadding.height}",
               { value ->
                 runCatching {
-                  val (width, height) = value.split(Regex( "[,x\\s]+"))
+                  val (width, height) = value.split(Regex("[,x\\s]+"))
                   safePadding = IntSize(width.toInt(), height.toInt())
                 }
               },
               label = { Text("safePadding") },
               keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+              enabled = !isEnabled,
             )
           }
           Row {
@@ -137,21 +137,23 @@ internal class ActivityControllerDevParams {
               isEnabled,
               { resizePolicy = ResizePolicy.Enum.CustomResize(width, height) },
             )
-            TextField(
+            OutlinedTextField(
               "$width",
               { width = it.toIntOrNull() ?: width },
               label = { Text("width") },
               keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+              enabled = !isEnabled,
             )
-            TextField(
+            OutlinedTextField(
               "$height",
               { height = it.toIntOrNull() ?: height },
               label = { Text("height") },
               keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+              enabled = !isEnabled,
             )
             if (isEnabled) {
               LaunchedEffect(width, height) {
-                avc.dialog.setSize(width, height)
+                avc.setDialogSize(width, height)
               }
             }
           }
