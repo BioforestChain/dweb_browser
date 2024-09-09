@@ -45,6 +45,7 @@ import org.dweb_browser.browser.desk.DesktopV2Controller
 import org.dweb_browser.browser.desk.model.DesktopAppModel
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.compose.pointerActions
+import org.dweb_browser.helper.compose.uiTestTag
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -267,7 +268,7 @@ internal fun DeskGridUseCustomGridLayout(
         draging,
         microModule = microModule,
         modifier = Modifier.fillMaxSize(),
-        iconModifier = iConModifier
+        iconModifier = iConModifier.uiTestTag(app.mmid)
       )
     }
   }
