@@ -3,6 +3,7 @@ package org.dweb_browser.browser.desk.render
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -17,6 +18,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeGestures
 import androidx.compose.foundation.layout.union
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -36,9 +39,12 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastRoundToInt
 import kotlinx.coroutines.launch
+import org.dweb_browser.browser.desk.DeskNMM
 import org.dweb_browser.browser.desk.DesktopV2Controller
 import org.dweb_browser.browser.desk.model.DesktopAppModel
+import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
 import org.dweb_browser.helper.compose.clickableWithNoEffect
+import org.dweb_browser.helper.compose.envSwitch
 import org.dweb_browser.helper.compose.pointerActions
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -48,10 +54,8 @@ fun DesktopV2Controller.RenderImpl() {
   val desktopController = this
   val microModule = deskNMM
   val appMenuPanel = rememberAppMenuPanel(desktopController, microModule)
-  val scope = rememberCoroutineScope()
 
-  val apps = desktopController.appsFlow.collectAsState().value
-  val appsLayouts = desktopController.appLayoutsFlow.collectAsState().value
+  val isCustomLayout by lazy { envSwitch.isEnabled(ENV_SWITCH_KEY.DESKTOP_CUSTOM_LAYOUT) }
 
   val searchBar = rememberDesktopSearchBar()
   val desktopWallpaper = rememberDesktopWallpaper()
@@ -128,66 +132,10 @@ fun DesktopV2Controller.RenderImpl() {
             )
           }
         }
-        key(apps, appsLayouts) {
-          DeskLayoutV6(
-            datas = apps,
-            modifier = Modifier.fillMaxSize().padding(top = 4.dp).onGloballyPositioned {
-              // 这里是计算app 菜单栏的位置
-              val pos = it.positionInWindow()
-              appMenuPanel.safeAreaInsets = WindowInsets(
-                top = pos.y.fastRoundToInt(),
-                left = pos.x.fastRoundToInt(),
-                right = pos.x.fastRoundToInt(),
-                bottom = 0,
-              )
-            },
-            edit = edit,
-            contentPadding = innerPadding,
-            layout = { screen ->
-              val layoutInfo = appsLayouts.firstOrNull {
-                it.screenWidth == screen
-              }
-              val result = mutableMapOf<DesktopAppModel, NFGeometry>()
-              apps.forEach { app ->
-                layoutInfo?.layouts?.get(app.mmid)?.let { layout ->
-                  result[app] = layout
-                }
-              }
-              result
-            },
-            relayout = { layoutScreenWidth, geoMaps ->
-              scope.launch {
-                desktopController.updateAppsLayouts(
-                  screenWidth = layoutScreenWidth,
-                  layouts = geoMaps.mapKeys { it.key.mmid },
-                )
-              }
-            }) { app, geometry, draging ->
-            val iConModifier = Modifier.run {
-              when {
-                edit -> this
-                else -> pointerActions(
-                  onMenu = {
-                    appMenuPanel.show(app)
-                  },
-                  onTap = {
-                    scope.launch {
-                      desktopController.openAppOrActivate(app.mmid)
-                    }
-                  },
-                )
-              }
-            }
 
-            AppItem(
-              app = app,
-              edit,
-              draging,
-              microModule = microModule,
-              modifier = Modifier.fillMaxSize(),
-              iconModifier = iConModifier
-            )
-          }
+        when {
+          isCustomLayout -> DeskGridUseCustomGridLayout(desktopController, deskNMM, appMenuPanel, innerPadding, edit)
+          else -> DeskGridUseLazyGridLayout(desktopController, deskNMM, appMenuPanel, innerPadding)
         }
       }
     }
@@ -196,47 +144,126 @@ fun DesktopV2Controller.RenderImpl() {
   }
 }
 
-//LazyVerticalGrid(
-//columns = layout.cells,
-//contentPadding = innerPadding,
-//modifier = Modifier.fillMaxWidth().padding(top = 4.dp).onGloballyPositioned {
-//  val pos = it.positionInWindow()
-//  appMenuPanel.safeAreaInsets = WindowInsets(
-//    top = pos.y.fastRoundToInt(),
-//    left = pos.x.fastRoundToInt(),
-//    right = pos.x.fastRoundToInt(),
-//    bottom = 0,
-//  )
-//},
-//horizontalArrangement = Arrangement.spacedBy(layout.horizontalSpace),
-//verticalArrangement = Arrangement.spacedBy(layout.verticalSpace)
-//) {
-//  itemsIndexed(apps) { index, app ->
-//
-//
-//
-//    AppItem(
-//      app = app,
-//      microModule = microModule,
-//      edit = false,
-//      editDragging = false,
-//      modifier = Modifier.fillMaxSize(),
-//      iconModifier = Modifier.run {
-//        if (edit) {
-//          this
-//        } else {
-//          desktopAppItemActions(
-//            onOpenApp = {
-//              scope.launch {
-//                desktopController.openAppOrActivate(app.mmid)
-//              }
-//            },
-//            onOpenAppMenu = {
-//              appMenuPanel.show(app)
-//            },
-//          )
-//        }
-//      }
-//    )
-//  }
-//}
+@Composable
+internal fun DeskGridUseLazyGridLayout(
+  desktopController: DesktopV2Controller,
+  microModule: DeskNMM.DeskRuntime,
+  appMenuPanel: AppMenuPanel,
+  innerPadding: PaddingValues
+) {
+  val scope = rememberCoroutineScope()
+  val apps = desktopController.appsFlow.collectAsState().value
+  val layout = desktopGridLayout()
+
+  LazyVerticalGrid(
+    columns = layout.cells,
+    contentPadding = innerPadding,
+    modifier = Modifier.fillMaxWidth().padding(top = 4.dp).onGloballyPositioned {
+      val pos = it.positionInWindow()
+      appMenuPanel.safeAreaInsets = WindowInsets(
+        top = pos.y.fastRoundToInt(),
+        left = pos.x.fastRoundToInt(),
+        right = pos.x.fastRoundToInt(),
+        bottom = 0,
+      )
+    },
+    horizontalArrangement = Arrangement.spacedBy(layout.horizontalSpace),
+    verticalArrangement = Arrangement.spacedBy(layout.verticalSpace)
+  ) {
+    itemsIndexed(apps) { index, app ->
+      AppItem(
+        app = app,
+        microModule = microModule,
+        edit = false,
+        editDragging = false,
+        modifier = Modifier.fillMaxSize(),
+        iconModifier = Modifier.pointerActions(
+          onMenu = {
+            appMenuPanel.show(app)
+          },
+          onTap = {
+            scope.launch {
+              desktopController.openAppOrActivate(app.mmid)
+            }
+          }
+        )
+      )
+    }
+  }
+}
+
+@Composable
+internal fun DeskGridUseCustomGridLayout(
+  desktopController: DesktopV2Controller,
+  microModule: DeskNMM.DeskRuntime,
+  appMenuPanel: AppMenuPanel,
+  innerPadding: PaddingValues,
+  edit: Boolean,
+) {
+  val scope = rememberCoroutineScope()
+  val apps = desktopController.appsFlow.collectAsState().value
+  val appsLayouts = desktopController.appLayoutsFlow.collectAsState().value
+
+  key(apps, appsLayouts) {
+    DeskLayoutV6(
+      datas = apps,
+      modifier = Modifier.fillMaxSize().padding(top = 4.dp).onGloballyPositioned {
+        // 这里是计算app 菜单栏的位置
+        val pos = it.positionInWindow()
+        appMenuPanel.safeAreaInsets = WindowInsets(
+          top = pos.y.fastRoundToInt(),
+          left = pos.x.fastRoundToInt(),
+          right = pos.x.fastRoundToInt(),
+          bottom = 0,
+        )
+      },
+      edit = edit,
+      contentPadding = innerPadding,
+      layout = { screen ->
+        val layoutInfo = appsLayouts.firstOrNull {
+          it.screenWidth == screen
+        }
+        val result = mutableMapOf<DesktopAppModel, NFGeometry>()
+        apps.forEach { app ->
+          layoutInfo?.layouts?.get(app.mmid)?.let { layout ->
+            result[app] = layout
+          }
+        }
+        result
+      },
+      relayout = { layoutScreenWidth, geoMaps ->
+        scope.launch {
+          desktopController.updateAppsLayouts(
+            screenWidth = layoutScreenWidth,
+            layouts = geoMaps.mapKeys { it.key.mmid },
+          )
+        }
+      }) { app, geometry, draging ->
+
+      val iConModifier = Modifier.run {
+        when {
+          edit -> this
+          else -> pointerActions(
+            onMenu = {
+              appMenuPanel.show(app)
+            },
+            onTap = {
+              scope.launch {
+                desktopController.openAppOrActivate(app.mmid)
+              }
+            },
+          )
+        }
+      }
+
+      AppItem(
+        app = app,
+        edit,
+        draging,
+        microModule = microModule,
+        modifier = Modifier.fillMaxSize(),
+        iconModifier = iConModifier
+      )
+    }
+  }
+}

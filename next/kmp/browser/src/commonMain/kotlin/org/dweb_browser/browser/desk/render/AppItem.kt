@@ -36,7 +36,9 @@ import androidx.compose.ui.unit.sp
 import org.dweb_browser.browser.desk.model.DesktopAppModel
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.file.ext.blobFetchHook
+import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
 import org.dweb_browser.helper.compose.div
+import org.dweb_browser.helper.compose.envSwitch
 import org.dweb_browser.sys.window.render.AppLogo
 
 @Composable
@@ -44,6 +46,7 @@ internal fun AppItem(
   app: DesktopAppModel,
   edit: Boolean,
   editDragging: Boolean,
+  isCustomLayout: Boolean = false,
   microModule: NativeMicroModule.NativeRuntime,
   modifier: Modifier,
   iconModifier: Modifier,
@@ -70,7 +73,12 @@ internal fun AppItem(
     horizontalAlignment = Alignment.CenterHorizontally,
   ) {
     AppLogo.from(app.icon, fetchHook = microModule.blobFetchHook).toDeskAppIcon()
-      .Render(iconModifier.weight(0.65f).size(52.dp).graphicsLayer {
+      .Render(iconModifier.run {
+        when {
+          isCustomLayout -> weight(0.65f)
+          else -> this
+        }
+      }.size(52.dp).graphicsLayer {
         if (editDragging) {
           scaleX = scaleAnimation.value
           scaleY = scaleAnimation.value
@@ -89,7 +97,12 @@ internal fun AppItem(
         textAlign = TextAlign.Center,
         fontWeight = FontWeight.Light,
         shadow = Shadow(Color.Black.copy(alpha = 0.5f), Offset(0f, 2f), 4f)
-      ), modifier = Modifier.weight(0.35f).fillMaxWidth().padding(top = 6.dp)
+      ), modifier = Modifier.run {
+        when {
+          isCustomLayout -> weight(0.35f)
+          else -> this
+        }
+      }.fillMaxWidth().padding(top = 6.dp)
     )
   }
 }
