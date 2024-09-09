@@ -132,9 +132,8 @@ private class ActivityViewController(val controller: ActivityController) {
 
               when (devParams.useTranslateMode) {
                 DevParams.TranslateMode.Auto -> {
-                  /// 如果图像在放大，那么使用居中定位，否则使用左上角定位。
-                  /// 别问我为什么，这是实验得出来的结论。
-                  /// 但大概的原因是根 UIView 放置 ComposeView 的行为有关，主要是因为
+                  /// 如果图像在放大，那么使用居中定位；如果图像缩小，使用左上角定位。
+                  /// 别问我为什么，这是实验得出来的结论。但大概的原因是根 UIView 放置 ComposeView 的行为有关
                   tx = if (diffX > 0) diffX / 2 else 0f
                   ty = if (diffY > 0) diffY / 2 else 0f
                 }
