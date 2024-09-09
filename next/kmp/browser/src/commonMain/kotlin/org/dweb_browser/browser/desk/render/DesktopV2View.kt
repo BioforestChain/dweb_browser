@@ -40,11 +40,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastRoundToInt
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.desk.DeskNMM
+import org.dweb_browser.browser.desk.DesktopV2AppLayoutController
 import org.dweb_browser.browser.desk.DesktopV2Controller
 import org.dweb_browser.browser.desk.model.DesktopAppModel
-import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
 import org.dweb_browser.helper.compose.clickableWithNoEffect
-import org.dweb_browser.helper.compose.envSwitch
 import org.dweb_browser.helper.compose.pointerActions
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -131,9 +130,16 @@ fun DesktopV2Controller.RenderImpl() {
           }
         }
 
-        when {
-          isCustomLayout -> DeskGridUseCustomGridLayout(desktopController, deskNMM, appMenuPanel, innerPadding, edit)
-          else -> DeskGridUseLazyGridLayout(desktopController, deskNMM, appMenuPanel, innerPadding)
+        when (val appsLayout = desktopController.appsLayout) {
+          null -> DeskGridUseLazyGridLayout(desktopController, deskNMM, appMenuPanel, innerPadding)
+          else -> DeskGridUseCustomGridLayout(
+            desktopController,
+            appsLayout,
+            deskNMM,
+            appMenuPanel,
+            innerPadding,
+            edit
+          )
         }
       }
     }
@@ -147,7 +153,7 @@ internal fun DeskGridUseLazyGridLayout(
   desktopController: DesktopV2Controller,
   microModule: DeskNMM.DeskRuntime,
   appMenuPanel: AppMenuPanel,
-  innerPadding: PaddingValues
+  innerPadding: PaddingValues,
 ) {
   val scope = rememberCoroutineScope()
   val apps = desktopController.appsFlow.collectAsState().value
@@ -193,6 +199,7 @@ internal fun DeskGridUseLazyGridLayout(
 @Composable
 internal fun DeskGridUseCustomGridLayout(
   desktopController: DesktopV2Controller,
+  appsLayout: DesktopV2AppLayoutController,
   microModule: DeskNMM.DeskRuntime,
   appMenuPanel: AppMenuPanel,
   innerPadding: PaddingValues,
@@ -200,7 +207,7 @@ internal fun DeskGridUseCustomGridLayout(
 ) {
   val scope = rememberCoroutineScope()
   val apps = desktopController.appsFlow.collectAsState().value
-  val appsLayouts = desktopController.appLayoutsFlow.collectAsState().value
+  val appsLayouts = appsLayout.appLayoutsFlow.collectAsState().value
 
   key(apps, appsLayouts) {
     DeskLayoutV6(
@@ -231,7 +238,7 @@ internal fun DeskGridUseCustomGridLayout(
       },
       relayout = { layoutScreenWidth, geoMaps ->
         scope.launch {
-          desktopController.updateAppsLayouts(
+          appsLayout.updateAppsLayouts(
             screenWidth = layoutScreenWidth,
             layouts = geoMaps.mapKeys { it.key.mmid },
           )

@@ -139,7 +139,7 @@ enum class ENV_SWITCH_KEY(
         Language.ZH to "启用该功能，将在桌面上显示数据管理器入口。如果您不清楚这是做什么，请勿开启",
         Language.EN to "Enabling this feature will display a data manager entry on the desktop. If you're unsure what it does, please do not turn it on.",
       ),
-      brand = "dweb-browser-pullmenu",
+      brand = "dweb-manager-gui",
       disableVersion = "1",
       enableVersion = "2",
     )

@@ -33,25 +33,13 @@ class DesktopV2Controller private constructor(
 
   private val openingApps = mutableSetOf<MMID>()
   internal val appsFlow = MutableStateFlow(emptyList<DesktopAppModel>())
-  internal val appLayoutsFlow = MutableStateFlow(emptyList<DeskAppLayoutInfo>())
 
-  // 是否开启v2桌面的拖拽排序功能
-  internal val isCustomLayout by lazy { envSwitch.isEnabled(ENV_SWITCH_KEY.DESKTOP_CUSTOM_LAYOUT) }
   // 存放v2拖拽排序的位置信息。
-  internal val appsLayoutStore = DesktopV2AppLayoutStore(deskNMM)
-
-  suspend fun updateAppsLayouts(screenWidth: Int, layouts: Map<MMID, NFSpaceCoordinateLayout>) {
-    if (isCustomLayout) {
-      val allLayouts = appsLayoutStore.getStoreAppsLayouts().toMutableList()
-      val isMultiple = layoutSaveStrategyIsMultiple()
-      if (isMultiple) {
-        allLayouts.removeAll { it.screenWidth == screenWidth }
-      } else {
-        allLayouts.clear()
-      }
-      allLayouts.add(DeskAppLayoutInfo(screenWidth, layouts))
-      appLayoutsFlow.value = allLayouts
-      appsLayoutStore.setStoreAppsLayouts(allLayouts)
+  internal val appsLayout by lazy {
+    val isCustomLayout = envSwitch.isEnabled(ENV_SWITCH_KEY.DESKTOP_CUSTOM_LAYOUT)
+    when {
+      isCustomLayout -> DesktopV2AppLayoutController(deskNMM, this)
+      else -> null
     }
   }
 
@@ -75,11 +63,7 @@ class DesktopV2Controller private constructor(
       )
     }
 
-    if (isCustomLayout) {
-      appsLayoutStore.clearInvaildLayouts(apps.map { it.mmid })
-      appLayoutsFlow.value = appsLayoutStore.getStoreAppsLayouts()
-    }
-
+    appsLayout?.clearInvalidLayouts(apps.map { it.mmid })
     appsFlow.value = apps
   }
 
@@ -108,9 +92,7 @@ class DesktopV2Controller private constructor(
   }
 
   override suspend fun remove(mmid: MMID, isWebLink: Boolean) {
-    if (isCustomLayout) {
-      appsLayoutStore.removeLayouts(mmid)
-    }
+    appsLayout?.removeLayouts(mmid)
     super.remove(mmid, isWebLink)
   }
 
@@ -129,7 +111,23 @@ class DesktopV2Controller private constructor(
 @Serializable
 data class DeskAppLayoutInfo(val screenWidth: Int, val layouts: Map<MMID, NFSpaceCoordinateLayout>)
 
-internal class DesktopV2AppLayoutStore(deskNMM: DeskNMM.DeskRuntime) {
+internal class DesktopV2AppLayoutController(
+  deskNMM: DeskNMM.DeskRuntime,
+  private val controller: DesktopV2Controller,
+) {
+  internal val appLayoutsFlow = MutableStateFlow(emptyList<DeskAppLayoutInfo>())
+  suspend fun updateAppsLayouts(screenWidth: Int, layouts: Map<MMID, NFSpaceCoordinateLayout>) {
+    val allLayouts = getStoreAppsLayouts().toMutableList()
+    val isMultiple = layoutSaveStrategyIsMultiple()
+    if (isMultiple) {
+      allLayouts.removeAll { it.screenWidth == screenWidth }
+    } else {
+      allLayouts.clear()
+    }
+    allLayouts.add(DeskAppLayoutInfo(screenWidth, layouts))
+    appLayoutsFlow.value = allLayouts
+    setStoreAppsLayouts(allLayouts)
+  }
 
   private val appsLayoutStore = deskNMM.createStore("apps_layout", false)
 
@@ -150,12 +148,13 @@ internal class DesktopV2AppLayoutStore(deskNMM: DeskNMM.DeskRuntime) {
     setStoreAppsLayouts(result)
   }
 
-  suspend fun clearInvaildLayouts(list: List<MMID>) {
+  suspend fun clearInvalidLayouts(list: List<MMID>) {
     val result = getStoreAppsLayouts().map { layoutInfo ->
       layoutInfo.copy(layouts = layoutInfo.layouts.filter { layout ->
         list.contains(layout.key)
       })
     }
     setStoreAppsLayouts(result)
+    appLayoutsFlow.value = result
   }
 }
