@@ -30,9 +30,19 @@ fun ScalePopupPlaceholder(
     val layoutWidth = placeables.maxOfOrNull { it.width } ?: 0
     val layoutHeight = placeables.maxOfOrNull { it.height } ?: 0
     println("QAQ layoutWidth=$layoutWidth layoutHeight=$layoutHeight constraints.maxWidth=${constraints.maxWidth} constraints.maxHeight=${constraints.maxHeight}")
+
+    // 初次渲染时最大值超出了限制，导致异常，限制最大值大小
+    val DIMENSION_MAX = 16777215
+    var measuredWidth = (constraints.maxWidth * scale).fastRoundToInt()
+    val measuredHeight = (constraints.maxHeight * scale).fastRoundToInt()
+
+    if ((measuredWidth.toDouble() * measuredHeight) > DIMENSION_MAX) {
+      measuredWidth = DIMENSION_MAX.floorDiv(measuredHeight)
+    }
+
     layout(
-      width = (constraints.maxWidth * scale).fastRoundToInt(),
-      height = (constraints.maxHeight * scale).fastRoundToInt(),
+      width = measuredWidth,
+      height = measuredHeight,
     ) {
       for (placeable in placeables) {
         placeable.place(0, 0)
