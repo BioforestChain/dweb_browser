@@ -3,14 +3,18 @@ package org.dweb_browser.browser.desk
 import androidx.compose.runtime.Composable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filter
+import kotlinx.serialization.Serializable
 import org.dweb_browser.browser.desk.model.DesktopAppModel
+import org.dweb_browser.browser.desk.render.NFSpaceCoordinateLayout
 import org.dweb_browser.browser.desk.render.RenderImpl
 import org.dweb_browser.browser.desk.render.layoutSaveStrategyIsMultiple
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.std.dns.nativeFetch
+import org.dweb_browser.core.std.file.ext.createStore
 import org.dweb_browser.helper.collectIn
+import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
+import org.dweb_browser.helper.compose.envSwitch
 import org.dweb_browser.helper.platform.IPureViewController
-import org.dweb_browser.browser.desk.render.NFSpaceCoordinateLayout
 
 class DesktopV2Controller private constructor(
   viewController: IPureViewController,
@@ -30,6 +34,11 @@ class DesktopV2Controller private constructor(
   private val openingApps = mutableSetOf<MMID>()
   internal val appsFlow = MutableStateFlow(emptyList<DesktopAppModel>())
   internal val appLayoutsFlow = MutableStateFlow(emptyList<DeskAppLayoutInfo>())
+
+  // 是否开启v2桌面的拖拽排序功能
+  internal val isCustomLayout by lazy { envSwitch.isEnabled(ENV_SWITCH_KEY.DESKTOP_CUSTOM_LAYOUT) }
+  // 存放v2拖拽排序的位置信息。
+  internal val appsLayoutStore = DesktopV2AppLayoutStore(deskNMM)
 
   suspend fun updateAppsLayouts(screenWidth: Int, layouts: Map<MMID, NFSpaceCoordinateLayout>) {
     if (isCustomLayout) {
@@ -98,6 +107,13 @@ class DesktopV2Controller private constructor(
     super.closeApp(mmid)
   }
 
+  override suspend fun remove(mmid: MMID, isWebLink: Boolean) {
+    if (isCustomLayout) {
+      appsLayoutStore.removeLayouts(mmid)
+    }
+    super.remove(mmid, isWebLink)
+  }
+
   @Composable
   override fun Render() {
     RenderImpl()
@@ -107,5 +123,39 @@ class DesktopV2Controller private constructor(
     onUpdate.filter { it != "bounds" }.collectIn(deskNMM.getRuntimeScope()) {
       upsetApps()
     }
+  }
+}
+
+@Serializable
+data class DeskAppLayoutInfo(val screenWidth: Int, val layouts: Map<MMID, NFSpaceCoordinateLayout>)
+
+internal class DesktopV2AppLayoutStore(deskNMM: DeskNMM.DeskRuntime) {
+
+  private val appsLayoutStore = deskNMM.createStore("apps_layout", false)
+
+  suspend fun getStoreAppsLayouts(): List<DeskAppLayoutInfo> {
+    return appsLayoutStore.getOrNull("layouts") ?: emptyList()
+  }
+
+  suspend fun setStoreAppsLayouts(layouts: List<DeskAppLayoutInfo>) {
+    appsLayoutStore.set("layouts", layouts)
+  }
+
+  suspend fun removeLayouts(mmid: MMID) {
+    val result = getStoreAppsLayouts().map { layoutInfo ->
+      layoutInfo.copy(layouts = layoutInfo.layouts.filter { layout ->
+        layout.key != mmid
+      })
+    }
+    setStoreAppsLayouts(result)
+  }
+
+  suspend fun clearInvaildLayouts(list: List<MMID>) {
+    val result = getStoreAppsLayouts().map { layoutInfo ->
+      layoutInfo.copy(layouts = layoutInfo.layouts.filter { layout ->
+        list.contains(layout.key)
+      })
+    }
+    setStoreAppsLayouts(result)
   }
 }

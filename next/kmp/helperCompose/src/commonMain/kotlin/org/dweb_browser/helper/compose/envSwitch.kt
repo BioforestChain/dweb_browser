@@ -143,6 +143,7 @@ enum class ENV_SWITCH_KEY(
       enableVersion = "2",
     )
   ),
+  // 是否开启v2桌面的拖拽排序功能
   DESKTOP_CUSTOM_LAYOUT("destktop-custom-layout"),
 //  SCAN_STD(
 //    "lens-nmm",

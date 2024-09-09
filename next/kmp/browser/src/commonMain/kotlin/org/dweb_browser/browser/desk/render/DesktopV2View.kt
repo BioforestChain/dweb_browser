@@ -55,8 +55,6 @@ fun DesktopV2Controller.RenderImpl() {
   val microModule = deskNMM
   val appMenuPanel = rememberAppMenuPanel(desktopController, microModule)
 
-  val isCustomLayout by lazy { envSwitch.isEnabled(ENV_SWITCH_KEY.DESKTOP_CUSTOM_LAYOUT) }
-
   val searchBar = rememberDesktopSearchBar()
   val desktopWallpaper = rememberDesktopWallpaper()
   Box(Modifier.fillMaxSize()) {
