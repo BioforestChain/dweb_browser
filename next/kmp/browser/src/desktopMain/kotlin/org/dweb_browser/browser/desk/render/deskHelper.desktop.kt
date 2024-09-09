@@ -3,7 +3,6 @@ package org.dweb_browser.browser.desk.render
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.ui.unit.dp
-import org.mkdesklayout.project.NFCacalaterParams
 
 
 actual fun desktopGridLayout(): DesktopGridLayout = DesktopGridLayout(

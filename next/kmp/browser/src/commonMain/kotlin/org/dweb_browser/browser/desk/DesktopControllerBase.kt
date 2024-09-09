@@ -31,7 +31,7 @@ import org.dweb_browser.helper.platform.IPureViewController
 import org.dweb_browser.helper.platform.from
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.sys.window.core.WindowController
-import org.mkdesklayout.project.NFSpaceCoordinateLayout
+import org.dweb_browser.browser.desk.render.NFSpaceCoordinateLayout
 
 sealed class DesktopControllerBase(
   val viewController: IPureViewController,

@@ -1,4 +1,4 @@
-package org.mkdesklayout.project
+package org.dweb_browser.browser.desk.render
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.IntOffset

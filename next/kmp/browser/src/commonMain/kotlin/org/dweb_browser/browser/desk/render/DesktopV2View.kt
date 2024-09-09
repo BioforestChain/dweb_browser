@@ -40,8 +40,6 @@ import org.dweb_browser.browser.desk.DesktopV2Controller
 import org.dweb_browser.browser.desk.model.DesktopAppModel
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.compose.pointerActions
-import org.mkdesklayout.project.DeskLayoutV6
-import org.mkdesklayout.project.NFGeometry
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable

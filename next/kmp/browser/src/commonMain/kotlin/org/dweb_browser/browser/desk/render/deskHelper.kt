@@ -7,7 +7,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.ui.unit.Dp
-import org.mkdesklayout.project.NFCacalaterParams
 import squircleshape.CornerSmoothing
 import squircleshape.SquircleShape
 import kotlin.math.max

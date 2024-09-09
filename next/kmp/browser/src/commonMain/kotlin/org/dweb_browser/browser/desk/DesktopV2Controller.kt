@@ -10,7 +10,7 @@ import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.platform.IPureViewController
-import org.mkdesklayout.project.NFSpaceCoordinateLayout
+import org.dweb_browser.browser.desk.render.NFSpaceCoordinateLayout
 
 class DesktopV2Controller private constructor(
   viewController: IPureViewController,

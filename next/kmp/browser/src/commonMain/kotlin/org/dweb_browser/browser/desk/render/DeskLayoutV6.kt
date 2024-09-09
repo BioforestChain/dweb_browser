@@ -1,4 +1,4 @@
-package org.mkdesklayout.project
+package org.dweb_browser.browser.desk.render
 
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.Spring
@@ -43,8 +43,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.map
-import org.dweb_browser.browser.desk.render.getLayoutParams
-import org.dweb_browser.helper.getOrDefault
 import kotlin.math.abs
 
 class DeskLayoutStateV6<T : Any>(
@@ -62,7 +60,7 @@ class DeskLayoutStateV6<T : Any>(
     calculatorParams = getCalculatorParams(screenWith, screenHeight)
     val recommendLayouts = recommendLayout(calculatorParams.screenWidth)
     flowLayouts = list.map { data ->
-      val scLayout = recommendLayouts.getOrDefault(data,NFSpaceCoordinateLayout(0, 0, 1, 1))
+      val scLayout = recommendLayouts.getOrDefault(data, NFSpaceCoordinateLayout(0, 0, 1, 1))
       NFCaculater.getLayout(data, scLayout, calculatorParams)
     }
     calculateBlockLayout()
@@ -81,11 +79,11 @@ class DeskLayoutStateV6<T : Any>(
     }
 
     flowLayouts = NFCaculater.layout(
-        layouts = flowLayouts.filter { !blockKeys.contains(it.key) },
-        blockLayouts = blockLayouts,
-        params = calculatorParams,
-        refresh = false
-      )
+      layouts = flowLayouts.filter { !blockKeys.contains(it.key) },
+      blockLayouts = blockLayouts,
+      params = calculatorParams,
+      refresh = false
+    )
     return flowLayouts + blockLayouts
   }
 
