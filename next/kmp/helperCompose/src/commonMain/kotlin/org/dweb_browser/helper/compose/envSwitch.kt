@@ -67,6 +67,7 @@ enum class ENV_SWITCH_KEY(
   JS_PROCESS_DEVTOOLS("js-process-devtools"),
   ALL_WINDOW_DEVTOOLS("*-window-devtools"),
   DWEBVIEW_JS_CONSOLE("dwebview-js-console"),
+  SCREEN_EDGE_SWIPE_ENABLE("screen-edge-swipe-enable-in-native-ios"),
   DESKTOP_STYLE_COMPOSE(
     "destktop-style-compose",
     experimental = ExperimentalKey(

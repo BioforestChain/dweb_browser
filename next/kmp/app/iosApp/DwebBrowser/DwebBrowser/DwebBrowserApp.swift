@@ -18,24 +18,29 @@ struct DwebBrowserApp: App {
 
     var content: some View {
         ZStack(alignment: .center, content: {
-            DwebFrameworkContentView(vcds: $deskVCStore.vcs)
+            DwebFrameworkContentView()
                 .ignoresSafeArea(.all, edges: .all)
                 .persistentSystemOverlays(deskVCStore.navgationBarVisible)
+                .environment(deskVCStore)
+                .onChange(of: deskVCStore.shouldEnableEdgeSwipe) { _, enable in
+                    
+                }
         })
+        
     }
 }
 
 struct DwebFrameworkContentView: View {
-    @Binding var vcds: [DwebVCData]
+    @Environment(DwebDeskVCStore.self) var vcdStore
     @State private var isDidAppear = false
     
     var body: some View {
         ZStack {
-            if vcds.isEmpty {
+            if vcdStore.vcs.isEmpty {
                 Text("Loading...")
                     .accessibilityLabel("loading")
             } else {
-                DwebDeskRootView(vcds: vcds)
+                DwebDeskRootView(deskVCStorex: vcdStore)
             }
         }
         .overlay {

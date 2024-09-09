@@ -35,7 +35,9 @@ suspend fun startDwebBrowser(
   val launcher = DwebBrowserLauncher(if (debugMode) debugTags else emptyList())
   dnsNMM = launcher.dnsNMM
   val dnsRuntime = launcher.launch()
-
+  envSwitch.watch(ENV_SWITCH_KEY.SCREEN_EDGE_SWIPE_ENABLE){
+    dwebViewController.updateEdgeSwipeEnable(envSwitch.isEnabled(ENV_SWITCH_KEY.SCREEN_EDGE_SWIPE_ENABLE))
+  }
   // 启动的时候就开始监听deeplink
   dwebDeepLinkHook.deeplinkSignal.listen {
     dnsRuntime.nativeFetch(it)

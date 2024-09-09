@@ -24,7 +24,7 @@ class DwebVCData {
 @Observable class DwebDeskVCStore {
     var vcs = [DwebVCData]()
     var navgationBarVisible: Visibility = .visible
-
+    var shouldEnableEdgeSwipe: Bool = false
     init() {
         regiserDeskEvent()
     }
@@ -43,8 +43,13 @@ class DwebVCData {
         Main_iosKt.dwebViewController.setAddHook(hook: addHook(vc:prop:))
         Main_iosKt.dwebViewController.setUpdateHook(hook: updateHook(prop:))
         Main_iosKt.dwebViewController.setRemoveHook(hook: removeHook(vcId:))
+        Main_iosKt.dwebViewController.setUpdateSwitchHook(cb: updateSwitch(enable:))
     }
 
+    private func updateSwitch(enable: KotlinBoolean) {
+        shouldEnableEdgeSwipe = enable.boolValue
+    }
+    
     private func navigationBarHok(visible: KotlinBoolean) {
         navgationBarVisible = visible.boolValue ? .visible : .hidden
     }

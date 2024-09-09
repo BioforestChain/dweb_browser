@@ -12,6 +12,11 @@ import SwiftUI
 import UIKit
 
 class DwebComposeRootViewController: UIViewController {
+    private var leftAnimationView: EdgeAnimationView? = nil
+    private var rightAnimationView: EdgeAnimationView? = nil
+    private var leftEdgePanGesture: UIScreenEdgePanGestureRecognizer? = nil
+    private var rightEdgePanGesture: UIScreenEdgePanGestureRecognizer? = nil
+
     var vcds: [DwebVCData]
     
     init(vcds: [DwebVCData]) {
@@ -23,7 +28,14 @@ class DwebComposeRootViewController: UIViewController {
         super.viewDidLoad()
         setupTouchDispatchView()
         updateContent(vcds)
-        configScreenEdgeGesture()
+    }
+    
+    func updateEdgeSwipeEnable(enable: Bool){
+        if enable{
+            configScreenEdgeGesture()
+        }else{
+            removeEdgeGesture()
+        }
     }
     
     func setupTouchDispatchView() {
@@ -88,33 +100,72 @@ class DwebComposeRootViewController: UIViewController {
 }
 
 struct DwebDeskRootView: UIViewControllerRepresentable {
-    var vcds: [DwebVCData]
+    var deskVCStore: DwebDeskVCStore
+    init(deskVCStorex: DwebDeskVCStore) {
+        self.deskVCStore = deskVCStorex
+    }
     
     func makeUIViewController(context: Context) -> DwebComposeRootViewController {
-        return DwebComposeRootViewController(vcds: vcds)
+        let rootVC = DwebComposeRootViewController(vcds: self.deskVCStore.vcs)
+        rootVC.updateEdgeSwipeEnable(enable: deskVCStore.shouldEnableEdgeSwipe)
+        return rootVC
     }
     
     func updateUIViewController(_ uiViewController: DwebComposeRootViewController, context: Context) {
-        uiViewController.updateContent(vcds)
+        uiViewController.updateContent(self.deskVCStore.vcs)
+        if context.coordinator.previousShouldEnableEdgeSwipe != deskVCStore.shouldEnableEdgeSwipe {
+            uiViewController.updateEdgeSwipeEnable(enable: deskVCStore.shouldEnableEdgeSwipe)
+            context.coordinator.previousShouldEnableEdgeSwipe = deskVCStore.shouldEnableEdgeSwipe
+        }
+    }
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
+    
+    class Coordinator {
+        var previousShouldEnableEdgeSwipe: Bool = false
     }
 }
 
 //屏幕边缘手势相关
 extension DwebComposeRootViewController: UIGestureRecognizerDelegate {
     @objc func configScreenEdgeGesture(){
-        let leftAnimationView = EdgeAnimationView(frame: CGRect(x: 0, y: 300, width: 0, height: 200), rectEdge: .left) {
+        removeEdgeGesture()
+        
+        leftAnimationView = EdgeAnimationView(frame: CGRect(x: 0, y: 300, width: 0, height: 200), rectEdge: .left) {
             Main_iosKt.dwebViewController.emitOnGoBack()
         }
-        let rightAnimationView = EdgeAnimationView(frame: CGRect(x: view.bounds.width, y: 300, width: 0, height: 200), rectEdge: .right) {
+        rightAnimationView = EdgeAnimationView(frame: CGRect(x: view.bounds.width, y: 300, width: 0, height: 200), rectEdge: .right) {
             Main_iosKt.dwebViewController.emitOnGoBack()
         }
-        
-        view.addSubview(leftAnimationView)
-        view.addSubview(rightAnimationView)
-        
-        setupEdgePanGesture(target: leftAnimationView, edges: .left)
-        setupEdgePanGesture(target: rightAnimationView, edges: .right)
+        if (leftAnimationView != nil) {
+            view.addSubview(leftAnimationView!)
+            setupEdgePanGesture(target: leftAnimationView!, edges: .left)
+
+        }
+        if (rightAnimationView != nil) {
+            view.addSubview(rightAnimationView!)
+            setupEdgePanGesture(target: rightAnimationView!, edges: .right)
+        }
     }
+    
+    func removeEdgeGesture(){
+        leftAnimationView?.removeFromSuperview()
+        leftAnimationView = nil
+        rightAnimationView?.removeFromSuperview()
+        rightAnimationView = nil
+        
+        if let gesture1 = leftEdgePanGesture {
+            view.removeGestureRecognizer(gesture1)
+            leftEdgePanGesture = nil
+        }
+        if let gesture2 = rightEdgePanGesture {
+            view.removeGestureRecognizer(gesture2)
+            rightEdgePanGesture = nil
+        }
+    }
+    
     
     private func setupEdgePanGesture(target: EdgeAnimationView, edges: UIRectEdge){
         let edgePan = UIScreenEdgePanGestureRecognizer(target: target, action: #selector( target.handlePanGesture))

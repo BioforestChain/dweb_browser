@@ -22,6 +22,7 @@ private var addHook: (UIViewController, DwebUIViewControllerProperty) -> Unit =
 private var updateHook: (DwebUIViewControllerProperty) -> Unit = {}
 private var removeHook: (vcId: Int) -> Unit = {}
 private var navigationBarHook: (visible: Boolean) -> Unit = {}
+private var updateEdgeSwipeSwitch: (enable: Boolean) -> Unit = {}
 
 @Suppress("unused")
 class NativeViewController private constructor() {
@@ -56,6 +57,9 @@ class NativeViewController private constructor() {
     removeHook = hook
   }
 
+  fun setUpdateSwitchHook(cb: (enable: Boolean) -> Unit) {
+    updateEdgeSwipeSwitch = cb
+  }
 
   private val allVcs = SafeHashSet<PureViewController>()
   private fun getMaxZIndex() =
@@ -100,4 +104,9 @@ class NativeViewController private constructor() {
       removeHook(pureViewController.vcId)
     }
   }
+
+  fun updateEdgeSwipeEnable(enable: Boolean){
+    updateEdgeSwipeSwitch(enable)
+  }
 }
+
