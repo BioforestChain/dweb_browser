@@ -72,7 +72,7 @@ internal fun AppItem(
     verticalArrangement = Arrangement.Center,
     horizontalAlignment = Alignment.CenterHorizontally,
   ) {
-    AppLogo.from(app.icon, fetchHook = microModule.blobFetchHook).toDeskAppIcon()
+    AppLogo.from(app.icon, fetchHook = microModule.blobFetchHook, description = "desk:${app.mmid}").toDeskAppIcon()
       .Render(iconModifier.run {
         when {
           isCustomLayout -> weight(0.65f)

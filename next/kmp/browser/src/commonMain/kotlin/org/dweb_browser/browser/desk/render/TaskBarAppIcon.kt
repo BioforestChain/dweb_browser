@@ -102,7 +102,7 @@ internal fun TaskBarAppIcon(
       },
     ),
   ) {
-    AppLogo.from(app.icon, fetchHook = microModule.blobFetchHook).toDeskAppIcon(
+    AppLogo.from(app.icon, fetchHook = microModule.blobFetchHook, description = "taskbar:${app.mmid}").toDeskAppIcon(
       AppIconContainer(shadow = shadow ?: if (app.running) 2.dp else null),
       containerColor = if (app.running) null else LocalColorful.current.Gray.Shade_100,
       containerAlpha = containerAlpha ?: if (app.running) 1f else 0.8f,

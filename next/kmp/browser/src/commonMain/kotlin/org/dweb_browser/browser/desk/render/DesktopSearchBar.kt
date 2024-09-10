@@ -148,7 +148,7 @@ class DesktopSearchBar {
               }
               Icon(
                 imageVector = Icons.Outlined.Search,
-                contentDescription = null,
+                contentDescription = "desk:search",
                 tint = Color.White,
                 modifier = Modifier.animateItem(placementSpec = aniSpec())
                   /// 这里不直接操作size，避免布局计算异常导致崩溃

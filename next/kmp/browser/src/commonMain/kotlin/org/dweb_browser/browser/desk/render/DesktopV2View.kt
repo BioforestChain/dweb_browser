@@ -268,7 +268,7 @@ internal fun DeskGridUseCustomGridLayout(
         draging,
         microModule = microModule,
         modifier = Modifier.fillMaxSize(),
-        iconModifier = iConModifier.uiTestTag(app.mmid)
+        iconModifier = iConModifier.uiTestTag("desk:${app.mmid}")
       )
     }
   }

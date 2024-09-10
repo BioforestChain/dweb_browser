@@ -3,6 +3,7 @@ package org.dweb_browser.helper.platform
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ExperimentalComposeApi
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -13,6 +14,7 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.interop.LocalUIViewController
+import androidx.compose.ui.platform.AccessibilitySyncOptions
 import androidx.compose.ui.uikit.ComposeUIViewControllerDelegate
 import androidx.compose.ui.viewinterop.UIKitInteropInteractionMode
 import androidx.compose.ui.viewinterop.UIKitInteropProperties
@@ -42,6 +44,7 @@ import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.platform.NativeViewController.Companion.nativeViewController
 import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.platform.ios.BgPlaceholderView
+import platform.Foundation.NSProcessInfo
 import platform.UIKit.NSLayoutConstraint
 import platform.UIKit.UIView
 
@@ -273,9 +276,17 @@ class PureViewController(
     }
   }
 
-  @OptIn(ExperimentalForeignApi::class, ExperimentalComposeUiApi::class)
+  @OptIn(
+    ExperimentalForeignApi::class, ExperimentalComposeUiApi::class,
+    ExperimentalComposeApi::class
+  )
   val uiViewControllerInMain by lazy {
     ComposeUIViewController({
+      accessibilitySyncOptions =
+        when (NSProcessInfo.processInfo.arguments.contains("enabledAccessibilitySync")) {
+          true -> AccessibilitySyncOptions.Always(debugLogger = null)
+          else -> AccessibilitySyncOptions.WhenRequiredByAccessibilityServices(debugLogger = null)
+        }
       delegate = uiViewControllerDelegate
     }) {
       /// 因为ComposeUIViewController默认是不透明的，这里放一个全局的UIView，但是它是不可见的，目的只是占位，

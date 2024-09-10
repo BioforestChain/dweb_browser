@@ -156,6 +156,7 @@ data class AppLogo(
       height: Dp? = width,
       fetchHook: FetchHook? = null,
       base: AppLogo? = null,
+      description: String? = null,
     ): AppLogo {
       if (url == null) return base ?: AppLogo()
       val loadResult =
@@ -166,8 +167,8 @@ data class AppLogo(
           currentColor = base?.color,
           hook = fetchHook
         )
-      return base?.copy(loadResult = loadResult) ?: AppLogo(
-        loadResult = loadResult, color = LocalContentColor.current
+      return base?.copy(loadResult = loadResult, description = description) ?: AppLogo(
+        loadResult = loadResult, color = LocalContentColor.current, description = description
       )
     }
 
@@ -185,6 +186,7 @@ data class AppLogo(
       height: Dp? = width,
       fetchHook: FetchHook? = null,
       base: AppLogo? = null,
+      description: String? = null,
     ): AppLogo {
       if (resource == null) return base ?: AppLogo()
       val size = if (width != null && height != null) {
@@ -198,7 +200,7 @@ data class AppLogo(
         } else maxSize
       }
 
-      return fromUrl(resource.src, size.width, size.height, fetchHook, base).run {
+      return fromUrl(resource.src, size.width, size.height, fetchHook, base, description).run {
         copy(
           maskable = maskable ?: resource.purpose.contains(ImageResourcePurposes.Maskable),
           monochrome = monochrome ?: resource.purpose.contains(ImageResourcePurposes.Monochrome)

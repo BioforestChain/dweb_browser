@@ -1,29 +1,21 @@
-# dweb_deep_link_install_flow.yaml
-
-appId: ${MAESTRO_ANDROID_APP_ID}
+appId: ${MAESTRO_IOS_APP_ID}
 ---
 - launchApp:
     clearState: true
     stopApp: true
     permissions: { all: unset }
+    arguments: 
+       enabledAccessibilitySync: true
 
-- tapOn: (Agree|同意)
-- tapOn:
-    id: desk:web.browser.dweb
-- tapOn:
-    text: (Home Page|起始页)
-    index: 1
-- tapOn: Clear Input Text
+- waitForAnimationToEnd:
+    timeout: 2000
+- tapOn: desk:search
 - inputText: https://test.dwebdapp.com
 - pressKey: Enter
-- scrollUntilVisible:
-    element:
-      text: COT
-    direction: DOWN
-    timeout: 10000
-    speed: 40
+- assertVisible:
+    text: COT
 - tapOn: COT
-- tapOn: (Install|安装)
+- tapOn: (Install.*|安装.*)
 - extendedWaitUntil:
     timeout: 300000 # 等待最长 5 分钟 (300000 毫秒)
     visible: (Open|打开)
@@ -34,4 +26,5 @@ appId: ${MAESTRO_ANDROID_APP_ID}
 - longPressOn: taskbar:alphabfmeta.info.dweb
 - tapOn: taskbar:alphabfmeta.info.dweb
 
-- stopApp: ${MAESTRO_ANDROID_APP_ID}
+- stopApp: ${MAESTRO_IOS_APP_ID}
+
