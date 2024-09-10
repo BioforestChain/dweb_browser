@@ -9,7 +9,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.viewinterop.UIKitInteropProperties
+import androidx.compose.ui.viewinterop.UIKitInteropInteractionMode
 import androidx.compose.ui.viewinterop.UIKitView
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CompletableDeferred
@@ -95,7 +98,7 @@ actual fun CommonBrowserView(
   BrowserRender(viewModel, modifier, windowRenderScope)
 }
 
-@OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
+@OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class, ExperimentalComposeUiApi::class)
 @Composable
 fun NativeBrowserView(
   viewModel: BrowserViewModel,
@@ -153,21 +156,21 @@ fun NativeBrowserView(
     }
   }
 
-  val isActived by remember {
-    mutableStateOf(envSwitch.isEnabled(ENV_SWITCH_KEY.DWEBVIEW_PULLDOWNWEBMENU))
-  }
-  // 使用 LaunchedEffect 在 isActived 初始化时执行一次副作用
-  LaunchedEffect(isActived) {
-    iOSBrowserView.loadPullMenuConfigWithIsActived(isActived)
+
+//  实时监控变化
+  envSwitch.watch(ENV_SWITCH_KEY.DWEBVIEW_PULLDOWNWEBMENU){
+    iOSBrowserView.loadPullMenuConfigWithIsActived(envSwitch.isEnabled(ENV_SWITCH_KEY.DWEBVIEW_PULLDOWNWEBMENU))
   }
 
   LaunchedEffect(win.state.colorScheme) {
     iOSBrowserView.colorSchemeChangedWithColor(win.state.colorScheme.ordinal)
   }
+
   Box(modifier = modifier) {
     UIKitView(
       factory = { iOSBrowserView },
       modifier = Modifier.fillMaxSize(),
+      properties = UIKitInteropProperties(interactionMode = UIKitInteropInteractionMode.NonCooperative)
     )
   }
 }

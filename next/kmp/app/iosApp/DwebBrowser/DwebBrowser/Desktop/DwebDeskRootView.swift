@@ -141,12 +141,12 @@ extension DwebComposeRootViewController: UIGestureRecognizerDelegate {
         }
         if (leftAnimationView != nil) {
             view.addSubview(leftAnimationView!)
-            setupEdgePanGesture(target: leftAnimationView!, edges: .left)
+            leftEdgePanGesture = setupEdgePanGesture(target: leftAnimationView!, edges: .left)
 
         }
         if (rightAnimationView != nil) {
             view.addSubview(rightAnimationView!)
-            setupEdgePanGesture(target: rightAnimationView!, edges: .right)
+            rightEdgePanGesture = setupEdgePanGesture(target: rightAnimationView!, edges: .right)
         }
     }
     
@@ -167,11 +167,12 @@ extension DwebComposeRootViewController: UIGestureRecognizerDelegate {
     }
     
     
-    private func setupEdgePanGesture(target: EdgeAnimationView, edges: UIRectEdge){
+    private func setupEdgePanGesture(target: EdgeAnimationView, edges: UIRectEdge) -> UIScreenEdgePanGestureRecognizer{
         let edgePan = UIScreenEdgePanGestureRecognizer(target: target, action: #selector( target.handlePanGesture))
         edgePan.edges = edges
         edgePan.delegate = self
         view.addGestureRecognizer(edgePan)
+        return edgePan
     }
     
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldBeRequiredToFailBy otherGestureRecognizer: UIGestureRecognizer) -> Bool {

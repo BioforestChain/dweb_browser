@@ -13,7 +13,7 @@ class TouchThroughView: UIView {
     override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
 //        Log { "SUBVIEWS = \n\(logUIViews(views: Array(subviews), deep: 3))" }
         
-        Log("hitTest: \(point)")
+//        Log("hitTest: \(point)")
         if (point.x < 10 || point.x > bounds.width - 10) {
             return nil
         }

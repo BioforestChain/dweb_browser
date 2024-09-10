@@ -67,7 +67,7 @@ enum class ENV_SWITCH_KEY(
   JS_PROCESS_DEVTOOLS("js-process-devtools"),
   ALL_WINDOW_DEVTOOLS("*-window-devtools"),
   DWEBVIEW_JS_CONSOLE("dwebview-js-console"),
-  SCREEN_EDGE_SWIPE_ENABLE("screen-edge-swipe-enable-in-native-ios"),
+
   DESKTOP_STYLE_COMPOSE(
     "destktop-style-compose",
     experimental = ExperimentalKey(
@@ -125,6 +125,22 @@ enum class ENV_SWITCH_KEY(
         Language.EN to "Enabling this feature allows you to pull down a quick menu when scrolling to the top of the webpage, where you can refresh the page, close a tab, or open a new tab.",
       ),
       brand = "dweb-browser-pullmenu",
+      disableVersion = "1",
+      enableVersion = "2",
+    )
+  ),
+  SCREEN_EDGE_SWIPE_ENABLE(
+    "screen-edge-swipe-enable-in-native-ios",
+    experimental = ExperimentalKey(
+      title = SimpleI18nResource(
+        Language.ZH to "边缘返回手势",
+        Language.EN to "Edge Gestrue",
+      ),
+      description = SimpleI18nResource(
+        Language.ZH to "使用边缘手势，即可实现返回功能，欢迎使用体验。",
+        Language.EN to "The edge gesture, a easy way to return to the previous page. Welcome to try it out.",
+      ),
+      brand = "dweb-edge-swipe",
       disableVersion = "1",
       enableVersion = "2",
     )
