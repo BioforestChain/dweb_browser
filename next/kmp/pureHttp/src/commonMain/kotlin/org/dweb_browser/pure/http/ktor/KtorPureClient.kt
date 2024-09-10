@@ -54,8 +54,11 @@ open class KtorPureClient<out T : HttpClientEngineConfig>(
     }
 
     /// 尝试从内部 HttpPureServer 上消化掉请求
-    tryDoHttpPureServerResponse(request.toServer())?.also {
-      return it
+    /// 如果请求强行要求通往 dwebproxy ，那么就不走内部 HttpPureServer
+    if (request.headers.getOrNull("Sec-Fetch-Dest") != "dwebproxy") {
+      tryDoHttpPureServerResponse(request.toServer())?.also {
+        return it
+      }
     }
 
     /// 请求标准网络

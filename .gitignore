@@ -61,6 +61,7 @@ next/kmp/app/androidApp/src/androidMain/generated/baselineProfiles
 !/assets/browser-html5test
 !/assets/sys-drawable
 !/assets/sys-icons
+!/assets/core-icons
 !/assets/window-drawable
 
 # 所有的资源目录全部由外部脚本进行管理

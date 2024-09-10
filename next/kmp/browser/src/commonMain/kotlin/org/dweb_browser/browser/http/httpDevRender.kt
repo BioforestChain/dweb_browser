@@ -29,9 +29,10 @@ import org.dweb_browser.core.http.dwebProxyService
 import org.dweb_browser.core.std.http.DWEB_PING_URI
 import org.dweb_browser.core.std.http.HttpNMM
 import org.dweb_browser.helper.collectIn
+import org.dweb_browser.helper.datetimeNow
 import org.dweb_browser.pure.http.PureClientRequest
+import org.dweb_browser.pure.http.PureHeaders
 import org.dweb_browser.pure.http.PureMethod
-import org.dweb_browser.pure.http.defaultHttpPureClient
 import org.dweb_browser.sys.window.core.WindowSurface
 import org.dweb_browser.sys.window.core.helper.setStateFromManifest
 import org.dweb_browser.sys.window.core.windowAdapterManager
@@ -102,10 +103,11 @@ private fun HttpNMM.HttpRuntime.installDevRenderer() {
           var checkResult by remember { mutableStateOf(AnnotatedString("")) }
           Button({
             scopeLaunch(cancelable = true) {
-              val response = defaultHttpPureClient.fetch(
+              val response = client.fetch(
                 PureClientRequest(
-                  "http://127.0.0.1:${dwebHttpGatewayService.server.stateFlow.value}$DWEB_PING_URI",
-                  PureMethod.GET
+                  "https://internal.dweb$DWEB_PING_URI?now=${datetimeNow()}",
+                  PureMethod.GET,
+                  headers = PureHeaders().apply { init("Sec-Fetch-Dest", "dwebproxy") }
                 )
               )
               checkResult = buildAnnotatedString {

@@ -167,6 +167,7 @@ class DwebBrowserLauncher(
       browserNMM.mmid, // 为了启动后能够顺利加载添加到桌面的哪些数据，不加载browser界面
       deskNMM.mmid,// 桌面
       shortcutNMM.mmid, // 为了启动时，注入快捷内容
+      httpNMM.mmid,// 启动时，初始化 pingPong
     )
 
     for (mm in extMM) {

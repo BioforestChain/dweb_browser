@@ -11,6 +11,7 @@ import io.ktor.utils.io.CancellationException
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
+import org.dweb_browser.core.http.dwebProxyService
 import org.dweb_browser.core.http.router.ResponseException
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.by
@@ -18,19 +19,25 @@ import org.dweb_browser.core.http.router.byChannel
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
-import org.dweb_browser.core.module.generateDwebDevIcons
 import org.dweb_browser.core.std.dns.debugFetch
 import org.dweb_browser.core.std.dns.httpFetch
 import org.dweb_browser.core.std.dns.nativeFetchAdaptersManager
 import org.dweb_browser.core.std.http.net.Http1Server
 import org.dweb_browser.helper.Debugger
+import org.dweb_browser.helper.ImageResource
+import org.dweb_browser.helper.Once
 import org.dweb_browser.helper.SafeHashMap
 import org.dweb_browser.helper.base64UrlString
+import org.dweb_browser.helper.collectIn
+import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
+import org.dweb_browser.helper.compose.envSwitch
 import org.dweb_browser.helper.decodeURIComponent
 import org.dweb_browser.helper.falseAlso
 import org.dweb_browser.helper.removeWhen
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.helper.trueAlso
+import org.dweb_browser.pure.http.HttpPureClient
+import org.dweb_browser.pure.http.HttpPureClientConfig
 import org.dweb_browser.pure.http.IPureBody
 import org.dweb_browser.pure.http.PureBinaryFrame
 import org.dweb_browser.pure.http.PureClientRequest
@@ -48,13 +55,21 @@ val debugHttp = Debugger("http")
 
 
 class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
+  companion object{
+    val isEnableDebugNet = envSwitch.isEnabled(ENV_SWITCH_KEY.CORE_HTTP_DEV_PANEL)
+  }
   init {
     short_name = "HTTP"
     categories = listOf(
       MICRO_MODULE_CATEGORY.Service,
       MICRO_MODULE_CATEGORY.Protocol_Service,
-    ) + if (debugHttp.isEnable) listOf(MICRO_MODULE_CATEGORY.Application) else emptyList()
-    icons = generateDwebDevIcons("HTTP")
+    ) + if (isEnableDebugNet) listOf(MICRO_MODULE_CATEGORY.Application) else emptyList()
+    icons = listOf(
+      ImageResource(
+        src = "file:///sys/core-icons/$mmid.svg",
+        type = "image/svg+xml",
+      )
+    )
   }
 
   private val dwebServer = Http1Server()
@@ -73,6 +88,17 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
     /// 注册的域名与对应的 token
     private val tokenMap = SafeHashMap</* token */ String, Gateway>()
     private val gatewayMap = SafeHashMap</* host */ String, Gateway>()
+
+    val client get() = httpClient()
+    private val httpClient = Once {
+      HttpPureClient(HttpPureClientConfig(httpProxyUrl = dwebProxyService.proxyUrl.value))
+    }
+
+    init {
+      dwebProxyService.proxyUrl.collectIn(this.getRuntimeScope()) {
+        httpClient.reset()
+      }
+    }
 
     /**
      * 监听请求

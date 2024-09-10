@@ -160,8 +160,24 @@ enum class ENV_SWITCH_KEY(
       enableVersion = "2",
     )
   ),
+
   // 是否开启v2桌面的拖拽排序功能
   DESKTOP_CUSTOM_LAYOUT("destktop-custom-layout"),
+  CORE_HTTP_DEV_PANEL(
+    "net-control-panel",
+    experimental = ExperimentalKey(
+      title = SimpleI18nResource(
+        Language.ZH to "网络控制面板", Language.EN to "Network Control Panel"
+      ),
+      description = SimpleI18nResource(
+        Language.ZH to "该功能用于调控网络，如非专业人员，请勿开启",
+        Language.EN to "This feature is used to control the network, please do not turn it on if you're not a professional.",
+      ),
+      brand = "dweb-net-control-panel",
+      disableVersion = "0",
+      enableVersion = "1",
+    )
+  ),
 //  SCAN_STD(
 //    "lens-nmm",
 //    experimental = ExperimentalKey(

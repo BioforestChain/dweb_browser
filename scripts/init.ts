@@ -16,6 +16,12 @@ export const doInit = async (args: string[]) => {
   void doInitAssets(args.includes("--watch") || args.includes("--dev"));
 };
 
+AssetsConfig.createAndSave("core-icons", [
+  {
+    type: "linkKmpResFiles",
+    moduleName: "core",
+  },
+]);
 AssetsConfig.createAndSave("sys-drawable", [
   {
     type: "copyKmpResDrawable",

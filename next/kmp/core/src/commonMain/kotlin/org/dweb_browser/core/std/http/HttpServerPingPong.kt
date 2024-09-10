@@ -8,12 +8,10 @@ import kotlinx.coroutines.selects.onTimeout
 import kotlinx.coroutines.selects.select
 import org.dweb_browser.core.http.dwebHttpGatewayService
 import org.dweb_browser.core.http.dwebProxyService
-import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.datetimeNow
 import org.dweb_browser.helper.randomUUID
-import org.dweb_browser.pure.http.HttpPureClient
-import org.dweb_browser.pure.http.HttpPureClientConfig
 import org.dweb_browser.pure.http.PureClientRequest
+import org.dweb_browser.pure.http.PureHeaders
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureResponse
 
@@ -23,12 +21,13 @@ suspend fun HttpNMM.HttpRuntime.installHttpServerPingPong() {
   /// 添加基础响应服务
   dwebHttpGatewayService.gatewayAdapterManager.append(10000) { request ->
     val encodedPath = request.url.encodedPath
-    if (encodedPath == DWEB_PING_URI || (debugHttp.isEnable && encodedPath == "/--dweb-ping--")) {
+    if (encodedPath == DWEB_PING_URI || (HttpNMM.isEnableDebugNet && encodedPath == "/--dweb-ping--")) {
       PureResponse.build {
         appendHeaders(CORS_HEADERS)
         body("""
           --dweb-pong--
           uri=${encodedPath}
+          search=${request.url.encodedQuery}
           headers=${
           request.headers.toMap().entries.joinToString(", ") {
             "'${it.key}':'${it.value}'"
@@ -38,11 +37,6 @@ suspend fun HttpNMM.HttpRuntime.installHttpServerPingPong() {
           """.trimIndent())
       }
     } else null
-  }
-  var httpClient =
-    HttpPureClient(HttpPureClientConfig(httpProxyUrl = dwebProxyService.proxyUrl.value))
-  dwebProxyService.proxyUrl.collectIn(this.getRuntimeScope()) {
-    httpClient = HttpPureClient(HttpPureClientConfig(httpProxyUrl = it))
   }
 
   /**
@@ -60,8 +54,12 @@ suspend fun HttpNMM.HttpRuntime.installHttpServerPingPong() {
         debugHttp("ping-pong-loop") { "internal timeout(${(diffTime / 1000f)}s)!" }
         @OptIn(ExperimentalCoroutinesApi::class) val response = select {
           async {
-            httpClient.fetch(
-              PureClientRequest("https://internal.dweb/$DWEB_PING_URI", PureMethod.GET)
+            client.fetch(
+              PureClientRequest(
+                "https://internal.dweb$DWEB_PING_URI?now=${nowTime}",
+                PureMethod.GET,
+                headers = PureHeaders().apply { init("Sec-Fetch-Dest", "dwebproxy") }
+              )
             )
           }.onAwait { it }
           onTimeout(100) { PureResponse(HttpStatusCode.RequestTimeout) }
