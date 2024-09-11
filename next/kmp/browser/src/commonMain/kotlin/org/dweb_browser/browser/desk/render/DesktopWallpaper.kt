@@ -105,7 +105,7 @@ class DesktopWallpaper(private val scope: CoroutineScope) {
 //    // 使用 LaunchedEffect 实现每两秒钟更换一次配色
 //    LaunchedEffect(Unit) {
 //      while (true) {
-//        delay(1000) // 等待两秒钟
+//        delay(2000) // 等待两秒钟
 //        hour = (hour + 1) % 24 // 更新小时数，保持在 0 到 23 之间循环
 //      }
 //    }
@@ -262,7 +262,7 @@ class DesktopWallpaper(private val scope: CoroutineScope) {
 private fun desktopBgPrimaryColorStrings(hour: Int): List<Color> {
   return when (hour % 24) {
     0 -> listOf("#b565c8", "#7b97c8")
-    1 -> listOf("#6b97e8", "#8f71a5")
+    1 -> listOf("#6b97e8", "#1157b1")
     2 -> listOf("#8f7ad5", "#de6a97")
     3 -> listOf("#4eb3ba", "#bf6da0")
     4 -> listOf("#bfda9c", "#8875b7")
@@ -270,20 +270,20 @@ private fun desktopBgPrimaryColorStrings(hour: Int): List<Color> {
     6 -> listOf("#ffb06b", "#7283cb")
     7 -> listOf("#fbc15f", "#5caee7")
     8 -> listOf("#bde391", "#6494d7")
-    9 -> listOf("#6494d7", "#4dd4e6")
-    10 -> listOf("#62bfc1", "#5bb5f6")
-    11 -> listOf("#62b1cf", "#92b1f6")
-    12 -> listOf("#6dcbeb", "#62bfb1")
-    13 -> listOf("#f8bf71", "#6dcbeb")
+    9 -> listOf("#6494d7", "#bde3a2")
+    10 -> listOf("#92b1ff", "#2fc6f2")
+    11 -> listOf("#62b1cf", "#a2cba9")
+    12 -> listOf("#6dbbe1", "#bde3a2")
+    13 -> listOf("#84d7b9", "#6dcbeb")
     14 -> listOf("#65bfef", "#fbd7a0")
-    15 -> listOf("#f5a771", "#77d7e5")
-    16 -> listOf("#fb8d5f", "#a2cba9")
-    17 -> listOf("#fbc775", "#d1bf7a")
+    15 -> listOf("#f5ca81", "#77d7e5")
+    16 -> listOf("#c1d7ca", "#fb8d5f")
+    17 -> listOf("#fb8d5f", "#d1badf")
     18 -> listOf("#faa780", "#c1a949")
-    19 -> listOf("#fb8d5f", "#daa780")
-    20 -> listOf("#daa780", "#da8780")
-    21 -> listOf("#c7729f", "#f37e84")
-    22 -> listOf("#da8780", "#f7a47f")
+    19 -> listOf("#f37e84", "#6b97e8")
+    20 -> listOf("#da8780", "#d1bf7a")
+    21 -> listOf("#8f71a5", "#f37e84")
+    22 -> listOf("#a47fa6", "#ecbb51")
     23 -> listOf("#ec9b5f", "#a46daa")
     else -> listOf("#84d7b9", "#62b1f6")
   }.map { Color.hex(it)!! }
