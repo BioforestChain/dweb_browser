@@ -1,65 +1,78 @@
 package org.dweb_browser.sys.keychain.render
 
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
+import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
+import androidx.compose.material3.adaptive.layout.AnimatedPane
+import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffold
+import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
+import androidx.compose.material3.adaptive.layout.PaneAdaptedValue
+import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import org.dweb_browser.helper.compose.ListDetailPaneScaffold
-import org.dweb_browser.helper.compose.rememberListDetailPaneScaffoldNavigator
+import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.sys.keychain.KeychainI18nResource
 import org.dweb_browser.sys.keychain.KeychainManager
+import org.dweb_browser.sys.window.core.LocalWindowController
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
 import org.dweb_browser.sys.window.core.WindowSurface
 import org.dweb_browser.sys.window.core.withRenderScope
-import org.dweb_browser.sys.window.core.LocalWindowController
 
 
+@OptIn(ExperimentalMaterial3AdaptiveApi::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun KeychainManager.Render(
   modifier: Modifier,
   windowRenderScope: WindowContentRenderScope,
 ) {
-  val navigator = rememberListDetailPaneScaffoldNavigator()
+  val navigator = rememberListDetailPaneScaffoldNavigator<IMicroModuleManifest>()
   val win = LocalWindowController.current
   win.navigation.GoBackHandler(enabled = navigator.canNavigateBack()) {
-    navigator.backToList {
-      closeDetail()
-    }
-  }
-  LaunchedEffect(detailController) {
-    if (detailController != null) {
-      navigator.navigateToDetail()
-    } else {
-      navigator.backToList()
-    }
+    navigator.navigateBack()
   }
 
-  ListDetailPaneScaffold(
-    modifier = modifier.withRenderScope(windowRenderScope),
-    navigator = navigator,
-    listPane = {
-      ListView(Modifier, WindowContentRenderScope.Unspecified)
-    },
-    detailPane = {
-      when (val detail = detailController) {
-        null -> WindowContentRenderScope.Unspecified.WindowSurface {
-          Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text(KeychainI18nResource.no_select_detail())
+  val isListAndDetailVisible =
+    navigator.scaffoldValue[ListDetailPaneScaffoldRole.Detail] == PaneAdaptedValue.Expanded && navigator.scaffoldValue[ListDetailPaneScaffoldRole.List] == PaneAdaptedValue.Expanded
+
+  SharedTransitionLayout {
+    AnimatedContent(isListAndDetailVisible, label = "Keychain Manager") {
+      ListDetailPaneScaffold(
+        directive = navigator.scaffoldDirective,
+        value = navigator.scaffoldValue,
+        modifier = modifier.withRenderScope(windowRenderScope),
+        listPane = {
+          AnimatedPane {
+            ListView(Modifier, WindowContentRenderScope.Unspecified) { manifest ->
+              navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, manifest)
+            }
           }
-        }
+        },
+        detailPane = {
+          AnimatedPane {
+            when (val manifest = navigator.currentDestination?.content) {
+              null -> WindowContentRenderScope.Unspecified.WindowSurface {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                  Text(KeychainI18nResource.no_select_detail())
+                }
+              }
 
-        else -> BoxWithConstraints {
-          detail.Render(
-            Modifier.fillMaxSize(), WindowContentRenderScope.Unspecified
-          )
-        }
-      }
+              else -> BoxWithConstraints {
+                getDetailManager(manifest).Render(
+                  Modifier.fillMaxSize(), WindowContentRenderScope.Unspecified
+                )
+              }
+            }
+          }
+        },
+      )
     }
-  )
+  }
 }
 

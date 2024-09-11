@@ -2,6 +2,7 @@ package org.dweb_browser.sys.keychain.render
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -24,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
+import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.std.file.ext.blobFetchHook
 import org.dweb_browser.helper.compose.CommonI18n
 import org.dweb_browser.helper.compose.hoverCursor
@@ -37,10 +39,11 @@ import org.dweb_browser.sys.window.render.AppLogo
 internal fun KeychainManager.ListView(
   modifier: Modifier,
   renderScope: WindowContentRenderScope,
+  openDetail: (IMicroModuleManifest) -> Unit
 ) {
   val scope = rememberCoroutineScope()
-  WindowContentRenderScope.Unspecified.WindowContentScaffoldWithTitleText(
-    modifier = Modifier.fillMaxSize(),
+  renderScope.WindowContentScaffoldWithTitleText(
+    modifier = modifier.fillMaxSize(),
     topBarTitleText = KeychainI18nResource.name(),
     topBarActions = {
       IconButton({ scope.launch { refreshList() } }) {
@@ -75,7 +78,7 @@ internal fun KeychainManager.ListView(
                     base = AppLogo(errorContent = {
                       Icon(Icons.TwoTone.Image, contentDescription = "")
                     })
-                  ).toIcon().Render()
+                  ).toIcon().Render(Modifier.size(32.dp))
                 },
                 headlineContent = { Text(mm.name) },
                 supportingContent = { Text(mm.mmid) },

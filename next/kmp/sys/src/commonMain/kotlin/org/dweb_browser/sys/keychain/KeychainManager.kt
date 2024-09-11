@@ -60,16 +60,5 @@ class KeychainManager(
     }
   }
 
-  var detailController by mutableStateOf<DetailManager?>(null)
-    private set
-
-
-  /** 打开详情界面*/
-  fun openDetail(mm: IMicroModuleManifest) {
-    detailController = DetailManager(mm)
-  }
-
-  fun closeDetail() {
-    detailController = null
-  }
+  fun getDetailManager(mm: IMicroModuleManifest) = DetailManager(mm)
 }

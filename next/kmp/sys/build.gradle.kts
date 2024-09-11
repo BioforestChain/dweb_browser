@@ -16,6 +16,10 @@ kotlin {
       implementation(projects.pureCrypto)
       implementation(projects.core)
       implementation(projects.window)
+
+      implementation(libs.jetbrains.compose.material3.adaptive)
+      implementation(libs.jetbrains.compose.material3.adaptive.layout)
+      implementation(libs.jetbrains.compose.material3.adaptive.navigation)
     }
   }
   kmpAndroidTarget(project) {
