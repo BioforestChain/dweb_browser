@@ -131,15 +131,3 @@ plaoc:demo:serve
 项目的一些系统级 API 和一些服务采用 [rust-uniffi](https://gitlab.com/trixnity/uniffi-kotlin-multiplatform-bindings)进行调用.
 
 具体查看项目 [dweb_browser_libs](https://github.com/BioforestChain/dweb_browser_libs).
-
-### Q&A
-
-mac 桌面端如果出现： “Dweb Browser” 已损坏，无法打开。 你应该将它移到废纸篓。
-
-可以使用下面命令运行。
-
-```bash
-sudo xattr -d com.apple.quarantine /Applications/Dweb\ Browser.app
-```
-
-更多问题可以查看文档[dweb_browser](https://docs.dweb-browser.org/)，或者在 issuse 中找到问题或者提问。

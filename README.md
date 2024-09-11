@@ -143,15 +143,3 @@ plaoc:demo:serve
 Some system-level APIs and services of the project are called using [rust-uniffi](https://gitlab.com/trixnity/uniffi-kotlin-multiplatform-bindings).
 
 See the project for details [dweb_browser_libs](https://github.com/BioforestChain/dweb_browser_libs).
-
-### Q&A
-
-If the Mac desktop client displays: "Dweb Browser" is damaged and cannot be opened. You should move it to the Trash.
-
-You can run it using the following command.
-
-```bash
-sudo xattr -d com.apple.quarantine /Applications/Dweb\ Browser.app
-```
-
-For more questions, please check the document [dweb_browser](https://docs.dweb-browser.org/), or find or ask questions in issuse.
