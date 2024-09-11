@@ -22,7 +22,6 @@ kotlin {
     dependencies {
       // Compose 相关
       implementation(libs.compose.material3)
-      implementation(libs.compose.material3.window)
       // Google.accompanist 相关
       implementation(libs.accompanist.navigation.material)
       implementation(libs.accompanist.navigation.animation)

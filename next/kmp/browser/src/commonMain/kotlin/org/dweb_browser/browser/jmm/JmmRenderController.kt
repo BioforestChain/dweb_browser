@@ -31,17 +31,14 @@ class JmmRenderController(
     win.show()
   }
 
-  var detailController by mutableStateOf<JmmDetailController?>(null)
-    private set
+  var outerHistoryJmmMetadata by mutableStateOf<JmmMetadata?>(null)
 
-  /** 打开详情界面*/
   fun openDetail(historyMetadata: JmmMetadata) {
-    detailController = jmmController.getInstallerController(historyMetadata)
+    outerHistoryJmmMetadata = historyMetadata
   }
 
-  fun closeDetail() {
-    detailController = null
-  }
+  // 获取Jmm详情控制器，渲染详情页
+  fun getJmmDetailController(historyMetadata: JmmMetadata) = jmmController.getInstallerController(historyMetadata)
 
   /// 卸载app
   fun unInstall(historyMetadata: JmmMetadata) {

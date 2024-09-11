@@ -20,6 +20,10 @@ kotlin {
       implementation(projects.sys)
       implementation(projects.dwebview)
       implementation(projects.window)
+
+      implementation(libs.jetbrains.compose.material3.adaptive)
+      implementation(libs.jetbrains.compose.material3.adaptive.layout)
+      implementation(libs.jetbrains.compose.material3.adaptive.navigation)
     }
     testDependencies {
       implementation(projects.dwebview)
@@ -29,7 +33,6 @@ kotlin {
     dependencies {
       // AndroidX Compose
       implementation(libs.compose.material3)
-      implementation(libs.compose.material3.window)
       // Google Accompanist
       implementation(libs.accompanist.navigation.material)
       implementation(libs.accompanist.navigation.animation)

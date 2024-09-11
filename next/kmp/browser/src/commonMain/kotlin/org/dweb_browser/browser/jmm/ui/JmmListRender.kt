@@ -23,13 +23,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import org.dweb_browser.browser.jmm.JmmMetadata
 import org.dweb_browser.browser.jmm.JmmRenderController
 import org.dweb_browser.browser.jmm.JmmTabs
 
 @Composable
-fun JmmRenderController.JmmListView(modifier: Modifier, showDetailButton: Boolean = true) {
-
-  var curTab by remember { mutableStateOf(JmmTabs.Installed) }
+fun JmmRenderController.JmmListView(
+  modifier: Modifier,
+  curTab: JmmTabs = JmmTabs.Installed,
+  onTabClick: (JmmTabs) -> Unit,
+  onOpenDetail: (JmmMetadata) -> Unit
+) {
   Column(
     modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)
   ) {
@@ -41,7 +45,7 @@ fun JmmRenderController.JmmListView(modifier: Modifier, showDetailButton: Boolea
         SegmentedButton(
           shape = SegmentedButtonDefaults.itemShape(index = index, count = JmmTabs.entries.size),
           onClick = {
-            curTab = jmmTab
+            onTabClick(jmmTab)
           },
           selected = selected,
           icon = { Icon(imageVector = jmmTab.vector, contentDescription = jmmTab.title()) },
@@ -74,7 +78,7 @@ fun JmmRenderController.JmmListView(modifier: Modifier, showDetailButton: Boolea
                 jmmMetadata = metadata,
                 onRemove = { removeHistoryMetadata(metadata) },
                 onUnInstall = { unInstall(metadata) },
-                onOpenDetail = { openDetail(metadata) },
+                onOpenDetail = { onOpenDetail(metadata) },
               )
             }
           }
