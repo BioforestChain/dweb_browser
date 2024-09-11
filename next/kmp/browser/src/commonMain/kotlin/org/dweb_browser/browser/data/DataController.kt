@@ -2,10 +2,10 @@ package org.dweb_browser.browser.data
 
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.serialization.Serializable
 import org.dweb_browser.browser.data.render.Render
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.help.types.MMID
-import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.dwebview.ProfileName
 import org.dweb_browser.dwebview.getDwebProfileStoreInstance
 import org.dweb_browser.helper.SuspendOnce
@@ -19,15 +19,6 @@ class DataController(val storeNMM: DataNMM.DataRuntime) {
     refreshFlow.value += 1
   }
 
-  val profileDetailFlow = MutableStateFlow<ProfileDetail?>(null)
-  fun goToDetail(profileDetail: ProfileDetail) {
-    profileDetailFlow.value = profileDetail
-  }
-
-  fun backToList() {
-    profileDetailFlow.value = null
-  }
-
   fun openRender(win: WindowController) {
     windowAdapterManager.provideRender(win.id) { modifier ->
       Render(modifier = modifier, windowRenderScope = this)
@@ -39,7 +30,9 @@ class DataController(val storeNMM: DataNMM.DataRuntime) {
     val mmid: MMID
   }
 
-  class ProfileDetail(override val profileName: ProfileName, val mm: MicroModule) : ProfileInfo,
+  @Serializable
+  class ProfileDetail(override val profileName: ProfileName, val mm: IMicroModuleManifest) :
+    ProfileInfo,
     IMicroModuleManifest by mm
 
   class ProfileBase(override val profileName: ProfileName, override val mmid: MMID) : ProfileInfo
@@ -74,8 +67,5 @@ class DataController(val storeNMM: DataNMM.DataRuntime) {
   suspend fun deleteProfile(info: ProfileInfo) {
     dWebProfileStore().deleteProfile(info.profileName)
     refresh()
-//    if (deleteProfileDetailFlow.value == detail) {
-//      backToList()
-//    }
   }
 }

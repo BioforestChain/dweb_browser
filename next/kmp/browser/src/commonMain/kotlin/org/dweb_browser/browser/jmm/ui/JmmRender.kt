@@ -52,6 +52,7 @@ internal fun JmmRenderController.CommonRender(
     navigator.navigateBack()
   }
 
+  /// 外部打开应用详情需要，例如桌面上点击应用详情时
   DisposableEffect(outerHistoryJmmMetadata) {
     if(outerHistoryJmmMetadata != null) {
       navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, outerHistoryJmmMetadata)

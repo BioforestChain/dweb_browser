@@ -54,7 +54,7 @@ import org.dweb_browser.sys.window.core.WindowContentScaffoldWithTitleText
 import org.dweb_browser.sys.window.render.AppLogo
 
 @Composable
-fun DataController.ListRender() {
+fun DataController.ListRender(goToDetail: (DataController.ProfileDetail) -> Unit) {
   WindowContentRenderScope.Unspecified.WindowContentScaffoldWithTitleText(
     Modifier.fillMaxSize(),
     topBarTitleText = "数据列表",
@@ -67,9 +67,6 @@ fun DataController.ListRender() {
     var profileInfos by remember { mutableStateOf<List<DataController.ProfileInfo>>(emptyList()) }
     LaunchedEffect(isLoading, refreshFlow.collectAsState().value) {
       profileInfos = loadProfileInfos()
-      profileDetailFlow.value = profileDetailFlow.value?.also { profileDetail ->
-        profileInfos.firstOrNull { it.profileName.key == profileDetail.profileName.key }
-      }
       isLoading = false
     }
     when {
