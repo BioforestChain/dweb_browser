@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButton
@@ -24,15 +23,14 @@ import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.download.DownloadController
 import org.dweb_browser.browser.download.model.DownloadListTabs
 import org.dweb_browser.browser.download.model.DownloadState
+import org.dweb_browser.browser.download.model.DownloadTask
 import org.dweb_browser.helper.compose.HorizontalDivider
-import org.dweb_browser.helper.compose.ListDetailPaneScaffoldNavigator
 import org.dweb_browser.helper.compose.NoDataRender
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DownloadController.DownloadList(
-  navigator: ListDetailPaneScaffoldNavigator,
   modifier: Modifier,
+  downloadClick: (DownloadTask) -> Unit
 ) {
   Column(
     modifier = modifier
@@ -77,10 +75,8 @@ fun DownloadController.DownloadList(
         Column(Modifier.fillMaxSize()) {
           downloadListModel.DownloadItem(
             onClick = {
-              decompressModel.show(downloadTask);
-              navigator.navigateToDetail {
-                decompressModel.hide()
-              }
+              downloadClick(downloadTask)
+              decompressModel.hide()
             },
             onRemove = { downloadListModel.removeDownloadTask(downloadTask) },
             downloadTask = downloadTask,
