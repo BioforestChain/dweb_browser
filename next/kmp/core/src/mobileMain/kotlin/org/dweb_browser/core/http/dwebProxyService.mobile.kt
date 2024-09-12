@@ -36,7 +36,6 @@ actual class DwebProxyService actual constructor() {
         try {
           debugHttp("reverse_proxy", "starting")
           var backendServerPort = dwebHttpGatewayService.getPort()
-
           val proxyReadyCallback = object : VoidCallback {
             override fun callback(proxyPort: UShort, frontendPort: UShort) {
               debugHttp("reverse_proxy") {

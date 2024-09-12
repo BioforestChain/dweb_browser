@@ -11,6 +11,8 @@ import io.ktor.utils.io.CancellationException
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
+import org.dweb_browser.core.http.DWEB_SSL_ISSUER_NAME
+import org.dweb_browser.core.http.DWEB_SSL_PUBLIC_KEY
 import org.dweb_browser.core.http.dwebProxyService
 import org.dweb_browser.core.http.router.ResponseException
 import org.dweb_browser.core.http.router.bind
@@ -53,11 +55,11 @@ import kotlin.random.Random
 
 val debugHttp = Debugger("http")
 
-
 class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
-  companion object{
+  companion object {
     val isEnableDebugNet = envSwitch.isEnabled(ENV_SWITCH_KEY.CORE_HTTP_DEV_PANEL)
   }
+
   init {
     short_name = "HTTP"
     categories = listOf(
@@ -88,10 +90,16 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
     /// 注册的域名与对应的 token
     private val tokenMap = SafeHashMap</* token */ String, Gateway>()
     private val gatewayMap = SafeHashMap</* host */ String, Gateway>()
-
     val client get() = httpClient()
     private val httpClient = Once {
-      HttpPureClient(HttpPureClientConfig(httpProxyUrl = dwebProxyService.proxyUrl.value))
+      HttpPureClient(
+        HttpPureClientConfig(
+          httpProxyUrl = dwebProxyService.proxyUrl.value,
+          dwebSsl = object : HttpPureClientConfig.DwebSslConfig {
+            override val issuerName = DWEB_SSL_ISSUER_NAME
+            override val publicKey = DWEB_SSL_PUBLIC_KEY
+          })
+      )
     }
 
     init {
@@ -118,10 +126,8 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
      */
     private suspend fun httpHandler(request: PureClientRequest): PureResponse {
       val info = findDwebGateway(request.toServer()) ?: return noGatewayResponse
-
       /// TODO 这里提取完数据后，应该把header、query、uri重新整理一下组成一个新的request会比较好些
       /// TODO 30s 没有任何 body 写入的话，认为网关超时
-
       debugHttp("httpHandler start") { "${request.href} >> ${gatewayMap[info.host]}" }
       /**
        * WARNING 我们底层使用 KtorCIO，它是完全以流的形式来将response的内容传输给web
@@ -150,7 +156,6 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
       val selfIpc = connect(mmid)
       val serverUrlInfo = getServerUrlInfo(selfIpc, options)
       val listener = Gateway.PortListener(selfIpc, serverUrlInfo.host)
-
       val token = ByteArray(8).also { Random.nextBytes(it) }.base64UrlString
       val gateway = Gateway(listener, serverUrlInfo, token)
       gatewayMap[serverUrlInfo.host] = gateway
@@ -159,7 +164,6 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
       routesCheckAllowHttp = { request ->
         request.uri.host == mmid
       }
-
       val routes = arrayOf(
         CommonRoute(pathname = "", method = PureMethod.GET),
         CommonRoute(pathname = "", method = PureMethod.POST),
@@ -205,7 +209,6 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
           }
         }
       }
-
       /// 为 nativeFetch 函数提供支持
       nativeFetchAdaptersManager.append(order = 10) { fromMM, request ->
         if ((request.url.protocol == URLProtocol.HTTP || request.url.protocol == URLProtocol.HTTPS || request.url.protocol == URLProtocol.WS || request.url.protocol == URLProtocol.WSS) && request.url.host.endsWith(
@@ -219,12 +222,10 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
           httpHandler(request)
         } else null
       }.removeWhen(mmScope)
-
       /**
        * 安装PINGPONG嗅探服务
        */
       installHttpServerPingPong()
-
       /// 模块 API 接口
       routes(
         // 等待环境初始化完毕
@@ -287,7 +288,6 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
             val requestOrigin = request.headers.get(HttpHeaders.Origin)
             val requestMethod = request.headers.get(HttpHeaders.AccessControlRequestMethod)
             val requestHeaders = request.headers.get(HttpHeaders.AccessControlRequestHeaders)
-
             val optionsHeaders = PureHeaders();
             optionsHeaders.set(HttpHeaders.AccessControlAllowCredentials, "true")
             optionsHeaders.set(HttpHeaders.AccessControlAllowOrigin, requestOrigin!!)
@@ -300,7 +300,6 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
                 HttpStatusCode.BadRequest, "invalid request protocol: ${url.protocol.name}"
               )
             }
-
             val pureRequest = PureClientRequest(
               href = url.toString(), method = request.method, headers = request.headers.apply {
                 set("Host", url.hostWithPort)
@@ -325,7 +324,6 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
             val requestOrigin = request.headers.get(HttpHeaders.Origin)
             val requestMethod = request.headers.get(HttpHeaders.AccessControlRequestMethod)
             val requestHeaders = request.headers.get(HttpHeaders.AccessControlRequestHeaders)
-
             val optionsHeaders = PureHeaders();
             optionsHeaders.set(HttpHeaders.AccessControlAllowCredentials, "true")
             optionsHeaders.set(HttpHeaders.AccessControlAllowOrigin, requestOrigin!!)
@@ -344,7 +342,6 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
               set("Host", url.hostWithPort)
             }, body = request.body, from = request.from
           )
-
           val isSameOrigin =
             url.host.let { host -> host == ipc.remote.mmid || host.endsWith(".${ipc.remote.mmid}") }
           /// 否则如果域名，那么才能直接放行
@@ -352,7 +349,6 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
             return@definePureResponse httpFetch(pureRequest)
           }
           /// 如果不是同域，需要进行跨域判定
-
           // 首先根据标准，判断是否需要进行 options 请求请求options获取 allow-method
           val needPreflightRequest = when (pureRequest.method) {
             PureMethod.GET, PureMethod.POST, PureMethod.HEAD -> {
@@ -363,7 +359,6 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
                   break
                 }
               }
-
               // No ReadableStream object is used in the request.
               if (isSimple && pureRequest.body is PureStreamBody) {
                 isSimple = false
@@ -401,7 +396,6 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
             needPreflightHeaders.set(
               HttpHeaders.AccessControlRequestMethod, pureRequest.method.method
             )
-
             val optionsResponse = httpFetch(
               PureClientRequest(
                 pureRequest.href, PureMethod.OPTIONS, needPreflightHeaders
@@ -415,7 +409,6 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
             }
             // TODO 缓存
             // val maxAge = get(HttpHeaders.AccessControlMaxAge)
-
             // 默认不对其进行跨域校验
             when (allowOrigin) {
               null -> false
@@ -498,16 +491,13 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
       "User-Agent",
       /// 这里不支持 X-* 字段，所以不考虑
     )
-
     private val credentialsHeaderKeys = setOf(
       "Cookie", "Authorization"
     )
-
     private val preflightRequestHeaderKeys = setOf(
       "Access-Control-Request-Headers",
       "Access-Control-Request-Method",
     )
-
     private val simpleRequestContentType = setOf(
       "application/x-www-form-urlencoded", "multipart/form-data", "text/plain"
     )
@@ -555,7 +545,6 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
         }
       }
       val token = ByteArray(8).also { Random.nextBytes(it) }.base64UrlString
-
       val gateway = Gateway(listener, serverUrlInfo, token)
       gatewayMap[serverUrlInfo.host] = gateway
       tokenMap[token] = gateway
@@ -575,7 +564,6 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
       val gateway = tokenMap[token] ?: throw ResponseException(
         code = HttpStatusCode.BadGateway, message = "no gateway with token: $token"
       )
-
       /// 接收一个body，body在关闭的时候，fetchIpc也会一同关闭
       /// 自己nmm销毁的时候，ipc也会被全部销毁
       /// 自己创建的，就要自己销毁：这个listener被销毁的时候，serverIpc也要进行销毁

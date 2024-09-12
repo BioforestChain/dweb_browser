@@ -7,7 +7,16 @@ expect class HttpPureClient(config: HttpPureClientConfig = HttpPureClientConfig(
   suspend fun websocket(request: PureClientRequest): PureChannel
 }
 
-class HttpPureClientConfig(val httpProxyUrl: String? = null, val enableCache: Boolean = false)
+class HttpPureClientConfig(
+  val httpProxyUrl: String? = null,
+  val enableCache: Boolean = false,
+  val dwebSsl: DwebSslConfig? = null,
+) {
+  interface DwebSslConfig {
+    val issuerName: String
+    val publicKey: ByteArray
+  }
+}
 
 suspend fun HttpPureClient.fetch(
   url: String,
