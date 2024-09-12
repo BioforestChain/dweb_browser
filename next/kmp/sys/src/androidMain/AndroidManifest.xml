@@ -41,6 +41,19 @@
       </intent-filter>
     </activity>
 
+    <!-- 用于注册DwebBrowser分享到系统中 -->
+    <activity
+        android:name="org.dweb_browser.sys.shareReceiver.render.ShareReceiverActivity"
+        android:theme="@style/Theme.DwebBrowser.Transparent"
+        android:exported="true">
+      <intent-filter>
+        <action android:name="android.intent.action.SEND" />
+        <action android:name="android.intent.action.SEND_MULTIPLE" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <data android:mimeType="*/*" />
+      </intent-filter>
+    </activity>
+
     <activity
       android:name=".permission.PermissionActivity"
       android:exported="true"

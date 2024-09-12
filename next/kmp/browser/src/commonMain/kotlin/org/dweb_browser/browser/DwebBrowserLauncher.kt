@@ -42,6 +42,7 @@ import org.dweb_browser.sys.permission.PermissionApplicantTMM
 import org.dweb_browser.sys.permission.PermissionNMM
 import org.dweb_browser.sys.permission.PermissionProviderTNN
 import org.dweb_browser.sys.share.ShareNMM
+import org.dweb_browser.sys.shareReceiver.ShareReceiverNMM
 import org.dweb_browser.sys.shortcut.ShortcutNMM
 import org.dweb_browser.sys.toast.ToastNMM
 
@@ -147,6 +148,9 @@ class DwebBrowserLauncher(
 
     val aboutNMM = AboutNMM().setup()
 
+    /// 集成到系统分享
+    val shareReceiverNMM = ShareReceiverNMM().setup()
+
 
     /// 安装Jmm
     val jmmNMM = JmmNMM().setup()
@@ -168,6 +172,7 @@ class DwebBrowserLauncher(
       deskNMM.mmid,// 桌面
       shortcutNMM.mmid, // 为了启动时，注入快捷内容
       httpNMM.mmid,// 启动时，初始化 pingPong
+      shareReceiverNMM.mmid, // 集成到系统分享
     )
 
     for (mm in extMM) {
