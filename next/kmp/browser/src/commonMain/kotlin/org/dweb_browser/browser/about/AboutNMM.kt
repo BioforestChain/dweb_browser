@@ -38,7 +38,6 @@ class AboutNMM : NativeMicroModule("about.browser.dweb", "About") {
     icons = listOf(
       ImageResource(src = "file:///sys/browser-icons/$mmid.svg", type = "image/svg+xml")
     )
-
     val brandMap = ENV_SWITCH_KEY.entries.mapNotNull { it.experimental }.associate { brandData ->
       brandData.brand to brandData.disableVersion
     }.toMutableMap()
@@ -55,7 +54,9 @@ class AboutNMM : NativeMicroModule("about.browser.dweb", "About") {
 
   inner class AboutRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
     override suspend fun _bootstrap() {
-      startHtml5TestServer()
+      scopeLaunch(cancelable = true) {
+        startHtml5TestServer()
+      }
       onRenderer {
         getMainWindow().apply {
           setStateFromManifest(manifest)
@@ -78,7 +79,6 @@ class AboutNMM : NativeMicroModule("about.browser.dweb", "About") {
         serverIpc.postResponse(request.reqId, response ?: PureResponse(HttpStatusCode.NotFound))
       }
       onShutdown { scopeLaunch(cancelable = true) { html5testServer.close() } }
-
       val webview = IDWebView.create(this,
         DWebViewOptions(url = html5testServer.startResult.urlInfo.buildInternalUrl { path("index.html") }
           .toString()))
@@ -96,7 +96,6 @@ class AboutNMM : NativeMicroModule("about.browser.dweb", "About") {
 
     private val _html5testWebView = CompletableDeferred<IDWebView>()
     val html5testWebView get() = _html5testWebView as Deferred<IDWebView>
-
     private val _html5testScore = MutableStateFlow<String?>(null)
     val html5testScore = _html5testScore as StateFlow<String?>
 
