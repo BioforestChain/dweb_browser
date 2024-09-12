@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
 
 plugins {
   id("kmp-compose")
@@ -71,3 +72,14 @@ ksp {
 dependencies {
   kspAll(projects.helperKsp)
 }
+
+//#region 确保修改local.properties能正确生成新的CommonBuildConfig
+tasks.register("deleteCommonBuildConfig") {
+  delete(project.projectDir.resolve(buildOutputDir))
+}
+
+tasks.withType<KotlinCompilationTask<*>>().matching { it.name == "kspCommonMainKotlinMetadata" }
+  .configureEach {
+    dependsOn("deleteCommonBuildConfig")
+  }
+//#endregion
