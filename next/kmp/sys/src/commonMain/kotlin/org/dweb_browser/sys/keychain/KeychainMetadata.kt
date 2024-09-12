@@ -20,8 +20,8 @@ internal abstract class KeysManager(private val mmidsManager: MmidsManager) : Sy
     val keys = getKeys(remoteMmid)
     if (keys.add(key)) {
       saveKeys(remoteMmid, keys)
-      mmidsManager.addMmid(remoteMmid)
     }
+    mmidsManager.addMmid(remoteMmid)
   }
 
   fun removeKey(remoteMmid: MMID, key: String) {
