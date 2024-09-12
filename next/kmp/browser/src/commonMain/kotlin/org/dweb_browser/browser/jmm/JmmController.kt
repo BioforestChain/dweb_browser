@@ -321,7 +321,10 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
       }
     } else if (metadata.state.state == JmmStatus.Downloading) {
       jmmNMM.showToast(BrowserI18nResource.toast_message_download_downloading.text)
-    } else if (metadata.state.state.valueIn(JmmStatus.Paused)) {
+    } else if (metadata.state.state.valueIn(JmmStatus.Paused) || metadata.state.state.valueIn(
+        JmmStatus.Failed
+      )
+    ) {
       /// 监听
       watchDownloadProcess(metadata)
       jmmNMM.startDownload(taskId).falseAlso {
