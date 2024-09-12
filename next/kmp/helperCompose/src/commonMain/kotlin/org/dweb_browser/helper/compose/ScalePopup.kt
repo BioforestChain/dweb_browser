@@ -36,7 +36,7 @@ fun ScalePopupPlaceholder(
         )
       )
     }
-    
+
     layout(
       width = measuredWidth,
       height = measuredHeight,
