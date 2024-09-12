@@ -74,7 +74,6 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
       )
       // jsMM对外创建ipc的适配器，给DnsNMM的connectMicroModules使用
       connectAdapterManager.append(1) { fromMM, toMM, reason ->
-
         val jsMM = if (nativeToWhiteList.contains(toMM.mmid)) null
         /// 这里优先判断 toMM 是否是 endJmm
         else if (toMM is JsMicroModule.JmmRuntime) MmDirection(fromMM, toMM)
@@ -149,10 +148,15 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
     }
 
     override suspend fun _bootstrap() {
+      scopeLaunch(cancelable = false) {
+        startJsProcess()
+      }
+    }
+
+    private suspend fun startJsProcess() {
       debugJsMM("bootstrap...") {
         "$mmid/ minTarget:${metadata.minTarget} maxTarget:${metadata.maxTarget}"
       }
-
       val errorMessage = metadata.canSupportTarget(VERSION, disMatchMinTarget = {
         BrowserI18nResource.JsMM.canNotSupportMinTarget
       }, disMatchMaxTarget = {
@@ -168,12 +172,9 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
           })
         }
       }
-
-
       val jsProcess = createJsProcess(metadata.server.entry, "$mmid-$short_name")
       jsProcessDeferred.complete(jsProcess)
       jsProcess.defineEsm(esmLoader)
-
       // 监听关闭事件
       jsProcess.fetchIpc.onClosed {
         tryShutdown()
@@ -206,7 +207,6 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
       /// 提供file.std.dweb的绑定
       proxyIpcTunnel("file.std.dweb", "file")
       proxyIpcTunnel("permission.sys.dweb", "permission")
-
       /**
        * 收到 Worker 的事件，如果是指令，执行一些特定的操作
        */
@@ -237,7 +237,6 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
                   // 而自己也是jmm，所以自己也不会执行 beConnect
                   PureClientRequest("file://$connectMmid/jmm/dns/connect", method = PureMethod.GET),
                 ) // 由上面的适配器产生
-
                 /// 只要不是我们自己创建的直接连接的通道，就需要我们去 创造直连并进行桥接
                 val resultMmid: MMID
                 if (targetIpc.locale.mmid == mmid) {
