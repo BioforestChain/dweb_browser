@@ -24,7 +24,7 @@ internal class DesktopAppModel(
   val isWebLink get() = webLink != null
   val icon by lazy { appMetaData.icons.toStrict().pickLargest() }
   val isSystemApp get() = appMetaData.targetType == "nmm"
-  var running by mutableStateOf(initRunningState)
+  var running = initRunningState
   var size by mutableStateOf(Size.Zero)
   var offset by mutableStateOf(Offset.Zero)
 
