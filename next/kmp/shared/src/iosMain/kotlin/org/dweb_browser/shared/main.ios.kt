@@ -32,6 +32,9 @@ suspend fun startDwebBrowser(
   /// iOS版本默认启用新版桌面
   envSwitch.init(ENV_SWITCH_KEY.DESKTOP_STYLE_COMPOSE) { "true" }
 
+  /// iOS版本Browser默认不启用原声UI
+  envSwitch.disable(ENV_SWITCH_KEY.BROWSERS_NATIVE_RENDER)
+
   val launcher = DwebBrowserLauncher(if (debugMode) debugTags else emptyList())
   dnsNMM = launcher.dnsNMM
   val dnsRuntime = launcher.launch()

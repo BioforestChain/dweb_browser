@@ -90,12 +90,15 @@ actual suspend fun deepLinkDoSearch(dwebLinkSearchItem: DwebLinkSearchItem) {
   }
 }
 
-
 @Composable
 actual fun CommonBrowserView(
   viewModel: BrowserViewModel, modifier: Modifier, windowRenderScope: WindowContentRenderScope,
 ) {
-  BrowserRender(viewModel, modifier, windowRenderScope)
+  if (envSwitch.isEnabled(ENV_SWITCH_KEY.BROWSERS_NATIVE_RENDER)) {
+    NativeBrowserView(viewModel, modifier, windowRenderScope)
+  }else{
+    BrowserRender(viewModel, modifier, windowRenderScope)
+  }
 }
 
 @OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class, ExperimentalComposeUiApi::class)

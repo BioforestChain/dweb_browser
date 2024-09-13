@@ -257,7 +257,7 @@ fun EnvSwitcherRender() {
     )
   ) {
     for (switchKey in ENV_SWITCH_KEY.entries) {
-      val experimental = switchKey.experimental ?: continue
+      val experimental = switchKey.experimental?.findExperimentalKey() ?: continue
       key(switchKey) {
         Row(
           modifier = Modifier.fillMaxWidth().padding(8.dp),

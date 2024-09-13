@@ -1,6 +1,10 @@
 package org.dweb_browser.helper.compose
 
 import org.dweb_browser.helper.platform.EnvSwitchCore
+import org.dweb_browser.helper.platform.IPureViewController
+import org.dweb_browser.helper.platform.isAndroid
+import org.dweb_browser.helper.platform.isDesktop
+import org.dweb_browser.helper.platform.isIOS
 import org.dweb_browser.helper.trueAlso
 
 class EnvSwitch : EnvSwitchCore() {
@@ -42,6 +46,11 @@ class EnvSwitch : EnvSwitchCore() {
 }
 
 val envSwitch = EnvSwitch()
+// 1-iOS  2-android  4-desktop  3=> iOS && android
+private const val SupportIOS = 1
+private const val SupportANDROID = 2
+private const val SupportDESKTOP = 4
+private const val SupportNATIVE = 8
 
 class ExperimentalKey(
   val title: SimpleI18nResource,
@@ -49,7 +58,28 @@ class ExperimentalKey(
   val brand: String,
   val disableVersion: String,
   val enableVersion: String,
-)
+  val supportPlatform: Int = SupportIOS or SupportANDROID or SupportDESKTOP
+){
+  fun findExperimentalKey(): ExperimentalKey?{
+    val isPlatformSupported = when {
+      IPureViewController.isIOS -> supportPlatform and SupportIOS == SupportIOS
+      IPureViewController.isAndroid -> supportPlatform and SupportANDROID == SupportANDROID
+      IPureViewController.isDesktop -> supportPlatform and SupportDESKTOP == SupportDESKTOP
+      else -> false
+    }
+
+    if(isPlatformSupported){
+      if(supportPlatform and SupportNATIVE == SupportNATIVE){
+        if(envSwitch.isEnabled(ENV_SWITCH_KEY.BROWSERS_NATIVE_RENDER)){
+          return this
+        }
+        return null
+      }
+      return this
+    }
+    return null
+  }
+}
 
 enum class ENV_SWITCH_KEY(
   val key: String,
@@ -114,6 +144,7 @@ enum class ENV_SWITCH_KEY(
       enableVersion = "1",
     ),
   ),
+  BROWSERS_NATIVE_RENDER("browser-native-render"),
   DWEBVIEW_PULLDOWNWEBMENU(
     "dwebview-pullwebmenu",
     experimental = ExperimentalKey(
@@ -127,6 +158,7 @@ enum class ENV_SWITCH_KEY(
       brand = "dweb-browser-pullmenu",
       disableVersion = "1",
       enableVersion = "2",
+      supportPlatform = SupportIOS or SupportNATIVE
     )
   ),
   SCREEN_EDGE_SWIPE_ENABLE(
@@ -143,6 +175,7 @@ enum class ENV_SWITCH_KEY(
       brand = "dweb-edge-swipe",
       disableVersion = "1",
       enableVersion = "2",
+      supportPlatform = SupportIOS
     )
   ),
   DATA_MANAGER_GUI(
