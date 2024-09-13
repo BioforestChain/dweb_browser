@@ -162,7 +162,22 @@ enum class ENV_SWITCH_KEY(
   ),
 
   // 是否开启v2桌面的拖拽排序功能
-  DESKTOP_CUSTOM_LAYOUT("destktop-custom-layout"),
+  DESKTOP_CUSTOM_LAYOUT(
+    "destktop-custom-layout",
+    experimental = ExperimentalKey(
+      title = SimpleI18nResource(
+        Language.ZH to "桌面自定义排序",
+        Language.EN to "Desktop Custom Sorting",
+      ),
+      description = SimpleI18nResource(
+        Language.ZH to "桌面自定义排序，允许你根据自己的喜好排序桌面上的app。",
+        Language.EN to "Desktop custom sorting allows you to sort apps on your desktop according to your preferences.",
+      ),
+      brand = "dweb-destktop-custom-layout",
+      disableVersion = "1",
+      enableVersion = "2",
+    ),
+  ),
   CORE_HTTP_DEV_PANEL(
     "net-control-panel",
     experimental = ExperimentalKey(
