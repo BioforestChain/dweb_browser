@@ -16,7 +16,6 @@ import platform.Foundation.NSURLAuthenticationChallenge
 import platform.Foundation.NSURLAuthenticationMethodServerTrust
 import platform.Foundation.NSURLCredential
 import platform.Foundation.NSURLResponse
-import platform.Foundation.NSURLSessionAuthChallengeCancelAuthenticationChallenge
 import platform.Foundation.NSURLSessionAuthChallengeDisposition
 import platform.Foundation.NSURLSessionAuthChallengePerformDefaultHandling
 import platform.Foundation.NSURLSessionAuthChallengeUseCredential
@@ -229,7 +228,6 @@ class DWebNavigationDelegate(internal val engine: DWebViewEngine) : NSObject(),
     /// 这里在IO线程处理，否则会警告：This method should not be called on the main thread as it may lead to UI unresponsiveness.
     engine.lifecycleScope.launch {
       if (didReceiveAuthenticationChallenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodServerTrust) {
-        NSURLSessionAuthChallengeCancelAuthenticationChallenge
         completionHandler(
           NSURLSessionAuthChallengeUseCredential,
           NSURLCredential.create(trust = didReceiveAuthenticationChallenge.protectionSpace.serverTrust)

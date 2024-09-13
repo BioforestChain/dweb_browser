@@ -12,7 +12,6 @@ import org.dweb_browser.sys.device.model.DeviceInfo
 actual fun rememberActivityStyle(builder: (ActivityStyle.() -> ActivityStyle)?): ActivityStyle {
   val displaySize = rememberDisplaySize()
   val deviceType = DeviceInfo.deviceName
-  println("QWQ deviceType=$deviceType")
   /**
    * iPhone 11 Pro cutoutOrStatusBarTop=44
    * iPhone 12 cutoutOrStatusBarTop=47
@@ -22,7 +21,6 @@ actual fun rememberActivityStyle(builder: (ActivityStyle.() -> ActivityStyle)?):
    */
   val cutoutOrStatusBarTop = ActivityStyle.defaultCutoutOrStatusBarTop
   val cutoutTop = WindowInsets.displayCutout.asPaddingValues().calculateTopPadding().value
-  println("QWQ cutoutOrStatusBarTop=$cutoutOrStatusBarTop cutoutTop=$cutoutTop")
 
   val openRadius = cutoutTop
   val canOverlayCutoutHeight = cutoutOrStatusBarTop - (10f / 59f * cutoutTop)

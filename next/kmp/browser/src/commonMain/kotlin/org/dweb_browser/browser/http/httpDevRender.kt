@@ -13,6 +13,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.collectAsState
@@ -115,15 +116,25 @@ private fun HttpNMM.HttpRuntime.installDevRenderer() {
             Text("服务保活链接: $DWEB_PING_URI")
             var checkResult by remember { mutableStateOf(AnnotatedString("")) }
             val style = LocalTextStyle.current.toSpanStyle()
+            var useDwebRootHost by remember { mutableStateOf(true) }
+            Switch(useDwebRootHost, { useDwebRootHost = it })
+            var customOrigin by remember { mutableStateOf("https://docs.dweb-browser.org") }
+            if (!useDwebRootHost) {
+              TextField(customOrigin, { customOrigin = it }, label = { Text("Custom Origin") })
+            }
             Button({
               scopeLaunch(cancelable = true) {
                 runCatching {
+                  val origin = when {
+                    useDwebRootHost -> "https://internal.dweb"
+                    else -> customOrigin.trim()
+                  }
                   val response = client.fetch(
                     PureClientRequest(
-                      "https://internal.dweb$DWEB_PING_URI?now=${datetimeNow()}",
-                      PureMethod.GET,
-                      headers = PureHeaders().apply { init("Sec-Fetch-Dest", "dwebproxy") }
-                    )
+                      "$origin$DWEB_PING_URI?now=${datetimeNow()}",
+                      method = PureMethod.GET,
+                      headers = PureHeaders().apply { init("Sec-Fetch-Dest", "dwebproxy") },
+                    ),
                   )
                   checkResult = buildAnnotatedString {
                     withStyle(
@@ -133,25 +144,24 @@ private fun HttpNMM.HttpRuntime.installDevRenderer() {
                       )
                     ) {
                       append("[${response.status.value}] ${response.status.description}\n")
+                      response.headers.forEach { (k, v) -> append("$k: $v\n") }
                     }
                     withStyle(
                       style.copy(
                         color = when (response.status.value) {
                           200 -> style.color
                           else -> Color.Red.copy(alpha = 0.8f)
-                        },
-                        fontSize = 9.sp
+                        }, fontSize = 9.sp
                       )
                     ) {
-                      append(response.text())
+                      append(response.body.toPureString())
                     }
                   }
                 }.getOrElse { err ->
                   checkResult = buildAnnotatedString {
                     withStyle(
                       style.copy(
-                        color = Color.Red.copy(alpha = 0.8f),
-                        fontSize = 9.sp
+                        color = Color.Red.copy(alpha = 0.8f), fontSize = 9.sp
                       )
                     ) {
                       append(err.stackTraceToString())
