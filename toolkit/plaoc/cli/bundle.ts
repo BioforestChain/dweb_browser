@@ -28,6 +28,12 @@ export const doBundleCommand = new Command()
  * --dir 指定项目根目录(可选)
  */
 export const doBundle = async (flags: $BundleOptions) => {
+  // 验证svg
+  // const svgPass = verifySvg(flags.webPublic);
+
+  // if (!svgPass) {
+  //   return;
+  // }
   // 构造生成metadata
   const metadataFlagHelper = new MetadataJsonGenerator(flags);
   // 注入可编程后端和plaoc.json 生产打包资源
@@ -46,20 +52,17 @@ export const doBundle = async (flags: $BundleOptions) => {
   } else {
     node_fs.mkdirSync(outDir, { recursive: true });
   }
-  /// 先写入bundle.zip
-  node_fs.writeFileSync(
-    node_path.resolve(outDir, bundleResourceNameHelper.bundleName()),
-    await (
-      await bundleFlagHelper.bundleZip()
-    ).generateAsync({ type: "nodebuffer", compression: "DEFLATE", compressionOptions: { level: 9 } })
-  );
-  // 生成打包文件名称，大小
+
+  // 重新构造出zip对象
   const zip = await bundleFlagHelper.bundleZip(true);
   const zipData = await zip.generateAsync({
     type: "uint8array",
     compression: "DEFLATE",
     compressionOptions: { level: 9 },
   });
+  /// 写入bundle.zip
+  node_fs.writeFileSync(node_path.resolve(outDir, bundleResourceNameHelper.bundleName()), zipData);
+
   const hasher = node_crypto.createHash("sha256").update(zipData);
   const metadata = metadataFlagHelper.readMetadata(true);
   metadata.bundle_size = zipData.byteLength;
@@ -70,7 +73,8 @@ export const doBundle = async (flags: $BundleOptions) => {
     node_path.resolve(outDir, BundleResourceNameHelper.metadataName),
     JSON.stringify(metadata, null, 2)
   );
-  console.log(colors.green(`bundle ${metadata.id} success.  version:${metadata.version}`));
+
+  console.log(colors.green(`✅ bundle ${metadata.id} success  version:${metadata.version}`));
   /// jszip 会导致程序一直开着，需要手动关闭
   Deno.exit();
 };

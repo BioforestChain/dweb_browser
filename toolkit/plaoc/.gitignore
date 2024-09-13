@@ -1,8 +1,8 @@
 build
-bundle
 dist
 
 ./demo/src/index.js
 ./cli/serve
+./cli/tests/img/
 
 *.bak

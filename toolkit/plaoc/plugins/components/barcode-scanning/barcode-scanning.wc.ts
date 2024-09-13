@@ -23,7 +23,7 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
   // private _formats: SupportedFormat | undefined;
   private _activity?: PromiseOut<string[]>;
   private _rotation?: number = 0;
-  private _isCloceLock = false;
+  private _isCloseLock = false;
 
   constructor() {
     super();
@@ -90,13 +90,13 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
     }
     dialog.showModal();
 
-    if (this._isCloceLock == false) {
+    if (this._isCloseLock == false) {
       const closer = new CloseWatcher();
       dialog.onclose = () => closer.close();
 
-      this._isCloceLock = true;
+      this._isCloseLock = true;
       closer.addEventListener("close", (_event) => {
-        this._isCloceLock = false;
+        this._isCloseLock = false;
         dialog.onclose = null;
         dialog.close();
       });
