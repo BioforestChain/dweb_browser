@@ -1,37 +1,51 @@
+import { detect_svg_render, svg_to_webp } from "npm:@dweb-browser/svg-wasm";
+import { colors } from "../deps/cliffy.ts";
+import "../platform/initWasm.deno.ts";
+
 /**
  * 验证svg渲染是否会内存溢出，并将超过5MB的SVG转换为WebP
  */
-export const verifySvg = (sourcePath: string) => {
+export const verifySvg = async (sourcePath: string) => {
+  let first = true; // 标识告警
   try {
     // 递归遍历目录
-    const traverseDirectory = (dirPath: string) => {
+    const traverseDirectory = async (dirPath: string) => {
       for (const entry of Deno.readDirSync(dirPath)) {
-        const fullPath = `${dirPath}/${entry.name}`;
+        const fullPath = new URL(`${dirPath}/${entry.name}`, "file://").pathname;
         if (entry.isDirectory) {
           // 如果是目录，递归遍历
           traverseDirectory(fullPath);
         } else if (entry.isFile && entry.name.endsWith(".svg")) {
-          // 如果是SVG文件，检查大小并转换
-          const fileInfo = Deno.statSync(fullPath);
-          if (fileInfo.size > 5 * 1024 * 1024) {
-            // 大小超过5MB
-            console.log(`文件 ${entry.name} 超过5MB，正在转换为WebP...`);
-            convertSvgToWebp(fullPath);
+          const svg_buffer = await Deno.readFile(fullPath);
+          // 如果不能渲染会造成内存溢出
+          if (!detect_svg_render(svg_buffer)) {
+            first &&
+              console.log(
+                colors.yellow(`⚠️ 检测到会导致内存溢出的图片，已经帮助转化为webp，请替换以下资源,之后重新打包！`)
+              );
+            console.log(colors.yellow(`⚠️ ${fullPath}`));
+            first = false;
+            await convertSvgToWebp(fullPath, svg_buffer);
           }
         }
       }
     };
 
     // 执行递归遍历
-    traverseDirectory(sourcePath);
-    return false;
+    await traverseDirectory(new URL(`${Deno.cwd()}/${sourcePath}`, "file://").pathname);
   } catch (error) {
     console.error("Error reading directory:", error);
     return false;
   }
+  return first;
 };
 
 /**
- * 将SVG文件转换为WebP
+ * 将SVG文件转换为WebP 让用户替换原文件
  */
-export const convertSvgToWebp = async (svgPath: string) => {};
+export const convertSvgToWebp = async (svg_path: string, svg_buffer: Uint8Array) => {
+  const webpPath = svg_path.replace(".svg", ".webp");
+  const webpBuffer = svg_to_webp(svg_buffer);
+  await Deno.writeFile(webpPath, webpBuffer);
+  return webpPath;
+};

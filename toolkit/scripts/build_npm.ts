@@ -59,7 +59,11 @@ export const plaocServer = registryNpmBuilder({
       { name: "./middlewares", path: ctx.packageResolve("./middlewares/index.ts") },
     ],
     postBuild: () => {
-      Deno.symlinkSync(ctx.npmResolve("./dist"), ctx.packageResolve("./dist"));
+      try {
+        Deno.statSync(ctx.packageResolve("./dist"));
+      } catch {
+        Deno.symlinkSync(ctx.npmResolve("./dist"), ctx.packageResolve("./dist"));
+      }
     },
   }),
 });
@@ -78,6 +82,7 @@ export const plaocCli = registryNpmBuilder({
     },
     mappings: {
       "./toolkit/plaoc/cli/platform/plaocServer.deno.ts": "./toolkit/plaoc/cli/platform/plaocServer.node.ts",
+      "./toolkit/plaoc/cli/platform/initWasm.deno.ts": "./toolkit/plaoc/cli/platform/initWasm.node.ts",
     },
     entryPoints: [
       {

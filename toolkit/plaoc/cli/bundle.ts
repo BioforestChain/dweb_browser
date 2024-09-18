@@ -1,3 +1,4 @@
+import { verifySvg } from "./bundle/verify.ts";
 import { colors, Command } from "./deps/cliffy.ts";
 import { node_crypto, node_fs, node_path } from "./deps/node.ts";
 import { type $BundleOptions } from "./helper/const.ts";
@@ -29,11 +30,10 @@ export const doBundleCommand = new Command()
  */
 export const doBundle = async (flags: $BundleOptions) => {
   // 验证svg
-  // const svgPass = verifySvg(flags.webPublic);
-
-  // if (!svgPass) {
-  //   return;
-  // }
+  const svgPass = await verifySvg(flags.webPublic);
+  if (!svgPass) {
+    return;
+  }
   // 构造生成metadata
   const metadataFlagHelper = new MetadataJsonGenerator(flags);
   // 注入可编程后端和plaoc.json 生产打包资源

@@ -1,8 +1,8 @@
 build
 dist
 
-./demo/src/index.js
-./cli/serve
-./cli/tests/img/
 
 *.bak
+
+
+cli/tests/img/*.svg

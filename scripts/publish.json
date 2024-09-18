@@ -22,7 +22,7 @@
   "cli": {
     "buildToRootDir": "./npm/@plaoc__cli",
     "name": "@plaoc/cli",
-    "version": "1.1.7"
+    "version": "1.1.8"
   },
   "plugins": {
     "buildToRootDir": "./npm/@plaoc__plugins",
