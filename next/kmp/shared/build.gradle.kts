@@ -1,3 +1,5 @@
+import org.gradle.internal.os.OperatingSystem
+
 plugins {
   id("kmp-compose")
 }
@@ -49,6 +51,8 @@ android {
 }
 
 /// 修复kotlin升级2.1.0-Beta1出现的执行顺序异常
-tasks.named("syncComposeResourcesForIos") {
-  dependsOn("checkSandboxAndWriteProtection")
+if (OperatingSystem.current().isMacOsX) {
+  tasks.named("syncComposeResourcesForIos") {
+    dependsOn("checkSandboxAndWriteProtection")
+  }
 }
