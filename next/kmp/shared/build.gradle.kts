@@ -48,3 +48,7 @@ android {
   sourceSets["main"].resources.srcDirs("src/androidMain/resources", "src/commonMain/resources")
 }
 
+/// 修复kotlin升级2.1.0-Beta1出现的执行顺序异常
+tasks.named("syncComposeResourcesForIos") {
+  dependsOn("checkSandboxAndWriteProtection")
+}

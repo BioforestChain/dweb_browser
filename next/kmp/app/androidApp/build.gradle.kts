@@ -1,8 +1,8 @@
 import com.android.build.api.dsl.ApplicationBuildType
 import com.android.build.gradle.internal.api.ApkVariantOutputImpl
 import com.android.build.gradle.internal.tasks.FinalizeBundleTask
+import org.gradle.configurationcache.extensions.capitalized
 import org.gradle.kotlin.dsl.support.uppercaseFirstChar
-import org.jetbrains.kotlin.util.capitalizeDecapitalize.capitalizeAsciiOnly
 import java.util.Properties
 
 plugins {
@@ -116,7 +116,7 @@ android {
   }
 
   fun ApplicationBuildType.configChannel(channel: String, buildType: ApplicationBuildType) {
-    if(channel == "stable") {
+    if (channel == "stable") {
       applicationIdSuffix = null
       versionNameSuffix = null
       manifestPlaceholders["appName"] = "Dweb Browser"
@@ -126,7 +126,7 @@ android {
       manifestPlaceholders["appName"] = "Dweb Browser ${channel.uppercaseFirstChar()}"
     }
 
-    if(buildType.name == "debug") {
+    if (buildType.name == "debug") {
       val userName =
         keystoreProperties.getProperty("debugApk", null) ?: System.getProperty("user.name")
           .replace("[^a-zA-Z0-9]".toRegex(), "").lowercase()
@@ -227,8 +227,8 @@ android {
       if (buildType.name == "release") {
         // 修改bundle名
         val bundleFinalizeTaskName = StringBuilder("sign").run {
-          append(flavorName.capitalizeAsciiOnly())
-          append(buildType.name.capitalizeAsciiOnly())
+          append(flavorName.capitalized())
+          append(buildType.name.capitalized())
           append("Bundle")
           toString()
         }
