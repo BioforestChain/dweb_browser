@@ -6,7 +6,7 @@ import org.dweb_browser.core.std.dns.DnsNMM
 import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
 import org.dweb_browser.helper.compose.envSwitch
 
-suspend fun startDwebBrowser(): DnsNMM {
+suspend fun startApplication(): DnsNMM {
   /// 启动Web调试
   WebView.setWebContentsDebuggingEnabled(true)
 

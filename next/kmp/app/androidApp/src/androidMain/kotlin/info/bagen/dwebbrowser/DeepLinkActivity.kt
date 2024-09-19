@@ -15,7 +15,7 @@ class DeepLinkActivity : PureViewController() {
       lifecycleScope.launch {
         intent.dataString?.let { uri ->
           uri.regexDeepLink()?.let { dwebUri ->
-            val dnsNMM = DwebBrowserApp.startMicroModuleProcess().waitPromise()
+            val dnsNMM = DwebBrowserApp.startMicroModuleProcess().await()
             val response = dnsNMM.runtime.nativeFetch(dwebUri)
             if (!response.isOk) {
               dnsNMM.runtime.showToast("DeepLink Error -> ${response.status.value}>${response.status.description}")
