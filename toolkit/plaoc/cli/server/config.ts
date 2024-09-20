@@ -3,7 +3,7 @@
  *  plaoc config set bundle-web-hook-headers {JSON-KEY-VALUE}
  */
 
-import { Command, EnumType } from "./deps/cliffy.ts";
+import { Command, EnumType } from "../deps/cliffy.ts";
 
 export enum EHook {
   webadvServerUrl = "webadv-server-url",
@@ -19,7 +19,6 @@ export const doConfigCommand = new Command()
   .env("PLAOC_ENV_HOOK=<value:string>", "Webhook environment variables.")
   .action((options, set, hooks, key) => {
     if (set === "set") {
-
       //TODO
       if (hooks === EHook.bundleWebHook) {
         return bundleWebHook(key);

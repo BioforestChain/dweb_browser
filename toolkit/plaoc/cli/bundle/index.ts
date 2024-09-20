@@ -1,8 +1,8 @@
-import { verifySvg } from "./bundle/verify.ts";
-import { colors, Command } from "./deps/cliffy.ts";
-import { node_crypto, node_fs, node_path } from "./deps/node.ts";
-import { type $BundleOptions } from "./helper/const.ts";
-import { BundleResourceNameHelper, injectPrepare, MetadataJsonGenerator } from "./helper/generator.ts";
+import { colors, Command } from "../deps/cliffy.ts";
+import { node_crypto, node_fs, node_path } from "../deps/node.ts";
+import { type $BundleOptions } from "../helper/const.ts";
+import { BundleResourceNameHelper, injectPrepare, MetadataJsonGenerator } from "../helper/generator.ts";
+import { verifySvg } from "./verify.ts";
 
 export const doBundleCommand = new Command()
   .arguments("<web_public:string>")

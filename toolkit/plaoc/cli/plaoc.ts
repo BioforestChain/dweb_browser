@@ -1,11 +1,12 @@
-import { doBundleCommand } from "./bundle.ts";
-import { doConfigCommand } from "./config.ts";
+import { doBundleCommand } from "./bundle/index.ts";
 import { Command } from "./deps/cliffy.ts";
 import { fileURLToPath, node_fs } from "./deps/node.ts";
 import { doInitCommand } from "./init.ts";
 import { doLiveCommand } from "./live.ts";
 import { doServeCommand } from "./serve.ts";
-import { doWebAdvCommand } from "./web-dav.ts";
+import { doConfigCommand } from "./server/config.ts";
+import { doWebAdvCommand } from "./server/web-dav.ts";
+import { doWizardCommand } from "./wizard/index.ts";
 // import { doHookServer } from "./server/index.ts";
 
 const findPackageJson = async () => {
@@ -36,6 +37,9 @@ await new Command()
   .example("init app name", "plaoc init xxx-app")
   .example("init current workspace", "plaoc init")
 
+  .command("start", doWizardCommand)
+  .example("Dweb Multiplatform Wizard", "plaoc start")
+
   .command("serve", doServeCommand)
   .example("developer service", "plaoc serve http://xx.xx.xx.xx:xxxx/")
 
@@ -51,10 +55,14 @@ await new Command()
 
   .command("run", doWebAdvCommand)
   .example("deploy web adv server", "plaoc run webadv-server -p 7777 -host 0.0.0.0 --download-dir /usr/xxx/")
-  //TODO
-  // .command("bundle-web-hook-server", doHookServer)
-  // .example(
-  //   "deploy an application server",
-  //   "plaoc bundle-web-hook-server -p 7777 -host 0.0.0.0 --download-dir /usr/xxx/"
-  // )
+  .action((options, arg1) => {
+    console.log("xxx", options, arg1);
+  })
   .parse(Deno.args);
+
+//TODO
+// .command("bundle-web-hook-server", doHookServer)
+// .example(
+//   "deploy an application server",
+//   "plaoc bundle-web-hook-server -p 7777 -host 0.0.0.0 --download-dir /usr/xxx/"
+// )

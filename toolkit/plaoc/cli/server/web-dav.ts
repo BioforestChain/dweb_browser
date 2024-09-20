@@ -1,6 +1,8 @@
-import { Command, EnumType } from "./deps/cliffy.ts";
-import { webdav } from "./deps/webdav-server.ts";
-import { HostType } from "./server/type.ts";
+import { Command, EnumType } from "../deps/cliffy.ts";
+import { webdav } from "../deps/webdav-server.ts";
+import { HostType } from "./type.ts";
+
+/// TOOD:这将 启动一个webadv server 来提供文件上传的钩子，用于快速部署app到应用商城。
 
 export enum EWebAdv {
   webadvServer = "webadv-server",
