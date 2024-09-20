@@ -10,7 +10,7 @@
 [plaoc-badge]: https://img.shields.io/badge/plaoc-doc-blue
 [plaoc-url]: https://github.com/BioforestChain/dweb_browser-docs
 
-[ENGLISH DOC](./README.md)
+[ENGLISH DOC](./README.md) ｜ [Welcome to Dweb Browser discord](https://discord.gg/nBPgPzPbgX)
 
 dweb-browser 是一个遵循 Dweb 标准构建起来的浏览器平台，并将浏览器的能力、以及浏览器相关的系统原生系统能力通过各种 dweb 模块暴露出来。目前我们实现了 Android、IOS、MacOS、Windows 这些主流平台的支持。
 
@@ -86,9 +86,8 @@ plaoc 是基于 `Dweb Browser` 平台的一个对标 Cordova、Capacitor、Tauri
 ## 如何贡献代码
 
 1. 查看： [快速开始](./GET_START_FOR_DEVELOPER.quick.md)
-1. 建议阅读： [完整的开发环境搭建的文档](./GET_START_FOR_DEVELOPER.md)
-
-2. 初始化资源包
+2. 建议阅读： [完整的开发环境搭建的文档](./GET_START_FOR_DEVELOPER.md)
+3. 初始化资源包
 
 ```bash
 deno task init

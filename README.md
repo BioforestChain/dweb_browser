@@ -10,7 +10,7 @@
 [plaoc-badge]: https://img.shields.io/badge/plaoc-doc-blue
 [plaoc-url]: https://github.com/BioforestChain/dweb_browser-docs
 
-[ZH DOC](./README_ZH.md)
+[ZH DOC](./README_ZH.md) ｜ [Welcome to Dweb Browser discord](https://discord.gg/nBPgPzPbgX)
 
 dweb-browser is a browser platform built in accordance with Dweb standards, and exposes the capabilities of the browser and the native system capabilities of the browser through various dweb modules. Currently, we have implemented support for mainstream platforms such as Android, IOS, MacOS, and Windows.
 
@@ -98,9 +98,8 @@ For specific documents, please refer to [plugins document](https://docs.dweb-bro
 ## How to contribute code
 
 1. View: [Quick Start](./GET_START_FOR_DEVELOPER.quick.en.md)
-1. Recommended reading: [Complete development environment setup documentation](./GET_START_FOR_DEVELOPER.en.md)
-
-2. Initialize resource package
+2. Recommended reading: [Complete development environment setup documentation](./GET_START_FOR_DEVELOPER.en.md)
+3. Initialize resource package
 
 ```bash
 deno task init
