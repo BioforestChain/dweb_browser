@@ -1,14 +1,8 @@
 appId: ${MAESTRO_IOS_APP_ID}
+tags:
+    - deep_link_install
 ---
-- launchApp:
-    clearState: true
-    stopApp: true
-    permissions: { all: unset }
-    arguments: 
-       enabledAccessibilitySync: true
-
-- waitForAnimationToEnd:
-    timeout: 2000
+- runFlow: launch_clear_state.yaml
 - tapOn: desk:search
 - inputText: https://test.dwebdapp.com
 - pressKey: Enter

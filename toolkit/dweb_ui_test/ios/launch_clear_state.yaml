@@ -1,0 +1,11 @@
+appId: ${MAESTRO_IOS_APP_ID}
+---
+- launchApp:
+    clearState: true
+    stopApp: true
+    permissions: { all: unset }
+    arguments: 
+       enabledAccessibilitySync: true
+
+- waitForAnimationToEnd:
+    timeout: 2000

@@ -1,15 +1,11 @@
 # dweb_deep_link_install_flow.yaml
 
 appId: ${MAESTRO_ANDROID_APP_ID}
+tags:
+    - deep_link_install
 ---
-- launchApp:
-    clearState: true
-    stopApp: true
-    permissions: { all: unset }
-
-- tapOn: (Agree|同意)
-- tapOn:
-    id: desk:web.browser.dweb
+- runFlow: launch_clear_state.yaml
+- tapOn: desk:web.browser.dweb
 - tapOn:
     text: (Home Page|起始页)
     index: 1

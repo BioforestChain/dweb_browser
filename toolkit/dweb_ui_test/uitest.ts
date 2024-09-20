@@ -36,14 +36,14 @@ if (import.meta.main) {
 
     if (device.length > 0) {
       const command = new Deno.Command("maestro", {
-        args: ["--device", device, "test", "android/"],
+        args: ["--device", device, "test", "--include-tags=deep_link_install", "android/"],
         cwd: resolveTo(),
         env: env,
       });
       command.spawn();
     } else {
       const command = new Deno.Command("maestro", {
-        args: ["test", "android/"],
+        args: ["test", "--include-tags=deep_link_install", "android/"],
         cwd: resolveTo(),
         env,
       });
@@ -86,14 +86,14 @@ if (import.meta.main) {
 
     if (bootedDevices.length > 0 && bootedDevices[0]?.udid) {
       const command = new Deno.Command("maestro", {
-        args: ["--udid", bootedDevices[0].udid, "test", "ios/"],
+        args: ["--udid", bootedDevices[0].udid, "test", "--include-tags=deep_link_install", "ios/"],
         cwd: resolveTo(),
         env: env,
       });
       command.spawn();
     } else {
       const command = new Deno.Command("maestro", {
-        args: ["test", "ios/"],
+        args: ["test", "--include-tags=deep_link_install", "ios/"],
         cwd: resolveTo(),
         env: env,
       });
