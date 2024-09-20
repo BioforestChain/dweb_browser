@@ -1,4 +1,4 @@
-import { initSync } from "npm:@dweb-browser/svg-wasm@0.6.0";
+import { initSync } from "npm:@dweb-browser/svg-wasm@0.7.0";
 
 // 获取 WASM 文件的路径
 const wasmPath = new URL(

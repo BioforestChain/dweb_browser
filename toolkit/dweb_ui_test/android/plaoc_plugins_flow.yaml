@@ -6,5 +6,17 @@ tags:
 ---
 - runFlow: launch_clear_state.yaml
 - tapOn: desk:search
-- runScript: ../scripts/plaoc_plugins_serve_input.js
+- runScript:
+    file: ../scripts/plaoc_plugins_serve_input.js
+    env:
+      addr: ${MAESTRO_LOCAL_IP}
 - inputText: ${output.dwebLink}
+- pressKey: Enter
+- tapOn: (Install|安装)
+- extendedWaitUntil:
+    timeout: 300000 # 等待最长 5 分钟 (300000 毫秒)
+    visible: (Open|打开)
+- tapOn: (Open|打开)
+- waitForAnimationToEnd:
+    timeout: 2000
+- tapOn: Maximizes the window
