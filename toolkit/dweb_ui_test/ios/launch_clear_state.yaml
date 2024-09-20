@@ -1,4 +1,6 @@
 appId: ${MAESTRO_IOS_APP_ID}
+tags:
+    - launch
 ---
 - launchApp:
     clearState: true
@@ -9,3 +11,8 @@ appId: ${MAESTRO_IOS_APP_ID}
 
 - waitForAnimationToEnd:
     timeout: 2000
+
+# 如果有升级提醒，用于关闭升级提醒
+- tapOn:
+    text: (Cancel|取消)
+    optional: true

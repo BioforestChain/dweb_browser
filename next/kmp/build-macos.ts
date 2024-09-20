@@ -1,7 +1,7 @@
 import {
   Confirm,
-  Input,
   prompt,
+  Select
 } from "https://deno.land/x/cliffy@v1.0.0-rc.4/prompt/mod.ts";
 import { DOMParser } from "https://deno.land/x/deno_dom/deno-dom-wasm.ts";
 import fs from "node:fs";
@@ -181,10 +181,8 @@ if (import.meta.main) {
     {
       name: "arch",
       message: "请选择CPU架构",
-      type: Input,
-      list: true,
-      info: true,
-      suggestions: ["x86_64", "arm64"]
+      type: Select,
+      options: ["x86_64", "arm64"]
     },
     {
       name: "package",

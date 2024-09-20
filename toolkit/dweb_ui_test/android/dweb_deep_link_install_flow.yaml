@@ -1,5 +1,3 @@
-# dweb_deep_link_install_flow.yaml
-
 appId: ${MAESTRO_ANDROID_APP_ID}
 tags:
     - deep_link_install

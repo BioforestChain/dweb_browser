@@ -1,4 +1,6 @@
 appId: ${MAESTRO_ANDROID_APP_ID}
+tags:
+    - launch
 ---
 - launchApp:
     clearState: true

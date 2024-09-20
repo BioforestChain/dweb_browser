@@ -1,0 +1,10 @@
+appId: ${MAESTRO_ANDROID_APP_ID}
+jsEngine: graaljs
+tags:
+    - deep_link_install
+    - plaoc_plugins
+---
+- runFlow: launch_clear_state.yaml
+- tapOn: desk:search
+- runScript: ../scripts/plaoc_plugins_serve_input.js
+- inputText: ${output.dwebLink}

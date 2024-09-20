@@ -1,19 +1,11 @@
+import { Checkbox, prompt, Select } from "jsr:@cliffy/prompt@1.0.0-rc.5";
 import { createBaseResolveTo } from "../../scripts/helper/resolveTo.ts";
 
 const resolveTo = createBaseResolveTo(import.meta.url);
 
-if (import.meta.main) {
-  if (Deno.args.includes("--android")) {
-    let device = "";
-
-    const env: Record<string, string> = {};
-    const username = Deno.env.get("USER") || Deno.env.get("USERNAME");
-
-    env["MAESTRO_ANDROID_APP_ID"] = "info.bagen.dwebbrowser";
-    if (!Deno.args.includes("release") && username) {
-      env["MAESTRO_ANDROID_APP_ID"] += `.dweb.${username}`;
-    }
-
+const getDevices = async (platform: string): Promise<string[]> => {
+  let deviceList: string[] = [];
+  if (platform === "Android") {
     const devices = new Deno.Command("adb", {
       args: ["devices"],
       stdout: "piped",
@@ -27,30 +19,9 @@ if (import.meta.main) {
       const lines = outputText.split("\n").map((line) => line.trim());
 
       // 过滤出设备 ID 列表
-      const deviceIds = lines.filter((line) => line.endsWith("device")).map((line) => line.split("\t")[0]);
-
-      if (deviceIds.length > 0) {
-        device = deviceIds[0];
-      }
+      deviceList = lines.filter((line) => line.endsWith("device")).map((line) => line.split("\t")[0]);
     }
-
-    if (device.length > 0) {
-      const command = new Deno.Command("maestro", {
-        args: ["--device", device, "test", "--include-tags=deep_link_install", "android/"],
-        cwd: resolveTo(),
-        env: env,
-      });
-      command.spawn();
-    } else {
-      const command = new Deno.Command("maestro", {
-        args: ["test", "--include-tags=deep_link_install", "android/"],
-        cwd: resolveTo(),
-        env,
-      });
-      command.spawn();
-    }
-  } else {
-    // xcodebuild -scheme "DwebBrowser" -configuration debug -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 15 Pro Max,OS=latest' build run
+  } else if (platform === "iOS") {
     const cmd = new Deno.Command("xcrun", {
       args: ["simctl", "list", "devices"],
       stdout: "piped",
@@ -72,32 +43,90 @@ if (import.meta.main) {
       })
       .filter(Boolean);
 
-    const shutdownDevices = iphoneDevices
-      .filter((line) => line.toLowerCase().includes("shutdown"))
-      .map((line) => {
-        const match = line.match(/\(([\w-]+)\)/);
-        return match ? { udid: match[1], status: "shutdown" } : null;
-      })
-      .filter(Boolean);
-
-    const env: Record<string, string> = {
-      MAESTRO_IOS_APP_ID: "com.instinct.bfexplorer.debug",
-    };
-
-    if (bootedDevices.length > 0 && bootedDevices[0]?.udid) {
-      const command = new Deno.Command("maestro", {
-        args: ["--udid", bootedDevices[0].udid, "test", "--include-tags=deep_link_install", "ios/"],
-        cwd: resolveTo(),
-        env: env,
-      });
-      command.spawn();
-    } else {
-      const command = new Deno.Command("maestro", {
-        args: ["test", "--include-tags=deep_link_install", "ios/"],
-        cwd: resolveTo(),
-        env: env,
-      });
-      command.spawn();
+    if (bootedDevices.length > 0) {
+      deviceList = bootedDevices.map((value) => value?.udid).filter((value) => value !== undefined);
     }
   }
+
+  return deviceList;
+};
+
+if (import.meta.main) {
+  let selectedDevice = "";
+  const promptResult = await prompt([
+    {
+      name: "platform",
+      message: "请选择要测试的平台",
+      type: Select,
+      options: ["Android", "iOS"],
+      after: async ({ platform }, next) => {
+        if (platform) {
+          const deviceList = await getDevices(platform);
+
+          if (deviceList.length > 0) {
+            selectedDevice = await Select.prompt({
+              message: "请选择要测试的设备",
+              options: deviceList,
+            });
+          }
+        }
+        await next();
+      },
+    },
+    {
+      name: "tags",
+      message: "请选择想要测试的标签",
+      type: Checkbox,
+      options: ["deep_link_install", "plaoc_plugins"],
+    },
+  ]);
+
+  const maestroArgs = [];
+  const env: Record<string, string> = {};
+
+  if (promptResult.platform === "Android") {
+    const username = Deno.env.get("USER") || Deno.env.get("USERNAME");
+
+    env["MAESTRO_ANDROID_APP_ID"] = "info.bagen.dwebbrowser";
+    if (!Deno.args.includes("release") && username) {
+      env["MAESTRO_ANDROID_APP_ID"] += `.dweb.${username}`;
+    }
+
+    if (selectedDevice.length > 0) {
+      maestroArgs.push("--device");
+      maestroArgs.push(selectedDevice);
+    }
+
+    maestroArgs.push("test");
+
+    if (promptResult.tags) {
+      maestroArgs.push(`--include-tags=${promptResult.tags.join(",")}`);
+    }
+
+    maestroArgs.push(`--exclude-tags=launch`);
+    maestroArgs.push(`android/`);
+  } else if (promptResult.platform === "iOS") {
+    env["MAESTRO_IOS_APP_ID"] = "com.instinct.bfexplorer.debug";
+
+    if (selectedDevice.length > 0) {
+      maestroArgs.push("--udid");
+      maestroArgs.push(selectedDevice);
+    }
+
+    maestroArgs.push("test");
+
+    if (promptResult.tags) {
+      maestroArgs.push(`--include-tags=${promptResult.tags.join(",")}`);
+    }
+
+    maestroArgs.push(`--exclude-tags=launch`);
+    maestroArgs.push(`ios/`);
+  }
+
+  const command = new Deno.Command("maestro", {
+    args: maestroArgs,
+    cwd: resolveTo(),
+    env: env,
+  });
+  command.spawn();
 }

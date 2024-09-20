@@ -21,8 +21,7 @@
     "pub": "deno run -A ./scripts/pub.ts", // 更改 publish.json 版本，运行deno task pub 就能发布版本
     "sync": "deno run -A ./scripts/sync_npm.ts", // 用来同步npmmirror
     "toolkit:fix-import": "deno run -A ./scripts/toolKitFix.ts",
-    "uitest:android": "deno run -A ./toolkit/dweb_ui_test/uitest.ts --android",
-    "uitest:ios": "deno run -A ./toolkit/dweb_ui_test/uitest.ts --ios"
+    "uitest": "deno run -A ./toolkit/dweb_ui_test/uitest.ts"
   },
   "workspace": [
     "./toolkit/dweb-core",
