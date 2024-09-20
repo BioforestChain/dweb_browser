@@ -34,11 +34,12 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
+import org.dweb_browser.helper.compose.ImageCapture
 import org.dweb_browser.helper.compose.LocalCompositionChain
-import org.dweb_browser.helper.compose.ScreenCapture
 import org.dweb_browser.helper.compose.envSwitch
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.platform.desktop.os.WindowsRegistry
+import java.awt.Cursor
 import java.awt.GraphicsEnvironment
 import java.awt.Rectangle
 import java.awt.Robot
@@ -165,6 +166,7 @@ class PureViewController(
           }
         ) {
           val device = GraphicsEnvironment.getLocalGraphicsEnvironment().defaultScreenDevice
+          window.cursor = Cursor(Cursor.CROSSHAIR_CURSOR) // 设置鼠标样式为 十字星
           if (!isWindows) {
             device.fullScreenWindow = window
           }
@@ -176,7 +178,8 @@ class PureViewController(
             // 显示原始截图
             Image(bitmap = imageBitmap, contentDescription = "Screenshot")
             // 显示十字线以及截屏矩形框
-            ScreenCapture(imageBitmap) { imageBitmap ->
+            // ScreenCapture(imageBitmap) { imageBitmap ->
+            ImageCapture(imageBitmap) { imageBitmap ->
               // 获取截图信息，并调用SmartScan进行解析
               captureDeferred.complete(imageBitmap)
               screenBitmap = null
