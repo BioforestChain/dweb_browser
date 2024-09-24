@@ -256,6 +256,9 @@ class FloatBarState {
   val floatActivityStateFlow = MutableStateFlow(false)
   var floatActivityState by floatActivityStateFlow
 
+  val offsetXFlow = MutableStateFlow(0)
+  var offsetX by offsetXFlow
+
   /**
    * 专门用于桌面端的拖拽
    */

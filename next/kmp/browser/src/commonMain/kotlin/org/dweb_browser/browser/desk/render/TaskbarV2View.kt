@@ -58,8 +58,8 @@ import org.dweb_browser.sys.window.floatBar.floatBarDefaultShape
 import kotlin.math.min
 import kotlin.math.sqrt
 
-private const val TASKBAR_MIN_WIDTH = 42f
-private const val TASKBAR_MAX_WIDTH = 54f
+internal const val TASKBAR_MIN_WIDTH = 42f
+internal const val TASKBAR_MAX_WIDTH = 54f
 private const val TASKBAR_PADDING_VALUE = 6f
 private const val TASKBAR_DIVIDER_HEIGHT = 8f
 
@@ -86,6 +86,18 @@ private enum class PopupStrategy {
    * 总是，用于Android
    */
   ALWAYS,
+}
+
+internal enum class TaskbarShape {
+  /**
+   * 沉浸式，隐藏Taskbar，显示Arrow图标，hover即可恢复正常显示，可用于 全屏视频、游戏时
+   */
+  IMMERSIVE,
+
+  /**
+   * 正常显示Taskbar
+   */
+  NORMAL,
 }
 
 abstract class ITaskbarV2View(protected val taskbarController: TaskbarV2Controller) {

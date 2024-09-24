@@ -49,6 +49,11 @@ internal class NativeMagnetFloatBar(
       return
     }
 
+    /// 记录 taskbar 的横向坐标，用于判断游戏模式时将taskbar隐藏于哪一侧
+    if(ready) {
+      state.offsetXFlow.value = p0
+    }
+
     super.setLocation(p0, p1)
     if (ready && !taskbarMagnetEffect.isPlay) {
       playMagnetEffect()
