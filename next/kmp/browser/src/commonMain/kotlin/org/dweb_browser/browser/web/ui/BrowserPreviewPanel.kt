@@ -82,6 +82,8 @@ import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.compose.div
 import org.dweb_browser.helper.compose.hoverCursor
 import org.dweb_browser.helper.getCompletedOrNull
+import org.dweb_browser.helper.platform.IPureViewController
+import org.dweb_browser.helper.platform.isDesktop
 import org.dweb_browser.sys.window.core.LocalWindowController
 import squircleshape.CornerSmoothing
 import squircleshape.SquircleShape
@@ -203,7 +205,10 @@ class BrowserPreviewPanel(val viewModel: BrowserViewModel) {
         FlowRow(
           Modifier.fillMaxSize().verticalScroll(scrollState)
             .padding(top = 16.dp, start = 16.dp, end = 16.dp),
-          horizontalArrangement = Arrangement.SpaceBetween,
+          horizontalArrangement = when (IPureViewController.isDesktop) {
+            true -> Arrangement.spacedBy(space = 16.dp, alignment = Alignment.Start)
+            else -> Arrangement.SpaceBetween
+          },
 //          horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.Start),
 //          verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.Top),
           overflow = FlowRowOverflow.Visible,
