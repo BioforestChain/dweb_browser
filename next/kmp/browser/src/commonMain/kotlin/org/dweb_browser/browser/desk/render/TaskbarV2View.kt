@@ -58,8 +58,8 @@ import org.dweb_browser.sys.window.floatBar.floatBarDefaultShape
 import kotlin.math.min
 import kotlin.math.sqrt
 
-internal const val TASKBAR_MIN_WIDTH = 42f
-internal const val TASKBAR_MAX_WIDTH = 54f
+private const val TASKBAR_MIN_WIDTH = 42f
+private const val TASKBAR_MAX_WIDTH = 54f
 private const val TASKBAR_PADDING_VALUE = 6f
 private const val TASKBAR_DIVIDER_HEIGHT = 8f
 
@@ -170,6 +170,8 @@ abstract class ITaskbarV2View(protected val taskbarController: TaskbarV2Controll
       taskbarWidth = clamp(
         TASKBAR_MIN_WIDTH, min(displaySize.width, displaySize.height) * 0.14f, TASKBAR_MAX_WIDTH
       )
+      /// 更新taskbar宽度
+      state.layoutWidth = taskbarWidth
       paddingValue = TASKBAR_PADDING_VALUE * taskbarWidth / TASKBAR_MAX_WIDTH
       dividerHeight = TASKBAR_DIVIDER_HEIGHT * taskbarWidth / TASKBAR_MAX_WIDTH
       iconSize = taskbarWidth - paddingValue

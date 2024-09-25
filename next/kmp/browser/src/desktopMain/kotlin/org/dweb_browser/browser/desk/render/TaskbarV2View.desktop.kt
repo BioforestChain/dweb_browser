@@ -24,15 +24,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposePanel
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.debounce
 import org.dweb_browser.browser.desk.TaskbarV2Controller
 import org.dweb_browser.browser.desk.model.TaskbarAppModel
-import org.dweb_browser.helper.clamp
 import org.dweb_browser.helper.platform.rememberDisplaySize
 import org.dweb_browser.sys.window.core.constant.WindowMode
 import org.dweb_browser.sys.window.floatBar.DraggableDelegate
 import org.dweb_browser.sys.window.floatBar.FloatBarMover
 import org.dweb_browser.sys.window.floatBar.FloatBarShell
-import kotlin.math.min
 
 actual fun ITaskbarV2View.Companion.create(taskbarController: TaskbarV2Controller): ITaskbarV2View {
   return TaskbarV2View(taskbarController)
@@ -51,6 +51,7 @@ class TaskbarV2View(taskbarController: TaskbarV2Controller) : ITaskbarV2View(tas
     }
   }
 
+  @OptIn(FlowPreview::class)
   @Composable
   override fun Render() {
     /**
@@ -72,7 +73,7 @@ class TaskbarV2View(taskbarController: TaskbarV2Controller) : ITaskbarV2View(tas
 
             /**
              * 1. 当taskbar处于拖拽状态时，处于正常Normal状态
-             * 2. 当处于全屏模式时，处于GameMode状态，否则Normal状态
+             * 2. 当处于全屏模式时，处于Immersive状态，否则Normal状态
              */
             val taskbarShape = when (dragging) {
               true -> TaskbarShape.NORMAL
@@ -101,11 +102,14 @@ class TaskbarV2View(taskbarController: TaskbarV2Controller) : ITaskbarV2View(tas
               }
             }
 
-            val taskbarWidth = clamp(
-              TASKBAR_MIN_WIDTH,
-              min(displaySize.width, displaySize.height) * 0.14f,
-              TASKBAR_MAX_WIDTH
-            )
+            val taskbarWidth by state.layoutWidthFlow.collectAsState()
+            /// 在贴边之后切换为沉浸式模式的样式
+            var taskbarAnimatedFinished by remember { mutableStateOf(true) }
+            LaunchedEffect(draggableDelegate) {
+              state.offsetXFlow.debounce(300).collect { _ ->
+                taskbarAnimatedFinished = !state.dragging
+              }
+            }
 
             val modifier = when (taskbarShape) {
               TaskbarShape.IMMERSIVE -> Modifier.pointerInput(draggableDelegate) {
@@ -113,7 +117,7 @@ class TaskbarV2View(taskbarController: TaskbarV2Controller) : ITaskbarV2View(tas
                   while (true) {
                     val event = awaitPointerEvent()
                     /// 这个dragEnd判断必须在awaitPointerEvent之后，否则会导致FloatBarMover无法拖拽
-                    if(!dragEnd) continue
+                    if (!dragEnd) continue
                     val position = event.changes.first().position
                     isHidden = !(position.x > 0 && position.x < taskbarWidth)
                   }
@@ -124,7 +128,7 @@ class TaskbarV2View(taskbarController: TaskbarV2Controller) : ITaskbarV2View(tas
             }
 
             Box(modifier) {
-              if (isHidden) {
+              if (taskbarAnimatedFinished && isHidden) {
                 BoxWithConstraints(
                   Modifier.fillMaxSize(), contentAlignment = Alignment.CenterStart
                 ) {
@@ -133,7 +137,7 @@ class TaskbarV2View(taskbarController: TaskbarV2Controller) : ITaskbarV2View(tas
                       true -> Icons.AutoMirrored.Outlined.ArrowBackIos
                       false -> Icons.AutoMirrored.Outlined.ArrowForwardIos
                     },
-                    "Taskbar GameMode",
+                    "Taskbar Immersive",
                     modifier = Modifier.requiredSize(maxWidth * 2 / 3, maxHeight * 2 / 3),
                     tint = MaterialTheme.colors.primarySurface.copy(0.5f)
                   )
