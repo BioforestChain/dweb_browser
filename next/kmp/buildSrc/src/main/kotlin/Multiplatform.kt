@@ -386,7 +386,6 @@ fun KotlinMultiplatformExtension.kmpCommonTarget(
     }
 
     dependencies {
-      implementation(kotlin("stdlib"))
       implementation(libs.kotlinx.coroutines.core)
       implementation(libs.kotlinx.atomicfu)
       implementation(libs.kotlinx.io)
