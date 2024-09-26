@@ -1,0 +1,15 @@
+appId: ${MAESTRO_APP_ID}
+tags:
+    - deep_link_install
+---
+- runFlow:
+    when: 
+        platform: Android
+    file: ../android/dweb_deep_link_install_flow.yaml
+- runFlow:
+    when: 
+        platform: iOS
+    file: ../ios/dweb_deep_link_install_flow.yaml
+
+- stopApp: ${MAESTRO_APP_ID}
+

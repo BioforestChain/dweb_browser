@@ -1,4 +1,4 @@
-appId: ${MAESTRO_IOS_APP_ID}
+appId: ${MAESTRO_APP_ID}
 tags:
     - deep_link_install
 ---
@@ -20,5 +20,5 @@ tags:
 - longPressOn: taskbar:alphabfmeta.info.dweb
 - tapOn: taskbar:alphabfmeta.info.dweb
 
-- stopApp: ${MAESTRO_IOS_APP_ID}
+- stopApp: ${MAESTRO_APP_ID}
 

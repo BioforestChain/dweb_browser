@@ -1,0 +1,29 @@
+appId: ${MAESTRO_APP_ID}
+tags:
+    - deep_link_install
+    - plaoc_plugins
+jsEngine: graaljs
+---
+- runFlow:
+    when: 
+        platform: Android
+    file: ../android/launch_clear_state.yaml
+- runFlow:
+    when: 
+        platform: iOS
+    file: ../ios/launch_clear_state.yaml
+
+- tapOn: desk:search
+- runScript: ../scripts/plaoc_plugins_serve_input.js
+- inputText: ${output.dwebLink}
+- pressKey: Enter
+- tapOn: (Install.*|安装.*)
+- extendedWaitUntil:
+    timeout: 300000 # 等待最长 5 分钟 (300000 毫秒)
+    visible: (Open|打开)
+- tapOn: (Open|打开)
+- waitForAnimationToEnd:
+    timeout: 2000
+- tapOn: Maximizes the window
+
+- stopApp: ${MAESTRO_APP_ID}

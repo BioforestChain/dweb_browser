@@ -49,9 +49,9 @@ if (import.meta.main) {
   if (promptResult.platform === "Android") {
     const username = Deno.env.get("USER") || Deno.env.get("USERNAME");
 
-    env["MAESTRO_ANDROID_APP_ID"] = "info.bagen.dwebbrowser";
+    env["MAESTRO_APP_ID"] = "info.bagen.dwebbrowser";
     if (!Deno.args.includes("release") && username) {
-      env["MAESTRO_ANDROID_APP_ID"] += `.dweb.${username}`;
+      env["MAESTRO_APP_ID"] += `.dweb.${username}`;
     }
 
     if (selectedDevice.length > 0) {
@@ -66,9 +66,8 @@ if (import.meta.main) {
     }
 
     maestroArgs.push(`--exclude-tags=launch`);
-    maestroArgs.push(`android/`);
   } else if (promptResult.platform === "iOS") {
-    env["MAESTRO_IOS_APP_ID"] = "com.instinct.bfexplorer.debug";
+    env["MAESTRO_APP_ID"] = "com.instinct.bfexplorer.debug";
 
     if (selectedDevice.length > 0) {
       maestroArgs.push("--udid");
@@ -82,8 +81,9 @@ if (import.meta.main) {
     }
 
     maestroArgs.push(`--exclude-tags=launch`);
-    maestroArgs.push(`ios/`);
   }
+
+  maestroArgs.push(`common/`);
 
   const command = new Deno.Command("maestro", {
     args: maestroArgs,
