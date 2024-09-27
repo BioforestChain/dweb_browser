@@ -19,6 +19,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.globalDefaultScope
+import java.io.ByteArrayOutputStream
 
 
 /**这里是android相机的预览画到Compose上，并且输出扫描到的一贞一贞图片*/
@@ -54,7 +55,9 @@ actual fun CameraPreviewRender(
           newHeight,
           true
         )
-        controller.albumImageFlow.tryEmit(previewBitmap.ninePatchChunk) // (previewBitmap.asImageBitmap())
+        val os = ByteArrayOutputStream()
+        previewBitmap.compress(Bitmap.CompressFormat.JPEG, 100, os)
+        controller.albumImageFlow.tryEmit(os.toByteArray())
         // TODO 这边和桌面端一样，不应该在这里进行识别，而是收到上面tryEmit后，界面渲染时，再执行识别
 //        globalDefaultScope.launch {
 //          controller.decodeQrCode {
