@@ -84,7 +84,7 @@ private fun uploadDeviceInfo(activity: DesktopActivity) {
   }
   WebView.getCurrentWebViewPackage()?.let { packageName ->
     map["webview_package"] = packageName.packageName
-    map["webview_version"] = packageName.versionName
+    map["webview_version"] = packageName.versionName ?: "1.0.0"
   }
   uploadManager.put(
     map.toJsonElement().toString().toByteArray(),

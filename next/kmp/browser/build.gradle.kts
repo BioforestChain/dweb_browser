@@ -42,8 +42,11 @@ kotlin {
       implementation(libs.compose.ui.preview)
       //扫码核心库
       implementation(libs.camera.core)
-      implementation(libs.camera.view)
+//      implementation(libs.camera.view)
+      implementation(libs.camera.compose)
       implementation(libs.camera.camera2)
+      implementation(libs.camera.viewfinder.core)
+      implementation(libs.camera.viewfinder.compose)
       implementation(libs.camera.lifecycle)
       implementation(libs.camera.barcode)
       // 七牛

@@ -31,7 +31,7 @@ class AppInfo {
       val pInfo: PackageInfo
       return try {
         pInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-        pInfo.versionName
+        pInfo.versionName ?: "1.0.0"
       } catch (e: Throwable) {
         "1.0.0"
       }
