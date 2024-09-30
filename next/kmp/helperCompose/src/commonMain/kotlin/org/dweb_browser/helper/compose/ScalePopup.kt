@@ -1,11 +1,13 @@
 package org.dweb_browser.helper.compose
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.UiComposable
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.util.fastRoundToInt
 
 @Composable
@@ -14,36 +16,15 @@ fun ScalePopupPlaceholder(
   modifier: Modifier = Modifier,
   content: @Composable @UiComposable () -> Unit,
 ) {
-  Layout(modifier = modifier, content = {
+  Box(modifier.layout { measurable, constraints ->
+    val placeable = measurable.measure(constraints)
+
+    layout(placeable.width, placeable.height) {
+      placeable.place(0, 0)
+    }
+  }) {
     LocalCompositionChain.current.Provider(LocalePopupContentScale provides scale) {
       content()
-    }
-  }) { measurables, constraints ->
-    // 初次渲染时最大值超出了限制，导致异常，限制最大值大小
-    val DIMENSION_MAX = 16777215
-    var measuredWidth = (constraints.maxWidth * scale).fastRoundToInt()
-    val measuredHeight = (constraints.maxHeight * scale).fastRoundToInt()
-
-    if ((measuredWidth.toDouble() * measuredHeight) > DIMENSION_MAX) {
-      measuredWidth = DIMENSION_MAX.floorDiv(measuredHeight)
-    }
-
-    val placeables = measurables.map { measurable ->
-      measurable.measure(
-        constraints.copy(
-          maxHeight = measuredWidth,
-          maxWidth = measuredHeight,
-        )
-      )
-    }
-
-    layout(
-      width = measuredWidth,
-      height = measuredHeight,
-    ) {
-      for (placeable in placeables) {
-        placeable.place(0, 0)
-      }
     }
   }
 }
