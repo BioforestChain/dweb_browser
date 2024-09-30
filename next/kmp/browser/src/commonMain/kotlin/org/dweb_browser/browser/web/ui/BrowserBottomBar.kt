@@ -95,7 +95,7 @@ fun BrowserBottomBar(scale: Float, modifier: Modifier) {
           modifier = Modifier.fillMaxSize(),
           contentPadding = PaddingValues(8.dp),
           pageSize = PageSize.Fill,
-          beyondViewportPageCount = Int.MAX_VALUE,
+          // beyondViewportPageCount = Int.MAX_VALUE,
           userScrollEnabled = true,
           pageSpacing = 4.dp,
           key = { pageIndex -> viewModel.getPage(pageIndex).hashCode() },
