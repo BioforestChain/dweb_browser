@@ -46,8 +46,6 @@ kotlin {
       implementation(libs.camera.camera2)
       implementation(libs.camera.lifecycle)
       implementation(libs.camera.barcode)
-      // 七牛
-      implementation(libs.qiniu.upload)
     }
   }
   kmpIosTarget(project) {

@@ -142,10 +142,6 @@ include(":platformTest")
 if (features.iosApp.enabled) {
   include(":platformIos")
 }
-if (features.electronApp.enabled) {
-  include(":platformNode")
-  include(":platformBrowser")
-}
 if (features.desktopApp.enabled) {
   include(":platformDesktop")
 }
@@ -175,13 +171,6 @@ if (features.androidApp.enabled) {
   includeApp("androidApp")
   includeApp("androidBenchmark")
   includeApp("androidBaselineprofile")
-}
-if (features.electronApp.enabled) {
-  includeApp("jsCommon")
-  includeApp("electronApp")
-  includeApp("jsFrontend")
-//  includeApp("demoReactApp")
-  includeApp("demoComposeApp")
 }
 
 if (features.desktopApp.enabled) {

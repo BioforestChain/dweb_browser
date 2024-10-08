@@ -69,7 +69,6 @@ jxbrowser-gradle = "1.0.2"
 java-jna-version = "5.14.0"
 webkit = "1.12.1"
 
-qiniu-version = "8.6.0"
 junit = "1.2.1"
 espresso = "3.6.1"
 uiautomator = "2.3.0"
@@ -253,9 +252,6 @@ google-devtools-ksp = { group = "com.google.devtools.ksp", name = "symbol-proces
 # 解析plist文件
 dd-plist = { group = "com.googlecode.plist", name = "dd-plist", version = "1.28" }
 
-# 七牛数据
-qiniu-upload = { group = "com.qiniu", name = "qiniu-android-sdk", version.ref = "qiniu-version" }
-androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "roomKtx" }
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 androidxBaselineprofile = { id = "androidx.baselineprofile", version.ref = "androidx-baselineprofile-version" }

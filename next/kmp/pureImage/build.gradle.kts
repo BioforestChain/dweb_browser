@@ -28,7 +28,6 @@ kotlin {
       implementation(libs.ktor.server.websockets)
       implementation(libs.ktor.server.cio)
 
-      implementation(libs.coil.gif)
       implementation(libs.coil.video)
     }
   }
