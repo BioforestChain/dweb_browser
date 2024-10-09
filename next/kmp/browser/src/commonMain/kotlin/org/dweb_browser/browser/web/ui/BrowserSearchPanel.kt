@@ -70,6 +70,8 @@ import org.dweb_browser.browser.web.model.couldBeUrlStart
 import org.dweb_browser.browser.web.model.page.BrowserPage
 import org.dweb_browser.browser.web.ui.common.BrowserTopBar
 import org.dweb_browser.helper.format
+import org.dweb_browser.helper.platform.IPureViewController
+import org.dweb_browser.helper.platform.isDesktop
 import org.dweb_browser.sys.window.core.LocalWindowController
 import org.dweb_browser.sys.window.helper.LocalWindowsImeVisible
 
@@ -102,7 +104,8 @@ class BrowserSearchPanel(val viewModel: BrowserViewModel) {
         viewModel.hideAllPanel()
       }
       /// 返回关闭搜索
-      LocalWindowController.current.navigation.GoBackHandler {
+      val win = LocalWindowController.current
+      win.navigation.GoBackHandler {
         hide()
       }
       var searchTextField by remember(viewModel.searchKeyWord, searchPage.url) {
@@ -116,7 +119,8 @@ class BrowserSearchPanel(val viewModel: BrowserViewModel) {
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         contentWindowInsets = WindowInsets(0),
         topBar = {
-          BrowserTopBar(title = BrowserI18nResource.browser_search_title(),
+          BrowserTopBar(
+            title = BrowserI18nResource.browser_search_title(),
             navigationIcon = { /// 左上角导航按钮
               IconButton(onClick = hide) {
                 Icon(
@@ -160,6 +164,10 @@ class BrowserSearchPanel(val viewModel: BrowserViewModel) {
             val focusRequester = remember { FocusRequester() }
             LaunchedEffect(focusRequester) {
               delay(100)
+              // MacOS桌面端会出现窗口失焦，导致无法直接输入
+              if (IPureViewController.isDesktop) {
+                win.focus()
+              }
               focusRequester.requestFocus()
             }
             val showIme by LocalWindowsImeVisible.current
