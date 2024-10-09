@@ -230,12 +230,14 @@ class DWebViewEngine internal constructor(
 
   fun getOriginalUrl(): String = browser.url()
 
-  fun canGoBack() = browser.navigation().canGoBack()
+  fun canGoBack() = browser.navigation().let {
+    // browser默认会先加载about:blank，导致仅根据canGoBack判断时，返回值为true，执行goBack会显示about:blank空白页
+    it.canGoBack() && it.currentEntryIndex() > 1
+  }
 
   fun goBack() = canGoBack().trueAlso {
     browser.navigation().goBack()
   }
-
 
   fun canGoForward() = browser.navigation().canGoForward()
 
