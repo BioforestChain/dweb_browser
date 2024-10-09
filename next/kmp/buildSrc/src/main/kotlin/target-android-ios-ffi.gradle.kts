@@ -38,7 +38,6 @@ kotlin {
   kmpIosTarget(project) {
     val project_base_name = project.name.replace(Regex("^lib_"), "")
     listOf(
-      iosX64(),
       iosArm64(),
       iosSimulatorArm64()
     ).forEach {

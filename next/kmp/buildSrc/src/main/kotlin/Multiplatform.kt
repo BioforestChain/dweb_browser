@@ -632,7 +632,6 @@ fun KotlinMultiplatformExtension.kmpIosTarget(
   }
   dsl.provides(sourceSets.iosMain, sourceSets.iosTest)
 
-  iosX64()
   iosArm64()
   iosSimulatorArm64()
 }

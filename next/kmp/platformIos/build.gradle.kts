@@ -8,7 +8,7 @@ plugins {
 
 kotlin {
   listOf(
-    iosX64(), iosArm64(), iosSimulatorArm64()
+    iosArm64(), iosSimulatorArm64()
   ).forEach {
     it.configureIos(listOf("DwebPlatformIosKit", "DwebWebBrowser"))
   }
@@ -77,7 +77,7 @@ tasks.register("cinteropSync") {
   dependsOn(
     "cinteropDwebPlatformIosKitIosArm64",
     "cinteropDwebPlatformIosKitIosSimulatorArm64",
-    "cinteropDwebPlatformIosKitIosX64",
+//    "cinteropDwebPlatformIosKitIosX64",
     "commonizeCInterop",
     "copyCommonizeCInteropForIde",
     "commonize",
