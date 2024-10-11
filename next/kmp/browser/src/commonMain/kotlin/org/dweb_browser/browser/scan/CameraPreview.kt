@@ -8,6 +8,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.zIndex
+import org.dweb_browser.helper.compose.NativeBackHandler
 import org.dweb_browser.helper.platform.IPureViewController
 import org.dweb_browser.helper.platform.isDesktop
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
@@ -19,6 +20,15 @@ import org.jetbrains.compose.resources.decodeToImageBitmap
 fun WindowContentRenderScope.RenderBarcodeScanning(
   modifier: Modifier, controller: SmartScanController
 ) {
+  // 全局返回操作，只关闭扫码
+  NativeBackHandler {
+    controller.onCancel("NativeBackHandler")
+  }
+//  // 本来考虑这边可以监听activity如果是onPause的话，也关闭的，但是发现这个触发时机不过及时
+//  LocalWindowController.current.pureViewControllerState.value?.onPause {
+//    controller.onCancel("onPause")
+//  }
+
   val selectImg by controller.albumImageFlow.collectAsState()
   // 当用户选中文件的时候切换到Album模式
   selectImg?.let { controller.updatePreviewType(SmartModuleTypes.Album) }
