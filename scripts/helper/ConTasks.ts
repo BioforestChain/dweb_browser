@@ -1,3 +1,4 @@
+import { whichSync } from "jsr:@david/which";
 import node_path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
@@ -6,7 +7,6 @@ import picocolors from "npm:picocolors";
 import { PromiseOut } from "../../toolkit/dweb-helper/src/PromiseOut.ts";
 import { mapHelper } from "../../toolkit/dweb-helper/src/fun/mapHelper.ts";
 import type { DenoOS } from "../deps.ts";
-import { whichSync } from "./WhichCommand.ts";
 
 export const ExitAbortController = new AbortController();
 export type $Tasks = Record<string, $Task>;

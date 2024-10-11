@@ -1,5 +1,5 @@
+import { whichSync } from "jsr:@david/which";
 import picocolors from "npm:picocolors";
-import { whichSync } from "./helper/WhichCommand.ts";
 import { cwdResolve } from "./helper/cwd.ts";
 import { asyncNpmMirror } from "./sync_npm.ts";
 

@@ -1,7 +1,7 @@
+import { whichSync } from "jsr:@david/which";
 import picocolors from "npm:picocolors";
-import { WalkAny } from "./WalkDir.ts";
-import { whichSync } from "./WhichCommand.ts";
 import { createBaseResolveTo } from "./resolveTo.ts";
+import { WalkAny } from "./WalkDir.ts";
 
 let defaultResolveTo = createBaseResolveTo(Deno.cwd());
 let preCwd = Deno.cwd();

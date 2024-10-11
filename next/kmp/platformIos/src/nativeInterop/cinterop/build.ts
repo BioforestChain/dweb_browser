@@ -4,23 +4,23 @@ import os from "node:os";
 import path from "node:path";
 
 import { walkSync } from "jsr:@std/fs";
+import { which } from "jsr:@david/which";
 import { doArchiveItemTask } from "./archive.ts";
 import { doCreateXcItemTask } from "./create-xc.ts";
 import { __dirname, exec, runTasks, sourceCodeDir } from "./util.ts";
 
 export const doBuildTask = async () => {
   // 使用xcodebuild 来判断是否是有 Xcode
-  try {
-    await exec(["xcodebuild"]);
-  } catch {
+  const xcodebuild = await which("xcodebuild");
+  if(!xcodebuild) {
     return 0;
   }
 
   let isExists = false;
   const xcodePaths = ["/Applications/Xcode.app", os.homedir() + "/Applications/Xcode.app"];
 
-  for await (const xodePath of xcodePaths) {
-    isExists = fs.existsSync(xodePath);
+  for await (const xcodePath of xcodePaths) {
+    isExists = fs.existsSync(xcodePath);
     if (isExists) {
       break;
     }
