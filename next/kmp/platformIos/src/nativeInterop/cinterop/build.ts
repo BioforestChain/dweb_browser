@@ -3,16 +3,16 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-import { WalkFiles } from "../../../../../../toolkit/plaoc/cli/helper/walk-dir.ts";
-import { which } from "../../../../../../scripts/helper/WhichCommand.ts";
+import { walkSync } from "jsr:@std/fs";
 import { doArchiveItemTask } from "./archive.ts";
 import { doCreateXcItemTask } from "./create-xc.ts";
-import { __dirname, runTasks, sourceCodeDir } from "./util.ts";
+import { __dirname, exec, runTasks, sourceCodeDir } from "./util.ts";
 
 export const doBuildTask = async () => {
-  const xcodebuild = await which("xcodebuild");
-
-  if (!xcodebuild) {
+  // 使用xcodebuild 来判断是否是有 Xcode
+  try {
+    await exec(["xcodebuild"]);
+  } catch {
     return 0;
   }
 
@@ -62,9 +62,9 @@ export const doBuildTask = async () => {
 
 const calcHash = (fw: string): (() => void) | undefined => {
   const hashBuilder = crypto.createHash("sha256");
-  for (const entry of WalkFiles(path.resolve(sourceCodeDir, fw))) {
-    hashBuilder.update(entry.entrypath);
-    const stat = fs.statSync(entry.entrypath);
+  for (const entry of walkSync(path.resolve(sourceCodeDir, fw))) {
+    hashBuilder.update(entry.path);
+    const stat = fs.statSync(entry.path);
     hashBuilder.update(JSON.stringify([stat.size, stat.ctimeMs, stat.mtimeMs]));
   }
 
