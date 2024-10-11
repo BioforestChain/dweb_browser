@@ -4,15 +4,12 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Point
-import android.graphics.RectF
+import android.graphics.Rect
 import android.net.Uri
 import android.os.Build
 import android.os.VibrationEffect
 import androidx.annotation.OptIn
 import androidx.camera.core.ExperimentalGetImage
-import androidx.camera.core.ImageProxy
-import androidx.camera.view.TransformExperimental
-import androidx.camera.view.transform.CoordinateTransform
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.common.InputImage
 import kotlinx.coroutines.CoroutineScope
@@ -23,12 +20,9 @@ import org.dweb_browser.helper.PureRect
 import org.dweb_browser.helper.buildUrlString
 import org.dweb_browser.helper.getAppContextUnsafe
 import org.dweb_browser.helper.isWebUrl
-import org.dweb_browser.helper.toPoint
-import org.dweb_browser.helper.toRect
 import org.dweb_browser.helper.utf8String
 import org.dweb_browser.sys.haptics.AndroidVibrate
 import org.dweb_browser.sys.haptics.VibrateType
-
 
 actual class ScanningController actual constructor(mmScope: CoroutineScope) {
 
@@ -37,7 +31,6 @@ actual class ScanningController actual constructor(mmScope: CoroutineScope) {
     barcodeScanner.close()
   }
 
-  @TransformExperimental
   @OptIn(ExperimentalGetImage::class)
   actual suspend fun recognize(data: ByteArray, rotation: Int): List<BarcodeResult> {
     // 检查图像是否为空
@@ -54,57 +47,49 @@ actual class ScanningController actual constructor(mmScope: CoroutineScope) {
   suspend fun recognize(bitmap: Bitmap, rotation: Int = 0) =
     process(InputImage.fromBitmap(bitmap, rotation))
 
-  suspend fun recognize(image: InputImage) = process(image)
+  /**
+   * 解析图片
+   * @param inputImage 通过ImageAnalysis获取的图片
+   * @param zoomPoint 原先会传递PreviewView，然后进行位置计算的，但是这边可以将计算值传递
+   */
+  suspend fun recognize(inputImage: InputImage, zoomPoint: Float) = runCatching {
+    process(inputImage, zoomPoint)
+  }.getOrElse {
+    emptyList()
+  }
 
-  @OptIn(ExperimentalGetImage::class, TransformExperimental::class)
-  suspend fun recognize(imageProxy: ImageProxy, coordinateTransform: CoordinateTransform) =
-    runCatching {
-      val inputImage = InputImage.fromBitmap(imageProxy.toBitmap(), 0)
-      process(inputImage, coordinateTransform)
-    }.getOrElse {
-      emptyList()
-    }
+  /**
+   * 根据 zoomPoint 计算关键点位置
+   */
+  private fun pointToPurePoint(zoomPoint: Float, point: Point?) = point?.let {
+    PurePoint(point.x * zoomPoint, point.y * zoomPoint)
+  } ?: PurePoint.Zero
 
-  @OptIn(TransformExperimental::class)
-  private suspend fun process(
-    image: InputImage, matrix: CoordinateTransform? = null,
-  ): List<BarcodeResult> {
+  /**
+   * 根据Rect计算显示的PureRect
+   */
+  private fun rectToPureRect(zoomPoint: Float, rect: Rect?) = rect?.let {
+    PureRect(
+      rect.left * zoomPoint,
+      rect.top * zoomPoint,
+      rect.width() * zoomPoint,
+      rect.height() * zoomPoint
+    )
+  } ?: PureRect.Zero
+
+  private suspend fun process(image: InputImage, zoomPoint: Float = 1f): List<BarcodeResult> {
     val task = PromiseOut<List<BarcodeResult>>()
     barcodeScanner.process(image).addOnSuccessListener { barcodes ->
       task.resolve(barcodes.map { barcode ->
         val cornerPoints = barcode.cornerPoints
-        if (matrix !== null) {
-          val boundingBox = RectF(barcode.boundingBox)
-          matrix.mapRect(boundingBox)
-          // 转换顶点坐标
-          val topLeft = cornerPoints?.get(0)?.let { point -> mapPointToPreviewView(matrix, point) }
-            ?: PurePoint.Zero
-          val topRight = cornerPoints?.get(1)?.let { point -> mapPointToPreviewView(matrix, point) }
-            ?: PurePoint.Zero
-          val bottomLeft =
-            cornerPoints?.get(3)?.let { point -> mapPointToPreviewView(matrix, point) }
-              ?: PurePoint.Zero
-          val bottomRight =
-            cornerPoints?.get(2)?.let { point -> mapPointToPreviewView(matrix, point) }
-              ?: PurePoint.Zero
-          BarcodeResult(
-            data = barcode.rawBytes?.utf8String ?: "",
-            boundingBox = boundingBox.toRect(),
-            topLeft = topLeft,
-            topRight = topRight,
-            bottomLeft = bottomLeft,
-            bottomRight = bottomRight,
-          )
-        } else {
-          BarcodeResult(
-            data = barcode.rawBytes?.utf8String ?: "",
-            boundingBox = barcode.boundingBox?.toRect() ?: PureRect.Zero,
-            topLeft = cornerPoints?.get(0)?.toPoint() ?: PurePoint.Zero,
-            topRight = cornerPoints?.get(1)?.toPoint() ?: PurePoint.Zero,
-            bottomLeft = cornerPoints?.get(3)?.toPoint() ?: PurePoint.Zero,
-            bottomRight = cornerPoints?.get(2)?.toPoint() ?: PurePoint.Zero,
-          )
-        }
+        BarcodeResult(
+          data = barcode.rawBytes?.utf8String ?: "",
+          boundingBox = rectToPureRect(zoomPoint, barcode.boundingBox),
+          topLeft = pointToPurePoint(zoomPoint, cornerPoints?.get(0)),
+          topRight = pointToPurePoint(zoomPoint, cornerPoints?.get(1)),
+          bottomLeft = pointToPurePoint(zoomPoint, cornerPoints?.get(3)),
+          bottomRight = pointToPurePoint(zoomPoint, cornerPoints?.get(2)),
+        )
       })
     }.addOnFailureListener { err ->
       task.reject(err)
@@ -150,12 +135,4 @@ actual fun openDeepLink(data: String, showBackground: Boolean): Boolean {
     putExtra("showBackground", showBackground)
   })
   return true
-}
-
-/**用来转换到真实屏幕大小*/
-@OptIn(TransformExperimental::class)
-private fun mapPointToPreviewView(matrix: CoordinateTransform, point: Point): PurePoint {
-  val pts = floatArrayOf(point.x.toFloat(), point.y.toFloat())
-  matrix.mapPoints(pts)
-  return PurePoint(pts[0], pts[1])
 }

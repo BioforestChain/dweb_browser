@@ -1,8 +1,8 @@
 [versions]
-compileSdkVersion = "34" # Int
+compileSdkVersion = "35" # Int
 buildToolsVersion = "29.0.2"
 minSdkVersion = "28" # Int
-targetSdkVersion = "34" # Int
+targetSdkVersion = "35" # Int
 versionCode = "135" # Int
 versionName = "3.240913.0"
 kotlinCompilerExtensionVersion = "1.5.15"
@@ -46,7 +46,8 @@ cryptography-version = "0.3.0"
 accompanist = "0.34.0"
 google-material = "1.12.0"
 coil-version = "3.0.0-alpha08"
-camera-version = "1.4.0-rc03"
+camera-version = "1.5.0-alpha01"
+camera-viewfinder-version = "1.4.0-alpha08"
 camera-barcode = "17.3.0"
 camera-zxing = "3.5.3"
 commons-compress = "1.26.1"
@@ -201,6 +202,9 @@ coil-gif = { group = "io.coil-kt.coil3", name = "coil-gif", version.ref = "coil-
 camera-core = { group = "androidx.camera", name = "camera-core", version.ref = "camera-version" }
 camera-camera2 = { group = "androidx.camera", name = "camera-camera2", version.ref = "camera-version" }
 camera-view = { group = "androidx.camera", name = "camera-view", version.ref = "camera-version" }
+camera-compose = { group = "androidx.camera", name = "camera-compose", version.ref = "camera-version" }
+camera-viewfinder-core = { group = "androidx.camera.viewfinder", name = "viewfinder-core", version.ref = "camera-viewfinder-version" }
+camera-viewfinder-compose = { group = "androidx.camera.viewfinder", name = "viewfinder-compose", version.ref = "camera-viewfinder-version" }
 camera-lifecycle = { group = "androidx.camera", name = "camera-lifecycle", version.ref = "camera-version" }
 camera-barcode = { group = "com.google.mlkit", name = "barcode-scanning", version.ref = "camera-barcode" }
 camera-zxing-code = { group = "com.google.zxing", name = "core", version.ref = "camera-zxing" }

@@ -28,7 +28,8 @@ import org.dweb_browser.browser.BrowserI18nResource
 @Composable
 actual fun CameraPreviewRender(
   modifier: Modifier,
-  controller: SmartScanController
+  controller: SmartScanController,
+  resultContent: @Composable () -> Unit
 ) {
   // 创建渲染动画
 //  var startLoading by remember { mutableStateOf(true) }
@@ -51,6 +52,7 @@ actual fun CameraPreviewRender(
   // AlbumPreviewRender(modifier, controller)
   Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
     Text(BrowserI18nResource.QRCode.tip_no_camera())
+    resultContent()
   }
 
 //  LaunchedEffect(Unit) {

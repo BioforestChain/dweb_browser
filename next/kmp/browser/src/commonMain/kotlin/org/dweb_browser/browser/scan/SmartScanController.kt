@@ -5,7 +5,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.ImageBitmap
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
@@ -121,8 +120,8 @@ class SmartScanController(
   }
 
   /**解码二维码*/
-  suspend fun decodeQrCode(processer: suspend ScanningController.() -> List<BarcodeResult>) {
-    barcodeResultFlow.value = scanningController.processer()
+  suspend fun decodeQrCode(processor: suspend ScanningController.() -> List<BarcodeResult>) {
+    barcodeResultFlow.value = scanningController.processor()
   }
 
   // 相机控制器

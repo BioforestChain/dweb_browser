@@ -1,92 +1,105 @@
 package org.dweb_browser.browser.scan
 
+import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.widget.FrameLayout
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.OptIn
-import androidx.camera.core.ExperimentalGetImage
-import androidx.camera.view.PreviewView
+import androidx.camera.compose.CameraXViewfinder
+import androidx.camera.core.AspectRatio
+import androidx.camera.core.SurfaceRequest
+import androidx.camera.viewfinder.compose.MutableCoordinateTransformer
+import androidx.camera.viewfinder.surface.ImplementationMode
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.platform.LocalDensity
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import kotlinx.coroutines.launch
-import org.dweb_browser.helper.globalDefaultScope
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import java.io.ByteArrayOutputStream
 
-
-/**这里是android相机的预览画到Compose上，并且输出扫描到的一贞一贞图片*/
-@OptIn(ExperimentalGetImage::class)
+@SuppressLint("RestrictedApi", "UnusedBoxWithConstraintsScope")
 @Composable
 actual fun CameraPreviewRender(
-  modifier: Modifier, controller: SmartScanController
+  modifier: Modifier, controller: SmartScanController, resultContent: @Composable () -> Unit
 ) {
-  val context = LocalContext.current
-  val lifecycleOwner = LocalLifecycleOwner.current
-  val previewView = remember { PreviewView(context) }
+  Box(modifier.fillMaxSize()) {
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val aspectRatioType = AspectRatio.RATIO_16_9
 
-  // 相册图片选择器
-  val imagePickerLauncher =
-    rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-      // 用户选中了图片
-      if (uri != null) {
-        val bitmap = BitmapFactory.decodeStream(context.contentResolver.openInputStream(uri))
-        // 调整为合适的大小，不然识别不出来
-        val aspectRatio = bitmap.width.toFloat() / bitmap.height.toFloat()
-        val newWidth: Int
-        val newHeight: Int
-        if (previewView.width.toFloat() / previewView.height.toFloat() > aspectRatio) {
-          newHeight = previewView.height
-          newWidth = (newHeight * aspectRatio).toInt()
-        } else {
-          newWidth = previewView.width
-          newHeight = (newWidth / aspectRatio).toInt()
+    // 相册图片选择器
+    val imagePickerLauncher =
+      rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        // 用户选中了图片
+        if (uri != null) {
+          val bitmap = BitmapFactory.decodeStream(context.contentResolver.openInputStream(uri))
+          val os = ByteArrayOutputStream()
+          bitmap.compress(Bitmap.CompressFormat.JPEG, 100, os)
+          controller.albumImageFlow.tryEmit(os.toByteArray())
         }
-        val previewBitmap = Bitmap.createScaledBitmap(
-          bitmap,
-          newWidth,
-          newHeight,
-          true
-        )
-        val os = ByteArrayOutputStream()
-        previewBitmap.compress(Bitmap.CompressFormat.JPEG, 100, os)
-        controller.albumImageFlow.tryEmit(os.toByteArray())
-        // TODO 这边和桌面端一样，不应该在这里进行识别，而是收到上面tryEmit后，界面渲染时，再执行识别
-//        globalDefaultScope.launch {
-//          controller.decodeQrCode {
-//            recognize(previewBitmap, 0)
-//          }
-//        }
+      }
+
+    // 创建相机控制器
+    val cameraController = remember {
+      CameraControllerImpl(controller, imagePickerLauncher).also { c ->
+        controller.cameraController?.stop()
+        controller.cameraController = c // 赋值
       }
     }
-  // 创建相机控制器
-  val cameraController = remember {
-    CameraControllerImpl(controller, imagePickerLauncher).also { c ->
-      controller.cameraController?.stop()
-      controller.cameraController = c // 赋值
-    }
-  }
 
-  DisposableEffect(Unit) {
-    cameraController.initializeCamera(context, lifecycleOwner, previewView)
-    onDispose {
-      cameraController.stop()
+    DisposableEffect(Unit) {
+      onDispose { cameraController.stop() }
     }
+
+    val currentSurfaceRequest: SurfaceRequest? by cameraController.surfaceRequests.collectAsStateWithLifecycle()
+    // CoordinateTransformer for transforming from Offsets to Surface coordinates
+    val coordinateTransformer = remember { MutableCoordinateTransformer() }
+    LaunchedEffect(coordinateTransformer) {
+      cameraController.initializeCamera(context, aspectRatioType, lifecycleOwner)
+    }
+    currentSurfaceRequest?.let { surfaceRequest ->
+      BoxWithConstraints(
+        Modifier
+          .fillMaxSize()
+          .background(Color.Black),
+        contentAlignment = Alignment.Center
+      ) {
+        val density = LocalDensity.current.density
+        val maxAspectRatio: Float = maxWidth / maxHeight
+        val aspectRatioFloat = when (aspectRatioType) {
+          AspectRatio.RATIO_16_9 -> 9.0f / 16f
+          AspectRatio.RATIO_4_3 -> 3.0f / 4f
+          else -> 9.0f / 16f
+        }
+        val shouldUseMaxWidth = maxAspectRatio <= aspectRatioFloat
+        val width = if (!shouldUseMaxWidth) maxWidth else maxHeight * aspectRatioFloat
+        val height = if (shouldUseMaxWidth) maxHeight else maxWidth / aspectRatioFloat
+        cameraController.previewSize = Size(width.value * density, height.value * density)
+
+        Box(modifier = Modifier.size(width, height)) {
+          CameraXViewfinder(
+            surfaceRequest = surfaceRequest,
+            implementationMode = ImplementationMode.EXTERNAL,
+            modifier = Modifier.fillMaxSize(),
+            coordinateTransformer = coordinateTransformer
+          )
+        }
+      }
+    }
+    resultContent()
   }
-  AndroidView(factory = {
-    previewView.layoutParams = FrameLayout.LayoutParams(
-      FrameLayout.LayoutParams.MATCH_PARENT,
-      FrameLayout.LayoutParams.MATCH_PARENT,
-    )
-    // 设置显示模式为兼容，防止页面抖动
-    previewView.implementationMode = PreviewView.ImplementationMode.COMPATIBLE
-    previewView
-  }, modifier = modifier.fillMaxSize())
 }
+

@@ -27,14 +27,15 @@ fun WindowContentRenderScope.RenderBarcodeScanning(
       // 视图切换,如果扫描到了二维码
       SmartModuleTypes.Scanning -> {
         // 渲染相机内容
-        CameraPreviewRender(modifier = Modifier.fillMaxSize(), controller = controller)
+        CameraPreviewRender(modifier = Modifier.fillMaxSize(), controller = controller) {
+          // 渲染扫码结果
+          controller.RenderScanResultView(Modifier.matchParentSize().zIndex(3f))
+        }
         // 扫描线和打开相册，暂时不再桌面端支持
         // TODO 根据设备是否支持摄像头来做这个事情
         controller.DefaultScanningView(
           modifier = Modifier.fillMaxSize().zIndex(2f), showLight = !IPureViewController.isDesktop
         )
-        // 渲染扫码结果
-        controller.RenderScanResultView(Modifier.matchParentSize().zIndex(3f))
       }
       // 相册选择
       SmartModuleTypes.Album -> {
@@ -66,7 +67,9 @@ fun WindowContentRenderScope.RenderBarcodeScanning(
 /**相机preview视图*/
 @Composable
 expect fun CameraPreviewRender(
-  modifier: Modifier = Modifier, controller: SmartScanController
+  modifier: Modifier = Modifier,
+  controller: SmartScanController,
+  resultContent: @Composable () -> Unit
 )
 
 /**这里是文件选择视图*/

@@ -55,6 +55,7 @@ internal class ResizeUIView : UIView {
 actual fun CameraPreviewRender(
   modifier: Modifier,
   controller: SmartScanController,
+  resultContent: @Composable () -> Unit
 ) {
   val uiViewController = LocalUIViewController.current
   val density = LocalDensity.current.density
@@ -97,6 +98,7 @@ actual fun CameraPreviewRender(
       },
       modifier = Modifier.fillMaxSize(),
     )
+    resultContent()
   }
 }
 

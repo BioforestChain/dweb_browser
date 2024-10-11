@@ -55,6 +55,6 @@ actual object DeviceManage {
   actual fun deviceAppVersion(): String {
     val packageManager: PackageManager = getAppContextUnsafe().packageManager
     val packageName: String = getAppContextUnsafe().packageName
-    return packageManager.getPackageInfo(packageName, 0).versionName
+    return packageManager.getPackageInfo(packageName, 0).versionName ?: "1.0.0"
   }
 }
