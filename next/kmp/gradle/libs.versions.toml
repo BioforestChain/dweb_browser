@@ -173,13 +173,6 @@ ktor-client-encoding-wasm = { group = "io.ktor", name = "ktor-client-encoding", 
 ktor-io-wasm = { group = "io.ktor", name = "ktor-io", version.ref = "ktor-wasm-version" }
 ktor-http-wasm = { group = "io.ktor", name = "ktor-http", version.ref = "ktor-wasm-version" }
 
-# JavaScript
-kotlin-js = { group = "org.jetbrains.kotlin-wrappers", name = "kotlin-js", version = "1.0.0-pre.697" }
-kotlin-browser = { group = "org.jetbrains.kotlin-wrappers", name = "kotlin-browser", version = "1.0.0-pre.697" }
-kotlin-web = { group = "org.jetbrains.kotlin-wrappers", name = "kotlin-web", version = "1.0.0-pre.697" }
-kotlin-node = { group = "org.jetbrains.kotlin-wrappers", name = "kotlin-node", version = "20.11.5-pre.697" }
-kotlin-electron = { group = "org.jetbrains.kotlin-wrappers", name = "kotlin-electron", version = "24.6.3-pre.697" }
-
 accompanist-navigation-material = { group = "com.google.accompanist", name = "accompanist-navigation-material", version.ref = "accompanist" }
 accompanist-navigation-animation = { group = "com.google.accompanist", name = "accompanist-navigation-animation", version.ref = "accompanist" }
 accompanist-systemui-controller = { group = "com.google.accompanist", name = "accompanist-systemuicontroller", version.ref = "accompanist" }

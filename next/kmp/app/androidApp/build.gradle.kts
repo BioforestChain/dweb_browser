@@ -1,7 +1,7 @@
 import com.android.build.api.dsl.ApplicationBuildType
 import com.android.build.gradle.internal.api.ApkVariantOutputImpl
 import com.android.build.gradle.internal.tasks.FinalizeBundleTask
-import org.gradle.configurationcache.extensions.capitalized
+import org.gradle.internal.extensions.stdlib.capitalized
 import org.gradle.kotlin.dsl.support.uppercaseFirstChar
 import java.util.Properties
 

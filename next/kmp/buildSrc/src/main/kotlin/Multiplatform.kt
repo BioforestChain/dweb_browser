@@ -29,8 +29,6 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinDependencyHandler
 import org.jetbrains.kotlin.gradle.plugin.KotlinHierarchyBuilder
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import org.jetbrains.kotlin.gradle.targets.js.dsl.KotlinJsTargetDsl
-import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsExec
-import org.jetbrains.kotlin.gradle.targets.js.testing.KotlinJsTest
 import org.jetbrains.kotlin.gradle.targets.jvm.tasks.KotlinJvmTest
 import java.io.File
 import java.nio.file.Files
@@ -94,48 +92,6 @@ fun KotlinMultiplatformExtension.kmpBrowserJsTarget(
   dsl.provides(browserMain, browserTest)
 }
 
-class KmpNodeJsTargetDsl(kmpe: KotlinMultiplatformExtension) : KmpJsTargetDsl(kmpe)
-
-fun KotlinMultiplatformExtension.kmpNodeJsTarget(
-  project: Project,
-  configure: KmpNodeJsTargetDsl.() -> Unit = {},
-) {
-  if (Features.electronApp.disabled) {
-    return
-  }
-  println("kmpNodeJsTarget: ${project.name}")
-
-  val libs = project.the<LibrariesForLibs>()
-  val dsl = KmpNodeJsTargetDsl(this)
-  dsl.configure()
-
-  kmpCommonTarget(project)
-  js("node", IR) {
-    nodejs {
-      testTask {
-        useMocha {
-        }
-      }
-    }
-    useEsModules()
-    binaries.library()
-//    binaries.executable()
-    generateTypeScriptDefinitions()
-    dsl.configureJsList.forEach { it() }
-  }
-  val nodeMain = sourceSets.getByName("nodeMain") {
-    dependencies {
-      implementationProject("platformNode")
-    }
-  }
-  val nodeTest = sourceSets.getByName("nodeTest") {
-    dependencies {
-    }
-  }
-  dsl.provides(nodeMain, nodeTest)
-  project.fixJsInputFilePath()
-}
-
 fun RegularFileProperty.fixSuffix(isEsm: Boolean) {
   val inputFilePath = get().asFile.absolutePath
   if (isEsm) {
@@ -151,29 +107,6 @@ fun RegularFileProperty.fixSuffix(isEsm: Boolean) {
       fileValue(
         File(inputFilePath.replace(Regex("\\.mjs$"), ".js"))
       )
-    }
-  }
-}
-
-fun Project.fixJsInputFilePath() {
-  afterEvaluate {
-//    tasks.forEach {
-//      with(it) {
-//        if (name.contains("Test")) {
-//          println("NodeJs<${this::class.java.packageName}/${this::class.java.name}> Test ${project.name}/$name")
-//        }
-//      }
-//    }
-    tasks.withType<NodeJsExec>().all {
-      // 参考源代码进行的配置： https://github.com/JetBrains/kotlin/blob/ae09c0fb6031d653b3c975d757b3bdbd4c36a311/libraries/tools/kotlin-gradle-plugin/src/common/kotlin/org/jetbrains/kotlin/gradle/targets/js/ir/KotlinJsIrTarget.kt#L435
-      val moduleKind = npmProject.target.compilations.first().kotlinOptions.moduleKind
-      println("NodeJsExec ${project.name}/$name moduleKind=$moduleKind")
-      inputFileProperty.fixSuffix(moduleKind == "es")
-    }
-
-    tasks.withType<KotlinJsTest>().all {
-      println("KotlinJsTest ${project.name}/$name")
-      inputFileProperty.fixSuffix(false)
     }
   }
 }
@@ -213,40 +146,6 @@ fun KotlinMultiplatformExtension.kmpNodeWasmTarget(
   }
 }
 
-//const val wasiVersion = "1.8.0-RC2-wasm0"
-//
-//@OptIn(ExperimentalWasmDsl::class)
-//fun KotlinMultiplatformExtension.kmpWasiTarget(libs: LibrariesForLibs) {
-//  wasmWasi {
-//    nodejs()
-//  }
-//  sourceSets.named("wasmWasiMain") {
-//    dependencies {
-//      implementation(object : Dependency by libs.kotlinx.coroutines.core.get() {
-//        override fun getVersion(): String {
-//          return wasiVersion
-//        }
-//      })
-//    }
-//  }
-//}
-//
-//fun KotlinMultiplatformExtension.kmpWasiTest(libs: LibrariesForLibs) {
-//  sourceSets.named("wasmWasiTest") {
-//    dependencies {
-//      implementation(object : Dependency by libs.test.kotlin.coroutines.test.get() {
-//        override fun getVersion(): String {
-//          return wasiVersion
-//        }
-//      })
-//      implementation(object : Dependency by libs.test.kotlin.coroutines.debug.get() {
-//        override fun getVersion(): String {
-//          return wasiVersion
-//        }
-//      })
-//    }
-//  }
-//}
 typealias WhenProvideCallback = (sourceSet: KotlinSourceSet) -> Unit
 
 typealias KmpCommonTargetConfigure = KmpCommonTargetDsl.() -> Unit

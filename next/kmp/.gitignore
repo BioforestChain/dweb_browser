@@ -17,6 +17,5 @@ debug
 *.xcarchive
 *.xcframework
 *.link
-/kotlin-js-store/
 *.provisionprofile
 .upload-tasks.ts

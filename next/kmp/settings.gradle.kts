@@ -17,7 +17,7 @@ pluginManagement {
       }
     }
     dependencies {
-      classpath("com.android.tools:r8:8.5.35")
+      classpath("com.android.tools:r8:8.7.14") // R8 是 Android 构建工具链的一部分，用于替代 ProGuard ： 代码缩减/类重命名和优化/性能优化
     }
   }
 }
@@ -176,7 +176,7 @@ if (features.androidApp.enabled) {
 if (features.desktopApp.enabled) {
   val usePinpit = System.getProperty("usePinpit")
 
-  if(usePinpit == "true") {
+  if (usePinpit == "true") {
     includePinpitApp("desktopApp")
   } else {
     includeApp("desktopApp")
