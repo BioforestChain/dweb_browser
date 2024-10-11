@@ -8,8 +8,8 @@ enum class DEVELOPER(val deviceName: String) {
   HuangLin("HUAWEI/ELE-AL00"), //
   HLVirtual("Google/sdk_gphone64_x86_64"), //
   HLOppo("OPPO/PGJM10"), //
-  HBXiaomi("Xiaomi/2209129SC"), // 海兵测试机
-  ZGSansung("samsung/SM-A5360"),// 专桂测试机
+  HBXiaomi("Xiaomi/2209129SC"),
+  ZGSansung("samsung/SM-A5360"),
   WaterBang("HONOR/ADT-AN00"), //
   Kingsword09("HUAWEI/BKL-AL20"), //
   KVirtual("Google/sdk_gphone64_arm64"), //
