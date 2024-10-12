@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import node_path from "node:path";
-import { WalkFiles, WalkOptions } from "./WalkDir.ts";
+import { WalkFiles, type WalkOptions } from "./WalkDir.ts";
 
 export const calcDirHash = (srcDir: string, options?: WalkOptions & { reason?: string }) => {
   const hashBuilder = crypto.createHash("sha256");

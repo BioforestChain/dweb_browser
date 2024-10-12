@@ -76,8 +76,8 @@ importers:
         specifier: ~0.18.0
         version: 0.18.2
       '@dweb-browser/svg-wasm':
-        specifier: ^0.6.0
-        version: 0.6.0
+        specifier: ^0.7.0
+        version: 0.7.0
       '@plaoc/server':
         specifier: workspace:~
         version: link:../@plaoc__server
@@ -433,8 +433,8 @@ packages:
   '@deno/shim-deno@0.18.2':
     resolution: {integrity: sha512-oQ0CVmOio63wlhwQF75zA4ioolPvOwAoK0yuzcS5bDC1JUvH3y1GS8xPh8EOpcoDQRU4FTG8OQfxhpR+c6DrzA==}
 
-  '@dweb-browser/svg-wasm@0.6.0':
-    resolution: {integrity: sha512-u5rMUZ37hU9mToHxYotC+rnfcrccFokTL3QFwFHKO7XL5s4hC0AzrfGkpazaCg4ZuWSAabvq8J1BHLezP8rhZw==}
+  '@dweb-browser/svg-wasm@0.7.0':
+    resolution: {integrity: sha512-fWFLx/wPct/G5z6k5VuNd31vssPD8st0C3AIxkx8F7xDlXc5oc1/uQfZDbJFSS1Cgu/jyO8bGzqDU5dLLF9Yxw==}
 
   '@dweb-browser/zstd-wasm@0.0.2':
     resolution: {integrity: sha512-HDW08Fi7A4lr0rBIJMn820SjNj5sr0yCKTxn/MBpdS9qTJapl+VDdEbLMA3bwK2hhRVy3vdorJlOk8v17Fr4jQ==}
@@ -2381,7 +2381,7 @@ snapshots:
       '@deno/shim-deno-test': 0.5.0
       which: 4.0.0
 
-  '@dweb-browser/svg-wasm@0.6.0': {}
+  '@dweb-browser/svg-wasm@0.7.0': {}
 
   '@dweb-browser/zstd-wasm@0.0.2': {}
 

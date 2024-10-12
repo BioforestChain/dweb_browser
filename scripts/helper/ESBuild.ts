@@ -44,7 +44,7 @@ export class ESBuild {
       }
       importMapURL = importMapURL ? await importMapResolver(importMapURL) : importMapURL;
 
-      const esbuild_deno_loader = await import("https://deno.land/x/esbuild_deno_loader@0.9.0/mod.ts");
+      const esbuild_deno_loader = await import("jsr:@luca/esbuild-deno-loader");
       plugins.push(
         {
           name: "the-npm-plugin",
@@ -176,7 +176,7 @@ export type $ESBuildWatchYield = {
 if (import.meta.main) {
   const path = await import("node:path");
   const { Flags } = await import("../deps.ts");
-  const args = Flags.parse(Deno.args, {
+  const args = Flags.parseArgs(Deno.args, {
     collect: ["input"],
     string: ["outfile", "importMap", "tsconfig-raw"],
     default: { outfile: "index.js" },

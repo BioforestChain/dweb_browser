@@ -1,6 +1,6 @@
-import { walk } from "https://deno.land/std@0.174.0/fs/mod.ts";
-import { dirname } from "https://deno.land/std@0.174.0/path/mod.ts";
-import { parse } from "https://deno.land/std@0.174.0/encoding/yaml.ts";
+import { walk } from "jsr:@std/fs";
+import { dirname } from "jsr:@std/path";
+import { parse } from "jsr:@std/jsonc";
 
 const config = parse(await Deno.readTextFile("deno.jsonc")) as { imports: Record<string, string> };
 

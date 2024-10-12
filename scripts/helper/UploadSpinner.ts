@@ -1,4 +1,4 @@
-import * as colors from "@std/fmt/colors";
+import * as colors from "jsr:@std/fmt/colors";
 import ora, { type Options } from "npm:ora";
 import prettyBytes from "npm:pretty-bytes";
 import { StdinDiscarder } from "./StdinDiscarder.ts";

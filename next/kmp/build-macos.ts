@@ -1,9 +1,5 @@
-import {
-  Confirm,
-  prompt,
-  Select
-} from "https://deno.land/x/cliffy@v1.0.0-rc.4/prompt/mod.ts";
-import { DOMParser } from "https://deno.land/x/deno_dom/deno-dom-wasm.ts";
+import { Confirm, prompt, Select } from "@cliffy/prompt";
+import { DOMParser } from "jsr:@b-fuze/deno-dom";
 import fs from "node:fs";
 import os from "node:os";
 import { $ } from "../../scripts/helper/exec.ts";
@@ -182,7 +178,7 @@ if (import.meta.main) {
       name: "arch",
       message: "请选择CPU架构",
       type: Select,
-      options: ["x86_64", "arm64"]
+      options: ["x86_64", "arm64"],
     },
     {
       name: "package",
@@ -198,16 +194,16 @@ if (import.meta.main) {
       name: "upload",
       message: "是否上传",
       type: Confirm,
-    }
+    },
   ]);
 
   const arch = promptResult.arch ?? "";
-  
-  if(promptResult.package) {
+
+  if (promptResult.package) {
     await doRelease(arch);
   }
 
-  if(promptResult.notarization) {
+  if (promptResult.notarization) {
     const result = await doNotarization(arch);
 
     if (result && promptResult.upload) {

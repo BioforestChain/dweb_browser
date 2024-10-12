@@ -1,3 +1,4 @@
+import { type Writer } from "jsr:@std/io/types";
 import { whichSync } from "jsr:@david/which";
 import node_path from "node:path";
 import process from "node:process";
@@ -37,7 +38,7 @@ const getArgs = (args?: string[] | string) =>
 class TaskLogger extends WritableStream<string> {
   constructor(
     prefix: string,
-    readonly writter: Deno.Writer,
+    readonly writter: Writer,
     logTransformer: $LogTransformer = (log) => log,
     logLineFilter: $LogLineFilter = (_line) => true
   ) {
