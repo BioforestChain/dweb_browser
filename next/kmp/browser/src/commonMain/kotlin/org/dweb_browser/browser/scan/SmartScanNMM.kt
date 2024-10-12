@@ -3,16 +3,17 @@ package org.dweb_browser.browser.scan
 import io.ktor.http.HttpStatusCode
 import io.ktor.utils.io.CancellationException
 import org.dweb_browser.browser.BrowserI18nResource
-import org.dweb_browser.browser.desk.openAppOrActivate
 import org.dweb_browser.core.help.types.DwebPermission
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.permission.AuthorizationStatus
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.DisplayMode
 import org.dweb_browser.helper.ImageResource
+import org.dweb_browser.helper.buildUrlString
 import org.dweb_browser.helper.listen
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.sys.permission.SystemPermissionName
@@ -105,7 +106,9 @@ class SmartScanNMM : NativeMicroModule("scan.browser.dweb", "Smart Scan") {
         ipc.onEvent("shortcut-open").collect {
           debugSCAN("shortcut-open", "open scan => from=${ipc.remote.mmid}, name=${it.data.name}")
           if (it.data.name == "shortcut-open") {
-            openAppOrActivate(this.mmid) // 打开界面
+            nativeFetch(buildUrlString("file://desk.browser.dweb/openAppOrActivate") {
+              parameters["app_id"] = mmid
+            })
           }
         }
       }

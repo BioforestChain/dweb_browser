@@ -210,13 +210,15 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
 
 expect suspend fun DeskNMM.DeskRuntime.startDeskView(deskSessionId: String)
 
-suspend fun NativeMicroModule.NativeRuntime.openAppOrActivate(mmid: MMID) {
+/**打开或激活app*/
+internal suspend fun NativeMicroModule.NativeRuntime.openAppOrActivate(mmid: MMID) {
   nativeFetch(buildUrlString("file://desk.browser.dweb/openAppOrActivate") {
     parameters["app_id"] = mmid
   })
 }
 
-suspend fun NativeMicroModule.NativeRuntime.closeApp(mmid: MMID) {
+/**关闭app*/
+internal suspend fun NativeMicroModule.NativeRuntime.closeApp(mmid: MMID) {
   nativeFetch(buildUrlString("file://desk.browser.dweb/closeApp") {
     parameters["app_id"] = mmid
   })
