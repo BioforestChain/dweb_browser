@@ -6,9 +6,16 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.By
+import androidx.test.uiautomator.BySelector
+import androidx.test.uiautomator.Direction
+import androidx.test.uiautomator.UiDevice
+import androidx.test.uiautomator.UiScrollable
+import androidx.test.uiautomator.UiSelector
+import androidx.test.uiautomator.Until
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.util.concurrent.TimeUnit
 
 /**
  * This test class generates a basic startup baseline profile for the target package.
@@ -63,61 +70,78 @@ class BaselineProfileGenerator {
       }
 
       device.waitForIdle()
+
       /// open webNmm
-      device.click(450, 550)
-      device.waitForIdle()
+      device.bySelectorClick(By.desc("desk:web.browser.dweb"))
 
-      /// goto web page
-      Thread.sleep(100)
-      device.click(450, 1080)
-      device.waitForIdle()
-      Thread.sleep(100)
-      device.pressKeyCodes("dwebdapp.com".map { it.toKeyCode() }.toIntArray())
+      /// 点击输入框
+      device.bySelectorClick(By.text("Home Page|起始页".toPattern()))
+
+      /// 清空输入框
+      device.bySelectorClick(By.desc("Clear Input Text"))
+
+      /// 输入测试地址
+      device.pressKeyCodes("test.dwebdapp.com".map { it.toKeyCode() }.toIntArray())
       device.pressEnter()
-      Thread.sleep(8000)
 
-      /// install app
-      device.click(700, 970)
-      device.waitForIdle()
-      Thread.sleep(1500)
-      device.swipe(560, 1260, 560, 200, 20)
-      device.waitForIdle()
-      Thread.sleep(800)
-      device.click(560, 2170)
-      Thread.sleep(12000)
-      device.waitForIdle()
+      //#region 等待网页加载完成，点击COT下载
+      device.wait(Until.findObject(By.text("ETHMeta")), 1000)
+      /// 滚动网页
+      val scrollable = UiScrollable(UiSelector().scrollable(true))
+      scrollable.scrollBackward()
+      /// 等待滚动结束
+      device.performActionAndWait({}, Until.scrollFinished(Direction.DOWN), 1000)
+      /// 点击COT
+      device.bySelectorClick(By.text("COT"))
+      /// 下载
+      device.bySelectorClick(By.text("Install|安装".toPattern()), 2000)
+      //#endregion
 
-      /// open app
-      device.waitForIdle()
-      device.click(560, 2170)
-      device.waitForIdle()
-      Thread.sleep(2000)
+      /// 下载完成后，打开COT
+      device.bySelectorClick(By.text("Open|打开".toPattern()), 300000)
 
-      /// app max->float
-      device.click(935, 2170)
-      device.waitForIdle()
-      Thread.sleep(200)
+      /// 强行等待两秒，等待COT打开完毕，
+      device.waitForIdle(5000)
+      val cotSelector = By.desc("taskbar:alphabfmeta.info.dweb")
+      /// 先点击展开taskbar
+      device.bySelectorClick(cotSelector)
+      device.waitForIdle(2000)
+      /// 双击将窗口变为浮动窗口
+      device.bySelectorClick(cotSelector, clickType = ClickType.DOUBLE_CLICK)
+      device.waitForIdle(3000)
+      /// 长按
+      device.bySelectorClick(cotSelector, clickType = ClickType.LONG_CLICK)
+      device.waitForIdle(3000)
+      /// 退出应用
+      device.bySelectorClick(cotSelector)
 
-      /// kill app
-      device.swipe(1000, 800, 1000, 800, 100)
-      Thread.sleep(100)
-      device.click(1000, 800)
-      Thread.sleep(200)
-
-      /// move window
-      device.click(445, 240)
-      device.drag(445, 240, 560, 1150, 50)
-      Thread.sleep(1000)
-
-      /// kill webNmm
-      device.swipe(1000, 800, 1000, 800, 100)
-      Thread.sleep(100)
-      device.click(1000, 800)
-      Thread.sleep(200)
-
-      // pressHome()
+      pressHome()
       // Check UiAutomator documentation for more information how to interact with the app.
       // https://d.android.com/training/testing/other-components/ui-automator
+    }
+  }
+}
+
+private enum class ClickType {
+  CLICK,
+  LONG_CLICK,
+  DOUBLE_CLICK
+}
+
+private fun UiDevice.bySelectorClick(
+  selector: BySelector,
+  duration: Long = 1000,
+  clickType: ClickType = ClickType.CLICK
+) {
+  wait(Until.hasObject(selector), TimeUnit.SECONDS.toMillis(duration))
+  when (clickType) {
+    ClickType.CLICK -> findObject(selector).click()
+    ClickType.LONG_CLICK -> findObject(selector).longClick()
+    ClickType.DOUBLE_CLICK -> {
+      /// 模拟双击
+      findObject(selector).click()
+      Thread.sleep(50)
+      findObject(selector).click()
     }
   }
 }
