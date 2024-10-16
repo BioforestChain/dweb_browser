@@ -39,7 +39,7 @@ kotlin {
   }
   sourceSets.create("skikoMain") {
     dependencies {
-      implementation(projects.libKeychainstore)
+      implementation(libs.dweb.keychainstore)
     }
   }
 

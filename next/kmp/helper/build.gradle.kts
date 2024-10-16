@@ -12,7 +12,7 @@ kotlin {
       api(libs.ktor.http)
       api(libs.ktor.io)
       implementation(libs.squareup.okio)
-      api(projects.libMixCompression)
+      api(libs.dweb.mix.compression)
     }
   }
 

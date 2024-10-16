@@ -183,22 +183,3 @@ if (features.desktopApp.enabled) {
   }
 }
 
-if (features.extlibs.enabled) {
-  File(
-    rootDir,
-    "../../toolkit/dweb_browser_libs/rust_library"
-  ).listFiles { file -> file.isDirectory }
-    ?.forEach { dir ->
-      if (File(dir, "build.gradle.kts").exists()) {
-        if (dir.name == "biometrics" && features.desktopApp.disabled) {
-          return@forEach
-        }
-        include(dir.name)
-        project(":${dir.name}").apply {
-          name = "lib_${dir.name}"
-          projectDir = file(dir)
-          buildFileName = "build-mobile.gradle.kts"
-        }
-      }
-    }
-}

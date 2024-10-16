@@ -51,7 +51,7 @@ kotlin {
   kmpIosTarget(project) {
     dependencies {
       //解压缩
-      implementation(projects.libZiplib)
+      implementation(libs.dweb.ziplib)
     }
   }
   kmpDesktopTarget(project)

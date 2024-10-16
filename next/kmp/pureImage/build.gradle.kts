@@ -13,7 +13,7 @@ kotlin {
       implementation(projects.helperCompose)
       implementation(projects.pureIO)
       implementation(projects.pureHttp)
-      implementation(projects.libResvgRender)
+      implementation(libs.dweb.resvg.render)
 
       // 加载图片 coil
       api(libs.coil.core) // 为了给其他模块直接应用 MimeType 获取的方法

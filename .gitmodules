@@ -1,6 +1,3 @@
-[submodule "toolkit/dweb_browser_libs"]
-	path = toolkit/dweb_browser_libs
-	url = https://github.com/BioforestChain/dweb_browser_libs.git
 [submodule "toolkit/dweb_html5test"]
 	path = toolkit/dweb_html5test
 	url = https://github.com/BioforestChain/dweb_html5test.git

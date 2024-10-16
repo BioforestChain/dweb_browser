@@ -46,8 +46,8 @@ kotlin {
   kmpDesktopTarget(project) {
     dependencies {
       // 不直接使用 projects.*，因为如果 disabled 了 desktop，那么就会解析不过
-      implementation(project(":lib_biometrics"))
-      implementation(project(":lib_hardware_info"))
+      implementation(libs.dweb.biometrics)
+      implementation(libs.dweb.hardware.info)
 
       // 文件选择器
       api(libs.filekit.compose)
@@ -55,7 +55,7 @@ kotlin {
   }
   sourceSets.create("nativeJvmMain") {
     dependencies {
-      implementation(project(":lib_keychainstore"))
+      implementation(libs.dweb.keychainstore)
     }
   }
 

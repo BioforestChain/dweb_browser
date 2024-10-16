@@ -34,7 +34,7 @@ kotlin {
   kmpIosTarget(project)
   kmpDesktopTarget(project) {
     dependencies {
-      implementation(projects.libResvgRender)
+      implementation(libs.dweb.resvg.render)
     }
   }
 

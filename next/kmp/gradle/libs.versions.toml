@@ -78,6 +78,8 @@ log4j12 = "2.0.12"
 
 filekit = "0.8.0"
 
+dweb-version = "1.0.0"
+
 [libraries]
 
 # Compose
@@ -244,6 +246,16 @@ google-devtools-ksp = { group = "com.google.devtools.ksp", name = "symbol-proces
 
 # 解析plist文件
 dd-plist = { group = "com.googlecode.plist", name = "dd-plist", version = "1.28" }
+
+# dweb library
+dweb-biometrics = { group = "io.github.dweb-channel", name = "lib_biometrics", version.ref = "dweb-version" }
+dweb-ziplib = { group = "io.github.dweb-channel", name = "lib_ziplib", version.ref = "dweb-version" }
+dweb-reverse-proxy = { group = "io.github.dweb-channel", name = "lib_reverse_proxy", version.ref = "dweb-version" }
+dweb-hardware-info = { group = "io.github.dweb-channel", name = "lib_hardware_info", version.ref = "dweb-version" }
+dweb-keychainstore = { group = "io.github.dweb-channel", name = "lib_keychainstore", version.ref = "dweb-version" }
+dweb-mix-compression = { group = "io.github.dweb-channel", name = "lib_mix_compression", version.ref = "dweb-version" }
+dweb-multipart = { group = "io.github.dweb-channel", name = "lib_multipart", version.ref = "dweb-version" }
+dweb-resvg-render = { group = "io.github.dweb-channel", name = "lib_resvg_render", version.ref = "dweb-version" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
