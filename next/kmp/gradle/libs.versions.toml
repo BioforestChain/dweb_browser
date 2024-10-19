@@ -53,6 +53,7 @@ commons-compress = "1.26.1"
 jetbrains-compose-version = "1.7.0"
 jetbrains-androidx-navigation-version = "2.8.0-alpha10"
 jetbrains-compose-material3-adaptive-version = "1.0.0-alpha03"
+jetbrains-compose-hot-reload-version = "1.0.0-dev.16"
 
 # 测试
 test-junit = "5.10.1"
@@ -266,6 +267,6 @@ kotlinxMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref 
 kotlinPluginSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin-version" }
 kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin-version" }
 composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin-version" }
-
+jetbrainsComposeHotReload = { id = "org.jetbrains.compose-hot-reload", version.ref = "jetbrains-compose-hot-reload-version" }
 
 [bundles]

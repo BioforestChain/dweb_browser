@@ -189,13 +189,15 @@ class PureViewController(
       }
     }
 
-    suspend fun startApplication(extContent: @Composable ApplicationScope.() -> Unit = {}) =
+    suspend fun startApplication(hotReload: @Composable (@Composable () -> Unit) -> Unit = {}, extContent: @Composable ApplicationScope.() -> Unit = {}) =
       awaitApplication {
-        Prepare()
-        Contents()
-        Windows()
-        extContent()
-        CaptureWindow()
+        hotReload {
+          Prepare()
+          Contents()
+          Windows()
+          extContent()
+          CaptureWindow()
+        }
       }
 
     /**

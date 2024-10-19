@@ -1,8 +1,10 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+import org.jetbrains.compose.reload.ComposeHotRun
 
 plugins {
   id("target-compose")
   id("target-common")
+  alias(libs.plugins.jetbrainsComposeHotReload)
 }
 
 apply("./build-version.gradle.kts")
@@ -134,6 +136,12 @@ compose.desktop {
     }
   }
 }
+
+///#region 热重载
+composeHotReload {
+  useJetBrainsRuntime = true
+}
+///#endregion
 
 // 用于启动桌面应用时注入key
 afterEvaluate {

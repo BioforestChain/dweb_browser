@@ -8,6 +8,8 @@ pluginManagement {
     }
     gradlePluginPortal()
     mavenCentral()
+    /// 桌面端热重载
+    maven(url = "https://repo.sellmair.io")
   }
   buildscript {
     repositories {
@@ -44,6 +46,9 @@ dependencyResolutionManagement {
      */
     maven("https://us-maven.pkg.dev/jxbrowser/releases")
     maven("https://europe-maven.pkg.dev/jxbrowser/eaps")
+
+    /// 桌面端热重载
+    maven(url = "https://repo.sellmair.io")
   }
 }
 //apply(from = "gradle/features.gradle.kts")

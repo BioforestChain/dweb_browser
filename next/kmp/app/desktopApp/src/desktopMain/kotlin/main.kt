@@ -18,6 +18,7 @@ import org.dweb_browser.helper.platform.PureViewController
 import org.dweb_browser.helper.platform.webViewEngine
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.pure.image.compose.rememberOffscreenWebCanvas
+import org.jetbrains.compose.reload.HotReload
 import kotlin.system.exitProcess
 
 suspend fun main(vararg args: String) {
@@ -67,7 +68,7 @@ suspend fun main(vararg args: String) {
       startDwebBrowser(System.getenv("debug") ?: System.getProperty("debug"))
     }
     // 启动“应用”
-    PureViewController.startApplication {}
+    PureViewController.startApplication(hotReload = { content -> HotReload(content) }) {}
     dnsNMMDeferred.await().runtimeOrNull?.shutdown()
   } catch (e: Exception) {
     WARNING("global catch error : ${e.stackTraceToString()}")
