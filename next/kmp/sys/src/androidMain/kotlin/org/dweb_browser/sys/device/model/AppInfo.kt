@@ -3,6 +3,7 @@ package org.dweb_browser.sys.device.model
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
+import android.os.Build
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -30,8 +31,12 @@ class AppInfo {
     get() {
       val pInfo: PackageInfo
       return try {
-        pInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-        pInfo.versionName
+        pInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+          context.packageManager.getPackageInfo(packageName, PackageManager.PackageInfoFlags.of(0))
+        } else {
+          context.packageManager.getPackageInfo(packageName, 0)
+        }
+        pInfo.versionName ?: "0.0.0-dev.0"
       } catch (e: Throwable) {
         "1.0.0"
       }

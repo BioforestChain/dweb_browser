@@ -1,12 +1,11 @@
 package org.dweb_browser.sys.device
 
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Environment
 import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.getAppContextUnsafe
 import org.dweb_browser.helper.randomUUID
-import org.dweb_browser.sys.device.model.DeviceData
-import org.dweb_browser.sys.device.model.DeviceInfo
 import java.io.File
 
 data class AndroidHardwareInfo(
@@ -55,6 +54,11 @@ actual object DeviceManage {
   actual fun deviceAppVersion(): String {
     val packageManager: PackageManager = getAppContextUnsafe().packageManager
     val packageName: String = getAppContextUnsafe().packageName
-    return packageManager.getPackageInfo(packageName, 0).versionName
+
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+      packageManager.getPackageInfo(packageName, PackageManager.PackageInfoFlags.of(0))
+    } else {
+      packageManager.getPackageInfo(packageName, 0)
+    }.versionName ?: "0.0.0-dev.0"
   }
 }
