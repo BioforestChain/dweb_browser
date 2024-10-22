@@ -3,16 +3,11 @@ tags:
     - deep_link_install
     - plaoc_plugins
 jsEngine: graaljs
+onFlowStart:
+    - runFlow: launch_clear_state.yaml
+onFlowComplete:
+    - stopApp: ${MAESTRO_APP_ID}
 ---
-- runFlow:
-    when: 
-        platform: Android
-    file: ../android/launch_clear_state.yaml
-- runFlow:
-    when: 
-        platform: iOS
-    file: ../ios/launch_clear_state.yaml
-
 - tapOn: desk:search
 - runScript: ../scripts/plaoc_plugins_serve_input.js
 - inputText: ${output.dwebLink}
@@ -25,5 +20,3 @@ jsEngine: graaljs
 - waitForAnimationToEnd:
     timeout: 2000
 - tapOn: Maximizes the window
-
-- stopApp: ${MAESTRO_APP_ID}

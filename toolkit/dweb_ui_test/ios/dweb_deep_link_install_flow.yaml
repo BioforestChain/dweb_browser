@@ -2,7 +2,6 @@ appId: ${MAESTRO_APP_ID}
 tags:
     - deep_link_install
 ---
-- runFlow: launch_clear_state.yaml
 - tapOn: desk:search
 - inputText: https://test.dwebdapp.com
 - pressKey: Enter
@@ -19,6 +18,3 @@ tags:
     optional: true
 - longPressOn: taskbar:alphabfmeta.info.dweb
 - tapOn: taskbar:alphabfmeta.info.dweb
-
-- stopApp: ${MAESTRO_APP_ID}
-

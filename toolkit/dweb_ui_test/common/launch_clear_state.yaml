@@ -1,0 +1,12 @@
+appId: ${MAESTRO_APP_ID}
+tags:
+    - launch
+---
+- runFlow:
+    when: 
+        platform: Android
+    file: ../android/launch_clear_state.yaml
+- runFlow:
+    when: 
+        platform: iOS
+    file: ../ios/launch_clear_state.yaml

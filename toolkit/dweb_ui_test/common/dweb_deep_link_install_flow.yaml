@@ -1,6 +1,10 @@
 appId: ${MAESTRO_APP_ID}
 tags:
     - deep_link_install
+onFlowStart:
+    - runFlow: launch_clear_state.yaml
+onFlowComplete:
+    - stopApp: ${MAESTRO_APP_ID}
 ---
 - runFlow:
     when: 
@@ -10,6 +14,4 @@ tags:
     when: 
         platform: iOS
     file: ../ios/dweb_deep_link_install_flow.yaml
-
-- stopApp: ${MAESTRO_APP_ID}
 
