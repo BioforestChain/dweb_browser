@@ -1,4 +1,4 @@
-import { Checkbox, prompt, Select } from "jsr:@cliffy/prompt@1.0.0-rc.5";
+import { Checkbox, prompt, Select } from "jsr:@cliffy/prompt@1.0.0-rc.7";
 import { createBaseResolveTo } from "../../scripts/helper/resolveTo.ts";
 import { getDevices } from "./utils/device.ts";
 import { getLocalIp } from "./utils/localIp.ts";
@@ -35,7 +35,7 @@ if (import.meta.main) {
         if (tags && tags.includes("plaoc_plugins")) {
           addr = await getLocalIp();
         }
-        await next()
+        await next();
       },
     },
   ]);

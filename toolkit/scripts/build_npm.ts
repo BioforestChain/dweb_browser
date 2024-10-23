@@ -93,7 +93,7 @@ export const plaocCli = registryNpmBuilder({
     ],
     filterDiagnostic(diagnostic) {
       const fileName = diagnostic.file?.fileName;
-      if (fileName && fileName.endsWith("_generic_list.ts")) {
+      if ((fileName && fileName.endsWith("_generic_list.ts")) || fileName.endsWith("provider.ts")) {
         return false; // ignore all diagnostics in this file
       }
       // etc... more checks here

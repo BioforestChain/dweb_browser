@@ -13,6 +13,7 @@ const getChannelName = (channel?: string) => {
   if (channel === undefined) {
     return "stable" as $ChannelName;
   }
+  // deno-lint-ignore no-explicit-any
   if (!safeChannels.includes(channel as any)) {
     throw new Error(`invalid channel=${channel}`);
   }
@@ -53,7 +54,7 @@ const doBundle = async (channel: $ChannelName) => {
 const BUILD_APK_OUTPUT_DIR = resolveTo("./app/androidApp/build/outputs/apk");
 const BUILD_AAB_OUTPUT_DIR = resolveTo("./app/androidApp/build/outputs/bundle");
 
-const doCleanBuildDIR = async () => {
+const doCleanBuildDIR = () => {
   console.log("清空编译目录，避免旧数据干扰...");
   if (fs.existsSync(BUILD_APK_OUTPUT_DIR)) {
     Deno.removeSync(BUILD_APK_OUTPUT_DIR, { recursive: true });
@@ -116,7 +117,7 @@ const doCopy = async (versionName: string, channelName: $ChannelName) => {
 console.log(`All required APKs have been copied to ${OUTPUT_DIR}`);
 
 // 异步读取并升级版本信息
-const upgradeVersionInfo = async (filePath: string, forceUpdate = false) => {
+const upgradeVersionInfo = (filePath: string, forceUpdate = false) => {
   try {
     // 读取文件内容
     const content = fs.readFileSync(filePath, "utf-8");

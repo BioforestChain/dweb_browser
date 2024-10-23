@@ -1,8 +1,15 @@
-export { colors } from "jsr:@cliffy/ansi@1.0.0-rc.5/colors";
-export { Command, EnumType, Type, ValidationError, type ArgumentValue } from "jsr:@cliffy/command@1.0.0-rc.5";
-export { Checkbox } from "jsr:@cliffy/prompt@1.0.0-rc.5/checkbox";
-export { Confirm } from "jsr:@cliffy/prompt@1.0.0-rc.5/confirm";
-export { Input } from "jsr:@cliffy/prompt@1.0.0-rc.5/input";
-export { Number as NumberPrompt } from "jsr:@cliffy/prompt@1.0.0-rc.5/number";
-export { prompt } from "jsr:@cliffy/prompt@1.0.0-rc.5/prompt";
-
+export { colors } from "https://deno.land/x/cliffy@v1.0.0-rc.4/ansi/colors.ts";
+export {
+  Command,
+  EnumType,
+  Type,
+  ValidationError,
+  type ArgumentValue,
+} from "https://deno.land/x/cliffy@v1.0.0-rc.4/command/mod.ts";
+export {
+  Checkbox,
+  Confirm,
+  Input,
+  Number as NumberPrompt,
+  prompt,
+} from "https://deno.land/x/cliffy@v1.0.0-rc.4/prompt/mod.ts";

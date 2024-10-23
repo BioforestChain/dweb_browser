@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "@plaoc/server": "workspace:~",
-    "@dweb-browser/svg-wasm": "^0.7.0"
+    "@dweb-browser/svg-wasm": "^0.9.0"
   },
   "devDependencies": {
     "@types/ws": "^8.5.12"
