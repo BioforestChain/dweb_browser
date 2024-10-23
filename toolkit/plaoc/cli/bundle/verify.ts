@@ -25,7 +25,11 @@ export const verifySvg = async (sourcePath: string) => {
               );
             console.log(colors.yellow(`⚠️ ${fullPath}`));
             first = false;
-            await convertSvgToWebp(fullPath, svg_buffer);
+            try {
+              await convertSvgToWebp(fullPath, svg_buffer);
+            } catch {
+              console.log(colors.yellow(`⚠️请在代码替换资源之后重新打包！`));
+            }
           }
         }
       }
