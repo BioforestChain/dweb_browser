@@ -1,4 +1,4 @@
-import { Confirm, prompt, Select } from "@cliffy/prompt";
+import { Confirm, prompt, Select } from "jsr:@cliffy/prompt@1.0.0-rc.7";
 import { DOMParser } from "jsr:@b-fuze/deno-dom";
 import fs from "node:fs";
 import os from "node:os";
