@@ -13,7 +13,7 @@ export const verifySvg = async (sourcePath: string) => {
     // 递归遍历目录
     const traverseDirectory = async (dirPath: string) => {
       for (const entry of Deno.readDirSync(dirPath)) {
-        const fullPath = new URL(`${dirPath}/${entry.name}`, "file://").pathname;
+        const fullPath = path.resolve(dirPath, entry.name);
         if (entry.isDirectory) {
           // 如果是目录，递归遍历
           traverseDirectory(fullPath);
@@ -38,7 +38,7 @@ export const verifySvg = async (sourcePath: string) => {
     };
 
     // 执行递归遍历
-    await traverseDirectory(fileURLToPath(import.meta.resolve(path.resolve(Deno.cwd(), sourcePath))));
+    await traverseDirectory(path.resolve(Deno.cwd(), sourcePath));
   } catch (error) {
     console.error("Error reading directory:", error);
     return false;
