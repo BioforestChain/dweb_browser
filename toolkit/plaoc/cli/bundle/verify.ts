@@ -1,3 +1,5 @@
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { detect_svg_render, svg_to_webp } from "npm:@dweb-browser/svg-wasm";
 import { colors } from "../deps/cliffy.ts";
 import "../platform/initWasm.deno.ts";
@@ -36,7 +38,7 @@ export const verifySvg = async (sourcePath: string) => {
     };
 
     // 执行递归遍历
-    await traverseDirectory(new URL(`${Deno.cwd()}/${sourcePath}`, "file://").pathname);
+    await traverseDirectory(fileURLToPath(import.meta.resolve(path.resolve(Deno.cwd(), sourcePath))));
   } catch (error) {
     console.error("Error reading directory:", error);
     return false;
