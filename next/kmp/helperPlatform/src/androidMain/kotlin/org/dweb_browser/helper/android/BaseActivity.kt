@@ -26,7 +26,9 @@ abstract class BaseActivity : ComponentActivity() {
     init {
       activity.queueResultLauncherRegistries.add {
         launcher = activity.registerForActivityResult(contract) {
-          tasks.removeFirst().resolve(it)
+          /// see https://youtrack.jetbrains.com/issue/KT-71375/Prevent-Kotlins-removeFirst-and-removeLast-from-causing-crashes-on-Android-14-and-below-after-upgrading-to-Android-API-Level-35
+          tasks.removeAt(0).resolve(it)
+//          tasks.removeFirst().resolve(it)
         }
       }
     }
