@@ -16,6 +16,7 @@ export const checkVersion = async (cwd: string, target: { name: string; version:
     .spawn()
     .output();
   const packageInfo = JSON.parse(new TextDecoder().decode(output.stdout));
+  if (packageInfo.error) return false;
   if (packageInfo.versions.includes(packageJson.version)) {
     console.warn(
       picocolors.yellow(
