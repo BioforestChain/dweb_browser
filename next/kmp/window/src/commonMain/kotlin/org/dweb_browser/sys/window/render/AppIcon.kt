@@ -98,6 +98,8 @@ data class AppIconContainer(
     else -> copy(color = color.copy(alpha = alpha))
   }
 
+  fun withColorAndAlpha(color: Color? = null, alpha: Float? = null) = copy(color = color, alpha = alpha)
+
   @Composable
   fun Render(
     modifier: Modifier = Modifier,
@@ -144,6 +146,8 @@ data class AppLogo(
   val safeMonochrome get() = monochrome ?: false
   val safeDescription get() = description ?: "logo"
   val safeColor @Composable get() = color ?: LocalContentColor.current
+
+  fun withColor(color: Color? = null) = copy(color = color)
 
   companion object {
     val defaultSize = 64.dp

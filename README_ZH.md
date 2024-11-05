@@ -12,7 +12,7 @@
 
 [ENGLISH DOC](./README.md) ｜ [Welcome to Dweb Browser discord](https://discord.gg/nBPgPzPbgX)
 
-dweb-browser 是一个遵循 Dweb 标准构建起来的浏览器平台，并将浏览器的能力、以及浏览器相关的系统原生系统能力通过各种 dweb 模块暴露出来。目前我们实现了 Android、IOS、MacOS、Windows 这些主流平台的支持。
+dweb-browser 是一个遵循 Dweb 标准构建起来的浏览器平台，并将浏览器的能力、以及浏览器相关的系统原生系统能力通过各种 dweb 模块暴露出来。目前我们实现了 Android、iOS、MacOS、Windows 这些主流平台的支持。
 
 我们将安装到 `Dweb Browser`中的 app 定义为`dweb app`。通过简单的一个配置文件，就可以将您的 `web app`快速的安装到各个平台当中。
 如何开始开发：[流程](https://docs.dweb-browser.org/plaoc/flow.html)。

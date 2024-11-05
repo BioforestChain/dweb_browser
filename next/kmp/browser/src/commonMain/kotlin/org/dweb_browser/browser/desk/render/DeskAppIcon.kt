@@ -9,7 +9,7 @@ import org.dweb_browser.sys.window.render.AppLogo
 
 @Composable
 fun AppLogo.toDeskAppLogo() = remember(this) { copyToDeskAppLogo() }
-fun AppLogo.copyToDeskAppLogo() = if (color == null) copy(color = Color.Black) else this
+fun AppLogo.copyToDeskAppLogo() = if (color == null) withColor(color = Color.Black) else this
 
 @Composable
 fun AppLogo.toDeskAppIcon(
@@ -24,7 +24,7 @@ fun AppLogo.toDeskAppIcon(
         alpha = containerAlpha ?: deskIconAlpha
       )
 
-      else -> containerBase.copy(
+      else -> containerBase.withColorAndAlpha(
         color = containerColor ?: Color.White,
         alpha = containerAlpha ?: deskIconAlpha
       )
@@ -33,7 +33,7 @@ fun AppLogo.toDeskAppIcon(
 
 @Composable
 fun AppIcon.toDeskAppIcon() =
-  logo.toDeskAppLogo().toIcon(container.copy(color = Color.White, alpha = deskIconAlpha))
+  logo.toDeskAppLogo().toIcon(container.withColorAndAlpha(color = Color.White, alpha = deskIconAlpha))
 
 internal val deskIconAlpha = when {
   canSupportModifierBlur() -> 0.9f

@@ -12,7 +12,7 @@
 
 [ZH DOC](./README_ZH.md) ｜ [Welcome to Dweb Browser discord](https://discord.gg/nBPgPzPbgX)
 
-dweb-browser is a browser platform built in accordance with Dweb standards, and exposes the capabilities of the browser and the native system capabilities of the browser through various dweb modules. Currently, we have implemented support for mainstream platforms such as Android, IOS, MacOS, and Windows.
+dweb-browser is a browser platform built in accordance with Dweb standards, and exposes the capabilities of the browser and the native system capabilities of the browser through various dweb modules. Currently, we have implemented support for mainstream platforms such as Android, iOS, MacOS, and Windows.
 
 We define the app installed in `Dweb Browser` as a `dweb app`. With a simple configuration file, you can quickly install your `web app` on various platforms.
 
