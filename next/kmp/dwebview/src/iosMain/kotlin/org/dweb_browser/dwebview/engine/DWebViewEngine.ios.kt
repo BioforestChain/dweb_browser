@@ -74,7 +74,7 @@ import platform.WebKit.WKWebsiteDataStore
 import platform.WebKit.javaScriptEnabled
 
 @OptIn(ExperimentalForeignApi::class)
-private val dwebHelper = DwebHelper()
+internal val dwebHelper = DwebHelper()
 
 @Suppress("CONFLICTING_OVERLOADS")
 @OptIn(ExperimentalForeignApi::class, ExperimentalResourceApi::class)

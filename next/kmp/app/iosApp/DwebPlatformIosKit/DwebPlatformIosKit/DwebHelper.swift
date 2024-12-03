@@ -8,27 +8,31 @@
 import Foundation
 import WebKit
 
-@objc open class DwebHelper: NSObject {
-    @objc open func setProxy(websiteDataStore: WKWebsiteDataStore, host: String, port: UInt16) {
+@objcMembers open class DwebHelper: NSObject {
+    open func setProxy(websiteDataStore: WKWebsiteDataStore, host: String, port: UInt16) {
         let endpoint = NWEndpoint.hostPort(
             host: NWEndpoint.Host(host), port: NWEndpoint.Port(rawValue: port)!)
         let proxyConfig = ProxyConfiguration(httpCONNECTProxy: endpoint, tlsOptions: .none)
         websiteDataStore.proxyConfigurations = [proxyConfig]
     }
 
-    @objc open func enableSafeAreaInsets(webView: WKWebView, insets: UIEdgeInsets) {
+    open func enableSafeAreaInsets(webView: WKWebView, insets: UIEdgeInsets) {
         webView.setValue(true, forKey: "_haveSetUnobscuredSafeAreaInsets")
         webView.setValue(insets, forKey: "_unobscuredSafeAreaInsets")
     }
 
-    @objc open func disableSafeAreaInsets(webView: WKWebView) {
+    open func disableSafeAreaInsets(webView: WKWebView) {
         webView.setValue(false, forKey: "_haveSetUnobscuredSafeAreaInsets")
+    }
+    
+    open func openURL(_ url: URL) async -> Bool {
+        return await UIApplication.shared.open(url)
     }
 }
 
-@objc open class URLSchemeTaskHelper: NSObject {
+@objcMembers open class URLSchemeTaskHelper: NSObject {
     var taskMap = [URLRequest: EasyURLSchemeTask]()
-    @objc open func startURLSchemeTask(_ webView: WKWebView, task: WKURLSchemeTask)
+    open func startURLSchemeTask(_ webView: WKWebView, task: WKURLSchemeTask)
         -> EasyURLSchemeTask
     {
         let easy = EasyURLSchemeTask(webView: webView, task: task)
@@ -36,7 +40,7 @@ import WebKit
         return easy
     }
 
-    @objc open func stopURLSchemeTask(_ webView: WKWebView, task: WKURLSchemeTask) -> Bool {
+    open func stopURLSchemeTask(_ webView: WKWebView, task: WKURLSchemeTask) -> Bool {
         if let easy = taskMap.removeValue(forKey: task.request) {
             easy.stopTask()
             return true
@@ -45,7 +49,7 @@ import WebKit
     }
 }
 
-@objc open class EasyURLSchemeTask: NSObject {
+@objcMembers open class EasyURLSchemeTask: NSObject {
     let webView: WKWebView
     let task: WKURLSchemeTask
     init(webView: WKWebView, task: WKURLSchemeTask) {
@@ -58,7 +62,7 @@ import WebKit
         isStoped = true
     }
 
-    @objc open func didReceiveResponse(_ response: URLResponse) -> Bool {
+    open func didReceiveResponse(_ response: URLResponse) -> Bool {
         if isStoped { return false }
         do {
             try ObjC.catchException {
@@ -70,7 +74,7 @@ import WebKit
         return true
     }
 
-    @objc open func didReceiveData(_ data: Data) -> Bool {
+    open func didReceiveData(_ data: Data) -> Bool {
         if isStoped { return false }
         do {
             try ObjC.catchException {
@@ -82,7 +86,7 @@ import WebKit
         return true
     }
 
-    @objc open func didFinish() -> Bool {
+    open func didFinish() -> Bool {
         if isStoped { return false }
         do {
             try ObjC.catchException {
@@ -94,7 +98,7 @@ import WebKit
         return true
     }
 
-    @objc open func didFailWithError(_ error: Error) -> Bool {
+    open func didFailWithError(_ error: Error) -> Bool {
         if isStoped { return false }
         do {
             try ObjC.catchException {
@@ -162,13 +166,13 @@ class ProxyUIView: UIView {
 /**
  * 原理参考 https://github.com/RyukieSama/Swifty/blob/master/Swifty/Classes/UIKit/UIView/View/ScreenShieldView.swift
  */
-@objc open class SecureViewController: NSObject {
+@objcMembers open class SecureViewController: NSObject {
     private let vc: UIViewController
     private let field = UITextField()
     var dosets = [() -> Void]()
     var unsets = [() -> Void]()
 
-    @objc public init(vc: UIViewController, onNewView: ((UIView) -> Void)?) {
+    public init(vc: UIViewController, onNewView: ((UIView) -> Void)?) {
         self.vc = vc
         let oldView = vc.view!
         let newView = ProxyUIView()
@@ -250,7 +254,7 @@ class ProxyUIView: UIView {
         }
     }
 
-    @objc open func effect() {
+    open func effect() {
         DispatchQueue.main.async {
             for fun in self.dosets {
                 fun()
@@ -258,7 +262,7 @@ class ProxyUIView: UIView {
         }
     }
 
-    @objc open func dispose() {
+    open func dispose() {
         DispatchQueue.main.async {
 //            self.field.isSecureTextEntry = false
             for fun in self.unsets {
@@ -267,7 +271,7 @@ class ProxyUIView: UIView {
         }
     }
 
-    @objc open func setSafeMode(_ safe: Bool) {
+    open func setSafeMode(_ safe: Bool) {
         
         field.isSecureTextEntry = safe
         if safe {
