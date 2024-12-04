@@ -20,7 +20,7 @@ androidx-test-runner = "1.6.2"
 androidx-compose-ui-test = "1.7.5"
 androidx-compose-ui = "1.6.7"
 androidx-lifecycle = "2.8.7"
-compose-bom = "2024.10.01"
+compose-bom = "2024.11.00"
 
 androidx-activity = "1.9.3"
 androidx-appcompat = "1.7.0"

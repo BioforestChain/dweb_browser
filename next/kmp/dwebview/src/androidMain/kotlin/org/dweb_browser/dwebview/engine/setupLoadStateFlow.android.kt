@@ -1,14 +1,19 @@
 package org.dweb_browser.dwebview.engine
 
+import android.content.Intent
 import android.graphics.Bitmap
+import android.net.Uri
+import android.os.Build
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import io.ktor.http.Url
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.dweb_browser.dwebview.WebLoadErrorState
 import org.dweb_browser.dwebview.WebLoadStartState
 import org.dweb_browser.dwebview.WebLoadSuccessState
+import org.dweb_browser.dwebview.base.isWebUrlScheme
 
 fun setupLoadStateFlow(engine: DWebViewEngine, initUrl: String) = MutableStateFlow(
   when (initUrl) {
@@ -22,6 +27,24 @@ fun setupLoadStateFlow(engine: DWebViewEngine, initUrl: String) = MutableStateFl
     }
 
     override fun onPageStarted(view: WebView, url: String?, favicon: Bitmap?) {
+      if (url != null && !isWebUrlScheme(Url(url).protocol.name)) {
+        /// TODO 显示询问对话框
+        try {
+          val ins = Intent(Intent.ACTION_VIEW, Uri.parse(url)).also {
+            it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+              it.addFlags(Intent.FLAG_ACTIVITY_REQUIRE_NON_BROWSER)
+            }
+          }
+          val context = view.context
+          context.packageManager.queryIntentActivities(ins, 0)
+          context.startActivity(ins)
+          engine.loadUrl("about:blank")
+          return
+        } catch (e: Exception) {
+          println("QAQ onPageStarted error=${e.message}")
+        }
+      }
       flow.value = WebLoadStartState(url ?: "about:blank")
     }
 
