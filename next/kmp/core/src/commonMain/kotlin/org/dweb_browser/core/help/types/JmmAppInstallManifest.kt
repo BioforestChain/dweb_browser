@@ -79,27 +79,6 @@ class JmmAppInstallManifest private constructor(
   override var plugins by P_plugins(p);
   override var languages by P_languages(p);
   override fun toJmmAppManifest() = data
-  // toCommonAppManifest 和 canSupportTarget 是为了修复 xcode16 添加的
-  override fun toCommonAppManifest() = data.toCommonAppManifest()
-  override fun canSupportTarget(version: Int) = canSupportTarget(version, { false }, { false }) != false
-  override fun <R> canSupportTarget(
-    currentVersion: Int,
-    disMatchMinTarget: (minTarget: Int) -> R?,
-    disMatchMaxTarget: (maxTarget: Int) -> R?,
-  ): R? {
-    val min = minTarget
-    val max = maxTarget ?: min
-    if (currentVersion in min..max) {
-      return null
-    }
-    if (currentVersion < min) {
-      return disMatchMinTarget(min)
-    }
-    if (max < currentVersion) {
-      return disMatchMaxTarget(max)
-    }
-    return null
-  }
 }
 
 /** Js模块应用安装使用的元数据 */
