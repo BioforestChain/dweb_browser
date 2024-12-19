@@ -8,6 +8,7 @@ import com.teamdev.jxbrowser.engine.RenderingMode.HARDWARE_ACCELERATED
 import com.teamdev.jxbrowser.engine.RenderingMode.OFF_SCREEN
 import com.teamdev.jxbrowser.engine.event.EngineClosed
 import kotlinx.atomicfu.locks.SynchronizedObject
+import java.io.File
 import java.io.IOException
 import java.nio.file.Paths
 import java.util.concurrent.ConcurrentHashMap
@@ -47,8 +48,13 @@ object jxBrowserEngine {
    */
 
   init {
-    // 修改jxbrowser下载目录
-    System.setProperty("jxbrowser.chromium.dir", customChromiumDir.absolutePathString())
+    try {
+      // windows系统中，如果应用安装目录可写并且不是C盘，则将jxbrowser放置于应用目录内，否则默认放置于C盘
+      if (File(System.getProperty("user.dir")).canWrite() && !System.getProperty("user.dir").startsWith("C:", ignoreCase = true)) {
+        System.setProperty("jxbrowser.chromium.dir", customChromiumDir.absolutePathString())
+      }
+    } catch (_: Exception) {}
+
 //    System.setProperty("jxbrowser.chromium.verification.off", "true")
     if (false) {
       if (!sandboxChromiumDir.isDirectory()) {
