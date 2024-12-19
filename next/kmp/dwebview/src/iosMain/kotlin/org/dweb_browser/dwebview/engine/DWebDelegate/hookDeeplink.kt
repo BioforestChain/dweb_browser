@@ -66,10 +66,13 @@ private fun DWebViewEngine.hookDeeplink(request: NSURLRequest): Boolean {
     // 无法使用 uiApp.canOpenURL，因为没有在 info.plist 注册特殊scheme，会导致无法打开scheme链接
     // 无法使用 uiApp.openURL，因为当前kotlin对接的iOS openURL已经失效，需要自己对接 open 方法
     // val uiApp = remoteMM.getUIApplication()
-    dwebHelper.openURL(url) { res ->
-      debugDWebView("hookDeeplink openURL -> ", res)
+    // 必须排除 dweb+https 这类，否则会导致dweb app无法启动
+    if(url.scheme?.startsWith("dweb+") == false) {
+      dwebHelper.openURL(url) { res ->
+        debugDWebView("hookDeeplink openURL -> ", res)
+      }
+      return true
     }
-    return true
   }
   return false
 }
