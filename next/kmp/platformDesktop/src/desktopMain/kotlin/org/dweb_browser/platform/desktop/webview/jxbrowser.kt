@@ -11,6 +11,7 @@ import kotlinx.atomicfu.locks.SynchronizedObject
 import java.io.IOException
 import java.nio.file.Paths
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.io.path.absolutePathString
 import kotlin.io.path.isDirectory
 import kotlin.io.path.name
 import java.nio.file.Path as NioPath
@@ -35,6 +36,8 @@ object jxBrowserEngine {
   val sandboxChromiumDir = Paths.get(System.getProperty("user.home"))
     .resolve("jxbrowser/chromium/7.39.0")
 
+  val customChromiumDir = Paths.get(System.getProperty("user.dir")).resolve("app/jxbrowser/chromium")
+
   /**
    * 将输入流中的数据复制到输出流
    *
@@ -44,6 +47,8 @@ object jxBrowserEngine {
    */
 
   init {
+    // 修改jxbrowser下载目录
+    System.setProperty("jxbrowser.chromium.dir", customChromiumDir.absolutePathString())
 //    System.setProperty("jxbrowser.chromium.verification.off", "true")
     if (false) {
       if (!sandboxChromiumDir.isDirectory()) {
