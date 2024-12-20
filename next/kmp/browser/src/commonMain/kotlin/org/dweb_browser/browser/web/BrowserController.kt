@@ -92,6 +92,11 @@ class BrowserController(
       /// 提供渲染适配
       windowAdapterManager.provideRender(wid) { modifier ->
         Render(modifier, this)
+
+        // 不能直接将整个应用切换到后台，而是关闭当前应用
+        win?.navigation?.GoBackHandler {
+          win?.tryCloseOrHide()
+        }
       }
       newWin.onVisible {
         windowVisibleSignal.emit(true)

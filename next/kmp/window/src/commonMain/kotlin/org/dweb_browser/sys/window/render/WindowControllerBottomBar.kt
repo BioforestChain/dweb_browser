@@ -269,19 +269,24 @@ internal fun WindowBottomNavigationThemeBar(
             /**
              * 尝试返回或者关闭窗口
              */
-            fun goBackOrClose() {
+            fun goBackOrClose(canBack: Boolean) {
               scope.launch {
-                win.navigation.emitGoBack()
+                // 不能直接将整个应用切换到后台，而是关闭当前应用
+                if (canBack) {
+                  win.navigation.emitGoBack()
+                } else {
+                  win.tryCloseOrHide()
+                }
               }
             }
             /// 监听物理返回按钮，只有当前聚焦的窗口可以执行这个监听
-            NativeBackHandler(isFocus && btnCanGoBack) {
-              goBackOrClose()
+            NativeBackHandler(isFocus) {
+              goBackOrClose(btnCanGoBack)
             }
             /// 返回按钮
             TextButton(
               onClick = {
-                goBackOrClose()
+                goBackOrClose(btnCanGoBack)
               },
               enabled = btnCanGoBack,
               contentPadding = PaddingValues(0.dp),
