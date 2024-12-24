@@ -32,6 +32,9 @@ suspend fun startDwebBrowser(
   /// iOS版本默认启用新版桌面
   envSwitch.init(ENV_SWITCH_KEY.DESKTOP_STYLE_COMPOSE) { "true" }
 
+  /// iOS版本默认启用手势返回
+  envSwitch.init(ENV_SWITCH_KEY.SCREEN_EDGE_SWIPE_ENABLE) { "true" }
+
   /// iOS版本Browser默认不启用原声UI
   envSwitch.disable(ENV_SWITCH_KEY.BROWSERS_NATIVE_RENDER)
 
