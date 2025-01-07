@@ -28,8 +28,7 @@ kotlin {
         baseName = "DwebShared"
         isStatic = true
         binaryOptions = mutableMapOf(
-          "bundleId" to "org.dweb_browser.shared",
-          "bundleVersion" to "1.0.0"
+          "bundleId" to "org.dweb_browser.shared", "bundleVersion" to "1.0.0"
         )
       }
     }
@@ -51,7 +50,7 @@ android {
 }
 
 /// 修复kotlin升级2.1.0-Beta1出现的执行顺序异常
-if (OperatingSystem.current().isMacOsX) {
+if (Features.iosApp.enabled) {
   tasks.named("syncComposeResourcesForIos") {
     dependsOn("checkSandboxAndWriteProtection")
   }

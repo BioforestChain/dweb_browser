@@ -472,6 +472,7 @@ internal class FilesMapping : Serializable {
   }
 
   private fun readObject(stream: ObjectInputStream) {
+    @Suppress("UNCHECKED_CAST")
     mapping = stream.readObject() as HashMap<File, List<File>>
   }
 }

@@ -34,7 +34,6 @@ kotlin {
       implementation(libs.androidx.core.splashscreen)
       // Google.accompanist 相关
       implementation(libs.accompanist.permissions)
-      implementation(libs.accompanist.systemui.controller)
 
       implementation(libs.compose.ui.preview)
     }

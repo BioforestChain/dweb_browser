@@ -23,11 +23,7 @@ kotlin {
       // Compose 相关
       implementation(libs.compose.material3)
       // Google.accompanist 相关
-      implementation(libs.accompanist.navigation.material)
-      implementation(libs.accompanist.navigation.animation)
-      implementation(libs.accompanist.systemui.controller)
       implementation(libs.accompanist.permissions)
-      implementation(libs.accompanist.insets.ui)
       implementation(libs.compose.ui.preview)
     }
   }

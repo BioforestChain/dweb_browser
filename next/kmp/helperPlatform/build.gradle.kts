@@ -29,7 +29,6 @@ kotlin {
   }
   kmpAndroidTarget(project) {
     dependencies {
-      implementation(libs.accompanist.systemui.controller)
       implementation(libs.google.material)
     }
   }

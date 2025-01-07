@@ -11,7 +11,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.window.DialogWindowProvider
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 @Composable
 actual fun SetSystemBarsColor(bgColor: Color, fgColor: Color) {
@@ -22,7 +21,7 @@ actual fun SetSystemBarsColor(bgColor: Color, fgColor: Color) {
 //    insetsController.isAppearanceLightStatusBars = !isDarkIcon
 //    insetsController.isAppearanceLightNavigationBars = !isDarkIcon
 //  }
-  
+
   val systemUiController = rememberSystemUiController()
   SideEffect {
     systemUiController.setSystemBarsColor(

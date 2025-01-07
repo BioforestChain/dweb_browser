@@ -34,11 +34,7 @@ kotlin {
       // AndroidX Compose
       implementation(libs.compose.material3)
       // Google Accompanist
-      implementation(libs.accompanist.navigation.material)
-      implementation(libs.accompanist.navigation.animation)
-      implementation(libs.accompanist.systemui.controller)
       implementation(libs.accompanist.permissions)
-      implementation(libs.accompanist.insets.ui)
       implementation(libs.compose.ui.preview)
       //扫码核心库
       implementation(libs.camera.core)
