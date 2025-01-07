@@ -5,9 +5,9 @@ import androidx.compose.ui.Modifier
 
 @Composable
 expect fun Modifier.pointerActions(
-  onHoverStart: () -> Unit = {},
-  onHoverEnd: () -> Unit = {},
-  onDoubleTap: () -> Unit = {},
-  onMenu: () -> Unit = {},
-  onTap: () -> Unit = {},
+  onHoverStart: (() -> Unit)? = null,
+  onHoverEnd: (() -> Unit)? = null,
+  onDoubleTap: (() -> Unit)? = null,
+  onMenu: (() -> Unit)? = null,
+  onTap: (() -> Unit)? = null,
 ): Modifier

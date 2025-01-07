@@ -98,15 +98,13 @@ internal fun PageTabWithToolTip(page: BrowserPage, modifier: Modifier) {
         PagerTab(
           page, modifier = modifier.pointerActions(
             onMenu = {
-              uiScope.launch {
-                showActions = true
-              }
+              showActions = true
             },
             onTap = {
-              uiScope.launch {
-                if (page == viewModel.focusedPage) {
-                  showActions = true
-                } else {
+              if (page == viewModel.focusedPage) {
+                showActions = true
+              } else {
+                uiScope.launch {
                   viewModel.focusPageUI(page)
                 }
               }

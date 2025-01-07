@@ -10,18 +10,18 @@ import androidx.compose.ui.input.pointer.PointerButton
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 actual fun Modifier.pointerActions(
-  onHoverStart: () -> Unit,
-  onHoverEnd: () -> Unit,
-  onDoubleTap: () -> Unit,
-  onMenu: () -> Unit,
-  onTap: () -> Unit,
+  onHoverStart: (() -> Unit)?,
+  onHoverEnd: (() -> Unit)?,
+  onDoubleTap: (() -> Unit)?,
+  onMenu: (() -> Unit)?,
+  onTap: (() -> Unit)?,
 ) = this.onClick(
   matcher = PointerMatcher.mouse(PointerButton.Primary),
-  onClick = onTap,
+  onClick = onTap ?: {},
   onDoubleClick = onDoubleTap,
   onLongClick = onMenu,
 ).onClick(
   matcher = PointerMatcher.mouse(PointerButton.Secondary),
   onDoubleClick = onDoubleTap,
-  onClick = onMenu,
-).hoverEvent(onEnter = onHoverStart, onExit = onHoverEnd).hoverCursor()
+  onClick = onMenu ?: {},
+).hoverEvent(onEnter = onHoverStart ?: {}, onExit = onHoverEnd ?: {}).hoverCursor()

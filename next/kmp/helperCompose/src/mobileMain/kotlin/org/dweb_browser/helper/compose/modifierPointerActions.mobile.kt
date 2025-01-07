@@ -14,43 +14,43 @@ import androidx.compose.ui.input.pointer.pointerInput
 
 @Composable
 actual fun Modifier.pointerActions(
-  onHoverStart: () -> Unit,
-  onHoverEnd: () -> Unit,
-  onDoubleTap: () -> Unit,
-  onMenu: () -> Unit,
-  onTap: () -> Unit,
+  onHoverStart: (() -> Unit)?,
+  onHoverEnd: (() -> Unit)?,
+  onDoubleTap: (() -> Unit)?,
+  onMenu: (() -> Unit)?,
+  onTap: (() -> Unit)?,
 ) = this.composed {
   val hoverStart by rememberUpdatedState(onHoverStart)
   val hoverEnd by rememberUpdatedState(onHoverEnd)
   val doubleTap by rememberUpdatedState(onDoubleTap)
-  val openApp by rememberUpdatedState(onTap)
-  val openAppMenu by rememberUpdatedState(onMenu)
+  val tap by rememberUpdatedState(onTap)
+  val menu by rememberUpdatedState(onMenu)
   pointerInput(Unit) {
     detectTapGestures(
       onPress = {
-        hoverStart()
+        hoverStart?.invoke()
       },
       onTap = {
-        openApp()
-        hoverEnd()
+          tap?.invoke()
+        hoverEnd?.invoke()
       },
       onLongPress = {
-        openAppMenu()
-        hoverEnd()
+        menu?.invoke()
+        hoverEnd?.invoke()
       },
-      onDoubleTap = { doubleTap() },
+      onDoubleTap = doubleTap?.let { doubleTap -> { doubleTap() } },
     )
   }
     .pointerInput(Unit) {
       awaitEachGesture {
         val down = awaitFirstDown(requireUnconsumed = false)
-        hoverStart()
+        hoverStart?.invoke()
         val drag = awaitTouchSlopOrCancellation(down.id) { _, _ -> }
         if (drag == null) {
-          hoverEnd()
+          hoverEnd?.invoke()
         } else {
           awaitDragOrCancellation(drag.id)
-          hoverEnd()
+          hoverEnd?.invoke()
         }
       }
     }
