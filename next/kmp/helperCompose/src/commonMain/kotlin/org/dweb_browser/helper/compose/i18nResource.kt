@@ -74,6 +74,8 @@ open class I18n {
       operator fun invoke(param1: String): String {
         return super.invoke(Zh1(param1))
       }
+
+      fun text(param1: String) = text(Zh1(param1))
     }
 
     fun zh1(zh: Zh1.() -> String, en: Zh1.() -> String) =

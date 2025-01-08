@@ -26,7 +26,7 @@ actual class KeychainStore actual constructor(val runtime: KeychainNMM.KeyChainR
       runtime = runtime,
       remoteMmid = remoteMmid,
       title = KeychainI18nResource.keychain_get_title.text,
-      description = KeychainI18nResource.keychain_get_description.text { value = key }
+      description = KeychainI18nResource.keychain_get_description.text(key)
     )
     return keychainGetItem("Dweb $remoteMmid", key)
   }
@@ -41,7 +41,7 @@ actual class KeychainStore actual constructor(val runtime: KeychainNMM.KeyChainR
         runtime = runtime,
         remoteMmid = remoteMmid,
         title = KeychainI18nResource.keychain_set_title.text,
-        description = KeychainI18nResource.keychain_set_description.text { this.value = key },
+        description = KeychainI18nResource.keychain_set_description.text(key),
       )
     }.getOrElse { return false }
 
@@ -64,7 +64,7 @@ actual class KeychainStore actual constructor(val runtime: KeychainNMM.KeyChainR
         runtime = runtime,
         remoteMmid = remoteMmid,
         title = KeychainI18nResource.keychain_delete_title.text,
-        description = KeychainI18nResource.keychain_delete_description.text { value = key },
+        description = KeychainI18nResource.keychain_delete_description.text(key),
       )
     }.getOrElse { return false }
 

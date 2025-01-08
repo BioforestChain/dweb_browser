@@ -46,8 +46,8 @@ fun DataController.DeleteDialogRender() {
         },
         text = {
           when {
-            isRunning -> Text(DataI18n.uninstall_running_app_tip { value = appName })
-            else -> Text(DataI18n.uninstall_app_tip { value = appName })
+            isRunning -> Text(DataI18n.uninstall_running_app_tip(appName))
+            else -> Text(DataI18n.uninstall_app_tip (appName))
           }
         },
         confirmButton = {

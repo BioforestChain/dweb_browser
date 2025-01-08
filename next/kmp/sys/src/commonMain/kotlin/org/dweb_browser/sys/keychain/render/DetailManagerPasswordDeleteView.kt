@@ -30,7 +30,7 @@ fun KeychainManager.DetailManager.KeyManager.PasswordDeleteView(
     onDismissRequest,
     modifier = modifier,
     title = { Text(CommonI18n.warning()) },
-    text = { Text(KeychainI18nResource.password_delete_tip { value = key }) },
+    text = { Text(KeychainI18nResource.password_delete_tip(key)) },
     dismissButton = {
       TextButton(onDismissRequest, enabled = !deleting) {
         Text(CommonI18n.cancel())

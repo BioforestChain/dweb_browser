@@ -150,7 +150,7 @@ fun DownloadListModel.DownloadItem(
               horizontalAlignment = Alignment.CenterHorizontally,
               modifier = Modifier.fillMaxWidth()
             ) {
-              Text(DownloadI18n.delete_alert_message { value = downloadTask.filename })
+              Text(DownloadI18n.delete_alert_message(downloadTask.filename))
             }
           },
           deleteText = DownloadI18n.confirm_delete()

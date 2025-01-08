@@ -89,9 +89,11 @@ actual class KeychainStore actual constructor(val runtime: KeychainNMM.KeyChainR
     val store = storeManager.getStore(remoteMmid)
     return store.getItem(key)?.let {
       decryptData(
-        it, remoteMmid, buildUseKeyReason(remoteMmid = remoteMmid,
+        it, remoteMmid, buildUseKeyReason(
+          remoteMmid = remoteMmid,
           title = KeychainI18nResource.keychain_get_title.text,
-          description = KeychainI18nResource.keychain_get_description.text { value = key })
+          description = KeychainI18nResource.keychain_get_description.text(key)
+        )
       )
     }
   }
@@ -101,9 +103,11 @@ actual class KeychainStore actual constructor(val runtime: KeychainNMM.KeyChainR
     return runCatching {
       store.setItem(
         key, encryptData(
-          value, remoteMmid, buildUseKeyReason(remoteMmid = remoteMmid,
+          value, remoteMmid, buildUseKeyReason(
+            remoteMmid = remoteMmid,
             title = KeychainI18nResource.keychain_set_title.text,
-            description = KeychainI18nResource.keychain_set_description.text { this.value = key })
+            description = KeychainI18nResource.keychain_set_description.text(key)
+          )
         )
       )
       keysManager.addKey(remoteMmid, key)
@@ -126,7 +130,7 @@ actual class KeychainStore actual constructor(val runtime: KeychainNMM.KeyChainR
       EncryptKey.getRootKey(
         buildUseKeyParams(remoteMmid = remoteMmid,
           title = KeychainI18nResource.keychain_delete_title.text,
-          description = KeychainI18nResource.keychain_delete_description.text { value = key }),
+          description = KeychainI18nResource.keychain_delete_description.text(key)),
       )
     }.getOrElse { return false }
     return store.deleteItem(key).trueAlso {
