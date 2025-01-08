@@ -33,8 +33,8 @@ internal val dimenNavigationHeight = 40.dp
 internal val browserShape = SquircleShape(30, CornerSmoothing.Small)
 internal val browserBigShape = SquircleShape(16.dp, CornerSmoothing.Small)
 
-internal fun <T> enterAnimationSpec() = tween<T>(250, easing = IosLeaveEasing)
-internal fun <T> exitAnimationSpec() = tween<T>(300, easing = IosLeaveEasing)
+internal fun <T> enterAnimationSpec() = tween<T>(350, easing = IosLeaveEasing)
+internal fun <T> exitAnimationSpec() = tween<T>(500, easing = IosLeaveEasing)
 
 @Composable
 fun BrowserRender(

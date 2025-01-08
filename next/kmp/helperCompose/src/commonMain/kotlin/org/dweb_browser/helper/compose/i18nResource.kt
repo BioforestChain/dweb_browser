@@ -68,9 +68,16 @@ open class I18n {
     fun zh(zh: String, en: String) = SimpleI18nResource(Language.ZH to zh, Language.EN to en)
 
     data class Zh1(var value: String)
+    class Zh1I18nResource(vararg i18nValues: Pair<Language, OneParam<Zh1>>) :
+      OneParamI18nResource<Zh1>({ Zh1("") }, i18nValues = i18nValues) {
+      @Composable
+      operator fun invoke(param1: String): String {
+        return super.invoke(Zh1(param1))
+      }
+    }
 
     fun zh1(zh: Zh1.() -> String, en: Zh1.() -> String) =
-      OneParamI18nResource({ Zh1("") }, Language.ZH to zh, Language.EN to en)
+      Zh1I18nResource(Language.ZH to zh, Language.EN to en)
 
     data class Zh2(var value1: String, var value2: String)
 
@@ -81,7 +88,7 @@ open class I18n {
 
 typealias OneParam<T> = T.() -> String
 
-class OneParamI18nResource<T>(
+open class OneParamI18nResource<T>(
   val paramBuilder: () -> T,
   val i18nValues: List<Pair<Language, OneParam<T>>>,
 ) {
@@ -101,7 +108,7 @@ class OneParamI18nResource<T>(
   }
 
   @Composable
-  operator fun invoke(buildParam: @Composable T.() -> Unit): String {
+  inline operator fun invoke(buildParam: @Composable T.() -> Unit): String {
     val param = paramBuilder().also {
       it.buildParam()
     }
@@ -111,7 +118,7 @@ class OneParamI18nResource<T>(
   @Composable
   operator fun invoke(param: T): String {
     val language = Locale.current.language
-    return remember(language, this) {
+    return remember(language, this, param) {
       getByLang(Language.getLanguage(language))(param)
     }
   }

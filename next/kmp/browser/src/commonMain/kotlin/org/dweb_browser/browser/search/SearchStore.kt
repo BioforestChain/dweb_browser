@@ -36,15 +36,6 @@ enum class SearchEngine(
   val homeLink: String,
   private val iconRes: DrawableResource,
 ) {
-  BaiDu(
-    host = "baidu.com",
-    keys = "baidu,百度,baidu.com,www.baidu.com,m.baidu.com",
-    displayName = "百度",
-    searchLinks = listOf("https://m.baidu.com/s?word=%s", "https://www.baidu.com/s?wd=%s"),
-    homeLink = "https://www.baidu.com",
-    iconRes = Res.drawable.ic_engine_baidu
-  ),
-
   Bing(
     host = "bing.com",
     keys = "bing,必应,bing.com,www.bing.com,cn.bing.com",
@@ -55,7 +46,22 @@ enum class SearchEngine(
     homeLink = "https://www.bing.com",
     iconRes = Res.drawable.ic_engine_bing
   ),
-
+  BaiDu(
+    host = "baidu.com",
+    keys = "baidu,百度,baidu.com,www.baidu.com,m.baidu.com",
+    displayName = "百度",
+    searchLinks = listOf("https://m.baidu.com/s?word=%s", "https://www.baidu.com/s?wd=%s"),
+    homeLink = "https://www.baidu.com",
+    iconRes = Res.drawable.ic_engine_baidu
+  ),
+  Google(
+    host = "google.com",
+    keys = "Google,谷歌,google.com,www.google.com",
+    displayName = "Google",
+    searchLinks = listOf("https://www.google.com/search?q=%s"),
+    homeLink = "https://www.google.com",
+    iconRes = Res.drawable.ic_engine_google
+  ),
   So360(
     host = "so.com",
     keys = "360,so.com,www.so.com,m.so.com",
@@ -64,7 +70,6 @@ enum class SearchEngine(
     homeLink = "https://www.so.com/",
     iconRes = Res.drawable.ic_engine_360
   ),
-
   SoGou(
     host = "sogou.com",
     keys = "sogou,搜狗,sogou.com,www.sogou.com,wap.sogou.com",
@@ -75,16 +80,6 @@ enum class SearchEngine(
     homeLink = "https://www.sogou.com",
     iconRes = Res.drawable.ic_engine_sogou
   ),
-
-  Google(
-    host = "google.com",
-    keys = "Google,谷歌,google.com,www.google.com",
-    displayName = "Google",
-    searchLinks = listOf("https://www.google.com/search?q=%s"),
-    homeLink = "https://www.google.com",
-    iconRes = Res.drawable.ic_engine_google
-  ),
-
   DuckDuckGo(
     host = "duckduckgo.com",
     keys = "DuckDuckGo,duckduckgo.com",
@@ -93,7 +88,6 @@ enum class SearchEngine(
     homeLink = "https://duckduckgo.com",
     iconRes = Res.drawable.ic_engine_duckgo
   ),
-
   Yahoo(
     host = "yahoo.com",
     keys = "yahoo,雅虎,yahoo.com,sg.search.yahoo.com,search.yahoo.com",
@@ -104,7 +98,6 @@ enum class SearchEngine(
     homeLink = "https://sg.search.yahoo.com/",
     iconRes = Res.drawable.ic_engine_yahoo
   ),
-
   SM(
     host = "m.sm.cn",
     keys = "神马,sm.cn,so.m.sm.cn,m.sm.cn",

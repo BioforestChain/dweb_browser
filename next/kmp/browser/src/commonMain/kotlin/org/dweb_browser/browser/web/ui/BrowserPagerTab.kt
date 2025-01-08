@@ -102,7 +102,7 @@ internal fun PageTabWithToolTip(page: BrowserPage, modifier: Modifier) {
             },
             onTap = {
               if (page == viewModel.focusedPage) {
-                showActions = true
+                viewModel.searchPanel.showSearchPanel(page)
               } else {
                 uiScope.launch {
                   viewModel.focusPageUI(page)

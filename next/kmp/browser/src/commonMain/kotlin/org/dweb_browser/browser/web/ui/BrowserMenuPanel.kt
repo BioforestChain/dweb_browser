@@ -62,14 +62,8 @@ internal fun BrowserMenuPanel(scale: Float, modifier: Modifier = Modifier) {
     shape = SquircleShape((16 * scale).dp, CornerSmoothing.Small),
   ) {
     val page = viewModel.focusedPage
-    // 添加书签
+    /// 添加书签
     if (page is BrowserWebPage) {
-      /// 添加到桌面
-      SettingListItem(title = BrowserI18nResource.browser_menu_add_to_desktop(), // stringResource(id = R.string.browser_options_privacy),
-        icon = Icons.AutoMirrored.Default.AddToHomeScreen, {
-          hide()
-          uiScope.launch { viewModel.addUrlToDesktopUI(page) }
-        })
       val added = page.isInBookmark
       if (added) {
         SettingListItem(title = BrowserI18nResource.browser_remove_bookmark(),
@@ -105,6 +99,12 @@ internal fun BrowserMenuPanel(scale: Float, modifier: Modifier = Modifier) {
         onClick = {
           hide()
           scope.launch { viewModel.shareWebSiteInfo(page) }
+        })
+      /// 添加到桌面
+      SettingListItem(title = BrowserI18nResource.browser_menu_add_to_desktop(), // stringResource(id = R.string.browser_options_privacy),
+        icon = Icons.AutoMirrored.Default.AddToHomeScreen, {
+          hide()
+          uiScope.launch { viewModel.addUrlToDesktopUI(page) }
         })
     }
 

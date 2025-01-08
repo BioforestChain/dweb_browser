@@ -362,16 +362,17 @@ class BrowserViewModel(
    * 是：直接代理访问
    * 否：将 url 进行判断封装，符合条件后，判断当前界面是否是 BrowserWebPage，然后进行搜索操作
    */
-  fun doIOSearchUrl(url: String) = lifecycleScope.launch {
-    if (url.isDwebDeepLink()) {
-      browserNMM.nativeFetch(url)
+  fun doIOSearchUrl(searchText: String) = lifecycleScope.launch {
+    val text = searchText.trim().trim('\u200B').trim()
+    if (text.isDwebDeepLink()) {
+      browserNMM.nativeFetch(text)
       return@launch
     }
     // 尝试
-    val webUrl = url.toWebUrl() ?: checkAndEnableSearchEngine(url) // 检查是否有默认的搜索引擎
-    ?: url.toWebUrlOrWithoutProtocol() // 上面先判断标准的网址和搜索引擎后，仍然为空时，执行一次域名转化判断
-    ?: filterShowEngines.firstOrNull()?.searchLinks?.first()?.format(url)?.toWebUrl() // 转换成搜索链接
-    debugBrowser("doIOSearchUrl", "url=$url, webUrl=$webUrl, focusedPage=$focusedPage")
+    val webUrl = text.toWebUrl() ?: checkAndEnableSearchEngine(text) // 检查是否有默认的搜索引擎
+    ?: text.toWebUrlOrWithoutProtocol() // 上面先判断标准的网址和搜索引擎后，仍然为空时，执行一次域名转化判断
+    ?: filterShowEngines.firstOrNull()?.searchLinks?.first()?.format(text)?.toWebUrl() // 转换成搜索链接
+    debugBrowser("doIOSearchUrl", "url=$text, webUrl=$webUrl, focusedPage=$focusedPage")
     // 当没有搜到需要的数据，给出提示
     webUrl?.toString()?.let { searchUrl ->
       if (focusedPage != null && focusedPage is BrowserWebPage) {

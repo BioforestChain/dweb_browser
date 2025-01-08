@@ -1,11 +1,12 @@
 package org.dweb_browser.browser
 
 import org.dweb_browser.core.help.types.MMID
+import org.dweb_browser.helper.compose.I18n
 import org.dweb_browser.helper.compose.Language
 import org.dweb_browser.helper.compose.OneParamI18nResource
 import org.dweb_browser.helper.compose.SimpleI18nResource
 
-object BrowserI18nResource {
+object BrowserI18nResource : I18n() {
   val application_name =
     SimpleI18nResource(Language.ZH to "Dweb Browser", Language.EN to "Dweb Browser")
   val dialog_title_webview_upgrade =
@@ -90,20 +91,37 @@ object BrowserI18nResource {
   val privacy_button_i_know = SimpleI18nResource(Language.ZH to "已知晓", Language.EN to "I Know")
 
   val browser_short_name = SimpleI18nResource(Language.ZH to "浏览器", Language.EN to "Browser")
+  val browser_search_ai =
+    SimpleI18nResource(Language.ZH to "AI", Language.EN to "AI")
+  val browser_search_web2 =
+    SimpleI18nResource(Language.ZH to "Web2", Language.EN to "Web2")
+  val browser_search_web_page =
+    SimpleI18nResource(Language.ZH to "网页", Language.EN to "Web Page")
+  val browser_search_web3 =
+    SimpleI18nResource(Language.ZH to "Web3", Language.EN to "Web3")
+  val browser_search_local_resources =
+    SimpleI18nResource(Language.ZH to "本地资源", Language.EN to "Local Resources")
   val browser_search_engine =
     SimpleI18nResource(Language.ZH to "搜索引擎", Language.EN to "Search Engine")
-  val browser_search_local =
-    SimpleI18nResource(Language.ZH to "本地资源", Language.EN to "Local Resource")
+  val browser_search_dwebapp =
+    SimpleI18nResource(Language.ZH to "Dweb应用", Language.EN to "Search Engine")
   val browser_search_title = SimpleI18nResource(Language.ZH to "搜索", Language.EN to "Search")
   val browser_search_hint =
     SimpleI18nResource(Language.ZH to "搜索或输入网址", Language.EN to "Search or Input Website")
   val browser_empty_list = SimpleI18nResource(Language.ZH to "暂无数据", Language.EN to "No Data")
   val browser_bookmark_edit_dialog_title =
     SimpleI18nResource(Language.ZH to "编辑书签", Language.EN to "Edit Bookmark")
+  val browser_search_keyword = zh1(
+    { "搜索 “$value”" },
+    { "Search '${value}'" }
+  )
+  val browser_engine_inactive = zh("未启用", "Inactive")
   val browser_search_noFound = SimpleI18nResource(
     Language.ZH to "未检索到符合关键字的本地资源",
     Language.EN to "No local resource matching the keyword was retrieved"
   )
+  val browser_search_comingSoon =
+    SimpleI18nResource(Language.ZH to "即将开放", Language.EN to "Coming Soon")
 
   val browser_bookmark_title =
     SimpleI18nResource(Language.ZH to "书签标题", Language.EN to "Bookmark Title")
@@ -122,6 +140,11 @@ object BrowserI18nResource {
     SimpleI18nResource(Language.ZH to "扫一扫", Language.EN to "Scan")
   val browser_menu_add_to_desktop =
     SimpleI18nResource(Language.ZH to "添加到桌面", Language.EN to "Add To Desktop")
+
+  val browser_web_go_back = SimpleI18nResource(Language.ZH to "后退", Language.EN to "Go Back")
+  val browser_web_go_forward =
+    SimpleI18nResource(Language.ZH to "前进", Language.EN to "Go Forward")
+  val browser_web_refresh = SimpleI18nResource(Language.ZH to "刷新", Language.EN to "Refresh")
 
   val browser_multi_count = SimpleI18nResource(Language.ZH to "个标签页", Language.EN to "tabs")
   val browser_multi_done = SimpleI18nResource(Language.ZH to "完成", Language.EN to "Done")
