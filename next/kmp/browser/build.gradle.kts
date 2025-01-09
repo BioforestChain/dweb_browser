@@ -24,6 +24,7 @@ kotlin {
       implementation(libs.jetbrains.compose.material3.adaptive)
       implementation(libs.jetbrains.compose.material3.adaptive.layout)
       implementation(libs.jetbrains.compose.material3.adaptive.navigation)
+      implementation(libs.mohamedrejeb.ksoup.html)
     }
     testDependencies {
       implementation(projects.dwebview)

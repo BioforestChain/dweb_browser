@@ -41,6 +41,7 @@ kotlinx-io-version = "0.6.0"
 kotlinx-html-version = "0.11.0"
 okio-version = "3.9.1"
 cryptography-version = "0.3.0"
+ksoup-html-version = "0.5.0"
 
 accompanist = "0.37.0"
 google-material = "1.12.0"
@@ -146,6 +147,7 @@ whyoleg-cryptography-provider-apple = { group = "dev.whyoleg.cryptography", name
 whyoleg-cryptography-provider-openssl3-api = { group = "dev.whyoleg.cryptography", name = "cryptography-provider-openssl3-api", version.ref = "cryptography-version" }
 whyoleg-cryptography-provider-openssl3-shared = { group = "dev.whyoleg.cryptography", name = "cryptography-provider-openssl3-shared", version.ref = "cryptography-version" }
 whyoleg-cryptography-provider-openssl3-prebuilt = { group = "dev.whyoleg.cryptography", name = "cryptography-provider-openssl3-prebuilt", version.ref = "cryptography-version" }
+mohamedrejeb-ksoup-html = { group = "com.mohamedrejeb.ksoup", name = "ksoup-html", version.ref = "ksoup-html-version" }
 
 # ktor
 ktor-server-websockets = { group = "io.ktor", name = "ktor-server-websockets", version.ref = "ktor-version" }

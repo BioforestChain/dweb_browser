@@ -87,6 +87,8 @@ object BrowserI18nResource : I18n() {
     "未检索到符合关键字的本地资源", "No local resource matching the keyword was retrieved"
   )
   val browser_search_comingSoon = zh("即将开放", "Coming Soon")
+  val browser_web3_found_dwebapps = zh1({ "找到了 $value 个dweb应用" },
+    { "Found $value dweb application${if (value == "1") "s" else ""}" })
 
   val browser_bookmark_title = zh("书签标题", "Bookmark Title")
   val browser_bookmark_url = zh("链接地址", "Bookmark Url")

@@ -188,7 +188,13 @@ public open class PropMetas<T : PropMetas.Constructor<T>>(
       true
     } else false
 
-    public fun get(propName: String): Any? = data[propName]
+    public val keys: Set<String>
+      get() = data.keys
+    public fun toMap(): Map<String, Any?> {
+      return data.toMap()
+    }
+
+    //    public fun get(propName: String): Any? = data[propName]
     public fun remove(propName: String): Any? = data.remove(propName)
   }
 

@@ -37,7 +37,11 @@ import java.util.Properties
 fun KotlinCompilation<*>.configureCompilation() {
   compileTaskProvider.configure {
     compilerOptions {
-      freeCompilerArgs.set(listOfNotNull("-Xexpect-actual-classes", "-Xcontext-receivers"))
+      freeCompilerArgs.addAll(
+        "-Xexpect-actual-classes",
+        "-Xcontext-receivers",
+        "-XXLanguage:+ExplicitBackingFields",
+      )
     }
   }
 }
@@ -279,6 +283,12 @@ fun KotlinMultiplatformExtension.kmpCommonTarget(
   dsl.configure()
 
   dsl.provides(sourceSets.commonMain, sourceSets.commonTest)
+  sourceSets.all {
+    kotlin {
+      languageSettings.enableLanguageFeature("ExplicitBackingFields")
+    }
+  }
+
   sourceSets.commonMain {
     if (kspSrcDirs != null) {
       kotlin.kspSrcDirs()

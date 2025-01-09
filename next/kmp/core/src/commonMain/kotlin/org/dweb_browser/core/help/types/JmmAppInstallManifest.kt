@@ -1,8 +1,20 @@
 package org.dweb_browser.core.help.types
 
+import dev.whyoleg.cryptography.CryptographyAlgorithmId
+import dev.whyoleg.cryptography.CryptographyProvider
+import dev.whyoleg.cryptography.algorithms.asymmetric.EC
+import dev.whyoleg.cryptography.algorithms.asymmetric.ECDSA
+import dev.whyoleg.cryptography.algorithms.digest.Digest
+import dev.whyoleg.cryptography.algorithms.digest.SHA256
+import dev.whyoleg.cryptography.algorithms.digest.SHA384
+import dev.whyoleg.cryptography.algorithms.digest.SHA512
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+import org.dweb_browser.core.std.dns.httpFetch
 import org.dweb_browser.helper.PropMetas
 import org.dweb_browser.helper.PropMetasSerializer
+import org.dweb_browser.helper.base64Binary
+import org.dweb_browser.helper.toWebUrl
 
 
 object JmmAppInstallManifestSerializer :
@@ -10,7 +22,7 @@ object JmmAppInstallManifestSerializer :
 
 @Serializable(with = JmmAppInstallManifestSerializer::class)
 class JmmAppInstallManifest private constructor(
-  p: PropMetas.PropValues,
+  internal val p: PropMetas.PropValues,
   private val data: JmmAppManifest,
 ) : PropMetas.Constructor<JmmAppInstallManifest>(p, P), IJmmAppInstallManifest,
   IJmmAppManifest by data {
@@ -33,6 +45,7 @@ class JmmAppInstallManifest private constructor(
 
     /**格式为 `hex:{signature}` */
     private val P_bundle_signature = P.required<String>("bundle_signature", "")
+    private val P_signature = P.optional<String>("\$signature")
 
     /**该链接必须使用和app-id同域名的网站链接，
      * 请求回来是一个“算法+公钥地址”的格式 "{algorithm}:hex;{publicKey}"，
@@ -78,6 +91,7 @@ class JmmAppInstallManifest private constructor(
   override var permissions by P_permissions(p);
   override var plugins by P_plugins(p);
   override var languages by P_languages(p);
+  override var signature by P_signature(p);
   override fun toJmmAppManifest() = data
 }
 
@@ -96,6 +110,159 @@ internal interface IJmmAppInstallManifest : IJmmAppManifest {
   var permissions: List<String>
   var plugins: List<String>
   var languages: List<String>
+
+  /**
+   * 参考标准 https://developer.mozilla.org/zh-CN/docs/Web/Security/Subresource_Integrity
+   * 符串包括一个前缀，表示一个特定的哈希算法（目前允许的前缀是 sha256、sha384 和 sha512），后面是一个短横线（-），最后是实际的 base64 编码的哈希。
+   * 值可以包含多个由空格分隔的哈希值，只要文件匹配其中任意一个哈希值，就可以通过校验并加载该资源
+   */
+  var signature: String?
   fun toJmmAppManifest(): JmmAppManifest
 }
 
+@OptIn(ExperimentalStdlibApi::class)
+suspend fun JmmAppInstallManifest.verifySignature(): Boolean {
+  if (signature.isNullOrBlank()) {
+    return false
+  }
+  val signature: String = signature!!
+  if (public_key_url.isBlank()) {
+    return false
+  }
+  if (!id.endsWith(".dweb")) {
+    return false
+  }
+  val origin = id.substringBeforeLast(".dweb")
+  val publicKeyUrl =
+    public_key_url.toWebUrl() ?: this.baseURI?.let { base -> (base + public_key_url).toWebUrl() }
+    ?: return false
+
+  if (publicKeyUrl.host != origin) return false
+
+  try {
+
+    val publicKeyRes = httpFetch(publicKeyUrl.toString())
+    if (publicKeyRes.json<PublicKeyJsonBase>().version != 1) return false
+    val v1 = publicKeyRes.json<PublicKeyV1Info>()
+    /// 目前只支持 ECDSA 算法
+    if (v1.algorithm != "ECDSA") return false
+
+    val provider = CryptographyProvider.Default
+    val ecdsa = provider.get(ECDSA)
+    val publicKeyDecoder = ecdsa.publicKeyDecoder(
+      when (v1.crv) {
+        "P-256" -> EC.Curve.P256
+        "P-384" -> EC.Curve.P384
+        "P-P521" -> EC.Curve.P521
+        else -> EC.Curve.P256
+      }
+    )
+
+    val decodedPublicKey = publicKeyDecoder.decodeFrom(when (v1.format) {
+      "RAW" -> EC.PublicKey.Format.RAW
+      "DER" -> EC.PublicKey.Format.DER
+      "PEM" -> EC.PublicKey.Format.PEM
+      "JWK" -> EC.PublicKey.Format.JWK
+      else -> EC.PublicKey.Format.DER
+    }, v1.publicKey.let {
+      when {
+        it.startsWith("base64-") -> it.substringAfter("base64-").base64Binary
+        it.startsWith("hex-") -> it.substringAfter("hex-").base64Binary
+        else -> it.base64Binary
+      }
+    })
+
+    val signatureDigest: CryptographyAlgorithmId<Digest>
+    val signatureBytes: ByteArray
+    when {
+      signature.startsWith("sha256-") -> {
+        signatureDigest = SHA256
+        signatureBytes = signature.substringAfter("sha256-").base64Binary
+      }
+
+      signature.startsWith("sha384-") -> {
+        signatureDigest = SHA384
+        signatureBytes = signature.substringAfter("sha384-").base64Binary
+      }
+
+      signature.startsWith("sha512-") -> {
+        signatureDigest = SHA512
+        signatureBytes = signature.substringAfter("sha384-").base64Binary
+      }
+
+      else -> return false
+    }
+
+
+    return decodedPublicKey.signatureVerifier(
+      digest = signatureDigest
+    ).verifySignature(
+      dataInput = Json.encodeToString(this.p.toMap().sortedForJsonStringify()).encodeToByteArray(),
+      signatureInput = signatureBytes,
+    )
+
+//    val keyPairGenerator = ecdsa.keyPairGenerator(EC.Curve.P521)
+//    val keyPair: ECDSA.KeyPair = keyPairGenerator.generateKey()
+//
+//// generating signature using privateKey
+//    val signature: ByteArray =
+//      keyPair.privateKey.signatureGenerator(digest = SHA512)
+//        .generateSignature("text1".encodeToByteArray())
+//
+//
+//// verifying signature with publicKey, note, digest should be the same
+//    val verificationResult: Boolean =
+//      keyPair.publicKey.signatureVerifier(digest = SHA512)
+//        .verifySignature("text1".encodeToByteArray(), signature)
+//
+//// will print true
+//    println(verificationResult)
+//
+//// key also can be encoded and decoded
+//
+//    val encodedPublicKey: ByteArray = keyPair.publicKey.encodeTo(EC.PublicKey.Format.DER)
+//// note, the curve should be the same
+//    val decodedPublicKey: ECDSA.PublicKey =
+//      ecdsa.publicKeyDecoder(EC.Curve.P521).decodeFrom(EC.PublicKey.Format.DER, encodedPublicKey)
+//
+//    val decodedKeyVerificationResult: Boolean =
+//      decodedPublicKey.signatureVerifier(digest = SHA512)
+//        .verifySignature("text1".encodeToByteArray(), signature)
+//
+//// will print true
+//    println(decodedKeyVerificationResult)
+
+    return true
+
+  } catch (e: Throwable) {
+    return false
+  }
+}
+
+@Serializable
+data class PublicKeyJsonBase(val version: Int)
+
+@Serializable
+data class PublicKeyV1Info(
+  val algorithm: String,
+  val format: String,
+
+  val publicKey: String,
+  val crv: String?,
+)
+
+
+private fun Map<*, *>.sortedForJsonStringify(): List<Any?> {
+  val keys = this.keys.mapNotNull { it as? String }.filter { !it.startsWith("$") }.sorted()
+  val result = mutableListOf<Any?>()
+  for (key in keys) {
+    val value = this[key]
+    result.add(key)
+    if (value is Map<*, *>) {
+      result.add(value.sortedForJsonStringify())
+    } else {
+      result.add(value)
+    }
+  }
+  return result
+}

@@ -7,24 +7,23 @@ plugins {
 kotlin {
   kmpCommonTarget(project) {
     dependencies {
-      implementation(libs.whyoleg.cryptography.core)
-//      implementation(projects.helper)
+      api(libs.whyoleg.cryptography.core)
     }
   }
 
   kmpAndroidTarget(project) {
     dependencies {
-      implementation(libs.whyoleg.cryptography.provider.jdk)
+      api(libs.whyoleg.cryptography.provider.jdk)
     }
   }
   kmpIosTarget(project) {
     dependencies {
-      implementation(libs.whyoleg.cryptography.provider.openssl3.prebuilt)
+      api(libs.whyoleg.cryptography.provider.openssl3.prebuilt)
     }
   }
   kmpDesktopTarget(project) {
     dependencies {
-      implementation(libs.whyoleg.cryptography.provider.jdk)
+      api(libs.whyoleg.cryptography.provider.jdk)
     }
   }
 

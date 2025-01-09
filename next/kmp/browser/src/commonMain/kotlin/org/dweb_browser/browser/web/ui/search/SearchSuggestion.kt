@@ -19,14 +19,20 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.web.model.LocalBrowserViewModel
 import org.dweb_browser.browser.web.model.page.BrowserWebPage
+import java.util.concurrent.CancellationException
 
 internal data class TabInfo(
   val title: String,
@@ -50,8 +56,22 @@ internal fun SearchSuggestion(
     val scope = rememberCoroutineScope()
     val currentWebPage = viewModel.focusedPage?.let { if (it is BrowserWebPage) it else null }
 
+    var web3Searcher by remember {
+      mutableStateOf<Web3Searcher?>(null)
+    }
+    LaunchedEffect(searchText) {
+      web3Searcher?.cancel(CancellationException("Cancel search"))
+      web3Searcher = when {
+        searchText.isEmpty() -> null
+        else -> Web3Searcher(
+          coroutineContext = viewModel.browserNMM.getRuntimeScope().coroutineContext,
+          searchText = searchText
+        )
+      }
+    }
     // TODO FIX ME 本地搜索会用到??
     LaunchedEffect(searchText) { viewModel.getInjectList(searchText) }
+
     val tabs = mutableListOf(
       TabInfo(
         BrowserI18nResource.browser_search_ai(),
@@ -73,7 +93,7 @@ internal fun SearchSuggestion(
         BrowserI18nResource.browser_search_web3(),
         icon = { Icon(Icons.TwoTone.Diversity3, "") },
       ) {
-        SearchWeb3(viewModel, searchText, onDismissRequest = onClose)
+        SearchWeb3(viewModel, web3Searcher, onDismissRequest = onClose)
       },
     )
     if (currentWebPage != null) {
