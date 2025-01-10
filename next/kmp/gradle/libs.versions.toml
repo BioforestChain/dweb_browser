@@ -3,8 +3,8 @@ compileSdkVersion = "35" # Int
 buildToolsVersion = "29.0.2"
 minSdkVersion = "28" # Int
 targetSdkVersion = "35" # Int
-versionCode = "138" # Int
-versionName = "3.241220.0"
+versionCode = "139" # Int
+versionName = "3.250110.0"
 kotlinCompilerExtensionVersion = "1.5.15"
 jvmTarget = "17"
 javaVersion = "VERSION_17" # JavaVersion.VERSION_17
@@ -34,9 +34,9 @@ androidx-biometric = "1.4.0-alpha02"
 
 ktor-version = "2.3.13"
 
-kotlinx-coroutines = "1.10.0"
+kotlinx-coroutines-version = "1.10.1"
 kotlinx-datetime-version = "0.6.1"
-kotlinx-atomicfu-version = "0.26.1"
+kotlinx-atomicfu-version = "0.27.0"
 kotlinx-io-version = "0.6.0"
 kotlinx-html-version = "0.11.0"
 okio-version = "3.9.1"
@@ -130,9 +130,9 @@ androidx-gridlayout = { group = "androidx.gridlayout", name = "gridlayout", vers
 androidx-profile-installer = { group = "androidx.profileinstaller", name = "profileinstaller", version.ref = "androidx-profile-installer" }
 androidx-animation-core-android = { group = "androidx.compose.animation", name = "animation-core-android", version.ref = "animation-core-android" }
 
-kotlinx-coroutines-bom = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-bom", version.ref = "kotlinx-coroutines" }
-kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
-kotlinx-coroutines-swing = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-swing", version.ref = "kotlinx-coroutines" }
+kotlinx-coroutines-bom = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-bom", version.ref = "kotlinx-coroutines-version" }
+kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinx-coroutines-version" }
+kotlinx-coroutines-swing = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-swing", version.ref = "kotlinx-coroutines-version" }
 kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "kotlinx-datetime-version" }
 kotlinx-atomicfu = { group = "org.jetbrains.kotlinx", name = "atomicfu", version.ref = "kotlinx-atomicfu-version" }
 kotlinx-io = { group = "org.jetbrains.kotlinx", name = "kotlinx-io-core", version.ref = "kotlinx-io-version" }
@@ -199,8 +199,8 @@ androidx-test-core-ktx = { group = "androidx.test", name = "core-ktx", version.r
 androidx-compose-ui-test = { group = "androidx.compose.ui", name = "ui-test", version.ref = "androidx-compose-ui-test" }
 androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4", version.ref = "androidx-compose-ui-test" }
 androidx-compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest", version.ref = "androidx-compose-ui-test" }
-test-kotlin-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
-test-kotlin-coroutines-debug = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-debug", version.ref = "kotlinx-coroutines" }
+test-kotlin-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinx-coroutines-version" }
+test-kotlin-coroutines-debug = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-debug", version.ref = "kotlinx-coroutines-version" }
 test-junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter" }
 test-junit-jupiter-engine = { group = "org.junit.jupiter", name = "junit-jupiter-engine" }
 androidx-test-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junit" }

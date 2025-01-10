@@ -118,7 +118,7 @@ android {
     if (channel == "stable") {
       applicationIdSuffix = null
       versionNameSuffix = null
-      manifestPlaceholders["appName"] = "Dweb Browser"
+      manifestPlaceholders["appName"] = "@string/app_name"
     } else {
       applicationIdSuffix = ".$channel"
       versionNameSuffix = "-$channel"
@@ -142,7 +142,8 @@ android {
       // signingConfig = signingConfigs.getByName("debug") // 如果是测试benchmark需要使用debug
       signingConfig = signingConfigs.getByName("release")
       isMinifyEnabled = true // 开启代码混淆
-      setProguardFiles(listOf("proguard-rules.pro"))
+      // setProguardFiles(listOf("proguard-rules.pro"))
+     setProguardFiles(emptyList<String>())
       isShrinkResources = true // 移除无用的resource
       configChannel(buildChannel, this)
       manifestPlaceholders["isTestOnly"] = "false"

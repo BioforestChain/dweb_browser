@@ -3,6 +3,8 @@ package org.dweb_browser.browser.web.ui.search
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -43,8 +45,9 @@ import org.dweb_browser.dwebview.rememberHistoryCanGoBack
 import org.dweb_browser.dwebview.rememberHistoryCanGoForward
 import org.dweb_browser.sys.clipboard.ext.clipboardWriteText
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-internal fun SearchWebPageInfo(
+internal fun SearchWebPage(
   viewModel: BrowserViewModel,
   webPage: BrowserWebPage,
   searchTextState: TextFieldState,
@@ -108,7 +111,7 @@ internal fun SearchWebPageInfo(
       }
     })
     /// 关于网页的一些其它操作
-    Row(
+    FlowRow(
       modifier = Modifier.padding(horizontal = dimenPageHorizontal).padding(top = 8.dp),
       horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {

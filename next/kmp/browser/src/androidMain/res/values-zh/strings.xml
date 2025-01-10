@@ -1,5 +1,5 @@
 <resources>
-  <string name="app_name">Dweb-Browser</string>
+  <string name="app_name">自由穿梭</string>
 
   <!-- 权限部分的字符串 -->
   <string name="permission_allow">允许</string>

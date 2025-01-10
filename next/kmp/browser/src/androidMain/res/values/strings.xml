@@ -1,5 +1,5 @@
 <resources>
-  <string name="app_name">Dweb-Browser</string>
+  <string name="app_name">Dweb Browser</string>
 
   <!-- Permission String -->
   <string name="permission_allow">Allow</string>

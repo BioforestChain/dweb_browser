@@ -6,7 +6,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Engineering
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -22,7 +22,7 @@ import org.dweb_browser.browser.web.model.BrowserViewModel
  * AI 搜索
  */
 @Composable
-internal fun SearchAi(
+internal fun SearchChat(
   viewModel: BrowserViewModel, searchText: String, onDismissRequest: () -> Unit,
 ) {
   Box(Modifier.fillMaxWidth().heightIn(min = 320.dp), contentAlignment = Alignment.Center) {
@@ -31,7 +31,7 @@ internal fun SearchAi(
       horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.alpha(0.6f)
     ) {
       Icon(
-        Icons.Default.Engineering,
+        Icons.Default.AutoAwesome,
         contentDescription = "developing",
         modifier = Modifier.size(64.dp),
       )

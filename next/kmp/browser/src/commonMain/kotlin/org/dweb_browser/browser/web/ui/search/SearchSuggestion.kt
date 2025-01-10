@@ -8,8 +8,8 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.twotone.AutoAwesome
 import androidx.compose.material.icons.twotone.Diversity3
+import androidx.compose.material.icons.twotone.Forum
 import androidx.compose.material.icons.twotone.Http
 import androidx.compose.material.icons.twotone.TravelExplore
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -18,6 +18,7 @@ import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -31,6 +32,7 @@ import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.zIndex
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.job
@@ -38,7 +40,6 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.web.model.LocalBrowserViewModel
 import org.dweb_browser.browser.web.model.page.BrowserWebPage
-import java.util.concurrent.CancellationException
 
 internal data class TabInfo(
   val title: String,
@@ -60,23 +61,23 @@ internal fun SearchSuggestion(
   val viewModel = LocalBrowserViewModel.current
   val focusManager = LocalFocusManager.current
   Column(modifier = modifier.fillMaxSize().zIndex(1f).pointerInput(Unit) {
-      awaitPointerEventScope {
-        while (true) {
-          val event = awaitPointerEvent()
-          if (event.type == PointerEventType.Press) {
-            // 用户开始交互，关闭键盘，避免遮挡
-            focusManager.clearFocus()
-          }
+    awaitPointerEventScope {
+      while (true) {
+        val event = awaitPointerEvent()
+        if (event.type == PointerEventType.Press) {
+          // 用户开始交互，关闭键盘，避免遮挡
+          focusManager.clearFocus()
         }
       }
-    }) {
+    }
+  }) {
     val scope = rememberCoroutineScope()
     val currentWebPage = viewModel.focusedPage?.let { it as? BrowserWebPage }
 
     var web3Searcher by remember {
       mutableStateOf<Web3Searcher?>(null)
     }
-    LaunchedEffect(searchText) {
+    DisposableEffect(searchText) {
       web3Searcher?.cancel(CancellationException("Cancel search"))
       web3Searcher = when {
         searchText.isEmpty() -> null
@@ -88,16 +89,20 @@ internal fun SearchSuggestion(
           )
         }
       }
+      onDispose {
+        web3Searcher?.cancel(CancellationException("Cancel search"))
+        web3Searcher = null
+      }
     }
     // TODO FIX ME 本地搜索会用到??
     LaunchedEffect(searchText) { viewModel.getInjectList(searchText) }
 
     val tabs = mutableListOf(
       TabInfo(
-        BrowserI18nResource.browser_search_ai(),
-        icon = { Icon(Icons.TwoTone.AutoAwesome, "") },
+        BrowserI18nResource.browser_search_chat(),
+        icon = { Icon(Icons.TwoTone.Forum, "") },
       ) {
-        SearchAi(viewModel, searchText, onDismissRequest = onClose)
+        SearchChat(viewModel, searchText, onDismissRequest = onClose)
       },
       TabInfo(
         BrowserI18nResource.browser_search_web2(),
@@ -120,7 +125,7 @@ internal fun SearchSuggestion(
       val webPageTabInfo = TabInfo(BrowserI18nResource.browser_search_web_page(), icon = {
         Icon(Icons.TwoTone.Http, "")
       }) {
-        SearchWebPageInfo(
+        SearchWebPage(
           viewModel = viewModel,
           webPage = currentWebPage,
           searchTextState = searchTextState,
@@ -131,7 +136,6 @@ internal fun SearchSuggestion(
     }
     val state = rememberPagerState(1) { tabs.size }
 
-    val focusManager = LocalFocusManager.current
     SecondaryTabRow(
       state.currentPage, Modifier.fillMaxWidth(), containerColor = Color.Transparent
     ) {
