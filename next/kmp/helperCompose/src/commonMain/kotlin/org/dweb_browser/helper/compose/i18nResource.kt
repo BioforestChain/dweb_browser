@@ -83,8 +83,18 @@ open class I18n {
 
     data class Zh2(var value1: String, var value2: String)
 
+    class Zh2I18nResource(vararg i18nValues: Pair<Language, OneParam<Zh2>>) :
+      OneParamI18nResource<Zh2>({ Zh2("", "") }, i18nValues = i18nValues) {
+      @Composable
+      operator fun invoke(param1: String, param2: String): String {
+        return super.invoke(Zh2(param1, param2))
+      }
+
+      fun text(param1: String, param2: String) = text(Zh2(param1, param2))
+    }
+
     fun zh2(zh: Zh2.() -> String, en: Zh2.() -> String) =
-      OneParamI18nResource({ Zh2("", "") }, Language.ZH to zh, Language.EN to en)
+      Zh2I18nResource(Language.ZH to zh, Language.EN to en)
   }
 }
 

@@ -14,13 +14,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import io.ktor.http.encodeURLParameter
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.jmm.LocalShowWebViewVersion
 import org.dweb_browser.browser.jmm.getChromeWebViewVersion
+import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.SupportUrl
-import org.dweb_browser.helper.compose.LocalCommonUrl
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.isGreaterThan
+import org.dweb_browser.sys.window.core.constant.LocalWindowMM
 
 var showedWarningDialog = false
 
@@ -28,7 +30,6 @@ var showedWarningDialog = false
 internal fun WebviewVersionWarningDialog() {
   if (showedWarningDialog) return
   var isShowDialog by LocalShowWebViewVersion.current
-  val loadingUrl = LocalCommonUrl.current
   var myVersion by remember { mutableStateOf("") }
   val lowVersion = "96.0.4664.104" // TODO 目前暂定该版本信息最低要求为96.0.4664.104以上
   LaunchedEffect(Unit) {
@@ -39,6 +40,7 @@ internal fun WebviewVersionWarningDialog() {
     }
   }
   if (isShowDialog) {
+    val microModule = LocalWindowMM.current
     AlertDialog(onDismissRequest = { /*showDialog = false*/ }, title = {
       Text(text = BrowserI18nResource.dialog_title_webview_upgrade())
     }, text = {
@@ -54,7 +56,9 @@ internal fun WebviewVersionWarningDialog() {
             .weight(1f)
             .clickableWithNoEffect {
               isShowDialog = false
-              loadingUrl.value = SupportUrl // 地址变化，会引起webview加载，加载状态决定是否显示loading
+              microModule.scopeLaunch(cancelable = true) {
+                microModule.nativeFetch("dweb://openinbrowser?url=${SupportUrl.encodeURLParameter()}")
+              }
             })
 
         Button(onClick = { isShowDialog = false }) {

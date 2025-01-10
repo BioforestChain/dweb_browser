@@ -173,6 +173,7 @@ fun dpAni(targetValue: Dp, label: String, onFinished: () -> Unit = {}): Dp {
 
 @Composable
 fun SplashMainView(modifier: Modifier, startAnimation: Boolean) {
+  @SuppressLint("UnusedBoxWithConstraintsScope")
   BoxWithConstraints(
     modifier
       .fillMaxSize()
@@ -184,8 +185,8 @@ fun SplashMainView(modifier: Modifier, startAnimation: Boolean) {
     var logoTop by remember { mutableStateOf(0.dp) }
     val bannerTop = logoHeight / 2 + logoTop
 
-    if (startAnimation) {
-      LaunchedEffect(null) {
+    LaunchedEffect(constraints.maxWidth, constraints.maxHeight) {
+      if (startAnimation) {
         delay(10)
         val boxSize = min(maxWidth, maxHeight) * 1.618f
         logoTop = (boxSize * 0.217f) - ((maxHeight - logoHeight) / 2)

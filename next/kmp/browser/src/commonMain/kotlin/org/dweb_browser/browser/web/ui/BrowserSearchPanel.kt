@@ -39,8 +39,6 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.semantics.onClick
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.VisualTransformation
 import kotlinx.coroutines.delay
@@ -78,6 +76,7 @@ class BrowserSearchPanel(val viewModel: BrowserViewModel) {
 
       val searchPage = showSearchPage ?: return@AnimatedVisibility
       val focusManager = LocalFocusManager.current
+      val focusRequester = remember { FocusRequester() }
       val hide = {
         focusManager.clearFocus()
         viewModel.hideAllPanel()
@@ -99,7 +98,6 @@ class BrowserSearchPanel(val viewModel: BrowserViewModel) {
         modifier = Modifier.fillMaxSize().background(searchBarColors.containerColor),
       ) {
         /// 搜索框
-        val focusRequester = remember { FocusRequester() }
         LaunchedEffect(focusRequester) {
           delay(100)
           // MacOS桌面端会出现窗口失焦，导致无法直接输入
@@ -129,13 +127,7 @@ class BrowserSearchPanel(val viewModel: BrowserViewModel) {
          */
         BasicTextField(state = searchTextState,
           modifier = Modifier.fillMaxWidth(
-          ).heightIn(min = SearchBarDefaults.InputFieldHeight).focusRequester(focusRequester)
-            .semantics {
-              onClick {
-                focusRequester.requestFocus()
-                true
-              }
-            },
+          ).heightIn(min = SearchBarDefaults.InputFieldHeight).focusRequester(focusRequester),
           lineLimits = TextFieldLineLimits.SingleLine,
           textStyle = LocalTextStyle.current.copy(color = searchFieldColors.focusedTextColor),
           cursorBrush = SolidColor(searchFieldColors.cursorColor),

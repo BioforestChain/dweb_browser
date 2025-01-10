@@ -27,7 +27,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.zIndex
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.web.model.LocalBrowserViewModel
@@ -52,9 +58,20 @@ internal fun SearchSuggestion(
 ) {
   val searchText = searchTextState.text.toString()
   val viewModel = LocalBrowserViewModel.current
-  Column(modifier = modifier) {
+  val focusManager = LocalFocusManager.current
+  Column(modifier = modifier.fillMaxSize().zIndex(1f).pointerInput(Unit) {
+      awaitPointerEventScope {
+        while (true) {
+          val event = awaitPointerEvent()
+          if (event.type == PointerEventType.Press) {
+            // 用户开始交互，关闭键盘，避免遮挡
+            focusManager.clearFocus()
+          }
+        }
+      }
+    }) {
     val scope = rememberCoroutineScope()
-    val currentWebPage = viewModel.focusedPage?.let { if (it is BrowserWebPage) it else null }
+    val currentWebPage = viewModel.focusedPage?.let { it as? BrowserWebPage }
 
     var web3Searcher by remember {
       mutableStateOf<Web3Searcher?>(null)
@@ -63,10 +80,13 @@ internal fun SearchSuggestion(
       web3Searcher?.cancel(CancellationException("Cancel search"))
       web3Searcher = when {
         searchText.isEmpty() -> null
-        else -> Web3Searcher(
-          coroutineContext = viewModel.browserNMM.getRuntimeScope().coroutineContext,
-          searchText = searchText
-        )
+        else -> {
+          val parentScope = viewModel.browserNMM.getRuntimeScope()
+          Web3Searcher(
+            coroutineContext = parentScope.coroutineContext + SupervisorJob(parentScope.coroutineContext.job),
+            searchText = searchText
+          )
+        }
       }
     }
     // TODO FIX ME 本地搜索会用到??
@@ -111,13 +131,16 @@ internal fun SearchSuggestion(
     }
     val state = rememberPagerState(1) { tabs.size }
 
+    val focusManager = LocalFocusManager.current
     SecondaryTabRow(
       state.currentPage, Modifier.fillMaxWidth(), containerColor = Color.Transparent
     ) {
       tabs.forEachIndexed { index, tab ->
         Tab(
           selected = state.currentPage == index,
-          onClick = { scope.launch { state.scrollToPage(index) } },
+          onClick = {
+            scope.launch { state.scrollToPage(index) }
+          },
           icon = { tab.icon() },
           text = { Text(tab.title) },
         )

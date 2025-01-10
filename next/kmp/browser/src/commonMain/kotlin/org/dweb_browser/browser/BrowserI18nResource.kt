@@ -87,8 +87,27 @@ object BrowserI18nResource : I18n() {
     "未检索到符合关键字的本地资源", "No local resource matching the keyword was retrieved"
   )
   val browser_search_comingSoon = zh("即将开放", "Coming Soon")
-  val browser_web3_found_dwebapps = zh1({ "找到了 $value 个dweb应用" },
+  val browser_web3_found_dwebapps = zh1({ "找到了 ${value}个 dweb应用" },
     { "Found $value dweb application${if (value == "1") "s" else ""}" })
+  val browser_web3_search_logs = zh("搜索日志", "Search Logs")
+
+  object Web3Search : I18n() {
+    val preview_logs_lines = zh1({ "总共 $value 条日志" }, { "$value logs in total" })
+    val log_start_dwebapps = zh("正在搜索 Dweb应用", "Scraping Dwebapps")
+    val log_end = zh("搜索结束", "End of search")
+    val log_fetch_dwebapps = zh1({ "加载 $value" }, { "fetching $value" })
+    val log_parse_dwebapps = zh1({ "分析 $value" }, { "parsing $value" })
+    val log_fail_dwebapps = zh1({ "无效 $value" }, { "unable $value" })
+    val log_discover_dwebapps =
+      zh2({ "发现 $value1 Dweb应用 入口: $value2" }, { "Discover $value1 Dwebapp portal: $value2" })
+    val log_error_cors_dwebapps =
+      zh1({ "失败 $value Dweb应用存在跨域限制" }, { "Fail $value dwebapp cors limit" })
+    val log_error_integrity_dwebapps =
+      zh1({ "警告 $value 正确性验证不通过" }, { "Warn $value integrity hash not match" })
+    val log_error_dwebapps = zh2({ "错误 $value1 : $value2" }, { "Error $value1 : $value2" })
+    val log_success_found_dwebapps =
+      zh2({ "成功 $value1 找到 Dweb应用: $value2" }, { "Success $value1 found dwebapp: $value2" })
+  }
 
   val browser_bookmark_title = zh("书签标题", "Bookmark Title")
   val browser_bookmark_url = zh("链接地址", "Bookmark Url")
