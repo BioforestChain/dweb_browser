@@ -15,9 +15,9 @@ import io.ktor.server.response.respond
 import io.ktor.server.websocket.WebSocketUpgrade
 import io.ktor.server.websocket.WebSockets
 import io.ktor.util.logging.KtorSimpleLogger
-import io.ktor.utils.io.CancellationException
 import io.ktor.websocket.Frame
 import io.ktor.websocket.close
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.channels.Channel
@@ -133,8 +133,7 @@ open class KtorPureServer<out TEngine : ApplicationEngine, TConfiguration : Appl
 
   protected open fun getCoroutineExceptionHandler(): CoroutineContext = commonAsyncExceptionHandler
 
-  protected suspend inline fun startServer(createServer: () -> ApplicationEngine) =
-    serverLock.withLock {
+  protected suspend inline fun startServer(createServer: () -> ApplicationEngine) = serverLock.withLock {
       val engine = when (val engine = serverEngine) {
         null -> {
           createServer().also { newEngine ->

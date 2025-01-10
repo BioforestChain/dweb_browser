@@ -7,7 +7,7 @@ import io.ktor.http.Url
 import io.ktor.http.hostWithPort
 import io.ktor.http.protocolWithAuthority
 import io.ktor.util.decodeBase64String
-import io.ktor.utils.io.CancellationException
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
@@ -638,9 +638,9 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
     val x_dweb_host = query_x_dweb_host ?: header_auth_host ?: header_x_dweb_host ?: header_host
     return x_dweb_host?.let { host ->
       val isWs = request.isWebSocket
-      val protocol = when (is_https) {
-        true -> if (isWs) URLProtocol.WSS else URLProtocol.HTTPS
-        false -> if (isWs) URLProtocol.WS else URLProtocol.HTTP
+      val protocol = when {
+        is_https -> if (isWs) URLProtocol.WSS else URLProtocol.HTTPS
+        else -> if (isWs) URLProtocol.WS else URLProtocol.HTTP
       }
       DwebGatewayInfo(host, protocol)
     }

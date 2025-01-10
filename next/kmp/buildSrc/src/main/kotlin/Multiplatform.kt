@@ -40,7 +40,7 @@ fun KotlinCompilation<*>.configureCompilation() {
       freeCompilerArgs.addAll(
         "-Xexpect-actual-classes",
         "-Xcontext-receivers",
-        "-XXLanguage:+ExplicitBackingFields",
+        // "-XXLanguage:+ExplicitBackingFields",
       )
     }
   }

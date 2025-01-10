@@ -1,7 +1,7 @@
 package org.dweb_browser.browser.scan
 
 import io.ktor.http.HttpStatusCode
-import io.ktor.utils.io.CancellationException
+import kotlinx.coroutines.CancellationException
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.core.help.types.DwebPermission
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
