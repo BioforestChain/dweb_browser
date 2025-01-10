@@ -1,0 +1,27 @@
+/* Bundle display name */
+"CFBundleDisplayName" = "自由穿梭";
+
+/* Bundle name */
+"CFBundleName" = "DwebBrowser";
+
+/* Privacy - Camera Usage Description */
+"NSCameraUsageDescription" = "请允许“自由穿梭”使用您的相机，用于“扫码”、“拍摄”、“视频通话”等功能。\n";
+
+/* Privacy - Face ID Usage Description */
+"NSFaceIDUsageDescription" = "请允许“自由穿梭”使用您的面容ID，用于“人脸识别”、“身份认证”等功能。";
+
+/* Privacy - Location Always and When In Use Usage Description */
+"NSLocationAlwaysAndWhenInUseUsageDescription" = "请允许“自由穿梭”使用您的位置信息。用于“地理定位”、“位置共享”等功能。";
+
+/* Privacy - Location Usage Description */
+"NSLocationUsageDescription" = "请允许“自由穿梭”使用您的位置信息。用于“地理定位”、“位置共享”等功能。";
+
+/* Privacy - Location When In Use Usage Description */
+"NSLocationWhenInUseUsageDescription" = "请允许“自由穿梭”使用您的位置信息。用于“地理定位”、“位置共享”等功能。";
+
+/* Privacy - Microphone Usage Description */
+"NSMicrophoneUsageDescription" = "请允许“自由穿梭”使用您的麦克风。用于“音频录制”、“语音通话”等功能。";
+
+/* Privacy - Photo Library Usage Description */
+"NSPhotoLibraryUsageDescription" = "请允许“自由穿梭”使用您的相册。用于“保存照片”等功能。";
+

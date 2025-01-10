@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButton
@@ -24,36 +25,29 @@ import org.dweb_browser.browser.download.DownloadController
 import org.dweb_browser.browser.download.model.DownloadListTabs
 import org.dweb_browser.browser.download.model.DownloadState
 import org.dweb_browser.browser.download.model.DownloadTask
-import org.dweb_browser.helper.compose.HorizontalDivider
 import org.dweb_browser.helper.compose.NoDataRender
 
 @Composable
 fun DownloadController.DownloadList(
   modifier: Modifier,
-  downloadClick: (DownloadTask) -> Unit
+  downloadClick: (DownloadTask) -> Unit,
 ) {
   Column(
-    modifier = modifier
-      .fillMaxSize()
-      .background(MaterialTheme.colorScheme.background)
+    modifier = modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
   ) {
     SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
       downloadListModel.tabItems.forEachIndexed { index, downloadTab ->
-        SegmentedButton(
-          selected = index == downloadListModel.tabIndex,
+        SegmentedButton(selected = index == downloadListModel.tabIndex,
           onClick = { downloadListModel.tabIndex = index },
           shape = SegmentedButtonDefaults.itemShape(
-            index = index,
-            count = downloadListModel.tabItems.size
+            index = index, count = downloadListModel.tabItems.size
           ),
           icon = {
             Icon(
-              imageVector = downloadTab.icon,
-              contentDescription = downloadTab.title()
+              imageVector = downloadTab.icon, contentDescription = downloadTab.title()
             )
           },
-          label = { Text(text = downloadTab.title()) }
-        )
+          label = { Text(text = downloadTab.title()) })
       }
     }
     val downloadTab = downloadListModel.tabItems[downloadListModel.tabIndex]

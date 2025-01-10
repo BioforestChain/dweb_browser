@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		1A0D794E6805F75B088C0939 /* DwebBrowserApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0D7C84CC71A12D5FCBBF78 /* DwebBrowserApp.swift */; };
 		3228A1152C885AD700D52353 /* EdgeAnimationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3228A1142C885AD700D52353 /* EdgeAnimationView.swift */; };
+		3D0947422D31325300CE8505 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D0947402D31325300CE8505 /* InfoPlist.strings */; };
+		3D0947452D31325300CE8505 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D0947432D31325300CE8505 /* Localizable.strings */; };
 		48001B9F2B8ED4CB00F47669 /* DwebBrowserUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48001B9E2B8ED4CB00F47669 /* DwebBrowserUITests.swift */; };
 		48001BA12B8ED4CB00F47669 /* DwebBrowserUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48001BA02B8ED4CB00F47669 /* DwebBrowserUITestsLaunchTests.swift */; };
 		48001BAA2B8F1ADE00F47669 /* DwebUITestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48001BA92B8F1ADE00F47669 /* DwebUITestCase.swift */; };
@@ -73,6 +75,12 @@
 		1A0D7C84CC71A12D5FCBBF78 /* DwebBrowserApp.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DwebBrowserApp.swift; sourceTree = "<group>"; };
 		3228A1142C885AD700D52353 /* EdgeAnimationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EdgeAnimationView.swift; sourceTree = "<group>"; };
 		3D037B8C2C4392FB00AF8A00 /* DwebBrowser.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DwebBrowser.entitlements; sourceTree = "<group>"; };
+		3D0947412D31325300CE8505 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
+		3D0947442D31325300CE8505 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		3D0947462D31325A00CE8505 /* zh-Hant */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hant"; path = "zh-Hant.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
+		3D0947472D31325A00CE8505 /* zh-Hant */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hant"; path = "zh-Hant.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		3D0947482D31326000CE8505 /* zh-HK */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-HK"; path = "zh-HK.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
+		3D0947492D31326000CE8505 /* zh-HK */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-HK"; path = "zh-HK.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		48001B9C2B8ED4CB00F47669 /* DwebBrowserUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DwebBrowserUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		48001B9E2B8ED4CB00F47669 /* DwebBrowserUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DwebBrowserUITests.swift; sourceTree = "<group>"; };
 		48001BA02B8ED4CB00F47669 /* DwebBrowserUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DwebBrowserUITestsLaunchTests.swift; sourceTree = "<group>"; };
@@ -256,6 +264,8 @@
 				4819C2EB2B4FED53001BB45D /* Tools */,
 				4850503F2B146B5700080723 /* Preview Content */,
 				7555FF8C242A565B00829871 /* Info.plist */,
+				3D0947432D31325300CE8505 /* Localizable.strings */,
+				3D0947402D31325300CE8505 /* InfoPlist.strings */,
 				48334DC82B50CFFF00399FFF /* Assets.xcassets */,
 			);
 			path = DwebBrowser;
@@ -362,6 +372,9 @@
 			knownRegions = (
 				en,
 				Base,
+				"zh-Hans",
+				"zh-Hant",
+				"zh-HK",
 			);
 			mainGroup = 7555FF72242A565900829871;
 			productRefGroup = 7555FF7C242A565900829871 /* Products */;
@@ -394,7 +407,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3D0947452D31325300CE8505 /* Localizable.strings in Resources */,
 				48334DC92B50CFFF00399FFF /* Assets.xcassets in Resources */,
+				3D0947422D31325300CE8505 /* InfoPlist.strings in Resources */,
 				481488662B970A3E005D7D00 /* LinkSort.order in Resources */,
 				485050412B146B5700080723 /* Preview Assets.xcassets in Resources */,
 			);
@@ -476,6 +491,29 @@
 			targetProxy = 4824F5C72B8DC6CC00CD3D2D /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		3D0947402D31325300CE8505 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D0947412D31325300CE8505 /* zh-Hans */,
+				3D0947462D31325A00CE8505 /* zh-Hant */,
+				3D0947482D31326000CE8505 /* zh-HK */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3D0947432D31325300CE8505 /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D0947442D31325300CE8505 /* zh-Hans */,
+				3D0947472D31325A00CE8505 /* zh-Hant */,
+				3D0947492D31326000CE8505 /* zh-HK */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		48001BA42B8ED4CB00F47669 /* Debug */ = {

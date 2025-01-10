@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -27,7 +28,11 @@ import androidx.compose.ui.unit.dp
 fun SwipeToViewBoxPreview() {
   Column(Modifier.focusGroup()) {
     SwipeToViewBox(backgroundContent = { p ->
-      Box(Modifier.fillMaxSize().background(Color.Cyan), contentAlignment = Alignment.Center) {
+      Box(
+        Modifier
+          .fillMaxSize()
+          .background(Color.Cyan), contentAlignment = Alignment.Center
+      ) {
         Icon(Icons.Default.Check, null, Modifier.graphicsLayer {
           scaleX = p
           scaleY = p
@@ -36,7 +41,9 @@ fun SwipeToViewBoxPreview() {
       }
     }) {
       Box(
-        Modifier.size(300.dp, 100.dp).background(Color.White.copy(alpha = .8f)),
+        Modifier
+          .size(300.dp, 100.dp)
+          .background(Color.White.copy(alpha = .8f)),
         contentAlignment = Alignment.Center
       ) {
         Text("Hello world")
@@ -47,7 +54,10 @@ fun SwipeToViewBoxPreview() {
 
     SwipeToViewBox(backgroundContent = { p ->
       Box(
-        Modifier.fillMaxHeight().width(100.dp).background(Color.Cyan),
+        Modifier
+          .fillMaxHeight()
+          .width(100.dp)
+          .background(Color.Cyan),
         contentAlignment = Alignment.Center
       ) {
         Icon(Icons.Default.Check, null, Modifier.graphicsLayer {
@@ -58,7 +68,9 @@ fun SwipeToViewBoxPreview() {
       }
     }) {
       Box(
-        Modifier.size(300.dp, 100.dp).background(Color.White.copy(alpha = .8f)),
+        Modifier
+          .size(300.dp, 100.dp)
+          .background(Color.White.copy(alpha = .8f)),
         contentAlignment = Alignment.Center
       ) {
         Text("Hello world")
@@ -77,12 +89,18 @@ fun SwipeToViewBoxPreview() {
       }
     }
     SwipeToViewBox(state, backgroundContent = { p ->
-      Box(Modifier.fillMaxHeight().background(Color.Cyan)) {
+      Box(
+        Modifier
+          .fillMaxHeight()
+          .background(Color.Cyan)
+      ) {
         buttons()
       }
     }) {
       Box(
-        Modifier.size(300.dp, 100.dp).background(Color.White.copy(alpha = .8f)),
+        Modifier
+          .size(300.dp, 100.dp)
+          .background(Color.White.copy(alpha = .8f)),
         contentAlignment = Alignment.Center
       ) {
         buttons()

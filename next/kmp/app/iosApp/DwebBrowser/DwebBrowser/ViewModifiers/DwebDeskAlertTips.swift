@@ -38,10 +38,10 @@ struct UpgradleTipModifier: ViewModifier {
             }, set: {
                 versionMgr.needUpdate = $0
             })) {
-                Alert(title: Text("更新提示"),
-                      message: Text("有新版本可用，请您前往App Store更新。"),
+                Alert(title: Text("Update Notification"),
+                      message: Text("A new version is available. Please go to the App Store to update."),
                       primaryButton: .cancel(),
-                      secondaryButton: .default(Text("前往更新"), action: {
+                      secondaryButton: .default(Text("Go to App Store"), action: {
                           UIApplication.shared.open(URL(string: AppVersionMgr.appStoreURL)!, options: [:], completionHandler: nil)
                       }))
             }

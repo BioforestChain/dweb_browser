@@ -58,19 +58,26 @@
 		<true/>
 	</dict>
 	<key>NSCameraUsageDescription</key>
-	<string>用于支持扫一扫等功能</string>
+	<string>Please allow "Dweb Browser" to use your camera, for supports features such as Barcode scanning, photo and video shooting, and real-time video communication.
+</string>
 	<key>NSFaceIDUsageDescription</key>
-	<string>Access requires authentication</string>
+	<string>Please allow "Dweb Browser" to use your Face ID, for supports features such as face recognition and identity authentication
+</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>Please allow "DwebBrowser" to use your location</string>
+	<string>Please allow "Dweb Browser" to use your location. for supports features such geolocation and location sharing.
+</string>
 	<key>NSLocationUsageDescription</key>
-	<string>Please allow "DwebBrowser" to use your location</string>
+	<string>Please allow "Dweb Browser" to use your location. for supports features such geolocation and location sharing.
+</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Please allow "DwebBrowser" to use your location</string>
+	<string>Please allow "Dweb Browser" to use your location. for supports features such geolocation and location sharing.
+</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Please allow "DwebBrowser" to use your microphone</string>
+	<string>Please allow "Dweb Browser" to use your microphone, for supports features such as voice recording, and real-time voice communication.
+</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>用于保存图片到相册</string>
+	<string>Please allow "Dweb Browser" to use your Photo Library. for supports features such save photos.
+</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
