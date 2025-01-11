@@ -181,11 +181,7 @@ internal fun SearchWeb3(
           }
         },
         trailingContent = {
-//          Box(Modifier.fillMaxHeight().background(Color.Red), contentAlignment = Alignment.Center) {
-//          }
-          IconButton({}) {
-            Icon(Icons.AutoMirrored.Rounded.ArrowForwardIos, "Go To Detail")
-          }
+          Icon(Icons.AutoMirrored.Rounded.ArrowForwardIos, "Go To Detail")
         },
       )
       if (!last) {
