@@ -73,7 +73,6 @@ class BrowserSearchPanel(val viewModel: BrowserViewModel) {
       enter = remember { fadeIn(enterAnimationSpec()) + slideInVertically(enterAnimationSpec()) { it } },
       exit = remember { fadeOut(exitAnimationSpec()) + slideOutVertically(exitAnimationSpec()) { it } },
     ) {
-
       val searchPage = showSearchPage ?: return@AnimatedVisibility
       val focusManager = LocalFocusManager.current
       val focusRequester = remember { FocusRequester() }
@@ -91,9 +90,9 @@ class BrowserSearchPanel(val viewModel: BrowserViewModel) {
         searchTextState.setTextAndSelectAll(viewModel.searchKeyWord ?: searchPage.url)
       }
       val searchText = searchTextState.text.toString()
-
       val searchBarColors = SearchBarDefaults.colors()
       val searchFieldColors = SearchBarDefaults.inputFieldColors()
+      var suggestionActions by remember { mutableStateOf<List<() -> Unit>>(emptyList()) }
       Column(
         modifier = Modifier.fillMaxSize().background(searchBarColors.containerColor),
       ) {
@@ -118,7 +117,6 @@ class BrowserSearchPanel(val viewModel: BrowserViewModel) {
             }
           }
         }
-
         val interactionSource = remember { MutableInteractionSource() }
         /**
          * TODO 完成自动完成的功能
@@ -134,6 +132,7 @@ class BrowserSearchPanel(val viewModel: BrowserViewModel) {
           keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
           onKeyboardAction = {
             focusManager.clearFocus()
+            suggestionActions.firstOrNull()?.invoke()
 //            focusRequester.freeFocus()
 //            hide()
 //            viewModel.doIOSearchUrl(searchText)
@@ -171,15 +170,14 @@ class BrowserSearchPanel(val viewModel: BrowserViewModel) {
           })
 
         HorizontalDivider(color = searchBarColors.dividerColor)
-
         /// 面板内容
         SearchSuggestion(
           searchTextState = searchTextState,
           modifier = Modifier.fillMaxSize(),
           onClose = hide,
+          onSuggestionActions = { suggestionActions = it }
         )
       }
-
     }
     return showSearchPage != null
   }

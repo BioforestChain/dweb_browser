@@ -21,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -41,11 +42,23 @@ import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.web.model.LocalBrowserViewModel
 import org.dweb_browser.browser.web.model.page.BrowserWebPage
 
+internal enum class TabId {
+  Chat,
+  WebPage,
+  Web2,
+  Web3
+}
+
 internal data class TabInfo(
+  val id: TabId,
   val title: String,
+  val enabled: Boolean = true,
   val icon: @Composable () -> Unit,
   val content: @Composable () -> Unit,
 )
+typealias OnSuggestionActions = (SuggestionActions) -> Unit
+typealias SuggestionAction = () -> Unit
+typealias SuggestionActions = List<SuggestionAction>
 
 /**
  * 输入搜索内容后，显示的搜索建议
@@ -56,6 +69,7 @@ internal fun SearchSuggestion(
   searchTextState: TextFieldState,
   modifier: Modifier = Modifier,
   onClose: () -> Unit,
+  onSuggestionActions: OnSuggestionActions,
 ) {
   val searchText = searchTextState.text.toString()
   val viewModel = LocalBrowserViewModel.current
@@ -73,7 +87,6 @@ internal fun SearchSuggestion(
   }) {
     val scope = rememberCoroutineScope()
     val currentWebPage = viewModel.focusedPage?.let { it as? BrowserWebPage }
-
     var web3Searcher by remember {
       mutableStateOf<Web3Searcher?>(null)
     }
@@ -97,45 +110,74 @@ internal fun SearchSuggestion(
     // TODO FIX ME 本地搜索会用到??
     LaunchedEffect(searchText) { viewModel.getInjectList(searchText) }
 
+    val suggestionActionsMap = remember { mutableStateMapOf<TabId, List<() -> Unit>>() }
     val tabs = mutableListOf(
       TabInfo(
-        BrowserI18nResource.browser_search_chat(),
+        id = TabId.Chat,
+        title = BrowserI18nResource.browser_search_chat(),
+        enabled = false,
         icon = { Icon(Icons.TwoTone.Forum, "") },
       ) {
-        SearchChat(viewModel, searchText, onDismissRequest = onClose)
-      },
-      TabInfo(
-        BrowserI18nResource.browser_search_web2(),
-        icon = { Icon(Icons.TwoTone.TravelExplore, "") },
-      ) {
-        SearchWeb2(
-          viewModel,
-          searchTextState,
-          onDismissRequest = onClose,
+        SearchChat(
+          viewModel = viewModel,
+          searchText = searchText, onDismissRequest = onClose,
+          onSuggestionActions = {
+            suggestionActionsMap[TabId.Chat] = it
+          },
         )
       },
       TabInfo(
-        BrowserI18nResource.browser_search_web3(),
+        id = TabId.Web2,
+        title = BrowserI18nResource.browser_search_web2(),
+        icon = { Icon(Icons.TwoTone.TravelExplore, "") },
+      ) {
+        SearchWeb2(
+          viewModel = viewModel,
+          searchTextState = searchTextState,
+          onDismissRequest = onClose,
+          onSuggestionActions = {
+            suggestionActionsMap[TabId.Web2] = it
+          },
+        )
+      },
+      TabInfo(
+        id = TabId.Web3,
+        title = BrowserI18nResource.browser_search_web3(),
         icon = { Icon(Icons.TwoTone.Diversity3, "") },
       ) {
-        SearchWeb3(viewModel, web3Searcher, onDismissRequest = onClose)
+        SearchWeb3(
+          viewModel = viewModel,
+          web3Searcher = web3Searcher,
+          onDismissRequest = onClose,
+          onSuggestionActions = {
+            suggestionActionsMap[TabId.Web3] = it
+          },
+        )
       },
     )
     if (currentWebPage != null) {
-      val webPageTabInfo = TabInfo(BrowserI18nResource.browser_search_web_page(), icon = {
-        Icon(Icons.TwoTone.Http, "")
-      }) {
+      val webPageTabInfo = TabInfo(
+        id = TabId.WebPage,
+        title = BrowserI18nResource.browser_search_web_page(),
+        icon = { Icon(Icons.TwoTone.Http, "") },
+      ) {
         SearchWebPage(
           viewModel = viewModel,
           webPage = currentWebPage,
           searchTextState = searchTextState,
           onDismissRequest = onClose,
+          onSuggestionActions = {
+            suggestionActionsMap[TabId.WebPage] = it
+          },
         )
       }
       tabs.add(1, webPageTabInfo)
     }
     val state = rememberPagerState(1) { tabs.size }
-
+    val suggestionActions = suggestionActionsMap[tabs[state.currentPage].id]
+    LaunchedEffect(suggestionActions) {
+      onSuggestionActions(suggestionActions ?: emptyList())
+    }
     SecondaryTabRow(
       state.currentPage, Modifier.fillMaxWidth(), containerColor = Color.Transparent
     ) {
@@ -145,6 +187,7 @@ internal fun SearchSuggestion(
           onClick = {
             scope.launch { state.scrollToPage(index) }
           },
+          enabled = tab.enabled,
           icon = { tab.icon() },
           text = { Text(tab.title) },
         )

@@ -1,5 +1,6 @@
 package org.dweb_browser.browser.web.ui.search
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -23,12 +24,17 @@ import org.dweb_browser.browser.web.model.BrowserViewModel
  */
 @Composable
 internal fun SearchChat(
-  viewModel: BrowserViewModel, searchText: String, onDismissRequest: () -> Unit,
+  viewModel: BrowserViewModel,
+  searchText: String,
+  onDismissRequest: () -> Unit,
+  onSuggestionActions: OnSuggestionActions,
 ) {
   Box(Modifier.fillMaxWidth().heightIn(min = 320.dp), contentAlignment = Alignment.Center) {
     // TODO 接入能访问互联网的AI，让它能搜索当前网页，或者能自己在后台访问当前站点其它的链接
     Column(
-      horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.alpha(0.6f)
+      modifier = Modifier.alpha(0.6f),
+      horizontalAlignment = Alignment.CenterHorizontally,
+      verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
       Icon(
         Icons.Default.AutoAwesome,

@@ -22,14 +22,17 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.key
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.browser.web.ui.page.SearchEngineToggleButton
-import org.dweb_browser.helper.format
+import org.dweb_browser.helper.isWebUrlOrWithoutProtocol
 import org.dweb_browser.helper.mapFindNoNull
 import org.dweb_browser.helper.toWebUrl
 
@@ -38,16 +41,26 @@ internal fun SearchWeb2(
   viewModel: BrowserViewModel,
   searchTextState: TextFieldState,
   onDismissRequest: () -> Unit,
+  onSuggestionActions: OnSuggestionActions,
 ) {
   val searchText = searchTextState.text.toString()
-  LazyColumn(Modifier.fillMaxSize()) {
-    val list = viewModel.filterAllEngines
-
-    val urlAsKeyword = searchText.toWebUrl()?.let { url ->
+  val urlAsKeyword = remember(searchText) {
+    searchText.toWebUrl()?.let { url ->
       viewModel.filterAllEngines.mapFindNoNull { it.queryKeyWordValue(url) }
     }
-
-
+  }
+  LaunchedEffect(urlAsKeyword, searchText) {
+    onSuggestionActions(listOf {
+      viewModel.lifecycleScope.launch {
+        launch {
+          onDismissRequest()
+        }
+        viewModel.doIOSearchUrl(searchText)
+      }
+    })
+  }
+  LazyColumn(Modifier.fillMaxSize()) {
+    val list = viewModel.filterAllEngines
     // 标题
     item {
       PanelTitle(
@@ -64,10 +77,8 @@ internal fun SearchWeb2(
             trailingIcon = { Icon(Icons.Rounded.Edit, "fill to search input") },
           )
         }
-
       }
     }
-
     val keyword = urlAsKeyword ?: searchText
 
     itemsIndexed(list) { index, searchEngine ->
@@ -77,7 +88,7 @@ internal fun SearchWeb2(
         ListItem(
           colors = colors,
           modifier = Modifier.clickable(enabled = searchEngine.enable) {
-            viewModel.doIOSearchUrl(searchEngine.searchLinks.first().format(keyword))
+            viewModel.doIOSearchUrl(searchEngine, keyword)
             onDismissRequest()
           },
           leadingContent = {
@@ -121,7 +132,6 @@ internal fun SearchWeb2(
         )
       }
     }
-
     val disableLocalSearch = true
     if (disableLocalSearch) {
       return@LazyColumn

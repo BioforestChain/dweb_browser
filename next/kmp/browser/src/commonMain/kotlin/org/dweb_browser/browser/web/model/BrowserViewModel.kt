@@ -62,7 +62,6 @@ import org.dweb_browser.sys.toast.ext.showToast
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
 
 val LocalBrowserViewModel = compositionChainOf<BrowserViewModel>("BrowserModel")
-
 val LocalShowIme = compositionChainOf("ShowIme") {
   mutableStateOf(false)
 }
@@ -82,13 +81,10 @@ class BrowserViewModel(
 ) {
   val browserOnVisible = browserController.onWindowVisible // IOS 在用
   val browserOnClose = browserController.onCloseWindow // IOS 在用
-
   val lifecycleScope get() = browserNMM.getRuntimeScope()
   private val pages = mutableStateListOf<BrowserPage>() // 多浏览器列表
   val pageSize get() = pages.size
-
   var showMore by mutableStateOf(false)
-
   val previewPanel = BrowserPreviewPanel(this)
   val searchPanel = BrowserSearchPanel(this)
 
@@ -138,14 +134,11 @@ class BrowserViewModel(
   fun getPageOrNull(currentPage: Int) = pages.getOrNull(currentPage)
   fun getPage(currentPage: Int) = getPageOrNull(currentPage) ?: pages.first()
   fun getPageIndex(page: BrowserPage) = pages.indexOf(page)
-
 //  var focusedPage by mutableStateOf<BrowserPage?>(null)
 //    private set
 //  pagerStates
-
   var isTabFixedSize by mutableStateOf(true) // 用于标志当前的HorizontalPager中的PageSize是Fill还是Fixed
   val pagerStates = BrowserPagerStates(this)
-
   var focusedPage
     get() = pages.getOrNull(focusedPageIndex)
     set(value) {
@@ -188,14 +181,12 @@ class BrowserViewModel(
   @Composable
   fun ViewModelEffect(windowRenderScope: WindowContentRenderScope) {
     val uiScope = rememberCoroutineScope()
-
     /// 初始化 isNoTrace
     LaunchedEffect(Unit) {
       withScope(uiScope) {
         isIncognitoOn = browserController.getStringFromStore(KEY_NO_TRACE)?.isNotEmpty() ?: false
       }
     }
-
     /// 判断是否需要显示SearchPanel
     LaunchedEffect(Unit) {
       snapshotFlow { searchKeyWord }.collect { keyWord ->
@@ -212,7 +203,6 @@ class BrowserViewModel(
         }
       }
     }
-
     /// 监听窗口关闭，进行资源释放
     DisposableEffect(Unit) {
       val off = browserController.onCloseWindow {
@@ -357,6 +347,9 @@ class BrowserViewModel(
     return if (homeLink.isNotEmpty()) homeLink.toWebUrl() else null
   }
 
+  fun doIOSearchUrl(searchEngine: SearchEngine, keyword: String) =
+    doIOSearchUrl(searchEngine.searchLinks.first().format(keyword))
+
   /**
    * 判断 url 是否是 deepLink
    * 是：直接代理访问
@@ -422,7 +415,6 @@ class BrowserViewModel(
     optionsModifier: (AddPageOptions.() -> Unit)? = null,
   ) {
     optionsModifier?.invoke(options)
-
     val oldPage = options.addIndex?.let { index ->
       pages.getOrNull(index)?.also { pages.add(index, newPage) }
     } ?: focusedPage.also { pages.add(newPage) }

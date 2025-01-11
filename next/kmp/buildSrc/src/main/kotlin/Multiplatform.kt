@@ -309,7 +309,7 @@ fun KotlinMultiplatformExtension.kmpCommonTarget(
     implementation(libs.test.kotlin.coroutines.test)
     implementationProject("platformTest")
   }
-  sourceSets.getByName("desktopTest").dependencies {
+  sourceSets.findByName("desktopTest")?.dependencies {
     implementation(libs.test.kotlin.coroutines.debug)
   }
   targets.all {

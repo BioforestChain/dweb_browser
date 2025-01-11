@@ -8,7 +8,6 @@ import io.ktor.http.parseQueryString
 import okio.Path.Companion.toPath
 
 //import io.ktor.http.Url
-
 public fun URLBuilder.buildUnsafeString(): String {
   val originProtocol = protocol
   return when (originProtocol.name) {
@@ -47,7 +46,6 @@ public fun buildUrlString(url: String, builder: URLBuilder.() -> Unit): String =
     builder()
     buildUnsafeString()
   }
-
 
 ///**
 // * like web url
@@ -97,7 +95,6 @@ public fun buildUrlString(url: String, builder: URLBuilder.() -> Unit): String =
 //
 //  }
 //}
-
 public fun Url.build(block: URLBuilder.() -> Unit): Url = URLBuilder(this).run { block(); build() }
 
 public fun URLBuilder.resolveBaseUri() {
@@ -114,7 +111,6 @@ public fun URLBuilder.resolvePath(path: String) {
     return
   }
   encodedPath = encodedPath.toPath().resolve(path, true).toString()
-
 //  val segments = path.split("/").map { it.decodeURLPart() }.filter { it != "." }.toMutableList()
 //  while (segments.contains("..")) {
 //    val index = segments.indexOf("..")
@@ -152,7 +148,14 @@ public fun String.toWebUrlOrWithoutProtocol(): Url? = toWebUrl() ?: toNoProtocol
  */
 public fun String.isWebUrl(): Boolean = toWebUrl() != null
 public fun String.isNoProtocolWebUrl(): Boolean = toNoProtocolWebUrl() != null
-public fun String.isWebUrlOrWithoutProtocol(): Boolean = toWebUrlOrWithoutProtocol() != null
+
+public fun String.isWebUrlOrWithoutProtocol(): Boolean = when {
+  // 如果是空白字符，那么就不是网址
+  isBlank() -> false
+  // 如果是是存在空格，那么就不是网址
+  contains(Regex("\\s")) -> false
+  else -> toWebUrlOrWithoutProtocol() != null
+}
 
 public fun String.isDwebDeepLink(): Boolean = try {
   URLBuilder(this).buildUnsafeString().startsWith("dweb://")

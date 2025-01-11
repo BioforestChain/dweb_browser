@@ -50,9 +50,10 @@ internal fun SearchWeb3(
   viewModel: BrowserViewModel,
   web3Searcher: Web3Searcher?,
   onDismissRequest: () -> Unit,
+  onSuggestionActions: OnSuggestionActions,
 ) {
   LaunchedEffect(web3Searcher) {
-    web3Searcher?.doSearchDwebapps()
+    web3Searcher?.doSearchDwebapps?.invoke()
   }
   LazyColumn {
     /// 日志信息
@@ -119,7 +120,8 @@ internal fun SearchWeb3(
     /// 标题和概览
     val dwebappsEntries = (web3Searcher?.dwebappMap ?: emptyMap()).toList()
     item {
-      PanelTitle(BrowserI18nResource.browser_search_dwebapp(),
+      PanelTitle(
+        titleText = BrowserI18nResource.browser_search_dwebapp(),
         titleIcon = { Icon(Icons.Default.AppShortcut, "") },
         enabled = web3Searcher != null,
         trailingContent = {
@@ -130,7 +132,8 @@ internal fun SearchWeb3(
               modifier = Modifier.alpha(0.6f)
             )
           }
-        })
+        },
+      )
     }
     /// 找到的应用列表
     items(dwebappsEntries.size) {
