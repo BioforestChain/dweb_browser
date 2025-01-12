@@ -9,11 +9,10 @@ import io.ktor.http.Url
 import io.ktor.http.headers
 import io.ktor.http.protocolWithAuthority
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.std.dns.httpFetch
@@ -116,6 +115,8 @@ internal class Web3Searcher(
   val doSearchDwebapps = Once {
     launch(coroutineContext) {
       log(BrowserI18nResource.Web3Search.log_start_dwebapps.text)
+      // 创建一个 Semaphore 来限制并发数为 5
+      val semaphore = Semaphore(5)
       flow {
         if (searchText.isWebUrl()) {
           emit(searchText)
@@ -136,53 +137,57 @@ internal class Web3Searcher(
           emit("https://dweb-$searchText.$top")
           emit("https://$searchText-dweb.$top")
         }
-      }.flowOn(Dispatchers.IO.limitedParallelism(5))
+      }
         .collect { originHref ->
-          val originUrl = originHref.toWebUrl() ?: return@collect
-          log(BrowserI18nResource.Web3Search.log_fetch_dwebapps.text(originHref))
-          val res = httpFetch(originHref)
-          if (!res.isOk || res.headers.get("Content-Type")?.contains("text/html") != true) {
-            log(BrowserI18nResource.Web3Search.log_fail_dwebapps.text(originHref))
-            return@collect
+          launch {
+            semaphore.withPermit {
+              val originUrl = originHref.toWebUrl() ?: return@withPermit
+              log(BrowserI18nResource.Web3Search.log_fetch_dwebapps.text(originHref))
+              val res = httpFetch(originHref)
+              if (!res.isOk || res.headers.get("Content-Type")?.contains("text/html") != true) {
+                log(BrowserI18nResource.Web3Search.log_fail_dwebapps.text(originHref))
+                return@withPermit
+              }
+              log(BrowserI18nResource.Web3Search.log_parse_dwebapps.text(originHref))
+              var headClose = false
+              val htmlParser = KsoupHtmlParser(handler = object : KsoupHtmlHandler {
+                override fun onCloseTag(name: String, isImplied: Boolean) {
+                  headClose = name == "head"
+                }
+
+                override fun onOpenTag(
+                  name: String,
+                  attributes: Map<String, String>,
+                  isImplied: Boolean,
+                ) {
+                  if (name != "link") return
+                  log(
+                    "$originHref <$name ${
+                      attributes.map { "${it.key}=\"${it.value}\"" }.joinToString(" ")
+                    }/>"
+                  )
+                  if (attributes["rel"] != "dwebapp") return
+                  val metadataHref = attributes["href"] ?: return
+
+                  launch {
+                    tryParse(originHref, originUrl, metadataHref, attributes["integrity"])
+                  }
+                }
+              })
+
+              res.body.toPureStream().getReader("read html to parser")
+                .commonConsumeEachArrayRange { chunk, last ->
+                  if (headClose) {
+                    this.breakLoop()
+                    return@commonConsumeEachArrayRange
+                  }
+                  htmlParser.write(chunk.utf8String)
+                  if (last) {
+                    htmlParser.end()
+                  }
+                }
+            }
           }
-          log(BrowserI18nResource.Web3Search.log_parse_dwebapps.text(originHref))
-          var headClose = false
-          val htmlParser = KsoupHtmlParser(handler = object : KsoupHtmlHandler {
-            override fun onCloseTag(name: String, isImplied: Boolean) {
-              headClose = name == "head"
-            }
-
-            override fun onOpenTag(
-              name: String,
-              attributes: Map<String, String>,
-              isImplied: Boolean,
-            ) {
-              if (name != "link") return
-              log(
-                "$originHref <$name ${
-                  attributes.map { "${it.key}=\"${it.value}\"" }.joinToString(" ")
-                }/>"
-              )
-              if (attributes["rel"] != "dwebapp") return
-              val metadataHref = attributes["href"] ?: return
-
-              launch {
-                tryParse(originHref, originUrl, metadataHref, attributes["integrity"])
-              }
-            }
-          })
-
-          res.body.toPureStream().getReader("read html to parser")
-            .commonConsumeEachArrayRange { chunk, last ->
-              if (headClose) {
-                this.breakLoop()
-                return@commonConsumeEachArrayRange
-              }
-              htmlParser.write(chunk.utf8String)
-              if (last) {
-                htmlParser.end()
-              }
-            }
         }
     }.invokeOnCompletion {
       log(BrowserI18nResource.Web3Search.log_end.text)
