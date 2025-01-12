@@ -46,6 +46,7 @@ import org.dweb_browser.helper.clamp
 import org.dweb_browser.helper.compose.compositionChainOf
 import org.dweb_browser.helper.encodeURIComponent
 import org.dweb_browser.helper.format
+import org.dweb_browser.helper.humanTrim
 import org.dweb_browser.helper.isDwebDeepLink
 import org.dweb_browser.helper.isTrimEndSlashEqual
 import org.dweb_browser.helper.platform.toByteArray
@@ -356,7 +357,7 @@ class BrowserViewModel(
    * 否：将 url 进行判断封装，符合条件后，判断当前界面是否是 BrowserWebPage，然后进行搜索操作
    */
   fun doIOSearchUrl(searchText: String) = lifecycleScope.launch {
-    val text = searchText.trim().trim('\u200B').trim()
+    val text = searchText.humanTrim()
     if (text.isDwebDeepLink()) {
       browserNMM.nativeFetch(text)
       return@launch

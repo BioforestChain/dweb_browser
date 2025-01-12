@@ -37,11 +37,13 @@ import androidx.compose.ui.zIndex
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.web.model.LocalBrowserViewModel
 import org.dweb_browser.browser.web.model.page.BrowserWebPage
+import org.dweb_browser.helper.humanTrim
 
 internal enum class TabId {
   Chat,
@@ -93,17 +95,22 @@ internal fun SearchSuggestion(
     }
     DisposableEffect(searchText) {
       web3Searcher?.cancel(CancellationException("Cancel search"))
-      web3Searcher = when {
-        searchText.isEmpty() -> null
-        else -> {
-          val parentScope = viewModel.browserNMM.getRuntimeScope()
-          Web3Searcher(
-            coroutineContext = parentScope.coroutineContext + SupervisorJob(parentScope.coroutineContext.job),
-            searchText = searchText
-          )
+      val job = scope.launch {
+        delay(150)// 防抖
+        val keyword = searchText.humanTrim()
+        web3Searcher = when {
+          keyword.isEmpty() -> null
+          else -> {
+            val parentScope = viewModel.browserNMM.getRuntimeScope()
+            Web3Searcher(
+              coroutineContext = parentScope.coroutineContext + SupervisorJob(parentScope.coroutineContext.job),
+              searchText = keyword
+            )
+          }
         }
       }
       onDispose {
+        job.cancel()
         web3Searcher?.cancel(CancellationException("Cancel search"))
         web3Searcher = null
       }

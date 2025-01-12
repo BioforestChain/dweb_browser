@@ -19,8 +19,8 @@ import org.dweb_browser.core.std.dns.httpFetch
 import org.dweb_browser.helper.Once
 import org.dweb_browser.helper.commonConsumeEachArrayRange
 import org.dweb_browser.helper.hexString
+import org.dweb_browser.helper.isNoProtocolWebUrl
 import org.dweb_browser.helper.isWebUrl
-import org.dweb_browser.helper.isWebUrlOrWithoutProtocol
 import org.dweb_browser.helper.toWebUrl
 import org.dweb_browser.helper.utf8String
 import org.dweb_browser.pure.crypto.hash.sha256
@@ -31,8 +31,18 @@ import kotlin.coroutines.CoroutineContext
 
 internal class Web3Searcher(
   override val coroutineContext: CoroutineContext,
-  val searchText: String,
+  val searchTexts: List<String>,
 ) : CoroutineScope {
+  constructor(coroutineContext: CoroutineContext, searchText: String) : this(
+    coroutineContext, when {
+      searchText.contains(' ') -> listOf(
+        searchText.replace(Regex("\\s+"), "-"),
+        searchText.replace(Regex("\\s+"), ""),
+      )
+
+      else -> listOf(searchText)
+    }
+  )
 
   /**
    * 这是新语法，如果你的IDE报错：
@@ -118,27 +128,30 @@ internal class Web3Searcher(
       // 创建一个 Semaphore 来限制并发数为 5
       val semaphore = Semaphore(5)
       flow {
-        if (searchText.isWebUrl()) {
-          emit(searchText)
-          return@flow
+        searchTexts.forEach { searchText ->
+          when {
+            searchText.isWebUrl() -> emit(searchText)
+            searchText.isNoProtocolWebUrl() -> {
+              emit("https://$searchText")
+              emit("https://dweb.$searchText")
+            }
+
+            else -> {
+              flow {
+                emit("com")
+                emit("org")
+                emit("net")
+              }.collect { top ->
+                emit("https://$searchText.$top")
+                emit("https://www.$searchText.$top")
+                emit("https://dweb.$searchText.$top")
+                emit("https://dweb-$searchText.$top")
+                emit("https://$searchText-dweb.$top")
+              }
+            }
+          }
         }
-        if (searchText.isWebUrlOrWithoutProtocol()) {
-          emit("https://$searchText")
-          emit("https://dweb.$searchText")
-        }
-        flow {
-          emit("com")
-          emit("org")
-          emit("net")
-        }.collect { top ->
-          emit("https://$searchText.$top")
-          emit("https://www.$searchText.$top")
-          emit("https://dweb.$searchText.$top")
-          emit("https://dweb-$searchText.$top")
-          emit("https://$searchText-dweb.$top")
-        }
-      }
-        .collect { originHref ->
+      }.collect { originHref ->
           launch {
             semaphore.withPermit {
               val originUrl = originHref.toWebUrl() ?: return@withPermit

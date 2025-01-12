@@ -40,6 +40,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.VisualTransformation
 import kotlinx.coroutines.delay
 import org.dweb_browser.browser.web.model.BrowserViewModel
@@ -129,7 +130,10 @@ class BrowserSearchPanel(val viewModel: BrowserViewModel) {
           lineLimits = TextFieldLineLimits.SingleLine,
           textStyle = LocalTextStyle.current.copy(color = searchFieldColors.focusedTextColor),
           cursorBrush = SolidColor(searchFieldColors.cursorColor),
-          keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+          keyboardOptions = KeyboardOptions(
+            imeAction = ImeAction.Search,
+            keyboardType = KeyboardType.Uri,
+          ),
           onKeyboardAction = {
             focusManager.clearFocus()
             suggestionActions.firstOrNull()?.invoke()
