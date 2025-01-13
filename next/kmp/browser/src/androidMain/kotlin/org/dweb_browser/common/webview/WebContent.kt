@@ -26,16 +26,6 @@ public sealed class WebContent {
     }
   }
 
-  @Deprecated("Use state.lastLoadedUrl instead")
-  public fun getCurrentUrl(): String? {
-    return when (this) {
-      is Url -> url
-      is Data -> baseUrl
-      is Post -> url
-      is NavigatorOnly -> throw IllegalStateException("Unsupported")
-    }
-  }
-
   public object NavigatorOnly : WebContent()
 }
 

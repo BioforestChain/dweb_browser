@@ -53,7 +53,6 @@ import org.dweb_browser.core.module.interceptStartApp
 import org.dweb_browser.helper.Once1
 import org.dweb_browser.helper.addStartActivityOptions
 import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
-import org.dweb_browser.helper.compose.LocalCommonUrl
 import org.dweb_browser.helper.compose.envSwitch
 import org.dweb_browser.helper.getBoolean
 import org.dweb_browser.helper.globalMainScope
@@ -122,7 +121,7 @@ class SplashActivity : AppCompatActivity() {
     val grant = grantInstaller(agree)
 
     setContent {
-      var localPrivacy by LocalCommonUrl.current
+      var localPrivacy by remember { mutableStateOf("") }
 
       DwebBrowserAppTheme {
         SplashMainView(

@@ -30,6 +30,8 @@ const doBundle = async (channel: $ChannelName) => {
     "-PreleaseBuild=true",
     // 表明需要发布的通道，默认是 stable，可以是 beta（每周）、dev（日常）
     `-PbuildChannel=${channel}`,
+    // 通过 -- 追加的参数
+    ...cliArgs._,
   ];
 
   console.log(">", cmd, ...cmd_args);
