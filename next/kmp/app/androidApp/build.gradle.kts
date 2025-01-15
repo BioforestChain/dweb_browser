@@ -118,7 +118,7 @@ android {
     if (channel == "stable") {
       applicationIdSuffix = null
       versionNameSuffix = null
-      manifestPlaceholders["appName"] = "@string/app_name"
+      manifestPlaceholders["appName"] = "Dweb Browser";//"@string/app_name"
     } else {
       applicationIdSuffix = ".$channel"
       versionNameSuffix = "-$channel"

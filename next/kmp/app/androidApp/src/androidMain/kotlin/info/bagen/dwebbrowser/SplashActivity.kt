@@ -121,8 +121,6 @@ class SplashActivity : AppCompatActivity() {
     val grant = grantInstaller(agree)
 
     setContent {
-      var localPrivacy by remember { mutableStateOf("") }
-
       DwebBrowserAppTheme {
         SplashMainView(
           Modifier,
@@ -132,6 +130,7 @@ class SplashActivity : AppCompatActivity() {
           return@DwebBrowserAppTheme
         }
 
+        var localPrivacy by remember { mutableStateOf("") }
         SplashPrivacyDialog(
           openHome = {
             DwebBrowserApp.appContext.saveBoolean(keyEnableAgreement, true)
