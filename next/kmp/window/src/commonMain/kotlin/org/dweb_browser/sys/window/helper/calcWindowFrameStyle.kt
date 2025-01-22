@@ -19,6 +19,7 @@ import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.WindowState
 import org.dweb_browser.sys.window.core.constant.WindowBottomBarTheme
 import org.dweb_browser.sys.window.core.constant.WindowPropertyKeys
+import org.dweb_browser.sys.window.render.getVirtualNavigationBarHeight
 import org.dweb_browser.sys.window.render.inMove
 import kotlin.math.max
 import kotlin.math.min
@@ -121,6 +122,7 @@ private fun calcWindowFrameStyle(
   val d = LocalDensity.current.density
 
   val safeGesturesBottom = safeGestures.getBottom(density) / d
+  val virtualNavigationBarheight = getVirtualNavigationBarHeight()
 
   /**
    * 不同的底部栏风格有不同的高度
@@ -135,11 +137,6 @@ private fun calcWindowFrameStyle(
           // 如果最大化，那么要考虑操作系统的导航栏高度
           maximize -> when {
             IPureViewController.isAndroid -> when {
-
-              /**
-               * 如果用户使用了按钮导航栏，那么直接使用按钮导航栏的高度作为我们底部导航栏的高度
-               */
-
               /**
                * 如果用户使用了按钮导航栏，那么直接使用按钮导航栏的高度作为我们底部导航栏的高度
                */
@@ -152,7 +149,8 @@ private fun calcWindowFrameStyle(
                * 如果用户使用了全面屏手势，那么尝试将 baseHeight 加上 导航栏的高度作为我们的底部导航栏高度
                */
               else -> min(48f, safeGesturesBottom + baseHeight)
-            }
+            } + virtualNavigationBarheight
+//            IPureViewController.isAndroid -> safeGesturesBottom + baseHeight
 
             IPureViewController.isIOS -> when {
               /// IOS 的全屏导航栏高度是 34f，这里的取值是确保 基本信息是在导航条的下方，按钮在导航条的上方

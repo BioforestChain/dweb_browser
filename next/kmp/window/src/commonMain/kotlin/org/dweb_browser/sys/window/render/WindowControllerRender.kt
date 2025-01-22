@@ -213,6 +213,7 @@ fun WindowController.WindowRender(modifier: Modifier = Modifier) {
 
         val topBarHeight = winFrameStyle.frameSize.top
         val bottomBarHeight = winFrameStyle.frameSize.bottom
+        val virtualNavigationBarHeight = getVirtualNavigationBarHeight()
         /// 标题栏
         WindowTopBar(
           win,
@@ -276,7 +277,13 @@ fun WindowController.WindowRender(modifier: Modifier = Modifier) {
         /// 显示底部控制条
         WindowBottomBar(
           win,
-          Modifier.height(bottomBarHeight.dp).fillMaxWidth()
+          Modifier.height(bottomBarHeight.dp).padding(
+            bottom = when (isMaximized) {
+              true -> virtualNavigationBarHeight.dp
+              else -> 0.dp
+            }
+          )
+            .fillMaxWidth()
         )
       }
       //#endregion

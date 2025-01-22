@@ -90,8 +90,8 @@ private fun <T : WindowController> WindowsManager<T>.EffectSafeModel() {
 actual fun <T : WindowController> WindowsManager<T>.WindowsManagerEffect() {
   /// 键盘的互操作性
   EffectKeyboard()
-  /// 底部导航栏的互操作
-  EffectNavigationBar()
+  /// 底部导航栏的互操作 关闭隐藏虚拟导航栏
+//  EffectNavigationBar()
   /// 窗口截屏安全限制
   EffectSafeModel()
 }

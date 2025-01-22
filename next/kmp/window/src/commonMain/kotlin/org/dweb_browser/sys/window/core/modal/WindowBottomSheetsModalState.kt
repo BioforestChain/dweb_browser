@@ -52,6 +52,7 @@ import org.dweb_browser.sys.window.helper.LocalWindowControllerTheme
 import org.dweb_browser.sys.window.helper.LocalWindowFrameStyle
 import org.dweb_browser.sys.window.render.IconRender
 import org.dweb_browser.sys.window.render.IdRender
+import org.dweb_browser.sys.window.render.getVirtualNavigationBarHeight
 
 
 //#region BottomSheet
@@ -184,8 +185,7 @@ internal fun BottomSheetsModalState.CommonRenderImpl(emitModalVisibilityChange: 
   var isFirstView by remember { mutableStateOf(true) }
   var firstViewAction by remember { mutableStateOf({ }) }
   val uiScope = rememberCoroutineScope()
-  val sheetState = rememberModalBottomSheetState(
-    skipPartiallyExpanded = true,
+  val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true,
     confirmValueChange = remember(emitModalVisibilityChange) {
       {
         /// 默认展开
@@ -226,8 +226,10 @@ internal fun BottomSheetsModalState.CommonRenderImpl(emitModalVisibilityChange: 
   val windowInsetBottom = remember(defaultWindowInsets) {
     (defaultWindowInsets.getBottom(density) / density.density).dp
   }
-  ModalBottomSheet(
-    sheetState = sheetState,
+  val virtualNavigationBarHeight = remember(defaultWindowInsets) {
+    (getVirtualNavigationBarHeight() / density.density).dp
+  }
+  ModalBottomSheet(sheetState = sheetState,
     modifier = Modifier.padding(
       top = WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding()
     ),
@@ -243,23 +245,20 @@ internal fun BottomSheetsModalState.CommonRenderImpl(emitModalVisibilityChange: 
       }
     },
     contentWindowInsets = { modalWindowInsets },
-    onDismissRequest = { emitModalVisibilityChange(EmitModalVisibilityState.TryClose) }
-  ) {
+    onDismissRequest = { emitModalVisibilityChange(EmitModalVisibilityState.TryClose) }) {
     /// 显示内容
     BoxWithConstraints(
       Modifier.padding(
         start = winFrameStyle.startWidth.dp,
         end = winFrameStyle.endWidth.dp,
-        bottom = windowInsetBottom + windowInsetTop
+        bottom = windowInsetBottom + windowInsetTop + virtualNavigationBarHeight
       )
     ) {
       val windowRenderScope = remember(winFrameStyle, maxWidth, maxHeight) {
         WindowContentRenderScope(maxWidth, maxHeight)
       }
       windowAdapterManager.Renderer(
-        renderId,
-        windowRenderScope,
-        Modifier.clip(winFrameStyle.contentRounded.roundedCornerShape)
+        renderId, windowRenderScope, Modifier.clip(winFrameStyle.contentRounded.roundedCornerShape)
       )
     }
   }
