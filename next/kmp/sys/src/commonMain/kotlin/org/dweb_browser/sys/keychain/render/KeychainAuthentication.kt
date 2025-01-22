@@ -243,7 +243,9 @@ class KeychainAuthentication(
                     "⚠️ 注意：根密码不会上传到任何服务器，假如您忘记了根密码，保存在设备里的密码都将无法恢复，请务必保存好您的密码".split(
                       "根密码"
                     ).toMutableList()
-                  append(parts.removeFirst())
+                  /// 不能使用 removeFirst ，会和 android api level 35 的java冲突导致崩溃
+                  /// see: https://youtrack.jetbrains.com/issue/KT-71375/Prevent-Kotlins-removeFirst-and-removeLast-from-causing-crashes-on-Android-14-and-below-after-upgrading-to-Android-API-Level-35
+                  append(parts.removeAt(0))
                   parts.forEach { s ->
                     withStyle(SpanStyle(textDecoration = TextDecoration.Underline)) {
                       append("根密码")

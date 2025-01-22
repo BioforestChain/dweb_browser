@@ -61,11 +61,13 @@ object FileSystemIcons {
     private fun getResourceIdByFilename(filename: String): String {
       val resourceId =
         fileFullnameMap[filename] ?: filename.split(".").toMutableList().let { segments ->
-          segments.removeFirst()
+          /// 不能使用 removeFirst ，会和 android api level 35 的java冲突导致崩溃
+          /// see: https://youtrack.jetbrains.com/issue/KT-71375/Prevent-Kotlins-removeFirst-and-removeLast-from-causing-crashes-on-Android-14-and-below-after-upgrading-to-Android-API-Level-35
+          segments.removeAt(0)
           while (segments.isNotEmpty()) {
             val ext = segments.joinToString(".")
             fileExtnameMap[ext]?.also { return@let it }
-            segments.removeFirst()
+            segments.removeAt(0)
           }
           return@let defaultMap.file
         }
