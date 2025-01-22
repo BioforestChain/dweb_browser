@@ -146,7 +146,7 @@ class WindowAdapterManager : AdapterManager<CreateWindowAdapter>() {
                 navigation.GoBackHandler(navigation.pageStack.size > 0) {
                   /// 不能使用 removeLast ，会和 android api level 35 的java冲突导致崩溃
                   /// see: https://youtrack.jetbrains.com/issue/KT-71375/Prevent-Kotlins-removeFirst-and-removeLast-from-causing-crashes-on-Android-14-and-below-after-upgrading-to-Android-API-Level-35
-                  navigation.pageStack.removeAt(navigation.pageStack.size - 1)
+                  navigation.pageStack.removeAt(navigation.pageStack.lastIndex)
                   visibleState.targetState = false
                 }
                 DisposableEffect(Unit) {
