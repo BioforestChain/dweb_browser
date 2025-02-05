@@ -1,6 +1,6 @@
 package org.dweb_browser.core.ipc.helper
 
-import io.ktor.util.InternalAPI
+import io.ktor.utils.io.InternalAPI
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.launch
@@ -29,7 +29,6 @@ class IpcServerRequest(
 
   internal val pure = LateInit<PureServerRequest>()
 
-  @OptIn(InternalAPI::class)
   suspend fun toPure() = pure.getOrInit {
     buildRequestX(url, method, headers, body.raw, from = this).let { pureRequest ->
       /// 如果存在双工通道，那么这个 pureRequest 用不了，需要重新构建一个新的 PureServerRequest

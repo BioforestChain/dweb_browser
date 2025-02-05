@@ -7,11 +7,13 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsChannel
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.content.OutgoingContent
 import org.dweb_browser.pure.http.IPureBody
 import org.dweb_browser.pure.http.PureClientRequest
 import org.dweb_browser.pure.http.PureHeaders
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureResponse
+import org.dweb_browser.pure.http.PureStream
 import org.dweb_browser.pure.http.PureStreamBody
 
 fun PureClientRequest.toHttpRequestBuilder() = HttpRequestBuilder().also { httpRequestBuilder ->
@@ -56,3 +58,16 @@ suspend fun HttpResponse.toPureResponse(
     body = body ?: PureStreamBody(this.bodyAsChannel())
   )
 }
+
+fun OutgoingContent.toPureBody(): IPureBody =
+  when (this) {
+    is OutgoingContent.ByteArrayContent -> IPureBody.from(bytes())
+    is OutgoingContent.NoContent -> IPureBody.Empty
+    is OutgoingContent.ProtocolUpgrade -> throw Exception("no support ProtocolUpgrade")
+    is OutgoingContent.ReadChannelContent -> IPureBody.from(
+      PureStream(readFrom())
+    )
+
+    is OutgoingContent.WriteChannelContent -> throw Exception("no support WriteChannelContent")
+    is OutgoingContent.ContentWrapper -> delegate().toPureBody()
+  }

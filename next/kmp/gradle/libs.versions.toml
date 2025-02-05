@@ -32,14 +32,14 @@ androidx-gridlayout = "1.0.0"
 androidx-profile-installer = "1.4.1"
 androidx-biometric = "1.4.0-alpha02"
 
-ktor-version = "2.3.13"
+ktor-version = "3.0.3"
 
 kotlinx-coroutines-version = "1.10.1"
 kotlinx-datetime-version = "0.6.1"
 kotlinx-atomicfu-version = "0.27.0"
 kotlinx-io-version = "0.6.0"
 kotlinx-html-version = "0.11.0"
-okio-version = "3.9.1"
+okio-version = "3.10.2"
 cryptography-version = "0.3.0"
 ksoup-html-version = "0.5.0"
 

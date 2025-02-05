@@ -3,6 +3,7 @@ package info.bagen.dwebbrowser
 import io.ktor.utils.io.close
 import io.ktor.utils.io.copyTo
 import io.ktor.utils.io.core.ByteReadPacket
+import io.ktor.utils.io.writeByteArray
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.base64String
 import org.dweb_browser.helper.commonConsumeEachArrayRange
@@ -16,7 +17,7 @@ class ByteChannelTest {
   fun writeBigByteArray() = runCommonTest {
     val source = createByteChannel()
     launch {
-      source.writePacket(ByteReadPacket(byteArray))
+      source.writeByteArray(byteArray)
       source.close()
     }
 

@@ -6,11 +6,7 @@ export class IpcHeaders extends Headers {
     return this;
   }
   toJSON() {
-    const record: Record<string, string> = {};
-    this.forEach((value, key) => {
-      // 单词首字母大写
-      record[key.replace(/\w+/g, (w) => w[0].toUpperCase() + w.slice(1))] = value;
-    });
+    const record: Record<string, string> = Object.fromEntries(this.entries());
     return record;
   }
 }

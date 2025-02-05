@@ -1,7 +1,7 @@
 package org.dweb_browser.pure.http
 
-import io.ktor.util.toByteArray
 import io.ktor.utils.io.ByteReadChannel
+import io.ktor.utils.io.toByteArray
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.helper.base64Binary
@@ -22,8 +22,7 @@ sealed interface IPureBody {
     val Empty get() = PureEmptyBody()
 
     enum class PureStringEncoding {
-      Utf8,
-      Base64,
+      Utf8, Base64,
       ;
     }
 
@@ -86,8 +85,7 @@ class PureStreamBody(val stream: PureStream) : IPureBody {
     }
   private val lock = Mutex()
   override suspend fun toPureBinary() = lock.withLock {
-    byteArray ?: stream.getReader("PureStreamBody toPureBinary").toByteArray()
-      .also {
+    byteArray ?: stream.getReader("PureStreamBody toPureBinary").toByteArray().also {
         byteArray = it;
       }
   }

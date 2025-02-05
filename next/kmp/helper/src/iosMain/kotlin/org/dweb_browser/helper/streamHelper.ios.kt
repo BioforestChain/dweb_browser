@@ -1,7 +1,7 @@
 package org.dweb_browser.helper
 
 import io.ktor.utils.io.ByteReadChannel
-import io.ktor.utils.io.core.ByteReadPacket
+import io.ktor.utils.io.writeByteArray
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.readBytes
 import kotlinx.cinterop.reinterpret
@@ -22,7 +22,7 @@ public fun NSInputStreamToByteReadChannel(
   scope.launch {
     while (nsInputStream.hasBytesAvailable) {
       val readSize = nsInputStream.read(bytes.reinterpret<uint8_tVar>(), 4096u)
-      byteChannel.writePacket(ByteReadPacket(bytes.readBytes(readSize.toInt())))
+      byteChannel.writeByteArray(bytes.readBytes(readSize.toInt()))
     }
   }
   return byteChannel

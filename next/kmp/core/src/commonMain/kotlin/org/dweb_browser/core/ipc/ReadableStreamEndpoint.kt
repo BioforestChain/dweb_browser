@@ -1,7 +1,7 @@
 package org.dweb_browser.core.ipc
 
 import io.ktor.utils.io.ByteReadChannel
-import io.ktor.utils.io.readIntLittleEndian
+import io.ktor.utils.io.readByteArray
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.ipc.helper.EndpointProtocol
@@ -11,7 +11,7 @@ import org.dweb_browser.core.ipc.helper.jsonToEndpointMessage
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.Once1
 import org.dweb_browser.helper.canRead
-import org.dweb_browser.helper.readByteArray
+import org.dweb_browser.helper.readIntLittleEndian
 import org.dweb_browser.pure.http.PureStream
 
 val debugStreamEndpoint = Debugger("streamEndpoint")
@@ -57,7 +57,7 @@ class ReadableStreamEndpoint(
             }
             debugStreamEndpoint("bindIncomeStream", "$debugId size=$size => $stream")
             // 读取指定数量的字节并从中生成字节数据包。 如果通道已关闭且没有足够的可用字节，则失败
-            val packData = reader.readPacket(size).readByteArray()
+            val packData = reader.readByteArray(size)
             debugStreamEndpoint(
               "bindIncomeStream", "protocol=$protocol,chunk=${packData} => $stream"
             )

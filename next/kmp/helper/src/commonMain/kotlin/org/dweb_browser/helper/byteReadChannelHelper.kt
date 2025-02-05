@@ -1,18 +1,20 @@
 package org.dweb_browser.helper
 
 import io.ktor.utils.io.ByteReadChannel
-import io.ktor.utils.io.core.ByteReadPacket
-import io.ktor.utils.io.core.EOFException
-import io.ktor.utils.io.core.readBytes
-import io.ktor.utils.io.readAvailable
+import io.ktor.utils.io.availableForRead
+import io.ktor.utils.io.bits.reverseByteOrder
+import io.ktor.utils.io.read
+import io.ktor.utils.io.readByteArray
+import io.ktor.utils.io.readInt
 import io.ktor.utils.io.readUTF8Line
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
+import kotlinx.io.EOFException
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.json.Json
 
-public val ByteReadChannel.canRead: Boolean get() = !(availableForRead == 0 && isClosedForWrite && isClosedForRead)
+public val ByteReadChannel.canRead: Boolean get() = !(availableForRead == 0 && isClosedForRead)
 public suspend fun ByteReadChannel.canReadContent(): Boolean {
   do {
     if (availableForRead > 0) {
@@ -25,11 +27,9 @@ public suspend fun ByteReadChannel.canReadContent(): Boolean {
   } while (true)
 }
 
-public suspend fun ByteReadChannel.readAvailablePacket(): ByteReadPacket =
-  readPacket(availableForRead)
 
 public suspend fun ByteReadChannel.readAvailableByteArray(): ByteArray =
-  ByteArray(availableForRead).also { readAvailable(it) }// readAvailablePacket().readByteArray()
+  readByteArray(availableForRead)
 
 /**
  * For every available bytes range invokes [visitor] function until it return false or end of stream encountered.
@@ -42,25 +42,29 @@ public suspend inline fun ByteReadChannel.commonConsumeEachArrayRange(
   visitor: ConsumeEachArrayVisitor,
 ) {
   val controller = ChannelConsumeEachController()
+//  this.read { bytes, i, i2 ->  }
+
   try {
     do {
-      awaitContent()
-      val lastChunkReported = availableForRead == 0 && isClosedForWrite
-      if (lastChunkReported) {
-        controller.visitor(byteArrayOf(), true)
-      } else {
-        val bytes = readPacket(availableForRead).readBytes()
-        controller.visitor(bytes, false)
-      }
-      /// 这个要在 isClosedForRead 属性之前，否则会出问题
-      if (!controller.continueFlag) {
-        break
-      }
+      var byteArray: ByteArray? = null
+      var last = false
+      val len = this.read { data, startOffset, endExclusive ->
+        if (startOffset == endExclusive) {
+          byteArray = byteArrayOf()
+          last = true
+        } else {
+          byteArray = data.sliceArray(startOffset..<endExclusive)
+        }
 
-      if (lastChunkReported && isClosedForRead) {
+        endExclusive - startOffset
+      }
+      if (len <= 0) {
         break
       }
-    } while (true)
+      byteArray?.also {
+        controller.visitor(it, last)
+      }
+    } while (controller.continueFlag)
   } catch (e: EOFException) {
     e.printStackTrace()
   }
@@ -97,11 +101,10 @@ public suspend inline fun ByteReadChannel.consumeEachByteArrayPacket(visitor: Ch
   val controller = ChannelConsumeEachController()
   try {
     while (controller.continueFlag) {
-      val sizePacket = readPacket(4)
-      val sizeBytes = sizePacket.readByteArray()
+      val sizeBytes = readByteArray(4)
       val size = sizeBytes.toLittleEndianInt()
-      val packet = readPacket(size)
-      controller.visitor(packet.readByteArray())
+      val packetBytes = readByteArray(size)
+      controller.visitor(packetBytes)
     }
   } catch (e: ClosedReceiveChannelException) {
     // closed
@@ -109,3 +112,5 @@ public suspend inline fun ByteReadChannel.consumeEachByteArrayPacket(visitor: Ch
     // closed
   }
 }
+
+public suspend fun ByteReadChannel.readIntLittleEndian(): Int = readInt().reverseByteOrder()

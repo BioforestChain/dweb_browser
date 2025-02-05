@@ -1,7 +1,7 @@
 package org.dweb_browser.pure.http
 
-import io.ktor.util.toByteArray
 import io.ktor.utils.io.ByteReadChannel
+import io.ktor.utils.io.toByteArray
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import org.dweb_browser.helper.SuspendOnce

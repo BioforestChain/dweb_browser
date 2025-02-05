@@ -25,10 +25,9 @@ import io.ktor.client.request.HttpRequestData
 import io.ktor.client.request.HttpResponseData
 import io.ktor.http.Headers
 import io.ktor.http.HttpProtocolVersion
-import io.ktor.http.content.OutgoingContent
-import io.ktor.util.InternalAPI
 import io.ktor.util.date.GMTDate
 import io.ktor.util.flattenEntries
+import io.ktor.utils.io.InternalAPI
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,15 +36,14 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.buildUrlString
 import org.dweb_browser.helper.globalDefaultScope
-import org.dweb_browser.pure.http.IPureBody
 import org.dweb_browser.pure.http.PureHeaders
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureServerRequest
-import org.dweb_browser.pure.http.PureStream
 import org.dweb_browser.pure.http.defaultHttpPureClient
 import org.dweb_browser.pure.http.ext.FetchHook
 import org.dweb_browser.pure.http.ext.FetchHookContext
 import org.dweb_browser.pure.http.ktor.KtorPureClient
+import org.dweb_browser.pure.http.ktor.toPureBody
 import org.dweb_browser.pure.image.removeOriginAndAcceptEncoding
 import kotlin.coroutines.CoroutineContext
 import kotlin.math.min
@@ -150,20 +148,19 @@ class CoilImageLoader(private val diskCache: DiskCache? = null) : PureImageLoade
 
   companion object {
     val defaultInstance by lazy { CoilImageLoader(null) }
-    private val defaultHttpClient = @Suppress("USELESS_IS_CHECK")
-    when (val pureClient = defaultHttpPureClient) {
-      is KtorPureClient<*> -> pureClient.ktorClient
-      else -> HttpClient()
-    }
+    private val defaultHttpClient =
+      @Suppress("USELESS_IS_CHECK") when (val pureClient = defaultHttpPureClient) {
+        is KtorPureClient<*> -> pureClient.ktorClient
+        else -> HttpClient()
+      }
 
     private fun buildLoader(
       platformContext: PlatformContext,
       hooks: Set<FetchHook>? = null,
       diskCache: DiskCache? = null,
     ): ImageLoader = SingletonImageLoader.get(platformContext).let { defaultLoader ->
-      defaultLoader.newBuilder()
-        .components(defaultLoader.components.newBuilder().apply
-        {
+      defaultLoader.newBuilder().components(
+        defaultLoader.components.newBuilder().apply {
           if (hooks == null) {
             add(KtorNetworkFetcherFactory(defaultHttpClient))
           } else {
@@ -177,23 +174,9 @@ class CoilImageLoader(private val diskCache: DiskCache? = null) : PureImageLoade
                     val hookContext by lazy {
                       FetchHookContext(
                         PureServerRequest(
-                          data.url.toString(),
-                          PureMethod.from(data.method),
-                          PureHeaders(
+                          data.url.toString(), PureMethod.from(data.method), PureHeaders(
                             data.headers.flattenEntries().removeOriginAndAcceptEncoding()
-                          ),
-                          when (val body = data.body) {
-                            is OutgoingContent.ByteArrayContent -> IPureBody.from(body.bytes())
-                            is OutgoingContent.NoContent -> IPureBody.Empty
-                            is OutgoingContent.ProtocolUpgrade -> throw Exception("no support ProtocolUpgrade")
-                            is OutgoingContent.ReadChannelContent -> IPureBody.from(
-                              PureStream(
-                                body.readFrom()
-                              )
-                            )
-
-                            is OutgoingContent.WriteChannelContent -> throw Exception("no support WriteChannelContent")
-                          }
+                          ), data.body.toPureBody()
                         ),
                       )
                     }
@@ -231,17 +214,13 @@ class CoilImageLoader(private val diskCache: DiskCache? = null) : PureImageLoade
           add(SvgDecoder.Factory())
           addPlatformComponents()
         }.build()
-        )
-        .memoryCache {
+      ).memoryCache {
           MemoryCache.Builder()
             // Set the max size to 25% of the app's available memory.
-            .maxSizePercent(platformContext, percent = 0.25)
-            .build()
-        }
-        .diskCache(diskCache)
+            .maxSizePercent(platformContext, percent = 0.25).build()
+        }.diskCache(diskCache)
         // Show a short crossfade when loading images asynchronously.
-        .crossfade(true)
-        .build()
+        .crossfade(true).build()
     }
   }
 }

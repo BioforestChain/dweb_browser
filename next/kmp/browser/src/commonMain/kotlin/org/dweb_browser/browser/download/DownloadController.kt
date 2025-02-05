@@ -9,8 +9,7 @@ import io.ktor.http.Url
 import io.ktor.http.fromFilePath
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.cancel
-import io.ktor.utils.io.close
-import io.ktor.utils.io.core.ByteReadPacket
+import io.ktor.utils.io.writeByteArray
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -170,7 +169,7 @@ class DownloadController(internal val downloadNMM: DownloadNMM.DownloadRuntime) 
           task.paused.withLock {}
           if (byteArray.isNotEmpty()) {
             task.status.current += byteArray.size
-            output.writePacket(ByteReadPacket(byteArray))
+            output.writeByteArray(byteArray)
           }
           if (last) {
             output.close()

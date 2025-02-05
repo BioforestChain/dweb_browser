@@ -1,8 +1,6 @@
 package org.dweb_browser.pure.io
 
 import io.ktor.utils.io.ByteReadChannel
-import io.ktor.utils.io.bits.set
-import io.ktor.utils.io.close
 import io.ktor.utils.io.write
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
