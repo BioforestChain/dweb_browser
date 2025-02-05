@@ -29,7 +29,7 @@ public fun Source.readLittleEndianInt(): Int {
   return bytes.toLittleEndianInt()
 }
 
-public fun Source.readAllAsByteArray(): ByteArray {
+public fun Source.toByteArray(): ByteArray {
   var bytes = ByteArray(0)
   while (true) {
     val availableSize = remaining

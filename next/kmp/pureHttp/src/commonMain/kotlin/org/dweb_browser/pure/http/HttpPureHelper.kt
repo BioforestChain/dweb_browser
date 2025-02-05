@@ -6,7 +6,7 @@ import io.ktor.utils.io.writeByteArray
 import kotlinx.io.Source
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.SafeInt
-import org.dweb_browser.helper.readAllAsByteArray
+import org.dweb_browser.helper.toByteArray
 
 val debugKtor = Debugger("ktor")
 
@@ -30,7 +30,7 @@ private suspend fun Source.copyToWithFlush(
 
         else -> {
           debugKtor("copyToWithFlush", "SS[$id] can bytes($canReadSize)")
-          val buffer = readAllAsByteArray()
+          val buffer = toByteArray()
 
           debugKtor("copyToWithFlush", "SS[$id] ${buffer.size}/$canReadSize bytes")
           if (buffer.isNotEmpty()) {
