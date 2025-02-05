@@ -35,10 +35,7 @@ kotlin {
         api(jxbrowser.currentPlatform)
       }
 
-      api(jxbrowser.swing)
-      if (libs.versions.jxbrowser.version.get().contains("eap")) {
-        api(jxbrowser.compose)
-      }
+      api(jxbrowser.compose)
     }
   }
 }

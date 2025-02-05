@@ -1,5 +1,6 @@
 package org.dweb_browser.browser.desk.render
 
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -7,13 +8,15 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.awt.ComposePanel
 import androidx.compose.ui.awt.ComposeWindow
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.desk.TaskbarControllerBase
 import org.dweb_browser.browser.desk.TaskbarV1Controller
 import org.dweb_browser.dwebview.IDWebView
-import org.dweb_browser.dwebview.asDesktop
+import org.dweb_browser.dwebview.Render
 import org.dweb_browser.helper.platform.asDesktop
 import org.dweb_browser.sys.window.floatBar.FloatBarState
 
@@ -26,7 +29,12 @@ class TaskbarV1View(
   internal val taskbarController: TaskbarV1Controller, override val taskbarDWebView: IDWebView,
 ) : ITaskbarV1View(taskbarController) {
   class NativeTaskbarV1Content(val webview: IDWebView) :
-    NativeFloatBarContent(webview.asDesktop().viewEngine.wrapperView) {
+    NativeFloatBarContent(ComposePanel().apply {
+      background = java.awt.Color(0, 0, 0, 0)
+      setContent {
+        webview.Render(Modifier.fillMaxSize())
+      }
+    }) {
     override fun onEndDrag() {
       /// 强行释放 js 里的状态
       webview.lifecycleScope.launch(start = CoroutineStart.UNDISPATCHED) {

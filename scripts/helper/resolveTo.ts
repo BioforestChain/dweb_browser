@@ -11,7 +11,7 @@ export const createBaseResolveTo = (baseDir: string = process.cwd()) => {
         baseDir = node_path.dirname(baseDir);
       }
       // deno-lint-ignore no-empty
-    } catch { }
+    } catch {}
   }
   const baseResolveTo = (...paths: (string | URL)[]) => {
     let purePaths = paths.map((it) => it.toString());
@@ -23,4 +23,20 @@ export const createBaseResolveTo = (baseDir: string = process.cwd()) => {
     return node_path.resolve(baseDir, ...purePaths);
   };
   return baseResolveTo;
+};
+
+export const createPackageResolver = (base_url?: string) => {
+  let dirname = process.cwd();
+  if (typeof base_url === "string") {
+    if (base_url?.startsWith("file:")) {
+      dirname = fileURLToPath(base_url);
+    } else {
+      dirname = node_path.resolve(dirname, base_url);
+    }
+  }
+  while (false === fs.existsSync(node_path.resolve(dirname, "package.json"))) {
+    dirname = node_path.resolve(dirname, "..");
+  }
+  const resolveTo = (...paths: string[]): string => node_path.resolve(dirname, ...paths);
+  return Object.assign(resolveTo, { dirname } as const);
 };

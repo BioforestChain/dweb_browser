@@ -4,7 +4,6 @@ import androidx.compose.ui.graphics.ImageBitmap
 import com.teamdev.jxbrowser.browser.Browser
 import com.teamdev.jxbrowser.browser.CloseOptions
 import com.teamdev.jxbrowser.browser.callback.InjectJsCallback
-import com.teamdev.jxbrowser.browser.callback.ShowContextMenuCallback
 import com.teamdev.jxbrowser.browser.event.BrowserClosed
 import com.teamdev.jxbrowser.browser.event.ConsoleMessageReceived
 import com.teamdev.jxbrowser.dom.event.EventParams
@@ -22,14 +21,11 @@ import com.teamdev.jxbrowser.net.callback.VerifyCertificateCallback
 import com.teamdev.jxbrowser.net.proxy.CustomProxyConfig
 import com.teamdev.jxbrowser.permission.callback.RequestPermissionCallback
 import com.teamdev.jxbrowser.ui.Point
-import com.teamdev.jxbrowser.view.swing.BrowserView
+import com.teamdev.jxbrowser.view.compose.BrowserViewState
 import com.teamdev.jxbrowser.zoom.ZoomLevel
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.plus
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.core.http.dwebProxyService
 import org.dweb_browser.core.module.MicroModule
@@ -54,8 +50,8 @@ import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.helper.utf8String
 import org.dweb_browser.helper.utf8ToBase64UrlString
 import org.dweb_browser.sys.device.DeviceManage
+import java.awt.Window
 import java.util.function.Consumer
-import javax.swing.SwingUtilities
 import kotlin.system.exitProcess
 
 
@@ -128,6 +124,7 @@ class DWebViewEngine internal constructor(
       }
       browser
     }
+
     /**工具方法：检查是否属于私有网段*/
     private fun isPrivateNetwork(ip: String): Boolean {
       return ip.startsWith("10.")
@@ -136,7 +133,11 @@ class DWebViewEngine internal constructor(
     }
   }
 
-  val wrapperView: BrowserView by lazy { BrowserView.newInstance(browser) }
+
+  fun getBrowserViewState(window: Window): BrowserViewState {
+    return BrowserViewState(browser, lifecycleScope, window)
+  }
+
 
   val mainFrame
     get() = kotlin.runCatching { browser.mainFrame().get() }.getOrElse {
@@ -445,21 +446,6 @@ class DWebViewEngine internal constructor(
         }
       }
     }
-    // 创建menu,初始化就创建，而不是监听的时候
-    val (popupMenu, clickEffect) = browser.createRightClickMenu(lifecycleScope)
-    // 监听右击事件
-    browser.set(ShowContextMenuCallback::class.java, ShowContextMenuCallback { params, tell ->
-      // 监听回调的点击事件
-      clickEffect.onEach {
-        if (!tell.isClosed) tell.close()
-      }.launchIn(lifecycleScope)
-      // 创建事件调度线程，所有跟用户界面有关的代码都应当在这个线程上运行
-      SwingUtilities.invokeLater {
-        // 在指定位置显示上下文菜单。
-        val location = params.location()
-        popupMenu.show(wrapperView, location.x(), location.y())
-      }
-    })
 
     if (options.url.isNotEmpty()) {
       loadUrl(options.url)

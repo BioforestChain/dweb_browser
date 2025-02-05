@@ -17,7 +17,7 @@ kotlin-serialization-gradle = "2.1.20-Beta1"
 androidx-test-core = "1.6.1"
 androidx-test-rules = "1.6.1"
 androidx-test-runner = "1.6.2"
-androidx-compose-ui-test = "1.7.6"
+androidx-compose-ui-test = "1.7.7"
 androidx-compose-ui = "1.6.7"
 androidx-lifecycle = "2.8.7"
 compose-bom = "2024.12.01"
@@ -27,7 +27,7 @@ androidx-appcompat = "1.7.0"
 androidx-core-ktx = "1.15.0"
 androidx-core-splashscreen = "1.1.0-rc01"
 androidx-annotation = "1.9.1"
-androidx-navigation-ui-kotlin = "2.8.5"
+androidx-navigation-ui-kotlin = "2.8.6"
 androidx-gridlayout = "1.0.0"
 androidx-profile-installer = "1.4.1"
 androidx-biometric = "1.4.0-alpha02"
@@ -56,14 +56,14 @@ jetbrains-compose-material3-adaptive-version = "1.0.1"
 
 # 测试
 test-junit = "5.10.1"
-animation-core-android = "1.7.6"
+animation-core-android = "1.7.7"
 material3Android = "1.3.1"
 
 kotlinx-serialization = "1.8.0"
 
 #jxbrowser-version = "8.0.0-eap.+"
-jxbrowser-version = "7.39.0"
-jxbrowser-gradle = "1.0.2"
+jxbrowser-version = "8.2.2"
+jxbrowser-gradle = "1.2.1"
 
 # jna
 java-jna-version = "5.14.0"
@@ -224,7 +224,7 @@ gradlePlugin-kotlin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-pl
 gradlePlugin-serialization = { group = "org.jetbrains.kotlin", name = "kotlin-serialization", version.ref = "kotlin-serialization-gradle" }
 gradlePlugin-jetbrainsCompose = { group = "org.jetbrains.compose", name = "compose-gradle-plugin", version.ref = "jetbrains-compose-version" }
 gradlePlugin-composeCompiler = { group = "org.jetbrains.kotlin", name = "compose-compiler-gradle-plugin", version.ref = "kotlin-version" }
-gradlePlugin-jxbrowser = { group = "com.teamdev.jxbrowser", name = "JxBrowser-Gradle-Plugin", version.ref = "jxbrowser-gradle" }
+gradlePlugin-jxbrowser = { group = "com.teamdev.jxbrowser", name = "jxbrowser-gradle-plugin", version.ref = "jxbrowser-gradle" }
 # pinpit 用于桌面端多平台打包
 gradlePlugin-pinpit = { group = "de.mobanisto.pinpit", name = "pinpit-gradle-plugin", version = "0.9.0" }
 
