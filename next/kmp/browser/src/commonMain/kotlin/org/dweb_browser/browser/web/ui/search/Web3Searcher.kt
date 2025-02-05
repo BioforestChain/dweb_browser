@@ -17,7 +17,7 @@ import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.std.dns.httpFetch
 import org.dweb_browser.helper.Once
-import org.dweb_browser.helper.commonConsumeEachArrayRange
+import org.dweb_browser.helper.consumeEachArrayRange
 import org.dweb_browser.helper.hexString
 import org.dweb_browser.helper.isNoProtocolWebUrl
 import org.dweb_browser.helper.isWebUrl
@@ -189,10 +189,10 @@ internal class Web3Searcher(
               })
 
               res.body.toPureStream().getReader("read html to parser")
-                .commonConsumeEachArrayRange { chunk, last ->
+                .consumeEachArrayRange { chunk, last ->
                   if (headClose) {
                     this.breakLoop()
-                    return@commonConsumeEachArrayRange
+                    return@consumeEachArrayRange
                   }
                   htmlParser.write(chunk.utf8String)
                   if (last) {

@@ -1,12 +1,10 @@
 package info.bagen.dwebbrowser
 
-import io.ktor.utils.io.close
 import io.ktor.utils.io.copyTo
-import io.ktor.utils.io.core.ByteReadPacket
 import io.ktor.utils.io.writeByteArray
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.base64String
-import org.dweb_browser.helper.commonConsumeEachArrayRange
+import org.dweb_browser.helper.consumeEachArrayRange
 import org.dweb_browser.helper.createByteChannel
 import org.dweb_browser.test.runCommonTest
 import kotlin.test.Test
@@ -28,7 +26,7 @@ class ByteChannelTest {
     }
 
     var res = byteArrayOf()
-    sink.commonConsumeEachArrayRange { byteArray, last ->
+    sink.consumeEachArrayRange { byteArray, last ->
       println("res=${res.size} byteArray=${byteArray.size}")
       res += byteArray
     }

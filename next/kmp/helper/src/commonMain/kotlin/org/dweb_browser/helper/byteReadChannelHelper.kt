@@ -36,9 +36,7 @@ public suspend fun ByteReadChannel.readAvailableByteArray(): ByteArray =
  * The provided buffer should be never captured outside of the visitor block otherwise resource leaks, crashes and
  * data corruptions may occur. The visitor block may be invoked multiple times, once or never.
  */
-public expect suspend inline fun ByteReadChannel.consumeEachArrayRange(visitor: ConsumeEachArrayVisitor)
-
-public suspend inline fun ByteReadChannel.commonConsumeEachArrayRange(
+public suspend inline fun ByteReadChannel.consumeEachArrayRange(
   visitor: ConsumeEachArrayVisitor,
 ) {
   val controller = ChannelConsumeEachController()
@@ -47,24 +45,16 @@ public suspend inline fun ByteReadChannel.commonConsumeEachArrayRange(
   try {
     do {
       var byteArray: ByteArray? = null
-      var last = false
-      val len = this.read { data, startOffset, endExclusive ->
-        if (startOffset == endExclusive) {
-          byteArray = byteArrayOf()
-          last = true
-        } else {
-          byteArray = data.sliceArray(startOffset..<endExclusive)
-        }
-
+      read { data, startOffset, endExclusive ->
+        byteArray = data.sliceArray(startOffset..<endExclusive)
         endExclusive - startOffset
       }
-      if (len <= 0) {
-        break
-      }
-      byteArray?.also {
-        controller.visitor(it, last)
+      when (val bs = byteArray) {
+        null -> break
+        else -> controller.visitor(bs, false)
       }
     } while (controller.continueFlag)
+    controller.visitor(byteArrayOf(), true)
   } catch (e: EOFException) {
     e.printStackTrace()
   }

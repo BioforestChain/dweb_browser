@@ -1,7 +1,6 @@
 package info.bagen.dwebbrowser
 
 import io.ktor.utils.io.cancel
-import io.ktor.utils.io.close
 import io.ktor.utils.io.copyAndClose
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -12,7 +11,6 @@ import org.dweb_browser.core.ipc.helper.ReadableStream
 import org.dweb_browser.helper.ByteReadChannelDelegate
 import org.dweb_browser.helper.SafeInt
 import org.dweb_browser.helper.canReadContent
-import org.dweb_browser.helper.commonConsumeEachArrayRange
 import org.dweb_browser.helper.consumeEachArrayRange
 import org.dweb_browser.helper.createByteChannel
 import org.dweb_browser.helper.readAvailableByteArray
@@ -116,7 +114,7 @@ class ReadableStreamTestTest {
     }
 
     var res = byteArrayOf()
-    sink.commonConsumeEachArrayRange { byteArray, last ->
+    sink.consumeEachArrayRange { byteArray, last ->
       res += byteArray
     }
 
@@ -160,7 +158,7 @@ class ReadableStreamTestTest {
     }
 
     var res = byteArrayOf()
-    sink.commonConsumeEachArrayRange { byteArray, last ->
+    sink.consumeEachArrayRange { byteArray, last ->
       res += byteArray
       if (res.size > byteArray.size / 2) {
         sink.close()
