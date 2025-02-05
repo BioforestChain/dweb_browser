@@ -5,7 +5,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.browser.kit.GlobalWebMessageEndpoint
 import org.dweb_browser.core.http.dwebHttpGatewayService
@@ -225,7 +224,6 @@ suspend fun createJsProcessWeb(
     mm, DWebViewOptions(
       privateNet = true,
       openDevTools = envSwitch.isEnabled(ENV_SWITCH_KEY.JS_PROCESS_DEVTOOLS),
-      enabledOffScreenRender = true
     )
   )
   // 等待加载完成

@@ -21,7 +21,6 @@ import com.teamdev.jxbrowser.net.callback.VerifyCertificateCallback
 import com.teamdev.jxbrowser.net.proxy.CustomProxyConfig
 import com.teamdev.jxbrowser.permission.callback.RequestPermissionCallback
 import com.teamdev.jxbrowser.ui.Point
-import com.teamdev.jxbrowser.view.compose.BrowserViewState
 import com.teamdev.jxbrowser.zoom.ZoomLevel
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.SupervisorJob
@@ -50,7 +49,6 @@ import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.helper.utf8String
 import org.dweb_browser.helper.utf8ToBase64UrlString
 import org.dweb_browser.sys.device.DeviceManage
-import java.awt.Window
 import java.util.function.Consumer
 import kotlin.system.exitProcess
 
@@ -132,12 +130,6 @@ class DWebViewEngine internal constructor(
           || ip.matches(Regex("^172\\.(1[6-9]|2[0-9]|3[0-1])\\..*"))
     }
   }
-
-
-  fun getBrowserViewState(window: Window): BrowserViewState {
-    return BrowserViewState(browser, lifecycleScope, window)
-  }
-
 
   val mainFrame
     get() = kotlin.runCatching { browser.mainFrame().get() }.getOrElse {

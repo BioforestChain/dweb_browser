@@ -168,9 +168,6 @@ class TaskbarV1Controller private constructor(
     url = getTaskbarUrl().toString(),
     openDevTools = envSwitch.isEnabled(ENV_SWITCH_KEY.TASKBAR_DEVTOOLS),
     privateNet = true,
-    // 这里使用离屏渲染，来确保能在jDialog中透明背景地显示
-    // 现在离屏渲染还有很严重的BUG没有修复，所以这里谨慎使用，只用在taskbar这种没有输入框的简单模块中
-    enabledOffScreenRender = true,//!envSwitch.isEnabled(ENV_SWITCH_KEY.DWEBVIEW_ENABLE_TRANSPARENT_BACKGROUND),
     detachedStrategy = DWebViewOptions.DetachedStrategy.Ignore,
     viewId = 2,
   )

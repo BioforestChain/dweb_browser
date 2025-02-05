@@ -34,10 +34,10 @@ data class DWebViewOptions(
    */
   var viewId: Int? = null,
   /**
-   * 是否使用离屏渲染模式(目前主要用于桌面端web browser)
+   * 是否使用离屏渲染模式(目前主要用于桌面端web browser)，默认开启，开启后才能在compose中正确渲染窗口
    * @suppress Desktop Only
    */
-  val enabledOffScreenRender: Boolean = false,
+  val enabledOffScreenRender: Boolean = true,
 
   /**
    * 是否启用无痕模式，如果为null，则不启用，否则，同个sessionId的会共享该模式下的数据，并在结束时销毁这些数据

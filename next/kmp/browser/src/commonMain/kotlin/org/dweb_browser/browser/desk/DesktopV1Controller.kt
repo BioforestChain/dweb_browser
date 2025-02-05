@@ -132,7 +132,6 @@ class DesktopV1Controller private constructor(
       detachedStrategy = DWebViewOptions.DetachedStrategy.Ignore,
       displayCutoutStrategy = DWebViewOptions.DisplayCutoutStrategy.Default,
       viewId = 1,
-      enabledOffScreenRender = true
     )
 
     val webView = viewController.createDwebView(deskNMM, options)
