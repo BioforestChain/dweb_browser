@@ -176,7 +176,7 @@ kotlin-serialization-cbor = { group = "org.jetbrains.kotlinx", name = "kotlinx-s
 # 加载图片 coil
 coil-core = { group = "io.coil-kt.coil3", name = "coil", version.ref = "coil-version" }
 coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil-version" }
-coil-network-ktor = { group = "io.coil-kt.coil3", name = "coil-network-ktor2", version.ref = "coil-version" }
+coil-network-ktor = { group = "io.coil-kt.coil3", name = "coil-network-ktor3", version.ref = "coil-version" }
 coil-svg = { group = "io.coil-kt.coil3", name = "coil-svg", version.ref = "coil-version" }
 coil-video = { group = "io.coil-kt.coil3", name = "coil-video", version.ref = "coil-version" }
 coil-gif = { group = "io.coil-kt.coil3", name = "coil-gif", version.ref = "coil-version" }

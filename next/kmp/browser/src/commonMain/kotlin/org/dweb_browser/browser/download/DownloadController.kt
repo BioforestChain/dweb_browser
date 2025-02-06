@@ -227,7 +227,7 @@ class DownloadController(internal val downloadNMM: DownloadNMM.DownloadRuntime) 
   ): String {
     // 先从header判断
     var fileName = headers.get("Content-Disposition")?.substringAfter("filename=")?.trim('"')
-      ?: Url(url).pathSegments.lastOrNull() ?: ""
+      ?: Url(url).segments.lastOrNull() ?: ""
     if (fileName.isEmpty()) fileName = "${datetimeNow()}.${mime.substringAfter("/")}"
     var index = 0
     while (true) {
@@ -247,7 +247,7 @@ class DownloadController(internal val downloadNMM: DownloadNMM.DownloadRuntime) 
    */
   private suspend fun fileCreateByPath(url: String, externalDownload: Boolean): String {
     var index = 0
-    val fileName = Url(url).pathSegments.lastOrNull() ?: ""
+    val fileName = Url(url).segments.lastOrNull() ?: ""
     while (true) {
       val path = if (externalDownload) {
         "/download/${index++}_${fileName}"
