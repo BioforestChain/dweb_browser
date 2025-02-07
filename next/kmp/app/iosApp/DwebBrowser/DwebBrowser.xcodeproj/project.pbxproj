@@ -758,7 +758,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 3.250112.1;
+				MARKETING_VERSION = 3.250207.0;
 				ORDER_FILE = $SRCROOT/DwebBrowser/Config/LinkSort.order;
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = (
@@ -777,7 +777,7 @@
 				SWIFT_OBJC_BRIDGING_HEADER = "";
 				SWIFT_OBJC_INTEROP_MODE = objcxx;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 1;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
@@ -804,7 +804,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 3.250112.1;
+				MARKETING_VERSION = 3.250207.0;
 				ORDER_FILE = $SRCROOT/DwebBrowser/Config/LinkSort.order;
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = (
@@ -823,7 +823,7 @@
 				SWIFT_OBJC_BRIDGING_HEADER = "";
 				SWIFT_OBJC_INTEROP_MODE = objcxx;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 1;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};
