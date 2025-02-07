@@ -131,6 +131,8 @@ open class KtorPureServer<out TEngine : ApplicationEngine, TConfiguration : Appl
         this.parentCoroutineContext = ioAsyncExceptionHandler + getCoroutineExceptionHandler()
         watchPaths = emptyList()
         serverConfigBuilder()
+        // 处理请求
+        module(applicationModule)
       },
       // configuration script for the engine
       configure = config,
