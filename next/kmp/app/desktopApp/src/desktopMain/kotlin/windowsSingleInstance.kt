@@ -9,6 +9,7 @@ import kotlinx.coroutines.withContext
 import org.dweb_browser.core.std.dns.httpFetch
 import org.dweb_browser.helper.defaultAsyncExceptionHandler
 import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.pure.http.ktor.getPort
 import java.io.File
 import java.net.BindException
 
@@ -17,7 +18,7 @@ object WindowsSingleInstance {
 
   private suspend fun createSingleInstanceServer(port: Int = 0) =
     try {
-      embeddedServer(Netty, port = port) {
+      val server = embeddedServer(Netty, port = port) {
         install(createApplicationPlugin("dweb_deeplink") {
           onCall { call ->
             withContext(defaultAsyncExceptionHandler) {
@@ -27,7 +28,10 @@ object WindowsSingleInstance {
             }
           }
         })
-      }.start(wait = false).resolvedConnectors().first().port
+      }
+      server.start(wait = false).let {
+        server.engine.getPort()
+      }
     } catch (e: BindException) {
       0
     } catch (e: Throwable) {

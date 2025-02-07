@@ -12,14 +12,17 @@ import io.ktor.network.sockets.toJavaAddress
 import io.ktor.util.network.port
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.ByteWriteChannel
+import io.ktor.utils.io.availableForRead
 import io.ktor.utils.io.close
 import io.ktor.utils.io.copyTo
 import io.ktor.utils.io.readAvailable
+import io.ktor.utils.io.writeAvailable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.WARNING
@@ -41,8 +44,10 @@ class ReverseProxyServer {
       val proxyHost = "0.0.0.0"
       val proxyPort = 0
       try {
-        proxyServer = tcpSocketBuilder.bind(proxyHost, proxyPort) {
-          reuseAddress = true
+        proxyServer = runBlocking {
+          tcpSocketBuilder.bind(proxyHost, proxyPort) {
+            reuseAddress = true
+          }
         }
       } catch (e: Exception) {
         throw IOException("Couldn't start proxy server on host [$proxyHost] and port [$proxyPort]\n\t${e.stackTraceToString()}")

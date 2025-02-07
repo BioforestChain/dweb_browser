@@ -155,7 +155,7 @@ ktor-server-core = { group = "io.ktor", name = "ktor-server-core", version.ref =
 ktor-server-host-common = { group = "io.ktor", name = "ktor-server-host-common", version.ref = "ktor-version" }
 ktor-server-cio = { group = "io.ktor", name = "ktor-server-cio", version.ref = "ktor-version" }
 ktor-server-netty = { group = "io.ktor", name = "ktor-server-netty", version.ref = "ktor-version" }
-ktor-server-jetty = { group = "io.ktor", name = "ktor-server-jetty", version.ref = "ktor-version" }
+ktor-server-jetty = { group = "io.ktor", name = "ktor-server-jetty-jakarta", version.ref = "ktor-version" }
 ktor-client-cio = { group = "io.ktor", name = "ktor-client-cio", version.ref = "ktor-version" }
 ktor-client-okhttp = { group = "io.ktor", name = "ktor-client-okhttp", version.ref = "ktor-version" }
 ktor-client-jetty = { group = "io.ktor", name = "ktor-client-jetty", version.ref = "ktor-version" }
