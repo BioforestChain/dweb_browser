@@ -34,7 +34,7 @@ suspend fun main(vararg args: String) {
   System.setProperty("apple.awt.application.name", "Dweb Browser");
   // https://github.com/JetBrains/kotlin-multiplatform-dev-docs/blob/master/topics/whats-new/whats-new-compose-1-6-0.md#desktop-experimental
   // 设置为WINDOW，则MenuPanel可以弹出到前面，而不会被webview遮挡
-  System.setProperty("compose.layers.type", "WINDOW")
+  //System.setProperty("compose.layers.type", "WINDOW")
   // https://github.com/JetBrains/compose-multiplatform-core/pull/915
   if (PureViewController.isMacOS) {
     System.setProperty("compose.interop.blending", "true")
