@@ -8,6 +8,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
@@ -35,6 +36,8 @@ class PureChannelContext internal constructor(
 ) {
   @OptIn(InternalAPI::class)
   val income = incomeChannel as ReceiveChannel<PureFrame>
+  @OptIn(InternalAPI::class)
+  val outgoing = outgoingChannel as SendChannel<PureFrame>
   operator fun iterator() = income.iterator()
   inline fun <reified T> readJsonItems() = flow {
     for (frame in income) {

@@ -11,6 +11,7 @@ import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManagerFactory
 import javax.net.ssl.X509TrustManager
 
+
 object SslSettings {
 
   val keyStoreFile =
@@ -46,7 +47,7 @@ object SslSettings {
   @Suppress("CustomX509TrustManager")
   private class CompositeX509TrustManager(
     val primaryTrustManager: X509TrustManager?,
-    val secondaryTrustManager: X509TrustManager?
+    val secondaryTrustManager: X509TrustManager?,
   ) : X509TrustManager {
 
     override fun checkClientTrusted(chain: Array<out X509Certificate>, authType: String) {

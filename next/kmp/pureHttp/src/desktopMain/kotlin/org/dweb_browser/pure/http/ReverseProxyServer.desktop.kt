@@ -22,9 +22,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.dweb_browser.helper.Debugger
+import org.dweb_browser.helper.SuspendOnce1
 import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.utf8String
@@ -36,93 +36,90 @@ val debugReverseProxy = Debugger("ReverseProxy")
 
 
 class ReverseProxyServer {
-  private var proxyServer: ServerSocket? = null
-  fun start(backendPort: UShort): UShort {
-    val currentProxyServer = this.proxyServer ?: run {
-      val tcpSocketBuilder = aSocket(ActorSelectorManager(ioAsyncExceptionHandler)).tcp()
-      val proxyServer: ServerSocket
-      val proxyHost = "0.0.0.0"
-      val proxyPort = 0
-      try {
-        proxyServer = runBlocking {
-          tcpSocketBuilder.bind(proxyHost, proxyPort) {
-            reuseAddress = true
-          }
-        }
-      } catch (e: Exception) {
-        throw IOException("Couldn't start proxy server on host [$proxyHost] and port [$proxyPort]\n\t${e.stackTraceToString()}")
+  private val startProxyServer = SuspendOnce1 { backendPort: UShort ->
+    val tcpSocketBuilder = aSocket(ActorSelectorManager(ioAsyncExceptionHandler)).tcp()
+    val proxyServer: ServerSocket
+    val proxyHost = "0.0.0.0"
+    val proxyPort = 0
+    try {
+      proxyServer = tcpSocketBuilder.bind(proxyHost, proxyPort) {
+        reuseAddress = true
       }
-      println("Started proxy server at ${proxyServer.localAddress}")
-      val acceptJob = CoroutineScope(ioAsyncExceptionHandler).launch {
-        while (!proxyServer.isClosed) {
-          val client = proxyServer.accept()
-          launch(ioAsyncExceptionHandler) {
-            try {
-              val clientReader = client.openReadChannel()
-              val clientWriter = client.openWriteChannel(true)
-
-              // 等待内容填充
-              clientReader.awaitContent()
-              val buffer = ByteArray(clientReader.availableForRead)
-              clientReader.readAvailable(buffer)
-              val request = ConnectRequest(buffer)
-              val connectHost: String
-              val connectPort: Int
-              if (request.host.endsWith(".dweb") && request.port == 443) {
-                connectHost = "0.0.0.0"
-                connectPort = backendPort.toInt()
-              } else {
-                connectHost = request.host
-                connectPort = request.port
-              }
-              when {
-                connectPort != -1 -> tunnelHttps(
-                  this@launch,
-                  connectHost,
-                  connectPort,
-                  client,
-                  clientReader,
-                  clientWriter,
-                  tcpSocketBuilder
-                )
-
-                else -> {
-                  WARNING("Failed to connect to client or receive request from ${client.remoteAddress}")
-                  // this blocks the coroutine's flow but whatever, it's the end of the coroutine now
-                  client.close()
-                  cancel()
-                }
-              }
-            } catch (e: Exception) {
-              debugReverseProxy(
-                "proxyServer-error",
-                "Something went wrong during communicating with client",
-                e.message
-              )
-              client.close()
-              cancel()
-            }
-          }
-        }
-      }
-      acceptJob.invokeOnCompletion {
-        WARNING("Proxy server closed ${proxyServer.isClosed}")
-      }
-
-      proxyServer
-    }.also {
-      this.proxyServer = it
+    } catch (e: Exception) {
+      throw IOException("Couldn't start proxy server on host [$proxyHost] and port [$proxyPort]\n\t${e.stackTraceToString()}")
     }
+    println("Started proxy server at ${proxyServer.localAddress}")
+    val acceptJob = CoroutineScope(ioAsyncExceptionHandler).launch {
+      while (!proxyServer.isClosed) {
+        val client = proxyServer.accept()
+        launch(ioAsyncExceptionHandler) {
+          try {
+            val clientReader = client.openReadChannel()
+            val clientWriter = client.openWriteChannel(true)
+
+            // 等待内容填充
+            clientReader.awaitContent()
+            val buffer = ByteArray(clientReader.availableForRead)
+            clientReader.readAvailable(buffer)
+            val request = ConnectRequest(buffer)
+            val connectHost: String
+            val connectPort: Int
+            if (request.host.endsWith(".dweb") && request.port == 443) {
+              connectHost = "0.0.0.0"
+              connectPort = backendPort.toInt()
+            } else {
+              connectHost = request.host
+              connectPort = request.port
+            }
+            when {
+              connectPort != -1 -> tunnelHttps(
+                this,
+                connectHost,
+                connectPort,
+                client,
+                clientReader,
+                clientWriter,
+                tcpSocketBuilder
+              )
+
+              else -> {
+                WARNING("Failed to connect to client or receive request from ${client.remoteAddress}")
+                // this blocks the coroutine's flow but whatever, it's the end of the coroutine now
+                client.close()
+                cancel()
+              }
+            }
+          } catch (e: Exception) {
+            debugReverseProxy(
+              "proxyServer-error",
+              "Something went wrong during communicating with client",
+              e.message
+            )
+            client.close()
+            cancel()
+          }
+        }
+      }
+    }
+    acceptJob.invokeOnCompletion {
+      WARNING("Proxy server closed ${proxyServer.isClosed}")
+    }
+
+    proxyServer
+  }
+
+  suspend fun start(backendPort: UShort): UShort {
+    val currentProxyServer = this.startProxyServer(backendPort)
     return currentProxyServer.localAddress.toJavaAddress().port.toUShort()
   }
 
   fun close() {
-    proxyServer?.let { serverSocket ->
+    startProxyServer.getResultOrNull()?.let { serverSocket ->
+      startProxyServer.reset()
       if (!serverSocket.isClosed) {
         serverSocket.close()
       }
     }
-    proxyServer = null
   }
 
 }

@@ -58,7 +58,7 @@ class PureServerTest {
         outgoing.send(PureTextFrame(outMsg))
         outgoingRes.add(outMsg)
       }
-      close(null, null)
+      close(null)
     }
 
     server.close()

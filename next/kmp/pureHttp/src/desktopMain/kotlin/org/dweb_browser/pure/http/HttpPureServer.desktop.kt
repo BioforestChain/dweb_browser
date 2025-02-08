@@ -21,7 +21,7 @@ actual class HttpPureServer actual constructor(onRequest: HttpPureServerOnReques
   }
 
   suspend fun start(port: UShort, https: Boolean) = startServer {
-    createServer({
+    val serverEngine = createServer(config = {
       if (https) {
         sslConnector(
           keyStore = SslSettings.keyStore,
@@ -38,6 +38,7 @@ actual class HttpPureServer actual constructor(onRequest: HttpPureServerOnReques
         }
       }
     })
+    serverEngine
   }
 }
 
