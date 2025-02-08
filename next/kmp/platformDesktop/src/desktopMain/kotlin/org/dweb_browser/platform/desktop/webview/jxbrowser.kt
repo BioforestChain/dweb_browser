@@ -14,8 +14,6 @@ import java.io.IOException
 import java.nio.file.Paths
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.io.path.absolutePathString
-import kotlin.io.path.isDirectory
-import kotlin.io.path.name
 import java.nio.file.Path as NioPath
 
 
@@ -35,9 +33,6 @@ object jxBrowserEngine {
 
   val allEngines get() = engineMaps.toMap()
 
-  val sandboxChromiumDir = Paths.get(System.getProperty("user.home"))
-    .resolve("jxbrowser/chromium/7.39.0")
-
   val customChromiumDir = Paths.get(System.getProperty("user.dir")).resolve("app/jxbrowser/chromium")
 
   /**
@@ -55,20 +50,6 @@ object jxBrowserEngine {
         System.setProperty("jxbrowser.chromium.dir", customChromiumDir.absolutePathString())
       }
     } catch (_: Exception) {}
-
-//    System.setProperty("jxbrowser.chromium.verification.off", "true")
-    if (false) {
-      if (!sandboxChromiumDir.isDirectory()) {
-        val sandboxChromiumZip =
-          Paths.get(System.getProperty("java.io.tmpdir")).resolve("jxbrowser/7.39.0.zip").toFile()
-        val myChromiumZip = jxBrowserEngine.javaClass.getResourceAsStream("/jxbrowser-7.39.0.zip")!!
-        myChromiumZip.pipeTo(sandboxChromiumZip.outputStream())
-        val tmpChromiumDir =
-          sandboxChromiumDir.parent.resolve(sandboxChromiumDir.name + ".tmp").toFile()
-        easyUnZip(sandboxChromiumZip, tmpChromiumDir)
-        tmpChromiumDir.renameTo(sandboxChromiumDir.toFile())
-      }
-    }
 
     /// 监听进程死亡，那么就关闭所有的 engine
     Runtime.getRuntime().addShutdownHook(Thread {
@@ -100,7 +81,6 @@ object jxBrowserEngine {
   ): Engine = getOrCreateByDir(dataDir) {
     warpCreateEngine {
       Engine.newInstance(EngineOptions.newBuilder(HARDWARE_ACCELERATED).run {
-//      chromiumDir(sandboxChromiumDir)
         optionsBuilder?.invoke(this)
         // 设置用户数据目录，这样WebApp退出再重新打开时能够读取之前的数据
         userDataDir(dataDir)

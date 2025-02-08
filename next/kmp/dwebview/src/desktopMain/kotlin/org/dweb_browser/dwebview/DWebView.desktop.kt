@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import com.teamdev.jxbrowser.engine.Theme
 import com.teamdev.jxbrowser.js.JsException
 import com.teamdev.jxbrowser.js.JsObject
 import kotlinx.coroutines.CoroutineScope
@@ -128,7 +129,13 @@ class DWebView(
   }
 
   override suspend fun setPrefersColorScheme(colorScheme: WebColorScheme) {
-    WARNING("Not yet implemented setPrefersColorScheme. request [jxBrowser 8.0](https://teamdev.com/jxbrowser/zh/roadmap/#jxbrowser-8-0-0)")
+    viewEngine.browser.engine().setTheme(
+      when (colorScheme) {
+        WebColorScheme.Normal -> Theme.SYSTEM
+        WebColorScheme.Dark -> Theme.DARK
+        WebColorScheme.Light -> Theme.LIGHT
+      }
+    )
   }
 
   override suspend fun setVerticalScrollBarVisible(visible: Boolean) {
