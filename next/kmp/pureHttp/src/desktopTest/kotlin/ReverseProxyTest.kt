@@ -15,8 +15,6 @@ import kotlin.test.assertEquals
 class ReverseProxyTest {
   @Test
   fun start() = runCommonTest {
-    System.setProperty("enable.http2", "false")
-
     val dwebServer = HttpPureServer { req ->
       PureResponse.build { body(req.url.encodedPathAndQuery) }
     }

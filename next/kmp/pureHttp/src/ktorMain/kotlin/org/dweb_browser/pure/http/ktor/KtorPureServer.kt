@@ -141,12 +141,16 @@ open class KtorPureServer<out TEngine : ApplicationEngine, TConfiguration : Appl
 
   protected open fun getCoroutineExceptionHandler(): CoroutineContext = commonAsyncExceptionHandler
 
-  protected suspend inline fun startServer(createServer: () -> EmbeddedServer<@UnsafeVariance TEngine, TConfiguration>) =
+  protected suspend inline fun startServer(
+    onStarted: EmbeddedServer<@UnsafeVariance TEngine, TConfiguration>.() -> Unit = {},
+    createServer: () -> EmbeddedServer<@UnsafeVariance TEngine, TConfiguration>,
+  ) =
     serverLock.withLock {
       val engine = when (val engine = serverEngine) {
         null -> {
           createServer().also { newEngine ->
             newEngine.start(wait = false)
+            newEngine.onStarted()
             this.serverEngine = newEngine
             newEngine.addShutdownHook {
               debugHttpPureServer("startServer/addShutdownHook", "shutdown")
@@ -167,14 +171,14 @@ open class KtorPureServer<out TEngine : ApplicationEngine, TConfiguration : Appl
       }
     }
 
-  open suspend fun start(port: UShort) = startServer {
+  open suspend fun start(port: UShort) = startServer(createServer = {
     createServer(config = {
       connector {
         this.port = port.toInt()
         this.host = host
       }
     })
-  }
+  })
 
   protected suspend fun getPort() = serverEngine?.run { application.engine.getPort() }
 

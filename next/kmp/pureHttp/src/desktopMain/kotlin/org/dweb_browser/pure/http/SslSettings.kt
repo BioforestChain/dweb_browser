@@ -29,14 +29,14 @@ object SslSettings {
   }
 
   // JVM默认信任证书
-  val defaultTrustManager: X509TrustManager by lazy {
+  private val defaultTrustManager: X509TrustManager by lazy {
     val trustManagerFactory =
       TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
     trustManagerFactory.init(null as KeyStore?)
     trustManagerFactory.trustManagers.first { it is X509TrustManager } as X509TrustManager
   }
 
-  fun getTrustManagerFactory(): TrustManagerFactory? {
+  private fun getTrustManagerFactory(): TrustManagerFactory? {
     val trustManagerFactory =
       TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
     trustManagerFactory.init(keyStore)
