@@ -12,8 +12,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.clearText
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
@@ -39,8 +39,10 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import kotlinx.coroutines.delay
 import org.dweb_browser.browser.web.model.BrowserViewModel
@@ -86,9 +88,15 @@ class BrowserSearchPanel(val viewModel: BrowserViewModel) {
       win.navigation.GoBackHandler {
         hide()
       }
-      val searchTextState = rememberTextFieldState("")
-      remember(viewModel.searchKeyWord, searchPage.url) {
-        searchTextState.setTextAndSelectAll(viewModel.searchKeyWord ?: searchPage.url)
+      var searchTextField by remember(viewModel.searchKeyWord, searchPage.url) {
+        val text = viewModel.searchKeyWord ?: searchPage.url
+        mutableStateOf(
+          TextFieldValue(text = text, selection = TextRange(0, text.length))
+        )
+      }
+      val searchTextState = rememberTextFieldState(searchTextField.text)
+      remember(searchTextField) {
+        searchTextState.setTextAndSelectAll(searchTextField.text)
       }
       val searchText = searchTextState.text.toString()
       val searchBarColors = SearchBarDefaults.colors()
@@ -124,25 +132,29 @@ class BrowserSearchPanel(val viewModel: BrowserViewModel) {
          * 1. 搜索历史
          * 2. 浏览器访问记录，尝试匹配 title 与 url，并提供 icon、title、url等基本信息进行显示
          */
-        BasicTextField(state = searchTextState,
+        BasicTextField(
+          value = searchTextField,
+          onValueChange = { searchTextField = it },
           modifier = Modifier.fillMaxWidth(
           ).heightIn(min = SearchBarDefaults.InputFieldHeight).focusRequester(focusRequester),
-          lineLimits = TextFieldLineLimits.SingleLine,
+          singleLine = true,
+          maxLines = 1,
           textStyle = LocalTextStyle.current.copy(color = searchFieldColors.focusedTextColor),
           cursorBrush = SolidColor(searchFieldColors.cursorColor),
-          keyboardOptions = KeyboardOptions(
-            imeAction = ImeAction.Search,
-            keyboardType = KeyboardType.Uri,
-          ),
-          onKeyboardAction = {
-            focusManager.clearFocus()
-            suggestionActions.firstOrNull()?.invoke()
-//            focusRequester.freeFocus()
-//            hide()
-//            viewModel.doIOSearchUrl(searchText)
-          },
           interactionSource = interactionSource,
-          decorator = { innerTextField ->
+          keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Uri,
+            imeAction = ImeAction.Search,
+          ),
+          keyboardActions = KeyboardActions(
+            onSearch = {
+              focusManager.clearFocus()
+              suggestionActions.firstOrNull()?.invoke()
+//              hide()
+//              viewModel.doIOSearchUrl(searchTextField.text.trim().trim('\u200B').trim())
+            },
+          ),
+          decorationBox = { innerTextField ->
             TextFieldDefaults.DecorationBox(
               value = searchText,
               innerTextField = innerTextField,
