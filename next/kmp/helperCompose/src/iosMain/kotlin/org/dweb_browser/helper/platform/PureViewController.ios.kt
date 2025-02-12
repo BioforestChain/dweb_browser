@@ -129,38 +129,6 @@ class PureViewController(
     })
   }
 
-  init {
-    globalMainScope.launch {
-      waitInit()
-      val rootView = uiViewControllerInMain.view
-      boundsFlow.combine(viewAppearFlow) { bounds, viewAppear ->
-        bounds to rootView.superview
-      }.collect { (bounds, parentView) ->
-        withMainContext {
-          setBoundsInMain(bounds, rootView, parentView)
-        }
-      }
-    }
-  }
-
-  init {
-    nativeViewController.onInitSignal.listen {
-      if (it == vcId) {
-        offListener()
-        isAdded = true
-        initDeferred.complete(Unit)
-      }
-    }
-    nativeViewController.onDestroySignal.listen {
-      if (it == vcId) {
-        destroySignal.emit()
-        isAdded = false
-        lifecycleScope.cancel(CancellationException("viewController destroyed"))
-        lifecycleScope = CoroutineScope(mainAsyncExceptionHandler + SupervisorJob())
-      }
-    }
-  }
-
   override var lifecycleScope = CoroutineScope(mainAsyncExceptionHandler + SupervisorJob())
     private set
 
@@ -195,6 +163,38 @@ class PureViewController(
 
   private val scope = nativeViewController.scope
 
+
+  init {
+    globalMainScope.launch {
+      waitInit()
+      val rootView = uiViewControllerInMain.view
+      boundsFlow.combine(viewAppearFlow) { bounds, viewAppear ->
+        bounds to rootView.superview
+      }.collect { (bounds, parentView) ->
+        withMainContext {
+          setBoundsInMain(bounds, rootView, parentView)
+        }
+      }
+    }
+  }
+
+  init {
+    nativeViewController.onInitSignal.listen {
+      if (it == vcId) {
+        offListener()
+        isAdded = true
+        initDeferred.complete(Unit)
+      }
+    }
+    nativeViewController.onDestroySignal.listen {
+      if (it == vcId) {
+        destroySignal.emit()
+        isAdded = false
+        lifecycleScope.cancel(CancellationException("viewController destroyed"))
+        lifecycleScope = CoroutineScope(mainAsyncExceptionHandler + SupervisorJob())
+      }
+    }
+  }
 
   private val uiViewControllerDelegate = object : ComposeUIViewControllerDelegate {
     // 视图被加载后立即调用
