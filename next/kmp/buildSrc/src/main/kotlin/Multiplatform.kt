@@ -285,7 +285,7 @@ fun KotlinMultiplatformExtension.kmpCommonTarget(
   dsl.provides(sourceSets.commonMain, sourceSets.commonTest)
   sourceSets.all {
     kotlin {
-      languageSettings.enableLanguageFeature("ExplicitBackingFields")
+      // languageSettings.enableLanguageFeature("ExplicitBackingFields")
     }
   }
 

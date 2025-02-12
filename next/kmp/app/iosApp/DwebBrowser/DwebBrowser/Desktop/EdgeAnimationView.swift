@@ -52,23 +52,28 @@ class EdgeAnimationView: UIView {
         if edge == .right {
             NSLayoutConstraint.activate([
                 iconView.centerYAnchor.constraint(equalTo: centerYAnchor),
-                iconView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 8),
+                iconView.leftAnchor.constraint(equalTo: leftAnchor, constant: 8),
             ])
         } else {
             NSLayoutConstraint.activate([
                 iconView.centerYAnchor.constraint(equalTo: centerYAnchor),
-                iconView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8),
+                iconView.rightAnchor.constraint(equalTo: rightAnchor, constant: -8),
             ])
         }
     }
     
     override func layoutSubviews() {
         super.layoutSubviews()
+
+        drawShapeLayer()
+    }
+    
+    private func drawShapeLayer(){
+        
+        if cachedPaths.isEmpty { return }
+
         // 更新layer的路径
         var indexWidth = Int(self.frame.width)
-        if indexWidth == 0 {
-            return
-        }
         if indexWidth >= cachedPaths.count{
             indexWidth = cachedPaths.count-1
         }
@@ -89,75 +94,98 @@ class EdgeAnimationView: UIView {
     
     @objc func handlePanGesture(_ sender: UIPanGestureRecognizer) {
         let translation = sender.translation(in: self.superview)
-
+        
+        switch sender.state {
+            case .began, .changed:
+                let gesPoint = sender.location(in: sender.view)
+                let newY = gesPoint.y - initFrame.height/2
+                initFrame = CGRect(x: initFrame.minX, y: newY, width: initFrame.width, height: initFrame.height)
+            default:
+                break
+        }
         switch sender.state {
         case .began:
             // 如果有正在进行的动画，停止并完成它
             if let animator = animator, animator.isRunning {
-                animator.stopAnimation(true)
-                animator.finishAnimation(at: .current)
+                stopAnimation()
             }else{
                 //这是每次新触发的手势。 否则如果有动画在进行，二次拖拽动画则建立在前一个动画位置之上
-                let gesPoint = sender.location(in: sender.view)
-                initFrame = CGRect(x: initFrame.minX, y: gesPoint.y - initFrame.height/2, width: initFrame.width, height: initFrame.height)
+                self.frame = initFrame
             }
-            stopAnimation()
             originalWidth = self.bounds.width
-            initialOriginX = self.frame.origin.x // 记录初始的 x 坐标
-            self.frame = initFrame
+            initialOriginX = translation.x // self.frame.origin.x // 记录初始的 x 坐标
+            drawShapeLayer()
         case .changed:
-            // 根据手势的水平移动调整宽度
-            let newWidth = min(originalWidth + abs(translation.x), CGFloat(fullWidth))
-            if edge == .left{
-                self.frame = CGRect(x: self.frame.origin.x, y: self.frame.origin.y, width: newWidth, height: self.bounds.height)
-            }else{
-                let newX = initialOriginX - (newWidth - originalWidth)
-                self.frame = CGRect(x: newX, y: self.frame.origin.y, width: newWidth, height: self.bounds.height)
+            if edge == .left {
+                let newWidth = max(0,min(translation.x - initialOriginX + originalWidth,CGFloat(fullWidth)))
+                self.frame = CGRect(x: initFrame.minX, y: initFrame.minY, width: newWidth, height: initFrame.height)
+            } else {
+                let newWidth = max(0,min(initialOriginX - translation.x + originalWidth,CGFloat(fullWidth)))
+                let newX = initFrame.minX - newWidth
+                self.frame = CGRect(x: newX, y: initFrame.minY, width: newWidth, height: initFrame.height)
             }
+            self.iconView.alpha = ((self.frame.width / CGFloat(fullWidth)) > 0.7) ? 1.0 : 0.5
+            
         case .ended, .cancelled:
-            let offsetX = self.frame.width
-            if (offsetX / CGFloat(fullWidth)) > 0.7 {
+            if (self.frame.width / CGFloat(fullWidth)) > 0.7 {
+                // 执行用户动作
                 triggerAction()
+                // 轻微的震动
+                let impactFeedbackGenerator = UIImpactFeedbackGenerator(style: .light)
+                impactFeedbackGenerator.prepare()
+                impactFeedbackGenerator.impactOccurred()
             }
-            animateShapes()
-            animateBackToOriginalWidth()
+            startAnimation()
         default:
             break
         }
     }
     
-    private func animateBackToOriginalWidth() {
-        animator = UIViewPropertyAnimator(duration: 0.6, curve: .linear) {
+    private func animateBackToOriginalWidth(_ duration: Double) {
+        let uianimator = UIViewPropertyAnimator(
+            duration: duration,
+            controlPoint1: CGPoint(x: 0, y: 0.95),
+            controlPoint2: CGPoint(x: 0.5, y: 1)
+        ) {
             self.frame = self.initFrame
         }
+        self.animator = uianimator
         
         // 确保动画完成后才释放
-        animator?.addCompletion { position in
-            if position == .end && self.animator == animator {
+        uianimator.addCompletion { position in
+            if position == .end && self.animator == uianimator {
                 self.animator = nil
             }
         }
         
-        animator?.startAnimation()
+        uianimator.startAnimation()
     }
     
-    private func animateShapes() {
+    private func animateShapes(_ duration: Double) {
         let currentWidth = Int(self.frame.width)
         let index = min(currentWidth, cachedPaths.count - 1)
         let subArray = Array(cachedPaths[0...index].reversed())
         let animation = CAKeyframeAnimation(keyPath: "path")
         animation.values = subArray
-        animation.duration = 0.6 // 动画持续时间
-        animation.timingFunction = CAMediaTimingFunction(name: .linear)
+        animation.duration = duration // 动画持续时间
+        let timingFunction = CAMediaTimingFunction(controlPoints: 0, 0.95, 0.5, 1)
+        animation.timingFunction = timingFunction
         shapeLayer.add(animation, forKey: "shapeAnimation")
     }
     
+    func startAnimation(){
+        let duration:Double = 0.6;
+        animateShapes(duration)
+        animateBackToOriginalWidth(duration)
+    }
+
     func stopAnimation() {
-        if let presentationLayer = shapeLayer.presentation(),
-           let currentPath = presentationLayer.path {
-            // 在停止动画时，将当前路径设置为 shapeLayer 的路径，避免一闪现象
-            shapeLayer.path = currentPath
-        }
+        self.animator?.stopAnimation(true)
+        self.animator?.finishAnimation(at: .current)
+        // if let currentPath = shapeLayer.presentation()?.path {
+        //     // 在停止动画时，将当前路径设置为 shapeLayer 的路径，避免一闪现象
+        //     shapeLayer.path = currentPath
+        // }
         // 二次拖拽时，需要停止前一次的回原动画，通过 key 来移除动画，这里使用添加动画时的 key
         shapeLayer.removeAnimation(forKey: "shapeAnimation")
     }
