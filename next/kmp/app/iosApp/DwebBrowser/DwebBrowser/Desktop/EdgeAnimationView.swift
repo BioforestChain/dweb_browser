@@ -66,6 +66,9 @@ class EdgeAnimationView: UIView {
         super.layoutSubviews()
         // 更新layer的路径
         var indexWidth = Int(self.frame.width)
+        if indexWidth == 0 {
+            return
+        }
         if indexWidth >= cachedPaths.count{
             indexWidth = cachedPaths.count-1
         }
@@ -130,7 +133,7 @@ class EdgeAnimationView: UIView {
         
         // 确保动画完成后才释放
         animator?.addCompletion { position in
-            if position == .end {
+            if position == .end && self.animator == animator {
                 self.animator = nil
             }
         }
