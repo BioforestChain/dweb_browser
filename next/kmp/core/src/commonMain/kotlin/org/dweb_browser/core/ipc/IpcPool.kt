@@ -8,11 +8,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import org.dweb_browser.core.help.types.MicroModuleManifest
 import org.dweb_browser.helper.Debugger
+import org.dweb_browser.helper.SafeHashSet
 import org.dweb_browser.helper.SuspendOnce1
 import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.globalDefaultScope
 import org.dweb_browser.helper.randomUUID
-import org.dweb_browser.pure.http.PureStream
 
 val debugIpcPool = Debugger("ipcPool")
 
@@ -37,12 +37,8 @@ open class IpcPool {
   /**
    * 所有的ipc对象实例集合
    */
-  private val ipcSet = mutableSetOf<Ipc>()
+  private val ipcSet = SafeHashSet<Ipc>()
 
-  /**
-   * 所有的委托进来的流的实例集合
-   */
-  private val streamPool = mutableMapOf<String, PureStream>()
   suspend fun createIpc(
     endpoint: IpcEndpoint,
     pid: Int,
