@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.helper.SafeHashMap
@@ -32,8 +33,12 @@ internal class TaskbarAppModel(
   var isShowClose: Boolean = false,
   var state: TaskbarAppModelState = TaskbarAppModelState(),
 ) {
-  var running by mutableStateOf(running)
-  var opening by mutableStateOf(false)
+  val runningFlow = MutableStateFlow(false)
+  val running get() = runningFlow.value
+
+  val openingFlow = MutableStateFlow(false)
+  val opening get() = openingFlow.value
+
 
   @Composable
   fun rememberAniProp() = remember {

@@ -9,7 +9,6 @@ fun setupOverrideUrlLoadingHooks(
 ) = mutableListOf<OverrideUrlLoadingParams.() -> UrlLoadingPolicy>().also { hooks ->
   dwebNavigationDelegate.decidePolicyForNavigationActionHooks.add {
     val url = decidePolicyForNavigationAction.request.URL.toString()
-    decidePolicyForNavigationAction.request.mainDocumentURL
     @Suppress("UNNECESSARY_SAFE_CALL") val params = OverrideUrlLoadingParams(
       url,
       decidePolicyForNavigationAction.targetFrame?.isMainFrame()

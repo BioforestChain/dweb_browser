@@ -284,9 +284,9 @@ abstract class ITaskbarV2View(protected val taskbarController: TaskbarV2Controll
                   isFocus = true
                 }
 
-                app.opening = true
+                app.openingFlow.value = true
                 taskbarController.openAppOrActivate(app.mmid).invokeOnCompletion {
-                  app.opening = false
+                  app.openingFlow.value = false
                 }
               },
               quitApp = {
