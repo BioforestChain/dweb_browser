@@ -62,7 +62,7 @@ material3Android = "1.3.1"
 kotlinx-serialization = "1.8.0"
 
 #jxbrowser-version = "8.0.0-eap.+"
-jxbrowser-version = "8.3.0"
+jxbrowser-version = "8.4.0"
 jxbrowser-gradle = "1.2.1"
 
 # jna

@@ -17,6 +17,8 @@ import com.teamdev.jxbrowser.js.JsException
 import com.teamdev.jxbrowser.js.JsPromise
 import com.teamdev.jxbrowser.navigation.LoadUrlParams
 import com.teamdev.jxbrowser.net.HttpHeader
+import com.teamdev.jxbrowser.net.UserAgentBrand
+import com.teamdev.jxbrowser.net.UserAgentData
 import com.teamdev.jxbrowser.net.callback.VerifyCertificateCallback
 import com.teamdev.jxbrowser.net.proxy.CustomProxyConfig
 import com.teamdev.jxbrowser.permission.callback.RequestPermissionCallback
@@ -35,9 +37,7 @@ import org.dweb_browser.dwebview.UrlLoadingPolicy
 import org.dweb_browser.dwebview.debugDWebView
 import org.dweb_browser.dwebview.engine.decidePolicyHook.hookCloseWatcher
 import org.dweb_browser.dwebview.engine.decidePolicyHook.hookDeeplink
-import org.dweb_browser.dwebview.polyfill.DwebViewDesktopPolyfill
 import org.dweb_browser.dwebview.polyfill.FaviconPolyfill
-import org.dweb_browser.helper.JsonLoose
 import org.dweb_browser.helper.compose.ENV_SWITCH_KEY
 import org.dweb_browser.helper.compose.envSwitch
 import org.dweb_browser.helper.getOrNull
@@ -48,7 +48,6 @@ import org.dweb_browser.helper.platform.webViewEngine
 import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.helper.utf8String
 import org.dweb_browser.helper.utf8ToBase64UrlString
-import org.dweb_browser.sys.device.DeviceManage
 import java.util.function.Consumer
 import kotlin.system.exitProcess
 
@@ -321,24 +320,21 @@ class DWebViewEngine internal constructor(
   }
 
   private fun setUA() {
-    val brandList = mutableListOf<IDWebView.UserAgentBrandData>()
-    IDWebView.brands.forEach {
-      brandList.add(
-        IDWebView.UserAgentBrandData(
-          it.brand, if (it.version.contains(".")) it.version.split(".").first() else it.version
+    val oldUserAgentData = browser.userAgentData()
+    val userAgentData = UserAgentData.newBuilder().apply {
+      platform(oldUserAgentData.platform())
+      oldUserAgentData.brands().forEach {
+        addBrand(it)
+      }
+      IDWebView.brands.forEach {
+        addBrand(
+          UserAgentBrand.create(
+            it.brand, if (it.version.contains(".")) it.version.split(".").first() else it.version
+          )
         )
-      )
-    }
-
-    val versionName = DeviceManage.deviceAppVersion()
-    brandList.add(IDWebView.UserAgentBrandData("DwebBrowser", versionName.split(".").first()))
-
-    // 新版的chrome可以delete brands 然后重新赋值
-    addDocumentStartJavaScript(
-      DwebViewDesktopPolyfill.UserAgentData +
-          // 执行脚本
-          ";NavigatorUAData.__upsetBrands__(${JsonLoose.encodeToString(brandList)});"
-    )
+      }
+    }.build()
+    browser.userAgentData(userAgentData)
   }
 
   private var verticalScrollBarVisible = true
