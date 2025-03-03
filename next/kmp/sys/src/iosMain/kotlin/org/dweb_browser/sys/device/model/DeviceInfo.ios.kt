@@ -98,6 +98,7 @@ object DeviceInfo {
     "iPhone17,4" -> "iPhone 16 Plus"
     "iPhone17,1" -> "iPhone 16 Pro"
     "iPhone17,2" -> "iPhone 16 Pro Max"
+    "iPhone17,5" -> "iPhone 16e"
     else -> "Unknown"
   }
 
