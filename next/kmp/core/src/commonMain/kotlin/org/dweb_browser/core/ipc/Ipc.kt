@@ -17,6 +17,8 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.core.help.types.MicroModuleManifest
 import org.dweb_browser.core.ipc.helper.EndpointIpcMessage
 import org.dweb_browser.core.ipc.helper.IpcClientRequest
@@ -79,6 +81,7 @@ class Ipc internal constructor(
   //#region close
 
   private val closeDeferred = CompletableDeferred<CancellationException?>()
+  private val closeLock = Mutex(true)
 
   val isClosed get() = closeDeferred.isCompleted
 
@@ -86,8 +89,11 @@ class Ipc internal constructor(
    * 等待ipc关闭之后
    *
    * 对比 onBeforeClose ，该函数不在 ipc scope
+   *
+   * 这里之所以要放在closeLock，是因为 closeDeferred.await 和 invokeOnComplete 是同一个级别的。
+   * 因此这里如果直接通过 closeDeferred.await 返回，那么 invokeOnComplete 可能没有执行完成，导致一些预期之外的效果
    */
-  suspend fun awaitClosed() = closeDeferred.await()
+  suspend fun awaitClosed() = closeLock.withLock { closeDeferred.await() }
 
   val onClosed = DeferredSignal(closeDeferred)
 
@@ -120,6 +126,7 @@ class Ipc internal constructor(
     }
     messageProducer.producer.close(cause)
     closeDeferred.complete(cause)
+    closeLock.unlock()
     IpcLifecycle(IpcLifecycleClosed(reason)).also { closed ->
       lifecycleLocaleFlow.emit(closed)
       runCatching { sendLifecycleToRemote(closed) }.getOrNull()
