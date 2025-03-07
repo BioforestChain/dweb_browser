@@ -33,7 +33,7 @@ internal class TaskbarAppModel(
   var isShowClose: Boolean = false,
   var state: TaskbarAppModelState = TaskbarAppModelState(),
 ) {
-  val runningFlow = MutableStateFlow(false)
+  val runningFlow = MutableStateFlow(running)
   val running get() = runningFlow.value
 
   val openingFlow = MutableStateFlow(false)
