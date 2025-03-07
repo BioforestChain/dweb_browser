@@ -1,6 +1,7 @@
 package info.bagen.dwebbrowser
 
-import io.ktor.utils.io.close
+import io.ktor.utils.io.readInt
+import io.ktor.utils.io.writeInt
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay

@@ -14,6 +14,9 @@ kotlin {
     dependencies {
       api(libs.androidx.test.core)
       api(libs.androidx.test.core.ktx)
+      api(libs.androidx.test.espresso.core)
+      api(libs.androidx.test.junit)
+      api(libs.androidx.test.runner)
     }
   }
   kmpIosTarget(project)

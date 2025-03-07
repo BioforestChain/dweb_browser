@@ -1,5 +1,6 @@
 package info.bagen.dwebbrowser
 
+import io.ktor.utils.io.availableForRead
 import io.ktor.utils.io.cancel
 import io.ktor.utils.io.copyAndClose
 import kotlinx.coroutines.CoroutineStart
@@ -43,7 +44,7 @@ class ReadableStreamTestTest {
     val reader = stream.stream.getReader("")
     while (reader.canReadContent()) {
       reader.awaitContent()
-      println("availableForRead: ${reader.availableForRead}, isClosedForRead:${reader.isClosedForRead}, isClosedForWrite:${reader.isClosedForWrite}")
+      println("availableForRead: ${reader.availableForRead}, isClosedForRead:${reader.isClosedForRead}")
       val size = reader.readAvailableByteArray().size
       println("byteArray: $size")
       result += size
