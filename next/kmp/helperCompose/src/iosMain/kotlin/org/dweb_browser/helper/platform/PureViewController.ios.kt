@@ -108,25 +108,26 @@ class PureViewController(
   ) {
     rootView.translatesAutoresizingMaskIntoConstraints = false
     NSLayoutConstraint.deactivateConstraints(boundsConstraints)
-    NSLayoutConstraint.activateConstraints(constraints = mutableListOf(
-      rootView.widthAnchor.constraintEqualToConstant(bounds.width.toDouble()),
-      rootView.heightAnchor.constraintEqualToConstant(bounds.height.toDouble()),
-    ).also { constraints ->
-      parentView?.also {
-        constraints.add(
-          rootView.leftAnchor.constraintEqualToAnchor(
-            anchor = parentView.leftAnchor, bounds.x.toDouble()
+    NSLayoutConstraint.activateConstraints(
+      constraints = mutableListOf(
+        rootView.widthAnchor.constraintEqualToConstant(bounds.width.toDouble()),
+        rootView.heightAnchor.constraintEqualToConstant(bounds.height.toDouble()),
+      ).also { constraints ->
+        parentView?.also {
+          constraints.add(
+            rootView.leftAnchor.constraintEqualToAnchor(
+              anchor = parentView.leftAnchor, bounds.x.toDouble()
+            )
           )
-        )
-        constraints.add(
-          rootView.topAnchor.constraintEqualToAnchor(
-            anchor = parentView.topAnchor, bounds.y.toDouble()
-          ),
-        )
-      }
-      constraints.forEach { it.active = true }
-      boundsConstraints = constraints
-    })
+          constraints.add(
+            rootView.topAnchor.constraintEqualToAnchor(
+              anchor = parentView.topAnchor, bounds.y.toDouble()
+            ),
+          )
+        }
+        constraints.forEach { it.active = true }
+        boundsConstraints = constraints
+      })
   }
 
   override var lifecycleScope = CoroutineScope(mainAsyncExceptionHandler + SupervisorJob())
@@ -233,11 +234,14 @@ class PureViewController(
   private fun TransparentBg() {
     UIKitView(
       factory = {
-        bgPlaceholderView.apply {
-          setCallback { bgView ->
-            bgView?.setHidden(true)
+        globalMainScope.launch {
+          bgPlaceholderView.setCallback { bgView ->
+            globalMainScope.launch {
+              bgView?.setHidden(true)
+            }
           }
         }
+        bgPlaceholderView
       },
       modifier = Modifier.fillMaxSize().zIndex(-1f),
       properties = UIKitInteropProperties(
@@ -265,12 +269,15 @@ class PureViewController(
     } else {
       UIKitView(
         factory = {
-          bgPlaceholderView.apply {
-            setCallback { bgView ->
-              bgViewHidden = true
-              bgView?.setHidden(true)
+          globalMainScope.launch {
+            bgPlaceholderView.setCallback { bgView ->
+              globalMainScope.launch {
+                bgViewHidden = true
+                bgView?.setHidden(true)
+              }
             }
           }
+          bgPlaceholderView
         },
       )
     }

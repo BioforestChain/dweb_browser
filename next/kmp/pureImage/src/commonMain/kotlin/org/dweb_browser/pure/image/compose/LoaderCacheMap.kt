@@ -44,11 +44,11 @@ class LoaderCacheMap<T : Any>(scope: CoroutineScope, cacheSize: Int = 10) {
     }
   }
 
-  fun get(task: LoaderTask): T? {
-    return map[task.key]?.result
+  fun get(task: LoaderTask): T? = map.sync {
+    map[task.key]?.result
   }
 
-  fun save(cache: CacheItem<T>) {
+  fun save(cache: CacheItem<T>) = map.sync {
     map[cache.key] = cache
   }
 
