@@ -1,7 +1,7 @@
 package org.dweb_browser.pure.http
 
 import io.ktor.http.HttpStatusCode
-import io.ktor.utils.io.InternalAPI
+import io.ktor.util.InternalAPI
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.CompletableDeferred

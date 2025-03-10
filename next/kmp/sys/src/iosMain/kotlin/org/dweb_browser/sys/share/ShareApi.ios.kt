@@ -4,7 +4,6 @@ import io.ktor.http.content.MultiPartData
 import io.ktor.http.content.PartData
 import io.ktor.http.content.forEachPart
 import io.ktor.utils.io.core.readBytes
-import io.ktor.utils.io.toByteArray
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.ObjCSignatureOverride
 import kotlinx.coroutines.CompletableDeferred
@@ -35,7 +34,7 @@ actual suspend fun share(
       multiPartData.forEachPart { partData ->
         val r = when (partData) {
           is PartData.FileItem -> {
-            partData.provider().toByteArray()
+            partData.provider.invoke().readBytes()
           }
 
           else -> {

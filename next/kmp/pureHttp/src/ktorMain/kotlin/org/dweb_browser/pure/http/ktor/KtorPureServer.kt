@@ -2,16 +2,13 @@ package org.dweb_browser.pure.http.ktor
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
-import io.ktor.server.application.ServerConfigBuilder
 import io.ktor.server.application.createApplicationPlugin
 import io.ktor.server.application.install
-import io.ktor.server.application.serverConfig
 import io.ktor.server.engine.ApplicationEngine
+import io.ktor.server.engine.ApplicationEngineEnvironmentBuilder
 import io.ktor.server.engine.ApplicationEngineFactory
-import io.ktor.server.engine.ApplicationEnvironmentBuilder
-import io.ktor.server.engine.EmbeddedServer
 import io.ktor.server.engine.addShutdownHook
-import io.ktor.server.engine.applicationEnvironment
+import io.ktor.server.engine.applicationEngineEnvironment
 import io.ktor.server.engine.connector
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.response.respond
@@ -45,13 +42,12 @@ open class KtorPureServer<out TEngine : ApplicationEngine, TConfiguration : Appl
   private val serverEngineFactory: ApplicationEngineFactory<TEngine, TConfiguration>,
   val onRequest: HttpPureServerOnRequest,
 ) {
-  protected var serverEngine: EmbeddedServer<@UnsafeVariance TEngine, TConfiguration>? = null
+  protected var serverEngine: ApplicationEngine? = null
   protected val serverLock = Mutex()
   protected open fun createServer(
     config: TConfiguration.() -> Unit = {},
-    envBuilder: ApplicationEnvironmentBuilder.() -> Unit = {},
-    serverConfigBuilder: ServerConfigBuilder.() -> Unit = {},
-  ): EmbeddedServer<@UnsafeVariance TEngine, TConfiguration> {
+    envBuilder: ApplicationEngineEnvironmentBuilder.() -> Unit,
+  ): ApplicationEngine {
     val applicationModule: Application.() -> Unit = {
       install(WebSockets)
       install(createApplicationPlugin("dweb-gateway") {
@@ -122,65 +118,56 @@ open class KtorPureServer<out TEngine : ApplicationEngine, TConfiguration : Appl
     }
     return embeddedServer(
       factory = serverEngineFactory,
-      rootConfig = serverConfig(
-        environment = applicationEnvironment {
-          log = KtorSimpleLogger("pure-server")
-          envBuilder()
-        },
-      ) {
-        this.parentCoroutineContext = ioAsyncExceptionHandler + getCoroutineExceptionHandler()
+      //
+      environment = applicationEngineEnvironment {
+        parentCoroutineContext = ioAsyncExceptionHandler + getCoroutineExceptionHandler()
+        log = KtorSimpleLogger("pure-server")
         watchPaths = emptyList()
-        serverConfigBuilder()
-        // 处理请求
         module(applicationModule)
+        envBuilder()
       },
       // configuration script for the engine
-      configure = config,
+      configure = config
     )
   }
 
   protected open fun getCoroutineExceptionHandler(): CoroutineContext = commonAsyncExceptionHandler
 
-  protected suspend inline fun startServer(
-    onStarted: EmbeddedServer<@UnsafeVariance TEngine, TConfiguration>.() -> Unit = {},
-    createServer: () -> EmbeddedServer<@UnsafeVariance TEngine, TConfiguration>,
-  ) =
-    serverLock.withLock {
-      val engine = when (val engine = serverEngine) {
-        null -> {
-          createServer().also { newEngine ->
-            newEngine.start(wait = false)
-            newEngine.onStarted()
-            this.serverEngine = newEngine
-            newEngine.addShutdownHook {
-              debugHttpPureServer("startServer/addShutdownHook", "shutdown")
-              globalDefaultScope.launch(start = CoroutineStart.UNDISPATCHED) {
-                close()
-              }
+  protected suspend inline fun startServer(createServer: () -> ApplicationEngine) = serverLock.withLock {
+    val engine = when (val engine = serverEngine) {
+      null -> {
+        createServer().also { newEngine ->
+          newEngine.start(wait = false)
+          this.serverEngine = newEngine
+          newEngine.addShutdownHook {
+            debugHttpPureServer("startServer/addShutdownHook", "shutdown")
+            globalDefaultScope.launch(start = CoroutineStart.UNDISPATCHED) {
+              close()
             }
           }
         }
+      }
 
-        else -> engine
-      }
-      serverStateFlow.value ?: engine.application.engine.getPort().also {
-        debugHttpPureServer("serverStateFlow/emit") {
-          "emit($it) in ${this@KtorPureServer}"
-        }
-        serverStateFlow.emit(it)
-      }
+      else -> engine
     }
+    serverStateFlow.value ?: engine.getPort().also {
+      debugHttpPureServer("serverStateFlow/emit") {
+        "emit($it) in ${this@KtorPureServer}"
+      }
+      serverStateFlow.emit(it)
+    }
+  }
 
-  open suspend fun start(port: UShort) = startServer(createServer = {
-    createServer(config = {
+  open suspend fun start(port: UShort) = startServer {
+    createServer {
       connector {
         this.port = port.toInt()
-        this.host = host
+        this.host = "0.0.0.0"
       }
-    })
-  })
+    }
+  }
 
-  protected suspend fun getPort() = serverEngine?.run { application.engine.getPort() }
+  protected suspend fun getPort() = serverEngine?.getPort()
 
   suspend fun close() = serverLock.withLock {
     serverEngine?.also { engine ->
@@ -192,10 +179,8 @@ open class KtorPureServer<out TEngine : ApplicationEngine, TConfiguration : Appl
   }
 
   suspend fun getDebugInfo(): String {
-    return serverEngine?.run {
-      engineConfig.connectors.joinToString(", ") {
-        "${it.type.name}://${it.host}:${it.port}".lowercase()
-      }
+    return serverEngine?.resolvedConnectors()?.joinToString(", ") {
+      "${it.type.name.lowercase()}://${it.host}:${it.port}"
     } ?: "No Start Yet."
   }
 

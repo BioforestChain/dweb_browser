@@ -1,6 +1,7 @@
 package org.dweb_browser.pure.io
 
 import io.ktor.utils.io.ByteReadChannel
+import io.ktor.utils.io.bits.set
 import io.ktor.utils.io.write
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -39,7 +40,7 @@ fun BufferedSource.toByteReadChannel(scope: CoroutineScope = globalIoScope): Byt
     } catch (e: Exception) {
       WARNING("fileSystem error: ${e.message}")
     } finally {
-      channel.close()
+      channel.close(null)
       close()
     }
   }

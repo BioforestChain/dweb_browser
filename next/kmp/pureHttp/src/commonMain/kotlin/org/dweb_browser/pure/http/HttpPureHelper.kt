@@ -1,19 +1,18 @@
 package org.dweb_browser.pure.http
 
 import io.ktor.utils.io.ByteWriteChannel
-import io.ktor.utils.io.core.remaining
-import io.ktor.utils.io.writeByteArray
-import kotlinx.io.Source
+import io.ktor.utils.io.core.ByteReadPacket
+import io.ktor.utils.io.writeAvailable
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.SafeInt
-import org.dweb_browser.helper.toByteArray
+import org.dweb_browser.helper.readByteArray
 
 val debugKtor = Debugger("ktor")
 
 var debugStreamAccId by SafeInt(1)
 
-private suspend fun Source.copyToWithFlush(
-  output: ByteWriteChannel, bufferSize: Int = DEFAULT_BUFFER_SIZE,
+private suspend fun ByteReadPacket.copyToWithFlush(
+  output: ByteWriteChannel, bufferSize: Int = DEFAULT_BUFFER_SIZE
 ): Long {
   val id = debugStreamAccId++
   debugKtor("copyToWithFlush", "SS[$id] start")
@@ -30,12 +29,12 @@ private suspend fun Source.copyToWithFlush(
 
         else -> {
           debugKtor("copyToWithFlush", "SS[$id] can bytes($canReadSize)")
-          val buffer = toByteArray()
+          val buffer = readByteArray()
 
           debugKtor("copyToWithFlush", "SS[$id] ${buffer.size}/$canReadSize bytes")
           if (buffer.isNotEmpty()) {
             bytesCopied += buffer.size
-            output.writeByteArray(buffer)
+            output.writeAvailable(src = buffer)
             output.flush()
           } else {
             break

@@ -4,7 +4,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.MultiPartData
 import io.ktor.http.content.PartData
 import io.ktor.http.content.forEachPart
-import io.ktor.utils.io.jvm.javaio.toInputStream
+import io.ktor.http.content.streamProvider
 import org.dweb_browser.core.http.router.ResponseException
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.helper.PromiseOut
@@ -20,7 +20,7 @@ actual suspend fun share(
       is PartData.FileItem -> {
         partData.originalFileName?.also { filename ->
           val url = CacheFilePlugin.writeFile(
-            filename, EFileType.Cache, partData.provider().toInputStream(), false
+            filename, EFileType.Cache, partData.streamProvider(), false
           )
           files.add(url)
         }

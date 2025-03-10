@@ -11,7 +11,7 @@ import coil3.annotation.ExperimentalCoilApi
 import coil3.compose.LocalPlatformContext
 import coil3.disk.DiskCache
 import coil3.memory.MemoryCache
-import coil3.network.ktor3.KtorNetworkFetcherFactory
+import coil3.network.ktor2.KtorNetworkFetcherFactory
 import coil3.request.ErrorResult
 import coil3.request.ImageRequest
 import coil3.request.SuccessResult
@@ -25,9 +25,10 @@ import io.ktor.client.request.HttpRequestData
 import io.ktor.client.request.HttpResponseData
 import io.ktor.http.Headers
 import io.ktor.http.HttpProtocolVersion
+import io.ktor.http.content.OutgoingContent
 import io.ktor.util.date.GMTDate
 import io.ktor.util.flattenEntries
-import io.ktor.utils.io.InternalAPI
+import io.ktor.util.InternalAPI
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -36,14 +37,15 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.buildUrlString
 import org.dweb_browser.helper.globalDefaultScope
+import org.dweb_browser.pure.http.IPureBody
 import org.dweb_browser.pure.http.PureHeaders
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureServerRequest
+import org.dweb_browser.pure.http.PureStream
 import org.dweb_browser.pure.http.defaultHttpPureClient
 import org.dweb_browser.pure.http.ext.FetchHook
 import org.dweb_browser.pure.http.ext.FetchHookContext
 import org.dweb_browser.pure.http.ktor.KtorPureClient
-import org.dweb_browser.pure.http.ktor.toPureBody
 import org.dweb_browser.pure.image.removeOriginAndAcceptEncoding
 import kotlin.coroutines.CoroutineContext
 import kotlin.math.min
@@ -176,7 +178,19 @@ class CoilImageLoader(private val diskCache: DiskCache? = null) : PureImageLoade
                         PureServerRequest(
                           data.url.toString(), PureMethod.from(data.method), PureHeaders(
                             data.headers.flattenEntries().removeOriginAndAcceptEncoding()
-                          ), data.body.toPureBody()
+                          ), when (val body = data.body) {
+                            is OutgoingContent.ByteArrayContent -> IPureBody.from(body.bytes())
+                            is OutgoingContent.NoContent -> IPureBody.Empty
+                            is OutgoingContent.ProtocolUpgrade -> throw Exception("no support ProtocolUpgrade")
+                            is OutgoingContent.ReadChannelContent -> IPureBody.from(
+                              PureStream(
+                                body.readFrom()
+                              )
+                            )
+
+                            is OutgoingContent.WriteChannelContent -> throw Exception("no support WriteChannelContent")
+                            else -> throw Exception("no support body type")
+                          }
                         ),
                       )
                     }
@@ -215,10 +229,10 @@ class CoilImageLoader(private val diskCache: DiskCache? = null) : PureImageLoade
           addPlatformComponents()
         }.build()
       ).memoryCache {
-          MemoryCache.Builder()
-            // Set the max size to 25% of the app's available memory.
-            .maxSizePercent(platformContext, percent = 0.25).build()
-        }.diskCache(diskCache)
+        MemoryCache.Builder()
+          // Set the max size to 25% of the app's available memory.
+          .maxSizePercent(platformContext, percent = 0.25).build()
+      }.diskCache(diskCache)
         // Show a short crossfade when loading images asynchronously.
         .crossfade(true).build()
     }

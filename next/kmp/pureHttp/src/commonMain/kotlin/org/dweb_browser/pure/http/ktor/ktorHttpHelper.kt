@@ -59,15 +59,3 @@ suspend fun HttpResponse.toPureResponse(
   )
 }
 
-fun OutgoingContent.toPureBody(): IPureBody =
-  when (this) {
-    is OutgoingContent.ByteArrayContent -> IPureBody.from(bytes())
-    is OutgoingContent.NoContent -> IPureBody.Empty
-    is OutgoingContent.ProtocolUpgrade -> throw Exception("no support ProtocolUpgrade")
-    is OutgoingContent.ReadChannelContent -> IPureBody.from(
-      PureStream(readFrom())
-    )
-
-    is OutgoingContent.WriteChannelContent -> throw Exception("no support WriteChannelContent")
-    is OutgoingContent.ContentWrapper -> delegate().toPureBody()
-  }

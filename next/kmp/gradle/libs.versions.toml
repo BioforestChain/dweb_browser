@@ -32,7 +32,7 @@ androidx-gridlayout = "1.0.0"
 androidx-profile-installer = "1.4.1"
 androidx-biometric = "1.4.0-alpha02"
 
-ktor-version = "3.1.0"
+ktor-version = "2.3.13"
 
 kotlinx-coroutines-version = "1.10.1"
 kotlinx-datetime-version = "0.6.1"
@@ -176,7 +176,7 @@ kotlin-serialization-cbor = { group = "org.jetbrains.kotlinx", name = "kotlinx-s
 # 加载图片 coil
 coil-core = { group = "io.coil-kt.coil3", name = "coil", version.ref = "coil-version" }
 coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil-version" }
-coil-network-ktor = { group = "io.coil-kt.coil3", name = "coil-network-ktor3", version.ref = "coil-version" }
+coil-network-ktor = { group = "io.coil-kt.coil3", name = "coil-network-ktor2", version.ref = "coil-version" }
 coil-svg = { group = "io.coil-kt.coil3", name = "coil-svg", version.ref = "coil-version" }
 coil-video = { group = "io.coil-kt.coil3", name = "coil-video", version.ref = "coil-version" }
 coil-gif = { group = "io.coil-kt.coil3", name = "coil-gif", version.ref = "coil-version" }

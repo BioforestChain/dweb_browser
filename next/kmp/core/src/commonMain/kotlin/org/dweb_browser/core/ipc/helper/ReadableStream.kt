@@ -1,8 +1,7 @@
 package org.dweb_browser.core.ipc.helper
 
 import io.ktor.utils.io.ByteReadChannel
-import io.ktor.utils.io.close
-import io.ktor.utils.io.writeByteArray
+import io.ktor.utils.io.core.ByteReadPacket
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.launch
@@ -37,7 +36,7 @@ class ReadableStream(
     override val sourceByteReadChannel: ByteReadChannel,
   ) :
     ByteReadChannel by sourceByteReadChannel, ByteReadChannelDelegate {
-    override fun cancel(cause: Throwable?) {
+    override fun cancel(cause: Throwable?): Boolean {
       return stream.closeRead(cause)
     }
   }
@@ -54,7 +53,7 @@ class ReadableStream(
     suspend fun enqueue(vararg byteArrays: ByteArray) = order.queueAndAwait("enqueue") {
       try {
         for (byteArray in byteArrays) {
-          stream._stream.writeByteArray(byteArray)
+          stream._stream.writePacket(ByteReadPacket(byteArray))
         }
         true
       } catch (e: Throwable) {
@@ -65,7 +64,7 @@ class ReadableStream(
     suspend fun enqueue(byteArray: ByteArray) =
       order.queueAndAwait("enqueue(${byteArray.size}bytes)") {
         try {
-          stream._stream.writeByteArray(byteArray)
+          stream._stream.writePacket(ByteReadPacket(byteArray))
           true
         } catch (e: Throwable) {
           false
