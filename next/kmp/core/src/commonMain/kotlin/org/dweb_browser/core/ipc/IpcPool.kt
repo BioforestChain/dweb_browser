@@ -4,7 +4,6 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import org.dweb_browser.core.help.types.MicroModuleManifest
 import org.dweb_browser.helper.Debugger
@@ -62,13 +61,13 @@ open class IpcPool {
     startReason: String?,
   ) {
     /// 保存ipc，并且根据它的生命周期做自动删除
-    debugIpcPool("createIpc", ipc)
+    debugIpcPool("createIpc") {
+      "ipc=$ipc start=$autoStart reason=$startReason"
+    }
     ipcSet.add(ipc)
     /// 自动启动
     if (autoStart) {
-      scope.launch {
-        ipc.start(reason = startReason ?: "autoStart")
-      }
+      ipc.start(await = false, reason = startReason ?: "autoStart")
     }
     ipc.onClosed {
       ipcSet.remove(ipc)

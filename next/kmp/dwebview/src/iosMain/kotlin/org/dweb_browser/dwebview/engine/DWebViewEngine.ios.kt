@@ -38,6 +38,7 @@ import org.dweb_browser.dwebview.polyfill.FaviconPolyfill
 import org.dweb_browser.dwebview.wkWebsiteDataStore
 import org.dweb_browser.helper.JsonLoose
 import org.dweb_browser.helper.PureBounds
+import org.dweb_browser.helper.SafeHashSet
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.collectIn
@@ -75,6 +76,8 @@ import platform.WebKit.javaScriptEnabled
 
 @OptIn(ExperimentalForeignApi::class)
 internal val dwebHelper = DwebHelper()
+
+typealias CompletionHandler = (Any?, platform.Foundation.NSError?) -> Unit
 
 @Suppress("CONFLICTING_OVERLOADS")
 @OptIn(ExperimentalForeignApi::class, ExperimentalResourceApi::class)
@@ -224,18 +227,19 @@ class DWebViewEngine(
               httpLocalhostGatewaySuffix
             )
           ) {
-            "dweb+" + inputUrl.replace(inputHostWithPort, inputHostWithPort.substring(
-              0, inputHostWithPort.length - httpLocalhostGatewaySuffix.length
-            ).let { dwebHost ->
-              val hostInfo = dwebHost.split('-')
-              val port = hostInfo.last().toUShortOrNull()
-              if (port != null) {
-                hostInfo.toMutableList().run {
-                  removeLast()
-                  joinToString("-")
-                } + ":$port"
-              } else dwebHost
-            })
+            "dweb+" + inputUrl.replace(
+              inputHostWithPort, inputHostWithPort.substring(
+                0, inputHostWithPort.length - httpLocalhostGatewaySuffix.length
+              ).let { dwebHost ->
+                val hostInfo = dwebHost.split('-')
+                val port = hostInfo.last().toUShortOrNull()
+                if (port != null) {
+                  hostInfo.toMutableList().run {
+                    removeLast()
+                    joinToString("-")
+                  } + ":$port"
+                } else dwebHost
+              })
           } else inputUrl
         }
       }
@@ -258,8 +262,7 @@ class DWebViewEngine(
   internal val urlObserver = DWebUrlObserver(this)
   val loadStateFlow =
     setupLoadStateFlow(this, dwebNavigationDelegate, urlObserver, configuration, options.url)
-  val beforeUnloadSignal =
-    setupBeforeUnloadSignal(this, dwebNavigationDelegate, loadStateFlow)
+  val beforeUnloadSignal = setupBeforeUnloadSignal(this, dwebNavigationDelegate, loadStateFlow)
   val overrideUrlLoadingHooks by lazy { setupOverrideUrlLoadingHooks(this, dwebNavigationDelegate) }
 
   init {
@@ -372,8 +375,8 @@ class DWebViewEngine(
   override fun setFrame(frame: CValue<CGRect>) {
     super.setFrame(frame)
     scrollView.contentInset = cValue { UIEdgeInsetsZero };
-    if (!UIEdgeInsetsEqualToEdgeInsets(scrollView.adjustedContentInset,
-        cValue { UIEdgeInsetsZero })
+    if (!UIEdgeInsetsEqualToEdgeInsets(
+        scrollView.adjustedContentInset, cValue { UIEdgeInsetsZero })
     ) {
       val insetToAdjust = scrollView.adjustedContentInset;
       scrollView.contentInset =
@@ -411,6 +414,11 @@ class DWebViewEngine(
     return deferred
   }
 
+  /**
+   * 因为函数倒挂给 WKWebView，所以存在内存问题，这里强制存储回调，避免被 kotlin 回收。
+   */
+  private val completionHandlers = SafeHashSet<CompletionHandler>()
+
   suspend fun <T> awaitAsyncJavaScript(
     functionBody: String,
     arguments: Map<Any?, *>? = null,
@@ -419,7 +427,7 @@ class DWebViewEngine(
     afterEval: (suspend () -> Unit)? = null,
   ): T {
     val deferred = CompletableDeferred<T>()
-    callAsyncJavaScript(functionBody, arguments, inFrame, inContentWorld) { result, error ->
+    val ch: CompletionHandler = { result, error ->
       if (error == null) {
         deferred.complete(result as T)
       } else {
@@ -437,9 +445,19 @@ class DWebViewEngine(
         )
       }
     }
+    callAsyncJavaScript(
+      functionBody = functionBody,
+      arguments = arguments,
+      inFrame = inFrame,
+      inContentWorld = inContentWorld,
+      completionHandler = ch,
+    )
     afterEval?.invoke()
 
-    return deferred.await()
+    completionHandlers.add(ch)
+    return deferred.await().also {
+      completionHandlers.remove(ch)
+    }
   }
 
   /**

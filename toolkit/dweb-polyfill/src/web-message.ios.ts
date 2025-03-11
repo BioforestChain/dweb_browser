@@ -1,3 +1,4 @@
+import { str_to_hex_binary } from "@gaubee/util/encoding";
 import "./ios.type.ts";
 const ALL_PORT = new Map();
 let portIdAcc = 1;
@@ -72,4 +73,5 @@ Object.assign(globalThis, {
   nativeStart,
   nativeWindowPostMessage,
   nativeClose,
+  str_to_hex_binary,
 });

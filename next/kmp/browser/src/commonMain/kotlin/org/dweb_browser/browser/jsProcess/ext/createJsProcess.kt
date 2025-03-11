@@ -3,7 +3,6 @@ package org.dweb_browser.browser.jsProcess.ext
 import io.ktor.http.URLBuilder
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.launch
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.browser.jmm.debugJsMM
 import org.dweb_browser.browser.jsProcess.CreateProcessReturn
@@ -38,6 +37,7 @@ suspend fun MicroModule.Runtime.createJsProcess(
     locale = microModule.manifest,
     remote = microModule.manifest,
     autoStart = true,
+    startReason = "create-fetch-ipc"
   )
   codeIpc.onClosed {
     codeIpc.launchJobs += codeIpc.scope.launch(start = CoroutineStart.UNDISPATCHED) { fetchIpc.close() }
@@ -94,6 +94,7 @@ class JsProcess(
       locale = remoteMM,
       // 不自动开始，等到web-worker中它自己去握手
       autoStart = false,
+      startReason = "create-ipc-endpoint",
     )
   }
 

@@ -27,6 +27,7 @@
   "workspace": [
     "./toolkit/dweb-core",
     "./toolkit/dweb-helper",
+    "./toolkit/dweb-polyfill",
     "./toolkit/plaoc/server",
     "./toolkit/plaoc/plugins",
     "./toolkit/plaoc/cli",

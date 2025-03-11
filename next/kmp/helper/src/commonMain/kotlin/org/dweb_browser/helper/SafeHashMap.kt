@@ -10,9 +10,12 @@ public class SafeHashMap<K, V>(public val origin: MutableMap<K, V> = mutableMapO
     synchronized(lock) { origin.block() }
 
   override val size: Int get() = sync { size }
-  override val entries: MutableSet<MutableMap.MutableEntry<K, V>> get() = sync { entries.toMutableSet() }
-  override val keys: MutableSet<K> get() = sync { keys.toMutableSet() }
-  override val values: MutableSet<V> get() = sync { values.toMutableSet() }
+  override val entries: MutableSet<MutableMap.MutableEntry<K, V>>
+    get() = sync {
+      entries.toSet().toMutableSet()
+    }
+  override val keys: MutableSet<K> get() = sync { keys.toSet().toMutableSet() }
+  override val values: MutableSet<V> get() = sync { values.toSet().toMutableSet() }
   override fun clear(): Unit = sync { clear() }
 
   override fun isEmpty(): Boolean = sync { isEmpty() }

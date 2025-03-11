@@ -8,7 +8,6 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.encodeToByteArray
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import org.dweb_browser.core.help.types.DWEB_PROTOCOL
@@ -59,10 +58,20 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
         if (toMM is NativeMicroModule.NativeRuntime) {
           fromMM.debugMM("NMM/connectAdapter", "fromMM: ${fromMM.mmid} => toMM: ${toMM.mmid}")
           val channel = NativeMessageChannel(kotlinIpcPool.scope, fromMM.id, toMM.id)
-          val fromNativeIpc =
-            kotlinIpcPool.createIpc(channel.port1, 0, fromMM.manifest, toMM.microModule.manifest)
-          val toNativeIpc =
-            kotlinIpcPool.createIpc(channel.port2, 0, toMM.microModule.manifest, fromMM.manifest)
+          val fromNativeIpc = kotlinIpcPool.createIpc(
+            endpoint = channel.port1,
+            pid = 0,
+            locale = fromMM.manifest,
+            remote = toMM.microModule.manifest,
+            startReason = "NMM-connectAdapter"
+          )
+          val toNativeIpc = kotlinIpcPool.createIpc(
+            endpoint = channel.port2,
+            pid = 0,
+            locale = toMM.microModule.manifest,
+            remote = fromMM.manifest,
+            startReason = "NMM-connectAdapter"
+          )
           // fromMM.beConnect(fromNativeIpc, reason) // 通知发起连接者作为Client
           toMM.beConnect(toNativeIpc, reason) // 通知接收者作为Server
           fromNativeIpc

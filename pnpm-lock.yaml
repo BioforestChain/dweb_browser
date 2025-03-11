@@ -163,7 +163,7 @@ importers:
     dependencies:
       '@dweb-browser/polyfill':
         specifier: workspace:^
-        version: link:../@dweb-browser__polyfill
+        version: link:../../toolkit/dweb-polyfill
 
   npm/@plaoc__plugins:
     dependencies:
@@ -178,7 +178,7 @@ importers:
         version: link:../@dweb-browser__js-process
       '@dweb-browser/polyfill':
         specifier: workspace:^
-        version: link:../@dweb-browser__polyfill
+        version: link:../../toolkit/dweb-polyfill
       cbor-x:
         specifier: ^1.5.9
         version: 1.6.0
@@ -214,7 +214,7 @@ importers:
         version: link:../../npm/@dweb-browser__helper
       '@dweb-browser/polyfill':
         specifier: workspace:~
-        version: link:../../npm/@dweb-browser__polyfill
+        version: link:../dweb-polyfill
       '@mdi/font':
         specifier: 7.0.96
         version: 7.0.96
@@ -296,6 +296,12 @@ importers:
         version: 2.0.29(typescript@5.5.4)
 
   toolkit/dweb-offscreen-web-canvas-assets: {}
+
+  toolkit/dweb-polyfill:
+    dependencies:
+      '@gaubee/util':
+        specifier: ^0.25.1
+        version: 0.25.1
 
   toolkit/dweb-profile:
     dependencies:
@@ -649,6 +655,9 @@ packages:
 
   '@fontsource/fira-mono@4.5.10':
     resolution: {integrity: sha512-bxUnRP8xptGRo8YXeY073DSpfK74XpSb0ZyRNpHV9WvLnJ7TwPOjZll8hTMin7zLC6iOp59pDZ8EQDj1gzgAQQ==}
+
+  '@gaubee/util@0.25.1':
+    resolution: {integrity: sha512-pcWPtIeqfSgB5A2DyC9g1Kh9ScAFq0Mt0saiZJtKeG2oJDsw5UOW3sG6UYDGCfQQcN3LNaqnxfbiGqA3lKEXFA==}
 
   '@humanwhocodes/config-array@0.11.14':
     resolution: {integrity: sha512-3T8LkOmg45BV5FICb15QQMsyUSWrQ8AygVfC7ZG32zOalnqrilm018ZVCw0eapXux8FtA33q8PSRSstjee3jSg==}
@@ -1371,6 +1380,7 @@ packages:
   eslint@8.57.0:
     resolution: {integrity: sha512-dZ6+mexnaTIbSBZWgou51U6OmzIhYM2VcNdtiTtI7qPNZm35Akpr0f6vtw3w1Kmn5PYo+tZVfh13WrhpS6oLqQ==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
+    deprecated: This version is no longer supported. Please see https://eslint.org/version-support for other options.
     hasBin: true
 
   esm-env@1.0.0:
@@ -2692,6 +2702,10 @@ snapshots:
   '@eslint/js@8.57.0': {}
 
   '@fontsource/fira-mono@4.5.10': {}
+
+  '@gaubee/util@0.25.1':
+    dependencies:
+      tslib: 2.7.0
 
   '@humanwhocodes/config-array@0.11.14':
     dependencies:

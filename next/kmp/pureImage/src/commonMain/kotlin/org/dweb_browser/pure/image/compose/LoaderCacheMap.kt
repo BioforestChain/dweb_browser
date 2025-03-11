@@ -25,14 +25,14 @@ class LoaderCacheMap<T : Any>(scope: CoroutineScope, cacheSize: Int = 10) {
           return@launch
         }
         val willRemoves = mutableListOf<MutableMap.MutableEntry<String, CacheItem<T>>>()
-        for (item in map) {
-          item.value.hot -= 5f
-          if (item.value.hot <= 0) {
-            willRemoves.add(item)
-          }
-        }
-        willRemoves.sortBy { it.value.hot }
         map.sync {
+          for (item in map) {
+            item.value.hot -= 5f
+            if (item.value.hot <= 0) {
+              willRemoves.add(item)
+            }
+          }
+          willRemoves.sortBy { it.value.hot }
           for ((key) in willRemoves) {
             this.remove(key)
             if (this.size <= cacheSize) {
@@ -44,11 +44,10 @@ class LoaderCacheMap<T : Any>(scope: CoroutineScope, cacheSize: Int = 10) {
     }
   }
 
-  fun get(task: LoaderTask): T? = map.sync {
+  fun get(task: LoaderTask): T? =
     map[task.key]?.result
-  }
 
-  fun save(cache: CacheItem<T>) = map.sync {
+  fun save(cache: CacheItem<T>) {
     map[cache.key] = cache
   }
 

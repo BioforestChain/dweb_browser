@@ -185,12 +185,14 @@ class Ipc internal constructor(
   suspend fun start(await: Boolean = true, reason: String = "") {
     if (await) {
       withScope(scope) {
+        debugIpc.verbose("start-begin", reason)
         endpoint.start(true)
         startOnce()
         awaitOpen("from-start $reason")
       }
     } else {
       scope.launch {
+        debugIpc.verbose("start-begin", reason)
         endpoint.start(true)
         startOnce()
       }

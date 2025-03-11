@@ -31,7 +31,7 @@ class DwebVCData {
 
     class func startUpNMMs(_ app: UIApplication) {
         #if DEBUG
-            let debugMode = true
+            let debugMode = true//,":verbose:/.+/"
         #else
             let debugMode = false
         #endif

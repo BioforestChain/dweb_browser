@@ -3,4 +3,5 @@ packages:
   - "toolkit/dweb-offscreen-web-canvas-assets"
   - "toolkit/dweb-desk-assets"
   - "toolkit/dweb-profile"
+  - "toolkit/dweb-polyfill"
   - "toolkit/plaoc/examples/*"

@@ -8,6 +8,7 @@ import kotlinx.serialization.json.Json
 import org.dweb_browser.core.ipc.helper.DWebMessage
 import org.dweb_browser.core.ipc.helper.IWebMessagePort
 import org.dweb_browser.dwebview.DWebView
+import org.dweb_browser.helper.hexString
 import org.dweb_browser.helper.launchWithMain
 import org.dweb_browser.helper.withMainContext
 import platform.Foundation.NSNumber
@@ -24,9 +25,7 @@ class DWebMessagePort(val portId: Int, private val webview: DWebView, parentScop
     val channel = Channel<DWebMessage>(capacity = Channel.UNLIMITED)
     webview.lifecycleScope.launchWithMain {
       webview.engine.evalAsyncJavascript<Unit>(
-        "nativeStart($portId)",
-        null,
-        DWebViewWebMessage.webMessagePortContentWorld
+        "nativeStart($portId)", null, DWebViewWebMessage.webMessagePortContentWorld
       ).await()
     }
     channel
@@ -63,9 +62,9 @@ class DWebMessagePort(val portId: Int, private val webview: DWebView, parentScop
       }.joinToString(",")
       if (event is DWebMessage.DWebMessageBytes) {
         webview.engine.evalAsyncJavascript<Unit>(
-          "nativePortPostMessage($portId, ${
-            Json.encodeToString(event.text)
-          }, [$ports])", null, DWebViewWebMessage.webMessagePortContentWorld
+          "nativePortPostMessage($portId, str_to_hex_binary(\"${
+            event.binary.hexString
+          }\"), [$ports])", null, DWebViewWebMessage.webMessagePortContentWorld
         ).await()
       } else if (event is DWebMessage.DWebMessageString) {
         webview.engine.evalAsyncJavascript<Unit>(

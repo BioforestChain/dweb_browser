@@ -10,7 +10,7 @@ import org.dweb_browser.core.help.types.CommonAppManifest
  */
 @Serializable
 @SerialName(IPC_MESSAGE_TYPE_FORK)
-class IpcFork(
+data class IpcFork(
   val pid: Int,
   val autoStart: Boolean,
   val startReason: String? = null,
