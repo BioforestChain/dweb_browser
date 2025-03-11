@@ -4,7 +4,6 @@ import kotlinx.cinterop.BetaInteropApi
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.core.ipc.helper.DWebMessage
 import org.dweb_browser.core.ipc.helper.IWebMessagePort
@@ -58,21 +57,17 @@ class DWebMessagePort(val portId: Int, private val webview: DWebView, parentScop
 
   override suspend fun postMessage(event: DWebMessage) {
     withMainContext {
+      val ports = event.ports.map {
+        require(it is DWebMessagePort)
+        it.portId
+      }.joinToString(",")
       if (event is DWebMessage.DWebMessageBytes) {
-        val ports = event.ports.map {
-          require(it is DWebMessagePort)
-          it.portId
-        }.joinToString(",")
         webview.engine.evalAsyncJavascript<Unit>(
           "nativePortPostMessage($portId, ${
             Json.encodeToString(event.text)
           }, [$ports])", null, DWebViewWebMessage.webMessagePortContentWorld
         ).await()
       } else if (event is DWebMessage.DWebMessageString) {
-        val ports = event.ports.map {
-          require(it is DWebMessagePort)
-          it.portId
-        }.joinToString(",")
         webview.engine.evalAsyncJavascript<Unit>(
           "nativePortPostMessage($portId, ${
             Json.encodeToString(event.text)

@@ -9,6 +9,7 @@ export default defineConfig(() => {
           "websocket.ios": "./src/websocket.ios.ts",
           "favicon.ios": "./src/favicon.ios.ts",
           "navigation-hook.ios": "./src/navigation-hook.ios.ts",
+          "web-message.ios": "./src/web-message.ios.ts",
           "favicon.common": "./src/favicon.common.ts",
           "close-watcher.common": "./src/close-watcher/index.ts",
           "user-agent-data.common": "./src/user-agent-data.common.ts",

@@ -3,7 +3,7 @@
 // ./gradlew :platformIos:cinteropSync
 import { exec, runTasks } from "./util.ts";
 
-export const doGradleSyncTask = () => {
+export const doGradleSyncTask = (): Promise<number> => {
   return runTasks(doClean, doCinteropSync);
 };
 

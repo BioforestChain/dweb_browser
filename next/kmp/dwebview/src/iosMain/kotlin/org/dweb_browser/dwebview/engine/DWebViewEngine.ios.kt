@@ -16,7 +16,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.serialization.encodeToString
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.http.dwebHttpGatewayService
 import org.dweb_browser.core.http.dwebProxyService
@@ -290,7 +289,7 @@ class DWebViewEngine(
           name = "closeWatcher"
         )
       }
-      ifNoDefineUserScript(DWebViewWebMessage.WebMessagePortPrepareCode) {
+      ifNoDefineUserScript(DwebViewIosPolyfill.WebMessage) {
         addScriptMessageHandler(
           scriptMessageHandler = DWebViewWebMessage.WebMessagePortMessageHandler(),
           contentWorld = DWebViewWebMessage.webMessagePortContentWorld,
@@ -298,7 +297,7 @@ class DWebViewEngine(
         )
         addUserScript(
           WKUserScript(
-            source = DWebViewWebMessage.WebMessagePortPrepareCode,
+            source = DwebViewIosPolyfill.WebMessage,
             injectionTime = WKUserScriptInjectionTime.WKUserScriptInjectionTimeAtDocumentEnd,
             forMainFrameOnly = false,
             inContentWorld = DWebViewWebMessage.webMessagePortContentWorld

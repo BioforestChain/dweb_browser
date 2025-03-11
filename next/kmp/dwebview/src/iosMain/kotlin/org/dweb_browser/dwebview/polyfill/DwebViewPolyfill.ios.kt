@@ -12,6 +12,7 @@ object DwebViewIosPolyfill : DwebViewCommonPolyfill() {
       launch { CloseWatcher = readDwebviewPolyfill("close-watcher.common.js") }
       launch { UserAgentData = readDwebviewPolyfill("user-agent-data.common.js") }
       launch { NavigationHook = readDwebviewPolyfill("navigation-hook.ios.js") }
+      launch { WebMessage = readDwebviewPolyfill("web-message.ios.js") }
     }
   }
 
@@ -24,5 +25,7 @@ object DwebViewIosPolyfill : DwebViewCommonPolyfill() {
   lateinit var UserAgentData: String
     private set
   lateinit var NavigationHook: String
+    private set
+  lateinit var WebMessage: String
     private set
 }

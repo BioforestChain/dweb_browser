@@ -3,16 +3,16 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-import { walkSync } from "jsr:@std/fs";
 import { which } from "jsr:@david/which";
+import { walkSync } from "jsr:@std/fs";
 import { doArchiveItemTask } from "./archive.ts";
 import { doCreateXcItemTask } from "./create-xc.ts";
-import { __dirname, exec, runTasks, sourceCodeDir } from "./util.ts";
+import { __dirname, runTasks, sourceCodeDir } from "./util.ts";
 
-export const doBuildTask = async () => {
+export const doBuildTask = async (): Promise<number> => {
   // 使用xcodebuild 来判断是否是有 Xcode
   const xcodebuild = await which("xcodebuild");
-  if(!xcodebuild) {
+  if (!xcodebuild) {
     return 0;
   }
 
