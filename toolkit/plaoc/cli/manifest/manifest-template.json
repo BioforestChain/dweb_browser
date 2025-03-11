@@ -1,5 +1,5 @@
 {
-  "id": "game.dweb.waterbang.top.dweb",
+  "id": "plugins.example.com.dweb",
   "name": "vue3-game",
   "short_name": "game",
   "dweb_protocols": [],

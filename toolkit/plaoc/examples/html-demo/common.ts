@@ -64,7 +64,7 @@ const sayHi = (message = "今晚吃螃🦀️蟹吗？") => {
     message = data;
   }
   dwebServiceWorker
-    .fetch(`https://game.dweb.waterbang.top.dweb/say/hi?message=${message}&activate=true`)
+    .fetch(`https://plugins.example.com.dweb/say/hi?message=${message}&activate=true`)
     .then(async (res) => {
       const message = await res.text();
       console.log("收到回应消息=> ", message);
@@ -77,7 +77,7 @@ const sayHi = (message = "今晚吃螃🦀️蟹吗？") => {
 };
 
 const canOpenUrl = async () => {
-  const res = await dwebServiceWorker.has(`game.dweb.waterbang.top.dweb`);
+  const res = await dwebServiceWorker.has(`plugins.example.com.dweb`);
   sayHiMessage.innerText = `存在app吗=>${res}`;
 };
 

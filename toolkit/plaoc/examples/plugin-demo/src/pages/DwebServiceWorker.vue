@@ -26,7 +26,7 @@ const input = ref("这里写发送的消息");
 
 // 向desktop.dweb.waterbang.top.dweb 发送消息
 const sayHi = async () => {
-  const response = await dwebServiceWorker.fetch(`file://plaoc.html.demo.dweb/say/hi?message=${input.value}`, {
+  const response = await dwebServiceWorker.fetch(`file://app.example.com.dweb/say/hi?message=${input.value}`, {
     search: {
       哈哈哈: "xx",
     },

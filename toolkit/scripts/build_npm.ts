@@ -62,11 +62,12 @@ export const plaocServer = registryNpmBuilder({
       try {
         Deno.statSync(ctx.packageResolve("./dist"));
       } catch {
-        Deno.symlinkSync(ctx.npmResolve("./dist"), ctx.packageResolve("./dist"));
+        Deno.symlinkSync(ctx.npmResolve("./dist"), ctx.packageResolve("./dist"), { type: "junction" });
       }
     },
   }),
 });
+//
 
 export const plaocCli = registryNpmBuilder({
   packageDir: import.meta.resolve("../plaoc/cli/"),

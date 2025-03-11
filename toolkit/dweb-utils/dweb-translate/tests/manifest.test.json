@@ -1,10 +1,10 @@
 {
-  "id": "game.dweb.waterbang.top.dweb",
+  "id": "plugins.example.com.dweb",
   "name": "plaoc-plugins-examples",
   "short_name": "plugins",
   "dweb_protocols": [],
   "description": "这是一个实例应用，包含了dweb_plugins全部组件的实例。",
-  "logo": "https://docs.dweb-browser.org/logo.svg",
+  "logo": "data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PScwIDAgMTAyNCAxMDI0JyB2ZXJzaW9uPScxLjEnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2Zycgd2lkdGg9JzIwMCcgaGVpZ2h0PScyMDAnPjxwYXRoIGQ9J00wIDBoMTAyNHYxMDI0SDB6JyBmaWxsPScjRkZGRkZGJyBmaWxsLW9wYWNpdHk9Jy4wMSc+PC9wYXRoPjxwYXRoIGQ9J00yNjcuMzkyIDk3LjQwOGwyMDUuNjk2IDExOC43ODRWNDUzLjc2TDI2Ny4zOTIgNTcyLjQ4IDYxLjY5NiA0NTMuNzZWMjE2LjMybDIwNS42OTYtMTE4Ljg0OHonIGZpbGw9JyMwNDU0RjInIG9wYWNpdHk9Jy4zJz48L3BhdGg+PHBhdGggZD0nTTk1NS4yIDIxNi4xOTJsLTIwNS42OTYtMTE4Ljc4NC0yMDUuNjk2IDExOC43ODRWNDUzLjc2bDIwNS42OTYgMTE4Ljc4NCAyMDUuNjk2LTExOC43ODRWMjE2LjMyeiBtLTI0NC42MDggNDIzLjA0TDUwNC45NiA1MjAuNTEyIDI5OS4yIDYzOS4yMzJWODc2LjhsMjA1LjY5NiAxMTguNzg0IDIwNS43Ni0xMTguNzg0VjYzOS4yMzJ6JyBmaWxsPScjMDQ1NEYyJz48L3BhdGg+PC9zdmc+",
   "images": [
     "http://qiniu-waterbang.waterbang.top/bfm/cot-home_2058.webp",
     "http://qiniu-waterbang.waterbang.top/bfm/defi.png",
