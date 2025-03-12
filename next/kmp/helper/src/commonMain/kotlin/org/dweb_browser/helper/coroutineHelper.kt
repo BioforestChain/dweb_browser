@@ -38,7 +38,7 @@ public val globalIoScope: CoroutineScope
 
 public expect suspend inline fun <T> withMainContext(crossinline block: suspend () -> T): T
 public suspend inline fun <T> withMainContextCommon(crossinline block: suspend () -> T): T {
-  return withContext(Dispatchers.Main.immediate + mainAsyncExceptionHandler) { block() }
+  return withContext(mainAsyncExceptionHandler) { block() }
 }
 
 public suspend inline fun <T> withIoContext(crossinline block: suspend () -> T): T {
