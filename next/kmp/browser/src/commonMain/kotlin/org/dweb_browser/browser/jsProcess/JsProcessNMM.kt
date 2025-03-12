@@ -3,7 +3,6 @@ package org.dweb_browser.browser.jsProcess
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.fullPath
 import kotlinx.coroutines.async
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.jmm.JsMicroModule
@@ -25,6 +24,7 @@ import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.SafeHashMap
 import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.encodeURI
+import org.dweb_browser.helper.getDebugTags
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.resolvePath
 import org.dweb_browser.helper.toJsonElement
@@ -167,8 +167,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
           apis.createIpcEndpoint(processId, manifestJson, ids.first).globalId.also {
             debugMM("create-ipc-endpoint-success", "globalId=$it manifest=$manifestJson")
           }
-        },
-        "/create-ipc" bind PureMethod.GET by defineEmptyResponse {
+        }, "/create-ipc" bind PureMethod.GET by defineEmptyResponse {
           val processToken = request.query("token")
           val processId = tokenPidMap[processToken] ?: throw ResponseException(
             code = HttpStatusCode.NotFound,
@@ -179,12 +178,9 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
           val manifestJson = request.query("manifest")
           debugMM("/create-ipc") { "remoteGlobalId=$remoteGlobalId,manifestJson=$manifestJson" }
           apis.createJsIpc(
-            processId,
-            GlobalWebMessageEndpoint.get(remoteGlobalId).port,
-            manifestJson
+            processId, GlobalWebMessageEndpoint.get(remoteGlobalId).port, manifestJson
           ) {}
-        }
-      )
+        })
     }
 
     override suspend fun _shutdown() {
@@ -238,14 +234,25 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
           },
         )
       }
-
+      fun getJsDebugTags(): List<String> {
+        val allTags = getDebugTags()
+        // 如果有js特调，那么久返回特调的，否则和native共享同一套配置
+        val jsOnly = allTags.filter { it.startsWith(":js:") }
+        return when {
+          jsOnly.isEmpty() -> allTags
+          else -> jsOnly.map { tag -> tag.slice(":js:".length..<tag.length) }
+        }
+      }
       /// TODO env 允许远端传过来扩展
       val env = mutableMapOf<String, String>(
         // ...your envs
         // 这不是是它代码的请求路径，代码请求路径从 import.meta.url 中读取，这里是用来为开发者提供一个 baseURL 而已
         "host" to httpDwebServer.startResult.urlInfo.host,
-        // native环境是否启用调试
-        "debug" to debugJsProcess.isEnable.toString(),
+        // 按需开启输出
+        "debug" to when {
+          debugJsProcess.isEnable -> Json.encodeToString(getJsDebugTags())
+          else -> "[]"
+        },
         // jmm的版本信息
         "jsMicroModule" to "${JsMicroModule.VERSION}.${JsMicroModule.PATCH}",
         // web brands

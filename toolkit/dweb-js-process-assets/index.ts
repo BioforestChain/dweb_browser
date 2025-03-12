@@ -20,6 +20,7 @@ import type { MICRO_MODULE_CATEGORY } from "@dweb-browser/core/type/category.con
 import type { $PromiseMaybe } from "@dweb-browser/helper/$PromiseMaybe.ts";
 import { once } from "@dweb-browser/helper/decorator/$once.ts";
 import { mapHelper } from "@dweb-browser/helper/fun/mapHelper.ts";
+import { addDebugTags } from "@dweb-browser/helper/logger.ts";
 import type { $RunMainConfig } from "./main/index.ts";
 import { createFetchHandler, Ipc, WebMessageEndpoint } from "./worker/std-dweb-core.ts";
 
@@ -97,6 +98,20 @@ export class JsProcessMicroModule extends MicroModule {
       this.manifest,
       true
     );
+    const debug = meta.envStringOrNull("debug");
+    if (debug) {
+      let tags: string[] | undefined;
+      try {
+        if (debug.startsWith("[")) {
+          tags = JSON.parse(debug);
+        }
+        // deno-lint-ignore no-empty
+      } catch {}
+      if (tags === undefined) {
+        tags = debug.split(/[,\s]/);
+      }
+      addDebugTags(tags);
+    }
   }
   override manifest;
   readonly ipcPool;

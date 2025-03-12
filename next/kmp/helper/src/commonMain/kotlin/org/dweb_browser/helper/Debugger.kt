@@ -35,9 +35,10 @@ private data class DebugTags(
   val debugNames: Set<String>,
   val verboseRegexes: Set<Regex>,
   val verboseNames: Set<String>,
+  val origin: Iterable<String>,
 ) {
   companion object {
-    var singleton: DebugTags = DebugTags(setOf(), setOf(), setOf(), setOf())
+    var singleton: DebugTags = DebugTags(setOf(), setOf(), setOf(), setOf(), listOf())
       private set
 
     private val sync = SynchronizedObject()
@@ -90,7 +91,7 @@ private data class DebugTags(
         }
 
       }
-      singleton = DebugTags(debugRegexes, debugNames, verboseRegexes, verboseNames)
+      singleton = DebugTags(debugRegexes, debugNames, verboseRegexes, verboseNames, tags)
     }
 
     fun add(name: String) = synchronized(sync) {
@@ -124,6 +125,8 @@ private data class DebugTags(
 public fun addDebugTags(tags: Iterable<String>) {
   DebugTags.from(tags)
 }
+
+public fun getDebugTags(): List<String> = DebugTags.singleton.origin.toList()
 
 public class Debugger(public val scope: String) {
   init {
