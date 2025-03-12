@@ -20,7 +20,7 @@ struct DwebBrowserApp: App {
         ZStack(alignment: .center, content: {
             DwebFrameworkContentView()
                 .ignoresSafeArea(.all, edges: .all)
-                .persistentSystemOverlays(deskVCStore.navgationBarVisible)
+                .persistentSystemOverlays(deskVCStore.navigationBarVisible)
                 .environment(deskVCStore)
                 .onChange(of: deskVCStore.shouldEnableEdgeSwipe) { _, enable in
                     

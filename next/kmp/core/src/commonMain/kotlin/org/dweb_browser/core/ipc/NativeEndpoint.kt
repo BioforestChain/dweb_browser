@@ -3,6 +3,7 @@ package org.dweb_browser.core.ipc
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -97,7 +98,7 @@ class NativeEndpoint(
 ) : IpcEndpoint() {
   override fun toString() = "NativeEndpoint@$debugId"
 
-  override val scope = parentScope + SupervisorJob() + CoroutineName("$this")
+  override val scope = parentScope + SupervisorJob(parentScope.coroutineContext[Job]) + CoroutineName("$this")
 
   /**
    * 发送消息

@@ -4,6 +4,7 @@ import io.ktor.http.Url
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
@@ -69,10 +70,16 @@ class Ipc internal constructor(
     private val reqIdAcc = atomic(0)
   }
 
-  private val job = SupervisorJob()
-  val scope = endpoint.scope + job
-
   override fun toString() = "Ipc@$debugId"
+
+  private val job = SupervisorJob() // 使用独立的 SupervisorJob，基于 endpoint.onClosed 去做关闭关联
+  val scope = endpoint.scope + job + CoroutineName("$this")
+
+  init {
+    endpoint.onClosed {
+      tryClose(CancellationException("endpoint closed", it))
+    }
+  }
 
   /**
    * 这部分得放最前面，因为有些地方需要立刻使用 onClosed
@@ -445,11 +452,6 @@ class Ipc internal constructor(
   }
   //#endregion
 
-  init {
-    endpoint.onClosed {
-      tryClose(CancellationException("endpoint closed", it))
-    }
-  }
 }
 
 data class IpcRequestInit(

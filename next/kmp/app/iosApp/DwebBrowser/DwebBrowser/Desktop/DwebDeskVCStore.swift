@@ -23,10 +23,10 @@ class DwebVCData {
 
 @Observable class DwebDeskVCStore {
     var vcs = [DwebVCData]()
-    var navgationBarVisible: Visibility = .visible
+    var navigationBarVisible: Visibility = .visible
     var shouldEnableEdgeSwipe: Bool = false
     init() {
-        regiserDeskEvent()
+        registryDeskEvent()
     }
 
     class func startUpNMMs(_ app: UIApplication) {
@@ -38,7 +38,7 @@ class DwebVCData {
         Main_iosKt.startDwebBrowser(app: app, debugMode: debugMode, debugTags: ["/.+/"]) { Log("Main_iosKt.startDwebBrowser launch: \($1?.localizedDescription ?? "Success")") }
     }
 
-    private func regiserDeskEvent() {
+    private func registryDeskEvent() {
         Main_iosKt.dwebViewController.setNavigationBarHook(hook: navigationBarHok(visible:))
         Main_iosKt.dwebViewController.setAddHook(hook: addHook(vc:prop:))
         Main_iosKt.dwebViewController.setUpdateHook(hook: updateHook(prop:))
@@ -51,7 +51,7 @@ class DwebVCData {
     }
     
     private func navigationBarHok(visible: KotlinBoolean) {
-        navgationBarVisible = visible.boolValue ? .visible : .hidden
+        navigationBarVisible = visible.boolValue ? .visible : .hidden
     }
 
     private func addHook(vc: UIViewController, prop: HelperComposeDwebUIViewControllerProperty) {
