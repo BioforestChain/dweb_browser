@@ -3,9 +3,8 @@ package org.dweb_browser.pure.image.compose
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.compositionLocalOf
-import kotlinx.coroutines.delay
+import androidx.compose.runtime.remember
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.compose.toCssRgba
@@ -22,7 +21,6 @@ import org.dweb_browser.pure.http.fetch
 import resvg_render.FitMode
 import resvg_render.RenderOptions
 import resvg_render.svgToPng
-import kotlin.math.min
 
 val LocalResvgImageLoader = compositionLocalOf { ResvgImageLoader.defaultInstance }
 val debugResvg = Debugger("resvg")
@@ -37,31 +35,28 @@ class ResvgImageLoader : PureImageLoader {
 
   @Composable
   override fun Load(task: LoaderTask): ImageLoadResult {
-    return load(task).collectAsState().value
+    val loader = remember(task.key) {
+      startLoad(task)
+    }
+    return loader.result.collectAsState().value
   }
 
-  private val caches = LoaderCacheMap<MutableStateFlow<ImageLoadResult>>(scope)
+  private val sharedLoaderResults = LoaderCacheMap<MutableStateFlow<ImageLoadResult>>(scope)
 
   @Composable
   fun getLoadCache(task: LoaderTask): ImageLoadResult? {
-    return caches.get(task)?.collectAsState()?.value
+    return sharedLoaderResults.get(task)?.collectAsState()?.value
   }
 
-  fun load(
-    task: LoaderTask,
-  ): StateFlow<ImageLoadResult> {
-    val cache = caches.get(task)
-    return cache ?: run {
-      val imageResultState = MutableStateFlow(ImageLoadResult.Setup)
-      val cacheItem = CacheItem(task, imageResultState)
-      caches.save(cacheItem)
+  inner class TaskLoader(val task: LoaderTask, val result: MutableStateFlow<ImageLoadResult>) {
+    init {
       scope.launch {
         runCatching {
-          imageResultState.emit(ImageLoadResult.Loading)
+          result.emit(ImageLoadResult.Loading)
           val pureResponse =
             task.hook?.invoke(FetchHookContext(PureServerRequest(task.url, PureMethod.GET)))
               ?: client.fetch(task.url);
-          imageResultState.emit(ImageLoadResult.Loading)
+          result.emit(ImageLoadResult.Loading)
 
           val svgData = when (val currentColor = task.currentColor) {
             null -> pureResponse.binary()
@@ -83,28 +78,39 @@ class ResvgImageLoader : PureImageLoader {
             )
           )
           pngData.toImageBitmap()?.let {
-            imageResultState.emit(ImageLoadResult.success(it))
+            result.emit(ImageLoadResult.success(it))
           } ?: run {
-            imageResultState.emit(ImageLoadResult.error(Exception("image decode fail")))
+            result.emit(ImageLoadResult.error(Exception("image decode fail")))
           }
         }.getOrElse {
           debugResvg("load", "fail", it)
           val failTimes = PureImageLoader.urlErrorCount.getOrPut(task.url) { 0 } + 1
           PureImageLoader.urlErrorCount[task.url] = failTimes
 
-          imageResultState.emit(ImageLoadResult.error(it).also { res ->
-            launch {
-              /// 失败后，定时删除缓存。失败的次数越多，定时越久
-              delay(min(failTimes * failTimes * 1000L, 30000L)) // 1 4 9 16 25 30 30 30
-              if (cacheItem.result.value == res) {
-                caches.delete(task, cacheItem)
-              }
-            }
-          })
+          result.emit(ImageLoadResult.error(it))
         }
       }
 
-      imageResultState
+    }
+  }
+
+  fun startLoad(task: LoaderTask): TaskLoader {
+    return TaskLoader(
+      task,
+      sharedLoaderResults.get(task) ?: MutableStateFlow(ImageLoadResult.Setup)
+    ).also { loader ->
+      val cacheItem = CacheItem(task, loader.result)
+      sharedLoaderResults.save(cacheItem)
+      scope.launch {
+        loader.result.collect { result ->
+          if (result.isError) {
+            /// 失败后，移除执行缓存。但是这里的result仍然不会变
+            if (cacheItem.result.value == loader.result) {
+              sharedLoaderResults.delete(task, cacheItem)
+            }
+          }
+        }
+      }
     }
   }
 }

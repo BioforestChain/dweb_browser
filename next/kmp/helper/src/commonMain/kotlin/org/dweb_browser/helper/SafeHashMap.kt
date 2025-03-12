@@ -39,6 +39,8 @@ public class SafeHashMap<K, V>(public val origin: MutableMap<K, V> = mutableMapO
   public inline fun getOrElse(key: K, defaultValue: () -> V): V =
     sync { getOrElse(key, defaultValue) }
 
+  public fun toList(): List<Pair<K, V>> = sync { toList() }
+
   override fun toString(): String {
     return origin.toString()
   }

@@ -3,11 +3,11 @@ package org.dweb_browser.pure.image.compose
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.remember
 import coil3.ComponentRegistry
 import coil3.ImageLoader
 import coil3.PlatformContext
 import coil3.SingletonImageLoader
-import coil3.annotation.ExperimentalCoilApi
 import coil3.compose.LocalPlatformContext
 import coil3.disk.DiskCache
 import coil3.memory.MemoryCache
@@ -29,9 +29,7 @@ import io.ktor.util.date.GMTDate
 import io.ktor.util.flattenEntries
 import io.ktor.utils.io.InternalAPI
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.buildUrlString
@@ -46,7 +44,6 @@ import org.dweb_browser.pure.http.ktor.KtorPureClient
 import org.dweb_browser.pure.http.ktor.toPureBody
 import org.dweb_browser.pure.image.removeOriginAndAcceptEncoding
 import kotlin.coroutines.CoroutineContext
-import kotlin.math.min
 import kotlin.time.measureTimedValue
 
 val debugCoilImageLoader = Debugger("coilImageLoader")
@@ -66,32 +63,34 @@ class CoilImageLoader(private val diskCache: DiskCache? = null) : PureImageLoade
   }
 
   private val scope = globalDefaultScope
-  private val caches = LoaderCacheMap<MutableStateFlow<ImageLoadResult>>(scope)
+  private val sharedLoaderResults = LoaderCacheMap<MutableStateFlow<ImageLoadResult>>(scope)
 
   @Composable
   override fun Load(
     task: LoaderTask,
   ): ImageLoadResult {
     val platformContext = LocalPlatformContext.current
-    return load(platformContext, loader(platformContext), task).collectAsState().value
+    val imageLoader = this@CoilImageLoader.ImageLoader(platformContext)
+    val taskLoader = remember(task.key, imageLoader, platformContext) {
+      startLoad(platformContext, imageLoader, task)
+    }
+    return taskLoader.result.collectAsState().value
   }
 
   @Composable
-  fun loader(platformContext: PlatformContext = LocalPlatformContext.current): ImageLoader {
-    return getLoader(platformContext)
+  fun ImageLoader(platformContext: PlatformContext = LocalPlatformContext.current): ImageLoader {
+    return remember(platformContext) { getLoader(platformContext) }
   }
 
-  @OptIn(ExperimentalCoilApi::class)
-  fun load(
-    context: PlatformContext,
-    loader: ImageLoader,
-    task: LoaderTask,
-  ): StateFlow<ImageLoadResult> {
-    val cache = caches.get(task)
-    return cache ?: run {
-      val imageResultState = MutableStateFlow(ImageLoadResult.Setup)
-      val cacheItem = CacheItem(task, imageResultState)
-      caches.save(cacheItem)
+  inner class TaskLoader(
+    val task: LoaderTask,
+    val context: PlatformContext,
+    val loader: ImageLoader,
+    val result: MutableStateFlow<ImageLoadResult>,
+  ) {
+    init {
+      val imageResultState = this.result
+
       scope.launch {
         val requestHref = task.url.replace("{WIDTH}", task.containerWidth.toString())
           .replace("{HEIGHT}", task.containerHeight.toString())
@@ -123,13 +122,6 @@ class CoilImageLoader(private val diskCache: DiskCache? = null) : PureImageLoade
           is ErrorResult -> ImageLoadResult.error(result.throwable).also { res ->
             val failTimes = PureImageLoader.urlErrorCount.getOrPut(task.url) { 0 } + 1
             PureImageLoader.urlErrorCount[task.url] = failTimes
-            launch {
-              /// 失败后，定时删除缓存。失败的次数越多，定时越久
-              delay(min(failTimes * failTimes * 1000L, 30000L)) // 1 4 9 16 25 30 30 30
-              if (cacheItem.result.value == res) {
-                caches.delete(task, cacheItem)
-              }
-            }
           }
 
           is SuccessResult -> {
@@ -143,6 +135,33 @@ class CoilImageLoader(private val diskCache: DiskCache? = null) : PureImageLoade
         }
       }
       imageResultState
+    }
+  }
+
+
+  fun startLoad(
+    context: PlatformContext,
+    loader: ImageLoader,
+    task: LoaderTask,
+  ): TaskLoader {
+    return TaskLoader(
+      task,
+      context,
+      loader,
+      sharedLoaderResults.get(task) ?: MutableStateFlow(ImageLoadResult.Setup)
+    ).also { loader ->
+      val cacheItem = CacheItem(task, loader.result)
+      sharedLoaderResults.save(cacheItem)
+      ResvgImageLoader.Companion.scope.launch {
+        loader.result.collect { result ->
+          if (result.isError) {
+            /// 失败后，移除执行缓存。但是这里的result仍然不会变
+            if (cacheItem.result.value == loader.result) {
+              sharedLoaderResults.delete(task, cacheItem)
+            }
+          }
+        }
+      }
     }
   }
 
@@ -215,10 +234,10 @@ class CoilImageLoader(private val diskCache: DiskCache? = null) : PureImageLoade
           addPlatformComponents()
         }.build()
       ).memoryCache {
-          MemoryCache.Builder()
-            // Set the max size to 25% of the app's available memory.
-            .maxSizePercent(platformContext, percent = 0.25).build()
-        }.diskCache(diskCache)
+        MemoryCache.Builder()
+          // Set the max size to 25% of the app's available memory.
+          .maxSizePercent(platformContext, percent = 0.25).build()
+      }.diskCache(diskCache)
         // Show a short crossfade when loading images asynchronously.
         .crossfade(true).build()
     }

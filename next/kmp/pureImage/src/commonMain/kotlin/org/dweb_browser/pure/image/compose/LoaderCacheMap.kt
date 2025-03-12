@@ -14,7 +14,7 @@ data class CacheItem<T>(
   internal var hot = 30f
 }
 
-class LoaderCacheMap<T : Any>(scope: CoroutineScope, var cacheSize: Int = 10) {
+class LoaderCacheMap<T : Any>(scope: CoroutineScope, var cacheSize: Int = 30) {
   private val map = SafeHashMap<String, CacheItem<T>>()
   private val lruList = SafeLinkList<CacheItem<T>>()
 

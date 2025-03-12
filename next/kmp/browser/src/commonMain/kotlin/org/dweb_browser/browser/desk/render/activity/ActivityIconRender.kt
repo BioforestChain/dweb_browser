@@ -41,7 +41,7 @@ fun ActivityItem.ImageIcon.Render(
     coilImageRequest?.also { imageRequest ->
       val painter = rememberAsyncImagePainter(
         model = imageRequest,
-        imageLoader = LocalCoilImageLoader.current.loader()
+        imageLoader = LocalCoilImageLoader.current.ImageLoader()
       )
       Image(painter = painter, contentDescription = null, modifier = modifier)
     } ?: Image(bitmap = it, contentDescription = null, modifier = modifier)
