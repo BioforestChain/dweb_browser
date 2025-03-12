@@ -1,9 +1,9 @@
 package org.dweb_browser.pure.image.compose
 
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import org.dweb_browser.helper.SafeHashMap
+import org.dweb_browser.helper.SafeLinkList
+import org.dweb_browser.helper.trueAlso
 
 data class CacheItem<T>(
   val task: LoaderTask,
@@ -14,48 +14,35 @@ data class CacheItem<T>(
   internal var hot = 30f
 }
 
-class LoaderCacheMap<T : Any>(scope: CoroutineScope, cacheSize: Int = 10) {
+class LoaderCacheMap<T : Any>(scope: CoroutineScope, var cacheSize: Int = 10) {
   private val map = SafeHashMap<String, CacheItem<T>>()
-
-  init {
-    scope.launch {
-      while (true) {
-        delay(5000)
-        if (map.size <= cacheSize) {
-          return@launch
-        }
-        val willRemoves = mutableListOf<MutableMap.MutableEntry<String, CacheItem<T>>>()
-        map.sync {
-          for (item in map) {
-            item.value.hot -= 5f
-            if (item.value.hot <= 0) {
-              willRemoves.add(item)
-            }
-          }
-          willRemoves.sortBy { it.value.hot }
-          for ((key) in willRemoves) {
-            this.remove(key)
-            if (this.size <= cacheSize) {
-              break
-            }
-          }
-        }
-      }
-    }
-  }
+  private val lruList = SafeLinkList<CacheItem<T>>()
 
   fun get(task: LoaderTask): T? =
-    map[task.key]?.result
+    map[task.key]?.let {
+      lruList.remove(it)
+      lruList.add(0, it)
+      it.result
+    }
 
   fun save(cache: CacheItem<T>) {
     map[cache.key] = cache
+    lruList.add(0, cache)
+    while (map.size > cacheSize) {
+      val willRemove = lruList.removeLast()
+      map.remove(willRemove.key)
+    }
   }
 
   fun delete(task: LoaderTask, result: CacheItem<T>? = null) {
     if (result == null) {
-      map.remove(task.key)
+      map.remove(task.key)?.also {
+        lruList.remove(it)
+      }
     } else {
-      map.remove(task.key, result)
+      map.remove(task.key, result).trueAlso {
+        lruList.remove(result)
+      }
     }
   }
 }
