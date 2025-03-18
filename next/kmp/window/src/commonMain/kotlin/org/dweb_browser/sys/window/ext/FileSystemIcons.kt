@@ -13,13 +13,13 @@ import dweb_browser_kmp.window.generated.resources.Res
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import kotlinx.serialization.json.Json
-import mix_compression.zstdDecompress
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.helper.SafeHashMap
 import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.base64String
 import org.dweb_browser.helper.utf8Binary
 import org.dweb_browser.helper.utf8String
+import org.dweb_browser.mix_compression.zstdDecompress
 import org.dweb_browser.pure.image.compose.ImageLoadResult
 import org.dweb_browser.pure.image.compose.PureImageLoader
 import org.dweb_browser.pure.image.compose.SmartLoad

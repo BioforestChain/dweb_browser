@@ -14,7 +14,7 @@ import org.dweb_browser.dwebview.debugDWebView
 import org.dweb_browser.helper.eprintln
 import org.dweb_browser.helper.globalIoScope
 import org.dweb_browser.pure.http.onPortChange
-import reverse_proxy.VoidCallback
+import org.dweb_browser.reverse_proxy.VoidCallback
 
 
 actual class DwebProxyService actual constructor() {
@@ -53,13 +53,13 @@ actual class DwebProxyService actual constructor() {
                 }
                 if (backendServerPort != newPort) {
                   backendServerPort = newPort
-                  reverse_proxy.forward(newPort)
+                  org.dweb_browser.reverse_proxy.forward(newPort)
                   debugDWebView("DwebViewProxy/onPortChange", "ReverseProxySetForward done")
                 }
               }
             }
           }
-          reverse_proxy.start(backendServerPort, proxyReadyCallback)
+          org.dweb_browser.reverse_proxy.start(backendServerPort, proxyReadyCallback)
           debugDWebView("reverse_proxy", "stopped")
         } catch (e: Throwable) {
           debugDWebView("reverse_proxy", "error", e)

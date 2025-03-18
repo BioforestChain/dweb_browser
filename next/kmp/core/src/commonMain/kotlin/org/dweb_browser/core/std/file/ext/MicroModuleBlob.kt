@@ -32,7 +32,7 @@ private suspend fun MicroModule.Runtime.createBlobFromUrl(
   val data = response.binary()
   val mime = response.headers.get("Content-Type")
     ?.let { ct -> ContentType.parse(ct).mime }
-  val ext = url.pathSegments.lastOrNull()?.run {
+  val ext = url.segments.lastOrNull()?.run {
     when (val index = lastIndexOf('.')) {
       -1 -> null
       else -> substring(index + 1, length)
