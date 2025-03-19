@@ -1,8 +1,8 @@
 package org.dweb_browser.sys.keychain
 
-import keychainstore.keychainGetItem
-import keychainstore.keychainItemKeys
-import keychainstore.keychainSetItem
+import org.dweb_browser.keychainstore.keychainGetItem
+import org.dweb_browser.keychainstore.keychainItemKeys
+import org.dweb_browser.keychainstore.keychainSetItem
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.decodeFromByteArray
