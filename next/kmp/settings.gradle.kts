@@ -20,12 +20,12 @@ pluginManagement {
       }
     }
     dependencies {
-      classpath("com.android.tools:r8:8.8.27") // R8 是 Android 构建工具链的一部分，用于替代 ProGuard ： 代码缩减/类重命名和优化/性能优化
+      classpath("com.android.tools:r8:8.9.27") // R8 是 Android 构建工具链的一部分，用于替代 ProGuard ： 代码缩减/类重命名和优化/性能优化
     }
   }
 }
 plugins {
-  id("org.gradle.toolchains.foojay-resolver-convention") version ("0.8.0")
+  id("org.gradle.toolchains.foojay-resolver-convention") version ("0.9.0")
 }
 
 @Suppress("UnstableApiUsage")
