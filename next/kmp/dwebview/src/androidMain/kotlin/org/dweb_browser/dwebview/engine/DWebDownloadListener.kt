@@ -37,7 +37,7 @@ class DWebDownloadListener(val engine: DWebViewEngine) : DownloadListener {
   ) {
     val suggestedFilename = contentDisposition?.substringAfter("filename=")?.ifEmpty { null }
     // 否则使用链接的最后一部分作为文件名
-      ?: Url(url).pathSegments.lastOrNull()
+      ?: Url(url).segments.lastOrNull()
       // 否则使用随机文件名
       ?: (randomUUID() + (ContentType.parse(mimetype).fileExtensions().firstOrNull() ?: ""))
 

@@ -10,7 +10,7 @@ jvmTarget = "17"
 javaVersion = "VERSION_17" # JavaVersion.VERSION_17
 ksp = "2.1.20-Beta2-1.0.30"
 
-agp = "8.8.1"
+agp = "8.9.0"
 androidx-baselineprofile-version = "1.3.3"
 kotlin-version = "2.1.20-Beta2"
 kotlin-serialization-gradle = "2.1.20-Beta2"
@@ -20,14 +20,14 @@ androidx-test-runner = "1.6.2"
 androidx-compose-ui-test = "1.7.8"
 androidx-compose-ui = "1.6.7"
 androidx-lifecycle = "2.8.7"
-compose-bom = "2025.02.00"
+compose-bom = "2025.03.00"
 
-androidx-activity = "1.10.0"
+androidx-activity = "1.10.1"
 androidx-appcompat = "1.7.0"
 androidx-core-ktx = "1.15.0"
 androidx-core-splashscreen = "1.1.0-rc01"
 androidx-annotation = "1.9.1"
-androidx-navigation-ui-kotlin = "2.8.7"
+androidx-navigation-ui-kotlin = "2.8.9"
 androidx-gridlayout = "1.0.0"
 androidx-profile-installer = "1.4.1"
 androidx-biometric = "1.4.0-alpha02"
@@ -35,7 +35,7 @@ androidx-biometric = "1.4.0-alpha02"
 ktor-version = "3.1.0"
 
 kotlinx-coroutines-version = "1.10.1"
-kotlinx-datetime-version = "0.6.1"
+kotlinx-datetime-version = "0.6.2"
 kotlinx-atomicfu-version = "0.27.0"
 kotlinx-io-version = "0.6.0"
 kotlinx-html-version = "0.11.0"
@@ -66,8 +66,8 @@ jxbrowser-version = "8.4.0"
 jxbrowser-gradle = "1.2.1"
 
 # jna
-java-jna-version = "5.16.0"
-webkit = "1.12.1"
+java-jna-version = "5.17.0"
+webkit = "1.13.0"
 
 junit = "1.2.1"
 espresso = "3.6.1"
@@ -78,7 +78,7 @@ log4j12 = "2.0.12"
 
 filekit = "0.8.0"
 
-dweb-version = "1.1.2"
+dweb-version = "1.2.1"
 
 [libraries]
 

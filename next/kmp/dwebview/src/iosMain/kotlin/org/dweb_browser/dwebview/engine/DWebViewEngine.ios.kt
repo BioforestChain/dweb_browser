@@ -107,8 +107,8 @@ class DWebViewEngine(
   val preferences = WKPreferences()
   preferences.javaScriptEnabled = true
   preferences.javaScriptCanOpenWindowsAutomatically = false
-  // @see: https://developer.apple.com/documentation/webkit/wkpreferences/inactiveschedulingpolicy-swift.enum/none
-  preferences.inactiveSchedulingPolicy = WKInactiveSchedulingPolicy.WKInactiveSchedulingPolicyNone
+  // // @see: https://developer.apple.com/documentation/webkit/wkpreferences/inactiveschedulingpolicy-swift.enum/none
+  // preferences.inactiveSchedulingPolicy = WKInactiveSchedulingPolicy.WKInactiveSchedulingPolicyNone
   configuration.preferences = preferences
   configuration.allowsInlineMediaPlayback = true
   configuration.allowsAirPlayForMediaPlayback = true

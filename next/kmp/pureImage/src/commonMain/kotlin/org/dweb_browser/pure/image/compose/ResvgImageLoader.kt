@@ -18,9 +18,9 @@ import org.dweb_browser.pure.http.PureServerRequest
 import org.dweb_browser.pure.http.defaultHttpPureClient
 import org.dweb_browser.pure.http.ext.FetchHookContext
 import org.dweb_browser.pure.http.fetch
-import resvg_render.FitMode
-import resvg_render.RenderOptions
-import resvg_render.svgToPng
+import org.dweb_browser.resvg_render.FitMode
+import org.dweb_browser.resvg_render.RenderOptions
+import org.dweb_browser.resvg_render.svgToPng
 
 val LocalResvgImageLoader = compositionLocalOf { ResvgImageLoader.defaultInstance }
 val debugResvg = Debugger("resvg")

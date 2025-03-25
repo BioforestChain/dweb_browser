@@ -10,7 +10,7 @@ import org.dweb_browser.core.module.MicroModule
  */
 actual object BiometricsManage {
   actual suspend fun checkSupportBiometrics() =
-    BiometricCheckResult.fromValue(biometrics.checkSupportBiometrics().toInt())
+    BiometricCheckResult.fromValue(org.dweb_browser.biometrics.checkSupportBiometrics().toInt())
       ?: BiometricCheckResult.BIOMETRIC_STATUS_UNKNOWN
 
   actual suspend fun biometricsAuthInRuntime(
@@ -30,7 +30,7 @@ actual object BiometricsManage {
     val safeTitle = title ?: BiometricsI18nResource.default_title.text
     val safeSubtitle = subtitle ?: BiometricsI18nResource.default_subtitle.text
     val reason = listOfNotNull(safeTitle, safeSubtitle, description).joinToString("\n")
-    val result = biometrics.biometricsResultContent(reason)
+    val result = org.dweb_browser.biometrics.biometricsResultContent(reason)
 
     return BiometricsResult(
       result.success, when {

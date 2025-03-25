@@ -8,10 +8,10 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.encodeToByteArray
-import multipart.MultipartConsumer
-import multipart.getBoundary
-import multipart.processMultipartOpen
-import multipart.processMultipartWrite
+import org.dweb_browser.multipart.MultipartConsumer
+import org.dweb_browser.multipart.getBoundary
+import org.dweb_browser.multipart.processMultipartOpen
+import org.dweb_browser.multipart.processMultipartWrite
 import org.dweb_browser.core.http.router.ResponseException
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.module.BootstrapContext

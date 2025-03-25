@@ -8,7 +8,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.dweb_browser.helper.JsonLoose
 import org.dweb_browser.helper.platform.PureViewController
-import hardware_info.getHardwareInfo as getWinHardwareInfo
+import org.dweb_browser.hardware_info.getHardwareInfo as getWinHardwareInfo
 
 interface Kernel32 : StdCallLibrary {
   fun GetComputerNameEx(
@@ -55,7 +55,7 @@ data class WinMemoryInfoItem(
 
 object WinHardwareInfo {
   val hardwareInfo by lazy {
-    getWinHardwareInfo()
+    getWinHardwareInfo().also { println("QAQ xxxx $it") }
   }
 
   val uuid get() = hardwareInfo.uuid
