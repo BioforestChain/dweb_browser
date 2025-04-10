@@ -1,0 +1,82 @@
+<resources>
+  <string name="app_name">ئەرکىن كۆچۈش</string>
+
+  <!-- 权限部分 -->
+  <string name="permission_allow">رەزى</string>
+  <string name="permission_denial">رادىت</string>
+  <string name="permission_go_settings">تەڭشەتكە ئۆتۈش</string>
+  <string name="permission_cancel">بىكار قىلىش</string>
+  <string name="permission_deny_title">ھوقۇق سوراش</string>
+  <string name="permission_deny_text">ھوقۇق بەرilmىدى، «تەڭشەتكە ئۆتۈش» بېسىپ قۇدۇق سىستىمە تەڭشەتىڭ.</string>
+  <string name="permission_deny_storage">ھۆججەت ساقلاش ۋە ئوقۇش ھوقۇقى كېرەك</string>
+  <string name="permission_deny_calendar">تەقلىم بەلگىلەش ھوقۇقى كېرەك</string>
+  <string name="permission_deny_camera">كامېرا ئىشلىتىش ھوقۇقى كېرەك</string>
+  <string name="permission_deny_location">جايلىق مەلۇماتنى ئىشلىتىش ھوقۇقى كېرەك</string>
+  <string name="permission_deny_record_audio">ئاۋاز يەزىش ھوقۇقى كېرەك</string>
+  <string name="permission_deny_contacts">ئالاقىداشلار مەلۇماتىنى ئىشلىتىش ھوقۇقى كېرەك</string>
+  <string name="permission_deny_call">تېلېفون قىلىش ھوقۇقى كېرەك</string>
+  <string name="permission_deny_sensor">سېنزور مەلۇماتىنى ئىشلىتىش ھوقۇقى كېرەك</string>
+  <string name="permission_deny_sms">پىلانىتىپ ئۇچۇرىنى ئىشلىتىش ھوقۇقى كېرەك</string>
+  <string name="permission_deny_device">قاتار مەلۇماتىنى ئىشلىتىش ھوقۇقى كېرەك</string>
+
+  <string name="privacy_title">ئەسكەرتىش</string>
+  <string name="privacy_content_1">ئەرکىن كۆچۈش نى ئىشلىتىش ئارقىلىق تور باغلىنىش ئۈچۈن تور ترافىقىنىڭ تولۇققانچىلىقىنى تور كومپانىيىڭىزغا سورۇڭ. ئەرکىن كۆچۈش نى ئىشلىتىش ئالدىن</string>
+  <string name="privacy_content_2">نى ئوقۇپ، قوشۇق قىلىڭ.</string>
+  <string name="privacy_policy">《مەخپىيەت كېلىشىمىز》</string>
+  <string name="privacy_content_deny">بۇ پىلانىتىپنى ئىشلىتىش ئۈچۈن مەخپىيەت كېلىشىمىزگە قوشۇش كېرەك</string>
+  <string name="button_not_agree">قوشۇلمىمەن</string>
+  <string name="button_agree_continue">قوشۇلىمەن</string>
+  <string name="button_exit_app">پىلانىتىپتىن چېكىنىش</string>
+  <string name="button_i_know">بىلىمەن</string>
+
+  <!-- 浏览器相关 -->
+  <string name="browser_search_hint">ئىزدەش ياكى URL كىرگۈزۈش</string>
+  <string name="browser_nav_add">قوشۇش</string>
+  <string name="browser_nav_home">باش بەت</string>
+  <string name="browser_nav_back">ئارقىسى</string>
+  <string name="browser_nav_book">خەتكۈچ</string>
+  <string name="browser_nav_scan">كود سىكانىرلاش</string>
+  <string name="browser_nav_share">ئورتاقلاش</string>
+  <string name="browser_nav_multi">كۆپ كۆز</string>
+  <string name="browser_nav_option">تاللاش</string>
+  <string name="browser_nav_forward">ئالمىش</string>
+  <string name="browser_nav_addhome">باش بەتكە قوشۇش</string>
+  <string name="browser_nav_history">تارىخچە</string>
+  <string name="browser_nav_favorite">ياقتۇرغانلىرىم</string>
+  <string name="browser_nav_multiview">ئالدىن كۆرۈش</string>
+  <string name="browser_main_hot_web">ئەڭ ياخشى تور بەتلەر</string>
+  <string name="browser_main_my_app">مېنىڭ پىلانىتىپلىرىم</string>
+  <string name="browser_main_my_book">مېنىڭ خەتكۈچلىرىم</string>
+  <string name="browser_main_hot_search">ئەڭ ياخشى ئىزدەشلەر</string>
+
+  <string name="browser_confirm_to_close">بىر قۇدۇقنى تاقاشقا جەزىملەنمەن؟</string>
+
+  <!-- 补充内容 -->
+  <string name="browser_home_page">باش بەت</string>
+  <string name="browser_options_book">خەتكۈچ قوشۇش</string>
+  <string name="browser_options_share">ئورتاقلاش</string>
+  <string name="browser_options_notrace">ئىز قالمايدىغان كۆرۈنۈش</string>
+  <string name="browser_options_privacy">مەخپىيەت سىياسىتى</string>
+  <string name="browser_options_store">ساقلاش</string>
+  <string name="browser_options_editbook">خەتكۈچ تەھرىرلەش</string>
+  <string name="browser_options_tab_option">تاللاش</string>
+  <string name="browser_options_tab_booklist">خەتكۈچ رەتى</string>
+  <string name="browser_options_tab_history">تارىخچە رەتى</string>
+  <string name="browser_options_tab_share">ئورتاقلاش</string>
+  <string name="browser_empty_list">مەلۇمات يوق</string>
+  <string name="browser_done">تامام</string>
+  <string name="browser_tabs_count">قۇدۇق</string>
+  <string name="browser_no_title">نامسىز</string>
+  <string name="browser_downloading">چۈشۈرۈۋاتىدۇ...</string>
+  <string name="browser_search_title">ئىزدەش</string>
+  <string name="browser_search_cancel">بىكار قىلىش</string>
+  <string name="browser_search_engine">ئىزدەش ماتورى</string>
+  <string name="browser_search_delete">ئۆچۈرۈش</string>
+  <string name="browser_engine_baidu">Baidu</string>
+  <string name="browser_engine_sougou">Sougou</string>
+  <string name="browser_engine_qihu">360</string>
+  <string name="browser_history_today">بۈگۈن</string>
+  <string name="browser_history_yesterday">تۈنۈگۈن</string>
+
+  <string name="shortcut_toast">تالىي ئەمەس مەلۇمات -> %s</string>
+</resources>

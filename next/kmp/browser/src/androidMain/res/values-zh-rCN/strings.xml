@@ -20,7 +20,7 @@
   <string name="permission_deny_device">需要设备权限许可才能获取设备的相关信息</string>
 
   <string name="privacy_title">温馨提示</string>
-  <string name="privacy_content_1">欢迎使用 Dweb Browser，在您使用的时候，需要连接网络，产生的流量费用请咨询当地运营商。在使用 Dweb Browser 前，请认真阅读</string>
+  <string name="privacy_content_1">欢迎使用 自由穿梭，在您使用的时候，需要连接网络，产生的流量费用请咨询当地运营商。在使用 自由穿梭 前，请认真阅读</string>
   <string name="privacy_content_2">。您需要同意并接受全部条款后再开始我们的服务。</string>
   <string name="privacy_policy">《隐私协议》</string>
   <string name="privacy_content_deny">本产品需要同意相关协议后才能使用哦</string>
@@ -67,7 +67,7 @@
   <string name="browser_done">完成</string>
   <string name="browser_tabs_count">个标签页</string>
   <string name="browser_no_title">无标题</string>
-  <string name="browser_downloading">下载中，请稍后...</string>
+  <string name="browser_downloading">下载中，请稍后……</string>
   <string name="browser_search_title">搜索</string>
   <string name="browser_search_cancel">取消</string>
   <string name="browser_search_engine">搜索引擎</string>

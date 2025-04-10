@@ -1,0 +1,82 @@
+<resources>
+  <string name="app_name">རང་དབང་གི་འགྲོ་ལྟ་</string>
+
+  <!-- 权限部分 -->
+  <string name="permission_allow">ཆོག</string>
+  <string name="permission_denial">མི་ཆོག</string>
+  <string name="permission_go_settings">སྒྲིག་འགོད་ལ་འགྲོ་བ</string>
+  <string name="permission_cancel">འདོར་བ</string>
+  <string name="permission_deny_title">དབང་ཚད་འོས་སྒྲུབ་</string>
+  <string name="permission_deny_text">དབང་ཚད་ཐོབ་མ་ཐུབ་པས། 「སྒྲིག་འགོད་ལ་འགྲོ་བ」ནང་དུ་ལག་བསྟར་བྱེད་རོགས།</string>
+  <string name="permission_deny_storage">གཞི་གྲངས་ཀྱི་སྒྲིག་སྲོལ་དང་བཀོད་སྒྲིག་ལ་དབང་ཚད་ཐུབ་དགོས།</string>
+  <string name="permission_deny_calendar">ཉིན་རེའི་ཉིན་རེའི་ལོ་རྒྱུས་ཀྱི་དབང་ཚད་ཐུབ་དགོས།</string>
+  <string name="permission_deny_camera">བརྙན་འཕྲི་དང་བརྙན་འོངས་ལ་དབང་ཚད་ཐུབ་དགོས།</string>
+  <string name="permission_deny_location">གནས་ས་སྤྱོད་དབང་ཚད་ཐུབ་དགོས།</string>
+  <string name="permission_deny_record_audio">སྒྲ་ཟློས་བྱེད་དབང་ཚད་ཐུབ་དགོས།</string>
+  <string name="permission_deny_contacts">གཞུང་ཟུང་གི་དབང་ཚད་ཐུབ་དགོས།</string>
+  <string name="permission_deny_call">ཁ་པར་བརྒྱུད་དབང་ཚད་ཐུབ་དགོས།</string>
+  <string name="permission_deny_sensor">སེམས་སྐུལ་གྲངས་ཀྱི་དབང་ཚད་ཐུབ་དགོས།</string>
+  <string name="permission_deny_sms">དོན་སྤྲོད་བྱེད་དབང་ཚད་ཐུབ་དགོས།</string>
+  <string name="permission_deny_device">སྒྲིག་ཆས་ཀྱི་དབང་ཚད་ཐུབ་དགོས།</string>
+
+  <string name="privacy_title">དྲན་སྐུལ་ཡི་གེ</string>
+  <string name="privacy_content_1">རང་དབང་གི་འགྲོ་ལྟ་ཡིས་ཁྱེད་ཀྱིས་དྲ་བ་སྤྱོད་སྐབས། དྲ་བའི་ཁ་ཕྲེང་དངུལ་སྤྲོད་ནི་ཁྱེད་ཀྱི་ས་ཁུལ་གྱི་དྲ་བ་སྤྲོད་ཚུན་ལ་ཞུ་རོགས། རང་དབང་གི་འགྲོ་ལྟ་ཡིས་སྤྱོད་པར་གོམས་གཤིས་ཀྱི་གནས་སྟངས་སུ་འཇུག་པར་དགོས་ན།</string>
+  <string name="privacy_content_2">ཁྱེད་ཀྱིས་མཉམ་དུ་བཀོལ་བར་ཐུབ་པར་འགྱུར་བ་དགོས།</string>
+  <string name="privacy_policy">《གསང་དོན་གྱི་ལེགས་བཤད》</string>
+  <string name="privacy_content_deny">ཁྱེད་ཀྱིས་མཉམ་དུ་བཀོལ་བར་ཐུབ་པར་འགྱུར་བ་དགོས།</string>
+  <string name="button_not_agree">མི་མཉམ་དུ་བཀོལ།</string>
+  <string name="button_agree_continue">མཉམ་དུ་བཀོལ་ཞུ་བ།</string>
+  <string name="button_exit_app">ཉེར་སྤྱོད་ལས་ཕྱིར་འབུད།</string>
+  <string name="button_i_know">ཤེས་འདོད།</string>
+
+  <!-- 浏览器相关 -->
+  <string name="browser_search_hint">འཚོལ་ཞིབ་དང་དྲ་ཁར་ཡིག་འབྲུ།</string>
+  <string name="browser_nav_add">སྣོན་བཏོན།</string>
+  <string name="browser_nav_home">བདེ་འཇགས་ཀྱི་ཉིན་རེའི་རྩིས་གཞི།</string>
+  <string name="browser_nav_back">ཕྱིར་ལོག</string>
+  <string name="browser_nav_book">དཔེ་ཀུན།</string>
+  <string name="browser_nav_scan">བརྙན་འཕྲི།</string>
+  <string name="browser_nav_share">སྤྱི་སྟེགས།</string>
+  <string name="browser_nav_multi">མང་པོའི་མིག</string>
+  <string name="browser_nav_option">འདེམས་གཞི།</string>
+  <string name="browser_nav_forward">མདུན་དུ་འགྲོ།</string>
+  <string name="browser_nav_addhome">བདེ་འཇགས་ཀྱི་ཉིན་རེའི་རྩིས་གཞི།</string>
+  <string name="browser_nav_history">ལོ་རྒྱུས།</string>
+  <string name="browser_nav_favorite">བསྡུ་བཞག</string>
+  <string name="browser_nav_multiview">སྣོན་མོ།</string>
+  <string name="browser_main_hot_web">དྲ་ཁར་དཔེ་མཚོན།</string>
+  <string name="browser_main_my_app">ངའི་ཉིན་རེའི་རྩིས་གཞི།</string>
+  <string name="browser_main_my_book">ངའི་དཔེ་ཀུན།</string>
+  <string name="browser_main_hot_search">དྲ་བའི་དྲ་ཁར་མཚོན།</string>
+
+  <string name="browser_confirm_to_close">བརྙན་འཕྲི་ཁ་བྱང་བར་ཁྱེད་ཀྱིས་གཏན་ཁེལ་ཡིན་ནམ།</string>
+
+  <!-- 补充内容 -->
+  <string name="browser_home_page">བདེ་འཇགས་ཀྱི་ཉིན་རེའི་རྩིས་གཞི།</string>
+  <string name="browser_options_book">དཔེ་ཀུན་སྣོན་བཏོན།</string>
+  <string name="browser_options_share">སྤྱི་སྟེགས།</string>
+  <string name="browser_options_notrace">བྲིས་མེད་ཀྱི་བརྒྱུད་ལམ།</string>
+  <string name="browser_options_privacy">གསང་དོན་གྱི་ལེགས་བཤད།</string>
+  <string name="browser_options_store">སྒྲིག་འཇུག</string>
+  <string name="browser_options_editbook">དཔེ་ཀུན་བསྐྱར་བཟོ།</string>
+  <string name="browser_options_tab_option">འདེམས་གཞི།</string>
+  <string name="browser_options_tab_booklist">དཔེ་ཀུན་གྱི་རེའུ་མིག</string>
+  <string name="browser_options_tab_history">ལོ་རྒྱུས་ཀྱི་རེའུ་མིག</string>
+  <string name="browser_options_tab_share">སྤྱི་སྟེགས།</string>
+  <string name="browser_empty_list">གཞི་གྲངས་མེད།</string>
+  <string name="browser_done">བསྒྲིག་འཇུག</string>
+  <string name="browser_tabs_count">བརྡབས་པའི་ཁ་ཕྲེང་།</string>
+  <string name="browser_no_title">མིང་མེད།</string>
+  <string name="browser_downloading">སྒྲིག་འཇུག་བྱེད་པར་སྒུག་རོགས།...</string>
+  <string name="browser_search_title">འཚོལ་ཞིབ།</string>
+  <string name="browser_search_cancel">འདོར་བ།</string>
+  <string name="browser_search_engine">འཚོལ་ཞིབ་འཇུག་ཆས།</string>
+  <string name="browser_search_delete">སུབ་པ།</string>
+  <string name="browser_engine_baidu">བེའུ་དུ།</string>
+  <string name="browser_engine_sougou">སོག་གུ།</string>
+  <string name="browser_engine_qihu">360</string>
+  <string name="browser_history_today">དེ་རིང་།</string>
+  <string name="browser_history_yesterday">ཁ་སང་།</string>
+
+  <string name="shortcut_toast">བོར་མི་ཤེས་པའི་གཞི་གྲངས་ -> %s</string>
+</resources>

@@ -1,0 +1,83 @@
+<resources>
+  <string name="app_name">自由穿梭</string>
+
+  <!-- 權限部分的字符串 -->
+  <string name="permission_allow">允許</string>
+  <string name="permission_denial">拒絕</string>
+  <string name="permission_go_settings">前往設定</string>
+  <string name="permission_cancel">取消</string>
+  <string name="permission_deny_title">權限申請</string>
+  <string name="permission_deny_text">申請的權限失敗，請點擊「前往設定」進行手動授權</string>
+  <string name="permission_deny_storage">需要儲存權限許可才能提供資料的本地存取讀寫操作</string>
+  <string name="permission_deny_calendar">需要日曆權限許可才能讀取日曆及新增/修改/刪除日曆</string>
+  <string name="permission_deny_camera">需要相機權限許可才能使用鏡頭進行拍照及錄影</string>
+  <string name="permission_deny_location">需要位置權限許可才能存取裝置的詳細位置資訊</string>
+  <string name="permission_deny_record_audio">需要錄音權限許可才能調用咪高峰進行錄音</string>
+  <string name="permission_deny_contacts">需要聯絡人權限許可才能存取聯絡人資料及新增/修改/刪除聯絡人</string>
+  <string name="permission_deny_call">需要通話權限許可才能撥打電話及查看通話記錄</string>
+  <string name="permission_deny_sensor">需要感應器權限許可才能取得感應器相關的健康數據</string>
+  <string name="permission_deny_sms">需要訊息權限許可才能閱讀短訊及新增/修改/刪除/傳送訊息</string>
+  <string name="permission_deny_device">需要裝置權限許可才能取得裝置相關資訊</string>
+
+  <string name="privacy_title">溫馨提示</string>
+  <string name="privacy_content_1">歡迎使用 自由穿梭，當您使用時需連接網絡，產生的流量費用請向本地電訊商查詢。使用前請詳細閱讀</string>
+  <string name="privacy_content_2">。您需同意並接受所有條款後方可使用本服務。</string>
+  <string name="privacy_policy">《私隱協議》</string>
+  <string name="privacy_content_deny">本產品需同意相關協議後方可使用</string>
+  <string name="button_not_agree">不同意</string>
+  <string name="button_agree_continue">同意並繼續</string>
+  <string name="button_exit_app">退出應用程式</string>
+  <string name="button_i_know">知道了</string>
+
+  <!-- BrowserView 相關 -->
+  <string name="browser_search_hint">搜尋或輸入網址</string>
+  <string name="browser_nav_add">新增</string>
+  <string name="browser_nav_home">主頁</string>
+  <string name="browser_nav_back">返回</string>
+  <string name="browser_nav_book">書籤</string>
+  <string name="browser_nav_scan">掃碼</string>
+  <string name="browser_nav_share">分享</string>
+  <string name="browser_nav_multi">多視窗</string>
+  <string name="browser_nav_option">選項</string>
+  <string name="browser_nav_forward">前進</string>
+  <string name="browser_nav_addhome">加入主屏幕</string>
+  <string name="browser_nav_history">歷史記錄</string>
+  <string name="browser_nav_favorite">我的最愛</string>
+  <string name="browser_nav_multiview">預覽</string>
+  <string name="browser_main_hot_web">熱門網站</string>
+  <string name="browser_main_my_app">我的應用</string>
+  <string name="browser_main_my_book">我的書籤</string>
+  <string name="browser_main_hot_search">全網熱搜</string>
+
+  <string name="browser_confirm_to_close">確定要關閉瀏覽器視窗？</string>
+
+  <!-- 補充內容 -->
+  <string name="browser_home_page">主頁</string>
+  <string name="browser_options_book">加入書籤</string>
+  <string name="browser_options_share">分享</string>
+  <string name="browser_options_notrace">無痕瀏覽</string>
+  <string name="browser_options_privacy">私隱政策</string>
+  <string name="browser_options_store">儲存</string>
+  <string name="browser_options_editbook">編輯書籤</string>
+  <string name="browser_options_tab_option">選項</string>
+  <string name="browser_options_tab_booklist">書籤列表</string>
+  <string name="browser_options_tab_history">歷史列表</string>
+  <string name="browser_options_tab_share">分享</string>
+  <string name="browser_empty_list">暫無資料</string>
+  <string name="browser_done">完成</string>
+  <string name="browser_tabs_count">個分頁</string>
+  <string name="browser_no_title">無標題</string>
+  <string name="browser_downloading">下載中，請稍候……</string>
+  <string name="browser_search_title">搜尋</string>
+  <string name="browser_search_cancel">取消</string>
+  <string name="browser_search_engine">搜尋引擎</string>
+  <string name="browser_search_delete">刪除</string>
+  <string name="browser_engine_baidu">百度</string>
+  <string name="browser_engine_sougou">搜狗</string>
+  <string name="browser_engine_qihu">360</string>
+  <string name="browser_history_today">今天</string>
+  <string name="browser_history_yesterday">昨天</string>
+
+  <!-- 快捷方式 -->
+  <string name="shortcut_toast">無法解析的資料 -> %s</string>
+</resources>
