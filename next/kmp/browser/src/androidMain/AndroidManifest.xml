@@ -13,6 +13,7 @@
   <application
     android:enableOnBackInvokedCallback="true"
     android:resizeableActivity="true"
+    android:supportsRtl="true"
     tools:targetApi="tiramisu">
     <meta-data
       android:name="android.max_aspect"

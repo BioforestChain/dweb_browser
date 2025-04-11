@@ -67,7 +67,7 @@
   <string name="browser_done">تامام</string>
   <string name="browser_tabs_count">قۇدۇق</string>
   <string name="browser_no_title">نامسىز</string>
-  <string name="browser_downloading">چۈشۈرۈۋاتىدۇ...</string>
+  <string name="browser_downloading">چۈشۈرۈۋاتىدۇ……</string>
   <string name="browser_search_title">ئىزدەش</string>
   <string name="browser_search_cancel">بىكار قىلىش</string>
   <string name="browser_search_engine">ئىزدەش ماتورى</string>
