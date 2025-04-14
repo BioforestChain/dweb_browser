@@ -4,6 +4,7 @@ pluginManagement {
       mavenContent {
         includeGroupByRegex(".*google.*")
         includeGroupByRegex(".*android.*")
+        includeGroupByRegex(".*androidx.*")
       }
     }
     gradlePluginPortal()
@@ -31,14 +32,21 @@ plugins {
 @Suppress("UnstableApiUsage")
 dependencyResolutionManagement {
   repositories {
+//    repositoriesMode = RepositoriesMode.FAIL_ON_PROJECT_REPOS
+
     google {
       mavenContent {
         includeGroupByRegex(".*google.*")
         includeGroupByRegex(".*android.*")
+        includeGroupByRegex(".*androidx.*")
       }
     }
     mavenCentral()
-    maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
+    maven("https://maven.pkg.jetbrains.space/public/p/compose/dev") {
+      mavenContent {
+        includeGroupByRegex(".*compose.*")
+      }
+    }
     maven("https://maven.pkg.jetbrains.space/kotlin/p/wasm/experimental")
     maven("https://androidx.dev/storage/compose-compiler/repository")
     /**

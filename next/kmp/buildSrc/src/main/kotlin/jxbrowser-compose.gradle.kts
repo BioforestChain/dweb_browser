@@ -9,12 +9,15 @@ plugins {
 
 // 必须添加仓库，否则会导致一些依赖从jxbrowser仓库查找，从而获取失败
 repositories {
-  mavenCentral()
   google {
     mavenContent {
+      includeGroupByRegex(".*google.*")
       includeGroupByRegex(".*android.*")
+      includeGroupByRegex(".*androidx.*")
     }
   }
+  mavenCentral()
+  gradlePluginPortal()
 }
 
 jxbrowser {

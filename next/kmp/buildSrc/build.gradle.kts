@@ -16,6 +16,7 @@ repositories {
     mavenContent {
       includeGroupByRegex(".*google.*")
       includeGroupByRegex(".*android.*")
+      includeGroupByRegex(".*androidx.*")
     }
   }
 
