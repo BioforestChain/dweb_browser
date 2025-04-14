@@ -29,7 +29,7 @@ class LoaderCacheMap<T : Any>(scope: CoroutineScope, var cacheSize: Int = 30) {
     map[cache.key] = cache
     lruList.add(0, cache)
     while (map.size > cacheSize) {
-      val willRemove = lruList.removeLast()
+      val willRemove = lruList.removeAt(lruList.lastIndex)
       map.remove(willRemove.key)
     }
   }
