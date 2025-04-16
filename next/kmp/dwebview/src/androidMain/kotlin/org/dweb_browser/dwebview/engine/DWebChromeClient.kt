@@ -121,7 +121,14 @@ class DWebChromeClient(val engine: DWebViewEngine) : WebChromeClient() {
         var mainUrl = dwebView.url
         try {
           while (mainUrl == null) {
-            if (dwebView.destroyStateSignal.isDestroyed) {
+            if (dwebView.destroyStateSignal.isDestroyed ||
+              /**
+               * destroyStateSignal.isDestroyed 可能不工作
+               *
+               * 这个 dwebView 是有堆栈的，url虽然延迟才能resolve出来，但是canGoBackOrForward一开始就是true
+               * 如果它返回了false，那么根据chromium的源代码，说明它已经被destroy了
+               */
+              !dwebView.canGoBackOrForward(0)) {
               return@launch
             }
             delay(5)
