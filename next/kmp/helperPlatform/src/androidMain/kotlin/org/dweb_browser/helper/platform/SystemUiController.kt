@@ -95,24 +95,6 @@ public interface SystemUiController {
   )
 
   /**
-   * Set the status and navigation bars to [color].
-   *
-   * @see setStatusBarColor
-   * @see setNavigationBarColor
-   */
-  public fun setSystemBarsColor(
-    color: Color,
-    darkIcons: Boolean = color.luminance() > 0.5f,
-    isNavigationBarContrastEnforced: Boolean = true,
-    transformColorForLightContent: (Color) -> Color = BlackScrimmed,
-  ) {
-    setStatusBarColor(color, darkIcons, transformColorForLightContent)
-    setNavigationBarColor(
-      color, darkIcons, isNavigationBarContrastEnforced, transformColorForLightContent
-    )
-  }
-
-  /**
    * Property which holds whether the status bar icons + content are 'dark' or not.
    */
   public var statusBarDarkContentEnabled: Boolean

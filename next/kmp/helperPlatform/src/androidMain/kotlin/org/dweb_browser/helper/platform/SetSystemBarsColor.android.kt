@@ -21,13 +21,6 @@ actual fun SetSystemBarsColor(bgColor: Color, fgColor: Color) {
 //    insetsController.isAppearanceLightStatusBars = !isDarkIcon
 //    insetsController.isAppearanceLightNavigationBars = !isDarkIcon
 //  }
-
-  val systemUiController = rememberSystemUiController()
-  SideEffect {
-    systemUiController.setSystemBarsColor(
-      color = Color.Transparent, darkIcons = fgColor.luminance() < 0.5f
-    )
-  }
 }
 
 @Composable

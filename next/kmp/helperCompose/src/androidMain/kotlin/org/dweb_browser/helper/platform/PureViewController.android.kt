@@ -1,10 +1,10 @@
 package org.dweb_browser.helper.platform
 
 import android.content.Intent
-import android.graphics.Color
 import android.os.Bundle
 import android.view.MotionEvent
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.LifecycleOwner
@@ -36,12 +36,12 @@ open class PureViewController : BaseActivity(), IPureViewController {
   private val touchSignal = Signal<TouchEvent>()
   override val onTouch = touchSignal.toListener()
   final override fun onCreate(savedInstanceState: Bundle?) {
+    enableEdgeToEdge()
     super.onCreate(savedInstanceState)
     lifecycleScope.launch(start = CoroutineStart.UNDISPATCHED) {
       createSignal.emit(PureViewCreateParams(intent))
     }
-    
-    window.statusBarColor = Color.TRANSPARENT
+
     setContent {
       LocalCompositionChain.current.Provider(
         LocalPureViewController provides this,
