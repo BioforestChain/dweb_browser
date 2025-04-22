@@ -2,11 +2,11 @@
   "name": "@dweb-browser/polyfill",
   "version": "0.0.8",
   "description": "",
-  "types": "./esm/index.d.ts",
   "scripts": {
     "build": "vite build"
   },
   "exports": {
+    ".": "./src/index.ts",
     "./*": "./src/*"
   },
   "keywords": [],
