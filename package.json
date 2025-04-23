@@ -7,7 +7,7 @@
   "devDependencies": {
     "prettier": "^2.8.8",
     "prettier-plugin-organize-imports": "^3.2.4",
-    "vite": "^5.4.2",
+    "vite": "^6.3.2",
     "glob": "^10.3.12"
   }
 }

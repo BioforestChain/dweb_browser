@@ -13,4 +13,4 @@ const wasmPath = dependencyPath
     ).pathname;
 // 读取 WASM 文件
 const svgWasmBinary = await Deno.readFile(wasmPath);
-initSync(svgWasmBinary);
+initSync({ module: svgWasmBinary });

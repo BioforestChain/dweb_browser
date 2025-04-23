@@ -10,4 +10,4 @@ const svgWasmPath = dependencyPath
 
 const svg_wasm_binary = node_fs.readFileSync(svgWasmPath);
 
-initSync(svg_wasm_binary);
+initSync({ module: svg_wasm_binary });
