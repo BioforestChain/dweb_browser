@@ -1,9 +1,10 @@
 import { defineConfig } from 'vite';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
+import { toolkitResolverPlugin } from '../scripts/vite-npm-resolver-plugin.mts';
 import path from 'node:path';
 
 export default defineConfig({
-  plugins: [svelte()],
+  plugins: [toolkitResolverPlugin(), svelte()],
   build: {
     target: 'esnext',
     rollupOptions: {

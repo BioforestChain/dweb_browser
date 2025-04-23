@@ -1,5 +1,6 @@
 import { build, type BuildOptions, type PackageJson } from "@deno/dnt";
 import { $once } from "@dweb-browser/helper/decorator/$once.ts";
+import { writeJson, writeYaml } from "@gaubee/nodekit";
 import node_fs from "node:fs";
 import node_path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -12,6 +13,14 @@ import { rootResolve } from "./resolver.ts";
 
 export const npmNameToFolderName = (name: string) => name.replace("/", "__");
 export const npmNameToFolder = (name: string) => rootResolve(`./npm/${npmNameToFolderName(name)}`);
+export const initNpmWorkspace = () => {
+  const npmDir = rootResolve("./npm");
+  node_fs.mkdirSync(npmDir, { recursive: true });
+  const packageJson = rootResolve("./npm/package.json");
+  const pnpmWorkspaceYaml = rootResolve("./npm/pnpm-workspace.yaml");
+  writeJson(packageJson, { private: true });
+  writeYaml(pnpmWorkspaceYaml, { packages: ["*"] });
+};
 export type NpmBuilderContext = { packageResolve: (path: string) => string; npmResolve: (path: string) => string };
 export type NpmBuilderDntBuildOptions = Omit<BuildOptions, "package"> & { package: Omit<PackageJson, "name"> };
 export const npmBuilder = async (config: {
@@ -160,6 +169,8 @@ const waitDependencies = async (packageJson: PackageJson) => {
   }
 };
 
+const preparePnpmWorkspace = $once(initNpmWorkspace);
+
 /**
  * 注册一个 dnt 编译项目
  *
@@ -170,6 +181,7 @@ export const registryNpmBuilder = (config: Parameters<typeof npmBuilder>[0]) => 
   const packageResolve = (path: string) => fileURLToPath(new URL(path, packageDir));
   const packageJson: PackageJson = JSON.parse(node_fs.readFileSync(packageResolve("./package.json"), "utf-8"));
   const build_npm = $once(async () => {
+    preparePnpmWorkspace();
     console.log(`🛫 START ${packageJson.name}`);
     await waitDependencies(packageJson);
     // 编译自身

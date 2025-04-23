@@ -37,7 +37,6 @@ const htmlExamples = registryViteBuilder({
 
 /// 这里要包含所有的任务，以确保 reset 能正确工作
 const plaocTasks = [
-  dwebPolyfill,
   plaocServer,
   plaocCli,
   plaocPlugins,
@@ -80,6 +79,7 @@ const plaocTasks = [
 export const doPlaocTasks = async () => {
   // 核心依赖要先安装完
   await dwebHelper();
+  await dwebPolyfill();
   await dwebCore();
   await dwebJsProcess();
   await Promise.all(plaocTasks.map((task) => task()));

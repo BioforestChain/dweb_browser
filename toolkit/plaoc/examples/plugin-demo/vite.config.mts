@@ -2,9 +2,11 @@ import vue from "@vitejs/plugin-vue";
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 import vuetify, { transformAssetUrls } from "vite-plugin-vuetify";
+import { toolkitResolverPlugin } from "../../../scripts/vite-npm-resolver-plugin.mts";
 
 export default defineConfig({
   plugins: [
+    toolkitResolverPlugin(),
     vue({
       customElement: /^dweb\-/,
       template: {

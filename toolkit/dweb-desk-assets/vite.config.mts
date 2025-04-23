@@ -1,6 +1,7 @@
 // Plugins
 import vue from "@vitejs/plugin-vue";
 import vuetify, { transformAssetUrls } from "vite-plugin-vuetify";
+import { toolkitResolverPlugin } from "../scripts/vite-npm-resolver-plugin.mts";
 
 // Utilities
 import path from "node:path";
@@ -26,6 +27,7 @@ export default defineConfig({
     },
   },
   plugins: [
+    toolkitResolverPlugin(),
     // renderer(),
     vue({
       template: { transformAssetUrls },

@@ -1,4 +1,5 @@
 // Plugins
+import { toolkitResolverPlugin } from "../../../scripts/vite-npm-resolver-plugin.mts";
 
 // Utilities
 import path from "node:path";
@@ -16,7 +17,7 @@ export default defineConfig({
     },
     minify: false,
   },
-  plugins: [],
+  plugins: [toolkitResolverPlugin()],
   define: { "process.env": {} },
   server: {
     port: 3600,

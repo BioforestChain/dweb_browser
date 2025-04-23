@@ -2,9 +2,10 @@ import { glob } from "glob";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
+import { toolkitResolverPlugin } from "../../../scripts/vite-npm-resolver-plugin.mts";
 
 export default defineConfig({
-  plugins: [],
+  plugins: [toolkitResolverPlugin()],
   build: {
     target: "esnext",
     lib: {

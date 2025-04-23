@@ -6,13 +6,11 @@
     "build": "vite build"
   },
   "exports": {
-    ".": "./src/index.ts",
-    "./*": "./src/*"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@gaubee/util": "^0.25.1"
+    "@gaubee/util": "^0.27.0"
   }
 }
