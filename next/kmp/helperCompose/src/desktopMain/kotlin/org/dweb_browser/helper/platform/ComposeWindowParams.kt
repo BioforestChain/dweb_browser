@@ -22,6 +22,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.dweb_browser.helper.globalDefaultScope
+import org.dweb_browser.helper.globalMainScope
 import org.dweb_browser.helper.withScope
 import java.awt.Dimension
 import java.awt.event.ComponentEvent
@@ -123,7 +125,10 @@ class ComposeWindowParams(
       pvc.createSignal.emit(pvc.createParams)
     }
     // 添加渲染参数
-    withScope(PureViewController.uiScope) {
+//    withScope(PureViewController.uiScope) {
+//      PureViewController.windowRenders.add(this@ComposeWindowParams)
+//    }
+    globalMainScope.launch {
       PureViewController.windowRenders.add(this@ComposeWindowParams)
     }
   }

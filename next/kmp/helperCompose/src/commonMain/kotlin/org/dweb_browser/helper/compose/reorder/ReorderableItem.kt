@@ -23,7 +23,7 @@ fun LazyItemScope.ReorderAbleItem(
   reorderAbleState,
   key,
   modifier,
-  Modifier.animateItemPlacement(),
+  Modifier.animateItem(),
   orientationLocked,
   index,
   content
@@ -41,7 +41,7 @@ fun LazyGridItemScope.ReorderAbleItem(
   reorderAbleState,
   key,
   modifier,
-  Modifier.animateItemPlacement(),
+  Modifier.animateItem(),
   false,
   index,
   content
