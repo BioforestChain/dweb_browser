@@ -1,7 +1,16 @@
 package org.dweb_browser.helper.platform
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.State
@@ -11,9 +20,15 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
 import androidx.compose.ui.input.key.key
@@ -21,9 +36,11 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.ApplicationScope
+import androidx.compose.ui.window.DialogWindow
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.awaitApplication
+import androidx.compose.ui.window.rememberDialogState
 import androidx.compose.ui.window.rememberWindowState
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -75,6 +92,64 @@ class PureViewController(
       private set
 
     val contents = mutableStateMapOf<String, @Composable ApplicationScope.() -> Unit>()
+
+    /**
+     * 是否有Application级别的内容(Window/Tray)
+     */
+    private val hasApplicationContent
+      get():Boolean {
+        return windowRenders.isNotEmpty() || contents["tray"] != null
+      }
+
+    @Composable
+    private fun ApplicationScope.LaunchScreen() {
+      /**
+       * 是否已经显示过了
+       */
+      var showed by remember { mutableStateOf(false) }
+
+      /**
+       * 是否显示
+       */
+      val openState = remember { MutableTransitionState(false) }
+
+      when (showed) {
+        /// 如果没有显示过，那么只要当前没有任何内容，那么就要显示 launchScreen
+        false -> {
+          openState.targetState = false == hasApplicationContent
+        }
+
+        true -> {
+          /// 如果已经显示了，那么只要当前有内容了，就要关闭 launchScreen
+          if (openState.targetState && hasApplicationContent) {
+            openState.targetState = false
+          }
+        }
+      }
+
+      if (openState.targetState || openState.currentState) {
+        val state = rememberDialogState()
+        DialogWindow(
+          title = "Opening...",
+          onCloseRequest = {},
+          state = state,
+          undecorated = true,
+          transparent = true,
+        ) {
+          AnimatedVisibility(openState, enter = fadeIn(tween(1000)), exit = fadeOut(tween(1000))) {
+            Box(
+              Modifier//
+                .fillMaxSize()//
+                .clip(RoundedCornerShape(20.dp))//
+                .background(brush = Brush.linearGradient(listOf(Color.Cyan, Color.Blue))),
+              contentAlignment = Alignment.Center,
+            ) {
+              Text("Opening...")
+            }
+          }
+        }
+      }
+    }
 
     @Composable
     private fun ApplicationScope.Contents() {
@@ -163,8 +238,7 @@ class PureViewController(
               screenBitmap = null
               true
             } else false
-          }
-        ) {
+          }) {
           val device = GraphicsEnvironment.getLocalGraphicsEnvironment().defaultScreenDevice
           window.cursor = Cursor(Cursor.CROSSHAIR_CURSOR) // 设置鼠标样式为 十字星
           if (!isWindows) {
@@ -192,6 +266,7 @@ class PureViewController(
     suspend fun startApplication(extContent: @Composable ApplicationScope.() -> Unit = {}) =
       awaitApplication {
         Prepare()
+        LaunchScreen()
         Contents()
         Windows()
         extContent()

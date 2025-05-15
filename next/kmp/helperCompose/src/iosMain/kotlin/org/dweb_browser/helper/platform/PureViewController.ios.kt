@@ -13,8 +13,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.interop.LocalUIViewController
-import androidx.compose.ui.platform.AccessibilitySyncOptions
+import androidx.compose.ui.uikit.LocalUIViewController
+import androidx.compose.ui.uikit.ComposeUIViewControllerConfiguration
 import androidx.compose.ui.uikit.ComposeUIViewControllerDelegate
 import androidx.compose.ui.viewinterop.UIKitInteropInteractionMode
 import androidx.compose.ui.viewinterop.UIKitInteropProperties
@@ -238,6 +238,7 @@ class PureViewController(
           bgPlaceholderView.setCallback { bgView ->
             globalMainScope.launch {
               bgView?.setHidden(true)
+              bgView?.backgroundColor = platform.UIKit.UIColor.clearColor
             }
           }
         }
@@ -289,16 +290,13 @@ class PureViewController(
   )
   val uiViewControllerInMain by lazy {
     ComposeUIViewController({
-      accessibilitySyncOptions =
-        when (NSProcessInfo.processInfo.arguments.contains("enabledAccessibilitySync")) {
-          true -> AccessibilitySyncOptions.Always(debugLogger = null)
-          else -> AccessibilitySyncOptions.WhenRequiredByAccessibilityServices(debugLogger = null)
-        }
       delegate = uiViewControllerDelegate
+      opaque = false
+//      parallelRendering = true
     }) {
       /// 因为ComposeUIViewController默认是不透明的，这里放一个全局的UIView，但是它是不可见的，目的只是占位，
       /// 同时利用生命周期，获取到根部的图层，将它隐藏，从而让Pvc透明
-      TransparentBg()
+//      TransparentBg()
 
       LocalCompositionChain.current.Provider(
         LocalPureViewController provides this@PureViewController,

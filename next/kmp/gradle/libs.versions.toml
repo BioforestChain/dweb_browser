@@ -8,33 +8,33 @@ versionName = "3.250414.0"
 kotlinCompilerExtensionVersion = "1.5.15"
 jvmTarget = "17"
 javaVersion = "VERSION_17" # JavaVersion.VERSION_17
-ksp = "2.1.21-RC-2.0.0"
+ksp = "2.1.21-2.0.1"
 
-agp = "8.9.1"
+agp = "8.10.0"
 androidx-baselineprofile-version = "1.3.4"
-kotlin-version = "2.1.21-RC"
-kotlin-serialization-gradle = "2.1.20"
+kotlin-version = "2.1.21"
+kotlin-serialization-gradle = "2.1.21-RC2"
 androidx-test-core = "1.6.1"
 androidx-test-rules = "1.6.1"
 androidx-test-runner = "1.6.2"
-androidx-compose-ui-test = "1.7.8"
+androidx-compose-ui-test = "1.8.1"
 androidx-compose-ui = "1.6.7"
 androidx-lifecycle = "2.8.7"
-compose-bom = "2025.04.00"
+compose-bom = "2025.05.00"
 
 androidx-activity = "1.10.1"
 androidx-appcompat = "1.7.0"
 androidx-core-ktx = "1.16.0"
 androidx-core-splashscreen = "1.1.0-rc01"
 androidx-annotation = "1.9.1"
-androidx-navigation-ui-kotlin = "2.8.9"
+androidx-navigation-ui-kotlin = "2.9.0"
 androidx-gridlayout = "1.1.0"
 androidx-profile-installer = "1.4.1"
 androidx-biometric = "1.4.0-alpha02"
 
 ktor-version = "3.1.2"
 
-kotlinx-coroutines-version = "1.10.1"
+kotlinx-coroutines-version = "1.10.2"
 kotlinx-datetime-version = "0.6.2"
 kotlinx-atomicfu-version = "0.27.0"
 kotlinx-io-version = "0.6.0"
@@ -50,16 +50,17 @@ camera-version = "1.4.2"
 camera-barcode = "17.3.0"
 camera-zxing = "3.5.3"
 commons-compress = "1.26.1"
-jetbrains-compose-version = "1.7.3"
+jetbrains-compose-version = "1.8.0-rc01"
+material-icons-extended-version = "1.7.3"
 jetbrains-androidx-navigation-version = "2.8.0-alpha11"
 jetbrains-compose-material3-adaptive-version = "1.0.1"
 
 # 测试
 test-junit = "5.10.1"
-animation-core-android = "1.7.8"
+animation-core-android = "1.8.1"
 material3Android = "1.3.2"
 
-kotlinx-serialization = "1.8.0"
+kotlinx-serialization = "1.8.1"
 
 #jxbrowser-version = "8.0.0-eap.+"
 jxbrowser-version = "8.4.0"
@@ -103,7 +104,7 @@ jetbrains-compose-preview = { module = "org.jetbrains.compose.ui:ui-tooling-prev
 jetbrains-compose-material = { module = "org.jetbrains.compose.material:material", version.ref = "jetbrains-compose-version" }
 jetbrains-compose-material3 = { module = "org.jetbrains.compose.material3:material3", version.ref = "jetbrains-compose-version" }
 jetbrains-compose-material3-window-size = { module = "org.jetbrains.compose.material3:material3-window-size-class", version.ref = "jetbrains-compose-version" }
-jetbrains-compose-materialIcons = { module = "org.jetbrains.compose.material:material-icons-extended", version.ref = "jetbrains-compose-version" }
+jetbrains-compose-materialIcons = { module = "org.jetbrains.compose.material:material-icons-extended", version.ref = "material-icons-extended-version" }
 jetbrains-compose-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "jetbrains-compose-version" }
 jetbrains-compose-ui-tooling = { module = "org.jetbrains.compose.ui:ui-tooling", version.ref = "jetbrains-compose-version" }
 jetbrains-compose-ui-tooling-preview-desktop = { module = "org.jetbrains.compose.ui:ui-tooling-preview-desktop", version.ref = "jetbrains-compose-version" }
