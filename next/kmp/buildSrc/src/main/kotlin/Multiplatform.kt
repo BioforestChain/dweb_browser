@@ -503,7 +503,7 @@ fun KotlinMultiplatformExtension.kmpDesktopTarget(
   val desktopTest = sourceSets.getByName("desktopTest")
   dsl.provides(desktopMain, desktopTest)
   desktopMain.dependencies {
-    implementation(libs.androidx.core.ktx)
+//    implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.annotation)
     // 一定要加 https://github.com/JetBrains/compose-multiplatform/releases/tag/v1.1.1
     implementation(libs.kotlinx.coroutines.swing)

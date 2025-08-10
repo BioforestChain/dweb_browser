@@ -20,7 +20,8 @@ kotlin {
       api(libs.coil.compose)
       implementation(libs.coil.network.ktor)
       implementation(libs.coil.svg)
-      implementation(libs.coil.gif)
+//      implementation(libs.coil.gif)
+//      implementation(libs.coil.video)
 
       // ext
 
@@ -28,13 +29,20 @@ kotlin {
       implementation(libs.ktor.server.websockets)
       implementation(libs.ktor.server.cio)
 
-      implementation(libs.coil.video)
     }
   }
 
   kmpAndroidTarget(project) {
+    dependencies {
+      implementation(libs.coil.gif)
+      implementation(libs.coil.video)
+    }
   }
   kmpIosTarget(project) {
+    dependencies {
+      implementation(libs.coil.gif)
+      implementation(libs.coil.video)
+    }
   }
   kmpDesktopTarget(project) {
   }

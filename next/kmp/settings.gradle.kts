@@ -21,7 +21,7 @@ pluginManagement {
       }
     }
     dependencies {
-      classpath("com.android.tools:r8:8.10.21") // R8 是 Android 构建工具链的一部分，用于替代 ProGuard ： 代码缩减/类重命名和优化/性能优化
+      classpath("com.android.tools:r8:8.10.24") // R8 是 Android 构建工具链的一部分，用于替代 ProGuard ： 代码缩减/类重命名和优化/性能优化
     }
   }
 }
