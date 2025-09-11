@@ -2,12 +2,12 @@ package org.dweb_browser.core.help.types
 
 import dev.whyoleg.cryptography.CryptographyAlgorithmId
 import dev.whyoleg.cryptography.CryptographyProvider
-import dev.whyoleg.cryptography.algorithms.asymmetric.EC
-import dev.whyoleg.cryptography.algorithms.asymmetric.ECDSA
-import dev.whyoleg.cryptography.algorithms.digest.Digest
-import dev.whyoleg.cryptography.algorithms.digest.SHA256
-import dev.whyoleg.cryptography.algorithms.digest.SHA384
-import dev.whyoleg.cryptography.algorithms.digest.SHA512
+import dev.whyoleg.cryptography.algorithms.EC
+import dev.whyoleg.cryptography.algorithms.ECDSA
+import dev.whyoleg.cryptography.algorithms.Digest
+import dev.whyoleg.cryptography.algorithms.SHA256
+import dev.whyoleg.cryptography.algorithms.SHA384
+import dev.whyoleg.cryptography.algorithms.SHA512
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.dweb_browser.core.std.dns.httpFetch
@@ -158,19 +158,20 @@ suspend fun JmmAppInstallManifest.verifySignature(): Boolean {
       }
     )
 
-    val decodedPublicKey = publicKeyDecoder.decodeFrom(when (v1.format) {
-      "RAW" -> EC.PublicKey.Format.RAW
-      "DER" -> EC.PublicKey.Format.DER
-      "PEM" -> EC.PublicKey.Format.PEM
-      "JWK" -> EC.PublicKey.Format.JWK
-      else -> EC.PublicKey.Format.DER
-    }, v1.publicKey.let {
-      when {
-        it.startsWith("base64-") -> it.substringAfter("base64-").base64Binary
-        it.startsWith("hex-") -> it.substringAfter("hex-").base64Binary
-        else -> it.base64Binary
-      }
-    })
+    val decodedPublicKey = publicKeyDecoder.decodeFromByteArray(
+      when (v1.format) {
+        "RAW" -> EC.PublicKey.Format.RAW
+        "DER" -> EC.PublicKey.Format.DER
+        "PEM" -> EC.PublicKey.Format.PEM
+        "JWK" -> EC.PublicKey.Format.JWK
+        else -> EC.PublicKey.Format.DER
+      }, v1.publicKey.let {
+        when {
+          it.startsWith("base64-") -> it.substringAfter("base64-").base64Binary
+          it.startsWith("hex-") -> it.substringAfter("hex-").base64Binary
+          else -> it.base64Binary
+        }
+      })
 
     val signatureDigest: CryptographyAlgorithmId<Digest>
     val signatureBytes: ByteArray
@@ -193,12 +194,12 @@ suspend fun JmmAppInstallManifest.verifySignature(): Boolean {
       else -> return false
     }
 
-
     return decodedPublicKey.signatureVerifier(
-      digest = signatureDigest
-    ).verifySignature(
-      dataInput = Json.encodeToString(this.p.toMap().sortedForJsonStringify()).encodeToByteArray(),
-      signatureInput = signatureBytes,
+      digest = signatureDigest,
+      format = ECDSA.SignatureFormat.RAW
+    ).tryVerifySignature(
+      data = Json.encodeToString(this.p.toMap().sortedForJsonStringify()).encodeToByteArray(),
+      signature = signatureBytes,
     )
 
 //    val keyPairGenerator = ecdsa.keyPairGenerator(EC.Curve.P521)

@@ -14,8 +14,10 @@ import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
 import androidx.compose.material3.adaptive.layout.PaneAdaptedValue
 import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import kotlinx.coroutines.launch
 import org.dweb_browser.browser.data.DataController
 import org.dweb_browser.browser.data.DataI18n
 import org.dweb_browser.helper.compose.NoDataRender
@@ -36,6 +38,8 @@ fun DataController.Render(modifier: Modifier, windowRenderScope: WindowContentRe
   val isListAndDetailVisible =
     navigator.scaffoldValue[ListDetailPaneScaffoldRole.Detail] == PaneAdaptedValue.Expanded && navigator.scaffoldValue[ListDetailPaneScaffoldRole.List] == PaneAdaptedValue.Expanded
 
+  val scope = rememberCoroutineScope()
+
   SharedTransitionLayout {
     AnimatedContent(isListAndDetailVisible, label = "Data Manager") {
       ListDetailPaneScaffold(
@@ -45,13 +49,15 @@ fun DataController.Render(modifier: Modifier, windowRenderScope: WindowContentRe
         listPane = {
           AnimatedPane {
             ListRender { profileDetail ->
-              navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, profileDetail)
+              scope.launch {
+                navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, profileDetail)
+              }
             }
           }
         },
         detailPane = {
           AnimatedPane {
-            when (val profileDetail = navigator.currentDestination?.content) {
+            when (val profileDetail = navigator.currentDestination?.contentKey) {
               null -> WindowContentRenderScope.Unspecified.WindowSurface {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                   Text(DataI18n.select_profile_for_detail_view())

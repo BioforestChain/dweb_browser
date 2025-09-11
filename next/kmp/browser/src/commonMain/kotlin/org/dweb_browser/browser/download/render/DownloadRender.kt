@@ -14,8 +14,10 @@ import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
 import androidx.compose.material3.adaptive.layout.PaneAdaptedValue
 import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.download.DownloadController
 import org.dweb_browser.browser.download.DownloadI18n
@@ -38,6 +40,8 @@ fun DownloadController.Render(modifier: Modifier, windowRenderScope: WindowConte
   val isListAndDetailVisible =
     navigator.scaffoldValue[ListDetailPaneScaffoldRole.Detail] == PaneAdaptedValue.Expanded && navigator.scaffoldValue[ListDetailPaneScaffoldRole.List] == PaneAdaptedValue.Expanded
 
+  val scope = rememberCoroutineScope()
+
   SharedTransitionLayout {
     AnimatedContent(isListAndDetailVisible, label = "Download Manager") {
       ListDetailPaneScaffold(
@@ -51,14 +55,16 @@ fun DownloadController.Render(modifier: Modifier, windowRenderScope: WindowConte
               topBarTitleText = BrowserI18nResource.top_bar_title_download(),
             ) { innerPadding ->
               DownloadList(Modifier.padding(innerPadding)) { downloadTask ->
-                navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, downloadTask)
+                scope.launch {
+                  navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, downloadTask)
+                }
               }
             }
           }
         },
         detailPane = {
           AnimatedPane {
-            when (val downloadTask = navigator.currentDestination?.content) {
+            when (val downloadTask = navigator.currentDestination?.contentKey) {
               null -> WindowContentRenderScope.Unspecified.WindowSurface {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                   Text(DownloadI18n.no_select_detail())

@@ -19,9 +19,11 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import kotlinx.coroutines.launch
 import org.dweb_browser.browser.jmm.JmmI18nResource
 import org.dweb_browser.browser.jmm.JmmMetadata
 import org.dweb_browser.browser.jmm.JmmRenderController
@@ -48,6 +50,8 @@ internal fun JmmRenderController.CommonRender(
   val isListAndDetailVisible =
     navigator.scaffoldValue[ListDetailPaneScaffoldRole.Detail] == PaneAdaptedValue.Expanded && navigator.scaffoldValue[ListDetailPaneScaffoldRole.List] == PaneAdaptedValue.Expanded
   val win = LocalWindowController.current
+  val scope = rememberCoroutineScope()
+
   win.navigation.GoBackHandler(enabled = navigator.canNavigateBack()) {
     navigator.navigateBack()
   }
@@ -55,7 +59,9 @@ internal fun JmmRenderController.CommonRender(
   /// 外部打开应用详情需要，例如桌面上点击应用详情时
   DisposableEffect(outerHistoryJmmMetadata) {
     if(outerHistoryJmmMetadata != null) {
-      navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, outerHistoryJmmMetadata)
+      scope.launch {
+        navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, outerHistoryJmmMetadata)
+      }
     }
     onDispose {
       outerHistoryJmmMetadata = null
@@ -82,7 +88,9 @@ internal fun JmmRenderController.CommonRender(
                   curTab = selectedTab
                 },
                 onOpenDetail = { jmmMetadata ->
-                  navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, jmmMetadata)
+                  scope.launch {
+                    navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, jmmMetadata)
+                  }
                 }
               )
             }
@@ -90,7 +98,7 @@ internal fun JmmRenderController.CommonRender(
         },
         detailPane = {
           AnimatedPane {
-            when (val jmmMetadata = navigator.currentDestination?.content) {
+            when (val jmmMetadata = navigator.currentDestination?.contentKey) {
               null -> WindowContentRenderScope.Unspecified.WindowSurface {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                   Text(JmmI18nResource.no_select_detail())

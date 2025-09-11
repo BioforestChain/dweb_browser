@@ -1,7 +1,7 @@
 package org.dweb_browser.pure.crypto.cipher
 
 import dev.whyoleg.cryptography.CryptographyProvider
-import dev.whyoleg.cryptography.algorithms.symmetric.AES
+import dev.whyoleg.cryptography.algorithms.AES
 
 class AES256GCM {
   companion object {
@@ -12,7 +12,7 @@ class AES256GCM {
     /**
      * 将指定字符串，通过 sha256 转成合法的 AES.GCM 的 key
      */
-    internal suspend fun getCipher(key: ByteArray) = keyDecoder.decodeFrom(
+    internal suspend fun getCipher(key: ByteArray) = keyDecoder.decodeFromByteArray(
       AES.Key.Format.RAW, key
     ).cipher()
   }

@@ -1,25 +1,29 @@
 package org.dweb_browser.helper
 
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import kotlinx.datetime.DateTimeUnit
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.minus
 import kotlinx.datetime.toLocalDateTime
+import kotlin.time.ExperimentalTime
 
 /**
  * Epoch Milliseconds
  */
+@OptIn(ExperimentalTime::class)
 public fun datetimeNow(): Long = Clock.System.now().toEpochMilliseconds()
 
 /**
  * 获取从1970到现在的天数
  */
+@OptIn(ExperimentalTime::class)
 public fun datetimeNowToEpochDay(): Long = Clock.System.now().toEpochDay()
 
 /**
  * 转为天数
  */
+@OptIn(ExperimentalTime::class)
 public fun Long.toEpochDay(): Long {
   return Instant.fromEpochMilliseconds(this).toEpochDay()
 }
@@ -27,6 +31,7 @@ public fun Long.toEpochDay(): Long {
 /**
  * 比对天数差，返回0表示同一天，正数表示大于当前时间的天数，负数表示小于当前时间的天数
  */
+@OptIn(ExperimentalTime::class)
 public fun Long.compareNowDayByMilliseconds(): Long {
   val lastInstant = Instant.fromEpochMilliseconds(this)
   val nowInstant = Clock.System.now()
@@ -36,6 +41,7 @@ public fun Long.compareNowDayByMilliseconds(): Long {
 /**
  * 转化为时间格式
  */
+@OptIn(ExperimentalTime::class)
 public fun Long.formatTimestampByMilliseconds(): String {
   val instant = Instant.fromEpochMilliseconds(this)
   val localDateTime = instant.toLocalDateTime(TimeZone.currentSystemDefault())
@@ -45,12 +51,14 @@ public fun Long.formatTimestampByMilliseconds(): String {
 /**
  * 转化为日期格式
  */
+@OptIn(ExperimentalTime::class)
 public fun Long.formatDatestampByMilliseconds(): String {
   val instant = Instant.fromEpochMilliseconds(this)
   val localDateTime = instant.toLocalDateTime(TimeZone.currentSystemDefault())
   return localDateTime.date.toString()
 }
 
+@OptIn(ExperimentalTime::class)
 public fun Long.formatDatestampByEpochDay(): String {
   val instant = Instant.fromEpochDays(this)
   val localDateTime = instant.toLocalDateTime(TimeZone.currentSystemDefault())
@@ -71,6 +79,7 @@ private const val DAYS_0000_TO_1970 = (DAYS_PER_CYCLE * 5L) - (30L * 365L + 7L)
 /**
  * 计算从1970年到现在的天数
  */
+@OptIn(ExperimentalTime::class)
 private fun Instant.toEpochDay(): Long {
   val localDateTime = this.toLocalDateTime(TimeZone.currentSystemDefault())
   val year = localDateTime.year
@@ -101,6 +110,7 @@ private fun isLeapYear(year: Int): Boolean {
 /**
  * 将天数的转为Instant对象
  */
+@OptIn(ExperimentalTime::class)
 private fun Instant.Companion.fromEpochDays(days: Long): Instant {
   val milliseconds = days * 24 * 60 * 60 * 1000
   return fromEpochMilliseconds(milliseconds)

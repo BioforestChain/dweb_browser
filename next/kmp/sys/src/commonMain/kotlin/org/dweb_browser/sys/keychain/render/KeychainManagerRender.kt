@@ -15,8 +15,10 @@ import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
 import androidx.compose.material3.adaptive.layout.PaneAdaptedValue
 import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import kotlinx.coroutines.launch
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.sys.keychain.KeychainI18nResource
 import org.dweb_browser.sys.keychain.KeychainManager
@@ -41,6 +43,8 @@ fun KeychainManager.Render(
   val isListAndDetailVisible =
     navigator.scaffoldValue[ListDetailPaneScaffoldRole.Detail] == PaneAdaptedValue.Expanded && navigator.scaffoldValue[ListDetailPaneScaffoldRole.List] == PaneAdaptedValue.Expanded
 
+  val scope = rememberCoroutineScope()
+
   SharedTransitionLayout {
     AnimatedContent(isListAndDetailVisible, label = "Keychain Manager") {
       ListDetailPaneScaffold(
@@ -50,13 +54,15 @@ fun KeychainManager.Render(
         listPane = {
           AnimatedPane {
             ListView(Modifier, WindowContentRenderScope.Unspecified) { manifest ->
-              navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, manifest)
+              scope.launch {
+                navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, manifest)
+              }
             }
           }
         },
         detailPane = {
           AnimatedPane {
-            when (val manifest = navigator.currentDestination?.content) {
+            when (val manifest = navigator.currentDestination?.contentKey) {
               null -> WindowContentRenderScope.Unspecified.WindowSurface {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                   Text(KeychainI18nResource.no_select_detail())
